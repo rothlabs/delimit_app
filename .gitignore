@@ -1,0 +1,7 @@
+__pycache__
+*.FCStd
+*.obj
+*.svg
+*.png
+*.stl
+*.step
