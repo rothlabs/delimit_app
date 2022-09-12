@@ -1,5 +1,5 @@
 # Delimit Shoes
-All-in-one repo. May be split up into App and CAx later.
+All-in-one repo. Maybe split up into App and CAx later.
 
 ## App
 ### Babylon
