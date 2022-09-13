@@ -1,4 +1,5 @@
 __pycache__
+*.sqlite3
 *.FCStd
 *.FCStd1
 *.obj
