@@ -1,9 +1,12 @@
 __pycache__
-*.sqlite3
+/web/env
+/web/static
+
 *.FCStd
 *.FCStd1
 *.obj
-*.svg
-*.png
 *.stl
 *.step
+
+*.svg
+*.png
