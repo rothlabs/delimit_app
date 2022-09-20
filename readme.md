@@ -24,8 +24,8 @@ Activate environment
 Install dependencies.  
 ```pip install django psycopg2-binary```  
 Perform database schema migration.  
-```./manage.py makemigrations```
-```./manage.py migrate```
+```./manage.py makemigrations```  
+```./manage.py migrate```  
 Collect static files.  
 ```./manage.py collectstatic```  
 Run test server.  
