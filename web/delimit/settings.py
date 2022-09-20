@@ -25,12 +25,13 @@ SECRET_KEY = 'django-insecure-#*97=e*s0f!8r2l#qltp#(ndd9ku*-(cq_4%b!ihvzih1xsq#4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['delimit.art', 'www.delimit.art','localhost']
+ALLOWED_HOSTS = ['delimit.art','www.delimit.art','localhost']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'library.apps.LibraryConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
