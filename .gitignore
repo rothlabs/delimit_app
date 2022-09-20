@@ -4,9 +4,15 @@ __pycache__
 
 *.FCStd
 *.FCStd1
+*.blend
+*.blend1
 *.obj
 *.stl
 *.step
 
 *.svg
 *.png
+*.jpg
+
+*.pdf
+*.nc

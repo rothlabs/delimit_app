@@ -1,5 +1,5 @@
 '''
-FreeCAD Server
+FreeCAD Worker
 '''
 
 import config

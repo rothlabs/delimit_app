@@ -16,19 +16,31 @@ In the Postgres session, do the following.
 ```GRANT ALL PRIVILEGES ON DATABASE delimit TO delimit;```  
 ```\q```
 ### Setup django
-Move into web folder.  
-```cd delimit/web```  
+Move into web folder: delimit/web  
 Make virtual environment.  
-```python3 -m venv env```  
+```python3 -m venv web_env```  
 Activate environment  
-```source env/bin/activate```  
+```source web_env/bin/activate```  
 Install dependencies.  
 ```pip install django psycopg2-binary```  
+Perform database schema migration.  
+```./manage.py makemigrations```
+```./manage.py migrate```
 Collect static files.  
-```python3 manage.py collectstatic```  
+```./manage.py collectstatic```  
 Run test server.  
-```python3 manage.py runserver 0.0.0.0:8000```  
+```./manage.py runserver```  
 Check if the website loads at localhost:8000 in your browser. Go to localhost:8000/admin for admin portal.  
+When done working on web stuff, deactivate web_env.  
+```deactivate```  
+### Test FreeCAD
+Move into cax folder: delimit/cax  
+Run freecad worker. Make sure freecad is in your PATH.  
+```freecad freecad_worker.py```  
+### Test Blender
+Move into cax folder: delimit/cax  
+Run blender worker. Make sure blender is in your PATH.  
+```blender -P blender_worker.py```  
 
 ## Web data flow
 ### Django
