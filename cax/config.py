@@ -1,0 +1,1 @@
+wd = 'assets/' # working directory

@@ -1,7 +1,11 @@
+'''
+FreeCAD Server
+'''
+
 import config
 
 def FreeCAD_Document(name):
-    return FreeCAD.openDocument(config.cax_path + name +'.FCStd')
+    return FreeCAD.openDocument(config.wd + name +'.FCStd')
 
 doc = FreeCAD_Document('insole')
 

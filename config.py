@@ -1,1 +1,0 @@
-cax_path = 'cax/'
