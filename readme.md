@@ -42,6 +42,10 @@ Move into cax folder: delimit/cax
 Run blender worker. Make sure blender is in your PATH.  
 ```blender -P blender_worker.py```  
 
+## Production
+If the changes aren't visible after pull, restart gunicorn.  
+```systemctl restart gunicorn```  
+
 ## Web data flow
 ### Django
 .json -> Django -> .json
