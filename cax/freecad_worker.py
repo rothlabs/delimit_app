@@ -22,3 +22,5 @@ f.TaperAngle = 0.0
 f.TaperAngleRev = 0.0
 
 doc.recompute()
+
+print('wow, much freecad')
