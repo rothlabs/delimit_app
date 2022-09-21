@@ -1,13 +1,8 @@
 '''
-FreeCAD Worker
+FreeCAD Example
 '''
 
-import config
-
-def FreeCAD_Document(name):
-    return FreeCAD.openDocument(config.wd + name +'.FCStd')
-
-doc = FreeCAD_Document('insole')
+doc = FreeCAD.openDocument('templates/insole.FCStd')
 
 f = doc.addObject('Part::Extrusion','Extrude')
 f.Base = doc.getObjectsByLabel('sketch')[0]

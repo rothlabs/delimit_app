@@ -1,6 +1,7 @@
 __pycache__
-/web/env
 /web/web_env
 /web/static
 
 *.DS_Store
+
+*.FCStd1

@@ -61,7 +61,6 @@ source web_env/bin/activate
 Install dependencies.  
 ```
 pip install django psycopg2-binary
-pip install gunicorn
 ```  
 Perform database schema migration
 ```
@@ -85,24 +84,26 @@ deactivate
 ```  
 
 ### Test FreeCAD
-Inside `delimit/cax`, run freecad worker. Make sure freecad is in your PATH.  
+Inside `delimit/cax/freecad`, run freecad example. Make sure freecad is in your PATH.  
 For MacOS, the path is `/Applications/FreeCAD.app/Contents/Resources/bin`
 ```
-freecad freecad_worker.py
+freecad example.py
 ```  
 ### Test Blender
-Inside `delimit/cax`, run blender worker. Make sure blender is in your PATH. For MacOS installing blender using **homebrew** should take care of this.
+Inside `delimit/cax/blender`, run blender example. Make sure blender is in your PATH. For MacOS installing blender using **homebrew** should take care of this.
 ```
-blender -P blender_example.py
+blender -b -P example.py
 ```  
 
 #### MacOS
 ```
-blender -b -P blender_example.py
+blender -b -P example.py
 ```
 This will take a few minutes to complete. You will see a picture generated in `delimit/cax/rendering`
 
 ## Production
+Production is setup based on these instructions:  
+https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-22-04  
 If the changes aren't visible after pull, restart gunicorn.  
 ```
 systemctl restart gunicorn
@@ -115,21 +116,21 @@ kill -HUP <pid>
 With `<pid>` beign the process id of `gunicorn` 
 
 ## Web data flow
-### Django
-```
-.json -> Django -> .json
-```
 ### Babylon
 ```
-(User, gltf) -> Babylon -> .json
+(user, json, gltf, svg) -> Babylon -> (json, svg) 
+```
+### Django
+```
+(json, svg) -> Django -> (json, svg)
 ```
 ## CAx data flow
 ### FreeCAD
 ```
-.json -> FreeCAD -> (.obj, .nc)
+(json, svg) -> FreeCAD -> (obj, nc)
 ```
 ### Blender
 ```
-.obj -> Blender -> .gltf
+(json, obj) -> Blender -> (gltf, png)
 ```
 
