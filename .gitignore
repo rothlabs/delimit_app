@@ -1,18 +1,6 @@
 __pycache__
 /web/env
+/web/web_env
 /web/static
 
-*.FCStd
-*.FCStd1
-*.blend
-*.blend1
-*.obj
-*.stl
-*.step
-
-*.svg
-*.png
-*.jpg
-
-*.pdf
-*.nc
+*.DS_Store

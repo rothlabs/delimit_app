@@ -1,60 +1,135 @@
 # Delimit Monorepo
-All-in-one repo. Maybe split up into Web and CAx later.
+All-in-one repo. 
+
+## TODOs: 
+- Maybe split up into Web and CAx later.
 
 ## Getting Started
+
 ### Setup test database
+#### Linux
 Install postgresql.  
-```sudo apt install postgresql```  
+```
+sudo apt install postgresql
+```  
 Log into an interactive Postgres session.  
-```sudo -u postgres psql```  
+```
+sudo -u postgres psql
+```  
+
+#### MacOS
+Install postgresql.
+```bash
+brew install postgresql
+```  
+
+Start the server
+```
+brew services start postgresql 
+```
+or the following to have it not restart at boot time
+```
+brew services run postgresql
+```
+
+Log into an interactive Postgres session.
+```
+psql postgres
+```  
+
+### Set up Postgres
 In the Postgres session, do the following.  
-```CREATE DATABASE delimit;```  
-```CREATE USER delimit WITH PASSWORD 'g88mphftt';```  
-```ALTER ROLE delimit SET client_encoding TO 'utf8';```  
-```ALTER ROLE delimit SET default_transaction_isolation TO 'read committed';```  
-```ALTER ROLE delimit SET timezone TO 'UTC';```  
-```GRANT ALL PRIVILEGES ON DATABASE delimit TO delimit;```  
-```\q```
+```postgres
+CREATE DATABASE delimit; 
+CREATE USER delimit WITH PASSWORD 'g88mphftt'; 
+ALTER ROLE delimit SET client_encoding TO 'utf8';
+ALTER ROLE delimit SET default_transaction_isolation TO 'read committed';  
+ALTER ROLE delimit SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE delimit TO delimit;
+\q
+```
+
 ### Setup django
-Move into web folder: delimit/web  
-Make virtual environment.  
-```python3 -m venv web_env```  
+Inside `delimit/web`, create virtual environment.  
+```
+python3 -m venv web_env
+```  
 Activate environment  
-```source web_env/bin/activate```  
+```
+source web_env/bin/activate
+```  
 Install dependencies.  
-```pip install django psycopg2-binary```  
-Perform database schema migration.  
-```./manage.py makemigrations```  
-```./manage.py migrate```  
-Collect static files.  
-```./manage.py collectstatic```  
-Run test server.  
-```./manage.py runserver```  
-Check if the website loads at localhost:8000 in your browser. Go to localhost:8000/admin for admin portal.  
-When done working on web stuff, deactivate web_env.  
-```deactivate```  
+```
+pip install django psycopg2-binary
+pip install gunicorn
+```  
+Perform database schema migration
+```
+./manage.py makemigrations
+./manage.py migrate
+```  
+Collect static files
+```
+./manage.py collectstatic
+```  
+Run test server
+```
+./manage.py runserver
+```  
+Check if the website loads at `localhost:8000` in your browser. Go to `localhost:8000/admin` for admin portal.  
+`Ctrl+C` To stop the webserver
+
+When done working on web stuff, deactivate web_env
+```
+deactivate
+```  
+
 ### Test FreeCAD
-Move into cax folder: delimit/cax  
-Run freecad worker. Make sure freecad is in your PATH.  
-```freecad freecad_worker.py```  
+Inside `delimit/cax`, run freecad worker. Make sure freecad is in your PATH.  
+For MacOS, the path is `/Applications/FreeCAD.app/Contents/Resources/bin`
+```
+freecad freecad_worker.py
+```  
 ### Test Blender
-Move into cax folder: delimit/cax  
-Run blender worker. Make sure blender is in your PATH.  
-```blender -P blender_worker.py```  
+Inside `delimit/cax`, run blender worker. Make sure blender is in your PATH. For MacOS installing blender using **homebrew** should take care of this.
+```
+blender -P blender_example.py
+```  
+
+#### MacOS
+```
+blender -b -P blender_example.py
+```
+This will take a few minutes to complete. You will see a picture generated in `delimit/cax/rendering`
 
 ## Production
 If the changes aren't visible after pull, restart gunicorn.  
-```systemctl restart gunicorn```  
+```
+systemctl restart gunicorn
+```  
+
+#### MacOS
+```
+kill -HUP <pid>
+```
+With `<pid>` beign the process id of `gunicorn` 
 
 ## Web data flow
 ### Django
+```
 .json -> Django -> .json
+```
 ### Babylon
+```
 (User, gltf) -> Babylon -> .json
-
+```
 ## CAx data flow
 ### FreeCAD
+```
 .json -> FreeCAD -> (.obj, .nc)
+```
 ### Blender
+```
 .obj -> Blender -> .gltf
+```
 
