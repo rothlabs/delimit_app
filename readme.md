@@ -1,8 +1,5 @@
-# Delimit Monorepo
-All-in-one repo. 
-
-## TODOs: 
-- Maybe split up into Web and CAx later.
+# Delimit
+Artistic footwear design web app. Includes computer-aided design and manufacturing (CAx) module. 
 
 ## Getting Started
 
