@@ -1,0 +1,14 @@
+*.FCStd binary
+*.FCStd1 binary
+*.blend binary
+*.blend1 binary
+*.obj binary
+*.stl binary
+*.step binary
+
+*.svg binary
+*.png binary
+*.jpg binary
+
+*.pdf binary
+*.nc binary
