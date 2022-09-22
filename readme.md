@@ -131,3 +131,4 @@ With `<pid>` beign the process id of `gunicorn`
 (json, obj) -> Blender -> (gltf, png)
 ```
 
+[Software development process](https://docs.google.com/document/d/1tRWYg5H_MLdlJAFzCSrXW3bG_a9W1qh-CDyd5hQHdwc/edit?usp=sharing)

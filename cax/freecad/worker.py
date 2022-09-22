@@ -4,8 +4,10 @@ FreeCAD Worker
 
 import core
 
-doc = core.Template('shoe')
+shoe = core.Template('shoe')
 
-obj = doc.select('insole/common/extrude_yz')
+insole_sketch_yz = shoe.select('insole/common/extrude_yz/sketch_yz')
 
-print(obj.Label)
+# insert svg geometry into insole_sketch_yz
+shoe.doc.recompute()
+
