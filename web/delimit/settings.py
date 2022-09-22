@@ -108,24 +108,27 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
+#>>>>>>>>>>> https://djangodeployment.readthedocs.io/en/latest/05-static-files.html <<<<<<<<<<<<<<
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
-
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/') # local
+# STATIC_ROOT = '/var/cache/delimit/static/'    # deployment
+
+# Media files (user uploaded images, generated 3D models, etc)
+# https://docs.djangoproject.com/en/4.1/topics/files/
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')   # local
+#MEDIA_ROOT = '/var/opt/delimit/media/'         # deployment
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
