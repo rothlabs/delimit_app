@@ -1,21 +1,21 @@
 '''
 FreeCAD Example
+Make the insole an ellipse from top view.
 '''
 
-doc = FreeCAD.openDocument('templates/insole.FCStd')
+import core
 
-f = doc.addObject('Part::Extrusion','Extrude')
-f.Base = doc.getObjectsByLabel('sketch')[0]
-f.DirMode = "Normal"
-f.DirLink = None
-f.LengthFwd = 10.0
-f.LengthRev = 0.0
-f.Solid = True
-f.Reversed = False
-f.Symmetric = False
-f.TaperAngle = 0.0
-f.TaperAngleRev = 0.0
+shoe = core.Template('shoe')
 
-doc.recompute()
+ellipse = Part.Ellipse()
+ellipse.MajorRadius = 150 # mm
+ellipse.MinorRadius = 50 # mm
+ellipse.rotate(core.rotate((0,0,1), 90))
+
+sketch = shoe.select('insole/common/extrude_xy/sketch_xy')
+sketch.deleteAllGeometry()
+sketch.addGeometry(ellipse)
+
+shoe.doc.recompute()
 
 print('wow, much freecad')
