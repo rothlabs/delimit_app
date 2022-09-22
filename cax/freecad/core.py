@@ -1,6 +1,6 @@
 import FreeCAD
 
-class Template:
+class Template():
     
     def __init__(self, name):
         self.doc = FreeCAD.openDocument('templates/'+name+'.FCStd') 
