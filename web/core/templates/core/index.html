@@ -1,0 +1,11 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+  <h1>home page so cool</h1>
+  <p>Welcome to home page, a website developed by <em>Delimit</em>!</p>
+  <h2>Dynamic content</h2>
+  <p>Record counts:</p>
+  <ul>
+    <li><strong>catalog.models.Products:</strong> {{ num_products }}</li>
+  </ul>
+{% endblock %}

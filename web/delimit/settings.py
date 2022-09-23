@@ -32,7 +32,9 @@ ALLOWED_HOSTS = ['delimit.art','www.delimit.art','localhost']
 # Application definition
 
 INSTALLED_APPS = [
+    'core.apps.CoreConfig',
     'catalog.apps.CatalogConfig',
+    'easel.apps.EaselConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
