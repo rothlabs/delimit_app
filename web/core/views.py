@@ -1,3 +1,6 @@
 from django.shortcuts import render
+from catalog.models import Product
 
-# Create your views here.
+def index(request):
+    context = {'num_products' : Product.objects.count}
+    return render(request, 'core/index.html', context)
