@@ -2,5 +2,8 @@
 
 {% block content %}
   <h1>Welcome to the easel!</h1>
-  <p>So much content here.</p>
+  <p>Select a product to edit.</p>
+  {% for product in product_list %}
+    <li><a href="{% url 'easel:edit' product.id %}">{{ product.name }}</a></li>
+  {% endfor %}
 {% endblock %}
