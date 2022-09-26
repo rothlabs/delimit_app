@@ -1,12 +1,13 @@
-from django.forms import ModelForm, TextInput
+from django.forms import ModelForm, NumberInput
 from catalog.models import Product
+
+class RangeInput(NumberInput):
+    input_type = "range"
 
 class Edit_Form(ModelForm):
     class Meta:
         model = Product
-        fields = ['name']
-        #widgets = {
-        #    'name': TextInput(attrs={
-        #        'class': "form-control",
-        #        }),
-        #}
+        fields = ['name','top_sketch','side_sketch','heel_height']
+        widgets = {
+            'heel_height': RangeInput(attrs={}),
+        }
