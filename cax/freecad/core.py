@@ -8,6 +8,7 @@ class Template:
     
     def __init__(self, name):
         self.doc = fc.openDocument('templates/'+name+'.FCStd') 
+        self.objects = self.doc.Objects
         
     def select(self, path):
         path = path.split('/')
@@ -20,6 +21,11 @@ class Template:
                     else:
                         return obj
         return search(self.doc.RootObjects)
+    
+    def latest(self):
+        latest_objects = list(set(self.doc.Objects) - set(self.objects))
+        self.objects = self.doc.Objects
+        return latest_objects
 
 
 # https://forum.freecadweb.org/viewtopic.php?t=16110
