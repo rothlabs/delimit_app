@@ -1,0 +1,4 @@
+#!/bin/bash
+cd web
+source web_env/bin/activate
+./manage.py runserver

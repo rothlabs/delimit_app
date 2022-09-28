@@ -2,25 +2,19 @@
 FreeCAD Worker
 '''
 
-import core # Delimit
-import asyncio, json, threading, xml.sax, traceback # Python Built-In
-from importSVG import svgHandler # FreeCAD
+import core # From Delimit
+import asyncio, json, threading, traceback # From Python Built-In
 
-product = core.Template('shoe')
-insole_xy = product.select('insole/common/extrude_xy')
-insole_yz = product.select('insole/common/extrude_yz')
+product = core.Product('shoe')
+sole_xy = product.get('shape/sole/extrude_xy')
+sole_yz = product.get('shape/sole/extrude_yz')
 
 async def update(reader, writer):
     data = await reader.read()
     data = json.loads(data.decode())
-    handler = svgHandler()
-    handler.doc = product.doc
-    xml.sax.parseString(data['sketch_xy'],handler)
-    latest = product.latest()
-    #print([o.Label for o in latest])
-    latest[0].Visibility = False
-    insole_xy.Base = latest[0]
-    product.doc.recompute()
+    product.svg_base(data['sketch_xy'], sole_xy)
+    #product.svg_base(data['sketch_yz'], sole_yz)
+    product.export()
 
 async def main():
     server = await asyncio.start_server(update,'127.0.0.1',8888)
@@ -36,6 +30,9 @@ try:
 except Exception:
     print(traceback.format_exc())
 
+
+
+#print([o.Label for o in latest])
 
 #with open('/home/julian/delimit/cax/freecad/input/top_sketch.svg', 'w+') as svg_file:
     #    svg_file.write(data['sketch_xy'])
