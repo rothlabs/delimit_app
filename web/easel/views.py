@@ -33,6 +33,6 @@ class Edit_View(UpdateView):
         with path.open(mode='rb') as f:
             product.glb = File(f, name=path.name) 
             product.save()
-        # Old file is not automatically overritten/deleted. Manual cleanup required. See the following:
+        # Old file is not automatically overritten/deleted. Need to write cleanup system. See the following:
         # https://stackoverflow.com/questions/16041232/django-delete-filefield
         return super(Edit_View,self).post(request,*args,**kwargs)

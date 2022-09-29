@@ -1,10 +1,56 @@
 {% extends "core/base.html" %}
-
 {% block content %}
+
+
     <h1>{{ product.name }}</h1>
     <form method="post">{% csrf_token %}
         {{ form.as_p }}
         <input type="submit" value="Update">
     </form>
     <a href="{% url 'easel:index' %}">Back</a>
+
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+        const light = new THREE.AmbientLight( 0x404040 ); // soft white light
+        scene.add( light );
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        //const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+        //const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+        //const cube = new THREE.Mesh( geometry, material );
+        //scene.add( cube );
+        const loader = new GLTFLoader();
+        loader.load( '{{ product.glb.url }}', function ( gltf ) {
+            scene.add( gltf.scene );
+            camera.position.z = 250;
+            renderer.render( scene, camera );
+        }, undefined, function ( error ) {
+            console.error( error );
+        } );
+
+        
+
+        //function animate() {
+        //    requestAnimationFrame( animate() );
+
+        //    cube.rotation.x += 0.01;
+        //    cube.rotation.y += 0.01;
+
+        //    renderer.render( scene, camera );
+        //};
+
+        //animate();
+    </script>
+
+
 {% endblock %}
