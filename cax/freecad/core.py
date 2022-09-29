@@ -26,6 +26,7 @@ class Product:
     
     def svg_base(self, svg, base):
         xml.sax.parseString(svg, self.svg_handler)
+        self.doc.removeObject(base.Base.Name)
         base.Base = self.doc.Objects[-1]
         self.doc.Objects[-1].Visibility = False
 
@@ -33,7 +34,7 @@ class Product:
         self.doc.recompute()
         self.mesh.Mesh = MeshPart.meshFromShape(self.shape.Shape, LinearDeflection=0.08, AngularDeflection=0.15, Relative=False)
         self.mesh.recompute()
-        Mesh.export([self.mesh],'../blender/input/product.obj')
+        Mesh.export([self.mesh],'../tmp/product.obj')
 
 
 #def latest(self):

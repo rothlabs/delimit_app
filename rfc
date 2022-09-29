@@ -1,0 +1,4 @@
+#!/bin/bash
+# Run freecad worker in background
+cd cax/freecad
+freecad --console worker.py

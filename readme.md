@@ -131,4 +131,27 @@ With `<pid>` beign the process id of `gunicorn`
 (json, obj) -> Blender -> (gltf, png)
 ```
 
+## Help
 [Software development process](https://docs.google.com/document/d/1tRWYg5H_MLdlJAFzCSrXW3bG_a9W1qh-CDyd5hQHdwc/edit?usp=sharing)
+
+## Blender Addon Modification
+To make gltf2 export work without GUI, follow these instructions:  
+Go to the following folder.  
+```
+/blender-3.2.2/3.2/scripts/addons/io_scene_gltf2/blender/exp/  
+```
+Remove the following from gltf2_blender_export.py   
+```
+if bpy.context.active_object is not None:  
+        if bpy.context.active_object.mode != "OBJECT": # For linked object, you can't force OBJECT mode  
+            bpy.ops.object.mode_set(mode='OBJECT')  
+```
+Remove the following from gltf2_blender_gather_tree.py  
+```
+bpy.context.window.scene = blender_scene  
+```
+Remove the following from gltf2_blender_gather.py  
+```
+bpy.context.window.scene = store_user_scene
+```
+See https://github.com/KhronosGroup/glTF-Blender-IO/issues/1281  
