@@ -25,10 +25,10 @@ async def update(reader, writer):
 
     data_out = {'success': False}
     try: 
-        product.svg_base(data_in['sketch_xy'], sole_xy)
-        #product.svg_base(data['sketch_yz'], sole_yz)
-        product.export()
-        data_in = await blender({'update': True}) # Add meta data such as desired detail
+        product.svg_base(data_in['sketch_xy'], sole_xy, 'xy')
+        product.svg_base(data_in['sketch_yz'], sole_yz, 'yz')
+        product.export(data_in['product_id'])
+        data_in = await blender({'product_id': data_in['product_id']}) # Add meta data such as desired detail
         if data_in['success']:
             data_out = {'success': True} # Add meta data such as price, weight, etc
     except Exception:

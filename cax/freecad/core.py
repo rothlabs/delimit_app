@@ -3,6 +3,8 @@ from importSVG import svgHandler # From FreeCAD
 import MeshPart, Mesh # From FreeCAD
 import xml.sax # From Python Built-In
 
+v = fc.Vector
+
 class Product:
     
     def __init__(self, name):
@@ -24,17 +26,25 @@ class Product:
                         return obj
         return search(self.doc.RootObjects)
     
-    def svg_base(self, svg, base):
+    def svg_base(self, svg, base, target_plane):
         xml.sax.parseString(svg, self.svg_handler)
         self.doc.removeObject(base.Base.Name)
         base.Base = self.doc.Objects[-1]
         self.doc.Objects[-1].Visibility = False
+        shp = self.doc.Objects[-1].Shape.copy()
+        if target_plane == 'xy':
+            shp.rotate(v(0,0,0), v(0,0,1), 90)
+        if target_plane == 'yz':
+            shp.rotate(v(0,0,0), v(1,1,1), 120)
+        self.doc.Objects[-1].Shape = shp
 
-    def export(self):
-        self.doc.recompute()
+    def export(self,product_id):
+        self.doc.recompute() # need to check for unexpected zero volume and report failure
         self.mesh.Mesh = MeshPart.meshFromShape(self.shape.Shape, LinearDeflection=0.08, AngularDeflection=0.15, Relative=False)
         self.mesh.recompute()
-        Mesh.export([self.mesh],'../tmp/product.obj')
+        Mesh.export([self.mesh],'../tmp/'+str(product_id)+'.obj')
+
+    
 
 
 #def latest(self):
