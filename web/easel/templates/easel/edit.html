@@ -1,4 +1,5 @@
 {% extends "core/base.html" %}
+{% load static %}
 {% block content %}
 
     <div class="row">
@@ -14,89 +15,16 @@
     </div>
 
 
-
     <script type="module">
-        import * as THREE from 'three';
-
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        //import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-
-
-        let height;// = 500;
-        d3 = document.getElementById("d3");
-
-
-        const renderer = new THREE.WebGLRenderer();
-        //renderer.toneMappingExposure = 0.8;
-        //renderer.setSize( d3.offsetWidth*1.5, d3.offsetHeight*1.5 );
-        d3.appendChild( renderer.domElement );
-
-        function update_viewport() {
-            height = d3.offsetWidth * 0.8;
-            camera.aspect = d3.offsetWidth / height;
-            camera.updateProjectionMatrix();
-            renderer.setSize( d3.offsetWidth, height );
-        };
-
-        window.onresize = function(){
-            update_viewport();
-        };
-        
-
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color( 0xFFFFFF );
-
-        //const pmremGenerator = new THREE.PMREMGenerator( renderer );
-        //scene.environment = pmremGenerator.fromScene( new RoomEnvironment(), 0.04 ).texture;
-        
-        const camera = new THREE.PerspectiveCamera( 75, d3.offsetWidth / height, 0.1, 1000 );
-        camera.position.z = 250;
-
-        const controls = new OrbitControls( camera, renderer.domElement );
-        controls.target.set( 0, 0, 0 );
-        controls.update();
-        controls.enablePan = false;
-        controls.enableDamping = true;
-
-        const light = new THREE.DirectionalLight( 0xFFFFFF, .7 ); // soft white light
-        scene.add( light );
-        const ambient_light = new THREE.AmbientLight( 0x404040 ); // soft white light
-        scene.add( ambient_light );
-        
-
-        let model;
-
-        //const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-        //const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-        //const cube = new THREE.Mesh( geometry, material );
-        //scene.add( cube );
-        const loader = new GLTFLoader();
-        loader.load( '{{ product.glb.url }}', function ( gltf ) {
-            scene.add( gltf.scene );
-            model = gltf
-            animate();
-        }, undefined, function ( error ) {
-            console.error( error );
-        } );
-
-        
-
-        function animate() {
-            requestAnimationFrame( animate );
-
-            //model.rotation.x += 0.01;
-            //model.rotation.y += 0.01;
-
-            controls.update();
-
-            light.position.set( camera.position.x,camera.position.y,camera.position.z );
-            //console.log(light.position);
-            renderer.render( scene, camera );
-        };
-
-        update_viewport();
+        import * as d3 from 'd3';
+        d3.easel('{{product.glb.url}}',
+                '{{product.view_x}}',
+                '{{product.view_y}}',
+                '{{product.view_z}}',
+                '{{product.side_sketch.svg|escapejs}}',
+                );
     </script>
+    
 
 
 {% endblock %}
