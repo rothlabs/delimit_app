@@ -40,7 +40,9 @@ class Product:
 
     def export(self,product_id):
         self.doc.recompute() # need to check for unexpected zero volume and report failure
-        self.mesh.Mesh = MeshPart.meshFromShape(self.shape.Shape, LinearDeflection=0.08, AngularDeflection=0.15, Relative=False)
+        shp = self.shape.Shape.copy()
+        shp.rotate(v(0,0,0), v(1,0,0), -90)
+        self.mesh.Mesh = MeshPart.meshFromShape(shp, LinearDeflection=0.08, AngularDeflection=0.15, Relative=False)
         self.mesh.recompute()
         Mesh.export([self.mesh],'../tmp/'+str(product_id)+'.obj')
 
