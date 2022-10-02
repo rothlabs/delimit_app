@@ -25,8 +25,8 @@ async def update(reader, writer):
 
     data_out = {'success': False}
     try: 
-        product.svg_base(data_in['sketch_xy'], sole_xy, 'xy')
-        product.svg_base(data_in['sketch_yz'], sole_yz, 'yz')
+        product.svg_base(data_in['sketch_xy'], sole_xy, 'xy', core.v(1,1,1))
+        product.svg_base(data_in['sketch_yz'], sole_yz, 'yz', core.v(1,data_in['heel_height'],1))
         product.export(data_in['product_id'])
         data_in = await blender({'product_id': data_in['product_id']}) # Add meta data such as desired detail
         if data_in['success']:

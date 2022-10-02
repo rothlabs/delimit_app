@@ -1,19 +1,19 @@
 from django.views.generic import ListView, UpdateView
 from django.core.files import File
 from django.conf import settings
-from catalog.models import Product, Sketch
+from catalog.models import Shoe, Sketch
 from .forms import Edit_Form
 import asyncio, json, pathlib # From Python Built-In
 
 class Index_View(ListView):
-    model = Product
+    model = Shoe
     template_name = 'easel/index.html'
 
 
-# Instead of waiting for CAx to be done, provide htttp response immediately and 
-# use Django Channels to push updated model when ready
 class Edit_View(UpdateView):
-    model = Product
+    print(Shoe.objects.last().data())
+
+    model = Shoe
     form_class = Edit_Form
     template_name = 'easel/edit.html'
 
@@ -30,14 +30,20 @@ class Edit_View(UpdateView):
             writer.close()
         asyncio.run(cax({ # send product id, sketches, and more to cax
                 'product_id':  product.id, 
-                'sketch_xy':   Sketch.objects.get(pk = request.POST['top_sketch']).svg, 
-                'sketch_yz':   Sketch.objects.get(pk = request.POST['side_sketch']).svg,
-                'heel_height': Sketch.objects.get(pk = request.POST['heel_height']),
+                'sketch_xy':   Sketch.objects.get(pk = request.POST['sketch_xy']).file.path, 
+                'sketch_yz':   Sketch.objects.get(pk = request.POST['sketch_yz']).file.path,
+                'heel_height': float(request.POST['heel_height']), 
             }))
 
         path = pathlib.Path('../cax/tmp/'+str(product.id)+'.glb') # 3D file from cax 
         with path.open(mode='rb') as f:
-            product.glb = File(f, name=path.name) 
+            product.file = File(f, name=path.name) 
             product.save()
 
         return super(Edit_View,self).post(request,*args,**kwargs)
+
+
+
+# Consider:
+# Instead of waiting for CAx to be done, provide htttp response immediately and 
+# use Django Channels to push updated model when ready

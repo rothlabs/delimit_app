@@ -3,38 +3,56 @@ from django.db import models
 from django.dispatch import receiver
 import django.utils
 
-class Sketch(models.Model):
-    name = models.CharField(max_length=64)
-    publish_date = models.DateTimeField(default=django.utils.timezone.now)
-    svg = models.TextField()
+# Probably want polymorphic: https://django-polymorphic.readthedocs.io/en/stable/
 
-class Product(models.Model):
+class Base_Model(models.Model):
+    class Meta:
+        abstract = True
     name = models.CharField(max_length=64)
-    publish_date = models.DateTimeField()
-    glb = models.FileField(upload_to='glb', default='glb/default.glb')
-    view_x = models.FloatField(default=150)
-    view_y = models.FloatField(default=150)
-    view_z = models.FloatField(default=150)
+    date = models.DateTimeField(default=django.utils.timezone.now)
+    def __str__(self): 
+        return self.name+' ('+str(self.id)+')'
+    def data(self): # used to generate template json script tags with data for javascript 
+        d = dict(self.__dict__)
+        del d['_state'] # removed because value of '_state' cannot be serialized
+        del d['file'] # not needed because url is incomplete with this approach
+        return d 
 
-    # Shoe related fields that should be moved out to a different 'Shoe' model and referenced by this model with ForeignKey?
-    top_sketch = models.ForeignKey(Sketch, related_name='top_sketch', default='', on_delete=models.CASCADE)
-    side_sketch = models.ForeignKey(Sketch, related_name='side_sketch', default='', on_delete=models.CASCADE)
-    heel_height = models.FloatField(default=0)
+class Sketch(Base_Model):
+    file = models.FileField(upload_to='sketch', default='sketch/default.svg')
+
+class Sketched(models.Model):
+    class Meta:
+        abstract = True
+    sketch_xy = models.ForeignKey(Sketch,verbose_name='Top Sketch', related_name='sketch_xy', default='', on_delete=models.CASCADE)
+    sketch_yz = models.ForeignKey(Sketch,verbose_name='Side Sketch', related_name='sketch_yz', default='', on_delete=models.CASCADE)
+
+class Product(Base_Model):
+    file = models.FileField(upload_to='product', default='product/default.glb')
+    view_x = models.FloatField(default=100)
+    view_y = models.FloatField(default=100)
+    view_z = models.FloatField(default=100)
+    
+class Shoe(Sketched, Product):
+    heel_height = models.FloatField(default=.5)
+    cool_item = 88.7
 
 
 # The below functions are for deleting unused media files. They might not be safe. 
 # https://stackoverflow.com/questions/16041232/django-delete-filefield
-@receiver(models.signals.post_delete, sender=Product)
+@receiver(models.signals.post_delete, sender=Sketch)
+@receiver(models.signals.post_delete, sender=Shoe)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
     Deletes file from filesystem
     when corresponding `Product` object is deleted.
     """
-    if instance.glb:
-        if os.path.isfile(instance.glb.path):
-            os.remove(instance.glb.path)
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
 
-@receiver(models.signals.pre_save, sender=Product)
+@receiver(models.signals.pre_save, sender=Sketch)
+@receiver(models.signals.pre_save, sender=Shoe)
 def auto_delete_file_on_change(sender, instance, **kwargs):
     """
     Deletes old file from filesystem
@@ -45,11 +63,11 @@ def auto_delete_file_on_change(sender, instance, **kwargs):
         return False
 
     try:
-        old_file = Product.objects.get(pk=instance.pk).glb
+        old_file = Product.objects.get(pk=instance.pk).file
     except Product.DoesNotExist:
         return False
 
-    new_file = instance.glb
+    new_file = instance.file
     if not old_file == new_file:
         if os.path.isfile(old_file.path):
             os.remove(old_file.path)

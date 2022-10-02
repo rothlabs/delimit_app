@@ -45,6 +45,7 @@ ALTER ROLE delimit SET timezone TO 'UTC';
 GRANT ALL PRIVILEGES ON DATABASE delimit TO delimit;
 \q
 ```
+If there are problems with database migrations, it might be necessary to manually use the postgres session to manipulate or delete databases before running ```./manage.py migrate``` again.
 
 ### Setup django
 Inside `delimit/web`, create virtual environment.  
@@ -59,7 +60,7 @@ Install dependencies.
 ```
 pip install django psycopg2-binary
 ```  
-Perform database schema migration
+Perform database schema migration.
 ```
 ./manage.py makemigrations
 ./manage.py migrate
@@ -72,22 +73,27 @@ Run test server
 ```
 ./manage.py runserver
 ```  
-Check if the website loads at `localhost:8000` in your browser. Go to `localhost:8000/admin` for admin portal.  
-`Ctrl+C` To stop the webserver
+Check if the website loads at `localhost:8000` in your browser. Go to `localhost:8000/admin` for admin portal. Make add a couple shoes and sketches. Sample sketches can be found in cax/sketches.  
 
-When done working on web stuff, deactivate web_env
+`Ctrl+C` To stop the webserver  
+
+When done working on web stuff, deactivate web_env  
 ```
 deactivate
 ```  
 
-### Test FreeCAD
-Inside `delimit/cax/freecad`, run freecad example. Make sure freecad is in your PATH.  
+### FreeCAD
+Inside `delimit/cax/freecad`, run freecad worker. Make sure freecad is in your PATH.  
 For MacOS, the path is `/Applications/FreeCAD.app/Contents/Resources/bin`
 ```
-freecad example.py
+freecad --console worker.py
 ```  
-### Test Blender
-Inside `delimit/cax/blender`, run blender example. Make sure blender is in your PATH. For MacOS installing blender using **homebrew** should take care of this.
+For GUI:  
+```
+freecad worker.py
+```  
+### Blender
+Inside `delimit/cax/blender`, run blender worker. Make sure blender is in your PATH. For MacOS installing blender using **homebrew** should take care of this.
 ```
 blender -b -P example.py
 ```  
@@ -115,7 +121,7 @@ With `<pid>` beign the process id of `gunicorn`
 ## Web data flow
 ### Babylon
 ```
-(user, json, gltf, svg) -> Babylon -> (json, svg) 
+(user, json, glb, svg) -> Babylon -> (json, svg) 
 ```
 ### Django
 ```
@@ -128,7 +134,7 @@ With `<pid>` beign the process id of `gunicorn`
 ```
 ### Blender
 ```
-(json, obj) -> Blender -> (gltf, png)
+(json, obj) -> Blender -> (glb, png)
 ```
 
 ## Help

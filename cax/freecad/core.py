@@ -1,4 +1,5 @@
 import FreeCAD as fc # From FreeCAD
+import Draft # From FreeCAD
 from importSVG import svgHandler # From FreeCAD
 import MeshPart, Mesh # From FreeCAD
 import xml.sax # From Python Built-In
@@ -25,18 +26,27 @@ class Product:
                     else: 
                         return obj
         return search(self.doc.RootObjects)
+
+    def delete(self, obj):
+        if hasattr(obj,'Objects'): # If it has Objects, it is a clone and the source object must be deleted
+            self.doc.removeObject(obj.Objects[0].Name)
+        self.doc.removeObject(obj.Name)
     
-    def svg_base(self, svg, base, target_plane):
-        xml.sax.parseString(svg, self.svg_handler)
-        self.doc.removeObject(base.Base.Name)
-        base.Base = self.doc.Objects[-1]
-        self.doc.Objects[-1].Visibility = False
-        shp = self.doc.Objects[-1].Shape.copy()
+    def svg_base(self, svg_path, base, target_plane, scale):
+        xml.sax.parse(svg_path, self.svg_handler)
+        new_base = self.doc.Objects[-1]
+        self.delete(base.Base)
+        new_base.Visibility = False
+        shp = new_base.Shape.copy()
         if target_plane == 'xy':
             shp.rotate(v(0,0,0), v(0,0,1), 90)
         if target_plane == 'yz':
             shp.rotate(v(0,0,0), v(1,1,1), 120)
-        self.doc.Objects[-1].Shape = shp
+        new_base.Shape = shp
+        new_base_clone = Draft.make_clone(new_base, forcedraft=True)
+        new_base_clone.Scale = scale
+        base.Base = new_base_clone 
+        
 
     def export(self,product_id):
         self.doc.recompute() # need to check for unexpected zero volume and report failure
