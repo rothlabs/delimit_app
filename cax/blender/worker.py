@@ -1,44 +1,58 @@
 '''
 Blender Worker
 '''
-import bpy
-import asyncio, json, threading, traceback
+import bpy, bmesh # From Blender
+import asyncio, json, threading, traceback # From Python Built-In
+from random import random
 
 
 for obj in bpy.data.objects:
 	bpy.data.objects.remove(obj, do_unlink=True)
 
 
-def new_material(id):
-    mat = bpy.data.materials.get(id)
-    if mat is None:
-        mat = bpy.data.materials.new(name=id)
-    mat.use_nodes = True
-    if mat.node_tree:
-        mat.node_tree.links.clear()
-        mat.node_tree.nodes.clear()
-    return mat
+#def new_material(id):
+#    mat = bpy.data.materials.get(id)
+#    if mat is None:
+#        mat = bpy.data.materials.new(name=id)
+#    mat.use_nodes = True
+#    if mat.node_tree:
+#        mat.node_tree.links.clear()
+#        mat.node_tree.nodes.clear()
+#    return mat
 
-def new_shader(id, type, r, g, b):
-	mat = new_material(id)
+def new_material(id, type, r, g, b):
+	mat = bpy.data.materials.get(id)
+	if mat is None:
+		mat = bpy.data.materials.new(name=id)
+	mat.use_nodes = True
+	if mat.node_tree:
+		mat.node_tree.links.clear() 
+		mat.node_tree.nodes.clear()
+	#mat = new_material(id)
 	nodes = mat.node_tree.nodes
 	links = mat.node_tree.links
 	output = nodes.new(type='ShaderNodeOutputMaterial')
-	if type == "diffuse":
-		shader = nodes.new(type='ShaderNodeBsdfPrincipled')
+	texture = nodes.new('ShaderNodeTexImage')
+	texture.image = bpy.data.images.load("../textures/checkers.png")
+	rgb = nodes.new('ShaderNodeRGB')
+	rgb.color = (r, g, b)
+	shader = nodes.new(type='ShaderNodeBsdfPrincipled')
 		#print(nodes[1])
-		nodes["Principled BSDF"].inputs[0].default_value = (r, g, b, 1)
-	elif type == "emission":
-		shader = nodes.new(type='ShaderNodeEmission')
-		nodes["Emission"].inputs[0].default_value = (r, g, b, 1)
-		nodes["Emission"].inputs[1].default_value = 1
-	elif type == "glossy":
-		shader = nodes.new(type='ShaderNodeBsdfGlossy')
-		nodes["Glossy BSDF"].inputs[0].default_value = (r, g, b, 1)
-		nodes["Glossy BSDF"].inputs[1].default_value = 0
+		#shader.inputs['Subsurface'].default_value = .5 # subsurface amount
+		#shader.inputs['Subsurface Color'].default_value = (r, g, b, 1) # Subsurface color
+	links.new(texture.outputs["Color"], shader.inputs["Base Color"])
+	links.new(rgb.outputs["Color"], shader.inputs[3])
 	links.new(shader.outputs[0], output.inputs[0])
 	return mat
 
+test_material = new_material('material_1','diffuse', .2, .2, 1)
+
+def add_uv(me):
+	uvlayer = me.uv_layers.new() # default naem and do_init
+	me.uv_layers.active = uvlayer
+	for face in me.polygons:
+		for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
+			uvlayer.data[loop_idx].uv = (random(), random()) # ie UV coord for each face with vert  me.vertices[vert_idx]
 
 async def update(reader, writer):
 	data_in = await reader.read(1000000) # 1 Megabyte limit
@@ -53,9 +67,9 @@ async def update(reader, writer):
 		edge_split.use_edge_sharp = False
 		bpy.ops.object.modifier_apply({"object":product}, modifier=edge_split.name) 
 
-		#bm = bmesh.new()  
-		#bm.from_mesh(bpy.data.meshes[-1]) 
-		product.data.materials[0] = new_shader('material_1','diffuse', .2, .2, 1)
+		product.data.materials[0] = test_material #new_shader('material_1','diffuse', .2, .2, 1)
+
+		add_uv(product.data)
 
 		bpy.ops.export_scene.gltf(filepath='../tmp/'+str(data_in['product_id'])+'.glb')
 		bpy.data.objects.remove(product, do_unlink=True)
@@ -83,6 +97,36 @@ worker.start()
 worker.join()
 
 
+
+#elif type == "emission":
+	#	shader = nodes.new(type='ShaderNodeEmission')
+	#	nodes["Emission"].inputs[0].default_value = (r, g, b, 1)
+	#	nodes["Emission"].inputs[1].default_value = 1
+	#elif type == "glossy":
+	#	shader = nodes.new(type='ShaderNodeBsdfGlossy')
+	#	nodes["Glossy BSDF"].inputs[0].default_value = (r, g, b, 1)
+	#	nodes["Glossy BSDF"].inputs[1].default_value = 0
+
+
+#bm = bmesh.new()  
+		#bm.from_mesh(bpy.data.meshes[-1]) 
+
+#def add_uv_1():
+#	xPlus = 32
+#	bpy.data.meshes[-1].uv_layers.new(name="fun_uv_layer")
+#	bm = bmesh.new()
+#	bm.from_mesh(bpy.data.meshes[-1])
+#	bm.faces.ensure_lookup_table()
+#	uv_layer = bm.loops.layers.uv[0]
+#	nFaces = len(bm.faces)
+#	for fi in range(nFaces):
+#		x0 = fi*2/nFaces
+#		x1 = (fi+1)*2/nFaces
+#		bm.faces[fi].loops[0][uv_layer].uv = (x0, 0)
+#		bm.faces[fi].loops[1][uv_layer].uv = (x1, 0)
+#		bm.faces[fi].loops[2][uv_layer].uv = (xPlus+x1, 1)
+#		bm.faces[fi].loops[3][uv_layer].uv = (xPlus+x0, 1)
+#	bm.to_mesh(bpy.data.meshes[-1])
 
 
 		#product.select_set(True)
