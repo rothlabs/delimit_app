@@ -95,14 +95,27 @@ freecad worker.py
 ### Blender
 Inside `delimit/cax/blender`, run blender worker. Make sure blender is in your PATH. For MacOS installing blender using **homebrew** should take care of this.
 ```
-blender -b -P example.py
+blender -b -P worker.py
 ```  
 
 #### MacOS
 ```
-blender -b -P example.py
+blender -b -P worker.py
 ```
-This will take a few minutes to complete. You will see a picture generated in `delimit/cax/rendering`
+This will take a few minutes to complete. You will see a picture generated in `delimit/cax/blender/rendering`
+
+## Database Migrations
+Everytime django models are changed, do a database migration. If you pull code, it's best to assume a model has been changed.  
+```
+./manage.py makemigrations
+./manage.py migrate
+```  
+If you still have problems running the project, it might be neccesary to go into the postgres interactive session or use pgAdmin to change tables and fields.  
+As a last resort, it might be necessary to delete the "migrations" folder in some or all of the "apps" in the django (web folder) project. Then run migrations again.  
+
+## Easel 
+To test the easel, make sure there is at least one Shoe in the database. Use the 'localhost:8000/admin' portal to add a shoe.  
+It's also necessary to have some Sketches in the database. In the admin portal, add sketches and upload svg files. Some svg files are in 'cax/sketches'
 
 ## Production
 Production is setup based on these instructions:  
