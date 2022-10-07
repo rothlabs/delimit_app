@@ -35,7 +35,6 @@ class Product(Base_Model):
     
 class Shoe(Sketched, Product):
     heel_height = models.FloatField(default=.5)
-    cool_item = 88.7
 
 
 # The below functions are for deleting unused media files. They might not be safe. 

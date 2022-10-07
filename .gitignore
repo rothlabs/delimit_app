@@ -10,3 +10,5 @@ __pycache__
 
 *.FCStd1
 *.Blend1
+
+sqlite3.db

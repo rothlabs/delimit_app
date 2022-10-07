@@ -65,9 +65,9 @@ Perform database schema migration.
 ./manage.py makemigrations
 ./manage.py migrate
 ```  
-Collect static files
+Create superuser. Enter username, email, and password as prompted.
 ```
-./manage.py collectstatic
+./manage.py createsuperuser
 ```  
 Run test server
 ```

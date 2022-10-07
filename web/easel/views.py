@@ -11,7 +11,7 @@ class Index_View(ListView):
 
 
 class Edit_View(UpdateView):
-    print(Shoe.objects.last().data())
+    #print(Shoe.objects.last().data())
 
     model = Shoe
     form_class = Edit_Form
