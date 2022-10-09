@@ -10,6 +10,8 @@ class Index_View(ListView):
     template_name = 'easel/index.html'
 
 
+# Will need seperate ajax updateview 
+
 class Edit_View(UpdateView):
     #print(Shoe.objects.last().data())
 
@@ -42,8 +44,3 @@ class Edit_View(UpdateView):
 
         return super(Edit_View,self).post(request,*args,**kwargs)
 
-
-
-# Consider:
-# Instead of waiting for CAx to be done, provide htttp response immediately and 
-# use Django Channels to push updated model when ready
