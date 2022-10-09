@@ -1,15 +1,12 @@
-
-
 {% extends "core/base.html" %}
-
 {% block content %}
 
-{% if latest_product_list %}
+{% if product_list %}
     <h1>Catalog</h1>
     <p>Wicked products found here.</p>
     <p>Make sure there are product records to see list of products.</p>
     <ul>
-    {% for product in latest_product_list %}
+    {% for product in product_list %}
         <li><a href="{% url 'catalog:detail' product.id %}">{{ product.name }}</a></li>
     {% endfor %}
     </ul>

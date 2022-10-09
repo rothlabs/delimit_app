@@ -77,16 +77,27 @@ WSGI_APPLICATION = 'delimit.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#        'NAME': 'delimit',
+#        'USER': 'delimit',
+#        'PASSWORD': 'g88mphftt',
+#        'HOST': 'localhost',
+#        'PORT': '',
+#    }
+#}
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'delimit',
-        'USER': 'delimit',
-        'PASSWORD': 'g88mphftt',
-        'HOST': 'localhost',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'sqlite3.db',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
         'PORT': '',
     }
 }
+
 
 
 # Password validation
@@ -116,12 +127,19 @@ USE_I18N = True
 USE_TZ = True
 
 
+
+# Django looks for additional static files to collect from here:
+#STATICFILES_DIRS = (
+#    os.path.join(BASE_DIR, "static/"),
+#)
+
+
 #>>>>>>>>>>> https://djangodeployment.readthedocs.io/en/latest/05-static-files.html <<<<<<<<<<<<<<
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/') # local
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static/') # local  ##### STATIC_ROOT not used at all in local
 # STATIC_ROOT = '/var/cache/delimit/static/'    # deployment
 
 # Media files (user uploaded images, generated 3D models, etc)

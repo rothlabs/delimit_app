@@ -1,4 +1,7 @@
 __pycache__
+
+/cax/tmp
+
 /web/web_env
 /web/static
 /web/media
@@ -6,3 +9,6 @@ __pycache__
 *.DS_Store
 
 *.FCStd1
+*.Blend1
+
+sqlite3.db

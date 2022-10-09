@@ -1,3 +1,5 @@
 from django.db import models
+#from catalog.models import Product
 
-# Create your models here.
+#class Shoe(models.Model):
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
