@@ -24,7 +24,7 @@ async def update(reader, writer):
     data_in = json.loads(data_in.decode())
     data_out = {'success': False}
     try: 
-        product.import_sketch(data_in['sketch'])
+        product.generate(data_in['sketch'])
 
         #sv_profile = product.get('side_view__profile')
         #product.rotate(sv_profile)
