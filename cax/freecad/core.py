@@ -8,7 +8,6 @@ import xml.sax # From Python Built-In
 v = fc.Vector
 
 class Product:
-    
     def __init__(self, name):
         self.doc = fc.openDocument('templates/'+name+'.FCStd') 
         self.mesh = self.get('mesh')
@@ -17,9 +16,11 @@ class Product:
         self.svg_handler.doc = self.doc
         self.depth = 250
     
+
     def generate(self,path):
-        epc = 60 # edge point count
         xml.sax.parse(path, self.svg_handler)
+
+        # Gather information about the svg before any transformations
         front_edge = self.get('side_view__front_edge')
         back_edge = self.get('side_view__back_edge')
         insole_edge = self.get('side_view__insole_edge')
@@ -27,19 +28,27 @@ class Product:
         sf = self.depth / front_edge.Shape.BoundBox.XLength
         tf = -front_edge.Shape.BoundBox.Center
         f_points = [[],[]] # front and back fuse points
+
+        # Transform all side view
         for obj in self.doc.Objects:
             if 'side_view' in obj.Label: 
                 transform(obj, translate=tf, rotate=(v(1,1,1),120), scale=sf)
             if 'material' in obj.Label:
                 obj.Visibility = False
+
         for obj in self.doc.Objects:
+            epc = 60 # edge point count for mixed curves
             if 'top_view' in obj.Label:
                 if 'profile' in obj.Label:
-                    baseline = self.baseline(obj)
-                    transform(obj, rotate = (v(0,0,1),90), scale = baseline.Shape.BoundBox.YLength/obj.Shape.BoundBox.XLength)
-                    transform(obj, translate = baseline.Shape.BoundBox.Center - obj.Shape.BoundBox.Center)
-                    profile = discretize(obj, epc*2)
-                    baseline = discretize(baseline, epc)
+
+                    # Transform top view
+                    baseline_fsvg = self.baseline(obj)
+                    transform(obj, rotate = (v(0,0,1),90), scale = (baseline_fsvg.Shape.BoundBox.YLength-.5)/obj.Shape.BoundBox.XLength)
+                    transform(obj, translate = baseline_fsvg.Shape.BoundBox.Center - obj.Shape.BoundBox.Center)
+                    
+                    # This section preps information for generating mixed curves from top/side views and front/back curves
+                    profile = discretize(join_curve(obj,obj.Label), epc*2)
+                    baseline = discretize(join_curve(baseline_fsvg,baseline_fsvg.Label), epc)
                     bi = 0 # baseline index
                     baseline_dir = 1
                     if baseline.Points[0].y < baseline.Points[-1].y:
@@ -56,32 +65,55 @@ class Product:
                         pi = close_i2
                     dist_between_points = obj.Shape.Length / (epc*2)
                     points = []
-                    print('baseline start index: '+str(bi))
-                    for d in range(2): # Go along baseline one way and then back the other to finish the profile loop
+                    p_points = []
+
+                    # This for loop goes up and down the baseline to gather point data from baseline and profile
+                    for d in range(2): 
                         for n in baseline.Points:
                             if bi == 0 or bi == len(baseline.Points)-1: # fuse point:
                                 points.append(  v(profile.Points[pi].x, baseline.Points[bi].y, baseline.Points[bi].z)  ) 
                             else: # regular point:
                                 points.append(  v(profile.Points[pi].x, (baseline.Points[bi].y+profile.Points[pi].y)/2, baseline.Points[bi].z)  ) 
+                            p_points.append(profile.Points[pi])
+                            #if bi < len(baseline.Points): b_points.append(baseline[bi])
                             bi = bi + baseline_dir
                             pi = pi + 1
                             if pi >= len(profile.Points): pi = 0 # loop profile index
                         bi = max(0,min(bi,len(baseline.Points)-1)) # clamp baseline index
                         baseline_dir = -baseline_dir
-                    points.insert(epc,v(points[epc-1].x-dist_between_points/2, points[epc-1].y, points[epc-1].z))
-                    points.insert(0,v(points[0].x-dist_between_points/2, points[0].y, points[0].z))
-                    epc += 2
-                    f_points[0].append(points[epc-1]) # front fuse point
-                    f_points[1].append(points[0]) # back fuse point
-                    make_curve(points[:epc],common_name(obj)+'_right')
-                    left_points = points[epc-1:]
-                    left_points.append(points[0])
-                    make_curve(left_points,common_name(obj)+'_left', reverse=True)
-        def sort_fb(fb_point):
-            return fb_point.z 
+
+                    baseline_curve = join_curve(baseline_fsvg,baseline_fsvg.Label)
+                    test_mix = mix_curve(baseline_curve, join_curve(obj,obj.Label+'__mc_test'))
+                    if len(test_mix.Shape.Edges) == 1: # only use mix_curve if 1 edge produced
+                        # This section creates a perfect mixed curve from top and side view (requires function-of-(x or z) source curves)
+                        p_right = make_curve(p_points[:epc],common_name(obj)+'_right')
+                        left_points = p_points[epc-1:]
+                        left_points.append(p_points[0])
+                        p_left = make_curve(left_points,common_name(obj)+'_left', reverse=True)
+                        lmc = mix_curve(baseline_curve, p_right)
+                        rmc = mix_curve(baseline_curve, p_left)
+                        fob = rmc.Shape.Vertexes[0].Y > rmc.Shape.Vertexes[1].Y
+                        f_points[int(fob )].append(rmc.Shape.Vertexes[0].Point) # add fuse point
+                        f_points[int(not fob)].append(rmc.Shape.Vertexes[1].Point) # add fuse point
+                    else:
+                        # This section creates an approximate mixed curve from top and side view (allows non-function-of-(x or z) source curves)
+                        points.insert(epc,v(points[epc-1].x-dist_between_points/2, points[epc-1].y, points[epc-1].z))
+                        points.insert(0,v(points[0].x-dist_between_points/2, points[0].y, points[0].z))
+                        epc += 2
+                        f_points[0].append(points[epc-1]) # front fuse point
+                        f_points[1].append(points[0]) # back fuse point
+                        make_curve(points[:epc],common_name(obj)+'_right', visibility=True)
+                        left_points = points[epc-1:]
+                        left_points.append(points[0])
+                        make_curve(left_points,common_name(obj)+'_left', reverse=True, visibility=True)
+                    self.doc.removeObject(test_mix.Name)
+        
+        # This section creates the front and back edges so they hit all the fuse points with mixed curves
+        def sort_fp(f_point):
+            return f_point.z 
         for fb,e in enumerate([front_edge,back_edge]):
-            e = discretize(e, 0) 
-            f_points[fb].sort(reverse=(e.Points[0].z > e.Points[-1].z), key=sort_fb)
+            e = discretize(join_curve(e,e.Label), 0) 
+            f_points[fb].sort(reverse=(e.Points[0].z > e.Points[-1].z), key=sort_fp)
             points = []
             fbi = 0
             for p in e.Points:
@@ -97,14 +129,16 @@ class Product:
                     ratio = dist / fb_dist
                     x = f_points[fb][fbi].x*(1-ratio) + f_points[fb][fbi-1].x*ratio
                     points.append(v(x, p.y, p.z))
-            make_curve(points,common_name(e))
+            make_curve(points, common_name(e), visibility=True)
         
-    # Get the corresponding edge to the given profile. Calling the 'edge' as 'baseline' as to not be confused with FreeCAD edges
+
+    # Get the corresponding baseline/edge to the given profile. Calling the 'edge' as 'baseline' as to not be confused with FreeCAD edges
     def baseline(self,profile):
         for obj in self.doc.Objects:
             if 'edge' in obj.Label:
                 if common_name(obj) == common_name(profile):
                     return obj
+
 
     def get(self, path):
         path = path.split('/')
@@ -118,35 +152,31 @@ class Product:
                         return obj
         return search(self.doc.RootObjects)
 
-    def delete(self, obj):
-        if hasattr(obj,'Objects'): # If it has Objects, it is a clone and the source object must be deleted
-            self.doc.removeObject(obj.Objects[0].Name)
-        self.doc.removeObject(obj.Name)
 
     def export(self,product_id):
-        self.doc.recompute() # need to check for unexpected zero volume and report failure
+        self.doc.recompute() 
         shp = self.shape.Shape.copy()
         shp.rotate(v(0,0,0), v(1,0,0), -90)
         self.mesh.Mesh = MeshPart.meshFromShape(shp, LinearDeflection=0.08, AngularDeflection=0.15, Relative=False)
         self.mesh.recompute()
         Mesh.export([self.mesh],'../tmp/'+str(product_id)+'.obj')
 
+
+
+
 # Mix front and side view curves 
 def mix_curve(baseline,profile):
-    mc = fc.ActiveDocument.addObject("Part::FeaturePython", "Mixed curve")
+    mc = fc.ActiveDocument.addObject("Part::FeaturePython", common_name(baseline)+'__mixed_curve')
     mixed_curve.MixedCurveFP(mc, baseline, profile, v(1,0,0), v(0,0,1))
-    approximate_extension.ApproximateExtension(mc)
-    mc.Active = True
-    mc.ApproxTolerance = 0.5
     mixed_curve.MixedCurveVP(mc.ViewObject)
     fc.ActiveDocument.recompute()
+    wireframe_style(mc)
     mc.recompute()
-    if len(mc.Edges) > 1: # Do not use mixed curve if more than one edge is produced
-        return False
     return mc
 
+
 # Join curves of source into one curve
-def join_curve(source, name, reverse=False):
+def join_curve(source, name, reverse=False, visibility=False):
     source.Visibility = False # For GUI
     curve = fc.ActiveDocument.addObject("Part::FeaturePython", name+'__curve')
     JoinCurves.join(curve)
@@ -154,26 +184,28 @@ def join_curve(source, name, reverse=False):
     JoinCurves.joinVP(curve.ViewObject) # for GUI?
     curve.Reverse = reverse
     curve.Active = True # Approximate curve. Needed for smoothness and stability of gordon surface
-    curve.ApproxTolerance = 0.5
+    curve.ApproxTolerance = 0.2
     curve.Base = source
     wireframe_style(curve)
+    curve.Visibility = visibility
     curve.recompute()
     return curve
 
+
 # Make a new curve from a list of points
-def make_curve(points, name, reverse=False):
+def make_curve(points, name, reverse=False, visibility=False):
     name = name + '__poly'
     poly = fc.ActiveDocument.addObject("Part::Feature", name)
     poly.Shape = Part.Wire(Part.makePolygon(points))
     poly.Visibility = False
-    curve = join_curve(poly,name,reverse)
+    curve = join_curve(poly,name,reverse=reverse,visibility=visibility)
+    return curve
+
 
 # Make discrete object with evenly spaced points along source
 def discretize(source,point_count):
-    curve = join_curve(source,source.Label)
-    curve.Visibility = False # For GUI
     discrete = fc.ActiveDocument.addObject("Part::FeaturePython",source.Label+'__points')
-    Discretize.Discretization(discrete, (curve,'Edge1'))
+    Discretize.Discretization(discrete, (source,'Edge1'))
     if point_count > 0:
         discrete.Algorithm = 'QuasiNumber'
         discrete.Number = point_count
@@ -185,6 +217,7 @@ def discretize(source,point_count):
     discrete.recompute()
     return discrete
 
+
 # Get the name that is common to baseline and profile
 def common_name(obj):
     return (obj.Label
@@ -193,12 +226,14 @@ def common_name(obj):
         .replace('_edge','')
         .replace('_profile',''))
 
+
 def transform(obj, translate=v(0,0,0), rotate=(v(1,0,0),0), scale=1):
     shp = obj.Shape.copy()
     shp.translate(translate)
     shp.rotate(v(0,0,0),rotate[0],rotate[1])
     shp.scale(scale)
     obj.Shape = shp
+
 
 def wireframe_style(obj):
     obj.ViewObject.LineWidth = 2
@@ -208,6 +243,15 @@ def wireframe_style(obj):
 
 
 
+
+    #curve = join_curve(source,source.Label)
+    #curve.Visibility = False # For GUI
+
+
+    #def delete(self, obj):
+        #if hasattr(obj,'Objects'): # If it has Objects, it is a clone and the source object must be deleted
+        #    self.doc.removeObject(obj.Objects[0].Name)
+    #    self.doc.removeObject(obj.Name)
 
 
 #points = []
