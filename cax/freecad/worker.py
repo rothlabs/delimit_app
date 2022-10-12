@@ -65,6 +65,8 @@ asyncio.run(cax({ # send product id, sketches, and more to cax
     }))
 
 
+product.doc.recompute()
+
 
 #print([o.Label for o in latest])
 

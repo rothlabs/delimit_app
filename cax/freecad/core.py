@@ -2,10 +2,11 @@ import FreeCAD as fc # From FreeCAD
 import Part # From FreeCAD
 from importSVG import svgHandler # From FreeCAD
 import MeshPart, Mesh # From FreeCAD
-from Curves import JoinCurves, approximate_extension, Discretize, approximate # From FreeCAD external workbench
+from Curves import JoinCurves, approximate_extension, Discretize#, approximate # From FreeCAD external workbench
 import xml.sax # From Python Built-In
 
 v = fc.Vector
+epc = 60 # edge point count
 
 class Product:
     
@@ -19,39 +20,48 @@ class Product:
     
     def generate(self,path):
         xml.sax.parse(path, self.svg_handler)
-        sf = self.depth / self.get('side_view__profile').Shape.BoundBox.XLength
-        tf = -self.get('side_view__profile').Shape.BoundBox.Center
+        front_edge = self.get('side_view__front_edge')
+        back_edge = self.get('side_view__back_edge')
+        insole_edge = self.get('side_view__insole_edge')
+        insole_edge.Visibility = False
+        sf = self.depth / front_edge.Shape.BoundBox.XLength
+        tf = -front_edge.Shape.BoundBox.Center
+        fb_points = [[],[]] # front and back fuse points
         for obj in self.doc.Objects:
-            wireframe_style(obj)
             if 'side_view' in obj.Label: 
                 transform(obj, translate=tf, rotate=(v(1,1,1),120), scale=sf)
+            if 'material' in obj.Label:
+                obj.Visibility = False
         for obj in self.doc.Objects:
             if 'top_view' in obj.Label:
                 if 'profile' in obj.Label:
                     baseline = self.baseline(obj)
                     transform(obj, rotate = (v(0,0,1),90), scale = baseline.Shape.BoundBox.YLength/obj.Shape.BoundBox.XLength)
                     transform(obj, translate = baseline.Shape.BoundBox.Center - obj.Shape.BoundBox.Center)
-                    profile = discretize(obj, 120)
-                    baseline = discretize(baseline, 60)
-                    #self.doc.recompute()
+                    profile = discretize(obj, epc*2)
+                    baseline = discretize(baseline, epc)
                     points = []
-                    bi = 0 # baseline start index
+                    bi = 0 # baseline index
                     baseline_dir = 1
                     if baseline.Points[0].y < baseline.Points[-1].y:
                         bi = len(baseline.Points)-1
                         baseline_dir = -1
                     close_i1 = 0
                     close_i2 = 0
-                    for i, p in enumerate(profile.Points):
+                    for i, p in enumerate(profile.Points): # Get the profile indecies that are closest to start and end points of baseline
                         if abs(p.x) < abs(profile.Points[close_i1].x):
                             close_i2 = close_i1
                             close_i1 = i
-                    pi = close_i1 # profile start index
+                    pi = close_i1 # profile index
                     if (profile.Points[close_i2]-baseline.Points[bi]).Length < (profile.Points[close_i1]-baseline.Points[bi]).Length:
                         pi = close_i2
-                    for d in range(2):#range(baseline_dir,-baseline_dir, -baseline_dir*2):
+                    for d in range(2): # Go along baseline one way and then back the other to finish the profile loop
                         for n in baseline.Points:
-                            points.append(v(profile.Points[pi].x, (baseline.Points[bi].y+profile.Points[pi].y)*.5, baseline.Points[bi].z))
+                            if bi == 0 or bi == len(baseline.Points)-1:
+                                points.append(  v(profile.Points[pi].x, baseline.Points[bi].y, baseline.Points[bi].z)  ) 
+                                #fb_points.append(points[-1])
+                            else:
+                                points.append(  v(profile.Points[pi].x, (baseline.Points[bi].y+profile.Points[pi].y)/2, baseline.Points[bi].z)  ) 
                             bi = bi + baseline_dir
                             pi = pi + 1
                             if pi >= len(profile.Points):
@@ -61,18 +71,37 @@ class Product:
                         if bi < 0:
                             bi = 0
                         baseline_dir = -baseline_dir
-                    points.append(points[-1])
-                    poly = self.doc.addObject("Part::Feature", common_name(obj)+'__poly')
-                    poly.Shape = Part.Wire(Part.makePolygon(points))
-                    poly.Visibility = False
-                    curve = fc.ActiveDocument.addObject("Part::FeaturePython", common_name(obj)+'__curve')
-                    approximate.Approximate(curve, poly)
-                    approximate.ViewProviderApp(curve.ViewObject)
-                    #fit.Shape = b_curve(points[:20])
+                    points.append(points[0])
+                    make_curve(points,common_name(obj))
+                    fb = points[0].y < points[epc-1].y
+                    fb_points[int(not fb)].append(points[0])
+                    fb_points[int(fb)].append(points[epc-1])
+        def sort_fb(fb_point):
+            return fb_point.z 
+        for fb,e in enumerate([front_edge,back_edge]):
+            e = discretize(e, 0) 
+            fb_points[fb].sort(reverse=(e.Points[0].z > e.Points[-1].z), key=sort_fb)
+            points = []
+            fbi = 0
+            for p in e.Points:
+                dist = (v(0,p.y,p.z) - v(0,fb_points[fb][fbi].y,fb_points[fb][fbi].z)).Length
+                if dist < 1: # mm
+                    points.append(fb_points[fb][fbi])
+                    fbi += 1
+                    if fbi >= len(fb_points[fb]):
+                        break
+                    else:
+                        fb_dist = (v(0,fb_points[fb][fbi-1].y,fb_points[fb][fbi-1].z) - v(0,fb_points[fb][fbi].y,fb_points[fb][fbi].z)).Length
+                else: 
+                    ratio = dist / fb_dist
+                    x = fb_points[fb][fbi].x*(1-ratio) + fb_points[fb][fbi-1].x*ratio
+                    points.append(v(x, p.y, p.z))
+            make_curve(points,common_name(e))
         
+    # Get the corresponding edge to the given profile. Calling the 'edge' as 'baseline' as to not be confused with FreeCAD edges
     def baseline(self,profile):
         for obj in self.doc.Objects:
-            if 'baseline' in obj.Label:
+            if 'edge' in obj.Label:
                 if common_name(obj) == common_name(profile):
                     return obj
 
@@ -101,54 +130,51 @@ class Product:
         self.mesh.recompute()
         Mesh.export([self.mesh],'../tmp/'+str(product_id)+'.obj')
 
-    def svg_base(self, svg_path, base, target_plane, scale):
-        xml.sax.parse(svg_path, self.svg_handler)
-        new_base = self.doc.Objects[-1]
-        self.delete(base.Base)
-        new_base.Visibility = False
-        shp = new_base.Shape.copy()
-        if target_plane == 'xy':
-            shp.rotate(v(0,0,0), v(0,0,1), 90)
-        if target_plane == 'yz':
-            shp.rotate(v(0,0,0), v(1,1,1), 120)
-        new_base.Shape = shp
-        new_base_clone = Draft.make_clone(new_base, forcedraft=True)
-        new_base_clone.Scale = scale
-        base.Base = new_base_clone 
+# Join curves of source into one curve
+def join_curve(source,name):
+    source.Visibility = False # For GUI
+    curve = fc.ActiveDocument.addObject("Part::FeaturePython", name+'__curve')
+    JoinCurves.join(curve)
+    approximate_extension.ApproximateExtension(curve)
+    JoinCurves.joinVP(curve.ViewObject) # for GUI?
+    curve.Active = True # Approximate curve. Needed for smoothness and stability of gordon surface
+    curve.ApproxTolerance = 0.5
+    curve.Base = source
+    wireframe_style(curve)
+    curve.recompute()
+    return curve
 
+# Make a new curve from a list of points
+def make_curve(points, name):
+    name = name + '__poly'
+    poly = fc.ActiveDocument.addObject("Part::Feature", name)
+    poly.Shape = Part.Wire(Part.makePolygon(points))
+    poly.Visibility = False
+    curve = join_curve(poly,name)
 
-#def b_curve(points):
-#   geomCurve = Part.BezierCurve()
-#   geomCurve.setPoles(points)
-#   edge = Part.Edge(geomCurve)
-#   return(edge)
-
-
-def discretize(obj,point_count):
-    joinCurve = fc.ActiveDocument.addObject("Part::FeaturePython", "JoinCurve")
-    JoinCurves.join(joinCurve)
-    approximate_extension.ApproximateExtension(joinCurve)
-    JoinCurves.joinVP(joinCurve.ViewObject) # for GUI?
-    joinCurve.Base = obj
-    joinCurve.recompute()
-    points_obj = fc.ActiveDocument.addObject("Part::FeaturePython",obj.Label+'__points')
-    Discretize.Discretization(points_obj, (joinCurve,'Edge1'))
-    points_obj.Number = point_count
-    Discretize.ViewProviderDisc(points_obj.ViewObject) # For GUI
-    points_obj.ViewObject.PointSize = 3.00000 # For GUI
-    joinCurve.Visibility = False # For GUI
-    obj.Visibility = False # For GUI
-    points_obj.recompute()
-    return points_obj
+# Make discrete object with evenly spaced points along source
+def discretize(source,point_count):
+    curve = join_curve(source,source.Label)
+    curve.Visibility = False # For GUI
+    discrete = fc.ActiveDocument.addObject("Part::FeaturePython",source.Label+'__points')
+    Discretize.Discretization(discrete, (curve,'Edge1'))
+    if point_count > 0:
+        discrete.Number = point_count
+    else:
+        discrete.Algorithm = 'Angular-Curvature'
+    Discretize.ViewProviderDisc(discrete.ViewObject) # For GUI
+    discrete.ViewObject.PointSize = 3.00000 # For GUI
+    discrete.Visibility = False # For GUI
+    discrete.recompute()
+    return discrete
 
 # Get the name that is common to baseline and profile
 def common_name(obj):
     return (obj.Label
         .replace('side_view__','')
         .replace('top_view__','')
-        .replace('_baseline','')
-        .replace('_profile','')
-        .replace('__points',''))
+        .replace('_edge','')
+        .replace('_profile',''))
 
 def transform(obj, translate=v(0,0,0), rotate=(v(1,0,0),0), scale=1):
     shp = obj.Shape.copy()
@@ -163,6 +189,50 @@ def wireframe_style(obj):
     obj.ViewObject.Transparency = 100
 
 
+
+
+#x = 0
+#fused = False
+#for fb_point in fb_points[i]:
+#    dist = (v(0,p.y,p.z) - v(0,fb_point.y,fb_point.z)).Length
+#    if dist < 1: # mm
+#        points.append(fb_point)
+#        fused = True
+#        break
+#    x += (fb_point.x-last_x) * 1/(dist + 1) # baseline endpoint hardly affects x when it is far away
+#if fused == False:
+#    points.append(v(x, p.y, p.z))
+
+
+
+    #def svg_base(self, svg_path, base, target_plane, scale):
+    #    xml.sax.parse(svg_path, self.svg_handler)
+    #    new_base = self.doc.Objects[-1]
+    #    self.delete(base.Base)
+    #    new_base.Visibility = False
+    #    shp = new_base.Shape.copy()
+    #    if target_plane == 'xy':
+    #        shp.rotate(v(0,0,0), v(0,0,1), 90)
+    #    if target_plane == 'yz':
+    #        shp.rotate(v(0,0,0), v(1,1,1), 120)
+    #    new_base.Shape = shp
+    #    new_base_clone = Draft.make_clone(new_base, forcedraft=True)
+    #    new_base_clone.Scale = scale
+    #    base.Base = new_base_clone 
+
+
+
+#def b_curve(points):
+#   geomCurve = Part.BezierCurve()
+#   geomCurve.setPoles(points)
+#   edge = Part.Edge(geomCurve)
+#   return(edge)
+
+#curve = fc.ActiveDocument.addObject("Part::FeaturePython", common_name(obj)+'__curve')
+                    #approximate.Approximate(curve, poly)
+                    #approximate.ViewProviderApp(curve.ViewObject)
+                    #approximate.Closed = True
+                    #fit.Shape = b_curve(points[:20])
 
 
 #clone = Draft.make_clone(obj, forcedraft=True)
