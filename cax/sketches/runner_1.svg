@@ -26,7 +26,7 @@
      showgrid="false"
      inkscape:zoom="0.068898395"
      inkscape:cx="6466.0432"
-     inkscape:cy="7518.3174"
+     inkscape:cy="3512.4185"
      inkscape:window-width="1920"
      inkscape:window-height="1048"
      inkscape:window-x="0"
@@ -51,8 +51,8 @@
        id="side_view__bottom_edge"
        sodipodi:nodetypes="csc"
        transform="translate(-1.4986901e-6)" /><path
-       style="display:inline;stroke-width:7.18767197;opacity:1;fill:none;fill-opacity:1;stroke:#404040;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 3020.9486,1047.0897 c -37.5784,0 -64.4993,45.8677 -151.981,40.6351 -129.4558,-7.7433 -441.8237,-52.3716 -521.3682,-52.3716 -142.6229,0 -356.3901,147.9656 -682.7097,181.2732 -188.5463,19.245 -502.9971,16.2962 -615.5782,-6.0602 C 800.00482,1161.059 827.78566,1024.806 774.63435,1024.806"
+       style="display:inline;opacity:1;fill:none;fill-opacity:1;stroke:#404040;stroke-width:7.18767;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 774.63435,1024.806 c 53.15131,0 25.37047,136.253 274.67715,185.7602 112.5811,22.3564 427.0319,25.3052 615.5782,6.0602 326.3196,-33.3076 540.0868,-181.2732 682.7097,-181.2732 79.5445,0 391.9124,44.6283 521.3682,52.3716 87.4817,5.2326 114.4026,-40.6351 151.981,-40.6351"
        id="side_view__mid_edge"
        sodipodi:nodetypes="cssssc"
        transform="translate(-1.4986901e-6)" /><path
@@ -60,7 +60,7 @@
        style="display:inline;fill:none;stroke:#404040;stroke-width:7.18767197;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="side_view__top_edge"
        sodipodi:nodetypes="cssssc" /><path
-       style="display:inline;stroke-width:7.1877;opacity:1;fill:none;fill-opacity:1;stroke:#404040;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       style="display:inline;opacity:1;fill:none;fill-opacity:1;stroke:#404040;stroke-width:7.1877;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        d="m 3079.7092,1294.7635 c 119.648,-140.1066 -57.857,-217.9579 -58.7606,-247.6738 -0.3424,-11.263 -2.6121,-92.35208 -10.8307,-149.73259 -7.6587,-53.47073 -71.6407,-148.62967 -85.5938,-230.36686 -14.6855,-86.02794 -33.9563,-254.88312 -39.3526,-275.38614"
        id="side_view__back_edge"
        sodipodi:nodetypes="csssc"

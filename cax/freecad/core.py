@@ -2,11 +2,10 @@ import FreeCAD as fc # From FreeCAD
 import Part # From FreeCAD
 from importSVG import svgHandler # From FreeCAD
 import MeshPart, Mesh # From FreeCAD
-from Curves import JoinCurves, approximate_extension, Discretize#, approximate # From FreeCAD external workbench
+from Curves import JoinCurves, approximate_extension, Discretize, mixed_curve  # From FreeCAD external workbench
 import xml.sax # From Python Built-In
 
 v = fc.Vector
-epc = 60 # edge point count
 
 class Product:
     
@@ -19,6 +18,7 @@ class Product:
         self.depth = 250
     
     def generate(self,path):
+        epc = 60 # edge point count
         xml.sax.parse(path, self.svg_handler)
         front_edge = self.get('side_view__front_edge')
         back_edge = self.get('side_view__back_edge')
@@ -26,7 +26,7 @@ class Product:
         insole_edge.Visibility = False
         sf = self.depth / front_edge.Shape.BoundBox.XLength
         tf = -front_edge.Shape.BoundBox.Center
-        fb_points = [[],[]] # front and back fuse points
+        f_points = [[],[]] # front and back fuse points
         for obj in self.doc.Objects:
             if 'side_view' in obj.Label: 
                 transform(obj, translate=tf, rotate=(v(1,1,1),120), scale=sf)
@@ -40,7 +40,6 @@ class Product:
                     transform(obj, translate = baseline.Shape.BoundBox.Center - obj.Shape.BoundBox.Center)
                     profile = discretize(obj, epc*2)
                     baseline = discretize(baseline, epc)
-                    points = []
                     bi = 0 # baseline index
                     baseline_dir = 1
                     if baseline.Points[0].y < baseline.Points[-1].y:
@@ -55,46 +54,48 @@ class Product:
                     pi = close_i1 # profile index
                     if (profile.Points[close_i2]-baseline.Points[bi]).Length < (profile.Points[close_i1]-baseline.Points[bi]).Length:
                         pi = close_i2
+                    dist_between_points = obj.Shape.Length / (epc*2)
+                    points = []
+                    print('baseline start index: '+str(bi))
                     for d in range(2): # Go along baseline one way and then back the other to finish the profile loop
                         for n in baseline.Points:
-                            if bi == 0 or bi == len(baseline.Points)-1:
+                            if bi == 0 or bi == len(baseline.Points)-1: # fuse point:
                                 points.append(  v(profile.Points[pi].x, baseline.Points[bi].y, baseline.Points[bi].z)  ) 
-                                #fb_points.append(points[-1])
-                            else:
+                            else: # regular point:
                                 points.append(  v(profile.Points[pi].x, (baseline.Points[bi].y+profile.Points[pi].y)/2, baseline.Points[bi].z)  ) 
                             bi = bi + baseline_dir
                             pi = pi + 1
-                            if pi >= len(profile.Points):
-                                pi = 0
-                        if bi >= len(baseline.Points):
-                            bi = len(baseline.Points)-1
-                        if bi < 0:
-                            bi = 0
+                            if pi >= len(profile.Points): pi = 0 # loop profile index
+                        bi = max(0,min(bi,len(baseline.Points)-1)) # clamp baseline index
                         baseline_dir = -baseline_dir
-                    points.append(points[0])
-                    make_curve(points,common_name(obj))
-                    fb = points[0].y < points[epc-1].y
-                    fb_points[int(not fb)].append(points[0])
-                    fb_points[int(fb)].append(points[epc-1])
+                    points.insert(epc,v(points[epc-1].x-dist_between_points/2, points[epc-1].y, points[epc-1].z))
+                    points.insert(0,v(points[0].x-dist_between_points/2, points[0].y, points[0].z))
+                    epc += 2
+                    f_points[0].append(points[epc-1]) # front fuse point
+                    f_points[1].append(points[0]) # back fuse point
+                    make_curve(points[:epc],common_name(obj)+'_right')
+                    left_points = points[epc-1:]
+                    left_points.append(points[0])
+                    make_curve(left_points,common_name(obj)+'_left', reverse=True)
         def sort_fb(fb_point):
             return fb_point.z 
         for fb,e in enumerate([front_edge,back_edge]):
             e = discretize(e, 0) 
-            fb_points[fb].sort(reverse=(e.Points[0].z > e.Points[-1].z), key=sort_fb)
+            f_points[fb].sort(reverse=(e.Points[0].z > e.Points[-1].z), key=sort_fb)
             points = []
             fbi = 0
             for p in e.Points:
-                dist = (v(0,p.y,p.z) - v(0,fb_points[fb][fbi].y,fb_points[fb][fbi].z)).Length
+                dist = (v(0,p.y,p.z) - v(0,f_points[fb][fbi].y,f_points[fb][fbi].z)).Length
                 if dist < 1: # mm
-                    points.append(fb_points[fb][fbi])
+                    points.append(f_points[fb][fbi])
                     fbi += 1
-                    if fbi >= len(fb_points[fb]):
+                    if fbi >= len(f_points[fb]):
                         break
                     else:
-                        fb_dist = (v(0,fb_points[fb][fbi-1].y,fb_points[fb][fbi-1].z) - v(0,fb_points[fb][fbi].y,fb_points[fb][fbi].z)).Length
+                        fb_dist = (v(0,f_points[fb][fbi-1].y,f_points[fb][fbi-1].z) - v(0,f_points[fb][fbi].y,f_points[fb][fbi].z)).Length
                 else: 
                     ratio = dist / fb_dist
-                    x = fb_points[fb][fbi].x*(1-ratio) + fb_points[fb][fbi-1].x*ratio
+                    x = f_points[fb][fbi].x*(1-ratio) + f_points[fb][fbi-1].x*ratio
                     points.append(v(x, p.y, p.z))
             make_curve(points,common_name(e))
         
@@ -130,13 +131,28 @@ class Product:
         self.mesh.recompute()
         Mesh.export([self.mesh],'../tmp/'+str(product_id)+'.obj')
 
+# Mix front and side view curves 
+def mix_curve(baseline,profile):
+    mc = fc.ActiveDocument.addObject("Part::FeaturePython", "Mixed curve")
+    mixed_curve.MixedCurveFP(mc, baseline, profile, v(1,0,0), v(0,0,1))
+    approximate_extension.ApproximateExtension(mc)
+    mc.Active = True
+    mc.ApproxTolerance = 0.5
+    mixed_curve.MixedCurveVP(mc.ViewObject)
+    fc.ActiveDocument.recompute()
+    mc.recompute()
+    if len(mc.Edges) > 1: # Do not use mixed curve if more than one edge is produced
+        return False
+    return mc
+
 # Join curves of source into one curve
-def join_curve(source,name):
+def join_curve(source, name, reverse=False):
     source.Visibility = False # For GUI
     curve = fc.ActiveDocument.addObject("Part::FeaturePython", name+'__curve')
     JoinCurves.join(curve)
     approximate_extension.ApproximateExtension(curve)
     JoinCurves.joinVP(curve.ViewObject) # for GUI?
+    curve.Reverse = reverse
     curve.Active = True # Approximate curve. Needed for smoothness and stability of gordon surface
     curve.ApproxTolerance = 0.5
     curve.Base = source
@@ -145,12 +161,12 @@ def join_curve(source,name):
     return curve
 
 # Make a new curve from a list of points
-def make_curve(points, name):
+def make_curve(points, name, reverse=False):
     name = name + '__poly'
     poly = fc.ActiveDocument.addObject("Part::Feature", name)
     poly.Shape = Part.Wire(Part.makePolygon(points))
     poly.Visibility = False
-    curve = join_curve(poly,name)
+    curve = join_curve(poly,name,reverse)
 
 # Make discrete object with evenly spaced points along source
 def discretize(source,point_count):
@@ -159,6 +175,7 @@ def discretize(source,point_count):
     discrete = fc.ActiveDocument.addObject("Part::FeaturePython",source.Label+'__points')
     Discretize.Discretization(discrete, (curve,'Edge1'))
     if point_count > 0:
+        discrete.Algorithm = 'QuasiNumber'
         discrete.Number = point_count
     else:
         discrete.Algorithm = 'Angular-Curvature'
@@ -191,9 +208,40 @@ def wireframe_style(obj):
 
 
 
+
+
+#points = []
+#print('baseline start index: '+str(bi))
+#for d in range(2): # Go along baseline one way and then back the other to finish the profile loop
+#    for n in baseline.Points:
+#        if bi == 0 or bi == len(baseline.Points)-1: # fuse point:
+#            points.append(  v(profile.Points[pi].x, baseline.Points[bi].y, baseline.Points[bi].z)  ) 
+#        else: # regular point:
+#            points.append(  v(profile.Points[pi].x, (baseline.Points[bi].y+profile.Points[pi].y)/2, baseline.Points[bi].z)  ) 
+#        bi = bi + baseline_dir
+#        pi = pi + 1
+#        if pi >= len(profile.Points): pi = 0 # loop profile index
+#    bi = max(0,min(bi,len(baseline.Points)-1)) # clamp baseline index
+#    baseline_dir = -baseline_dir
+#points.insert(epc,v(points[epc-1].x-dist_between_points/2, points[epc-1].y, points[epc-1].z))
+#points.insert(0,v(points[0].x-dist_between_points/2, points[0].y, points[0].z))
+#epc += 2
+#f_points[0].append(points[epc-1]) # front fuse point
+#f_points[1].append(points[0]) # back fuse point
+#make_curve(points[:epc],common_name(obj)+'_right')
+#left_points = points[epc-1:]
+#left_points.append(points[0])
+#make_curve(left_points,common_name(obj)+'_left')
+
+
+
+
+#fob = int(points[0].y < points[epc-1].y) # started front or back
+
+
 #x = 0
 #fused = False
-#for fb_point in fb_points[i]:
+#for fb_point in f_points[i]:
 #    dist = (v(0,p.y,p.z) - v(0,fb_point.y,fb_point.z)).Length
 #    if dist < 1: # mm
 #        points.append(fb_point)
