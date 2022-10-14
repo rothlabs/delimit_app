@@ -25,10 +25,6 @@ async def update(reader, writer):
     data_out = {'success': False}
     try: 
         product.generate(data_in['sketch'])
-
-        #sv_profile = product.get('side_view__profile')
-        #product.rotate(sv_profile)
-
         #product.export(data_in['product_id'])
         #data_in = await blender({'product_id': data_in['product_id']}) # Add meta data such as desired detail
         #if data_in['success']:
@@ -52,7 +48,7 @@ worker = threading.Thread(target=run_main, daemon=True)
 worker.start()
 
 
-############################# SIMULATED REQUEST FROM WEB APP #####################################
+############################# SIMULATED WEB APP REQUEST #####################################
 async def cax(data_out):
     reader, writer = await asyncio.open_connection('127.0.0.1', 8888) # Connect to FreeCAD Worker
     writer.write(json.dumps(data_out).encode())
@@ -63,8 +59,6 @@ asyncio.run(cax({ # send product id, sketches, and more to cax
         'product_id':  1, 
         'sketch':   '/home/julian/delimit/cax/sketches/runner_1.svg', 
     }))
-
-
 product.doc.recompute()
 
 
