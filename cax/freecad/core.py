@@ -8,7 +8,7 @@ The drawing SIDE view contains BASELINES and the TOP & FRONT views contain PROFI
 import FreeCAD as fc # From FreeCAD
 import Mesh, Part, MeshPart # From FreeCAD
 from importSVG import svgHandler # From FreeCAD
-from Curves import JoinCurves, approximate_extension, Discretize, mixed_curve, curveExtendFP  # From https://github.com/tomate44/CurvesWB
+from Curves import JoinCurves, approximate_extension, Discretize, mixed_curve, curveExtendFP, splitCurves_2  # From https://github.com/tomate44/CurvesWB
 import xml.sax # From Python Built-In
 
 v = fc.Vector
@@ -49,11 +49,11 @@ class Product:
         for obj in self.svg_parts:
             if 'top_view' in obj.Name and 'profile' in obj.Name:
                 profile = obj
-                baseline = self.baseline(profile)
+                baseline, shared_name = self.baseline(profile)
 
                 # Transform TOP view profiles
                 transform(profile, rotate = (v(0,0,1),90), scale = (baseline.Shape.BoundBox.YLength-.5)/profile.Shape.BoundBox.XLength)
-                transform(profile, translate = baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)
+                transform(profile, translate = baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)#v(blc.x-pc.x, bvy-profile.Shape.BoundBox.YMax, blc.z-pc.z))#baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)
                 
                 # This section preps information for generating mixed curves from TOP & SIDE views
                 joined_profile = join_curve(profile)
@@ -62,9 +62,13 @@ class Product:
                 profile_points = discretize(joined_profile, dpc*2).Points
                 baseline_points = discretize(joined_baseline, dpc).Points
                 bi = 0 # baseline index
+                baseline_start = baseline_points[0]
+                baseline_end = baseline_points[-1]
                 baseline_dir = 1
                 if baseline_points[0].y < baseline_points[-1].y:
                     bi = len(baseline_points)-1
+                    baseline_start = baseline_points[-1]
+                    baseline_end = baseline_points[0]
                     baseline_dir = -1
                 close_i1 = 0
                 close_i2 = 0
@@ -75,34 +79,49 @@ class Product:
                 pi = close_i1 # profile index
                 if (profile_points[close_i2]-baseline_points[bi]).Length < (profile_points[close_i1]-baseline_points[bi]).Length:
                     pi = close_i2
+                profile_start = profile_points[pi]
+                profile_end = profile_points[pi + dpc] # Could result in out of bounds error? ----------------------------------------- !!!
                 dist_between_points = profile.Shape.Length / (dpc*2)
                 m_points = [] # mixed points
                 p_points = [] # profile points
 
-                # This for loop goes up and down the baseline to gather point data from baseline and profile
+                # This loop goes up and down the baseline to gather point data from baseline and profile
+                
                 for d in range(2): 
                     for n in baseline_points:
-                        if bi == 0 or bi == len(baseline_points)-1: # fuse point:
+                        if bi == 0 or bi == dpc-1: # fuse point:
                             m_points.append(  v(profile_points[pi].x, baseline_points[bi].y, baseline_points[bi].z)  ) 
                         else: # regular point:
-                            m_points.append(  v(profile_points[pi].x, (baseline_points[bi].y+profile_points[pi].y)/2, baseline_points[bi].z)  ) 
+                            lbs = baseline_points[bi] - baseline_start
+                            lbe = baseline_points[bi] - baseline_end
+                            lps = profile_points[pi] - profile_start
+                            lpe = profile_points[pi] - profile_end
+                            ratio = bi / (dpc-1) # Smoothly shift point reference from start and end of baseline
+                            px = (baseline_start.x + lps.x)*(1-ratio)           + (baseline_end.x + lpe.x)*(ratio)
+                            my = (baseline_start.y + (lbs.y+lps.y)/2)*(1-ratio) + (baseline_end.y + (lbe.y+lpe.y)/2)*(ratio)
+                            scale_z = abs(px) / joined_profile.Shape.BoundBox.XLength * 3 # smooth along x axis
+                            if scale_z>1: scale_z=1
+                            bz = (baseline_start.z + lbs.z*scale_z)*(1-ratio)           + (baseline_end.z + lbe.z*scale_z)*(ratio)
+                            m_points.append(  v(px, my, bz)  ) 
+                            #m_points.append(  v(profile_points[pi].x, (baseline_points[bi].y+profile_points[pi].y)/2, baseline_points[bi].z)  ) 
                         p_points.append(profile_points[pi])
                         #if bi < len(baseline.Points): b_points.append(baseline[bi])
                         bi = bi + baseline_dir
                         pi = pi + 1
                         if pi >= len(profile_points): pi = 0 # loop profile index
-                    bi = max(0,min(bi,len(baseline_points)-1)) # clamp baseline index
+                    bi = max(0,min(bi,dpc-1)) # clamp baseline index
                     baseline_dir = -baseline_dir
+                
 
                 test_mix = mix_curve(joined_baseline, joined_profile)
                 if len(test_mix.Shape.Edges) == 1: # only use mix_curve if 1 edge produced
                     # This section creates a perfect mixed curve from TOP & SIDE view (requires function-of-(x or z) source curves)
-                    p_right = make_curve(p_points[:dpc], name=profile.Name+'__right') # Remove common name?
+                    p_right = make_curve(p_points[:dpc], name=profile.Name+'__right', dir='Y') # Remove common name?
                     left_points = p_points[dpc-1:]
                     left_points.append(p_points[0])
-                    p_left = make_curve(left_points, name=profile.Name+'__left', reverse=True)
-                    curves.append(mix_curve(joined_baseline, p_right, name=common_name(profile)+'__right'))
-                    curves.append(mix_curve(joined_baseline, p_left, name=common_name(profile)+'__left'))
+                    p_left = make_curve(left_points, name=profile.Name+'__left', dir='Y') #reverse=True
+                    curves.append(join_curve(mix_curve(joined_baseline, p_right, name=shared_name+'__right'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_right, name=shared_name+'__right')) #
+                    curves.append(join_curve(mix_curve(joined_baseline, p_left, name=shared_name+'__left'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_left, name=shared_name+'__left')) #
                     fob = curves[-1].Shape.Vertexes[0].Y > curves[-1].Shape.Vertexes[1].Y
                     f_points[int(fob )].append(curves[-1].Shape.Vertexes[0].Point) # save fuse point
                     f_points[int(not fob)].append(curves[-1].Shape.Vertexes[1].Point) # save fuse point
@@ -113,92 +132,142 @@ class Product:
                     dpc += 2
                     f_points[0].append(m_points[dpc-1]) # save front fuse point
                     f_points[1].append(m_points[0]) # save back fuse point
-                    curves.append(make_curve(m_points[:dpc], name=common_name(profile)+'__right', visibility=True))
+                    curves.append(make_curve(m_points[:dpc], name=shared_name+'__right', dir='Y', visibility=True))
                     left_points = m_points[dpc-1:]
                     left_points.append(m_points[0])
-                    curves.append(make_curve(left_points, name=common_name(profile)+'__left', reverse=True, visibility=True))
+                    curves.append(make_curve(left_points, name=shared_name+'__left', dir='Y', visibility=True)) #reverse=True
                 self.doc.removeObject(test_mix.Name)
         
         # Build the front and back curves so they hit all the fuse points at the curves that were mixed from TOP & SIDE
-        def sort_fp(f_point):
-            return f_point.z 
-        for fb,e in enumerate([front_baseline,back_baseline]):
-            e = discretize(join_curve(e), 100) 
-            f_points[fb].sort(reverse=(e.Points[0].z > e.Points[-1].z), key=sort_fp)
+        for bi, baseline in enumerate([front_baseline,back_baseline]):
+            discrete_baseline = discretize(join_curve(baseline, dir='Z'), 100)
+            f_points[bi].sort(key=lambda p:p.z)
             points = []
-            fbi = 0
+            fi = 0 # fuse point index
             last_i = 0
-            for i, p in enumerate(e.Points):
-                dist = (v(0,p.y,p.z) - v(0,f_points[fb][fbi].y,f_points[fb][fbi].z)).Length
-                if dist < 1: # fuse when within 1 mm
-                    points.append(f_points[fb][fbi])
+            #split_index = -1
+            for i, p in enumerate(discrete_baseline.Points):
+                dist = (v(0,p.y,p.z) - v(0,f_points[bi][fi].y,f_points[bi][fi].z)).Length
+                if dist < 2:# or (bi==0 and split_index == 0): # fuse when within 1 mm
+                    #if not split_index == 0: 
+                    points.append(f_points[bi][fi])
                     if len(points)>1:
-                        curves.append(make_curve(points, name=common_name(e)+'__s'+str(last_i)+'_e'+str(i), visibility=True))
+                        #if split_index == 0: print('AHHHHHHHHHHHHHH!!!')
+                        curves.append(make_curve(points, name=discrete_baseline.Name+'__s'+str(last_i)+'_e'+str(i), visibility=True))
                         last_i = i
+                        #new_start_point = points[-1]
                         points.clear()
-                        points.append(f_points[fb][fbi])
-                    fbi += 1
-                    if fbi >= len(f_points[fb]):
+                        #if split_index == 0: 
+                        #    points.append(new_start_point)
+                        #else:
+                        points.append(f_points[bi][fi])
+                    #if not split_index == 0: 
+                    fi += 1
+                        #if bi==0 and fi == len(f_points[bi])-1:
+                            #split_index = 6
+                            #print('made it!!!!!!!!!!!!')
+                    #else: 
+                    #    split_index = -1
+                    if fi >= len(f_points[bi]):
                         break
-                    else:
-                        fb_dist = (v(0,f_points[fb][fbi-1].y,f_points[fb][fbi-1].z) - v(0,f_points[fb][fbi].y,f_points[fb][fbi].z)).Length
+                    f_span = (v(0,f_points[bi][fi-1].y,f_points[bi][fi-1].z) - v(0,f_points[bi][fi].y,f_points[bi][fi].z)).Length
                 else: 
-                    ratio = dist / fb_dist
-                    x = f_points[fb][fbi].x*(1-ratio) + f_points[fb][fbi-1].x*ratio
+                    ratio = dist / f_span
+                    x = f_points[bi][fi].x*(1-ratio) + f_points[bi][fi-1].x*ratio
                     points.append(v(x, p.y, p.z))
+                #split_index -= 1
         
-        # Build curves from FRONT & SIDE views
-        f_points = []
-        fv_baselines = {}
+        # Build curves from FRONT, BACK, & SIDE views 
+        split_curves = [[],[]] # curves split by 'above' and 'below' cutters
         for obj in self.svg_parts:
-            if 'front_view' in obj.Name and 'profile' in obj.Name:
-                profile = obj
-                baseline = self.baseline(profile)
+            if ('front_view' in obj.Name or 'back_view' in obj.Name) and 'profile' in obj.Name and 'left' in obj.Name:
+                profiles = [obj, self.get(obj.Name.replace('left','right'))] 
+                baseline, shared_name = self.baseline(obj)
 
-                # Transform front view profiles
-                transform(profile, rotate = (v(1,0,0),90), scale = (baseline.Shape.BoundBox.ZLength)/profile.Shape.BoundBox.YLength)
-                transform(profile, translate = baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)
+                # Find fuse points
+                f_points = [[],[]] # left and right fuse points
+                curves_to_split = [[],[]]
+                joined_baseline = join_curve(baseline)
+                extended_baseline = extend(joined_baseline) # extend to make sure it crosses approximated curves from side view perspective
+                surface_baseline = extrude(extended_baseline, symmetric=True) 
+                solid_baseline = extrude(surface_baseline, dir=v(0,1,0), length=1) # For some reason, intersect is not working with surfaces, so extrude surface as solid
+                #clear_curves_to_split = True
+                for curve in curves:
+                    intersection = intersect(solid_baseline, curve) 
+                    verts = intersection.Shape.Vertexes
+                    if len(verts) > 1:
+                        #curves_to_split[].append(curve)
+                        #if 'top' in curve.Name:
+                        #    clear_curves_to_split = False
+                        if 'front' in curve.Name or 'back' in curve.Name: # add fuse point to left AND right if on front or back curve
+                            #print(curve.Name)
+                            
+                            f_points[0].append(verts[int(verts[0].Y > verts[1].Y)].Point)
+                            f_points[1].append(verts[int(verts[0].Y > verts[1].Y)].Point)
+                            #clear_curves_to_split = False
+                            curves_to_split[0].append(curve)
+                        else: # Add lowest Y-value point to left OR right list:
+                            f_points[int(verts[0].X > 0)].append(verts[int(verts[0].Y > verts[1].Y)].Point) 
+                            curves_to_split[int(verts[0].X > 0)].append(curve)
+                    self.doc.removeObject(intersection.Name)
+                    curve.Visibility = True
+                #if clear_curves_to_split: 
+                #    curves_to_split[0].clear()
+                #    curves_to_split[1].clear()
+                self.doc.removeObject(solid_baseline.Name)
+                self.doc.removeObject(surface_baseline.Name)
+                self.doc.removeObject(extended_baseline.Name)
 
-                if not common_name(profile) in fv_baselines:
-                    fv_baselines[common_name(profile)] = join_curve(baseline)
-                    extended_baseline = extend(baseline) 
-                    surface_baseline = extrude(extended_baseline, symmetric=True) 
-                    block_baseline = extrude(surface_baseline, dir=v(0,1,0), length=1) 
-                    for curve in curves:
-                        intersection = intersect(block_baseline, curve) 
-                        verts = intersection.Shape.Vertexes
-                        if len(verts) > 1:
-                            f_points.append(verts[int(verts[0].Y > verts[1].Y)].Point) # Add the point with lowest y value to fuse point list
-                        self.doc.removeObject(intersection.Name)
-                        curve.Visibility = True
-                    self.doc.removeObject(block_baseline.Name)
-                    self.doc.removeObject(surface_baseline.Name)
-                    self.doc.removeObject(extended_baseline.Name)
-        print(len(f_points))
-
-        # Make front view curves 
-        #for obj in self.svg_parts:
-           # if 'front_view' in obj.Name and 'profile' in obj.Name:
-            #    baseline_svg = self.baseline(obj)
-
-                # Transform front view profiles
-                #transform(obj, rotate = (v(1,0,0),90), scale = (baseline_svg.Shape.BoundBox.ZLength)/obj.Shape.BoundBox.YLength)
-                #transform(obj, translate = baseline_svg.Shape.BoundBox.Center - obj.Shape.BoundBox.Center)
-
-                #suffix = 'left'
-                #if 'right' in obj.Name: suffix = '__right'
-                #baseline = join_curve(baseline_svg,baseline_svg.Name, visibility=True)
-                #profile = join_curve(obj,obj.Name, visibility=True)
-                #mix = mix_curve(baseline, profile, profile_dir=v(0,1,0))
-                
+                for pi, profile in enumerate(profiles):
+                    f_points[pi].sort(key=lambda p:p.z)
+                    # Transform front view profiles
+                    transform(profile, rotate = (v(1,0,0),90), scale = (baseline.Shape.BoundBox.ZLength)/profile.Shape.BoundBox.YLength)
+                    transform(profile, translate = baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)
+                    # Mix curves
+                    joined_profile = join_curve(profile, dir='Z')
+                    suffix = '__left'
+                    if pi>0: suffix = '__right'
+                    mix = mix_curve(joined_baseline, joined_profile, profile_dir=v(0,1,0), name=shared_name+suffix)
+                    joined_mix = join_curve(mix, dir='Z') # joining to force direction to +Z
+                    dpc = 60 # discretize point count
+                    discrete_mix = discretize(joined_mix,dpc) #copy().sort(key=lambda fp:fp.z)
+                    a_points = [f_points[pi][0]] # adjusted points
+                    for mi, mp in enumerate(discrete_mix.Points):
+                        lmp = mp - discrete_mix.Points[0] # mixed point local to start
+                        rlmp = mp - discrete_mix.Points[-1] # mixed point local to end
+                        ratio = mi / dpc 
+                        ap = (f_points[pi][0] + lmp)*(1-ratio) + (f_points[pi][1] + rlmp)*ratio
+                        a_points.append(ap)
+                    a_points.append(f_points[pi][1])
+                    
+                    curves.append(make_curve(a_points, dir='Z', name=discrete_mix.Name, visibility=True))
+                    #if pi>0:
+                    for cts in curves_to_split[pi]:
+                        cts.Visibility = False
+                        new_split = True
+                        aob = int(cts.Shape.BoundBox.Center.z < curves[-1].Shape.BoundBox.Center.z) # Above OR Below index, might not work for extreme curves
+                        for sc in split_curves[aob]:
+                            if cts == sc['source']:
+                                if not curves[-1] in sc['result'].CuttingObjects:
+                                    cutting_objects = sc['result'].CuttingObjects.copy()
+                                    cutting_objects.append(curves[-1])
+                                    sc['result'].CuttingObjects = cutting_objects
+                                    sc['result'].recompute()
+                                new_split = False
+                                break
+                        if new_split:
+                            split = split_curve(cts,curves[-1])
+                            split_curves[aob].append({'source':cts, 'result':split})
+                    
 
 
     # Get the corresponding baseline to the given profile.
     def baseline(self,profile):
         for obj in self.svg_parts:
             if 'baseline' in obj.Name:
-                if common_name(obj) == common_name(profile):
-                    return obj
+                sn = shared_name(obj) 
+                if sn == shared_name(profile):
+                    return obj, sn
 
     # Get a FreeCAD object by path
     def get(self, path):
@@ -224,6 +293,19 @@ class Product:
 
 
 
+# Split source curve at cutter 
+def split_curve(source, cutter):
+    c = fc.ActiveDocument.addObject("Part::FeaturePython", source.Name+'__split')
+    splitCurves_2.split(c, (source,'Edge1'))
+    splitCurves_2.splitVP(c.ViewObject)
+    c.Values = []
+    c.CuttingObjects = [cutter]
+    c.ViewObject.PointSize = 5.0
+    wireframe_style(c)
+    c.recompute()
+    source.Visibility = False
+    return c
+
 # Get intersection of shapes
 def intersect(source_a, source_b, name='untitled'):
     b = fc.activeDocument().addObject("Part::MultiCommon", name+'__intersect')
@@ -236,8 +318,8 @@ def extend(source):
     f = fc.ActiveDocument.addObject("Part::FeaturePython", source.Name+'__extend')
     curveExtendFP.extend(f)
     f.Edge = (source,'Edge1')
-    f.LengthStart = 2 # increase this if fuse points for front view are not found
-    f.LengthEnd = 2  # increase this if fuse points for front view are not found
+    f.LengthStart = 1 # increase this if fuse points for front view are not found
+    f.LengthEnd = 1  # increase this if fuse points for front view are not found
     curveExtendFP.extendVP(f.ViewObject)
     wireframe_style(f)
     f.recompute()
@@ -269,13 +351,14 @@ def mix_curve(baseline, profile, name='untitled', profile_dir=v(0,0,1)):
 
 
 # Join curves of source into one curve
-def join_curve(source, reverse=False, visibility=False):
+def join_curve(source, dir='', visibility=False):
     source.Visibility = False # For GUI
     curve = fc.ActiveDocument.addObject("Part::FeaturePython", source.Name+'__join')
     JoinCurves.join(curve)
     approximate_extension.ApproximateExtension(curve)
     JoinCurves.joinVP(curve.ViewObject) # for GUI?
-    curve.Reverse = reverse
+    if dir=='Y': curve.Reverse = source.Shape.Vertexes[0].Y > source.Shape.Vertexes[-1].Y
+    if dir=='Z': curve.Reverse = source.Shape.Vertexes[0].Z > source.Shape.Vertexes[-1].Z
     curve.Active = True # Approximate curve. Needed for smoothness and stability of gordon surface
     curve.ApproxTolerance = 0.2
     curve.Base = source
@@ -286,12 +369,12 @@ def join_curve(source, reverse=False, visibility=False):
 
 
 # Make a new curve from a list of points
-def make_curve(points, name='untitled', reverse=False, visibility=False):
+def make_curve(points, name='untitled', dir='', visibility=False):
     #name = name + '__poly'
     poly = fc.ActiveDocument.addObject("Part::Feature", name+'__poly')
-    poly.Shape = Part.Wire(Part.makePolygon(points))
+    poly.Shape = Part.Wire(Part.makePolygon(points)) ######################3  Use Curves WB Interpolate instead of making poly and join
     poly.Visibility = False
-    curve = join_curve(poly,reverse=reverse,visibility=visibility)
+    curve = join_curve(poly, dir=dir, visibility=visibility)
     return curve
 
 
@@ -312,12 +395,13 @@ def discretize(source,point_count):
 
 
 # Get the name that is common to baseline and profile by removing all 'path' and 'type' information
-def common_name(obj):
+def shared_name(obj):
     return (obj.Name
         # Used like directory path:
         .replace('side_view__','')
         .replace('top_view__','')
         .replace('front_view__','')
+        .replace('back_view__','')
         .replace('right__','') # found in front view 
         .replace('left__','') # found in front view
         # Used like file types:
@@ -344,6 +428,44 @@ def wireframe_style(obj):
 
 
 
+              #  joined_profile = join_curve(profile)
+              #  edge = joined_profile.Shape
+              #  x1 = 0#v(0,100000,0)
+              #  x2 = 0#v(0,100000,0)
+              #  bb = joined_profile.Shape.BoundBox
+              #  #print(bb.Center)
+              #  seg_length = (edge.Length/500)
+              #  for i in range(int(edge.FirstParameter), int(edge.LastParameter*500)):
+              #      p = edge.valueAt(i/500)
+              #      #if abs(p.y-bb.Center.y) < x1.y:
+              #      #    x2 = x1
+              #      #    x1 = p
+              #      #print(p)
+              #      if p.x < bb.Center.x and abs(p.y-bb.Center.y) < seg_length/2:
+              #          x1 = p.x
+              #          print('x1: '+str(x1))
+              #      if p.x > bb.Center.x and abs(p.y-bb.Center.y) < seg_length/2:
+              #          x2 = p.x
+              #          print('x2: '+str(x2))
+              #  profile_length = abs(x1-x2)
+
+                #joined_baseline = join_curve(baseline)
+                #bvy = joined_baseline.Shape.Vertexes[0].Y
+                #blc = joined_baseline.Shape.BoundBox.Center
+                #pc = profile.Shape.BoundBox.Center
+
+
+
+
+#abs(mi - dpc/2)*2 / dpc # 1 when close to fuse point and 0 when inbetween
+                        #x = lmp.x/m_box.x*f_box.x*ratio# + lmp.x*(1-ratio) # Use ratio to blend between fuse space and profile space
+                        #z = lmp.z/m_box.z*f_box.z#*(ratio) + lmp.z*(1-ratio)
+                        #ap = f_start + v(x, lmp.y/m_box.y*f_box.y, lmp.z/m_box.z*f_box.z)
+
+
+
+#def sort_fp(f_point): return f_point.z 
+            #f_points[bi].sort(reverse=(discrete_baseline.Points[0].z > discrete_baseline.Points[-1].z), key=sort_fp)
 
 
     #curve = join_curve(source,source.Name)
@@ -374,10 +496,10 @@ def wireframe_style(obj):
 #epc += 2
 #f_points[0].append(points[epc-1]) # front fuse point
 #f_points[1].append(points[0]) # back fuse point
-#make_curve(points[:epc],common_name(obj)+'_right')
+#make_curve(points[:epc],shared_name(obj)+'_right')
 #left_points = points[epc-1:]
 #left_points.append(points[0])
-#make_curve(left_points,common_name(obj)+'_left')
+#make_curve(left_points,shared_name(obj)+'_left')
 
 
 
@@ -422,7 +544,7 @@ def wireframe_style(obj):
 #   edge = Part.Edge(geomCurve)
 #   return(edge)
 
-#curve = fc.ActiveDocument.addObject("Part::FeaturePython", common_name(obj)+'__curve')
+#curve = fc.ActiveDocument.addObject("Part::FeaturePython", shared_name(obj)+'__curve')
                     #approximate.Approximate(curve, poly)
                     #approximate.ViewProviderApp(curve.ViewObject)
                     #approximate.Closed = True
