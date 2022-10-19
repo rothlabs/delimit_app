@@ -40,10 +40,11 @@ class Product:
 
         # Transform all SIDE view objects
         for obj in self.svg_parts:
+            obj.Visibility = False
             if 'side_view' in obj.Name: 
                 transform(obj, translate=side_view_translate, rotate=(v(1,1,1),120), scale=side_view_scale)
-            if 'material' in obj.Name:
-                obj.Visibility = False
+            #if 'material' in obj.Name:
+            #    obj.Visibility = False
 
         # Build curves from TOP & SIDE views
         for obj in self.svg_parts:
@@ -194,29 +195,19 @@ class Product:
                 extended_baseline = extend(joined_baseline) # extend to make sure it crosses approximated curves from side view perspective
                 surface_baseline = extrude(extended_baseline, symmetric=True) 
                 solid_baseline = extrude(surface_baseline, dir=v(0,1,0), length=1) # For some reason, intersect is not working with surfaces, so extrude surface as solid
-                #clear_curves_to_split = True
                 for curve in curves:
                     intersection = intersect(solid_baseline, curve) 
                     verts = intersection.Shape.Vertexes
                     if len(verts) > 1:
-                        #curves_to_split[].append(curve)
-                        #if 'top' in curve.Name:
-                        #    clear_curves_to_split = False
                         if 'front' in curve.Name or 'back' in curve.Name: # add fuse point to left AND right if on front or back curve
-                            #print(curve.Name)
-                            
                             f_points[0].append(verts[int(verts[0].Y > verts[1].Y)].Point)
                             f_points[1].append(verts[int(verts[0].Y > verts[1].Y)].Point)
-                            #clear_curves_to_split = False
                             curves_to_split[0].append(curve)
                         else: # Add lowest Y-value point to left OR right list:
                             f_points[int(verts[0].X > 0)].append(verts[int(verts[0].Y > verts[1].Y)].Point) 
                             curves_to_split[int(verts[0].X > 0)].append(curve)
                     self.doc.removeObject(intersection.Name)
-                    curve.Visibility = True
-                #if clear_curves_to_split: 
-                #    curves_to_split[0].clear()
-                #    curves_to_split[1].clear()
+                    #curve.Visibility = True
                 self.doc.removeObject(solid_baseline.Name)
                 self.doc.removeObject(surface_baseline.Name)
                 self.doc.removeObject(extended_baseline.Name)
@@ -269,40 +260,43 @@ class Product:
         for cta in curves_to_append:
             curves.append(cta)
 
-
-        #print('e'+str(fb_point_count-1))
-        # Create surfaces, adding lines/splines as needed
-        #print([c.Name for c in curves])
-        for bc in (c for c in curves if not 'left' in c.Name and 'above__split' in c.Name): # bottom curve 
-            #if 'above__split' in bc.Name: # start with curves split from objects above it
-            for bcei, bce in enumerate(bc.Shape.Edges): # bottom curve edge 
-                for lc in (c for c in curves if not c==bc and not 'left' in c.Name): # left curve
-                    for lcei, lce in enumerate(lc.Shape.Edges): # left curve edge
-                        if (bce.Vertexes[0].Point-lce.Vertexes[0].Point).Length < 0.1:
-                            ptce = [] # possible top curve and edge
-                            for tc in (c for c in curves if not c==lc and not 'left' in c.Name): # top curve
-                                if not 'above_split' in tc.Name:#'below__split' in tc.Name or 'front' in tc.Name: # only curves split by objects below it or front curve
-                                    for tcei, tce in enumerate(tc.Shape.Edges): # top curve edge
-                                        if 'e'+str(fb_point_count-1) in lc.Name: # SPECIAL CASE: If the lc is from the last of front/back curve, the tce will be pointing down instead of back (use vertex 1 as tce base instead of vertex 0)
-                                            #print('SPECIAL CASE')
-                                            #print('lc')
-                                            #print(lc.Name)
-                                            #print('tc')
-                                            #print(tc.Name)
-                                            if (lce.Vertexes[1].Point-tce.Vertexes[1].Point).Length < 0.1: # use vertex 1 as base for tce
-                                                ptce.append({'curve':tc, 'edge':tce, 'index':tcei})
+        # Create surfaces
+        for c in curves: c.Visibility = False
+        for lor in ['left','right']: 
+            for c1 in (c for c in curves if not lor in c.Name and 'above__split' in c.Name): # bottom curve 
+                for c1ei, c1e in enumerate(c1.Shape.Edges): # bottom curve edge 
+                    for c2 in (c for c in curves if not c==c1 and not lor in c.Name): # left curve (usually)
+                        for c2ei, c2e in enumerate(c2.Shape.Edges): # left curve edge (usually)
+                            if (c1e.Vertexes[0].Point-c2e.Vertexes[0].Point).Length < 0.1:
+                                pc3 = [] # possible top (usually) curve and edge
+                                for c3 in (c for c in curves if not c==c2 and not 'above__split' in c.Name and not lor in c.Name): # top curve
+                                    for c3ei, c3e in enumerate(c3.Shape.Edges): # top curve edge
+                                        if 'e'+str(fb_point_count-1) in c2.Name: # SPECIAL CASE: If the c2 is from the last of front/back curve, the c3e will be pointing down instead of back (use vertex 1 as c3e base instead of vertex 0)
+                                            if (c2e.Vertexes[1].Point-c3e.Vertexes[1].Point).Length < 0.1: # use vertex 1 as base for c3e
+                                                pc3.append({'c':c3, 'e':c3e, 'i':c3ei})
                                         else:
-                                            if (lce.Vertexes[1].Point-tce.Vertexes[0].Point).Length < 0.1: # use vertex 0 as base for tce
-                                                ptce.append({'curve':tc, 'edge':tce, 'index':tcei})
-                            if len(ptce)>0:
-                                print(len(ptce))
-                                ptce.sort(key=lambda c:c['edge'].BoundBox.Center.z)
-                                print('bottom curve: '+bc.Name+', edge: '+str(bcei+1))
-                                print('left curve: '+lc.Name+', edge: '+str(lcei+1))
-                                print('top curve: '+ptce[0]['curve'].Name+', edge: '+str(ptce[0]['index']+1))
-    #if not 'left' in bc.Name: # only centerline and right side curves
-
-
+                                            if (c2e.Vertexes[1].Point-c3e.Vertexes[0].Point).Length < 0.1: # use vertex 0 as base for c3e
+                                                pc3.append({'c':c3, 'e':c3e, 'i':c3ei})
+                                if len(pc3)>0:
+                                    pc3.sort(key=lambda c:c['e'].BoundBox.Center.z) 
+                                    c3, c3e, c3ei = pc3[0]['c'], pc3[0]['e'], pc3[0]['i']
+                                    if (c3e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < 0.1: # 3 side surface?
+                                        make_surface([(c1,c1ei), (c2,c2ei), (c3,c3ei)])
+                                    else:
+                                        pc4 = [] # possible last curve, edge, and index (usually right / vertical down)
+                                        for c4 in (c for c in curves if not c==c3 and not 'above__split' in c.Name and not lor in c.Name):
+                                            for c4ei, c4e in enumerate(c4.Shape.Edges): # right edge
+                                                if (c3e.Vertexes[1].Point-c4e.Vertexes[0].Point).Length < 0.1: # use vertex 0 as base for c4e
+                                                    pc4.append({'c':c4, 'e':c4e, 'i':c4ei})
+                                                if (c3e.Vertexes[1].Point-c4e.Vertexes[1].Point).Length < 0.1: # use vertex 1 as base for c4e
+                                                    pc4.append({'c':c4, 'e':c4e, 'i':c4ei})
+                                        if len(pc4)>0:
+                                            pc4.sort(key=lambda c:c['e'].BoundBox.Center.z)
+                                            c4, c4e, c4ei = pc4[0]['c'], pc4[0]['e'], pc4[0]['i']
+                                            if (c4e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < 0.1: # final side connects with first side?
+                                                make_surface([(c1,c1ei), (c2,c2ei), (c3,c3ei), (c4,c4ei)])
+                                            else:
+                                                make_surface([(c2,c2ei), (c3,c3ei), (c4,c4ei)])
 
     # Get the corresponding baseline to the given profile.
     def baseline(self,profile):
@@ -335,6 +329,17 @@ class Product:
         Mesh.export([self.mesh],'../tmp/'+str(product_id)+'.obj')
 
 
+
+# Make Surface from list of curves and edges
+def make_surface(curves_and_edges):
+    s = fc.ActiveDocument.addObject('Surface::GeomFillSurface','Surface')
+    s.BoundaryList = [(ce[0],'Edge'+str(ce[1]+1)) for ce in curves_and_edges]
+    s.FillType = 1
+    s.recompute()
+    print('Surface:')
+    for i, ce in enumerate(curves_and_edges):
+        print('C'+str(i)+': '+ce[0].Name+', edge: '+str(ce[1]+1))
+    return s
 
 # Split source curve at cutter 
 def split_curve(source, cutter, name='untitled'):
