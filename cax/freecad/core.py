@@ -139,8 +139,9 @@ class Product:
                 self.doc.removeObject(test_mix.Name)
         
         # Build the front and back curves so they hit all the fuse points at the curves that were mixed from TOP & SIDE
+        fb_point_count = 100
         for bi, baseline in enumerate([front_baseline,back_baseline]):
-            discrete_baseline = discretize(join_curve(baseline, dir='Z'), 100)
+            discrete_baseline = discretize(join_curve(baseline, dir='Z'), fb_point_count)
             f_points[bi].sort(key=lambda p:p.z)
             points = []
             fi = 0 # fuse point index
@@ -179,6 +180,8 @@ class Product:
         
         # Build curves from FRONT, BACK, & SIDE views 
         split_curves = [[],[]] # curves split by 'above' and 'below' cutters
+        curves_to_append = []
+        curves_to_remove = []
         for obj in self.svg_parts:
             if ('front_view' in obj.Name or 'back_view' in obj.Name) and 'profile' in obj.Name and 'left' in obj.Name:
                 profiles = [obj, self.get(obj.Name.replace('left','right'))] 
@@ -220,10 +223,10 @@ class Product:
 
                 for pi, profile in enumerate(profiles):
                     f_points[pi].sort(key=lambda p:p.z)
-                    # Transform front view profiles
+                    # Transform front view profiles:
                     transform(profile, rotate = (v(1,0,0),90), scale = (baseline.Shape.BoundBox.ZLength)/profile.Shape.BoundBox.YLength)
                     transform(profile, translate = baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)
-                    # Mix curves
+                    # Mix curves:
                     joined_profile = join_curve(profile, dir='Z')
                     suffix = '__left'
                     if pi>0: suffix = '__right'
@@ -239,11 +242,9 @@ class Product:
                         ap = (f_points[pi][0] + lmp)*(1-ratio) + (f_points[pi][1] + rlmp)*ratio
                         a_points.append(ap)
                     a_points.append(f_points[pi][1])
-                    
                     curves.append(make_curve(a_points, dir='Z', name=discrete_mix.Name, visibility=True))
-                    #if pi>0:
+                    # Split curves that the new mixes intersect with:
                     for cts in curves_to_split[pi]:
-                        cts.Visibility = False
                         new_split = True
                         aob = int(cts.Shape.BoundBox.Center.z < curves[-1].Shape.BoundBox.Center.z) # Above OR Below index, might not work for extreme curves
                         for sc in split_curves[aob]:
@@ -256,9 +257,51 @@ class Product:
                                 new_split = False
                                 break
                         if new_split:
-                            split = split_curve(cts,curves[-1])
+                            suffix = '__below'
+                            if aob>0: suffix = '__above'
+                            split = split_curve(cts,curves[-1], name=cts.Name+suffix)
                             split_curves[aob].append({'source':cts, 'result':split})
-                    
+                            curves_to_append.append(split)
+                            curves_to_remove.append(cts)
+                        cts.Visibility = False
+        for ctr in curves_to_remove:
+            if ctr in curves: curves.remove(ctr)
+        for cta in curves_to_append:
+            curves.append(cta)
+
+
+        #print('e'+str(fb_point_count-1))
+        # Create surfaces, adding lines/splines as needed
+        #print([c.Name for c in curves])
+        for bc in (c for c in curves if not 'left' in c.Name and 'above__split' in c.Name): # bottom curve 
+            #if 'above__split' in bc.Name: # start with curves split from objects above it
+            for bcei, bce in enumerate(bc.Shape.Edges): # bottom curve edge 
+                for lc in (c for c in curves if not c==bc and not 'left' in c.Name): # left curve
+                    for lcei, lce in enumerate(lc.Shape.Edges): # left curve edge
+                        if (bce.Vertexes[0].Point-lce.Vertexes[0].Point).Length < 0.1:
+                            ptce = [] # possible top curve and edge
+                            for tc in (c for c in curves if not c==lc and not 'left' in c.Name): # top curve
+                                if not 'above_split' in tc.Name:#'below__split' in tc.Name or 'front' in tc.Name: # only curves split by objects below it or front curve
+                                    for tcei, tce in enumerate(tc.Shape.Edges): # top curve edge
+                                        if 'e'+str(fb_point_count-1) in lc.Name: # SPECIAL CASE: If the lc is from the last of front/back curve, the tce will be pointing down instead of back (use vertex 1 as tce base instead of vertex 0)
+                                            #print('SPECIAL CASE')
+                                            #print('lc')
+                                            #print(lc.Name)
+                                            #print('tc')
+                                            #print(tc.Name)
+                                            if (lce.Vertexes[1].Point-tce.Vertexes[1].Point).Length < 0.1: # use vertex 1 as base for tce
+                                                ptce.append({'curve':tc, 'edge':tce, 'index':tcei})
+                                        else:
+                                            if (lce.Vertexes[1].Point-tce.Vertexes[0].Point).Length < 0.1: # use vertex 0 as base for tce
+                                                ptce.append({'curve':tc, 'edge':tce, 'index':tcei})
+                            if len(ptce)>0:
+                                print(len(ptce))
+                                ptce.sort(key=lambda c:c['edge'].BoundBox.Center.z)
+                                print('bottom curve: '+bc.Name+', edge: '+str(bcei+1))
+                                print('left curve: '+lc.Name+', edge: '+str(lcei+1))
+                                print('top curve: '+ptce[0]['curve'].Name+', edge: '+str(ptce[0]['index']+1))
+    #if not 'left' in bc.Name: # only centerline and right side curves
+
 
 
     # Get the corresponding baseline to the given profile.
@@ -294,8 +337,8 @@ class Product:
 
 
 # Split source curve at cutter 
-def split_curve(source, cutter):
-    c = fc.ActiveDocument.addObject("Part::FeaturePython", source.Name+'__split')
+def split_curve(source, cutter, name='untitled'):
+    c = fc.ActiveDocument.addObject("Part::FeaturePython", name+'__split')
     splitCurves_2.split(c, (source,'Edge1'))
     splitCurves_2.splitVP(c.ViewObject)
     c.Values = []
