@@ -8,7 +8,7 @@ The drawing RIGHT view contains BASELINES and the TOP & FRONT views contain PROF
 import FreeCAD, Mesh, Part, MeshPart # From FreeCAD
 from importSVG import svgHandler # From FreeCAD
 from Curves import JoinCurves, approximate_extension, Discretize, mixed_curve, curveExtendFP, splitCurves_2  # From https://github.com/tomate44/CurvesWB
-import xml.sax # From Python Built-In
+import xml.sax, random, string # From Python Built-In
 
 v = FreeCAD.Vector
 
@@ -22,64 +22,64 @@ class Product:
     def generate(self,drawing_path):
         # Put SHAPE and STYLE layers into seperate files
         with open(drawing_path,'r') as file: drawing = file.read()
-        shape_labels = ['id="shape"','label="shape"',"id='shape'","label='shape'"] # label="shape"
+        shape_labels = ['id="shape"','label="shape"',"id='shape'","label='shape'"] 
         style_labels = ['id="style"','label="style"',"id='style'","label='style'"]
-        #drawing_start = drawing[0:drawing.find('<g')] #[{'content':drawing[0:drawing.find('<g')], 'type':'default'}]
         shape_group = drawing[0:drawing.find('<g')]
         style_group = drawing[0:drawing.find('<g')]
         final_gei = 0
         gei = 0
-        #i = 4
         while True:#i > 3 and i < len(drawing):
             gsi = drawing.find('<g', gei)     # group start index
-            gei = drawing.find('</g>', gei)+4 # group end index
-            #i = gei
-            print('gei: '+str(gei))
+            gei = drawing.find('</g>', gei)+4 # group end index (3 returned when no group end found)
             if gei > 3: final_gei = gei
-            else: break
+            else: break # 
             group = drawing[gsi:gei]
-            #group_type = 'default'
-            print('Looking for shape group') 
-            if any(t in group for t in shape_labels): 
-                shape_group += group #group_type = 'shape'
-                print('Shape group!!')
-            if any(t in group for t in style_labels): style_group += group #group_type = 'style'
-            #groups.append({'content':group_content, 'type':group_type})
-        #drawing_end = drawing[final_gei:]
-        print('final_gei: '+str(final_gei))
-        #groups.append({'content':drawing[final_gei:], 'type':'default'}) 
-        shape_drawing_path = '../tmp/shape_drawing.svg'
+            if any(t in group for t in shape_labels): shape_group += group 
+            if any(t in group for t in style_labels): style_group += group 
         shape_drawing = shape_group + drawing[final_gei:]
         style_drawing = style_group + drawing[final_gei:]
-        #shape_drawing = groups[0]['content'] + [g['content'] for g in groups if g['type']=='shape'][0] + groups[-1]['content'] 
-        #for group in groups:
-        #    if not group['type'] == 'shape':
-        #        shape_drawing = shape_drawing.replace(group['content'],'\n')
-        ##with open(shape_drawing_path, 'w') as file: file.write(shape_drawing)
-
+        #with open('../tmp/shape_drawing.svg', 'w') as file: file.write(shape_drawing) # Use this to inspect drawing layer
 
         # The svg_handler inserts svg paths as seperate objects in the FreeCAD document
         xml.sax.parseString(shape_drawing, self.svg_handler) #xml.sax.parse(shape_drawing_path, self.svg_handler)
-        self.svg_parts = self.doc.Objects # TODO: exclude previous existing objects
+        self.svg_shapes = self.doc.Objects # TODO: exclude previous existing objects
 
         # Identify SVG parts and assign labels
         view_labels = ['Top','Right','Left','Front','Back','Bottom', 'top','right','left','front','back','bottom']
-        view_tags  = [(o.LabelText, Part.Vertex(o.Position)) for o in self.svg_parts if hasattr(o,'LabelText') and any(t in o.LabelText for t in view_labels)]
-        shape_tags = [(o.LabelText, Part.Vertex(o.Position)) for o in self.svg_parts if hasattr(o,'LabelText') and not any(t in o.LabelText for t in view_labels)]
-        for obj in self.svg_parts:
+        view_tags  = [(o.LabelText, Part.Vertex(o.Position)) for o in self.svg_shapes if hasattr(o,'LabelText') and any(t in o.LabelText for t in view_labels)]
+        shape_tags = [(o.LabelText, Part.Vertex(o.Position)) for o in self.svg_shapes if hasattr(o,'LabelText') and not any(t in o.LabelText for t in view_labels)]
+        for obj in self.svg_shapes:
             obj.Visibility = False
             if hasattr(obj,'Shape'):
                 view_tag = [((vt[0], vt[1].distToShape(obj.Shape)[0])) for vt in view_tags]
                 view_tag.sort(key = lambda o: o[1])
-                obj.Label = str(view_tag[0][0][0]).lower()+'_view__'+obj.Label
+                obj.Label = str(view_tag[0][0][0]).lower()+'_view__'+random_string(4)+'___'
         view_labels = [v+'_view__' for v in ['front','back','left','right','top','bottom']]
         for st in shape_tags:
-            tag_obj_dist = [(st[0], o, st[1].distToShape(o.Shape)[0]) for o in self.svg_parts if hasattr(o,'Shape') and any(t in o.Label for t in view_labels)]
+            tag_obj_dist = [(st[0], o, st[1].distToShape(o.Shape)[0]) for o in self.svg_shapes if hasattr(o,'Shape') and any(t in o.Label for t in view_labels)]
             tag_obj_dist.sort(key = lambda o: o[2]) 
-            suffix = '_profile__'
-            if 'right_view__' in obj.Label: suffix = '_baseline__'
-            print(tag_obj_dist[0][1].Label.replace('_view__','_view__'+str(tag_obj_dist[0][0][0])+suffix))
-                #obj.Label = obj.Label.replace('_view__','_view__'+str(shape_tag[0][0][0])+suffix)
+            suffix = '_profile'
+            if 'right_view__' in tag_obj_dist[0][1].Label: suffix = '_baseline'  
+            tag_obj_dist[0][1].Label = tag_obj_dist[0][1].Label.replace('_view__','_view__'+str(tag_obj_dist[0][0][0])+suffix)[:-7]
+            if tag_obj_dist[0][1].Label[-3:] == '001':
+                for obj in self.svg_shapes:
+                    if obj.Label == tag_obj_dist[0][1].Label[:-3]:
+                        lor = ['left__','right__']
+                        if obj.Shape.BoundBox.Center.x > tag_obj_dist[0][1].Shape.BoundBox.Center.x: lor.reverse()
+                        obj.Label = obj.Label.replace('_view__','_view__'+lor[0])
+                        tag_obj_dist[0][1].Label = tag_obj_dist[0][1].Label.replace('_view__','_view__'+lor[1])[:-3]
+        for o1 in self.svg_shapes:
+            if o1.Label[-3:] == '___':
+                if 'right_view__' in o1.Label:
+                    for o2 in self.svg_shapes:
+                        if o2.Label[-3:] == '___':
+                            if 'right_view__' in o2.Label:
+                                fob = ['right_view__front_baseline','right_view__back_baseline']
+                                if o1.Shape.BoundBox.Center.x > o2.Shape.BoundBox.Center.x: fob.reverse()
+                                o1.Label = fob[0]
+                                o2.Label = fob[1]
+                else:
+                    o1.Label = o1.Label[-7:-3] # reduce to the four random characters
 
         # Gather information about the imported paths before any transformations
         front_baseline = self.get('right_view__front_baseline')
@@ -89,16 +89,16 @@ class Product:
         right_view_scale = self.length_y / front_baseline.Shape.BoundBox.XLength
         right_view_translate = -front_baseline.Shape.BoundBox.Center
         f_points = [[],[]] # front and back fuse points
-        bottom_curves = []
+        top_and_right_mixes = []
         curves = [] # Final curves used for surfacing
 
         # Transform all RIGHT view objects
-        for obj in self.svg_parts:
+        for obj in self.svg_shapes:
             if 'right_view' in obj.Label: 
                 transform(obj, translate=right_view_translate, rotate=(v(1,1,1),120), scale=right_view_scale)
 
         # Build curves from TOP & RIGHT views
-        for obj in self.svg_parts:
+        for obj in self.svg_shapes:
             if 'top_view' in obj.Label and 'profile' in obj.Label:
                 profile = obj
                 baseline, shared_name = self.baseline(profile)
@@ -188,9 +188,8 @@ class Product:
                     left_points.append(m_points[0])
                     curves.append(make_curve(left_points, name=shared_name+'__left', dir='Y', visibility=True)) #reverse=True
                 self.doc.removeObject(test_mix.Label)
-                if 'bottom' in profile.Label:
-                    bottom_curves.append(curves[-1])
-                    bottom_curves.append(curves[-2])
+                top_and_right_mixes.append(curves[-1])
+                top_and_right_mixes.append(curves[-2])
         
         # Build the front and back curves so they hit all the fuse points at the curves that were mixed from TOP & RIGHT
         fb_point_count = 100
@@ -200,29 +199,16 @@ class Product:
             points = []
             fi = 0 # fuse point index
             last_i = 0
-            #split_index = -1
             for i, p in enumerate(discrete_baseline.Points):
                 dist = (v(0,p.y,p.z) - v(0,f_points[bi][fi].y,f_points[bi][fi].z)).Length
                 if dist < 2:# or (bi==0 and split_index == 0): # fuse when within 1 mm
-                    #if not split_index == 0: 
                     points.append(f_points[bi][fi])
                     if len(points)>1:
-                        #if split_index == 0: print('AHHHHHHHHHHHHHH!!!')
                         curves.append(make_curve(points, name=discrete_baseline.Label+'__s'+str(last_i)+'_e'+str(i), visibility=True))
                         last_i = i
-                        #new_start_point = points[-1]
                         points.clear()
-                        #if split_index == 0: 
-                        #    points.append(new_start_point)
-                        #else:
                         points.append(f_points[bi][fi])
-                    #if not split_index == 0: 
                     fi += 1
-                        #if bi==0 and fi == len(f_points[bi])-1:
-                            #split_index = 6
-                            #print('made it!!!!!!!!!!!!')
-                    #else: 
-                    #    split_index = -1
                     if fi >= len(f_points[bi]):
                         break
                     f_span = (v(0,f_points[bi][fi-1].y,f_points[bi][fi-1].z) - v(0,f_points[bi][fi].y,f_points[bi][fi].z)).Length
@@ -230,13 +216,12 @@ class Product:
                     ratio = dist / f_span
                     x = f_points[bi][fi].x*(1-ratio) + f_points[bi][fi-1].x*ratio
                     points.append(v(x, p.y, p.z))
-                #split_index -= 1
         
         # Build curves from FRONT, BACK, & RIGHT views 
         split_curves = [[],[]] # curves split by 'above' and 'below' cutters
         curves_to_append = []
         curves_to_remove = []
-        for obj in self.svg_parts:
+        for obj in self.svg_shapes:
             if ('front_view' in obj.Label or 'back_view' in obj.Label) and 'profile' in obj.Label and 'left' in obj.Label:
                 profiles = [obj, self.get(obj.Label.replace('__left__','__right__'))] 
                 baseline, shared_name = self.baseline(obj)
@@ -315,7 +300,8 @@ class Product:
 
         # Make Surfaces
         for c in curves: c.Visibility = False
-        make_surface([(bottom_curves[0],0), (bottom_curves[1],0)])
+        top_and_right_mixes.sort(key = lambda o: o.Shape.BoundBox.ZMin)
+        make_surface([(top_and_right_mixes[0],0), (top_and_right_mixes[1],0)])
         for lor in ['__left__','__right__']: 
             for c1 in (c for c in curves if not lor in c.Label and 'above__split' in c.Label): # bottom curve 
                 for c1ei, c1e in enumerate(c1.Shape.Edges): # bottom curve edge 
@@ -362,7 +348,7 @@ class Product:
 
     # Get the corresponding baseline to the given profile.
     def baseline(self,profile):
-        for obj in self.svg_parts:
+        for obj in self.svg_shapes:
             if 'baseline' in obj.Label:
                 sn = shared_name(obj) 
                 if sn == shared_name(profile):
@@ -391,6 +377,9 @@ class Product:
         Mesh.export([self.mesh],'../tmp/'+str(product_id)+'.obj')
 
 
+
+def random_string(n):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
 
 # Make Surface from list of curves and edges
 def make_surface(curves_and_edges):
@@ -537,9 +526,12 @@ def wireframe_style(obj):
 
 
 
+#shape_drawing_path = '../tmp/shape_drawing.svg'
+        ##with open(shape_drawing_path, 'w') as file: file.write(shape_drawing)
+
         #view_labels = []
         #shape_labels = []
-        #for obj in self.svg_parts:
+        #for obj in self.svg_shapes:
         #    if hasattr(obj,'LabelText'):
         #        if any(t in obj.LabelText for t in ['Top','Right','Left','Front','Back']):
         #            view_labels.append((obj.LabelText, Part.Vertex(obj.Position)))
