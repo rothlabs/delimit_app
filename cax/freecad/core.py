@@ -1,10 +1,16 @@
 '''
 Provides core functionality for generating product models from drawings.
+Paths are imported from the SVG as FreeCAD wires and made into curves. 
+Curves are labeled as front, back, top, bottom, left, and right view based on distance from text labels in the SVG.
+Curves are also given unique names based on distance of additional labels in the SVG (usually capital letters).
 Most objects are created with a bread-crumb naming scheme to make everything explicit in the FreeCAD Tree View.
 If an object has 001, 002, etc at the end of the its name, there might be unnecessary dubplicated generation.
-The drawing RIGHT view contains BASELINES and the TOP & FRONT views contain PROFILES. Baselines and profiles are mixed to generate 3D curves.
+The drawing RIGHT view contains BASELINE curves and the TOP, FRONT, & BACK views contain PROFILES curves. 
+Baselines and profiles are mixed to generate 3D curves.
+Curves go from bottom to top (-Z to +Z) and front to back (-Y to +Y).
 '''
 
+import config
 import FreeCAD, Mesh, Part, MeshPart # From FreeCAD
 from importSVG import svgHandler # From FreeCAD
 from Curves import JoinCurves, approximate_extension, Discretize, mixed_curve, curveExtendFP, splitCurves_2  # From https://github.com/tomate44/CurvesWB
@@ -52,15 +58,13 @@ class Product:
         view_labels = ['Top','Right','Left','Front','Back','Bottom', 'top','right','left','front','back','bottom']
         view_tags  = [(o.LabelText, Part.Vertex(o.Position)) for o in self.svg_shapes if hasattr(o,'LabelText') and any(t in o.LabelText for t in view_labels)]
         shape_tags = [(o.LabelText, Part.Vertex(o.Position)) for o in self.svg_shapes if hasattr(o,'LabelText') and not any(t in o.LabelText for t in view_labels)]
-        ############################################
+        # Set views:
         def set_view_label(text, tagged_shapes):
             tod = [] # text, object, distance
             for o1 in self.svg_shapes:
                 if not o1.Label[-3:]=='___' and hasattr(o1,'Shape') and not hasattr(o1,'LabelText'): # and any(t in o1.Label for t in view_labels):
                     for shape in tagged_shapes:
                         dist = shape.distToShape(o1.Shape)[0]
-                        #print('dist: '+str(dist))
-                        #print('size: '+str((o1.Shape.BoundBox.XLength + o1.Shape.BoundBox.YLength)/2))
                         if len(tagged_shapes)<2 or dist < (o1.Shape.BoundBox.XLength + o1.Shape.BoundBox.YLength)/2 *.2: # within 20% of size
                             tod.append({'t':text, 'o':o1, 'd':dist}) 
             if len(tod)>0:
@@ -72,14 +76,17 @@ class Product:
                 set_view_label(text, tagged_shapes)
         for tag in view_tags:
             set_view_label(tag[0],[tag[1]])
-        ##############################################
+        # Set shapes:
+        baselines = []
         view_labels = [v+'_view__' for v in ['front','back','left','right','top','bottom']]
         for st in shape_tags:
             tag_obj_dist = [(st[0], o, st[1].distToShape(o.Shape)[0]) for o in self.svg_shapes if hasattr(o,'Shape')]# and any(t in o.Label for t in view_labels)]
             if len(tag_obj_dist) < 1: raise Exception('No view objects found while attemping to set shape labels.')
             tag_obj_dist.sort(key = lambda o: o[2]) 
             suffix = '_profile'
-            if 'right_view__' in tag_obj_dist[0][1].Label: suffix = '_baseline'  
+            if 'right_view__' in tag_obj_dist[0][1].Label: 
+                suffix = '_baseline'  
+                baselines.append(tag_obj_dist[0][1])
             tag_obj_dist[0][1].Label = tag_obj_dist[0][1].Label.replace('_view__','_view__'+str(tag_obj_dist[0][0][0])+suffix)[:-7]
             if tag_obj_dist[0][1].Label[-3:] == '001':
                 for o1 in self.svg_shapes:
@@ -89,6 +96,7 @@ class Product:
                         o1.Label = o1.Label.replace('_view__','_view__'+lor[0])
                         tag_obj_dist[0][1].Label = tag_obj_dist[0][1].Label.replace('_view__','_view__'+lor[1])[:-3]
         for o1 in self.svg_shapes:
+            o1.Visibility = False
             if o1.Label[-3:] == '___':
                 if 'right_view__' in o1.Label:
                     for o2 in self.svg_shapes:
@@ -100,17 +108,20 @@ class Product:
                                 o2.Label = fob[1]
                 else:
                     o1.Label = o1.Label[-7:-3] # reduce to the four random characters
+        baselines.sort(key = lambda b: b.Shape.BoundBox.YMax)
+        top_baseline = baselines[-1]
 
         # Gather information about the imported paths before any transformations
         front_baseline = self.get('right_view__front_baseline')
         back_baseline = self.get('right_view__back_baseline')
-        #insole_baseline = self.get('right_view__insole_baseline')
-        #insole_baseline.Visibility = False
         right_view_scale = self.length_y / front_baseline.Shape.BoundBox.XLength
         right_view_translate = -front_baseline.Shape.BoundBox.Center
         f_points = [[],[]] # front and back fuse points
         top_and_right_mixes = []
         curves = [] # Final curves used for surfacing
+        top_center_curve = False
+        front_edges = []
+        front_edge_r_branch = False
 
         # Transform all RIGHT view objects
         for obj in self.svg_shapes:
@@ -124,20 +135,20 @@ class Product:
                 baseline, shared_name = self.baseline(profile)
 
                 # Transform TOP view profiles
-                transform(profile, rotate = (v(0,0,1),90), scale = (baseline.Shape.BoundBox.YLength-.5)/profile.Shape.BoundBox.XLength)
+                transform(profile, rotate = (v(0,0,1),90), scale = (baseline.Shape.BoundBox.YLength)/profile.Shape.BoundBox.XLength)
                 transform(profile, translate = baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)#v(blc.x-pc.x, bvy-profile.Shape.BoundBox.YMax, blc.z-pc.z))#baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)
                 
                 # This section preps information for generating mixed curves from TOP & RIGHT views
                 joined_profile = join_curve(profile)
                 joined_baseline = join_curve(baseline)
-                dpc = 100 # discretize point count
+                dpc = config.discretize_point_count
                 profile_points = discretize(joined_profile, dpc*2).Points
                 baseline_points = discretize(joined_baseline, dpc).Points
                 bi = 0 # baseline index
                 baseline_start = baseline_points[0]
                 baseline_end = baseline_points[-1]
                 baseline_dir = 1
-                if baseline_points[0].y < baseline_points[-1].y:
+                if baseline_points[0].y < baseline_points[-1].y: # Make sure that the baseline index starts at the back seam of the product:
                     bi = len(baseline_points)-1
                     baseline_start = baseline_points[-1]
                     baseline_end = baseline_points[0]
@@ -158,7 +169,6 @@ class Product:
                 p_points = [] # profile points
 
                 # This loop goes up and down the baseline to gather point data from baseline and profile
-                #last_y_diff = 10000
                 for d in range(2): 
                     for n in baseline_points:
                         if bi == 0 or bi == dpc-1: # fuse point:
@@ -167,31 +177,14 @@ class Product:
                             ratio = bi / (dpc-1) # Smoothly shift point reference from start and end of baseline
                             lbs = baseline_points[bi] - baseline_start
                             lbe = baseline_points[bi] - baseline_end
-                            by = (baseline_start.y + lbs.y)*(1-ratio) + (baseline_end.y + lbe.y)*(ratio)
-                            #for nn in range(dpc): # Crawl along profile to find first point that matches up with baseline point on Y axis
-                            #    lps = profile_points[pi] - profile_start
-                            #    lpe = profile_points[pi] - profile_end
-                            #    py = (baseline_start.y + lps.y)*(1-ratio) + (baseline_end.y + lpe.y)*(ratio)
-                            #    #if abs(by-py) < dist_between_points:
-                            #    #    break
-                            #    if abs(by-py) > last_y_diff:
-                            #        pi = pi - 1
-                            #        if pi < 0: pi = len(profile_points)-1 # loop profile index
-                            #        lps = profile_points[pi] - profile_start
-                            #        lpe = profile_points[pi] - profile_end
-                            #        py = (baseline_start.y + lps.y)*(1-ratio) + (baseline_end.y + lpe.y)*(ratio)
-                            #        break
-                            #    last_y_diff = abs(by-py)
-                            #    pi = pi + 1
-                            #    if pi > len(profile_points)-1: pi = 0 # loop profile index
                             lps = profile_points[pi] - profile_start
                             lpe = profile_points[pi] - profile_end
-                            py = (baseline_start.y + lps.y)*(1-ratio) + (baseline_end.y + lpe.y)*(ratio)
                             px = (baseline_start.x + lps.x)*(1-ratio) + (baseline_end.x + lpe.x)*(ratio)
-                            my = (by+py)/2 #my = (baseline_start.y + (lbs.y+lps.y)/2)*(1-ratio) + (baseline_end.y + (lbe.y+lpe.y)/2)*(ratio)
-                            scale_z = abs(px) / joined_profile.Shape.BoundBox.XLength * 2.1 # smooth along x axis
-                            if scale_z>1: scale_z=1
-                            #scale_z=1
+                            by = (baseline_start.y + lbs.y)*(1-ratio) + (baseline_end.y + lbe.y)*(ratio)
+                            py = (baseline_start.y + lps.y)*(1-ratio) + (baseline_end.y + lpe.y)*(ratio)
+                            my = (by+py)/2 # Mix Y from baseline and profile
+                            scale_z = abs(px) / joined_profile.Shape.BoundBox.XLength * 2 # smooth z along x axis
+                            if scale_z>1 or not config.smooth_z_for_approx_mix: scale_z=1
                             bz = (baseline_start.z + lbs.z*scale_z)*(1-ratio)   + (baseline_end.z + lbe.z*scale_z)*(ratio)
                             m_points.append(  v(px, my, bz)  ) 
                         p_points.append(profile_points[pi])
@@ -201,44 +194,65 @@ class Product:
                     bi = max(0,min(bi,dpc-1)) # clamp baseline index
                     baseline_dir = -baseline_dir
 
-                # Get split index for top profile:
-                dist_y = 0
-                split_i = dpc
-                for ppi,pp in enumerate(p_points):
-                    if ppi>dpc*.5 and ppi<dpc*1.5 and abs(pp.y-p_points[0].y) > dist_y:
-                        split_i = ppi
-                        dist_y = abs(pp.y-p_points[0].y)
-                # Mix baseline with top profile:
-                test_mix = mix_curve(joined_baseline, joined_profile)
-                if len(test_mix.Shape.Edges) == 1: # only use mix_curve if 1 edge produced
-                    # This section creates a perfect mixed curve from TOP & RIGHT view (requires function-of-(x or z) source curves)
-                    print('PERFECT MIX USED (TOP VIEW): '+shared_name)
-                    p_right = make_curve(p_points[:split_i], name=profile.Label+'__right', dir='Y') 
-                    left_points = p_points[split_i-1:]
-                    left_points.append(p_points[0])
-                    p_left = make_curve(left_points, name=profile.Label+'__left', dir='Y') #reverse=True
-                    curves.append(join_curve(mix_curve(joined_baseline, p_right, name=shared_name+'__right'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_right, name=shared_name+'__right')) #
-                    curves.append(join_curve(mix_curve(joined_baseline, p_left, name=shared_name+'__left'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_left, name=shared_name+'__left')) #
-                    fob = curves[-1].Shape.Vertexes[0].Y > curves[-1].Shape.Vertexes[1].Y
-                    f_points[int(fob )].append(curves[-1].Shape.Vertexes[0].Point) # save fuse point
-                    f_points[int(not fob)].append(curves[-1].Shape.Vertexes[1].Point) # save fuse point
+                # Get split indecies for top view profile:
+                if baseline == top_baseline: 
+                    dist_x = 10000
+                    for ppi,pp in enumerate(p_points):
+                        if ppi>dpc*.5 and ppi<dpc*1.5 and abs(pp.x) < dist_x:
+                            fci = ppi # front center index
+                            dist_x = abs(pp.x)
+                    for i in range(dpc):
+                        lsi = fci+i # left split index
+                        if p_points[lsi].y-p_points[fci].y > abs(p_points[lsi].x): break
+                        if p_points[lsi].y-p_points[lsi-1].y > abs(p_points[lsi].x-p_points[lsi-1].x): break
+                    for i in range(dpc):
+                        rsi = fci-i # right split index
+                        if p_points[rsi].y-p_points[fci].y > abs(p_points[rsi].x): break
+                        if p_points[rsi].y-p_points[rsi+1].y > abs(p_points[rsi].x-p_points[rsi+1].x): break
                 else:
-                    # This section creates an approximate mixed curve from TOP & RIGHT view (allows non-function-of-(x or z) source curves)
-                    print('APPROX MIX USED (TOP VIEW): '+shared_name)
+                    dist_y = 10000
+                    for ppi,pp in enumerate(p_points):
+                        if ppi>dpc*.5 and ppi<dpc*1.5 and pp.y < dist_y:
+                            lsi = ppi
+                            rsi = ppi
+                            dist_y = pp.y
+                # Mix baseline with top profile:
+                extended_baseline = extend(joined_baseline)
+                test_mix = mix_curve(extended_baseline, joined_profile) # only use mix_curve if 1 edge produced
+                if len(test_mix.Shape.Edges) == 1 and not (config.force_approx_for_top_baseline and baseline == top_baseline): 
+                    # This section creates an exact mixed curve from TOP & RIGHT view (requires at least one function-of-(x or z) source curves)
+                    print('EXACT MIX OF TOP+RIGHT: '+shared_name)
+                    p_right = make_curve(p_points[:rsi], name=profile.Label+'__right', dir='Y') 
+                    left_points = p_points[lsi-1:]
+                    left_points.append(p_points[0])
+                    p_left = make_curve(left_points, name=profile.Label+'__left', dir='Y') 
+                    curves.append(join_curve(mix_curve(extended_baseline, p_right, name=shared_name+'__right'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_right, name=shared_name+'__right')) #
+                    curves.append(join_curve(mix_curve(extended_baseline, p_left, name=shared_name+'__left'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_left, name=shared_name+'__left')) #
+                    if lsi-rsi > 0:
+                        p_center = make_curve(p_points[rsi-1:lsi], name=profile.Label+'__center', dir='Y') 
+                        top_center_curve = join_curve(mix_curve(extended_baseline, p_center, name=shared_name+'__center'), dir='X', visibility=True)
+                else: # TODO: Make approx mix use lsi and rsi
+                    # This section creates an approximate mixed curve from TOP & RIGHT view (allows two non-function-of-(x or z) source curves)
+                    print('APPROX MIX OF TOP+RIGHT: '+shared_name)
                     m_points.insert(dpc,v(m_points[dpc-1].x-dist_between_points/2, m_points[dpc-1].y, m_points[dpc-1].z)) # center point between left and right mixes
                     m_points.insert(0,v(m_points[0].x-dist_between_points/2, m_points[0].y, m_points[0].z)) # center point between left and right mixes
-                    dpc += 2
-                    f_points[0].append(m_points[dpc-1]) # save front fuse point
-                    f_points[1].append(m_points[0]) # save back fuse point
-                    curves.append(make_curve(m_points[:dpc], name=shared_name+'__right', dir='Y', visibility=True))
-                    left_points = m_points[dpc-1:]
+                    curves.append(make_curve(m_points[:dpc+2], name=shared_name+'__right', dir='Y', visibility=True))
+                    left_points = m_points[dpc+1:]
                     left_points.append(m_points[0])
                     curves.append(make_curve(left_points, name=shared_name+'__left', dir='Y', visibility=True)) #reverse=True
-                self.doc.removeObject(test_mix.Label)
+                self.doc.removeObject(test_mix.Name)
                 top_and_right_mixes.append(curves[-1])
                 top_and_right_mixes.append(curves[-2])
+                f_points[1].append(curves[-1].Shape.Vertexes[1].Point) # back fuse point
+                front_right_fuse_p = False
+                if top_center_curve: 
+                    curves.append(top_center_curve)
+                    f_points[0].append(top_center_curve.Shape.Vertexes[0].Point) # front left fuse point 
+                    front_right_fuse_p = top_center_curve.Shape.Vertexes[1].Point  # front right fuse point
+                else:
+                    f_points[0].append(curves[-1].Shape.Vertexes[0].Point) # front fuse point 
         
-        # Build the front and back curves so they hit all the fuse points at the curves that were mixed from TOP & RIGHT
+        # Build the front and back edge curves so they hit all the fuse points at the curves that were mixed from TOP & RIGHT
         fb_point_count = 100
         for bi, baseline in enumerate([front_baseline,back_baseline]):
             discrete_baseline = discretize(join_curve(baseline, dir='Z'), fb_point_count)
@@ -246,31 +260,42 @@ class Product:
             if len(f_points[0]) < 1: raise Exception('No front fuse points. Check top view and related baselines.')
             if len(f_points[1]) < 1: raise Exception('No back fuse points. Check top view and related baselines.')
             points = []
+            r_points = [f_points[0][-2]] # right branch to front_right_fuse_p
             fi = 0 # fuse point index
-            last_i = 0
+            last_i = fi
             for i, p in enumerate(discrete_baseline.Points):
                 dist = (v(0,p.y,p.z) - v(0,f_points[bi][fi].y,f_points[bi][fi].z)).Length
-                if dist < 2:# or (bi==0 and split_index == 0): # fuse when within 1 mm
+                if dist < 2 or (i==fb_point_count-1 and fi == len(f_points[bi])-1):# or (bi==0 and split_index == 0): # fuse when within 1 mm
                     points.append(f_points[bi][fi])
+                    if bi==0 and fi == len(f_points[bi])-1 and front_right_fuse_p: # For front right branch:
+                        r_points.append(front_right_fuse_p)
                     if len(points)>1:
                         curves.append(make_curve(points, name=discrete_baseline.Label+'__s'+str(last_i)+'_e'+str(i), visibility=True))
+                        if bi==0: 
+                            front_edges.append(curves[-1])
+                            if fi == len(f_points[bi])-1 and front_right_fuse_p: # For front right branch:
+                                curves.append(make_curve(r_points, name=discrete_baseline.Label+'__s'+str(last_i)+'_e'+str(i)+'__r_branch', visibility=True))
+                                front_edge_r_branch = curves[-1]
                         last_i = i
                         points.clear()
                         points.append(f_points[bi][fi])
                     fi += 1
-                    if fi >= len(f_points[bi]):
+                    if fi > len(f_points[bi])-1:
                         break
                     f_span = (v(0,f_points[bi][fi-1].y,f_points[bi][fi-1].z) - v(0,f_points[bi][fi].y,f_points[bi][fi].z)).Length
                 else: 
                     ratio = dist / f_span
                     x = f_points[bi][fi].x*(1-ratio) + f_points[bi][fi-1].x*ratio
                     points.append(v(x, p.y, p.z))
+                    if bi==0 and fi == len(f_points[bi])-1 and front_right_fuse_p: # For front right branch:
+                        x = front_right_fuse_p.x*(1-ratio) + f_points[bi][fi-1].x*ratio
+                        r_points.append(v(x, p.y, p.z))
+
         
         # Build curves from FRONT, BACK, & RIGHT views 
         split_curves = [[],[]] # curves split by 'above' and 'below' cutters
         curves_to_append = []
         curves_to_remove = []
-        #fb_curve_points = {}
         for obj in self.svg_shapes:
             if ('front_view' in obj.Label or 'back_view' in obj.Label) and 'profile' in obj.Label and '__left__' in obj.Label:
                 profiles = [obj, self.get(obj.Label.replace('__left__','__right__'))] 
@@ -283,29 +308,34 @@ class Product:
                 extended_baseline = extend(joined_baseline) # extend to make sure it crosses approximated curves from RIGHT view perspective
                 surface_baseline = extrude(extended_baseline, symmetric=True) 
                 solid_baseline = extrude(surface_baseline, dir=v(0,5,0), length=1) # For some reason, intersect is not working with surfaces, so extrude surface as solid
+                curves_points = [] # curves and points
+                ax = 0 # average x
                 for curve in curves:
                     intersection = intersect(solid_baseline, curve) 
                     verts = intersection.Shape.Vertexes
                     if len(verts) > 1:
-                        if 'front' in curve.Label or 'back' in curve.Label: # add fuse point to left AND right if on front or back curve
-                            f_points[0].append(verts[int(verts[0].Y > verts[1].Y)].Point)
-                            f_points[1].append(verts[int(verts[0].Y > verts[1].Y)].Point)
-                            curves_to_split[0].append(curve)
-                        else: # Add lowest Y-value point to left OR right list:
-                            f_points[int(verts[0].X > 0)].append(verts[int(verts[0].Y > verts[1].Y)].Point) 
-                            curves_to_split[int(verts[0].X > 0)].append(curve)
-                    self.doc.removeObject(intersection.Label)
-                    #curve.Visibility = True
-                self.doc.removeObject(solid_baseline.Label)
-                self.doc.removeObject(surface_baseline.Label)
-                self.doc.removeObject(extended_baseline.Label)
+                        curves_points.append({'c':curve, 'p':verts[int(verts[0].Y > verts[1].Y)].Point})
+                        ax = ax + curves_points[-1]['p'].x
+                    self.doc.removeObject(intersection.Name)
+                ax = ax / len(curves_points)
+                for cp in curves_points:
+                    if len(curves_points)<4 and ('front' in cp['c'].Label or 'back' in cp['c'].Label): # add fuse point to left AND right if on front or back edge curve
+                        f_points[0].append(cp['p'])
+                        f_points[1].append(cp['p'])
+                        curves_to_split[0].append(cp['c'])
+                    else: # Add lowest Y-value point to left OR right list:
+                        f_points[int(cp['p'].x > ax)].append(cp['p']) 
+                        curves_to_split[int(cp['p'].x > ax)].append(cp['c'])
+                self.doc.removeObject(solid_baseline.Name)
+                self.doc.removeObject(surface_baseline.Name)
+                self.doc.removeObject(extended_baseline.Name)
 
                 for pi, profile in enumerate(profiles):
                     if profile == None: raise Exception('No profile for constructing from front view: '+str(profiles))
                     if baseline == None: raise Exception('No baseline for constructing from front view: '+str(profiles))
                     f_points[pi].sort(key=lambda p:p.z)
                     if len(f_points[pi]) < 2: raise Exception('Less than 2 fuse points when building curve from: '+profile.Label+'. Try increasing LengthStart and LengthEnd in "extend" function')
-                    if len(f_points[pi]) > 4: raise Exception('Less than 4 fuse points when building curve from: '+profile.Label+'. Try decreasing LengthStart and LengthEnd in "extend" function')
+                    if len(f_points[pi]) > 2: raise Exception('More than 2 fuse points when building curve from: '+profile.Label+'. Try decreasing LengthStart and LengthEnd in "extend" function')
                     # Transform front view profiles:
                     transform(profile, rotate = (v(1,0,0),90), scale = (baseline.Shape.BoundBox.ZLength)/profile.Shape.BoundBox.YLength)
                     transform(profile, translate = baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)
@@ -315,8 +345,8 @@ class Product:
                     if pi>0: suffix = '__right'
                     mix = mix_curve(joined_baseline, joined_profile, profile_dir=v(0,1,0), name=shared_name+suffix)
                     joined_mix = join_curve(mix, dir='Z') # joining to force direction to +Z
-                    dpc = 60 # discretize point count
-                    discrete_mix = discretize(joined_mix,dpc) #copy().sort(key=lambda fp:fp.z)
+                    dpc = config.discretize_point_count 
+                    discrete_mix = discretize(joined_mix,dpc) 
                     a_points = [f_points[pi][0]] # adjusted points
                     for mi, mp in enumerate(discrete_mix.Points):
                         lmp = mp - discrete_mix.Points[0] # mixed point local to start
@@ -325,9 +355,7 @@ class Product:
                         ap = (f_points[pi][0] + lmp)*(1-ratio) + (f_points[pi][1] + rlmp)*ratio
                         a_points.append(ap)
                     a_points.append(f_points[pi][1])
-                    #fb_curve = make_curve(a_points, dir='Z', name=discrete_mix.Label, visibility=True)
                     curves.append(make_curve(a_points, dir='Z', name=discrete_mix.Label, visibility=True))
-                    #fb_curve_points[fb_curve.label] = a_points
                     # Split curves that the new mixes intersect with:
                     for cts in curves_to_split[pi]:
                         new_split = True
@@ -348,73 +376,78 @@ class Product:
                             split_curves[aob].append({'source':cts, 'result':split})
                             curves_to_append.append(split)
                             curves_to_remove.append(cts)
+                            if cts == front_edges[-1]: front_edges[-1] = split
+                            if cts == front_edge_r_branch: front_edge_r_branch = split
                         cts.Visibility = False
         for ctr in curves_to_remove:
             if ctr in curves: curves.remove(ctr)
         for cta in curves_to_append:
             curves.append(cta)
 
-        # Build Surfaces
-        for c in curves: c.Visibility = False
+        # Build surfaces using clockwise selection of curves starting from bottom curve
+        #for c in curves: c.Visibility = False
         top_and_right_mixes.sort(key = lambda o: o.Shape.BoundBox.ZMin)
-        make_surface([(top_and_right_mixes[0],0), (top_and_right_mixes[1],0)])
+        make_surface([(top_and_right_mixes[0],0), (top_and_right_mixes[1],0)]) # Bottom of sole
+        if front_edge_r_branch: # Surfaces between front edge and right branch of front edge:
+            for ei in range(len(front_edges[-1].Shape.Edges)):
+                if ei == len(front_edges[-1].Shape.Edges)-1:
+                    make_surface([(front_edges[-1],ei), (front_edge_r_branch,ei), (top_center_curve,0)]) 
+                else:
+                    make_surface([(front_edges[-1],ei), (front_edge_r_branch,ei)]) 
         for lor in ['__left__','__right__']: 
             for c1 in (c for c in curves if not lor in c.Label and 'above__split' in c.Label): # bottom curve 
                 for c1ei, c1e in enumerate(c1.Shape.Edges): # bottom curve edge 
                     for c2 in (c for c in curves if not c==c1 and not lor in c.Label): # left curve (usually)
                         for c2ei, c2e in enumerate(c2.Shape.Edges): # left curve edge (usually)
-                            if (c1e.Vertexes[0].Point-c2e.Vertexes[0].Point).Length < 0.1:
+                            if (c1e.Vertexes[0].Point-c2e.Vertexes[0].Point).Length < config.fuse_tolerance_xy:
                                 pc3 = [] # possible top (usually) curve and edge
                                 for c3 in (c for c in curves if not c==c2 and not 'above__split' in c.Label and not lor in c.Label): # top curve
                                     for c3ei, c3e in enumerate(c3.Shape.Edges): # top curve edge
                                         if 'e'+str(fb_point_count-1) in c2.Label: # SPECIAL CASE: If the c2 is from the last of front/back curve, the c3e will be pointing down instead of back (use vertex 1 as c3e base instead of vertex 0)
-                                            if (c2e.Vertexes[1].Point-c3e.Vertexes[1].Point).Length < 0.1: # use vertex 1 as base for c3e
+                                            if (c2e.Vertexes[1].Point-c3e.Vertexes[1].Point).Length < config.fuse_tolerance_xy: # use vertex 1 as base for c3e
                                                 pc3.append({'c':c3, 'e':c3e, 'i':c3ei})
                                         else:
-                                            if (c2e.Vertexes[1].Point-c3e.Vertexes[0].Point).Length < 0.1: # use vertex 0 as base for c3e
+                                            if (c2e.Vertexes[1].Point-c3e.Vertexes[0].Point).Length < config.fuse_tolerance_xy: # use vertex 0 as base for c3e
                                                 pc3.append({'c':c3, 'e':c3e, 'i':c3ei})
                                 if len(pc3)>0:
                                     pc3.sort(key=lambda c:c['e'].BoundBox.Center.z) 
                                     c3, c3e, c3ei = pc3[0]['c'], pc3[0]['e'], pc3[0]['i']
-                                    if (c3e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < 0.1: # 3 RIGHT surface?
+                                    if (c3e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < config.fuse_tolerance_xy: # 3 RIGHT surface?
                                         make_surface([(c1,c1ei), (c2,c2ei), (c3,c3ei)])
                                     else:
                                         pc4 = [] # possible last curve, edge, and index (usually right / vertical down)
-                                        for c4 in (c for c in curves if not c==c3 and not 'above__split' in c.Label and not lor in c.Label):
+                                        for c4 in (c for c in curves if not c==c3 and not 'above__split' in c.Label and not lor in c.Label and not 'center' in c.Label):
                                             for c4ei, c4e in enumerate(c4.Shape.Edges): # right edge
-                                                if (c3e.Vertexes[1].Point-c4e.Vertexes[0].Point).Length < 0.1: # use vertex 0 as base for c4e
+                                                if (c3e.Vertexes[1].Point-c4e.Vertexes[0].Point).Length < config.fuse_tolerance_xy: # use vertex 0 as base for c4e
                                                     pc4.append({'c':c4, 'e':c4e, 'i':c4ei})
-                                                if (c3e.Vertexes[1].Point-c4e.Vertexes[1].Point).Length < 0.1: # use vertex 1 as base for c4e
+                                                if (c3e.Vertexes[1].Point-c4e.Vertexes[1].Point).Length < config.fuse_tolerance_xy: # use vertex 1 as base for c4e
                                                     pc4.append({'c':c4, 'e':c4e, 'i':c4ei})
                                         if len(pc4)>0:
                                             pc4.sort(key=lambda c:c['e'].BoundBox.Center.z)
                                             c4, c4e, c4ei = pc4[0]['c'], pc4[0]['e'], pc4[0]['i']
-                                            if (c4e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < 0.1: # final RIGHT connects with first RIGHT?
+                                            if (c4e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < config.fuse_tolerance_xy: # final curve connects with first?
                                                 make_surface([(c1,c1ei), (c2,c2ei), (c3,c3ei), (c4,c4ei)])
-                                            else: # This case happens between the front and top baselines:
+                                            else: # This case happens between the front and top baselines (5 side polygon):
                                                 for c5 in curves: # Get 5th side:
                                                     for c5ei, c5e in enumerate(c5.Shape.Edges):
-                                                        if (c5e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < 0.1: 
-                                                            if (c5e.Vertexes[1].Point-c4e.Vertexes[1].Point).Length < 0.1:
-                                                                c6p = []
-                                                                #l_ratio = c5.Shape.Length / c2.Shape.Length
-                                                                l_ratio = 1#0.5
-                                                                #print(l_ratio)
-                                                                #dbp = (c2.Base.Shape.Vertexes[0].Point - c5.Base.Shape.Vertexes[-1].Point).Length
-                                                                for i, c5p in enumerate(c5.Base.Shape.Vertexes):
-                                                                    ratio = i / (len(c5.Base.Shape.Vertexes)-1)
-                                                                    ratio = math.sqrt(ratio)
-                                                                    #ap = c2.Base.Shape.Vertexes[0].Point
-                                                                    #ap = c2.Base.Shape.Edges[0].valueAt(ratio*l_ratio)*(1-ratio) + c5p.Point*ratio
-                                                                    ap = c2.Base.Shape.Vertexes[i].Point*(1-ratio) + c5p.Point*ratio
-                                                                    c6p.append(ap)
-                                                                #c6p.clear()
-                                                                #c6p.append(c2.Base.Shape.Vertexes[0].Point)
-                                                                #c6p.append(c5.Base.Shape.Vertexes[-1].Point)
-                                                                c6 = make_curve(c6p, dir='Z', name=(lor+'stitch')[2:], visibility=True)
-                                                                make_surface([(c2,c2ei), (c3,c3ei), (c4,c4ei),(c6,0)])
-                                                                make_surface([(c1,c1ei), (c5,c5ei), (c6,0)])
-                                                                #print('C5C5C5c5c5c5: '+c5.Label)
+                                                        if (c5e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < config.fuse_tolerance_xy: 
+                                                            if (c5e.Vertexes[1].Point-c4e.Vertexes[1].Point).Length < config.fuse_tolerance_xy:
+                                                                if config.join_polygon_edges:
+                                                                    jc = join_curve(c3,edges=[(c3,c3ei),(c4,c4ei)], dir='Y')
+                                                                    make_surface([(c1,c1ei), (c2,c2ei), (jc,0),(c5,c5ei)])
+                                                                else:
+                                                                    c6p = []
+                                                                    if config.straight_polygon_splice:
+                                                                        c6p.append(c2.Base.Shape.Vertexes[0].Point)
+                                                                        c6p.append(c5.Base.Shape.Vertexes[-1].Point)
+                                                                    else:
+                                                                        for i, c5p in enumerate(c5.Base.Shape.Vertexes):
+                                                                            ratio = math.sqrt(i / (len(c5.Base.Shape.Vertexes)-1))
+                                                                            ap = c2.Base.Shape.Vertexes[i].Point*(1-ratio) + c5p.Point*ratio
+                                                                            c6p.append(ap)
+                                                                    c6 = make_curve(c6p, dir='Z', name=(lor+'splice')[2:])
+                                                                    make_surface([(c2,c2ei), (c3,c3ei), (c4,c4ei),(c6,0)])
+                                                                    make_surface([(c1,c1ei), (c5,c5ei), (c6,0)])
                                                                 
 
 
@@ -487,14 +520,15 @@ def intersect(source_a, source_b, name='untitled'):
     return b
 
 # Make extension
-def extend(source):
+def extend(source, visibility=False):
     f = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", source.Label+'__extend')
     curveExtendFP.extend(f)
     f.Edge = (source,'Edge1')
-    f.LengthStart = 8 # increase this if fuse points for front view are not found, decrease if more than 4 fuse points are found
-    f.LengthEnd = 8  # increase this if fuse points for front view are not found, decrease if more than 4 fuse points are found
+    f.LengthStart = config.baseline_extension # increase this if fuse points for front view are not found, decrease if more than 4 fuse points are found
+    f.LengthEnd = config.baseline_extension  # increase this if fuse points for front view are not found, decrease if more than 4 fuse points are found
     curveExtendFP.extendVP(f.ViewObject)
     wireframe_style(f)
+    f.Visibility = visibility
     f.recompute()
     return f
 
@@ -524,17 +558,19 @@ def mix_curve(baseline, profile, name='untitled', profile_dir=v(0,0,1)):
 
 
 # Join curves of source into one curve
-def join_curve(source, dir='', visibility=False):
+def join_curve(source, edges=None, dir='', visibility=False):
     source.Visibility = False # For GUI
     curve = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", source.Label+'__join')
     JoinCurves.join(curve)
     approximate_extension.ApproximateExtension(curve)
     JoinCurves.joinVP(curve.ViewObject) # for GUI?
+    if dir=='X': curve.Reverse = source.Shape.Vertexes[0].X > source.Shape.Vertexes[-1].X
     if dir=='Y': curve.Reverse = source.Shape.Vertexes[0].Y > source.Shape.Vertexes[-1].Y
     if dir=='Z': curve.Reverse = source.Shape.Vertexes[0].Z > source.Shape.Vertexes[-1].Z
     curve.Active = True # Approximate curve. Needed for smoothness and stability of gordon surface
     curve.ApproxTolerance = 0.2
-    curve.Base = source
+    if edges == None: curve.Base = source
+    else: curve.Edges = [(ce[0],'Edge'+str(ce[1]+1)) for ce in edges]
     wireframe_style(curve)
     curve.Visibility = visibility
     curve.recompute()
@@ -595,6 +631,60 @@ def wireframe_style(obj):
     obj.ViewObject.LineWidth = 2
     obj.ViewObject.LineColor = (1.0,1.0,1.0)
     obj.ViewObject.Transparency = 100
+
+
+
+
+
+
+                #for curve in curves:
+                #    intersection = intersect(solid_baseline, curve) 
+                #    verts = intersection.Shape.Vertexes
+                #    if len(verts) > 1:
+                #        if 'front' in curve.Label or 'back' in curve.Label: # add fuse point to left AND right if on front or back edge curve
+                #            f_points[0].append(verts[int(verts[0].Y > verts[1].Y)].Point)
+                #            f_points[1].append(verts[int(verts[0].Y > verts[1].Y)].Point)
+                #            curves_to_split[0].append(curve)
+                #        else: # Add lowest Y-value point to left OR right list:
+                #            f_points[int(verts[0].X > 0)].append(verts[int(verts[0].Y > verts[1].Y)].Point) 
+                #            curves_to_split[int(verts[0].X > 0)].append(curve)
+
+
+
+                    #for i in range(dpc):
+                    #    lsi = fci+i # left split index
+                    #    rsi = fci-i # right split index
+                    #    ay = (p_points[lsi].y+p_points[rsi].y)/2 # average y
+                    #    if abs(p_points[fci].y-ay)*1.5 > abs(p_points[lsi].x-p_points[rsi].x): 
+                    #        print(i)
+                    #        break
+
+
+                #    f_points[0].append(m_points[dpc-1]) # save front fuse point
+                #    f_points[1].append(m_points[0]) # save back fuse point
+
+                #    fob = curves[-1].Shape.Vertexes[0].Y > curves[-1].Shape.Vertexes[1].Y
+                #    f_points[int(fob )].append(curves[-1].Shape.Vertexes[0].Point) # save fuse point
+                #    f_points[int(not fob)].append(curves[-1].Shape.Vertexes[1].Point) # save fuse point
+
+
+
+#for nn in range(dpc): # Crawl along profile to find first point that matches up with baseline point on Y axis
+                            #    lps = profile_points[pi] - profile_start
+                            #    lpe = profile_points[pi] - profile_end
+                            #    py = (baseline_start.y + lps.y)*(1-ratio) + (baseline_end.y + lpe.y)*(ratio)
+                            #    #if abs(by-py) < dist_between_points:
+                            #    #    break
+                            #    if abs(by-py) > last_y_diff:
+                            #        pi = pi - 1
+                            #        if pi < 0: pi = len(profile_points)-1 # loop profile index
+                            #        lps = profile_points[pi] - profile_start
+                            #        lpe = profile_points[pi] - profile_end
+                            #        py = (baseline_start.y + lps.y)*(1-ratio) + (baseline_end.y + lpe.y)*(ratio)
+                            #        break
+                            #    last_y_diff = abs(by-py)
+                            #    pi = pi + 1
+                            #    if pi > len(profile_points)-1: pi = 0 # loop profile index
 
 
 
