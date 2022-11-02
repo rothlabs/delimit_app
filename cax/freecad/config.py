@@ -1,18 +1,31 @@
+# default shoe length for editing design 
+length_y = 250 #mm
+
+
 # Number of divisions when discretizing a curve:
 discretize_point_count = 100
 
 
+# Used for smoothing joined curves. Larger numbers are smoother.
+approx_tolerance = .2
+
+
 # Max XY-plane fuse distance for building surfaces:
-fuse_tolerance_xy = 1 #mm
+fuse_tolerance_xy = 2 #mm
 
 
 # How far to extend baslines (important to ensure they are long enough for calculations with other geometry)
 baseline_extension = 4 #mm 
 
 
+# distance from shoe surface to tongue back curve
+tongue_margin = 2 #mm
+
+
 # True:  Reduce polygon to 4 or less edges by joining at least two edges
 # False: Reduce polygon to 4 or less edges by splicing
-join_polygon_edges = False
+join_polygon_edges = True
+
 
 # True:  Create striaght lines to splice polygon made of 5 sides or more.
 # False: Interpolate a curved splice based on adjacent curves.
@@ -26,4 +39,4 @@ smooth_z_for_approx_mix = True
 
 # True: Force approx mixing of top and right views for top most basline 
 # False: Do not force approx mixing
-force_approx_for_top_baseline = False
+force_approx_for_rim = False
