@@ -24,7 +24,7 @@ async def update(reader, writer):
     data_in = json.loads(data_in.decode())
     data_out = {'success': False}
     try: 
-        product.generate(data_in['sketch'])
+        product.generate(data_in['sketch'],data_in['insole'])
         #product.export(data_in['product_id'])
         #data_in = await blender({'product_id': data_in['product_id']}) # Add meta data such as desired detail
         #if data_in['success']:
@@ -57,7 +57,8 @@ async def cax(data_out):
     writer.close()
 asyncio.run(cax({ # send product id, sketches, and more to cax
         'product_id':  1, 
-        'sketch':   '/home/julian/delimit/cax/sketches/runner_2.svg', 
+        'sketch':   '/home/julian/delimit/cax/sketches/runner_5.svg', 
+        'insole':   '/home/julian/delimit/cax/sketches/insole_1.svg', 
     }))
 product.doc.recompute()
 

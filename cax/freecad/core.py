@@ -30,7 +30,7 @@ class Product:
     def latest_objects(self):
         return [o for o in self.doc.Objects if o not in self.objects]  
 
-    def generate(self,drawing_path):
+    def generate(self,drawing_path,insole_drawing_path):
         # Put SHAPE and STYLE layers into seperate files
         with open(drawing_path,'r') as file: drawing = file.read()
         shape_labels = ['id="shape"','label="shape"',"id='shape'","label='shape'"] 
@@ -66,7 +66,7 @@ class Product:
                 if not o1.Label[-3:]=='___' and hasattr(o1,'Shape') and not hasattr(o1,'LabelText'): # and any(t in o1.Label for t in view_labels):
                     for shape in tagged_shapes:
                         dist = shape.distToShape(o1.Shape)[0]
-                        if len(tagged_shapes)<2 or dist < (o1.Shape.BoundBox.XLength + o1.Shape.BoundBox.YLength)/2 *.2: # within 20% of size
+                        if len(tagged_shapes)<2 or dist < (o1.Shape.BoundBox.XLength + o1.Shape.BoundBox.YLength)/2 *.15: # within 20% of size
                             tod.append({'t':text, 'o':o1, 'd':dist}) 
             if len(tod)>0:
                 tod.sort(key = lambda o: o['d'])
@@ -78,7 +78,7 @@ class Product:
         for tag in view_tags:
             set_view_label(tag[0],[tag[1]])
         # Set shapes:
-        #baselines = []
+        baselines = []
         view_labels = [v+'_view__' for v in ['front','back','left','right','top','bottom']]
         for st in shape_tags:
             tag_obj_dist = [(st[0], o, st[1].distToShape(o.Shape)[0]) for o in self.svg_shapes if hasattr(o,'Shape')]# and any(t in o.Label for t in view_labels)]
@@ -87,7 +87,7 @@ class Product:
             suffix = '_profile'
             if 'right_view__' in tag_obj_dist[0][1].Label: 
                 suffix = '_baseline'  
-                #baselines.append(tag_obj_dist[0][1])
+                baselines.append(tag_obj_dist[0][1])
             tag_obj_dist[0][1].Label = tag_obj_dist[0][1].Label.replace('_view__','_view__'+str(tag_obj_dist[0][0][0])+suffix)[:-7]
             if tag_obj_dist[0][1].Label[-3:] == '001':
                 for o1 in self.svg_shapes:
@@ -109,14 +109,14 @@ class Product:
                                 o2.Label = fob[1]
                 else:
                     o1.Label = o1.Label[-7:-3] # reduce to the four random characters
-        #baselines.sort(key = lambda b: b.Shape.BoundBox.YMax)
-        #top_baseline = baselines[-1]
+        baselines.sort(key = lambda b: b.Shape.BoundBox.YMin)
+        #bottom_baseline = baselines[-1]
 
         # Gather information about the imported paths before any transformations
         front_baseline = self.get('right_view__front_baseline')
         back_baseline = self.get('right_view__back_baseline')
         rim_baseline = self.get('right_view__rim_baseline')
-        right_view_scale = config.length_y / front_baseline.Shape.BoundBox.XLength
+        right_view_scale = config.length_y / baselines[0].Shape.BoundBox.XLength #front_baseline.Shape.BoundBox.XLength
         right_view_translate = -front_baseline.Shape.BoundBox.Center
         f_points = [[],[]] # front and back fuse points
         top_and_right_mixes = []
@@ -124,6 +124,7 @@ class Product:
         top_center_curve = False
         front_edges = []
         front_edge_r_branch = False
+        sole_curves = [[],[]]  
 
         # Transform all RIGHT view objects
         for obj in self.svg_shapes:
@@ -169,7 +170,9 @@ class Product:
                     if (profile_points[close_i2]-baseline_points[bi]).Length < (profile_points[close_i1]-baseline_points[bi]).Length:
                         pi = close_i2
                     profile_start = profile_points[pi]
-                    profile_end = profile_points[pi + dpc] # Could result in out of bounds error? ----------------------------------------- !!!
+                    pei = pi - dpc # profile end index
+                    if pei < 0: pei = pi + dpc
+                    profile_end = profile_points[pei] # Could result in out of bounds error? ----------------------------------------- !!!
                     dist_between_points = profile.Shape.Length / (dpc*2)
                     m_points = [] # mixed points
                     p_points = [] # profile points
@@ -201,6 +204,7 @@ class Product:
                         baseline_dir = -baseline_dir
 
                     # Get split indecies for top view profile:
+                    dist_y = 10000
                     if baseline == rim_baseline: 
                         dist_x = 10000
                         for ppi,pp in enumerate(p_points):
@@ -217,8 +221,11 @@ class Product:
                             if p_points[rsi].y-p_points[fci].y > abs(p_points[rsi].x): break
                             if p_points[rsi].y-p_points[rsi+1].y > abs(p_points[rsi].x-p_points[rsi+1].x):break
                         rsi = rsi + 1
+                        for ppi,pp in enumerate(p_points):
+                            if ppi>dpc*.5 and ppi<dpc*1.5 and pp.y < dist_y:
+                                center_split_i = ppi
+                                dist_y = pp.y
                     else:
-                        dist_y = 10000
                         for ppi,pp in enumerate(p_points):
                             if ppi>dpc*.5 and ppi<dpc*1.5 and pp.y < dist_y:
                                 lsi = ppi
@@ -230,26 +237,44 @@ class Product:
                     if len(test_mix.Shape.Edges) == 1 and not (config.force_approx_for_rim and baseline == rim_baseline): 
                         # This section creates an exact mixed curve from TOP & RIGHT view (requires at least one function-of-(x or z) source curves)
                         print('EXACT MIX OF TOP+RIGHT: '+shared_name)
-                        p_right = make_curve(p_points[:rsi], name=profile.Label+'__right', dir='Y') 
                         left_points = p_points[lsi-1:]
                         left_points.append(p_points[0])
                         p_left = make_curve(left_points, name=profile.Label+'__left', dir='Y') 
-                        curves.append(join_curve(source=mix_curve(extended_baseline, p_right, name=shared_name+'__right'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_right, name=shared_name+'__right')) #
+                        p_right = make_curve(p_points[:rsi], name=profile.Label+'__right', dir='Y') 
                         curves.append(join_curve(source=mix_curve(extended_baseline, p_left, name=shared_name+'__left'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_left, name=shared_name+'__left')) #
+                        curves.append(join_curve(source=mix_curve(extended_baseline, p_right, name=shared_name+'__right'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_right, name=shared_name+'__right')) #
                         if lsi-rsi > 0:
                             p_center = make_curve(p_points[rsi-1:lsi], name=profile.Label+'__center', dir='X') 
                             top_center_curve = join_curve(source=mix_curve(extended_baseline, p_center, name=shared_name+'__center'), dir='X', visibility=True)
+                            # Make sole rim curves (will be overwritten if sole rim baseline specified in drawing):
+                            left_points = p_points[center_split_i-1:]
+                            left_points.append(p_points[0])
+                            p_left = make_curve(left_points, name=profile.Label+'__left', dir='Y') 
+                            p_right = make_curve(p_points[:center_split_i], name=profile.Label+'__right', dir='Y') 
+                            sole_curves[0].append(join_curve(source=mix_curve(extended_baseline, p_left, name='sole__left'), dir='Y'))
+                            sole_curves[1].append(join_curve(source=mix_curve(extended_baseline, p_right, name='sole__right'), dir='Y'))
+                        else:
+                            sole_curves[0].append(curves[-2])
+                            sole_curves[1].append(curves[-1])
                     else: 
                         # This section creates an approximate mixed curve from TOP & RIGHT view (allows two non-function-of-(x or z) source curves)
                         print('APPROX MIX OF TOP+RIGHT: '+shared_name)
                         #m_points.insert(dpc,v(m_points[dpc-1].x-dist_between_points/2, m_points[dpc-1].y, m_points[dpc-1].z)) # center point between left and right mixes
                         #m_points.insert(0,v(m_points[0].x-dist_between_points/2, m_points[0].y, m_points[0].z)) # center point between left and right mixes
-                        curves.append(make_curve(m_points[:rsi], name=shared_name+'__right', dir='Y', visibility=True))
                         left_points = m_points[lsi-1:]
                         left_points.append(m_points[0])
                         curves.append(make_curve(left_points, name=shared_name+'__left', dir='Y', visibility=True)) #reverse=True
+                        curves.append(make_curve(m_points[:rsi], name=shared_name+'__right', dir='Y', visibility=True))
                         if lsi-rsi > 0:
-                            top_center_curve = make_curve(m_points[rsi-1:lsi], name=profile.Label+'__center', dir='X') 
+                            top_center_curve = make_curve(m_points[rsi-1:lsi], name=profile.Label+'__center', dir='X')
+                            # Make sole rim curves (will be overwritten if sole rim baseline specified in drawing):
+                            left_points = m_points[center_split_i-1:]
+                            left_points.append(m_points[0])
+                            sole_curves[0].append(make_curve(left_points, name='sole__left', dir='Y', visibility=True))
+                            sole_curves[1].append(make_curve(m_points[:center_split_i], name='sole__right', dir='Y', visibility=True))
+                        else:
+                            sole_curves[0].append(curves[-2])
+                            sole_curves[1].append(curves[-1])
                     self.doc.removeObject(test_mix.Name)
                     top_and_right_mixes.append(curves[-1])
                     top_and_right_mixes.append(curves[-2])
@@ -478,6 +503,7 @@ class Product:
         tf_baseline = self.get('right_view__tf_baseline') # front
         tb_baseline = self.get('right_view__tb_baseline') # back
         if tt_baseline and tf_baseline and tb_baseline:
+            tt_baseline = join_curve(source=tt_baseline, dir='Z', visibility=False)
             # Make front curve:
             tf_curve = join_curve(tf_baseline, dir='Z', visibility=False)
             # Get tongue back inside edges:
@@ -533,6 +559,21 @@ class Product:
             # Make tongue surfaces
             make_surface([(tb_curves[0],0), (tbt_curves[0],0), (tf_curve,0), (tt_left,0)]) 
             make_surface([(tb_curves[1],0), (tbt_curves[1],0), (tf_curve,0), (tt_right,0)])
+
+        # Build sole:
+        xml.sax.parse(insole_drawing_path, self.svg_handler)
+        insole_profile = self.doc.Objects[-1] # should only be top view profile in drawing
+        insole_profile.Label = 'top_view__insole_profile'
+        insole_baseline = self.get('right_view__insole_baseline')
+        transform(insole_baseline, translate=v(0,config.toe_heel_y_thickness,0), scale=(insole_baseline.Shape.BoundBox.YLength-config.toe_heel_y_thickness*2) / insole_baseline.Shape.BoundBox.YLength)
+        transform(insole_profile, rotate = (v(0,0,1),90), scale = insole_baseline.Shape.BoundBox.YLength/insole_profile.Shape.BoundBox.XLength)
+        transform(insole_profile, translate = insole_baseline.Shape.BoundBox.Center - insole_profile.Shape.BoundBox.Center)
+        insole_baseline = join_curve(source=insole_baseline, dir='Y', visibility=False)
+        insole_mix = join_curve(source=mix_curve(extend(insole_baseline), insole_profile, name = 'insole_mix'), dir='Y')
+
+        
+
+        
         
 
     # Get the corresponding baseline to the given profile.

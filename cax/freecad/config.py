@@ -1,5 +1,9 @@
-# default shoe length for editing design 
+# default shoe length (scale drawing so bottom most baseline matches this length)
 length_y = 250 #mm
+
+
+# Wall thickness of toe and heel of shoe. Used to scale insole to correct size
+toe_heel_y_thickness = 5 #mm
 
 
 # Number of divisions when discretizing a curve:
@@ -11,15 +15,15 @@ approx_tolerance = .2
 
 
 # Max XY-plane fuse distance for building surfaces:
-fuse_tolerance_xy = 2 #mm
+fuse_tolerance_xy = 1 #mm
 
 
 # How far to extend baslines (important to ensure they are long enough for calculations with other geometry)
-baseline_extension = 4 #mm 
+baseline_extension = 1 #mm 
 
 
 # distance from shoe surface to tongue back curve
-tongue_margin = 2 #mm
+tongue_margin = 1 #mm
 
 
 # True:  Reduce polygon to 4 or less edges by joining at least two edges
