@@ -57,7 +57,7 @@ async def cax(data_out):
     writer.close()
 asyncio.run(cax({ # send product id, sketches, and more to cax
         'product_id':  1, 
-        'sketch':   '/home/julian/delimit/cax/sketches/runner_5.svg', 
+        'sketch':   '/home/julian/delimit/cax/sketches/runner_4.svg', 
         'insole':   '/home/julian/delimit/cax/sketches/insole_1.svg', 
     }))
 product.doc.recompute()

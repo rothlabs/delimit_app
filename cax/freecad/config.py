@@ -19,7 +19,7 @@ fuse_tolerance_xy = 1 #mm
 
 
 # How far to extend baslines (important to ensure they are long enough for calculations with other geometry)
-baseline_extension = 1 #mm 
+baseline_extension = 1 #mm    # increase this if fuse points for front view are not found, decrease if more than 2 fuse points are found
 
 
 # distance from shoe surface to tongue back curve

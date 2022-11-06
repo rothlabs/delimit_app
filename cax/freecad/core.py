@@ -126,10 +126,18 @@ class Product:
         front_edge_r_branch = False
         sole_curves = [[],[]]  
 
+        xml.sax.parse(insole_drawing_path, self.svg_handler)
+        insole_profile = self.doc.Objects[-1] # should only be top view profile in drawing
+        insole_profile.Label = 'top_view__insole_profile'
+        self.svg_shapes.append(insole_profile)
+        insole_baseline = self.get('right_view__insole_baseline')
+
         # Transform all RIGHT view objects
         for obj in self.svg_shapes:
             if 'right_view' in obj.Label: 
                 transform(obj, translate=right_view_translate, rotate=(v(1,1,1),120), scale=right_view_scale)
+
+        transform(insole_baseline, translate=v(0,config.toe_heel_y_thickness,0), scale=(insole_baseline.Shape.BoundBox.YLength-config.toe_heel_y_thickness*2) / insole_baseline.Shape.BoundBox.YLength)
 
         # Build curves from TOP & RIGHT views
         for obj in self.svg_shapes:
@@ -278,14 +286,15 @@ class Product:
                     self.doc.removeObject(test_mix.Name)
                     top_and_right_mixes.append(curves[-1])
                     top_and_right_mixes.append(curves[-2])
-                    f_points[1].append(curves[-1].Shape.Vertexes[1].Point) # back fuse point
-                    front_right_fuse_p = False
-                    if top_center_curve: 
-                        curves.append(top_center_curve)
-                        f_points[0].append(top_center_curve.Shape.Vertexes[0].Point) # front left fuse point 
-                        front_right_fuse_p = top_center_curve.Shape.Vertexes[1].Point  # front right fuse point
-                    else:
-                        f_points[0].append(curves[-1].Shape.Vertexes[0].Point) # front fuse point 
+                    if not 'insole' in profile.Label:
+                        f_points[1].append(curves[-1].Shape.Vertexes[1].Point) # back fuse point
+                        front_right_fuse_p = False
+                        if top_center_curve: 
+                            curves.append(top_center_curve)
+                            f_points[0].append(top_center_curve.Shape.Vertexes[0].Point) # front left fuse point 
+                            front_right_fuse_p = top_center_curve.Shape.Vertexes[1].Point  # front right fuse point
+                        else:
+                            f_points[0].append(curves[-1].Shape.Vertexes[0].Point) # front fuse point 
         
         # Build the front and back edge curves so they hit all the fuse points at the curves that were mixed from TOP & RIGHT
         fb_point_count = 100
@@ -358,12 +367,13 @@ class Product:
                 curves_points = [] # curves and points
                 ax = 0 # average x
                 for curve in curves:
-                    intersection = intersect(solid_baseline, curve) 
-                    verts = intersection.Shape.Vertexes
-                    if len(verts) > 1:
-                        curves_points.append({'c':curve, 'p':verts[int(verts[0].Y > verts[1].Y)].Point}) # add point with lowest Y value
-                        ax = ax + curves_points[-1]['p'].x
-                    self.doc.removeObject(intersection.Name)
+                    if not 'insole' in curve.Label:
+                        intersection = intersect(solid_baseline, curve) # USE BOOLIAN FRAGMENTS INSTEAD??? Or Part.Slice? (solid not needed?)
+                        verts = intersection.Shape.Vertexes
+                        if len(verts) > 1:
+                            curves_points.append({'c':curve, 'p':verts[int(verts[0].Y > verts[1].Y)].Point}) # add point with lowest Y value
+                            ax = ax + curves_points[-1]['p'].x
+                        self.doc.removeObject(intersection.Name)
                 ax = ax / len(curves_points)
                 for cp in curves_points:
                     if len(curves_points)<4 and ('front' in cp['c'].Label or 'back' in cp['c'].Label): # add fuse point to left AND right if on front or back edge curve
@@ -435,7 +445,7 @@ class Product:
         faces = []
         for c in curves: c.Visibility = False
         top_and_right_mixes.sort(key = lambda o: o.Shape.BoundBox.ZMin)
-        make_surface([(top_and_right_mixes[0],0), (top_and_right_mixes[1],0)]) # Bottom of sole
+        faces.append(make_surface([(top_and_right_mixes[0],0), (top_and_right_mixes[1],0)])) # Bottom of sole
         if front_edge_r_branch: # Surfaces between front edge and right branch of front edge:
             for ei in range(len(front_edges[-1].Shape.Edges)):
                 if ei == len(front_edges[-1].Shape.Edges)-1:
@@ -511,8 +521,8 @@ class Product:
                 surface = extrude(base_curve, dir=v(1,0,0), length=1000, symmetric=True)
                 edges = [[],[]]
                 for face in faces:
-                    solid = extrude(face, dir = v(-face.Shape.BoundBox.Center.x,0,0), length=config.tongue_margin)
-                    intersection = intersect(solid, surface) 
+                    solid = extrude(face, dir = v(-face.Shape.BoundBox.Center.x,0,0), length=config.tongue_margin) 
+                    intersection = intersect(solid, surface) # USE BOOLIAN FRAGMENTS INSTEAD??? Or Part.Slice? (solid not needed?)
                     if len(intersection.Shape.Edges)>0 and intersection.Shape.BoundBox.XLength < 500: # check for weird bug where intersection results in entire tb_surface
                         pe = [] # potential edges
                         for i,e in enumerate(intersection.Shape.Edges):
@@ -557,24 +567,21 @@ class Product:
                 tb2 = make_curve(points, dir='Z', name=tbt_curve.Label+lr+'__out')
                 tbt_curves.append(join_curve(edges=[(tb1,0),(tb2,0)], dir='Z', name=tbt_curve.Label+lr+'__comp', visibility=False))
             # Make tongue surfaces
-            make_surface([(tb_curves[0],0), (tbt_curves[0],0), (tf_curve,0), (tt_left,0)]) 
-            make_surface([(tb_curves[1],0), (tbt_curves[1],0), (tf_curve,0), (tt_right,0)])
+            faces.append(make_surface([(tb_curves[0],0), (tbt_curves[0],0), (tf_curve,0), (tt_left,0)]))
+            faces.append(make_surface([(tb_curves[1],0), (tbt_curves[1],0), (tf_curve,0), (tt_right,0)]))
 
         # Build sole:
-        xml.sax.parse(insole_drawing_path, self.svg_handler)
-        insole_profile = self.doc.Objects[-1] # should only be top view profile in drawing
-        insole_profile.Label = 'top_view__insole_profile'
-        insole_baseline = self.get('right_view__insole_baseline')
-        transform(insole_baseline, translate=v(0,config.toe_heel_y_thickness,0), scale=(insole_baseline.Shape.BoundBox.YLength-config.toe_heel_y_thickness*2) / insole_baseline.Shape.BoundBox.YLength)
-        transform(insole_profile, rotate = (v(0,0,1),90), scale = insole_baseline.Shape.BoundBox.YLength/insole_profile.Shape.BoundBox.XLength)
-        transform(insole_profile, translate = insole_baseline.Shape.BoundBox.Center - insole_profile.Shape.BoundBox.Center)
-        insole_baseline = join_curve(source=insole_baseline, dir='Y', visibility=False)
-        insole_mix = join_curve(source=mix_curve(extend(insole_baseline), insole_profile, name = 'insole_mix'), dir='Y')
+        sole_baseline = self.get('right_view__sole_baseline')
+        # Cut upper away:
+        sole_baseline_join = join_curve(sole_baseline,dir='Y')
+        sole_baseline_extend = extend(sole_baseline_join, dist=150, visibility=False)
+        sole_baseline_offset = offset(sole_baseline_extend, dist=-150)
+        sole_baseline_offset_join = join_curve(sole_baseline_offset,dir='Y', visibility=False)
+        upper_cutter_surf = make_surface([(sole_baseline_extend,0), (sole_baseline_offset_join,0)], visibility=False)
+        upper_cutter_solid = extrude(upper_cutter_surf, dir=v(1,0,0), length=200, symmetric=True)
+        shoe_compound = compound(faces, name='shoe_compound')
+        sole = cut(shoe_compound, upper_cutter_solid)
 
-        
-
-        
-        
 
     # Get the corresponding baseline to the given profile.
     def baseline(self,profile):
@@ -614,11 +621,29 @@ class Product:
 def random_string(n):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
 
+# Cut object with other object (boolean cut)
+def cut(base, tool, name='cut', visibility=True):
+    f = FreeCAD.ActiveDocument.addObject("Part::Cut", name)
+    f.Base = base
+    f.Tool = tool
+    f.Visibility = visibility
+    f.recompute()
+    return f
+
+# Make compound
+def compound(parts, name='compound', visibility=True):
+    f = FreeCAD.ActiveDocument.addObject("Part::Compound", name)
+    f.Links = parts
+    f.Visibility = visibility
+    f.recompute()
+    return f
+
 # Make Surface from list of curves and edges
-def make_surface(curves_and_edges):
+def make_surface(curves_and_edges, visibility=True):
     s = FreeCAD.ActiveDocument.addObject('Surface::GeomFillSurface','Surface')
     s.BoundaryList = [(ce[0],'Edge'+str(ce[1]+1)) for ce in curves_and_edges]
     s.FillType = 1
+    s.Visibility = visibility
     s.recompute()
     #print('Surface:')
     #for i, ce in enumerate(curves_and_edges):
@@ -658,13 +683,28 @@ def intersect(source_a, source_b, name='untitled'):
     return b
 
 # Make extension
-def extend(source, visibility=False):
+def extend(source, dist=0, visibility=False):
     f = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", source.Label+'__extend')
     curveExtendFP.extend(f)
     f.Edge = (source,'Edge1')
-    f.LengthStart = config.baseline_extension # increase this if fuse points for front view are not found, decrease if more than 4 fuse points are found
-    f.LengthEnd = config.baseline_extension  # increase this if fuse points for front view are not found, decrease if more than 4 fuse points are found
+    if dist>0:
+        f.LengthStart = dist
+        f.LengthEnd = dist
+    else: 
+        f.LengthStart = config.baseline_extension 
+        f.LengthEnd = config.baseline_extension 
     curveExtendFP.extendVP(f.ViewObject)
+    wireframe_style(f)
+    f.Visibility = visibility
+    f.recompute()
+    return f
+
+# Make offset
+def offset(source, dist=0, visibility=False):
+    f = FreeCAD.ActiveDocument.addObject("Part::Offset2D", source.Label+'__offset')
+    f.Source = source
+    f.Value = dist
+    f.Mode = 'Skin'
     wireframe_style(f)
     f.Visibility = visibility
     f.recompute()
@@ -773,6 +813,25 @@ def wireframe_style(obj):
     obj.ViewObject.LineColor = (1.0,1.0,1.0)
     obj.ViewObject.Transparency = 100
 
+
+
+
+
+# Build sole:
+        #xml.sax.parse(insole_drawing_path, self.svg_handler)
+        #insole_profile = self.doc.Objects[-1] # should only be top view profile in drawing
+        #insole_profile.Label = 'top_view__insole_profile'
+        #insole_baseline = self.get('right_view__insole_baseline')
+        ##sole_baseline = self.get('right_view__sole_baseline')
+        # Make insole curve:
+        #transform(insole_baseline, translate=v(0,config.toe_heel_y_thickness,0), scale=(insole_baseline.Shape.BoundBox.YLength-config.toe_heel_y_thickness*2) / insole_baseline.Shape.BoundBox.YLength)
+        #transform(insole_profile, rotate = (v(0,0,1),90), scale = insole_baseline.Shape.BoundBox.YLength/insole_profile.Shape.BoundBox.XLength)
+        #transform(insole_profile, translate = insole_baseline.Shape.BoundBox.Center - insole_profile.Shape.BoundBox.Center)
+        #insole_baseline = join_curve(source=insole_baseline, dir='Y', visibility=False)
+        #insole_mix = join_curve(source=mix_curve(extend(insole_baseline), insole_profile, name = 'insole_mix'), dir='Y')
+        #p = insole_mix.Shape.valueAt(0.5)
+        #cp = Part.Vertex(p)
+        #print('cut point: '+str(cp))
 
 
 
