@@ -1,9 +1,25 @@
+test_drawing = '/home/julian/delimit/cax/sketches/runner_4.svg'
+#test_insole  = '/home/julian/delimit/cax/sketches/insole_1.svg'
+
 # default shoe length (scale drawing so bottom most baseline matches this length)
 length_y = 250 #mm
 
-
 # Wall thickness of toe and heel of shoe. Used to scale insole to correct size
-toe_heel_y_thickness = 5 #mm
+toe_heel_y_thickness = 8 #mm
+
+# Sole rim thickness 
+sole_rim_thickness = 1 #mm
+
+# Sole overlap 
+sole_overlap = 5 #mm
+
+# heel overlap
+heel_overlap = 5 #mm
+
+
+
+# If testing with FreeCAD GUI, this is needed to prevent nested recomputes? (stop crashing)
+#recompute_sleep = .01
 
 
 # Number of divisions when discretizing a curve:
@@ -11,7 +27,7 @@ discretize_point_count = 100
 
 
 # Used for smoothing joined curves. Larger numbers are smoother.
-approx_tolerance = .2
+approx_tolerance = .1
 
 
 # Max XY-plane fuse distance for building surfaces:
@@ -19,7 +35,7 @@ fuse_tolerance_xy = 1 #mm
 
 
 # How far to extend baslines (important to ensure they are long enough for calculations with other geometry)
-baseline_extension = 1 #mm    # increase this if fuse points for front view are not found, decrease if more than 2 fuse points are found
+baseline_extension = 2 #mm    # increase this if fuse points for front view are not found, decrease if more than 2 fuse points are found
 
 
 # distance from shoe surface to tongue back curve
