@@ -5,7 +5,7 @@ import FreeCADGui
 import core, config # From Delimit
 import asyncio, json, threading, traceback # From Python Built-In
 
-product = core.Product('empty')
+product = core.Product()
 
 async def blender(data_out):
     reader, writer = await asyncio.open_connection('127.0.0.1',7777)
@@ -20,7 +20,7 @@ async def update(reader, writer):
     data_in = json.loads(data_in.decode())
     data_out = {'success': False}
     try: 
-        product.generate(data_in['sketch'])#,data_in['insole'])
+        product.generate(data_in['drawing'])
         #product.export(data_in['product_id'])
         #data_in = await blender({'product_id': data_in['product_id']}) # Add meta data such as desired detail
         #if data_in['success']:
@@ -51,7 +51,6 @@ if hasattr(FreeCADGui,'addCommand'):
         print('CAX Response: '+data_in.decode())
         writer.close()
     asyncio.run(cax({ # send product id, sketches, and more to cax
-            'product_id':  1, 
-            'sketch':   config.test_drawing, 
-            #'insole':   config.test_insole, 
+            'product_id':  0, 
+            'drawing':   config.test_drawing, 
         }))

@@ -13,3 +13,5 @@ __pycache__
 *.Blend1
 
 sqlite3.db
+
+/junk/

@@ -174,3 +174,13 @@ Remove the following from gltf2_blender_gather.py
 bpy.context.window.scene = store_user_scene
 ```
 See https://github.com/KhronosGroup/glTF-Blender-IO/issues/1281  
+
+## FreeCAD Curves Workbench
+Copy code from https://github.com/tomate44/CurvesWB into  
+```
+cax/freecad/Curves
+```
+Modify the Curves workbench by adding the following condition before any FreeCADGui.addcommand call:
+```
+if hasattr(FreeCADGui,'addCommand'):
+``` 

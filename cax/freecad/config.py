@@ -1,5 +1,4 @@
-test_drawing = '/home/julian/delimit/cax/sketches/runner_4.svg'
-#test_insole  = '/home/julian/delimit/cax/sketches/insole_1.svg'
+test_drawing = '/home/julian/delimit/cax/drawings/runner_4.svg'
 
 # default shoe length (scale drawing so bottom most baseline matches this length)
 length_y = 250 #mm
@@ -23,7 +22,7 @@ heel_overlap = 5 #mm
 
 
 # Number of divisions when discretizing a curve:
-discretize_point_count = 100
+discrete_count = 100
 
 
 # Used for smoothing joined curves. Larger numbers are smoother.

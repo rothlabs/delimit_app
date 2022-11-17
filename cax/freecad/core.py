@@ -3,33 +3,31 @@ Provides core functionality for generating product models from drawings.
 Paths are imported from the SVG as FreeCAD wires and made into curves. 
 Curves are labeled as front, back, top, bottom, left, and right view based on distance from text labels in the SVG.
 Curves are also given unique names based on distance of additional labels in the SVG (usually capital letters).
-Most objects are created with a bread-crumb naming scheme to make everything explicit in the FreeCAD Tree View.
-If an object has 001, 002, etc at the end of the its name, there might be unnecessary dubplicated generation.
+Some objects are created with a bread-crumb naming scheme as seen in the FreeCAD Tree View.
 The drawing RIGHT view contains BASELINE curves and the TOP, FRONT, & BACK views contain PROFILES curves. 
 Baselines and profiles are mixed to generate 3D curves.
 Curves should go from bottom to top (-Z to +Z), front to back (-Y to +Y), and left to right (-X, +X).
 '''
 
-import time
-import config
+import config, make # From Delimit
 import FreeCAD, FreeCADGui, Mesh, Part, MeshPart # From FreeCAD
 from importSVG import svgHandler # From FreeCAD
 from Curves import JoinCurves, approximate_extension, Discretize, mixed_curve, curveExtendFP, splitCurves_2  # From https://github.com/tomate44/CurvesWB
-import xml.sax, random, string, math, re # From Python Built-In
+import xml.sax, random, string, math # From Python Built-In
 
 v = FreeCAD.Vector
 
 class Product:
-    def __init__(self, name):
-        self.doc = FreeCAD.openDocument('templates/'+name+'.FCStd') #.newDocument() 
-        self.objects = self.doc.Objects
+    def __init__(self):
+        self.doc = FreeCAD.openDocument('product.FCStd') 
+        self.objects = []
         self.svg_handler = svgHandler()
         self.svg_handler.doc = self.doc
 
     def latest_objects(self):
         return [o for o in self.doc.Objects if o not in self.objects]  
 
-    def generate(self,drawing_path):#,insole_drawing_path):
+    def generate(self,drawing_path):
         # delete all
         for obj in self.doc.Objects:
             self.doc.removeObject(obj.Name)
@@ -111,9 +109,8 @@ class Product:
                 else:
                     o1.Label = o1.Label[-7:-3] # reduce to the four random characters
         baselines.sort(key = lambda b: b.Shape.BoundBox.YMin)
-        #bottom_baseline = baselines[-1]
 
-        # Gather information about the imported paths before any transformations
+        # Gather information about the imported objects before any transformations
         front_baseline = self.get('right_view__front_baseline')
         back_baseline = self.get('right_view__back_baseline')
         rim_baseline = self.get('right_view__rim_baseline')
@@ -126,24 +123,11 @@ class Product:
         front_edges = []
         front_edge_r_branch = False
         insole_curves = []
-        rim_curves = []  
-
-        #xml.sax.parse(insole_drawing_path, self.svg_handler)
-        #insole_profile = self.doc.Objects[-1] # should only be top view profile in drawing
-        #insole_profile.Label = 'top_view__insole_profile'
-        #self.svg_shapes.append(insole_profile)
-        #insole_baseline = self.get('right_view__insole_baseline')
-
-        
 
         # Transform all RIGHT view objects
         for obj in self.svg_shapes:
             if 'right_view' in obj.Label: 
                 transform(obj, translate=right_view_translate, rotate=(v(1,1,1),120), scale=right_view_scale)
-                #if 'insole' in obj.Label:
-                #    insole_baseline = obj
-                #    profile_name = obj.Label[obj.Label.find("(")+1:obj.Label.find(")")] #re.findall('([^(]*?)', obj.Label)
-                #    insole_profile = self.get('top_view__'+profile_name+'_profile')
 
         # Additional insole transform 
         insole_baseline = self.get('right_view__insole_baseline')
@@ -155,22 +139,13 @@ class Product:
         for obj in self.svg_shapes:
             if 'top_view' in obj.Label and '(insole)' in obj.Label:
                 obj.Label = obj.Label.replace(' (insole)','')
-                insole_profile = copy_feature(obj, name='top_view__insole_profile')
+                insole_profile = make.copy(obj, name='top_view__insole_profile')
                 self.svg_shapes.append(insole_profile)
                 break
 
         # Build curves from TOP & RIGHT views
         for obj in self.svg_shapes:
             if 'top_view' in obj.Label and 'profile' in obj.Label:# and not 'tt' in obj.Label:
-                # Handle insole profile
-                #if '(insole)' in obj.Label:
-                #    obj.Label = obj.Label.replace(' (insole)','')
-                #    copy_feature(obj, name='top_view__insole_profile')
-                    #profile_name = obj.Label
-                    #profile_name.replace('(insole)','')
-                    #print(profile_name)
-                    #obj.Label = profile_name
-
                 profile = obj
                 baseline, shared_name = self.baseline(profile)
 
@@ -183,11 +158,11 @@ class Product:
 
                 if not 'tt' in profile.Label:
                     # This section preps information for generating mixed curves from TOP & RIGHT views
-                    joined_profile = join_curve(source=profile)
-                    joined_baseline = join_curve(source=baseline)
-                    dpc = config.discretize_point_count
-                    profile_points = discretize(joined_profile, dpc*2).Points
-                    baseline_points = discretize(joined_baseline, dpc).Points
+                    joined_profile = make.join(profile)
+                    joined_baseline = make.join(baseline)
+                    dpc = config.discrete_count
+                    profile_points = make.discrete(joined_profile, count=dpc*2).Points
+                    baseline_points = make.discrete(joined_baseline, count=dpc).Points
                     bi = 0 # baseline index
                     baseline_start = baseline_points[0]
                     baseline_end = baseline_points[-1]
@@ -269,51 +244,29 @@ class Product:
                                 rsi = ppi
                                 dist_y = pp.y
                     # Mix baseline with top profile:
-                    extended_baseline = extend(joined_baseline)
-                    test_mix = mix_curve(extended_baseline, joined_profile) # only use mix_curve if 1 edge produced
+                    extended_baseline = make.extend(joined_baseline)
+                    test_mix = make.mix(extended_baseline, joined_profile) # only use mix_curve if 1 edge produced
                     if len(test_mix.Shape.Edges) == 1 and not (config.force_approx_for_rim and baseline == rim_baseline): 
                         # This section creates an exact mixed curve from TOP & RIGHT view (requires at least one function-of-(x or z) source curves)
                         print('EXACT MIX OF TOP+RIGHT: '+shared_name)
                         left_points = p_points[lsi-1:]
                         left_points.append(p_points[0])
-                        p_left = make_curve(left_points, name=profile.Label+'__left', dir='Y') 
-                        p_right = make_curve(p_points[:rsi], name=profile.Label+'__right', dir='Y') 
-                        curves.append(join_curve(source=mix_curve(extended_baseline, p_left, name=shared_name+'__left'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_left, name=shared_name+'__left')) #
-                        curves.append(join_curve(source=mix_curve(extended_baseline, p_right, name=shared_name+'__right'), dir='Y')) # curves.append(mix_curve(joined_baseline, p_right, name=shared_name+'__right')) #
+                        p_left = make.curve(left_points, name=profile.Label+'__left', dir='Y') 
+                        p_right = make.curve(p_points[:rsi], name=profile.Label+'__right', dir='Y') 
+                        curves.append(make.join(make.mix(extended_baseline, p_left, name=shared_name+'__left'), dir='Y')) # curves.append(make.mix(joined_baseline, p_left, name=shared_name+'__left')) #
+                        curves.append(make.join(make.mix(extended_baseline, p_right, name=shared_name+'__right'), dir='Y')) # curves.append(make.mix(joined_baseline, p_right, name=shared_name+'__right')) #
                         if lsi-rsi > 0:
-                            p_center = make_curve(p_points[rsi-1:lsi], name=profile.Label+'__center', dir='X') 
-                            top_center_curve = join_curve(source=mix_curve(extended_baseline, p_center, name=shared_name+'__center'), dir='X', visibility=True)
-                        # Make sole rim curves (will be overwritten if sole rim baseline specified in drawing):
-                        if shared_name=='rim':
-                            if lsi-rsi > 0:
-                                left_points = p_points[center_split_i-1:]
-                                left_points.append(p_points[0])
-                                p_left = make_curve(left_points, name=profile.Label+'__left', dir='Y') 
-                                p_right = make_curve(p_points[:center_split_i], name=profile.Label+'__right', dir='Y') 
-                                rim_curves.append(join_curve(source=mix_curve(extended_baseline, p_left, name='rim_full__left'), dir='Y'))
-                                rim_curves.append(join_curve(source=mix_curve(extended_baseline, p_right, name='rim_full__right'), dir='Y'))
-                            else:
-                                rim_curves.append(curves[-2])
-                                rim_curves.append(curves[-1])
+                            p_center = make.curve(p_points[rsi-1:lsi], name=profile.Label+'__center', dir='X') 
+                            top_center_curve = make.join(make.mix(extended_baseline, p_center, name=shared_name+'__center'), dir='X')
                     else: 
                         # This section creates an approximate mixed curve from TOP & RIGHT view (allows two non-function-of-(x or z) source curves)
                         print('APPROX MIX OF TOP+RIGHT: '+shared_name)
                         left_points = m_points[lsi-1:]
                         left_points.append(m_points[0])
-                        curves.append(make_curve(left_points, name=shared_name+'__left', dir='Y', visibility=True)) #reverse=True
-                        curves.append(make_curve(m_points[:rsi], name=shared_name+'__right', dir='Y', visibility=True))
+                        curves.append(make.curve(left_points, name=shared_name+'__left', dir='Y')) #reverse=True
+                        curves.append(make.curve(m_points[:rsi], name=shared_name+'__right', dir='Y'))
                         if lsi-rsi > 0:
-                            top_center_curve = make_curve(m_points[rsi-1:lsi], name=profile.Label+'__center', dir='X')
-                        # Make sole rim curves (will be overwritten if sole rim baseline specified in drawing):
-                        if shared_name=='rim':
-                            if lsi-rsi > 0:
-                                left_points = m_points[center_split_i-1:]
-                                left_points.append(m_points[0])
-                                rim_curves.append(make_curve(left_points, name='rim_full__left', dir='Y', visibility=True))
-                                rim_curves.append(make_curve(m_points[:center_split_i], name='rim_full__right', dir='Y', visibility=True))
-                            else:
-                                rim_curves.append(curves[-2])
-                                rim_curves.append(curves[-1])
+                            top_center_curve = make.curve(m_points[rsi-1:lsi], name=profile.Label+'__center', dir='X')
                     self.doc.removeObject(test_mix.Name)
                     top_and_right_mixes.append(curves[-2])
                     top_and_right_mixes.append(curves[-1])
@@ -333,7 +286,7 @@ class Product:
         # Build the front and back edge curves so they hit all the fuse points at the curves that were mixed from TOP & RIGHT
         fb_point_count = 100
         for bi, baseline in enumerate([front_baseline,back_baseline]):
-            discrete_baseline = discretize(join_curve(source=baseline, dir='Z'), fb_point_count)
+            discrete_baseline = make.discrete(make.join(baseline, dir='Z'), count=fb_point_count)
             f_points[bi].sort(key=lambda p:p.z)
             if len(f_points[0]) < 1: raise Exception('No front fuse points. Check top view and related baselines.')
             if len(f_points[1]) < 1: raise Exception('No back fuse points. Check top view and related baselines.')
@@ -349,11 +302,11 @@ class Product:
                     if bi==0 and fi == len(f_points[bi])-1 and front_right_fuse_p: # For front right branch:
                         r_points.append(front_right_fuse_p)
                     if len(points)>1:
-                        curves.append(make_curve(points, name=discrete_baseline.Label+'__s'+str(last_i)+'_e'+str(i), visibility=True))
+                        curves.append(make.curve(points, name=discrete_baseline.Label+'__s'+str(last_i)+'_e'+str(i)))
                         if bi==0: 
                             front_edges.append(curves[-1])
                             if fi == len(f_points[bi])-1 and front_right_fuse_p: # For front right branch:
-                                curves.append(make_curve(r_points, name=discrete_baseline.Label+'__s'+str(last_i)+'_e'+str(i)+'__r_branch', visibility=True))
+                                curves.append(make.curve(r_points, name=discrete_baseline.Label+'__s'+str(last_i)+'_e'+str(i)+'__r_branch'))
                                 front_edge_r_branch = curves[-1]
                         last_i = i
                         points.clear()
@@ -394,15 +347,15 @@ class Product:
                 # Find fuse points
                 f_points = [[],[]] # left and right fuse points
                 curves_to_split = [[],[]]
-                joined_baseline = join_curve(source=baseline)
-                extended_baseline = extend(joined_baseline) # extend to make sure it crosses approximated curves from RIGHT view perspective
-                surface_baseline = extrude(extended_baseline, dir=v(1,0,0), length=1000, symmetric=True) 
-                solid_baseline = extrude(surface_baseline, dir=v(0,1,0), length=1) # For some reason, intersect is not working with surfaces, so extrude surface as solid
+                joined_baseline = make.join(baseline)
+                extended_baseline = make.extend(joined_baseline) # extend to make sure it crosses approximated curves from RIGHT view perspective
+                surface_baseline = make.extrude(extended_baseline, dir=v(1,0,0), dist=1000, symmetric=True) 
+                solid_baseline = make.extrude(surface_baseline, dir=v(0,1,0), dist=1) # For some reason, intersect is not working with surfaces, so extrude surface as solid
                 curves_points = [] # curves and points
                 ax = 0 # average x
                 for curve in curves:
                     if not 'insole' in curve.Label:
-                        intersection = intersect(solid_baseline, curve) # USE BOOLIAN FRAGMENTS INSTEAD??? Or Part.Slice? (solid not needed?)
+                        intersection = make.common([solid_baseline, curve]) # USE BOOLIAN FRAGMENTS INSTEAD??? Or Part.Slice? (solid not needed?)
                         verts = intersection.Shape.Vertexes
                         if len(verts) > 1:
                             curves_points.append({'c':curve, 'p':verts[int(verts[0].Y > verts[1].Y)].Point}) # add point with lowest Y value
@@ -431,13 +384,13 @@ class Product:
                     transform(profile, rotate = (v(1,0,0),90), scale = (baseline.Shape.BoundBox.ZLength)/profile.Shape.BoundBox.YLength)
                     transform(profile, translate = baseline.Shape.BoundBox.Center - profile.Shape.BoundBox.Center)
                     # Mix curves:
-                    joined_profile = join_curve(source=profile, dir='Z')
+                    joined_profile = make.join(profile, dir='Z')
                     suffix = '__left'
                     if pi>0: suffix = '__right'
-                    mix = mix_curve(joined_baseline, joined_profile, profile_dir=v(0,1,0), name=shared_name+suffix)
-                    joined_mix = join_curve(source=mix, dir='Z') # joining to force direction to +Z
-                    dpc = config.discretize_point_count 
-                    discrete_mix = discretize(joined_mix,dpc) 
+                    mix = make.mix(joined_baseline, joined_profile, profile_dir=v(0,1,0), name=shared_name+suffix)
+                    joined_mix = make.join(mix, dir='Z') # joining to force direction to +Z
+                    dpc = config.discrete_count 
+                    discrete_mix = make.discrete(joined_mix, count=dpc) 
                     a_points = [f_points[pi][0]] # adjusted points
                     for mi, mp in enumerate(discrete_mix.Points): # TODO: Use map_curve here?
                         lmp = mp - discrete_mix.Points[0] # mixed point local to start
@@ -446,7 +399,7 @@ class Product:
                         ap = (f_points[pi][0] + lmp)*(1-ratio) + (f_points[pi][1] + rlmp)*ratio
                         a_points.append(ap)
                     a_points.append(f_points[pi][1])
-                    curves.append(make_curve(a_points, dir='Z', name=discrete_mix.Label, visibility=True))
+                    curves.append(make.curve(a_points, dir='Z', name=discrete_mix.Label))
                     # Split curves that the new mixes intersect with:
                     for cts in curves_to_split[pi]:
                         new_split = True
@@ -458,13 +411,13 @@ class Product:
                                     cutting_objects.append(curves[-1])
                                     sc['result'].CuttingObjects = cutting_objects
                                     sc['result'].recompute()
-                                    #time.sleep(config.recompute_sleep)
+                                    
                                 new_split = False
                                 break
                         if new_split:
                             suffix = '__below'
                             if aob>0: suffix = '__above'
-                            split = split_curve(cts,curves[-1], name=cts.Label+suffix)
+                            split = make.split(cts,curves[-1], name=cts.Label+suffix)
                             split_curves[aob].append({'source':cts, 'result':split})
                             curves_to_append.append(split)
                             curves_to_remove.append(cts)
@@ -480,13 +433,13 @@ class Product:
         faces = []
         for c in curves: c.Visibility = False
         top_and_right_mixes.sort(key = lambda o: o.Shape.BoundBox.ZMin)
-        faces.append(make_surface([(top_and_right_mixes[0],0), (top_and_right_mixes[1],0)])) # Bottom of sole
+        faces.append(make.surface([(top_and_right_mixes[0],0), (top_and_right_mixes[1],0)])) # Bottom of sole
         if front_edge_r_branch: # Surfaces between front edge and right branch of front edge:
             for ei in range(len(front_edges[-1].Shape.Edges)):
                 if ei == len(front_edges[-1].Shape.Edges)-1:
-                    faces.append(make_surface([(front_edges[-1],ei), (front_edge_r_branch,ei), (top_center_curve,0)]))
+                    faces.append(make.surface([(front_edges[-1],ei), (front_edge_r_branch,ei), (top_center_curve,0)]))
                 else:
-                    faces.append(make_surface([(front_edges[-1],ei), (front_edge_r_branch,ei)]))
+                    faces.append(make.surface([(front_edges[-1],ei), (front_edge_r_branch,ei)]))
         for lor in ['__left__','__right__']: 
             for c1 in (c for c in curves if not lor in c.Label and 'above__split' in c.Label): # bottom curve 
                 for c1ei, c1e in enumerate(c1.Shape.Edges): # bottom curve edge 
@@ -506,7 +459,7 @@ class Product:
                                     pc3.sort(key=lambda c:c['e'].BoundBox.Center.z) 
                                     c3, c3e, c3ei = pc3[0]['c'], pc3[0]['e'], pc3[0]['i']
                                     if (c3e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < config.fuse_tolerance_xy: # 3 RIGHT surface?
-                                        faces.append(make_surface([(c1,c1ei), (c2,c2ei), (c3,c3ei)]))
+                                        faces.append(make.surface([(c1,c1ei), (c2,c2ei), (c3,c3ei)]))
                                     else:
                                         pc4 = [] # possible last curve, edge, and index (usually right / vertical down)
                                         for c4 in (c for c in curves if not c==c3 and not 'above__split' in c.Label and not lor in c.Label and not 'center' in c.Label):
@@ -519,15 +472,15 @@ class Product:
                                             pc4.sort(key=lambda c:c['e'].BoundBox.Center.z)
                                             c4, c4e, c4ei = pc4[0]['c'], pc4[0]['e'], pc4[0]['i']
                                             if (c4e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < config.fuse_tolerance_xy: # final curve connects with first?
-                                                faces.append(make_surface([(c1,c1ei), (c2,c2ei), (c3,c3ei), (c4,c4ei)]))
+                                                faces.append(make.surface([(c1,c1ei), (c2,c2ei), (c3,c3ei), (c4,c4ei)]))
                                             else: # This case happens between the front and top baselines (5 side polygon):
                                                 for c5 in curves: # Get 5th side:
                                                     for c5ei, c5e in enumerate(c5.Shape.Edges):
                                                         if (c5e.Vertexes[0].Point-c1e.Vertexes[1].Point).Length < config.fuse_tolerance_xy: 
                                                             if (c5e.Vertexes[1].Point-c4e.Vertexes[1].Point).Length < config.fuse_tolerance_xy:
                                                                 if config.join_polygon_edges:
-                                                                    jc = join_curve(edges=[(c3,c3ei),(c4,c4ei)], dir='Y', name='polygon_join'+lor)
-                                                                    faces.append(make_surface([(c1,c1ei), (c2,c2ei), (jc,0),(c5,c5ei)]))
+                                                                    jc = make.join([(c3,c3ei),(c4,c4ei)], dir='Y', name='polygon_join'+lor)
+                                                                    faces.append(make.surface([(c1,c1ei), (c2,c2ei), (jc,0),(c5,c5ei)]))
                                                                 else:
                                                                     c6p = []
                                                                     if config.straight_polygon_splice:
@@ -538,10 +491,10 @@ class Product:
                                                                             ratio = math.sqrt(i / (len(c5.Base.Shape.Vertexes)-1))
                                                                             ap = c2.Base.Shape.Vertexes[i].Point*(1-ratio) + c5p.Point*ratio
                                                                             c6p.append(ap)
-                                                                    c6 = make_curve(c6p, dir='Z', name=(lor+'splice')[2:])
-                                                                    faces.append(make_surface([(c2,c2ei), (c3,c3ei), (c4,c4ei),(c6,0)]))
-                                                                    faces.append(make_surface([(c1,c1ei), (c5,c5ei), (c6,0)]))
-        shoe_compound = compound(faces, name='shoe')
+                                                                    c6 = make.curve(c6p, dir='Z', name=(lor+'splice')[2:])
+                                                                    faces.append(make.surface([(c2,c2ei), (c3,c3ei), (c4,c4ei),(c6,0)]))
+                                                                    faces.append(make.surface([(c1,c1ei), (c5,c5ei), (c6,0)]))
+        shoe_compound = make.compound(faces, name='shoe')
 
         # Build Tongue
         tt_profile = self.get('top_view__tt_profile') # top
@@ -550,17 +503,16 @@ class Product:
             tt_baseline, shared_tt_name = self.baseline(tt_profile)
             tf_baseline = self.get('right_view__tf_baseline') # front
             tb_baseline = self.get('right_view__tb_baseline') # back
-        #if tt_baseline and tf_baseline and tb_baseline:
-            tt_baseline = join_curve(source=tt_baseline, dir='Z', visibility=False)
+            tt_baseline = make.join(tt_baseline, dir='Z')
             # Make front curve:
-            tf_curve = join_curve(tf_baseline, dir='Z', visibility=False)
+            tf_curve = make.join(tf_baseline, dir='Z')
             # Get tongue back inside edges:
             def get_tongue_inside_edges(base_curve):
-                surface = extrude(base_curve, dir=v(1,0,0), length=1000, symmetric=True)
+                surface = make.extrude(base_curve, dir=v(1,0,0), dist=1000, symmetric=True)
                 edges = [[],[]]
                 for face in faces:
-                    solid = extrude(face, dir = v(-face.Shape.BoundBox.Center.x,0,0), length=config.tongue_margin) 
-                    intersection = intersect(solid, surface) # USE BOOLIAN FRAGMENTS INSTEAD??? Or Part.Slice? (solid not needed?)
+                    solid = make.extrude(face, dir = v(-face.Shape.BoundBox.Center.x,0,0), dist=config.tongue_margin) 
+                    intersection = make.common([solid, surface]) # USE BOOLIAN FRAGMENTS INSTEAD??? Or Part.Slice? (solid not needed?)
                     if len(intersection.Shape.Edges)>0 and intersection.Shape.BoundBox.XLength < 500: # check for weird bug where intersection results in entire tb_surface
                         pe = [] # potential edges
                         for i,e in enumerate(intersection.Shape.Edges):
@@ -571,56 +523,56 @@ class Product:
                         self.doc.removeObject(solid.Name)
                         self.doc.removeObject(intersection.Name)
                 return edges
-            tb_curve = join_curve(tb_baseline, dir='Z')
+            tb_curve = make.join(tb_baseline, dir='Z')
             edges = get_tongue_inside_edges(tb_curve)
             # Make tongue back curves:
             tb_curves = []
-            discrete_tb_baseline = discretize(tb_curve, config.discretize_point_count) 
+            discrete_tb_baseline = make.discrete(tb_curve, count=config.discrete_count) 
             for lri, lr in enumerate(['__left','__right']):
-                tb1 = join_curve(edges=edges[lri], dir='Z', approx_tolerance=1, name=tb_baseline.Label+lr+'__in')
+                tb1 = make.join(edges[lri], dir='Z', approx_tolerance=1, name=tb_baseline.Label+lr+'__in')
                 points = []
                 for p in discrete_tb_baseline.Points:
                     if p.y > tb1.Shape.Vertexes[1].Y or p.z > tb1.Shape.Vertexes[1].Z: # TODO: if p not on tb1 inside curve
                         points.append(v(tb1.Shape.Vertexes[1].X, p.y, p.z))
                 if len(points)>1:
-                    tb2 = make_curve(points, dir='Z', name=tb_baseline.Label+lr+'__out')
-                    tb_curves.append(join_curve(edges=[(tb1,0),(tb2,0)], dir='Z', approx_tolerance=1, name=tb_baseline.Label+lr+'__comp', visibility=False))
+                    tb2 = make.curve(points, dir='Z', name=tb_baseline.Label+lr+'__out')
+                    tb_curves.append(make.join([(tb1,0),(tb2,0)], dir='Z', approx_tolerance=1, name=tb_baseline.Label+lr+'__comp'))
                 else: tb_curves.append(tb1)
             # Make tongue top curves
-            mixed_tt = join_curve(source=mix_curve(extend(tt_baseline), tt_profile, name=shared_tt_name), dir='X')
-            dpc = config.discretize_point_count 
-            discrete_mix = discretize(mixed_tt,dpc) 
-            tt_left   = map_curve(discrete_mix.Points[:int(dpc/2)], tb_curves[0].Shape.Vertexes[1].Point, tf_curve.Shape.Vertexes[1].Point, mixed_tt.Label+'__left') # left top
-            tt_right  = map_curve(discrete_mix.Points[int(dpc/2):], tf_curve.Shape.Vertexes[1].Point, tb_curves[1].Shape.Vertexes[1].Point, mixed_tt.Label+'__right') # right top
+            mixed_tt = make.join(make.mix(make.extend(tt_baseline), tt_profile, name=shared_tt_name), dir='X')
+            dpc = config.discrete_count 
+            discrete_mix = make.discrete(mixed_tt, count=dpc) 
+            tt_left   = make.mapped(discrete_mix.Points[:int(dpc/2)], tb_curves[0].Shape.Vertexes[1].Point, tf_curve.Shape.Vertexes[1].Point, mixed_tt.Label+'__left') # left top
+            tt_right  = make.mapped(discrete_mix.Points[int(dpc/2):], tf_curve.Shape.Vertexes[1].Point, tb_curves[1].Shape.Vertexes[1].Point, mixed_tt.Label+'__right') # right top
             # Get tongue bottom inside edges
             points = [v(0,tb_curves[0].Shape.Vertexes[0].Y,tb_curves[0].Shape.Vertexes[0].Z), tf_curve.Shape.Vertexes[0].Point]
-            tbt_curve = make_curve(points, dir='Z', name='tbt_curve')
+            tbt_curve = make.curve(points, dir='Z', name='tbt_curve')
             edges = get_tongue_inside_edges(tbt_curve)
             # Make tongue bottom curves
             tbt_curves = []
-            discrete_tbt_baseline = discretize(tbt_curve, config.discretize_point_count) 
+            discrete_tbt_baseline = make.discrete(tbt_curve, count=config.discrete_count) 
             for lri, lr in enumerate(['__left','__right']):
-                tb1 = join_curve(edges=edges[lri], dir='Z', name=tbt_curve.Label+lr+'__in')
+                tb1 = make.join(edges[lri], dir='Z', name=tbt_curve.Label+lr+'__in')
                 points = [tb1.Shape.Vertexes[1].Point, tf_curve.Shape.Vertexes[0].Point]
-                tb2 = make_curve(points, dir='Z', name=tbt_curve.Label+lr+'__out')
-                tbt_curves.append(join_curve(edges=[(tb1,0),(tb2,0)], dir='Z', name=tbt_curve.Label+lr+'__comp', visibility=False))
+                tb2 = make.curve(points, dir='Z', name=tbt_curve.Label+lr+'__out')
+                tbt_curves.append(make.join([(tb1,0),(tb2,0)], dir='Z', name=tbt_curve.Label+lr+'__comp'))
             # Make tongue surfaces
-            tongue_faces.append(make_surface([(tb_curves[0],0), (tbt_curves[0],0), (tf_curve,0), (tt_left,0)]))
-            tongue_faces.append(make_surface([(tb_curves[1],0), (tbt_curves[1],0), (tf_curve,0), (tt_right,0)]))
-            tongue_compound = compound(tongue_faces, name='tongue')
+            tongue_faces.append(make.surface([(tb_curves[0],0), (tbt_curves[0],0), (tf_curve,0), (tt_left,0)]))
+            tongue_faces.append(make.surface([(tb_curves[1],0), (tbt_curves[1],0), (tf_curve,0), (tt_right,0)]))
+            tongue_compound = make.compound(tongue_faces, name='tongue', vis=True)
 
         # Make sole:
         sole_baseline = self.get('right_view__sole_baseline')
         # Cut upper away:
-        sole_baseline_join = join_curve(sole_baseline,dir='Y')
-        sole_baseline_extend = extend(sole_baseline_join, dist=150, visibility=False)
-        sole_baseline_offset = offset(sole_baseline_extend, dist=-config.sole_overlap)
-        sole_baseline_offset_join = join_curve(sole_baseline_offset,dir='Y', visibility=False)
-        sole_baseline_offset_2 = offset(sole_baseline_extend, dist=-150)
-        sole_baseline_offset_2_join = join_curve(sole_baseline_offset_2,dir='Y', visibility=False)
-        sole_cut_surf = make_surface([(sole_baseline_offset_join,0), (sole_baseline_offset_2_join,0)], visibility=False)
-        sole_block = extrude(sole_cut_surf, dir=v(1,0,0), length=300, symmetric=True)
-        sole = cut(shoe_compound, sole_block, name='sole')
+        sole_baseline_join = make.join(sole_baseline,dir='Y')
+        sole_baseline_extend = make.extend(sole_baseline_join, dist=150)
+        sole_baseline_offset = make.offset(sole_baseline_extend, dist=-config.sole_overlap)
+        sole_baseline_offset_join = make.join(sole_baseline_offset,dir='Y')
+        sole_baseline_offset_2 = make.offset(sole_baseline_extend, dist=-150)
+        sole_baseline_offset_2_join = make.join(sole_baseline_offset_2,dir='Y')
+        sole_cut_surf = make.surface([(sole_baseline_offset_join,0), (sole_baseline_offset_2_join,0)])
+        sole_block = make.extrude(sole_cut_surf, dir=v(1,0,0), dist=300, symmetric=True)
+        sole = make.cut(shoe_compound, sole_block, name='sole')
         sole_subs = [sole]
         # Get sole rim
         edges = [[],[]]
@@ -629,27 +581,29 @@ class Product:
                 if e.Vertexes[0].distToShape(sole_block.Shape)[0] < .001 and e.Vertexes[1].distToShape(sole_block.Shape)[0] < .001:
                     edges[int(e.BoundBox.Center.x>0)].append((sole,ei))
         # Make surfaces
-        sole_subs.append(make_surface([(insole_curves[0],0), (insole_curves[1],0)]))
+        sole_subs.append(make.surface([(insole_curves[0],0), (insole_curves[1],0)]))
         for lri, lr in enumerate(['left','right']):
             edges[lri].sort(key=lambda o: o[0].Shape.Edges[o[1]].BoundBox.Center.y)
-            sole_rim_outer = join_curve(edges=edges[lri], dir='Y', name='sole_rim__outer__'+lr, visibility=False)
+            sole_rim_outer = make.join(edges[lri], dir='Y', name='sole_rim__outer__'+lr)
             bb = sole_rim_outer.Shape.BoundBox
-            sole_rim_outer_discrete = discretize(sole_rim_outer, config.discretize_point_count)
+            sole_rim_outer_discrete = make.discrete(sole_rim_outer, count=config.discrete_count)
             points = [] # need to make a make_curve type function where you pass a function for determining points
             for pi, p in enumerate(sole_rim_outer_discrete.Points): # approximate offset, needs reworked
                 if lri == 0: x = p.x - config.sole_rim_thickness * (p.x-bb.XMax)/bb.XLength*2 #(lri*2-1) * 
                 else: x = p.x - config.sole_rim_thickness * (p.x-bb.XMin)/bb.XLength*2
                 y = p.y - config.sole_rim_thickness * (p.y-bb.Center.y)/bb.YLength*2
                 points.append(v(x,y,p.z))
-            sole_rim_inner = make_curve(points, dir='Y', name='sole_rim__inner__'+lr)
-            sole_subs.append(make_surface([(sole_rim_outer,0), (sole_rim_inner,0)]))
-            sole_subs.append(make_surface([(insole_curves[lri],0), (sole_rim_inner,0)]))
-        sole = compound(sole_subs, name='sole')
+            sole_rim_inner = make.curve(points, dir='Y', name='sole_rim__inner__'+lr)
+            sole_subs.append(make.surface([(sole_rim_outer,0), (sole_rim_inner,0)]))
+            sole_subs.append(make.surface([(insole_curves[lri],0), (sole_rim_inner,0)]))
+        sole = make.compound(sole_subs, name='sole', vis=True)
 
         # Make upper
-        upper_cut_surf = make_surface([(sole_baseline_extend,0), (sole_baseline_offset_2_join,0)], visibility=False)
-        upper_block = extrude(upper_cut_surf, dir=v(1,0,0), length=300, symmetric=True)
-        upper_intersect = intersect(shoe_compound, upper_block, visibility=True, name='upper_raw')
+        upper_cut_surf = make.surface([(sole_baseline_extend,0), (sole_baseline_offset_2_join,0)])
+        upper_block = make.extrude(upper_cut_surf, dir=v(1,0,0), dist=300, symmetric=True)
+        upper = make.common([shoe_compound, upper_block], name='upper', vis=True)
+
+        print('Done')
 
     # Get the corresponding baseline to the given profile.
     def baseline(self,profile):
@@ -660,7 +614,7 @@ class Product:
                     return obj, sn
         raise Exception("No baseline found for: "+profile.Label+'. Add a matching baseline in the drawing (baselines go in right view).')
 
-    # Get a FreeCAD object by path
+    # Get a FreeCAD object by path and exact label
     def get(self, path):
         list_path = path.split('/')
         def search(objects):
@@ -683,183 +637,8 @@ class Product:
         self.mesh.recompute()
         Mesh.export([self.mesh],'../tmp/'+str(product_id)+'.obj')
 
-
-def copy_feature(source, name='untitled'):
-    f = FreeCAD.ActiveDocument.addObject("Part::Feature", name)
-    f.Shape = source.Shape.copy()
-    #f.Visibility = False
-    return f
-
 def random_string(n):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
-
-# Cut object with other object (boolean cut)
-def cut(base, tool, name='cut', visibility=True):
-    f = FreeCAD.ActiveDocument.addObject("Part::Cut", name+'__cut')
-    f.Base = base
-    f.Tool = tool
-    f.Visibility = visibility
-    f.recompute()
-    #time.sleep(config.recompute_sleep)
-    return f
-
-# Make compound
-def compound(parts, name='untitled', visibility=True):
-    f = FreeCAD.ActiveDocument.addObject("Part::Compound", name+'__compound')
-    f.Links = parts
-    f.Visibility = visibility
-    f.recompute()
-    #time.sleep(config.recompute_sleep)
-    return f
-
-# Make Surface from list of curves and edges
-def make_surface(curves_and_edges, visibility=True, name='untitled'):
-    s = FreeCAD.ActiveDocument.addObject('Surface::GeomFillSurface', name+'__surface')
-    s.BoundaryList = [(ce[0],'Edge'+str(ce[1]+1)) for ce in curves_and_edges]
-    s.FillType = 1
-    s.Visibility = visibility
-    s.recompute()
-    #time.sleep(config.recompute_sleep)
-    return s
-
-# Make curve from points and map from start to end point
-def map_curve(points, start_point, end_point, name, dir='Z'):
-    a_points = [start_point] # adjusted points
-    for mi, mp in enumerate(points): 
-        lps = mp - points[0] # mixed point local to start
-        lpe = mp - points[-1] # mixed point local to end
-        ratio = mi / (len(points)-1)
-        a_points.append( (start_point + lps)*(1-ratio) + (end_point + lpe)*ratio )
-    a_points.append(end_point)
-    return make_curve(a_points, dir=dir, name=name)
-
-# Split source curve at cutter 
-def split_curve(source, cutter, name='untitled'):
-    c = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", name+'__split')
-    splitCurves_2.split(c, (source,'Edge1'))
-    if hasattr(FreeCADGui,'addCommand'): 
-        splitCurves_2.splitVP(c.ViewObject)
-        c.ViewObject.PointSize = 5.0
-    c.Values = []
-    c.CuttingObjects = [cutter]
-    wireframe_style(c)
-    c.recompute()
-    #time.sleep(config.recompute_sleep)
-    source.Visibility = False
-    return c
-
-# Get intersection of shapes
-def intersect(source_a, source_b, visibility=False, name='untitled'):
-    b = FreeCAD.activeDocument().addObject("Part::MultiCommon", name+'__intersect')
-    b.Visibility = visibility
-    b.Shapes = [source_a,source_b]
-    b.recompute() # TODO: Find way to suppress error message when no intersection is found
-    return b
-
-# Make extension
-def extend(source, dist=0, visibility=False):
-    f = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", source.Label+'__extend')
-    curveExtendFP.extend(f)
-    f.Edge = (source,'Edge1')
-    if dist>0:
-        f.LengthStart = dist
-        f.LengthEnd = dist
-    else: 
-        f.LengthStart = config.baseline_extension 
-        f.LengthEnd = config.baseline_extension 
-    if hasattr(FreeCADGui,'addCommand'): curveExtendFP.extendVP(f.ViewObject)
-    wireframe_style(f)
-    f.Visibility = visibility
-    f.recompute()
-    #time.sleep(config.recompute_sleep)
-    return f
-
-# Make offset
-def offset(source, dist=0, visibility=False):
-    f = FreeCAD.ActiveDocument.addObject("Part::Offset2D", source.Label+'__offset')
-    f.Source = source
-    f.Value = dist
-    f.Mode = 'Skin'
-    wireframe_style(f)
-    f.Visibility = visibility
-    f.recompute()
-    #time.sleep(config.recompute_sleep)
-    return f
-
-# Make extrusion
-def extrude(source, dir=v(0,0,0), length=1, symmetric=False):
-    f = FreeCAD.ActiveDocument.addObject("Part::Extrusion", source.Label+'__extrude')
-    f.Base = source
-    f.DirMode = 'Normal'
-    if dir.Length > 0:
-        f.DirMode = 'Custom'
-        f.Dir = dir
-    f.Dir = dir
-    f.LengthFwd = length
-    f.Symmetric = symmetric
-    f.recompute()
-    #time.sleep(config.recompute_sleep)
-    return f
-
-# Mix front and RIGHT view curves 
-def mix_curve(baseline, profile, name='untitled', profile_dir=v(0,0,1)):
-    mc = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", name+'__mix')
-    mixed_curve.MixedCurveFP(mc, baseline, profile, v(1,0,0), profile_dir)
-    if hasattr(FreeCADGui,'addCommand'): mixed_curve.MixedCurveVP(mc.ViewObject)
-    #FreeCAD.ActiveDocument.recompute()
-    wireframe_style(mc)
-    mc.recompute()
-    #time.sleep(config.recompute_sleep)
-    return mc
-
-# Join curves of source into one curve
-def join_curve(source=None, edges=None, dir='', visibility=False, approx_tolerance=config.approx_tolerance, name=''):
-    if source:
-        source.Visibility = False # For GUI
-        if name=='': name = source.Label
-    curve = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", name+'__join')
-    JoinCurves.join(curve)
-    approximate_extension.ApproximateExtension(curve)
-    if hasattr(FreeCADGui,'addCommand'): JoinCurves.joinVP(curve.ViewObject) # for GUI?
-    curve.Active = True # Approximate curve. Needed for smoothness and stability of gordon surface
-    curve.ApproxTolerance = approx_tolerance
-    if source: curve.Base = source
-    else: curve.Edges = [(ce[0],'Edge'+str(ce[1]+1)) for ce in edges]
-    wireframe_style(curve)
-    curve.Visibility = visibility
-    curve.recompute()
-    #time.sleep(config.recompute_sleep)
-    if dir=='X': curve.Reverse = curve.Shape.Vertexes[0].X > curve.Shape.Vertexes[-1].X
-    if dir=='Y': curve.Reverse = curve.Shape.Vertexes[0].Y > curve.Shape.Vertexes[-1].Y
-    if dir=='Z': curve.Reverse = curve.Shape.Vertexes[0].Z > curve.Shape.Vertexes[-1].Z
-    curve.recompute()
-    #time.sleep(config.recompute_sleep)
-    return curve
-
-# Make a new curve from a list of points
-def make_curve(points, name='untitled', dir='', visibility=False):
-    poly = FreeCAD.ActiveDocument.addObject("Part::Feature", name+'__poly')
-    poly.Shape = Part.Wire(Part.makePolygon(points)) ######################3  Use Curves WB Interpolate instead of making poly and join
-    poly.Visibility = False
-    curve = join_curve(poly, dir=dir, visibility=visibility)
-    return curve
-
-# Make discrete object with evenly spaced points along source
-def discretize(source,point_count):
-    discrete = FreeCAD.ActiveDocument.addObject("Part::FeaturePython",source.Label+'__points')
-    Discretize.Discretization(discrete, (source,'Edge1'))
-    if point_count > 0:
-        discrete.Algorithm = 'QuasiNumber'
-        discrete.Number = point_count
-    else:
-        discrete.Algorithm = 'Angular-Curvature'
-    if hasattr(FreeCADGui,'addCommand'): 
-        Discretize.ViewProviderDisc(discrete.ViewObject) # For GUI
-        discrete.ViewObject.PointSize = 3.00000 # For GUI
-    discrete.Visibility = False # For GUI
-    discrete.recompute()
-    #time.sleep(config.recompute_sleep)
-    return discrete
 
 # Get the name that is common to baseline and profile by removing all 'path' and 'type' information
 def shared_name(obj):
@@ -882,6 +661,7 @@ def transform(obj, translate=v(0,0,0), rotate=(v(1,0,0),0), scale=1): # use_cent
     shp.rotate(v(0,0,0),rotate[0],rotate[1])
     shp.scale(scale)
     obj.Shape = shp
+
 
 def wireframe_style(obj):
     if hasattr(FreeCADGui,'addCommand'):

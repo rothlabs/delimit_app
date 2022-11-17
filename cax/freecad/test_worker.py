@@ -7,8 +7,7 @@ async def cax(data_out):
     data_in = await reader.read(1000000) # 1 Megabyte limit
     print('CAX Response: '+data_in.decode())
     writer.close()
-asyncio.run(cax({ # send product id, sketches, and more to cax
-        'product_id':  1, 
-        'sketch':   config.test_drawing, 
-        #'insole':   config.test_insole, 
+asyncio.run(cax({ # send product id, drawing, and more to cax
+        'product_id':  0, 
+        'drawing':   config.test_drawing, 
     }))
