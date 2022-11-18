@@ -24,7 +24,7 @@ def make_freecad_object(fc_type, namer=default_name, vis=False):
             namer(obj, args[0], name)
             final = func(obj, *args, **kwargs)
             obj.recompute()
-            if len(obj.Shape.Faces) < 1: wireframe_style(obj)
+            if hasattr(obj,'Shape') and len(obj.Shape.Faces) < 1: wireframe_style(obj)
             if final: return final
             return obj
         return wrapped_func
@@ -39,6 +39,12 @@ def mapped(points, start_point, end_point, name, dir='Z'):
         a_points.append( (start_point + lps)*(1-ratio) + (end_point + lpe)*ratio )
     a_points.append(end_point)
     return curve(a_points, dir=dir, name=name)
+
+@make_freecad_object('Mesh::Feature')
+def mesh(obj, source):
+    shp = source.Shape.copy()
+    shp.rotate(v(0,0,0), v(1,0,0), -90)
+    obj.Mesh = MeshPart.meshFromShape(shp, LinearDeflection=0.08, AngularDeflection=0.15, Relative=False)
 
 @make_freecad_object('Part::Feature')
 def curve(obj, points, dir=''):
