@@ -2,7 +2,7 @@ import config
 import asyncio, json
 
 async def cax(data_out):
-    reader, writer = await asyncio.open_connection('127.0.0.1', 7777) # Connect to FreeCAD Worker
+    reader, writer = await asyncio.open_connection('127.0.0.1', 8888) # Connect to blender Worker
     writer.write(json.dumps(data_out).encode())
     data_in = await reader.read(1000000) # 1 Megabyte limit
     print('CAX Response: '+data_in.decode())

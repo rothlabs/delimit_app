@@ -30,6 +30,7 @@ def build(args):
 
     mapped_front_right = map_op.build_sides(raws, curves, mapped_fronts, mapped_front_right)
 
+    # build all surfaces except tongue 
     shoe, surfs = surf_op.build(curves, mixes, mapped_fronts, mapped_front_right)
 
     tongue = tongue_op.build(raws, surfs)
@@ -38,4 +39,4 @@ def build(args):
 
     upper = upper_op.build(shoe, sole_upper_divide, upper_bound)
 
-    export.all(args['id'], [sole, upper, tongue])
+    export.meshes(args['product_id'], [sole, upper, tongue])

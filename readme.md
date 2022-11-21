@@ -93,10 +93,15 @@ For GUI:
 freecad worker.py
 ```  
 ### Blender
+In `delimit/cax/blender/worker.py` set `sys.path += ` to the absolute path of the delimit/cax/blender directory. Blender doesn't run script local... stupid...  
 Inside `delimit/cax/blender`, run blender worker. Make sure blender is in your PATH. For MacOS installing blender using **homebrew** should take care of this.
 ```
 blender -b -P worker.py
 ```  
+For GUI:
+```
+blender -P worker.py
+``` 
 
 #### MacOS
 ```
