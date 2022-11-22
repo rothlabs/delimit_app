@@ -1,4 +1,4 @@
-test_drawing = '/home/julian/delimit/cax/drawings/runner_4.svg'
+test_drawing = '/home/julian/delimit/cax/drawings/runner_1.svg'
 
 # default shoe length (scale drawing so bottom most baseline matches this length)
 length_y = 250 #mm

@@ -10,7 +10,7 @@ __pycache__
 *.DS_Store
 
 *.FCStd1
-*.Blend1
+*.blend1
 
 sqlite3.db
 

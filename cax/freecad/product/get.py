@@ -38,7 +38,7 @@ def obj(path):
                     return search(o.OutList)
                 else: 
                     return o
-        print("No object found for path: "+path)
+        print("Could not find: "+path)
     return search(FreeCAD.ActiveDocument.RootObjects)
 
 def baselines(raw_parts):

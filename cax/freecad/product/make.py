@@ -44,7 +44,9 @@ def mapped(points, start_point, end_point, name, dir='Z'):
 def mesh(obj, source):
     #shp = source.Shape.copy()
     #shp.rotate(v(0,0,0), v(1,0,0), -90)
-    obj.Mesh = MeshPart.meshFromShape(source.Shape, LinearDeflection=0.08, AngularDeflection=0.15, Relative=False)
+    if source: 
+        obj.Mesh = MeshPart.meshFromShape(source.Shape, LinearDeflection=0.08, AngularDeflection=0.15, Relative=False)
+    return False
 
 @make_freecad_object('Part::Feature')
 def curve(obj, points, dir=''):

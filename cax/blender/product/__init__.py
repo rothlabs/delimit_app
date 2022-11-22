@@ -1,41 +1,51 @@
 import bpy 
 import config
-from . import load, surf, mod
+from . import load, make, mod, gui#, export
 
-def build(args):
+def build(product_id):
 
     # delete 
     for obj in bpy.data.objects: bpy.data.objects.remove(obj, do_unlink=True)
 
     # import 
-    sole, upper, tongue = load.meshes(args['product_id'])
+    sole, tongue, upper = load.meshes(product_id)
 
     # sole
     #mod.remesh(sole)
+    #mod.decimate(sole)
+    #mod.edge_split(sole)
 
-    # upper
-    #mod.solidify(upper)
+    # fabric
+    #for obj in [upper]:
+        #mod.solidify(obj)
+        #mod.remesh(obj)
+        #mod.decimate(obj)
+        #mod.edge_split(obj)
 
-    # tongue
-    #mod.solidify(tongue)
-    #mod.remesh(tongue)
-    #mod.decimate(tongue)
-    #mod.edge_split(tongue)
-    mod.unwrap(tongue) 
+    #mod.edit_mode(obj)
+    bpy.ops.object.add(radius=1.0, type='MESH', enter_editmode=True)
+    bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, location=(0.0, 100.0, 0.0), scale=(0.1, 200.0, 200.0))
+    mod.solidify(upper)
+    mod.remesh(upper)
+    mod.decimate(upper)
+    mod.boolean(upper, cut=bpy.data.objects[-1])
+    mod.edge_split(upper)
+    mod.unwrap(upper)
+    bpy.data.objects.remove(bpy.data.objects[-1], do_unlink=True)
 
-    # material and uv
-    #sole.data.materials.append(surf.material('diffuse', .2, .2, 1))
-    #surf.random_uv(sole.data)
+
+    # all
+    for obj in [sole, upper, tongue]:
+        #mod.unwrap(obj)
+        #bpy.ops.object.mode_set(mode = 'OBJECT')
+        mod.edit_mode(obj)
+        mat = make.material('diffuse', .2, .2, 1)
+        if len(obj.data.materials) > 0: obj.data.materials[0] = mat
+        else: obj.data.materials.append(mat)
 
     # export
-    #bpy.ops.export_scene.gltf(filepath='../tmp/'+str(args['product_id'])+'_sole.glb')
+    bpy.ops.object.mode_set(mode = 'OBJECT')
+    bpy.ops.export_scene.gltf(filepath='../tmp/'+str(product_id)+'_shoe.glb')
 
+    gui.show_material()
 
-
-
-# works for imported .obj file:
-# fix normals (warning: edge split disconnets faces)
-#sole.data.use_auto_smooth = False
-#edge_split = sole.modifiers.new(name='edge_split', type='EDGE_SPLIT')
-#edge_split.use_edge_sharp = False
-#bpy.ops.object.modifier_apply({"object":sole}, modifier=edge_split.name) 

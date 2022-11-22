@@ -27,10 +27,3 @@ def material(type, r, g, b): #(name, type, r, g, b):
 	links.new(rgb.outputs["Color"], shader.inputs[3])
 	links.new(shader.outputs[0], output.inputs[0])
 	return mat
-
-def random_uv(mesh):
-	uvlayer = mesh.uv_layers.new() # default naem and do_init
-	mesh.uv_layers.active = uvlayer
-	for face in mesh.polygons:
-		for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
-			uvlayer.data[loop_idx].uv = (random(), random()) # ie UV coord for each face with vert  mesh.vertices[vert_idx]
