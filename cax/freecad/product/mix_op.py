@@ -99,7 +99,7 @@ def build(raws, baselines):
                     for i in range(dpc):
                         rsi = fci-i # right split index
                         if p_points[rsi].y-p_points[fci].y > abs(p_points[rsi].x): break
-                        if p_points[rsi].y-p_points[rsi+1].y > abs(p_points[rsi].x-p_points[rsi+1].x):break
+                        if p_points[rsi].y-p_points[rsi+1].y > abs(p_points[rsi].x-p_points[rsi+1].x): break
                     rsi = rsi + 1
                     for ppi,pp in enumerate(p_points):
                         if ppi>dpc*.5 and ppi<dpc*1.5 and pp.y < dist_y:

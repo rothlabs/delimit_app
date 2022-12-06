@@ -24,7 +24,7 @@ def build(product_id):
 
     #mod.edit_mode(obj)
     bpy.ops.object.add(radius=1.0, type='MESH', enter_editmode=True)
-    bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, location=(0.0, 100.0, 0.0), scale=(0.1, 200.0, 200.0))
+    bpy.ops.mesh.primitive_cube_add(size=1.0, calc_uvs=False, enter_editmode=False, location=(0.0, 100.0, 0.0), scale=(0.1, 200.0, 400.0))
     mod.solidify(upper)
     mod.remesh(upper)
     mod.decimate(upper)

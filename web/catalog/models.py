@@ -18,14 +18,14 @@ class Base_Model(models.Model):
         del d['file'] # not needed because url is incomplete with this approach
         return d 
 
-class Sketch(Base_Model):
-    file = models.FileField(upload_to='sketch', default='sketch/default.svg')
+class Drawing(Base_Model):
+    file = models.FileField(upload_to='drawing', default='drawing/default.svg')
 
-class Sketched(models.Model):
+class Drawn(models.Model):
     class Meta:
         abstract = True
-    sketch_xy = models.ForeignKey(Sketch,verbose_name='Top Sketch', related_name='sketch_xy', default='', on_delete=models.CASCADE)
-    sketch_yz = models.ForeignKey(Sketch,verbose_name='Side Sketch', related_name='sketch_yz', default='', on_delete=models.CASCADE)
+    line_art = models.ForeignKey(Drawing, related_name='line_art', default='', on_delete=models.CASCADE) #verbose_name='sketch'
+    painting = models.ForeignKey(Drawing, related_name='painting', default='', on_delete=models.CASCADE)
 
 class Product(Base_Model):
     file = models.FileField(upload_to='product', default='product/default.glb')
@@ -33,14 +33,14 @@ class Product(Base_Model):
     view_y = models.FloatField(default=100)
     view_z = models.FloatField(default=100)
     
-class Shoe(Sketched, Product):
+class Shoe(Drawn, Product):
     heel_height = models.FloatField(default=.5)
 
 
 # The below functions are for deleting unused media files. They might not be safe. 
 # https://stackoverflow.com/questions/16041232/django-delete-filefield
-@receiver(models.signals.post_delete, sender=Sketch)
-@receiver(models.signals.post_delete, sender=Shoe)
+@receiver(models.signals.post_delete, sender=Drawing)
+@receiver(models.signals.post_delete, sender=Product)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
     Deletes file from filesystem
@@ -50,8 +50,8 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
         if os.path.isfile(instance.file.path):
             os.remove(instance.file.path)
 
-@receiver(models.signals.pre_save, sender=Sketch)
-@receiver(models.signals.pre_save, sender=Shoe)
+@receiver(models.signals.pre_save, sender=Drawing)
+@receiver(models.signals.pre_save, sender=Product)
 def auto_delete_file_on_change(sender, instance, **kwargs):
     """
     Deletes old file from filesystem
@@ -60,12 +60,10 @@ def auto_delete_file_on_change(sender, instance, **kwargs):
     """
     if not instance.pk:
         return False
-
     try:
         old_file = Product.objects.get(pk=instance.pk).file
     except Product.DoesNotExist:
         return False
-
     new_file = instance.file
     if not old_file == new_file:
         if os.path.isfile(old_file.path):

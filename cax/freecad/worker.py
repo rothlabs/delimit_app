@@ -50,4 +50,6 @@ if sys.argv[-1] == 'test':
             'product_id':  0, 
             'drawing':   config.test_drawing, 
         }))
+
+if not hasattr(FreeCADGui,'addCommand'):
     exit()

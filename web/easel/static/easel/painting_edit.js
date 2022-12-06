@@ -14,8 +14,6 @@ import { SVG } from 'svg'; // "https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1
 // Get product data from dom
 const product = JSON.parse(document.getElementById('product_data').textContent);
 const product_url = JSON.parse(document.getElementById('product_url').textContent);
-const sketch_xy_url = JSON.parse(document.getElementById('sketch_xy_url').textContent);
-const sketch_yz_url = JSON.parse(document.getElementById('sketch_yz_url').textContent);
 
 
 console.log(product)
@@ -31,8 +29,8 @@ console.log(product)
 
 
     // draw a rect appended to body with svg.js
-    let draw = SVG().addTo('body').size(300, 300);
-    let rect = draw.rect(100, 100).attr({ fill: '#f06' });
+    //let draw = SVG().addTo('body').size(300, 300);
+    //let rect = draw.rect(100, 100).attr({ fill: '#f06' });
 
 
     const renderer = new THREE.WebGLRenderer();
@@ -41,10 +39,11 @@ console.log(product)
     d3.appendChild( renderer.domElement );
 
     function update_viewport() {
-        height = d3.offsetWidth * 0.8;
-        camera.aspect = d3.offsetWidth / height;
+        //height = d3.offsetWidth * 1;
+        camera.aspect = d3.offsetWidth / d3.offsetHeight;//height;
         camera.updateProjectionMatrix();
-        renderer.setSize( d3.offsetWidth, height );
+        //renderer.setSize( d3.offsetWidth, height );
+        renderer.setSize( d3.offsetWidth, d3.offsetHeight );
     };
 
     window.onresize = function(){
@@ -128,9 +127,9 @@ console.log(product)
         requestAnimationFrame( animate );
         controls.update();
         light.position.set( camera.position.x,camera.position.y,camera.position.z );
-        view_x.value = camera.position.x;
-        view_y.value = camera.position.y;
-        view_z.value = camera.position.z;
+        //view_x.value = camera.position.x;
+        //view_y.value = camera.position.y;
+        //view_z.value = camera.position.z;
         renderer.render( scene, camera );
     };
 

@@ -14,7 +14,8 @@ def transform(obj, translate=v(0,0,0), rotate=(v(1,0,0),0), scale=1): # use_cent
 
 def transform_right_view(raws, baselines):
     right_view_scale = config.length_y / baselines['lowest'].Shape.BoundBox.XLength #front_baseline.Shape.BoundBox.XLength
-    right_view_translate = -baselines['rim'].Shape.BoundBox.Center
+
+    right_view_translate = -(baselines['lowest'].Shape.BoundBox.Center+baselines['rim'].Shape.BoundBox.Center)/2
     for obj in raws:
         if 'right_view' in obj.Label: 
             mod.transform(obj, translate=right_view_translate, rotate=(v(1,1,1),120), scale=right_view_scale)

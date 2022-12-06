@@ -1,4 +1,4 @@
-test_drawing = '/home/julian/delimit/cax/drawings/runner_1.svg'
+test_drawing = '/home/julian/delimit/cax/drawings/runner_4.svg'
 
 # default shoe length (scale drawing so bottom most baseline matches this length)
 length_y = 250 #mm
@@ -25,7 +25,7 @@ approx_tolerance = .1
 fuse_tolerance_xy = 1 #mm
 
 # How far to extend baslines (important to ensure they are long enough for calculations with other geometry)
-baseline_extension = 2 #mm    # increase this if fuse points for front view are not found, decrease if more than 2 fuse points are found
+baseline_extension = 4 #mm    # increase this if fuse points for front view are not found, decrease if more than 2 fuse points are found
 
 # distance from shoe surface to tongue back curve
 tongue_margin = 1 #mm
