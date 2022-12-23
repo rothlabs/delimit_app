@@ -4,6 +4,6 @@
   <h1>Welcome to the easel!</h1>
   <p>Select a shoe to edit.</p>
   {% for shoe in shoe_list %}
-    <li><a href="{% url 'easel:line_art_edit' shoe.id %}">{{ shoe.name }}</a></li>
+    <li><a href="{% url 'easel:detail' shoe.id %}">{{ shoe.name }}</a></li>
   {% endfor %}
 {% endblock %}

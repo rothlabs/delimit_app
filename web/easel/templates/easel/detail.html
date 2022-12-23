@@ -1,0 +1,13 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block head %}
+    {{ shoe.data|json_script:"product_data" }}
+    {{ shoe.file.url|json_script:"product_file" }}
+    <script type="module" src="{% static 'easel/easel.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div id='viewport' class="position-absolute start-0 end-0 top-0 bottom-0" style="z-index: -1;"></div>
+{% endblock %}
+

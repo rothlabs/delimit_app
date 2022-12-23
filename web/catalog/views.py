@@ -1,11 +1,11 @@
 from django.views import generic
-from .models import Shoe
+from core.models import Shoe
 
-class Index(generic.ListView):
+class List_View(generic.ListView):
     model = Shoe
-    template_name = 'catalog/index.html'
+    template_name = 'catalog/list.html'
 
-class Detail(generic.DetailView):
+class Detail_View(generic.DetailView):
     model = Shoe
     template_name = 'catalog/detail.html'
     
