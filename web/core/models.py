@@ -14,8 +14,10 @@ class Base_Model(models.Model):
         return self.name+' ('+str(self.id)+')'
     def data(self): # used to generate template json script tags with data for javascript 
         d = dict(self.__dict__)
+        if hasattr(self,'file'):
+            d['url'] = self.file.url
+            del d['file']   # removed in favor of d['url'] = self.file.url which has complete url
         del d['_state'] # removed because value of '_state' cannot be serialized
-        del d['file'] # removed because url is incomplete with this approach
         return d 
 
 class Product(Base_Model):
