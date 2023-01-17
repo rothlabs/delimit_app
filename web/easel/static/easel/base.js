@@ -4,40 +4,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 function Base(){
     const base = {
         viewport: $('#viewport'),
-        renderer: new THREE.WebGLRenderer({antialias:false}),
+        renderer: new THREE.WebGLRenderer({antialias:true}),
         scene: new THREE.Scene(),
         camera: new THREE.OrthographicCamera(-100, 100, 100, -100, 0.01, 10000 ),
-        light: new THREE.DirectionalLight( 0xFFFFFF, .7 ),
-        update(base){
-            base.controls.update();
-            base.light.position.set(base.camera.position.x, base.camera.position.y, base.camera.position.z);
-            base.renderer.render(base.scene, base.camera);
-        },
-        fit_viewport(base, product){
-            function fit(){
-                base.camera.aspect = base.viewport.outerWidth() / base.viewport.outerHeight();
-                base.camera.left = -base.viewport.outerWidth()/2;
-                base.camera.right = base.viewport.outerWidth()/2;
-                base.camera.top = base.viewport.outerHeight()/2;
-                base.camera.bottom = -base.viewport.outerHeight()/2;
-                base.camera.updateProjectionMatrix();
-                base.renderer.setSize( base.viewport.outerWidth(), base.viewport.outerHeight() );
-                product.sketch.lines.forEach(line => {
-                    line.material.resolution = new THREE.Vector2(base.viewport.outerWidth(),base.viewport.outerHeight());
-                });
-            }
-            fit();
-            window.addEventListener('resize', fit); 
-            const camera_width  = base.camera.right*2;
-            const camera_height = base.camera.top  *2;
-            if(camera_width < camera_height){
-                base.camera.zoom = camera_width  / (product.sketch.bounds.max.x - product.sketch.bounds.min.x)*.75;
-            }else{
-                base.camera.zoom = camera_height / (product.sketch.bounds.max.y - product.sketch.bounds.min.y)*.75;
-            }
-            base.camera.updateProjectionMatrix();
-        }
+        light: new THREE.DirectionalLight( 0xFFFFFF, .7 )
     };
+
     base.viewport.append(base.renderer.domElement);
     base.camera.position.z = 100;
     //scene
@@ -56,10 +28,37 @@ function Base(){
     base.plane = new THREE.Mesh( geometry, material );
     base.scene.add( base.plane );
 
-    return base;
-}
+    base.update = function(){
+        base.controls.update();
+        base.light.position.set(base.camera.position.x, base.camera.position.y, base.camera.position.z);
+        base.renderer.render(base.scene, base.camera);
+    }
 
-export{Base}
+    base.fit = function(product){
+        function fit_all(){
+            base.camera.aspect = base.viewport.outerWidth() / base.viewport.outerHeight();
+            base.camera.left = -base.viewport.outerWidth()/2;
+            base.camera.right = base.viewport.outerWidth()/2;
+            base.camera.top = base.viewport.outerHeight()/2;
+            base.camera.bottom = -base.viewport.outerHeight()/2;
+            base.camera.updateProjectionMatrix();
+            base.renderer.setSize( base.viewport.outerWidth(), base.viewport.outerHeight() );
+            product.fit();
+        }
+        fit_all();
+        window.addEventListener('resize', fit_all); 
+        const camera_width  = base.camera.right*2;
+        const camera_height = base.camera.top  *2;
+        if(camera_width < camera_height){
+            base.camera.zoom = camera_width  / (product.sketch.bounds.max.x - product.sketch.bounds.min.x)*.75;
+        }else{
+            base.camera.zoom = camera_height / (product.sketch.bounds.max.y - product.sketch.bounds.min.y)*.75;
+        }
+        base.camera.updateProjectionMatrix();
+    }
+
+    return base;
+}export{Base}
 
 //const camera = new THREE.PerspectiveCamera( 75, viewport.outerWidth() / viewport.outerHeight(), 0.01, 10000 );
 

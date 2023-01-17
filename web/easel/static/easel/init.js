@@ -3,13 +3,11 @@ import { Draw } from 'easel/draw.js';
 import { Product } from 'easel/product.js';
 
 const base = Base();
-const draw = Draw(base);
 const product = Product(base);
+const draw = Draw(base, product);
 
 function update() {
-    base.update(base);
-    draw.update(base, draw, product);
+    base.update();
+    draw.update();
     window.requestAnimationFrame(update);
-}
-
-update();
+} update();

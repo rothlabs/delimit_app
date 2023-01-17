@@ -1,49 +1,31 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshLine, MeshLineMaterial, MeshLineRaycast } from 'core/mesh_line.js';
+import { Line } from 'easel/line.js';
 
-function Product(base){
+function Product(base, draw, fit){
     const product = JSON.parse($('#product').text());
     product.sketch = {
         lines: [],
         bounds: new THREE.Box3(),
-    }
-    const sketch = new THREE.Group();
+        group: new THREE.Group()
+    };
+    product.sketch.group.name = 'sketch';
+    product.fit = function(){
+        product.sketch.lines.forEach(line => {line.fit();});
+        //    line.material.resolution = new THREE.Vector2(base.viewport.outerWidth(),base.viewport.outerHeight());
+        //});
+    };
     const loader = new GLTFLoader();
     loader.load(product['url'], function ( data ) {
-        data.scene.children.forEach(obj => {
-            //const geometry = new THREE.BufferGeometry();
-            //const filtered_pos = new Array();
-            const vertices = new Array();
-            const pos = obj.geometry.attributes.position.array;
-            for (let i = 0; i < pos.length; i += 3 ) {
-                //if(pos[i+2] < 1){
-                //    filtered_pos.push(pos[i]);
-                //    filtered_pos.push(pos[i+1]);
-                //    filtered_pos.push(pos[i+2]);
-                vertices.push(new THREE.Vector2(pos[i], pos[i+1]));
-                //}
-            }
-            const line = new MeshLine();
-            //geometry.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(filtered_pos), 3 ) );
-            line.setGeometry(obj.geometry, p=>6); //p=>6 is line width    obj.geometry
-            const line_material = new MeshLineMaterial({
-                color: new THREE.Color('hsl(0,0%,40%)'),
-                sizeAttenuation: false,
-            });
-            product.sketch.lines.push({vertices:vertices, material:line_material});
-            const mesh = new THREE.Mesh(line, line_material);
-            mesh.raycast = MeshLineRaycast;
-            sketch.add(mesh);
+        data.scene.children.forEach(source => {
+            Line(base, draw, product.sketch, source);
         });
-        product.sketch.bounds.setFromObject( sketch );
-        base.scene.add(sketch);
-        base.fit_viewport(base, product);
+        product.sketch.bounds.setFromObject( product.sketch.group );
+        base.scene.add(product.sketch.group);
+        base.fit(product);
         console.log(product);
     });
     return product;
-}
-
-export{Product}
+}export{Product}
 
 
