@@ -3,6 +3,7 @@ __pycache__
 /cax/tmp
 /cax/freecad/Curves
 
+/web/env
 /web/web_env
 /web/static
 /web/media

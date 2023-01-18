@@ -139,8 +139,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 STATIC_URL = 'static/'
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static/') # local  ##### STATIC_ROOT not used at all in local
-# STATIC_ROOT = '/var/cache/delimit/static/'    # deployment
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/') # local  ##### STATIC_ROOT not used at all in local
+#STATIC_ROOT = '/var/cache/delimit/static/'    # deployment
 
 # Media files (user uploaded images, generated 3D models, etc)
 # https://docs.djangoproject.com/en/4.1/topics/files/

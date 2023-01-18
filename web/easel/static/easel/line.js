@@ -39,17 +39,21 @@ function Line(base, draw, parent, source){
         mesh_line.setGeometry(source.geometry, p=>6); //p=>6 is line width    
     }
 
-    base.viewport.mousemove(function(event){
+    base.viewport.bind('touchmove mousemove', function(event){
+        //console.log('touchmove!');
         if(active && draw.point != null){
+            //console.log('touchmove!');
             add_vert(draw.point);
             geometry.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(pos), 3 ) );
             mesh_line.setGeometry(geometry, p=>6);
         }
     });
-    base.viewport.mouseup(function(event){
-        if(event.which == 1 && active){
-            active = false;
+    base.viewport.bind('touchend mouseup', function(event){
+        //console.log('touchend!');
+        if((event.which == 1 || event.which == 0) && active){
+            console.log('touchend!');
             console.log(base.scene);
+            active = false;
         }
     });
 
