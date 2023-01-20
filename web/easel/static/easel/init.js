@@ -8,6 +8,6 @@ const draw = Draw(base, product);
 
 function update() {
     base.update();
-    draw.update();
+    //draw.update();
     window.requestAnimationFrame(update);
 } update();

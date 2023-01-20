@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { MeshLine, MeshLineMaterial, MeshLineRaycast } from 'core/mesh_line.js';
 
+// TODO: unbind event handles when inactive or deleted
+
 function Line(base, draw, parent, source){
     const line = {
         verts: [],
@@ -36,23 +38,25 @@ function Line(base, draw, parent, source){
         for (let i = 0; i < pos.length; i += 3 ) {
             line.verts.push(new THREE.Vector2(pos[i], pos[i+1]));
         }
-        mesh_line.setGeometry(source.geometry, p=>6); //p=>6 is line width    
+        mesh_line.setGeometry(source.geometry, p=>6); //p=>6 is line width in pixels
     }
 
     base.viewport.bind('touchmove mousemove', function(event){
-        //console.log('touchmove!');
-        if(active && draw.point != null){
-            //console.log('touchmove!');
+        if(active){
+            if(!(typeof event.touches === 'undefined')) {
+                if(event.touches.length > 1){
+                    parent.group.remove(mesh);
+                    active = false;
+                }
+            }
             add_vert(draw.point);
-            geometry.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(pos), 3 ) );
+            geometry.setAttribute('position', new THREE.BufferAttribute( new Float32Array(pos), 3 ) );
             mesh_line.setGeometry(geometry, p=>6);
         }
     });
+
     base.viewport.bind('touchend mouseup', function(event){
-        //console.log('touchend!');
-        if((event.which == 1 || event.which == 0) && active){
-            console.log('touchend!');
-            console.log(base.scene);
+        if([0,1].includes(event.which) && active){ // 0 = touch, 1 = left mouse button
             active = false;
         }
     });
