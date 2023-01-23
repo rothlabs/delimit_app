@@ -4,10 +4,11 @@ import { Product } from 'easel/product.js';
 
 const base = Base();
 const product = Product(base);
-const draw = Draw(base, product);
+Draw(base, product);
 
 function update() {
     base.update();
-    //draw.update();
+    product.fit();
     window.requestAnimationFrame(update);
-} update();
+}
+update();

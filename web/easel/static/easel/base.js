@@ -9,9 +9,9 @@ function Base(){
         camera: new THREE.OrthographicCamera(-100, 100, 100, -100, 0.01, 10000 ),
         light: new THREE.DirectionalLight( 0xFFFFFF, .7 )
     };
-
+    base.renderer.setPixelRatio(window.devicePixelRatio);
     base.viewport.append(base.renderer.domElement);
-    base.camera.position.z = 100;
+    base.camera.position.z = 100; 
     //scene
     base.scene.background = new THREE.Color( 0xFFFFFF );
     base.scene.add(base.light);
@@ -55,6 +55,7 @@ function Base(){
             base.camera.zoom = camera_height / (product.sketch.bounds.max.y - product.sketch.bounds.min.y)*.75;
         }
         base.camera.updateProjectionMatrix();
+        
     }
 
     return base;
