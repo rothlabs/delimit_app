@@ -64,7 +64,11 @@ function Line(base, draw, parent, source){
     }else{
         line.mesh.name = source.name;
         line.verts = source.geometry.attributes.position.array;
-        mesh_line.setGeometry(source.geometry);//, p=>1); //p=>4 is line width in pixels
+        line.verts = vertex.enforce_distance_range(line.verts,1,2);
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(line.verts,3));
+        geometry.computeBoundingSphere();
+        mesh_line.setGeometry(geometry);//, p=>1);
+        //mesh_line.setGeometry(source.geometry);//, p=>1); //p=>4 is line width in pixels
         line.start.x = line.verts[0]; 
         line.start.y = line.verts[1];
         line.end.x = line.verts[line.verts.length-3]; 
@@ -117,42 +121,59 @@ function Line(base, draw, parent, source){
     line.morph = function(morpher){
         //morphers.push(morpher);
 
-        //stitch_indices = vertex.closet_indices_to_endpoints(line.verts, morpher.verts)
-        //console.log(stitch_indices);
+        const stitch_vert_info = vertex.closet_to_endpoints(line.verts, morpher.verts)
 
-        for(var i=3; i<line.verts.length-3; i+=3){
-            var line_vert = new THREE.Vector2(line.verts[i],line.verts[i+1]); 
-            var moved = new THREE.Vector2(line.verts[i],line.verts[i+1]); 
-            //morphers.forEach(morpher => {
-                for(var k=0; k<morpher.verts.length; k+=3){
-                    const morpher_vert = new THREE.Vector2(morpher.verts[k], morpher.verts[k+1]);
-                    const dist = line_vert.distanceTo(morpher_vert);
-                    //const vw = 1 - Math.abs(k - morpher.verts.length / 2) / (morpher.verts.length / 2);
-                    //total_dist += dist;
-                    moved = moved.add(morpher_vert.sub(line_vert).multiplyScalar(morpher.weight / ((1+dist)*(1+dist)) ));
+        const new_verts = vertex.map(morpher.verts, stitch_vert_info[2], stitch_vert_info[3]);
+        
+        
+        line.verts = vertex.replace(line.verts, stitch_vert_info[0], stitch_vert_info[1], new_verts);
+        
+
+        //const first_verts = line.verts.slice(0,stitch_indices[0]);
+        //const middle_verts = vertex.map_verts(morpher.verts, line.verts[stitch_indices[0]], line.verts[stitch_indices[1]]);
+        //const last_verts = line.verts.slice(stitch_indices[1],);
+
+        //morpher.geometry.setAttribute('position', new THREE.Float32BufferAttribute(morpher.verts,3));
+        //morpher.geometry.computeBoundingSphere();
+        //morpher.mesh_line.setGeometry(morpher.geometry);
+
+        // for(var i=3; i<line.verts.length-3; i+=3){
+        //     var line_vert = new THREE.Vector2(line.verts[i],line.verts[i+1]); 
+        //     var moved = new THREE.Vector2(line.verts[i],line.verts[i+1]); 
+        //     //morphers.forEach(morpher => {
+        //         for(var k=0; k<morpher.verts.length; k+=3){
+        //             const morpher_vert = new THREE.Vector2(morpher.verts[k], morpher.verts[k+1]);
+        //             const dist = line_vert.distanceTo(morpher_vert);
+        //             //const vw = 1 - Math.abs(k - morpher.verts.length / 2) / (morpher.verts.length / 2);
+        //             //total_dist += dist;
+        //             moved = moved.add(morpher_vert.sub(line_vert).multiplyScalar(morpher.weight / ((1+dist)*(1+dist)) ));
                     
-                    //line_vert = line_vert.add(
-                    //    morpher_vert.sub(line_vert).multiplyScalar(morpher.weight / ((1+dist*2)*(1+dist*2)) ) //.normalize()
-                    //);
-                }
-                //console.log(move.length());
-            //});
-            if(line_vert.sub(moved).length() > 1){
-                line.verts[i]   = moved.x;
-                line.verts[i+1] = moved.y;
-                //line_vert = moved;//line_vert.add(move);
-            }
-            //line.verts[i]   = line_vert.x;
-            //line.verts[i+1] = line_vert.y;
-        }
+        //             //line_vert = line_vert.add(
+        //             //    morpher_vert.sub(line_vert).multiplyScalar(morpher.weight / ((1+dist*2)*(1+dist*2)) ) //.normalize()
+        //             //);
+        //         }
+        //         //console.log(move.length());
+        //     //});
+        //     if(line_vert.sub(moved).length() > 1){
+        //         line.verts[i]   = moved.x;
+        //         line.verts[i+1] = moved.y;
+        //         //line_vert = moved;//line_vert.add(move);
+        //     }
+        //     //line.verts[i]   = line_vert.x;
+        //     //line.verts[i+1] = line_vert.y;
+        // }
+
         line.verts = vertex.enforce_distance_range(line.verts,1,2);
+
+
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(line.verts,3));
+
         geometry.computeBoundingSphere();
         mesh_line.setGeometry(geometry);//, p=>1);
 
         //morphers.forEach(morpher => {
         //    morpher.weight -= 0.2;
-        //    morpher.material.opacity = morpher.weight;
+           // morpher.material.opacity = 0.2;
         //    if(morpher.weight<0){
         //        morphers.splice(morphers.indexOf(morpher), 1);
                 morpher.delete();
