@@ -9,7 +9,7 @@ function Base(){
         camera: new THREE.OrthographicCamera(-100, 100, 100, -100, 0.01, 10000 ),
         light: new THREE.DirectionalLight( 0xFFFFFF, .7 )
     };
-    base.renderer.setPixelRatio(window.devicePixelRatio);
+    base.renderer.setPixelRatio(window.devicePixelRatio); // helps to keep image crisp on some displays
     base.viewport.append(base.renderer.domElement);
     base.camera.position.z = 100; 
     //scene

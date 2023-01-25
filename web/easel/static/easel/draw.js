@@ -37,13 +37,15 @@ function Draw(base, product){
         return pick;
     }
 
-    const start_line_length = 3;
+    var selected_line = null;
+    const start_line_threshold = 3;
     var mouse_start = new THREE.Vector2(0,0);
     var new_line_potential = false;
     base.viewport.bind('mousemove touchmove', function(event){
         const pick = Pick(event);
-        if(new_line_potential && mouse_start.distanceTo(pick.mouse_vector) >= start_line_length){
-            Line(base, draw, product.sketch);
+        if(new_line_potential && mouse_start.distanceTo(pick.mouse_vector) >= start_line_threshold){
+            const line = Line(base, draw, product.sketch);
+            line.set_morph_target(selected_line);
             new_line_potential = false;
         }
     });
@@ -57,11 +59,12 @@ function Draw(base, product){
         if([0,1].includes(event.which)){ // 0 = touch, 1 = left mouse button
             new_line_potential = false;
             const pick = Pick(event);
-            if(mouse_start.distanceTo(pick.mouse_vector) < start_line_length){
+            if(mouse_start.distanceTo(pick.mouse_vector) < start_line_threshold){
                 product.sketch.lines.forEach(line => {
                     line.deselect();
                     if(pick.object == line.mesh){
                         line.select();
+                        selected_line = line;
                     }
                 });
             }
