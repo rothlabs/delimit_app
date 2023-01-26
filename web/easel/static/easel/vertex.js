@@ -1,6 +1,9 @@
 /* with float32array of 3D vertices representing a line, add vertices so there is never too big of a distance between consecutive vertices */
 function enforce_max_distance(vertices, maxDistance) {
-  var newVertices = [];//[vertices[0],vertices[1],vertices[2]];
+  var new_verts = [];//[vertices[0],vertices[1],vertices[2]];
+  new_verts.splice(0,0,0);
+  new_verts.splice(0,0,vertices[1]);
+  new_verts.splice(0,0,vertices[0]);
   for (var i = 0; i < vertices.length-5; i += 3) {
     var x1 = vertices[i];
     var y1 = vertices[i + 1];
@@ -15,66 +18,88 @@ function enforce_max_distance(vertices, maxDistance) {
       var yIncrement = (y2 - y1) / numNewVertices;
       var zIncrement = (z2 - z1) / numNewVertices;
       for (var j = 0; j < numNewVertices; j++) {
-        newVertices.push(x1 + xIncrement * j);
-        newVertices.push(y1 + yIncrement * j);
-        newVertices.push(z1 + zIncrement * j);
+        new_verts.push(x1 + xIncrement * j);
+        new_verts.push(y1 + yIncrement * j);
+        new_verts.push(z1 + zIncrement * j);
       }
     }
-    newVertices.push(x2);
-    newVertices.push(y2);
-    newVertices.push(z2);
+    new_verts.push(x2);
+    new_verts.push(y2);
+    new_verts.push(z2);
   }
-  return new Float32Array(newVertices);
+  new_verts.push(vertices[vertices.length-3]);
+  new_verts.push(vertices[vertices.length-2]);
+  new_verts.push(0);
+  return new Float32Array(new_verts);
 }
 
-function enforce_distance_range(vertices, minDistance, maxDistance) {
+function set_density(vertices, minDistance, maxDistance) {
   /* Considering a Float32Array of 3D vertices representing line, write a function to remove vertices so that they are never too close. */
-  vertices = Array.from(vertices);
+  const new_verts = Array.from(vertices);
   var i = 0;
-  while (i < vertices.length) {
+  new_verts.splice(0,0,0);
+  new_verts.splice(0,0,vertices[1]);
+  new_verts.splice(0,0,vertices[0]);
+  while (i < new_verts.length) {
     var j = i + 3;
-    while (j < vertices.length) {
-      var dx = vertices[i] - vertices[j];
-      var dy = vertices[i + 1] - vertices[j + 1];
-      var dz = vertices[i + 2] - vertices[j + 2];
+    while (j < new_verts.length) {
+      var dx = new_verts[i] - new_verts[j];
+      var dy = new_verts[i + 1] - new_verts[j + 1];
+      var dz = new_verts[i + 2] - new_verts[j + 2];
       var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
       if (distance < minDistance) {
-          vertices.splice(j, 3);
+        new_verts.splice(j, 3);
       } else {
           j += 3;
       }
     }
     i += 3;
   }
-  return enforce_max_distance(vertices, maxDistance);
+  new_verts.push(vertices[vertices.length-3]);
+  new_verts.push(vertices[vertices.length-2]);
+  new_verts.push(0);
+  return enforce_max_distance(new_verts, maxDistance);
 }
 
 /* given an array, return first 3 elements as new array */
-function first(array) {
-  return array.slice(0, 3);
+function first(verts) {
+  return verts.slice(0, 3);
 }
 
 /* given an array, return last 3 elements as new array */
-function last(array) {
-  return array.slice(array.length - 3, array.length);
+function last(verts) {
+  return verts.slice(verts.length - 3, verts.length);
 }
 
 function get(verts, i){
   return [verts[i],verts[i+1],verts[i+2]];
 }
 
+function set(verts, i, point){
+  i *= 3;
+  if(i < 0){
+    i = verts.length + i;
+  }
+  verts[i] = point.x;
+  verts[i+1] = point.y;
+}
+
+function endpoints(verts, z_offset){
+  return [verts[0],verts[1],verts[2]+z_offset,  verts[verts.length-3],verts[verts.length-2],verts[verts.length-1]+z_offset];
+}
+
 /* given float32array 3d vertices and two test vertices, return the closet vertex for each test vertex. */
-function closet_to_endpoints(vertices, line_verts) {
-  const vert1 = first(line_verts);
-  const vert2 = last(line_verts);
+function closet_to_endpoints(verts, endpoints_verts) {
+  const vert1 = first(endpoints_verts);
+  const vert2 = last(endpoints_verts);
   var minDistance1 = Infinity;
   var minDistance2 = Infinity;
   var minIndex1 = 0;
   var minIndex2 = 0;
-  for (var i = 0; i < vertices.length-2; i += 3) {
-    var x = vertices[i];
-    var y = vertices[i + 1];
-    var z = vertices[i + 2];
+  for (var i = 0; i < verts.length-2; i += 3) {
+    var x = verts[i];
+    var y = verts[i + 1];
+    var z = verts[i + 2];
     var distance1 = Math.sqrt(Math.pow(x - vert1[0], 2) + Math.pow(y - vert1[1], 2) + Math.pow(z - vert1[2], 2));
     var distance2 = Math.sqrt(Math.pow(x - vert2[0], 2) + Math.pow(y - vert2[1], 2) + Math.pow(z - vert2[2], 2));
     if (distance1 < minDistance1) {
@@ -86,29 +111,28 @@ function closet_to_endpoints(vertices, line_verts) {
       minIndex2 = i;
     }
   }
-  return [minIndex1, minIndex2, get(vertices,minIndex1), get(vertices,minIndex2)];
+  return [minIndex1, minIndex2, get(verts,minIndex1), get(verts,minIndex2)];
 }
 
 /* map line onto two endpoints */
-function map(verts, vert1, vert2) {
+function map(verts, endpoint1, endpoint2, trim = 0) {
   var new_verts = [];
-  new_verts.push(vert1[0]);
-  new_verts.push(vert1[1]);
-  new_verts.push(vert1[2]);
-  for (var i = 3; i < verts.length-2; i += 3) {
+  trim *= 3;
+  for (var i = trim; i < verts.length-2-trim; i += 3) {
     var ratio = i/verts.length;
-    var rts_x = verts[i]-verts[0];
-    var rts_y = verts[i+1]-verts[1];
-    var rte_x = verts[i]-verts[verts.length-3];
-    var rte_y = verts[i+1]-verts[verts.length-2];
-    new_verts.push((rts_x+vert1[0])*(1-ratio) + (rte_x+vert2[0])*ratio);
-    new_verts.push((rts_y+vert1[1])*(1-ratio) + (rte_y+vert2[1])*ratio);
+    var rts_x = verts[i]-verts[0+trim];
+    var rts_y = verts[i+1]-verts[1+trim];
+    var rte_x = verts[i]-verts[verts.length-3-trim];
+    var rte_y = verts[i+1]-verts[verts.length-2-trim];
+    new_verts.push((rts_x+endpoint1[0])*(1-ratio) + (rte_x+endpoint2[0])*ratio);
+    new_verts.push((rts_y+endpoint1[1])*(1-ratio) + (rte_y+endpoint2[1])*ratio);
     new_verts.push(0);
   }
   return new Float32Array(new_verts);
 }
 
 /* given float32array of 3d vertices and start and end index and second array of vertices, replace the vertices between start and end with the second array. Use slice and/or splice. */ 
+// could be made much shorter with slice and concat?
 function replace(vertices, startIndex, endIndex, replacements) {
   var backwards_replacements = false;
   if(startIndex > endIndex){
@@ -119,7 +143,6 @@ function replace(vertices, startIndex, endIndex, replacements) {
   }
   var newVertices2 = [];
   for (var i = 0; i < vertices.length-2; i += 3) {
-    //if (i < startIndex || i >= endIndex) {
     if (i == startIndex){
       if(backwards_replacements){
         for (var k = replacements.length-3; k > 0; k -= 3) {
@@ -141,6 +164,9 @@ function replace(vertices, startIndex, endIndex, replacements) {
       newVertices2.push(vertices[i + 2]);
     }
   }
+  //newVertices2.push(vertices[vertices.length-3]);
+  //newVertices2.push(vertices[vertices.length-2]);
+  //newVertices2.push(0);
   return new Float32Array(newVertices2);
 }
 
@@ -154,4 +180,4 @@ function hasNaN(array) {
   return false;
 }
 
-export{enforce_distance_range, closet_to_endpoints, map, replace, get, hasNaN}
+export{set_density, closet_to_endpoints, endpoints, map, replace, first, last, get, set, hasNaN}

@@ -3,8 +3,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Line } from 'easel/line.js';
 import { Endpoint_Constraint } from 'easel/endpoint_constraint.js';
 
-function Product(base, draw){
-    const product = JSON.parse($('#product').text());
+function Product(base){
+    const product = JSON.parse($('#product').text()); // get product meta data from html doc
     product.sketch = {
         lines: [],
         bounds: new THREE.Box3(),
@@ -15,9 +15,9 @@ function Product(base, draw){
         product.sketch.lines.forEach(line => {line.fit();});
     };
     const loader = new GLTFLoader();
-    loader.load(product['url'], function ( data ) {
+    loader.load(product.url, function ( data ) {
         data.scene.children.forEach(source => {
-            Line(base, draw, product.sketch, source);
+            Line(base, product.draw, product.sketch, source);
         });
         product.sketch.lines.forEach(line_a => {
             product.sketch.lines.forEach(line_b => {
@@ -28,12 +28,6 @@ function Product(base, draw){
         base.scene.add(product.sketch.group);
         base.fit(product);
     });
-
-    //product.update = function(){
-    //    product.sketch.lines.forEach(line => {
-    //        line.fit();
-    //    });
-    //};
 
     return product;
 }export{Product}
