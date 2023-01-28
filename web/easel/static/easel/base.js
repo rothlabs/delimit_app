@@ -3,12 +3,14 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 function Base(){
     const base = {
-        viewport: $('#viewport'),
+        viewport: $('#viewport_3d'),
+        ui: ReactDOM.createRoot(document.getElementById('viewport_ui')),
         renderer: new THREE.WebGLRenderer({antialias:true}),
         scene: new THREE.Scene(),
         camera: new THREE.OrthographicCamera(-100, 100, 100, -100, 0.01, 10000 ),
         light: new THREE.DirectionalLight( 0xFFFFFF, .7 )
     };
+    //rending 3d
     base.renderer.setPixelRatio(window.devicePixelRatio); // helps to keep image crisp on some displays
     base.viewport.append(base.renderer.domElement);
     base.camera.position.z = 100; 

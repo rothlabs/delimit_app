@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Line } from 'easel/line.js';
-import { Endpoint_Constraint } from 'easel/endpoint_constraint.js';
+import * as constraint from 'easel/constraint.js';
 
 function Product(base){
     const product = JSON.parse($('#product').text()); // get product meta data from html doc
@@ -9,6 +9,7 @@ function Product(base){
         lines: [],
         bounds: new THREE.Box3(),
         group: new THREE.Group(),
+        product: product,
     };
     product.sketch.group.name = 'sketch';
     product.fit = function(){
@@ -19,15 +20,27 @@ function Product(base){
         data.scene.children.forEach(source => {
             Line(base, product.draw, product.sketch, source);
         });
-        product.sketch.lines.forEach(line_a => {
-            product.sketch.lines.forEach(line_b => {
-                Endpoint_Constraint(line_a, line_b);
+        product.sketch.lines.forEach(line1 => {
+            product.sketch.lines.forEach(line2 => {
+                constraint.Coincident(line1, line2);
             });
         });
         product.sketch.bounds.setFromObject( product.sketch.group );
         base.scene.add(product.sketch.group);
         base.fit(product);
     });
+
+    product.record = function(){
+        product.sketch.lines.forEach(line =>{
+            line.record();
+        });
+    };
+
+    product.undo = function(){
+        product.sketch.lines.forEach(line =>{
+            line.undo();
+        });
+    };
 
     return product;
 }export{Product}

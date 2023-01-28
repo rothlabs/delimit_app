@@ -7,7 +7,7 @@ function Draw(base, product){
     };
 
     const raycaster = new THREE.Raycaster();
-    raycaster.params.Points.threshold = 10;
+    raycaster.params.Points.threshold = 7;
     const raycast_vector = new THREE.Vector2();
     const last_mouse_vector = new THREE.Vector2();
     function Pick(event){
@@ -44,6 +44,10 @@ function Draw(base, product){
         return pick;
     }
 
+    draw.fit = function(){
+        raycaster.params.Points.threshold = 10/base.camera.zoom;
+    }
+
     var selected_line = null;
     const drag_threshold = 3;
     var mouse_start = new THREE.Vector2(0,0);
@@ -61,11 +65,13 @@ function Draw(base, product){
             const pick = Pick(event)
             mouse_start = pick.mouse_vector;
             if(selected_line == null){
-                product.sketch.lines.forEach(line => {
-                    if(pick.object == line.endpoints){
-                        line.select_endpoint(pick.index);
-                    }
-                });
+                if(typeof event.touches === 'undefined' || (!(typeof event.touches === 'undefined') && event.touches.length < 2)) { 
+                    product.sketch.lines.forEach(line => {
+                        if(pick.object == line.endpoints){
+                            line.select_endpoint(pick.index);
+                        }
+                    });
+                } 
             }else{
                 new_line_potential = true;
             }

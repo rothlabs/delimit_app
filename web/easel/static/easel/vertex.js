@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 /* with float32array of 3D vertices representing a line, add vertices so there is never too big of a distance between consecutive vertices */
 function enforce_max_distance(vertices, maxDistance) {
   var new_verts = [];//[vertices[0],vertices[1],vertices[2]];
@@ -33,7 +35,7 @@ function enforce_max_distance(vertices, maxDistance) {
   return new Float32Array(new_verts);
 }
 
-function set_density(vertices, minDistance, maxDistance) {
+export function set_density(vertices, minDistance, maxDistance) {
   /* Considering a Float32Array of 3D vertices representing line, write a function to remove vertices so that they are never too close. */
   const new_verts = Array.from(vertices);
   var i = 0;
@@ -62,20 +64,28 @@ function set_density(vertices, minDistance, maxDistance) {
 }
 
 /* given an array, return first 3 elements as new array */
-function first(verts) {
+export function first(verts) {
   return verts.slice(0, 3);
 }
 
 /* given an array, return last 3 elements as new array */
-function last(verts) {
+export function last(verts) {
   return verts.slice(verts.length - 3, verts.length);
 }
 
-function get(verts, i){
+export function get(verts, i){
   return [verts[i],verts[i+1],verts[i+2]];
 }
 
-function set(verts, i, point){
+export function vector(verts, i){
+  i *= 3;
+  if(i < 0){
+    i = verts.length + i;
+  }
+  return new THREE.Vector3(verts[i],verts[i+1],verts[i+2]);
+}
+
+export function set(verts, i, point){
   i *= 3;
   if(i < 0){
     i = verts.length + i;
@@ -84,12 +94,12 @@ function set(verts, i, point){
   verts[i+1] = point.y;
 }
 
-function endpoints(verts, z_offset){
+export function endpoints(verts, z_offset){
   return [verts[0],verts[1],verts[2]+z_offset,  verts[verts.length-3],verts[verts.length-2],verts[verts.length-1]+z_offset];
 }
 
 /* given float32array 3d vertices and two test vertices, return the closet vertex for each test vertex. */
-function closet_to_endpoints(verts, endpoints_verts) {
+export function closet_to_endpoints(verts, endpoints_verts) {
   const vert1 = first(endpoints_verts);
   const vert2 = last(endpoints_verts);
   var minDistance1 = Infinity;
@@ -115,15 +125,14 @@ function closet_to_endpoints(verts, endpoints_verts) {
 }
 
 /* map line onto two endpoints */
-function map(verts, endpoint1, endpoint2, trim = 0) {
+export function map(verts, endpoint1, endpoint2) {
   var new_verts = [];
-  trim *= 3;
-  for (var i = trim; i < verts.length-2-trim; i += 3) {
+  for (var i = 0; i < verts.length-2; i += 3) {
     var ratio = i/verts.length;
-    var rts_x = verts[i]-verts[0+trim];
-    var rts_y = verts[i+1]-verts[1+trim];
-    var rte_x = verts[i]-verts[verts.length-3-trim];
-    var rte_y = verts[i+1]-verts[verts.length-2-trim];
+    var rts_x = verts[i]-verts[0];
+    var rts_y = verts[i+1]-verts[1];
+    var rte_x = verts[i]-verts[verts.length-3];
+    var rte_y = verts[i+1]-verts[verts.length-2];
     new_verts.push((rts_x+endpoint1[0])*(1-ratio) + (rte_x+endpoint2[0])*ratio);
     new_verts.push((rts_y+endpoint1[1])*(1-ratio) + (rte_y+endpoint2[1])*ratio);
     new_verts.push(0);
@@ -133,7 +142,7 @@ function map(verts, endpoint1, endpoint2, trim = 0) {
 
 /* given float32array of 3d vertices and start and end index and second array of vertices, replace the vertices between start and end with the second array. Use slice and/or splice. */ 
 // could be made much shorter with slice and concat?
-function replace(vertices, startIndex, endIndex, replacements) {
+export function replace(vertices, startIndex, endIndex, replacements) {
   var backwards_replacements = false;
   if(startIndex > endIndex){
     var tmp = startIndex;
@@ -171,13 +180,13 @@ function replace(vertices, startIndex, endIndex, replacements) {
 }
 
 /* given a float32array, return true if any elements are NaN */
-function hasNaN(array) {
-  for (var i = 0; i < array.length; i++) {
-    if (isNaN(array[i])) {
-      return true;
-    }
-  }
-  return false;
-}
+// function hasNaN(array) {
+//   for (var i = 0; i < array.length; i++) {
+//     if (isNaN(array[i])) {
+//       return true;
+//     }
+//   }
+//   return false;
+// }
 
-export{set_density, closet_to_endpoints, endpoints, map, replace, first, last, get, set, hasNaN}
+// export{set_density, closet_to_endpoints, endpoints, map, replace, first, last, get, set, vector, hasNaN}
