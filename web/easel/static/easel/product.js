@@ -25,6 +25,7 @@ function Product(base){
                 constraint.Coincident(line1, line2);
             });
         });
+        product.record();
         product.sketch.bounds.setFromObject( product.sketch.group );
         base.scene.add(product.sketch.group);
         base.fit(product);
@@ -39,6 +40,12 @@ function Product(base){
     product.undo = function(){
         product.sketch.lines.forEach(line =>{
             line.undo();
+        });
+    };
+
+    product.redo = function(){
+        product.sketch.lines.forEach(line =>{
+            line.redo();
         });
     };
 
