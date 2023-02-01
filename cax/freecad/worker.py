@@ -1,62 +1,55 @@
 '''
 FreeCAD Worker
 '''
-import core # From Delimit
-import asyncio, json, threading, traceback # From Python Built-In
-
-
-product = core.Product('shoe')
-sole_xy = product.get('shape/sole/extrude_xy')
-sole_yz = product.get('shape/sole/extrude_yz')
-
+import sys, time, asyncio, json, threading, traceback
+from subprocess import Popen, PIPE
+import FreeCADGui
+import config, product 
 
 async def blender(data_out):
-    reader, writer = await asyncio.open_connection('127.0.0.1',7777)
-    writer.write(json.dumps(data_out).encode())
-    data_in = await reader.read(1000000) # 1 Megabyte limit
-    data_in = json.loads(data_in.decode())
-    writer.close()
-    return data_in
+    process = Popen(['blender', '-b', '-P', '../blender/worker.py', '--', str(data_out['product_id'])], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    print(str(stdout))
+    if "{'success': True" in str(stdout): return True
+    return False
 
-
-async def update(reader, writer):
+async def process_product(reader, writer):
+    start_time = time.time()
     data_in = await reader.read(1000000)  # 1 Megabyte limit
     data_in = json.loads(data_in.decode())
-
     data_out = {'success': False}
     try: 
-        product.svg_base(data_in['sketch_xy'], sole_xy, 'xy', core.v(1,1,1))
-        product.svg_base(data_in['sketch_yz'], sole_yz, 'yz', core.v(1,data_in['heel_height'],1))
-        product.export(data_in['product_id'])
-        data_in = await blender({'product_id': data_in['product_id']}) # Add meta data such as desired detail
-        if data_in['success']:
-            data_out = {'success': True} # Add meta data such as price, weight, etc
+        product.build(data_in)
+        blender_response = {'success':True}
+        blender_response = await blender(data_in) # Add meta data such as desired detail
+        if blender_response:
+            duration = round((time.time() - start_time)*1000)/1000
+            data_out = {'success': True, 'duration': duration} # Add meta data such as price, weight, etc
     except Exception:
         print(traceback.format_exc())
-
     writer.write(json.dumps(data_out).encode())
     await writer.drain()
     writer.close()
 
-
 async def main():
-    server = await asyncio.start_server(update,'127.0.0.1',8888)
+    server = await asyncio.start_server(process_product,'127.0.0.1',7777, reuse_port=True)
     async with server:
         await server.serve_forever()
 
-def run_main():
-    asyncio.run(main())
+threading.Thread(target=lambda: asyncio.run(main()), daemon=True).start()
 
-worker = threading.Thread(target=run_main, daemon=True)
-worker.start()
+## Test worker by sending request if specified
+if sys.argv[-1] == 'test': 
+    async def cax(data_out):
+        reader, writer = await asyncio.open_connection('127.0.0.1', 7777) # Connect to FreeCAD Worker
+        writer.write(json.dumps(data_out).encode())
+        data_in = await reader.read(1000000) # 1 Megabyte limit
+        print('CAX Response: '+data_in.decode())
+        writer.close()
+    asyncio.run(cax({ # send product id, sketches, and more to cax
+            'product_id':  0, 
+            'drawing':   config.test_drawing, 
+        }))
 
-
-
-#print([o.Label for o in latest])
-
-#with open('/home/julian/delimit/cax/freecad/input/top_sketch.svg', 'w+') as svg_file:
-    #    svg_file.write(data['sketch_xy'])
-    #    svg_file.close()
-    #importSVG.insert('/home/julian/delimit/cax/freecad/input/top_sketch.svg',shoe.doc.Name)
-
-#writer.close() # Is it needed?
+if not hasattr(FreeCADGui,'addCommand'):
+    exit()

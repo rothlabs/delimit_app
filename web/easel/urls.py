@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import Index_View, Edit_View
+from . import views
 
 app_name = 'easel'
 urlpatterns = [
-    path('', Index_View.as_view(), name='index'),
-    path('<int:pk>/', Edit_View.as_view(), name='edit'),
+    path('', views.List_View.as_view(), name='list'),
+    path('<int:pk>/', views.Detail_View.as_view(), name='detail'),
+    path('<int:pk>/greenware/', views.greenware, name='greenware'),
 ] 

@@ -1,7 +1,9 @@
 __pycache__
 
 /cax/tmp
+/cax/freecad/Curves
 
+/web/env
 /web/web_env
 /web/static
 /web/media
@@ -9,6 +11,8 @@ __pycache__
 *.DS_Store
 
 *.FCStd1
-*.Blend1
+*.blend1
 
 sqlite3.db
+
+/junk/

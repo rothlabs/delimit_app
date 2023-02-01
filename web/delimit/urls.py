@@ -24,4 +24,4 @@ urlpatterns = [
     path('catalog/', include('catalog.urls')),
     path('easel/', include('easel.urls')),
     path('admin/', admin.site.urls),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # FOR LOCAL TESTING ONLY: https://docs.djangoproject.com/en/4.1/howto/static-files/#serving-files-uploaded-by-a-user-during-development
+]# + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) # FOR LOCAL TESTING ONLY: https://docs.djangoproject.com/en/4.1/howto/static-files/#serving-files-uploaded-by-a-user-during-development

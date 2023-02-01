@@ -1,12 +1,16 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views import generic
-from .models import Shoe
+from core.models import Product
 
-class Index(generic.ListView):
-    model = Shoe
-    template_name = 'catalog/index.html'
+@method_decorator(never_cache, name='dispatch')
+class List_View(generic.ListView):
+    model = Product
+    template_name = 'catalog/list.html'
 
-class Detail(generic.DetailView):
-    model = Shoe
+@method_decorator(never_cache, name='dispatch')
+class Detail_View(generic.DetailView):
+    model = Product
     template_name = 'catalog/detail.html'
     
    

@@ -9,8 +9,8 @@ class Edit_Form(ModelForm):
         model = Shoe
         fields = ['name',
                 'view_x','view_y','view_z',
-                'sketch_xy',
-                'sketch_yz',
+                'line_art',
+                'painting',
                 'heel_height',
                 ]
         widgets = {

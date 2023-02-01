@@ -1,9 +1,0 @@
-{% extends "core/base.html" %}
-
-{% block content %}
-  <h1>Welcome to the easel!</h1>
-  <p>Select a shoe to edit.</p>
-  {% for shoe in shoe_list %}
-    <li><a href="{% url 'easel:edit' shoe.id %}">{{ shoe.name }}</a></li>
-  {% endfor %}
-{% endblock %}

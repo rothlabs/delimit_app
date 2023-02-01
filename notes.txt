@@ -1,0 +1,2 @@
+{{ product.data | json_script:"product" }}
+<script type="module" src="{% static 'easel/init.js' %}"></script>
