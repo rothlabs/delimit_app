@@ -22,12 +22,12 @@ class Base_Model(models.Model):
 
 class Product(Base_Model):
     file = models.FileField(upload_to='product', default='product/default.glb')
-    camera_x = models.FloatField(default=0)
-    camera_y = models.FloatField(default=0)
-    camera_z = models.FloatField(default=10)
+#    camera_x = models.FloatField(default=0)
+#    camera_y = models.FloatField(default=0)
+#    camera_z = models.FloatField(default=10)
     
-class Shoe(Product):
-    heel_height = models.FloatField(default=.5)
+#class Shoe(Product):
+#    heel_height = models.FloatField(default=.5)
 
 
 # The below functions are for deleting unused media files. They might not be safe. 

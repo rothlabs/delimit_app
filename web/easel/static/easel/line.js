@@ -76,6 +76,11 @@ function Line(base, draw, parent, source){
         }
         history_index = history.length;
     };
+    line.revert = function(){
+        console.log('revert!');
+        line.verts = history[history_index-1];
+        line.update({});
+    }
     line.undo = function(){
         if(history_index-1 > 0){
             history_index--;
@@ -107,14 +112,16 @@ function Line(base, draw, parent, source){
     }
 
     line.delete = function(){
-        base.viewport.off('touchmove mousemove', touchmove_mousemove);
-        base.viewport.off('touchend mouseup', touchend_mouseup);
+        base.viewport.removeEventListener('mousemove', mousemove_touchmove);
+        base.viewport.removeEventListener('touchmove', mousemove_touchmove);
+        base.viewport.removeEventListener('mouseup', mouseup_touchend);
+        base.viewport.removeEventListener('touchend', mouseup_touchend);
         parent.group.remove(line.mesh);
         parent.group.remove(line.endpoints);
         parent.lines.splice(parent.lines.indexOf(line), 1);
     }
 
-    function touchmove_mousemove(event){
+    function mousemove_touchmove(event){
         if(active){
             if(!(typeof event.touches === 'undefined')) { 
                 if(event.touches.length > 1){ // cancel line if more than one touch point 
@@ -123,10 +130,11 @@ function Line(base, draw, parent, source){
             }
             add_vert(draw.point);
             line.update({});
-        }else{
+        }else if (selected_endpoint != null){
             if(!(typeof event.touches === 'undefined')) { 
                 if(event.touches.length > 1){ // cancel drag if more than one touch point 
                     selected_endpoint = null;
+                    parent.product.revert();
                 }
             }
             if(selected_endpoint == 0){
@@ -137,9 +145,11 @@ function Line(base, draw, parent, source){
                 line.update({rules: true, constrain: 2});
             }
         }
-    }base.viewport.on('touchmove mousemove', touchmove_mousemove);
+    }
+    base.viewport.addEventListener('mousemove', mousemove_touchmove);
+    base.viewport.addEventListener('touchmove', mousemove_touchmove);
 
-    function touchend_mouseup(event){
+    function mouseup_touchend(event){
         if(active && [0,1].includes(event.which)){ // 0 = touch, 1 = left mouse button
             active = false;
             if(line.morph_target != null){
@@ -150,7 +160,9 @@ function Line(base, draw, parent, source){
             selected_endpoint = null;
             line.update({rules: true, constrain: 2, record:true});
         }
-    }base.viewport.on('touchend mouseup', touchend_mouseup);
+    }
+    base.viewport.addEventListener('mouseup', mouseup_touchend);
+    base.viewport.addEventListener('touchend', mouseup_touchend);
 
     line.morph = function(morpher){
         const closest = vtx.closest_to_endpoints(line.verts, morpher.verts);

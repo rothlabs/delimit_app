@@ -132,6 +132,7 @@ export function closest_to_endpoints(verts, endpoints_verts) {
 
 /* map line onto two endpoints */
 export function map(verts, endpoint1, endpoint2) {
+  verts = set_density(verts,0.1,0.2);
   var new_verts = [];
   for (var i = 0; i < verts.length-2; i += 3) {
     var ratio = i / (verts.length-3);

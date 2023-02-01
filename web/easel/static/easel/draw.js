@@ -52,15 +52,18 @@ function Draw(base, product){
     const drag_threshold = 3;
     var mouse_start = new THREE.Vector2(0,0);
     var new_line_potential = false;
-    base.viewport.on('mousemove touchmove', function(event){
+    function mousemove_touchmove(event){
         const pick = Pick(event);
         if(new_line_potential && mouse_start.distanceTo(pick.mouse_vector) >= drag_threshold){
             const line = Line(base, draw, product.sketch);
             line.morph_target = selected_line;//.set_morph_target(selected_line);
             new_line_potential = false;
         }
-    });
-    base.viewport.on('mousedown touchstart', function(event){
+    }
+    base.viewport.addEventListener('mousemove', mousemove_touchmove);
+    base.viewport.addEventListener('touchmove', mousemove_touchmove);
+
+    function mousedown_touchstart(event){
         if([0,1].includes(event.which)){ // 0 = touch, 1 = left mouse button
             const pick = Pick(event)
             mouse_start = pick.mouse_vector;
@@ -76,8 +79,11 @@ function Draw(base, product){
                 new_line_potential = true;
             }
         }
-    });
-    base.viewport.on('touchend mouseup', function(event){
+    }
+    base.viewport.addEventListener('mousedown', mousedown_touchstart);
+    base.viewport.addEventListener('touchstart', mousedown_touchstart);
+
+    function mouseup_touchend(event){
         if([0,1].includes(event.which)){ // 0 = touch, 1 = left mouse button
             new_line_potential = false;
             const pick = Pick(event);
@@ -92,7 +98,9 @@ function Draw(base, product){
                 });
             }
         }
-    });
+    }
+    base.viewport.addEventListener('mouseup', mouseup_touchend);
+    base.viewport.addEventListener('touchend', mouseup_touchend);
 
     return draw;
 }export{Draw}
