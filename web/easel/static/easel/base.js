@@ -22,7 +22,7 @@ function Base(){
     base.scene.add(new THREE.AmbientLight( 0x404040 ));
     //controls
     base.controls = new OrbitControls( base.camera, base.renderer.domElement );
-    base.controls.zoomSpeed = 2;
+    base.controls.zoomSpeed = 1;
     base.controls.enablePan = true;
     base.controls.enableRotate = false;
     base.controls.enableDamping = false;
