@@ -26,7 +26,7 @@ def greenware(request, *args, **kwargs):
         cmd = ['/opt/blender/blender', '-b', '-P', util.cax('blender/bt.py'), '--', 'wow_path_cool']#request.FILES.get('file','no_file?')]
         bp = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         for line in bp.stdout:
-            print(str(line))
+            #print(str(line))
             if 'cax_done' in str(line):
                 return JsonResponse({'greenware': 'success', 'blender': 'success'}, status=200)
     return JsonResponse({'greenware': 'bad request'}, status=400)

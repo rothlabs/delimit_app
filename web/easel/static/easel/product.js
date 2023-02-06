@@ -5,33 +5,36 @@ import {Line} from 'easel/line.js';
 import {useThree} from 'r3f';
 
 const product = JSON.parse(document.getElementById('product').innerHTML);
+const bounds = new Box3();
 
-//const mods = [[]];
-
-export function Product({selection}) {
-	const sketch_group = useRef()
+export function Product({mod_verts, selection}) {
+	const group = useRef()
 	const { camera } = useThree(); 
 	const { nodes } = useGLTF(product.url)
-	//const [lines, set_lines] = useState();
-	//useEffect(()=>{
-	//	nodes 
-	//},[nodes]);
+	const [mods, set_mods] = useState([]);
 	useEffect(()=>{
-		const bounds = new Box3();
-		bounds.setFromObject( sketch_group.current );
+		set_mods([...mods, nodes.Scene.children.map((node)=>(
+			node.geometry.attributes.position.array
+		))]);
+	},[nodes]);
+	useEffect(()=>{
+		bounds.setFromObject( group.current );
 		const camera_width  = camera.right*2;
 		const camera_height = camera.top  *2;
 		if(camera_width < camera_height){
-				camera.zoom = camera_width  / (bounds.max.x - bounds.min.x)*.75;
+			camera.zoom = camera_width  / (bounds.max.x - bounds.min.x)*.75;
 		}else{
-				camera.zoom = camera_height / (bounds.max.y - bounds.min.y)*.75;
+			camera.zoom = camera_height / (bounds.max.y - bounds.min.y)*.75;
 		}
 		camera.updateProjectionMatrix();
-	},[camera]); // only call useEffect when camera changes
+	},[mods]); // only call useEffect when camera changes
+	useEffect(()=>{
+		console.log(mod_verts);
+	},[mod_verts]);
 	return (
-		rce('group', {ref:sketch_group, dispose:null}, nodes.Scene.children.map(
-			(node, i)=>( rce(Line, {verts:node.geometry.attributes.position.array, selection:selection}))
-		))
+		rce('group', {ref:group, dispose:null}, (mods.length>0) ? mods[0].map((verts)=>(
+			rce(Line, {verts:verts, selection:selection})
+		)): null)
 	)
 }
 

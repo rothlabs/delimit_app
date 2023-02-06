@@ -6,56 +6,92 @@ import {Vector2} from 'three';
 import {Product} from 'easel/product.js';
 import {Line} from 'easel/line.js';
 
-//const rce = React.createElement; 
-
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
 const new_verts = [];
+var pointers_down = 0;
 
 function Board() {
     //const mesh = useRef();
     const [draw_verts, set_draw_verts] = useState();
+    const [mod_verts, set_mod_verts] = useState();
     const [selection, set_selection] = useState();
+    //const [pointer_up, set_pointer_up] = useState();
+    //const [pointer_down, set_pointer_down] = useState();
+    //useEffect(()=>{
+    //	console.log('selection changed');
+    //},[selection]);
     //const [pointer_start, set_pointer_start] = useState();
-    function on_pointer_move(event){
-        if(pointer_start.x>-1 && selection && selection.name != 'board'){
-            pointer_vect.set(event.clientX,event.clientY);
-            if(pointer_start.distanceTo(pointer_vect) > 2){
-                new_verts.push(event.intersections[0].point.x);
-                new_verts.push(event.intersections[0].point.y);
-                new_verts.push(0);
-                set_draw_verts(new Float32Array(new_verts));
-            }
-        }
-    }
-    useEffect(()=>{ 
-        console.log(draw_verts);
-    },[draw_verts]);
+    //function on_pointer_move(event){
+        // console.log(pointers_down);
+        // if(!(typeof event.touches === 'undefined') && event.touches.length > 1) { 
+        //     console.log('two finger');
+        //     pointer_start.set(-1,-1);
+        // }
+        // if(pointer_start.x>-1 && selection && selection.name != 'board'){
+        //     pointer_vect.set(event.clientX,event.clientY);
+        //     if(pointer_start.distanceTo(pointer_vect) > 2){
+        //         new_verts.push(event.intersections[0].point.x);
+        //         new_verts.push(event.intersections[0].point.y);
+        //         new_verts.push(0);
+        //         set_draw_verts(new Float32Array(new_verts));
+        //     }
+        // }
+    //}
+    // useEffect(()=>{
+    //     if(pointer_up && [0,1].includes(pointer_up.which)){
+    //         pointers_down--;
+    //         pointer_start.set(-1,-1);
+    //         set_mod_verts(new Float32Array(new_verts));
+    //         new_verts.length = 0;
+    //         set_draw_verts(new Float32Array());
+    //     }
+    // },[pointer_up]);
     return (
-        rce('mesh', {
+        rce('mesh', { // on_pointer_up fires twice. The other pointer events might do the same.
             //ref: mesh, 
             name: 'board',
-            onClick:(event)=> (event.delta < 3) ? set_selection(event.intersections[0].object) : null,
-            onPointerDown:(event)=> {
-                if([0,1].includes(event.which)){
-                    pointer_start.set(event.clientX,event.clientY);
-                    //set_pointer_start(new Vector2(event.clientX,event.clientY));
+            onClick:(event)=>{
+                event.stopPropagation();
+                if(event.delta < 3){
+                    set_selection(event.intersections[0].object)
                 }
             },
-            onPointerUp:(event)=> {
+            onPointerDown:(event)=> {
+                event.stopPropagation();
                 if([0,1].includes(event.which)){
-                    pointer_start.set(-1,-1);
+                    pointers_down++;
+                    pointer_start.set(event.clientX,event.clientY);
+                }
+            },
+            onPointerUp:(event)=>{
+                event.stopPropagation();
+                if([0,1].includes(event.which)){
+                    pointers_down--;
+                    //pointer_start.set(-1,-1);
+                    set_mod_verts(new Float32Array(new_verts));
                     new_verts.length = 0;
                     set_draw_verts(new Float32Array());
                 }
+            }, //set_pointer_up(event),
+            onPointerMove:(event)=>{
+                event.stopPropagation();
+                if(pointers_down==1 && selection && selection.name != 'board'){
+                    pointer_vect.set(event.clientX,event.clientY);
+                    if(pointer_start.distanceTo(pointer_vect) > 2){
+                        new_verts.push(event.intersections[0].point.x);
+                        new_verts.push(event.intersections[0].point.y);
+                        new_verts.push(0);
+                        set_draw_verts(new Float32Array(new_verts));
+                    }
+                }
             },
-            onPointerMove:on_pointer_move,
         },[   
             rce('planeGeometry', {args:[10000, 10000]}),
             rce('meshBasicMaterial', {color:'white', toneMapped:false}),
-            rce(Product, {selection:selection}),
-            rce(Line, {verts:draw_verts, selection:selection}), // temp drawing line
+            rce(Product, {mod_verts:mod_verts, selection:selection}),
+            rce(Line, {verts:draw_verts, selection:selection}), // temp drawing line for visualization
         ])
     )
 }
