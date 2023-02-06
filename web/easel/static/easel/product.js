@@ -1,88 +1,44 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
-import { Line } from 'easel/line.js';
-import * as constraint from 'easel/constraint.js';
+import {createElement as rce, useRef, useEffect, useState} from 'react';
+import {useGLTF} from 'drei';
+import {Box3} from 'three';
+import {Line} from 'easel/line.js';
+import {useThree} from 'r3f';
 
-function Product(base){
-    const product = JSON.parse(document.getElementById('product').innerHTML); // get product meta data from html doc
-    product.sketch = {
-        lines: [],
-        bounds: new THREE.Box3(),
-        group: new THREE.Group(),
-        product: product,
-    };
-    product.sketch.group.name = 'sketch';
+const product = JSON.parse(document.getElementById('product').innerHTML);
 
-    product.fit = function(){
-        product.sketch.lines.forEach(line => {line.fit();});
-    };
+//const mods = [[]];
 
-    product.record = function(){
-        product.sketch.lines.forEach(line =>{
-            line.record();
-        });
-    };
+export function Product({selection}) {
+	const sketch_group = useRef()
+	const { camera } = useThree(); 
+	const { nodes } = useGLTF(product.url)
+	//const [lines, set_lines] = useState();
+	//useEffect(()=>{
+	//	nodes 
+	//},[nodes]);
+	useEffect(()=>{
+		const bounds = new Box3();
+		bounds.setFromObject( sketch_group.current );
+		const camera_width  = camera.right*2;
+		const camera_height = camera.top  *2;
+		if(camera_width < camera_height){
+				camera.zoom = camera_width  / (bounds.max.x - bounds.min.x)*.75;
+		}else{
+				camera.zoom = camera_height / (bounds.max.y - bounds.min.y)*.75;
+		}
+		camera.updateProjectionMatrix();
+	},[camera]); // only call useEffect when camera changes
+	return (
+		rce('group', {ref:sketch_group, dispose:null}, nodes.Scene.children.map(
+			(node, i)=>( rce(Line, {verts:node.geometry.attributes.position.array, selection:selection}))
+		))
+	)
+}
 
-    const loader = new GLTFLoader();
-    loader.load(product.url, function ( data ) {
-        data.scene.children.forEach(source => {
-            Line(base, product.draw, product.sketch, source);
-        });
-        product.sketch.lines.forEach(line1 => {
-            product.sketch.lines.forEach(line2 => {
-                constraint.Coincident(line1, line2);
-            });
-        });
-        product.record();
-        product.sketch.bounds.setFromObject( product.sketch.group );
-        base.scene.add(product.sketch.group);
-        base.fit(product);
-    },function(xhr){},function(error){console.log(error);});
+useGLTF.preload(product.url)
 
-    const exporter = new GLTFExporter();
-    product.greenware = function(){
-        exporter.parse(product.sketch.group, function ( glb ) {
-            const request = new Request('/easel/'+product.id+'/greenware/',{   
-                method: 'POST',
-                headers: {'X-CSRFToken': base.csrftoken, 'Accept': 'application/octet-stream', 'Content-Type': 'application/octet-stream'},
-                mode: 'same-origin',
-                body: glb,//JSON.stringify({'action':'next', 'glb':glb})
-            });
-            fetch(request).then((response) => response.json()).then((data) => {
-                console.log(data); 
-            });
-        },function ( error ) {console.log( 'GLTFExporter Error' );},
-        { binary: true});
-    };
+//rce('mesh', {castShadow:true, receiveShadow:true, geometry:nodes.Scene.children[0].geometry, material:new MeshLineMaterial({color: new Color('hsl(0,0%,40%)')})}),
+			//rce('mesh', {castShadow:true, receiveShadow:true, geometry:nodes[1].geometry, material:new MeshLineMaterial({color: new THREE.Color('hsl(0,0%,40%)')})}),
+			//<mesh castShadow receiveShadow geometry={nodes.Curve007_2.geometry} material={materials['Material.002']} />
 
-    product.revert = function(){
-        product.sketch.lines.forEach(line =>{
-            line.revert();
-        });
-    }
-
-    product.undo = function(){
-        product.sketch.lines.forEach(line =>{
-            line.undo();
-        });
-    };
-
-    product.redo = function(){
-        product.sketch.lines.forEach(line =>{
-            line.redo();
-        });
-    };
-
-    return product;
-}export{Product}
-
-
-            //console.log(typeof glb);
-            //console.log(request.body);
-
-            //const blob =
-            //new Blob(
-            //    ["This is some important text"],
-            //    { type: "text/plain" }
-            //);
+	
