@@ -5,19 +5,20 @@ import {Line} from 'easel/line.js';
 import {useThree} from 'r3f';
 
 const product = JSON.parse(document.getElementById('product').innerHTML);
+useGLTF.preload(product.url);
 const bounds = new Box3();
 
-export function Product({mod_verts, selection}) {
+export function Product(args) {
 	const group = useRef()
 	const { camera } = useThree(); 
 	const { nodes } = useGLTF(product.url)
-	const [mods, set_mods] = useState([]);
-	useEffect(()=>{
-		set_mods([...mods, nodes.Scene.children.map((node)=>(
-			node.geometry.attributes.position.array
-		))]);
-	},[nodes]);
-	useEffect(()=>{
+	const [fit_camera, set_fit_camera] = useState(false);
+	//const [lines, set_lines] = useState([]);
+	//useEffect(()=>{
+	//	set_lines(nodes.Scene.children.map((node)=>( node.geometry.attributes.position.array )));
+	//},[nodes]);
+	
+	useEffect(()=>{ // need to only call this on page load or when recenter button is pushed
 		bounds.setFromObject( group.current );
 		const camera_width  = camera.right*2;
 		const camera_height = camera.top  *2;
@@ -27,18 +28,27 @@ export function Product({mod_verts, selection}) {
 			camera.zoom = camera_height / (bounds.max.y - bounds.min.y)*.75;
 		}
 		camera.updateProjectionMatrix();
-	},[mods]); // only call useEffect when camera changes
+	},[fit_camera]); 
+
 	useEffect(()=>{
-		console.log(mod_verts);
-	},[mod_verts]);
+		set_fit_camera(true);
+	},[nodes]);
+
+	// useEffect(()=>{ 
+	// 	const current_verts = [0,0,0,1,1,0];
+	// 	const closest = vtx.closest_to_endpoints(current_verts, mod_verts);
+    //     const new_verts = vtx.map(mod_verts, closest.v1, closest.v2);
+    //     mod_verts = vtx.replace(current_verts, closest.i1, closest.i2, new_verts);
+    //     //line.update({rules: true, constrain:true, record:true});
+	// 	set_mods([mod_verts, ...mods]);
+	// },[mod_verts]);
+
 	return (
-		rce('group', {ref:group, dispose:null}, (mods.length>0) ? mods[0].map((verts)=>(
-			rce(Line, {verts:verts, selection:selection})
-		)): null)
+		rce('group', {ref:group, dispose:null}, nodes.Scene.children.map((node)=>(
+			rce(Line, {verts: node.geometry.attributes.position.array, ...args})
+		)))
 	)
 }
-
-useGLTF.preload(product.url)
 
 //rce('mesh', {castShadow:true, receiveShadow:true, geometry:nodes.Scene.children[0].geometry, material:new MeshLineMaterial({color: new Color('hsl(0,0%,40%)')})}),
 			//rce('mesh', {castShadow:true, receiveShadow:true, geometry:nodes[1].geometry, material:new MeshLineMaterial({color: new THREE.Color('hsl(0,0%,40%)')})}),

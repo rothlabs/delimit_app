@@ -142,7 +142,7 @@ export function map(verts, endpoint1, endpoint2) {
     var rte_y = verts[i+1]-verts[verts.length-2];
     new_verts.push((rts_x+endpoint1.x)*(1-ratio) + (rte_x+endpoint2.x)*ratio);
     new_verts.push((rts_y+endpoint1.y)*(1-ratio) + (rte_y+endpoint2.y)*ratio);
-    new_verts.push(0);
+    new_verts.push(1);
     
   }
   return new Float32Array(new_verts);

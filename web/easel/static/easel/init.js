@@ -5,6 +5,7 @@ import {Camera_Control_2D} from 'core/camera_control.js';
 import {Vector2} from 'three';
 import {Product} from 'easel/product.js';
 import {Line} from 'easel/line.js';
+import {Toolbar} from 'easel/toolbar.js'
 
 
 const pointer_start = new Vector2();
@@ -69,20 +70,21 @@ function Board() {
                 event.stopPropagation();
                 if([0,1].includes(event.which)){
                     pointers_down--;
-                    //pointer_start.set(-1,-1);
-                    set_mod_verts(new Float32Array(new_verts));
+                    if(new_verts.length > 4){
+                        set_mod_verts(new Float32Array(new_verts));
+                    }
                     new_verts.length = 0;
                     set_draw_verts(new Float32Array());
                 }
-            }, //set_pointer_up(event),
+            }, 
             onPointerMove:(event)=>{
                 event.stopPropagation();
                 if(pointers_down==1 && selection && selection.name != 'board'){
                     pointer_vect.set(event.clientX,event.clientY);
                     if(pointer_start.distanceTo(pointer_vect) > 2){
-                        new_verts.push(event.intersections[0].point.x);
-                        new_verts.push(event.intersections[0].point.y);
-                        new_verts.push(0);
+                        new_verts.push(event.intersections[event.intersections.length-1].point.x);
+                        new_verts.push(event.intersections[event.intersections.length-1].point.y);
+                        new_verts.push(1);
                         set_draw_verts(new Float32Array(new_verts));
                     }
                 }
@@ -91,21 +93,24 @@ function Board() {
             rce('planeGeometry', {args:[10000, 10000]}),
             rce('meshBasicMaterial', {color:'white', toneMapped:false}),
             rce(Product, {mod_verts:mod_verts, selection:selection}),
-            rce(Line, {verts:draw_verts, selection:selection}), // temp drawing line for visualization
+            rce(Line, {verts:draw_verts, selection:'off'}), // temp drawing line for visualization
         ])
     )
 }
 
-function Base(args){
-    return (
-        rce(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}},[
-            rce(Camera_Control_2D),
-            rce(Board),
-        ])
-    )
+function Base(){
+    return ([
+        rce('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
+            rce(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}},[
+                rce(Camera_Control_2D),
+                rce(Board),
+            ])
+        ),
+        rce(Toolbar),  
+    ])
 }
 
-ReactDOM.createRoot(document.getElementById('viewport_3d')).render(Base());
+ReactDOM.createRoot(document.getElementById('app')).render(Base());
 
 
 //rce('directionalLight', {position: [10,10,10]}),
