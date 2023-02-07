@@ -5,103 +5,88 @@ import * as vtx from 'easel/vertex.js';
 
 extend({ MeshLine, MeshLineMaterial })
 
-const history = [];
-var history_index = 0;
-const constraints = [];
-
-export function Line(args) {
+export function Line(props) {
     const mesh = useRef();
+    const material = useRef();
     const { camera } = useThree();
     const [selected, set_selected] = useState(false);
     const [verts, set_verts] = useState();
-    const material = useRef();
-
-    //useEffect(()=>{
-        
-    //});
+    const [data, set_data] = useState({
+        history:[],
+        history_index:0,
+        constraints:[],
+    });
 
     useFrame(()=> (material.current.lineWidth = 4 / camera.zoom)); // make this run only on zoom change
 
     useEffect(()=>{
-        set_verts(args.verts);
-    },[args.verts]);
+        set_verts(props.verts);
+    },[props.verts]);
 
     useEffect(()=>{
-        if(args.selection == mesh.current){
+        if(props.selection == mesh.current){
             set_selected(true);
         }else{
             set_selected(false); 
         }
-    },[args.selection]);
-
-    //useEffect(()=>{ 
-	// 	set_mods([args.verts]);
-	//},[args.verts]);
+    },[props.selection]);
 
     useEffect(()=>{ 
        if(selected){
-            //console.log('mod_verts changed');
-            const closest = vtx.closest_to_endpoints(verts, args.mod_verts);
-            const new_verts = vtx.map(args.mod_verts, closest.v1, closest.v2);
+            const closest = vtx.closest_to_endpoints(verts, props.mod_verts);
+            const new_verts = vtx.map(props.mod_verts, closest.v1, closest.v2);
             const new_verts_2 = vtx.replace(verts, closest.i1, closest.i2, new_verts);
             update({verts: new_verts_2, rules: true, constrain:true, record:true});
        }
-	},[args.mod_verts]);
+	},[props.mod_verts]);
 
      
-    function update(args2){
-        //console.log('update line');
-        if(args2.rules){
-            set_verts(vtx.set_density(args2.verts,1,2));
+    function update(args){
+        if(args.rules){
+            set_verts(vtx.set_density(args.verts,1,2));
         }
-        if(args2.constrain > 0){
-            constraints.forEach(constraint =>{
-                constraint.enforce(args2.constrain);
+        if(args.constrain > 0){
+            data.constraints.forEach(constraint =>{
+                constraint.enforce(args.constrain);
             });
         }
-        if(args2.record){
-            record();
-            //parent.product.record();
+        if(args.record){
+            props.base.set_action({name:'record'});
         }
-    }
-
-    function record(){
-        history.splice(history_index);
-        history.push(verts);
-        if(history.length > 7){
-            history.shift();
-        }
-        history_index = history.length;
     }
 
     useEffect(()=>{
-        //console.log('history_action changed: '+ args.history_action);
-        if(args.history_action == 'record'){
-            record();
-        }else if(args.history_action == 'revert'){
-            console.log('revert!');
-            set_verts(history[history_index-1]);
-        }else if(args.history_action == 'undo'){
-            if(history_index-1 > 0){
-                history_index--;
-                set_verts(history[history_index-1]);
-            }
-        }else if(args.history_action == 'redo'){
-            if(history_index+1 <= history.length){
-                history_index++;
-                set_verts(history[history_index-1]);
-            }
-        };
-    },[args.history_action]);
+        if(props.base.action && props.selection!='off'){
+            if(props.base.action.name == 'record'){
+                data.history.splice(data.history_index);
+                data.history.push(verts);
+                if(data.history.length > 7){
+                    data.history.shift();
+                }
+                data.history_index = data.history.length;
+            }else if(props.base.action.name == 'revert'){
+                console.log('revert!');
+                set_verts(data.history[data.history_index-1]);
+            }else if(props.base.action.name == 'undo'){
+                if(data.history_index-1 > 0){
+                    data.history_index--;
+                    set_verts(data.history[data.history_index-1]);
+                    //console.log(data.history_index);
+                }
+            }else if(props.base.action.name == 'redo'){
+                if(data.history_index+1 <= data.history.length){
+                    data.history_index++;
+                    set_verts(data.history[data.history_index-1]);
+                }
+            };
+            set_data(data);
+        }
+    },[props.base.action]);
 
-
-    //console.log('Line top level verts before render: ');
-   // console.log(verts);
-    //console.log(args);
     return (
         rce('mesh', {
             ref: mesh,
-            raycast: (args.selection=='off') ? undefined : MeshLineRaycast,
+            raycast: (props.selection!='off') ? MeshLineRaycast : undefined,
         },[
             rce('meshLine', {attach:'geometry', points: verts}),
             rce('meshLineMaterial', {ref:material, color:selected?'lightblue':'grey',}),
