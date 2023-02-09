@@ -64,21 +64,19 @@ export function Line(props) {
                     data.history.shift();
                 }
                 data.history_index = data.history.length;
-            }else if(props.base.action.name == 'revert'){
-                console.log('revert!');
-                set_verts(data.history[data.history_index-1]);
+            //}else if(props.base.action.name == 'revert'){
+            //    set_verts(data.history[data.history_index-1]);
             }else if(props.base.action.name == 'undo'){
                 if(data.history_index-1 > 0){
                     data.history_index--;
                     set_verts(data.history[data.history_index-1]);
-                    //console.log(data.history_index);
                 }
             }else if(props.base.action.name == 'redo'){
                 if(data.history_index+1 <= data.history.length){
                     data.history_index++;
                     set_verts(data.history[data.history_index-1]);
                 }
-            };
+            }
             set_data(data);
         }
     },[props.base.action]);
