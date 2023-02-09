@@ -1,4 +1,4 @@
-import {createElement as rce, useRef, useEffect, useState} from 'react';
+import {createElement as r, useRef, useEffect, useState} from 'react';
 import {useGLTF} from 'drei';
 import {Box3} from 'three';
 import {Line} from 'easel/line.js';
@@ -8,7 +8,7 @@ const product = JSON.parse(document.getElementById('product').innerHTML);
 useGLTF.preload(product.url);
 const bounds = new Box3();
 
-export function Product(props) {
+export function Product(p) {
 	const group = useRef()
 	const { camera } = useThree(); 
 	const { nodes } = useGLTF(product.url)
@@ -28,18 +28,18 @@ export function Product(props) {
 
 	useEffect(()=>{
 		set_fit_camera(true);
-		props.base.set_action({name:'record'});
+		p.base.set_action({name:'record'});
 	},[nodes]);
 
 	return (
-		rce('group', {ref:group, dispose:null}, nodes.Scene.children.map((node)=>(
-			rce(Line, {verts: node.geometry.attributes.position.array, ...props})
+		r('group', {ref:group, dispose:null}, nodes.Scene.children.map((node)=>(
+			r(Line, {verts: node.geometry.attributes.position.array, ...p})
 		)))
 	)
 }
 
-//rce('mesh', {castShadow:true, receiveShadow:true, geometry:nodes.Scene.children[0].geometry, material:new MeshLineMaterial({color: new Color('hsl(0,0%,40%)')})}),
-			//rce('mesh', {castShadow:true, receiveShadow:true, geometry:nodes[1].geometry, material:new MeshLineMaterial({color: new THREE.Color('hsl(0,0%,40%)')})}),
+//r('mesh', {castShadow:true, receiveShadow:true, geometry:nodes.Scene.children[0].geometry, material:new MeshLineMaterial({color: new Color('hsl(0,0%,40%)')})}),
+			//r('mesh', {castShadow:true, receiveShadow:true, geometry:nodes[1].geometry, material:new MeshLineMaterial({color: new THREE.Color('hsl(0,0%,40%)')})}),
 			//<mesh castShadow receiveShadow geometry={nodes.Curve007_2.geometry} material={materials['Material.002']} />
 
 	

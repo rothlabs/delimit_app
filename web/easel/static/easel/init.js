@@ -1,5 +1,5 @@
 import ReactDOM from 'react_dom';
-import {createElement as rce, useRef, useState, useEffect } from 'react';
+import {createElement as r, useRef, useState, useEffect } from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Camera_Control_2D} from 'core/camera_control.js';
 import {Vector2} from 'three';
@@ -13,13 +13,13 @@ const pointer_vect = new Vector2();
 const new_verts = [];
 var pointers_down = 0;
 
-function Board(props) {
+function Board(p) {
     const [draw_verts, set_draw_verts] = useState();
     const [mod_verts, set_mod_verts] = useState();
     const [selection, set_selection] = useState();
 
     return (
-        rce('mesh', { 
+        r('mesh', { 
             name: 'board',
             onClick:(event)=>{
                 event.stopPropagation();
@@ -58,10 +58,10 @@ function Board(props) {
                 }
             },
         },[   
-            rce('planeGeometry', {args:[10000, 10000]}),
-            rce('meshBasicMaterial', {color:'white', toneMapped:false}),
-            rce(Product, {mod_verts:mod_verts, selection:selection, ...props}),
-            rce(Line, {verts:draw_verts, selection:'off', ...props}), // temp drawing line for visualization
+            r('planeGeometry', {args:[10000, 10000]}),
+            r('meshBasicMaterial', {color:'white', toneMapped:false}),
+            r(Product, {mod_verts:mod_verts, selection:selection, ...p}),
+            r(Line, {verts:draw_verts, selection:'off', ...p}), // temp drawing line for visualization
         ])
     )
 }
@@ -69,20 +69,20 @@ function Board(props) {
 function Base(){
     const [action,set_action] = useState();
     return ([
-        rce('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-            rce(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}},[
-                rce(Camera_Control_2D),
-                rce(Board, {base:{action:action,set_action:set_action}}),
+        r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
+            r(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}},[
+                r(Camera_Control_2D),
+                r(Board, {base:{action:action,set_action:set_action}}),
             ])
         ),
-        rce(Toolbar, {set_action:set_action}),
+        r(Toolbar, {set_action:set_action}),
     ])
 }
 
-ReactDOM.createRoot(document.getElementById('app')).render(rce(Base));
+ReactDOM.createRoot(document.getElementById('app')).render(r(Base));
 
 
-//rce('directionalLight', {position: [10,10,10]}),
+//r('directionalLight', {position: [10,10,10]}),
 
 //import { Base } from 'easel/base.js';
 //import { Draw } from 'easel/draw.js';
