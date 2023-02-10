@@ -10,12 +10,12 @@ export function Coincident(p){
     var v1b = () => {return vtx.vect(p.line1.verts,-1);}
     var v2b = () => {return vtx.vect(p.line2.verts,-1);}
 
-    constraint.enforce = function(depth_count){
+    constraint.enforce = function(depth){
         if(correct != null){
             if(v1().distanceTo(v2()) > max_dist){
                 correct();
-                depth_count--;
-                p.line2.update({density: true, constrain:depth_count});
+                depth--;
+                p.line2.update({density:true, depth:depth});
             }
         }
     };
