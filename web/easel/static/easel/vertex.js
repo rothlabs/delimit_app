@@ -95,7 +95,7 @@ export function vect(verts, i){
 //}
 
 export function endpoints(verts, z_offset){
-  return [verts[0],verts[1],verts[2]+z_offset,  verts[verts.length-3],verts[verts.length-2],verts[verts.length-1]+z_offset];
+  return new Float32Array([verts[0],verts[1],verts[2]+z_offset,  verts[verts.length-3],verts[verts.length-2],   verts[verts.length-1]+z_offset]);
 }
 
 /* given float32array 3d vertices and two test vertices, return the closet vertex for each test vertex. */

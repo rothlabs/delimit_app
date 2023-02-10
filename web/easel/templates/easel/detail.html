@@ -5,7 +5,5 @@
     {% csrf_token %}
     {{ product.data | json_script:"product" }}
     <script defer src="{% static 'easel/init.js' %}" type="module"></script>
-    <div id='app'></div>
-    <!-- <div id='viewport_3d' class="position-absolute start-0 end-0 top-0 bottom-0" style="z-index: -1;"></div>  -->
 {% endblock %}
 

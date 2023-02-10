@@ -6,9 +6,9 @@ export function Toolbar(p){
         r('div', {className: 'position-absolute start-0 end-0 bottom-0'},
             r('div', {className: 'container-fluid text-center bottom-0 pt-2 pb-2 bg-body'},
                 r(Row,{},[
-                    r(Button,{text:'Undo', func:()=>p.set_action({name:'undo'})}),
-                    r(Button,{text:'Redo', func:()=>p.set_action({name:'redo'})}),
-                    r(Button,{text:'Greenware', func:()=>p.set_action({name:'greenware'})}),
+                    r(Button,{text:'Undo', func:()=>p.set_act({name:'undo'})}),
+                    r(Button,{text:'Redo', func:()=>p.set_act({name:'redo'})}),
+                    r(Button,{text:'Greenware', func:()=>p.set_act({name:'greenware'})}),
                 ].map((item)=>r(Col,{},item))),
             )
         )

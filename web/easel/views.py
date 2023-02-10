@@ -8,12 +8,12 @@ import util
 import os
 import subprocess
 
-@method_decorator(never_cache, name='dispatch')
+#@method_decorator(never_cache, name='dispatch')
 class List_View(generic.ListView):
     model = Product
     template_name = 'easel/list.html'
 
-@method_decorator(never_cache, name='dispatch')
+#@method_decorator(never_cache, name='dispatch')
 class Detail_View(generic.DetailView):
     model = Product
     template_name = 'easel/detail.html'

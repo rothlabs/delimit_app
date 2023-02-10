@@ -1,12 +1,12 @@
-import ReactDOM from 'react_dom';
-import {createElement as r, useRef, useState, useEffect } from 'react';
-import {Canvas, useThree, useFrame} from 'r3f';
+import ReactDOM from 'react_dom'; 
+import {createElement as r, useState} from 'react';
+import {Canvas} from 'r3f';
 import {Camera_Control_2D} from 'core/camera_control.js';
 import {Vector2} from 'three';
 import {Product} from 'easel/product.js';
 import {Line} from 'easel/line.js';
 import {Toolbar} from 'easel/toolbar.js'
-
+import {Main_Navbar} from 'core/navbar.js';
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
@@ -14,7 +14,7 @@ const new_verts = [];
 var pointers_down = 0;
 
 function Board(p) {
-    const [draw_verts, set_draw_verts] = useState();
+    const [draw_verts, set_draw_verts] = useState([]);
     const [mod_verts, set_mod_verts] = useState();
     const [selection, set_selection] = useState();
 
@@ -25,6 +25,7 @@ function Board(p) {
                 event.stopPropagation();
                 if(event.delta < 3){
                     set_selection(event.intersections[0].object)
+                    console.log(event.intersections[0].object);
                 }
             },
             onPointerDown:(event)=> {
@@ -67,41 +68,19 @@ function Board(p) {
 }
 
 function Base(){
-    const [action,set_action] = useState();
+    const [act,set_act] = useState({name:''});
+    //const raycaster = useState(state);
+    //console.log(raycaster);
     return ([
+        r(Main_Navbar),
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-            r(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}},[
+            r(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}, onCreated:(state)=>state.raycaster.params.Points.threshold=7},[
                 r(Camera_Control_2D),
-                r(Board, {base:{action:action,set_action:set_action}}),
+                r(Board, {base:{act:act,set_act:set_act}}),
             ])
         ),
-        r(Toolbar, {set_action:set_action}),
+        r(Toolbar, {set_act:set_act}),
     ])
 }
 
 ReactDOM.createRoot(document.getElementById('app')).render(r(Base));
-
-
-//r('directionalLight', {position: [10,10,10]}),
-
-//import { Base } from 'easel/base.js';
-//import { Draw } from 'easel/draw.js';
-//import { Product } from 'easel/product.js';
-//import { Toolbar } from 'easel/toolbar.js';
-
-//import { make_cubes } from 'easel/cube.js';
-
-//make_cubes(); 
-
-//const base = Base();
-//const product = Product(base);
-//const draw = Draw(base, product);
-//product.draw = draw;
-//const toolbar = Toolbar(base, product);
-
-//function update() {
-//    base.update();
-//    product.fit();
-//    draw.fit();
-//    window.requestAnimationFrame(update);
-//}update();

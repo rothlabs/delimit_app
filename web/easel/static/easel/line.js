@@ -1,23 +1,41 @@
 import {createElement as r, useEffect, useRef, useState } from 'react';
 import { MeshLine, MeshLineMaterial, MeshLineRaycast } from 'core/mesh_line.js';
 import {extend, useThree, useFrame} from 'r3f';
+import {BufferAttribute} from 'three';
 import * as vtx from 'easel/vertex.js';
 
-extend({ MeshLine, MeshLineMaterial })
+extend({ MeshLine, MeshLineMaterial }) 
 
 export function Line(p) {
     const mesh = useRef();
     const material = useRef();
-    const { camera } = useThree();
+    const {camera} = useThree();
     const [selected, set_selected] = useState(false);
-    const [verts, set_verts] = useState();
-    const [data, set_data] = useState({
-        history:[],
-        history_index:0,
-        constraints:[],
+    const [verts, set_verts] = useState([]);
+    const [act, set_act] = useState({name:''});
+    const [constraints, set_constraints] = useState([]);
+    const [history, set_history] = useState({
+        verts:[],
+        index:0,
     });
 
     useFrame(()=> (material.current.lineWidth = 4 / camera.zoom)); // make this run only on zoom change
+
+    useEffect(()=>{
+        if(act.name == 'update'){
+            if(act.density){
+                set_verts(vtx.set_density(act.verts,1,2));
+            }
+            if(act.constrain > 0){
+                constraints.forEach(constraint =>{
+                    constraint.enforce(act.constrain);
+                });
+            }
+            if(act.record){
+                p.base.set_act({name:'record'});
+            }
+        }
+    },[act]);
 
     useEffect(()=>{
         set_verts(p.verts);
@@ -36,60 +54,54 @@ export function Line(p) {
             const closest = vtx.closest_to_endpoints(verts, p.mod_verts);
             const new_verts = vtx.map(p.mod_verts, closest.v1, closest.v2);
             const new_verts_2 = vtx.replace(verts, closest.i1, closest.i2, new_verts);
-            update({verts: new_verts_2, density:true, constrain:true, record:true});
+            set_act({name:'update', verts: new_verts_2, density:true, constrain:true, record:true});
        }
 	},[p.mod_verts]);
 
-     
-    function update(args){
-        if(args.density){
-            set_verts(vtx.set_density(args.verts,1,2));
-        }
-        if(args.constrain > 0){
-            data.constraints.forEach(constraint =>{
-                constraint.enforce(args.constrain);
-            });
-        }
-        if(args.record){
-            p.base.set_action({name:'record'});
-        }
-    }
-
     useEffect(()=>{
-        if(p.base.action && p.selection!='off'){
-            if(p.base.action.name == 'record'){
-                data.history.splice(data.history_index);
-                data.history.push(verts);
-                if(data.history.length > 7){
-                    data.history.shift();
+        if(p.base.act && p.selection!='off'){
+            if(p.base.act.name == 'record'){
+                history.verts.splice(history.index);
+                history.verts.push(verts);
+                if(history.verts.length > 7){
+                    history.verts.shift();
                 }
-                data.history_index = data.history.length;
-            //}else if(p.base.action.name == 'revert'){
-            //    set_verts(data.history[data.history_index-1]);
-            }else if(p.base.action.name == 'undo'){
-                if(data.history_index-1 > 0){
-                    data.history_index--;
-                    set_verts(data.history[data.history_index-1]);
+                history.index = history.verts.length;
+            //}else if(p.base.act.name == 'revert'){
+            //    set_verts(history.verts[history.index-1]);
+            }else if(p.base.act.name == 'undo'){
+                if(history.index-1 > 0){
+                    history.index--;
+                    set_verts(history.verts[history.index-1]);
                 }
-            }else if(p.base.action.name == 'redo'){
-                if(data.history_index+1 <= data.history.length){
-                    data.history_index++;
-                    set_verts(data.history[data.history_index-1]);
+            }else if(p.base.act.name == 'redo'){
+                if(history.index+1 <= history.verts.length){
+                    history.index++;
+                    set_verts(history.verts[history.index-1]);
                 }
             }
-            set_data(data);
+            set_history(history);
         }
-    },[p.base.action]);
+    },[p.base.act]);
 
-    return (
+    return ([
         r('mesh', {
+            name: 'line',
             ref: mesh,
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
         },[
             r('meshLine', {attach:'geometry', points: verts}),
             r('meshLineMaterial', {ref:material, color:selected?'lightblue':'grey',}),
-        ])
-    )
+            //...constraints.map((constraint)=>
+        ]),
+        (verts.length<6 || p.selection=='off') ? null :
+            r('points',{name:'point'},[
+                r('bufferGeometry',{},
+                    r('bufferAttribute', {attach: 'attributes-position', ...new BufferAttribute(vtx.endpoints(verts,2),3)} )
+                ),
+                r('pointsMaterial',{color:'hsl(0,50%,40%)', size:10,}),
+            ]),
+    ])
 }
 
 //color:new Color('hsl(0,0%,55%)'),})

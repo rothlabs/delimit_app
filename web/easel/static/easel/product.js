@@ -4,14 +4,14 @@ import {Box3} from 'three';
 import {Line} from 'easel/line.js';
 import {useThree} from 'r3f';
 
-const product = JSON.parse(document.getElementById('product').innerHTML);
+const product = JSON.parse(document.getElementById('product').innerHTML); 
 useGLTF.preload(product.url);
 const bounds = new Box3();
 
 export function Product(p) {
 	const group = useRef()
-	const { camera } = useThree(); 
-	const { nodes } = useGLTF(product.url)
+	const {camera} = useThree(); 
+	const {nodes} = useGLTF(product.url)
 	const [fit_camera, set_fit_camera] = useState(false);
 	
 	useEffect(()=>{ // need to only call this on page load or when recenter button is pushed
@@ -28,7 +28,7 @@ export function Product(p) {
 
 	useEffect(()=>{
 		set_fit_camera(true);
-		p.base.set_action({name:'record'});
+		p.base.set_act({name:'record'});
 	},[nodes]);
 
 	return (
