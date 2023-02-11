@@ -11,7 +11,8 @@ const bounds = new Box3();
 export function Product(p) {
 	const group = useRef()
 	const {camera} = useThree(); 
-	const {nodes} = useGLTF(product.url)
+	const {nodes} = useGLTF(product.url);
+	const [lines, set_lines] = useState();
 	const [fit_camera, set_fit_camera] = useState(false);
 	
 	useEffect(()=>{ // need to only call this on page load or when recenter button is pushed
@@ -27,6 +28,10 @@ export function Product(p) {
 	},[fit_camera]); 
 
 	useEffect(()=>{
+		nodes.Scene.children.map((node)=>(
+			{verts: node.geometry.attributes.position.array, ...p})
+		))
+		set_lines();
 		set_fit_camera(true);
 		p.base.set_act({name:'record'});
 	},[nodes]);

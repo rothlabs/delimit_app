@@ -1,5 +1,5 @@
 import ReactDOM from 'react_dom'; 
-import {createElement as r, useState} from 'react';
+import {createElement as r, useState, useEffect} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Camera_Control_2D} from 'core/camera_control.js';
 import {Vector2} from 'three';
@@ -20,7 +20,12 @@ function Board(p) {
     const [mod_verts, set_mod_verts] = useState();
     const [mod_vertex, set_mod_vertex] = useState();
     const [selection, set_selection] = useState();
+    const [allow_record, set_allow_record] = useState();
+
     useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom);
+
+    useEffect(()=>set_allow_record(true),[mod_vertex]);
+
     return (
         r('mesh', { 
             name: 'board',
@@ -46,9 +51,10 @@ function Board(p) {
                     }
                     new_verts.length = 0;
                     set_draw_verts(new Float32Array());
-                    //if(record){
-                        //p.base.set_act({name:'record'});
-                    //}
+                    if(allow_record){
+                        p.base.set_act({name:'record'});
+                        set_allow_record(false);
+                    }
                 }
             }, 
             onPointerMove:(event)=>{
