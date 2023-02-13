@@ -18,9 +18,9 @@ function Board(p) {
     const {camera} = useThree();
     //const [draw_verts, set_draw_verts] = useState([]);
     const [mod_verts, set_mod_verts] = useState();
-    //const [mod_vertex, set_mod_vertex] = useState();
+    const [mod_vertex, set_mod_vertex] = useState();
     const [selection, set_selection] = useState();
-    const [allow_record, set_allow_record] = useState();
+    //const [allow_record, set_allow_record] = useState();
     const product = useRef();
     const draw_line = useRef();
 
@@ -33,7 +33,7 @@ function Board(p) {
             name: 'board',
             onClick:(event)=>{
                 event.stopPropagation();
-                if(event.delta < 3){
+                if(event.delta < 3 && event.intersections[0].object.name != 'endpoint'){
                     set_selection(event.intersections[0]);
                 }
             },
@@ -42,22 +42,34 @@ function Board(p) {
                 if([0,1].includes(event.which)){
                     pointers_down++;
                     pointer_start.set(event.clientX,event.clientY);
+                    if(!(selection && selection.object.name == 'line')){
+                        if(event.intersections[0].object.name == 'endpoint'){
+                            set_selection(event.intersections[0]);
+                        }
+                    }
                 }
             },
             onPointerUp:(event)=>{
                 event.stopPropagation();
                 if([0,1].includes(event.which)){
                     pointers_down--;
-                    if(new_verts.length > 4){
-                        set_mod_verts(new Float32Array(new_verts));
+                    if(selection){
+                        const point = event.intersections[event.intersections.length-1].point; 
+                        set_mod_vertex(point);
+                        if(new_verts.length > 5){
+                            set_mod_verts(new Float32Array(new_verts));
+                        }
+                        new_verts.length = 0;
+                        draw_line.current.set_verts(new Float32Array());
+                        if(selection.object.name == 'endpoint'){
+                            set_selection(null);
+                        }
                     }
-                    new_verts.length = 0;
-                    draw_line.current.set_verts(new Float32Array());
                     //set_draw_verts(new Float32Array());
-                    if(allow_record){
-                        p.base.set_act({name:'record'});
-                        set_allow_record(false);
-                    }
+                    //if(allow_record){
+                    //    p.base.set_act({name:'record'});
+                    //    set_allow_record(false);
+                    //}
                 }
             }, 
             onPointerMove:(event)=>{
@@ -73,7 +85,7 @@ function Board(p) {
                         }
                     }else if(selection.object.name == 'endpoint'){
                         product.current.set_endpoint(point);
-                        set_allow_record(true);
+                        //set_allow_record(true);
                         //set_mod_vertex(point);
                     }
                 }
@@ -81,7 +93,7 @@ function Board(p) {
         },   
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
-            r(Product, {ref:product, mod_verts:mod_verts, selection:selection, ...p}), //mod_vertex:mod_vertex,
+            r(Product, {ref:product, mod_vertex:mod_vertex, mod_verts:mod_verts, selection:selection, ...p}), 
             r(Line, {ref:draw_line, selection:'off', ...p}), // temp drawing line for visualization
         )
     )

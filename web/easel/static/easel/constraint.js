@@ -15,7 +15,7 @@ export function Coincident(p){
             if(v1().distanceTo(v2()) > max_dist){
                 correct();
                 depth--;
-                p.line2.update({density:true, depth:depth});
+                p.line2.update({density:true, depth:depth}); 
             }
         }
     };

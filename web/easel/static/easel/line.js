@@ -9,8 +9,9 @@ const sprite = new TextureLoader().load('/static/texture/disc.png');
 
 export const Line = forwardRef(function Line(p, ref) {
     const mesh = useRef();
-    const geom = useRef();
+    const mesh_line = useRef();
     const endpoints = useRef();
+    const endpoints_geom = useRef();
     const endpoints_color = useRef();
     const endpoints_pos = useRef();
     const material = useRef();
@@ -18,6 +19,7 @@ export const Line = forwardRef(function Line(p, ref) {
     const [selected, set_selected] = useState(false);
     const [selected_point, set_selected_point] = useState(-1);
     const [verts, set_verts] = useState([]);
+    const [endpoint_verts, set_endpoint_verts] = useState([]);
     const [act, set_act] = useState({name:''});
     const [constraints, set_constraints] = useState([]);
     const [history, set_history] = useState({
@@ -25,19 +27,28 @@ export const Line = forwardRef(function Line(p, ref) {
         index:0,
     });
 
-    useImperativeHandle(ref, () => {return {
+    useImperativeHandle(ref,()=>{return{
         set_verts(vts){
-            geom.current.setPoints(vts);
-            //endpoints_pos.current.setAttribute('position', new THREE.BufferAttribute(vtx.endpoints(verts,
-            //    (selected_point==0)? 3 : 2,
-            //    (selected_point==1)? 3 : 2,
-            //),3));
-            //endpoints_pos.current.computeBoundingSphere();
+            mesh_line.current.setPoints(vts);
         },
-        set_endpoint(ep){
-
+        set_endpoint(new_endpoint){
+            if(selected_point == 0){
+                const new_verts = vtx.map(last_record(), new_endpoint, vtx.vect(last_record(),-1)); //[draw.point.x,draw.point.y,0]
+                update({verts:new_verts});
+                //set_act({name:'update', verts:new_verts, density:true});
+            }else if(selected_point == 1){
+                const new_verts = vtx.map(last_record(), vtx.vect(last_record(),0), new_endpoint); //vtx.first(line.last_record())
+                update({verts:new_verts});
+                //set_act({name:'update', verts:new_verts, density:true});
+            }
         },
     };});
+
+    function update(args){
+        mesh_line.current.setPoints(args.verts);
+        endpoints_pos.current.array = vtx.endpoints(args.verts, (selected_point==0)?3:2, (selected_point==1)?3:2);
+        endpoints_geom.current.computeBoundingSphere();
+    }
 
     useFrame(()=> {
         material.current.lineWidth = 4 / camera.zoom;
@@ -51,6 +62,7 @@ export const Line = forwardRef(function Line(p, ref) {
         if(act.name == 'update'){
             if(act.density){
                 set_verts(vtx.set_density(act.verts,1,2));
+                set_endpoint_verts(vtx.endpoints(act.verts, (selected_point==0)?3:2, (selected_point==1)?3:2));
             }
             if(act.depth > 0){
                 constraints.forEach(constraint =>{
@@ -66,6 +78,7 @@ export const Line = forwardRef(function Line(p, ref) {
     useEffect(()=>{
         if(p.verts){
             set_verts(p.verts);
+            set_endpoint_verts(vtx.endpoints(p.verts, (selected_point==0)?3:2, (selected_point==1)?3:2));
         }
     },[p.verts]);
 
@@ -93,10 +106,10 @@ export const Line = forwardRef(function Line(p, ref) {
     useEffect(()=>{ 
         if(selected_point == 0){
             const new_verts = vtx.map(last_record(), p.mod_vertex, vtx.vect(last_record(),-1)); //[draw.point.x,draw.point.y,0]
-            set_act({name:'update', verts:new_verts, density:true});
+            set_act({name:'update', verts:new_verts, density:true, record:true});
         }else if(selected_point == 1){
             const new_verts = vtx.map(last_record(), vtx.vect(last_record(),0), p.mod_vertex); //vtx.first(line.last_record())
-            set_act({name:'update', verts:new_verts, density:true});
+            set_act({name:'update', verts:new_verts, density:true, record:true});
         }
     },[p.mod_vertex]);
 
@@ -118,11 +131,13 @@ export const Line = forwardRef(function Line(p, ref) {
                 if(history.index-1 > 0){
                     history.index--;
                     set_verts(history.verts[history.index-1]);
+                    set_endpoint_verts(vtx.endpoints(history.verts[history.index-1], (selected_point==0)?3:2, (selected_point==1)?3:2));
                 }
             }else if(p.base.act.name == 'redo'){
                 if(history.index+1 <= history.verts.length){
                     history.index++;
                     set_verts(history.verts[history.index-1]);
+                    set_endpoint_verts(vtx.endpoints(history.verts[history.index-1], (selected_point==0)?3:2, (selected_point==1)?3:2));
                 }
             }
             set_history(history);
@@ -135,17 +150,14 @@ export const Line = forwardRef(function Line(p, ref) {
             ref: mesh,
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
         },
-            r('meshLine', {attach:'geometry', points: verts, ref:geom}),
+            r('meshLine', {attach:'geometry', points: verts, ref:mesh_line}),
             r('meshLineMaterial', {ref:material, color:selected?'lightblue':'grey',}),
             //...constraints.map((constraint)=>
         ),
         (verts.length<6 || p.selection=='off') ? null :
-            r('points',{name:'endpoint', ref:endpoints},
-                r('bufferGeometry',{},
-                    r('bufferAttribute', {ref:endpoints_pos, attach: 'attributes-position', count:2, itemSize:3, array:vtx.endpoints(verts,
-                        (selected_point==0)? 3 : 2,
-                        (selected_point==1)? 3 : 2,
-                    )}),
+            r('points',{name:'endpoint', ref:endpoints}, //,onPointerUp:(event)=>{console.log('endpoint up');}
+                r('bufferGeometry',{ref:endpoints_geom},
+                    r('bufferAttribute',{ref:endpoints_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts}),
                     r('bufferAttribute',{ref:endpoints_color, attach:'attributes-color', count:2, itemSize:3, array:new Float32Array([
                             ...(selected_point==0)? [.1,.2,1] : [.05,.05,.05],
                             ...(selected_point==1)? [.1,.2,1] : [.05,.05,.05],
