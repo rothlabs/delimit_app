@@ -5,12 +5,12 @@ export function Row(p){
     return r('div', {className: 'row'}, p.children);
 }
 
-export function Col(p){
-    return r('div', {className: 'col'}, p.children);
+export function Col(p){ 
+    return r('div', {className: 'col'}, p.children); 
 }
 
 export function Button(p){ 
-    return r('button', {className: 'btn btn-secondary', onClick: p.func}, p.text);
+    return r('button', {className:'btn btn-secondary', onClick:p.func}, p.text);
 }
 
 

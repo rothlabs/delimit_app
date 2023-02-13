@@ -1,5 +1,5 @@
-import {createElement as r, useEffect, useRef, useState } from 'react';
-import { MeshLine, MeshLineMaterial, MeshLineRaycast } from 'core/mesh_line.js';
+import {createElement as r, useEffect, useRef, useState, Fragment, forwardRef, useImperativeHandle } from 'react';
+import {MeshLine, MeshLineMaterial, MeshLineRaycast } from 'core/mesh_line.js';
 import {extend, useThree, useFrame} from 'r3f';
 import {TextureLoader} from 'three';
 import * as vtx from 'easel/vertex.js';
@@ -7,11 +7,12 @@ import * as vtx from 'easel/vertex.js';
 extend({ MeshLine, MeshLineMaterial }) 
 const sprite = new TextureLoader().load('/static/texture/disc.png');
 
-export function Line(p) {
+export const Line = forwardRef(function Line(p, ref) {
     const mesh = useRef();
-    const points = useRef();
-    const points_color = useRef();
-    const points_pos = useRef();
+    const geom = useRef();
+    const endpoints = useRef();
+    const endpoints_color = useRef();
+    const endpoints_pos = useRef();
     const material = useRef();
     const {camera} = useThree();
     const [selected, set_selected] = useState(false);
@@ -24,11 +25,25 @@ export function Line(p) {
         index:0,
     });
 
+    useImperativeHandle(ref, () => {return {
+        set_verts(vts){
+            geom.current.setPoints(vts);
+            //endpoints_pos.current.setAttribute('position', new THREE.BufferAttribute(vtx.endpoints(verts,
+            //    (selected_point==0)? 3 : 2,
+            //    (selected_point==1)? 3 : 2,
+            //),3));
+            //endpoints_pos.current.computeBoundingSphere();
+        },
+        set_endpoint(ep){
+
+        },
+    };});
+
     useFrame(()=> {
         material.current.lineWidth = 4 / camera.zoom;
-        if(points_color.current && points_pos.current){
-            points_color.current.needsUpdate = true;
-            points_pos.current.needsUpdate = true;
+        if(endpoints_color.current && endpoints_pos.current){
+            endpoints_color.current.needsUpdate = true;
+            endpoints_pos.current.needsUpdate = true;
         }
     }); // make this run only on zoom change
 
@@ -49,7 +64,9 @@ export function Line(p) {
     },[act]);
 
     useEffect(()=>{
-        set_verts(p.verts);
+        if(p.verts){
+            set_verts(p.verts);
+        }
     },[p.verts]);
 
     useEffect(()=>{
@@ -58,7 +75,7 @@ export function Line(p) {
         if(p.selection){
             if(p.selection.object == mesh.current){
                 set_selected(true);
-            }else if(p.selection.object == points.current){
+            }else if(p.selection.object == endpoints.current){
                 set_selected_point(p.selection.index);
             }
         }
@@ -112,32 +129,32 @@ export function Line(p) {
         }
     },[p.base.act]);
 
-    return ([
+    return (r(Fragment,{},
         r('mesh', {
             name: 'line',
             ref: mesh,
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
-        },[
-            r('meshLine', {attach:'geometry', points: verts}),
+        },
+            r('meshLine', {attach:'geometry', points: verts, ref:geom}),
             r('meshLineMaterial', {ref:material, color:selected?'lightblue':'grey',}),
             //...constraints.map((constraint)=>
-        ]),
+        ),
         (verts.length<6 || p.selection=='off') ? null :
-            r('points',{name:'vertex', ref:points},[
-                r('bufferGeometry',{},[
-                    r('bufferAttribute', {ref:points_pos, attach: 'attributes-position', count:2, itemSize:3, array:vtx.endpoints(verts,
+            r('points',{name:'endpoint', ref:endpoints},
+                r('bufferGeometry',{},
+                    r('bufferAttribute', {ref:endpoints_pos, attach: 'attributes-position', count:2, itemSize:3, array:vtx.endpoints(verts,
                         (selected_point==0)? 3 : 2,
                         (selected_point==1)? 3 : 2,
                     )}),
-                    r('bufferAttribute',{ref:points_color, attach:'attributes-color', count:2, itemSize:3, array:new Float32Array([
+                    r('bufferAttribute',{ref:endpoints_color, attach:'attributes-color', count:2, itemSize:3, array:new Float32Array([
                             ...(selected_point==0)? [.1,.2,1] : [.05,.05,.05],
                             ...(selected_point==1)? [.1,.2,1] : [.05,.05,.05],
-                    ])})
-                ]),
+                    ])}),
+                ),
                 r('pointsMaterial',{size:12, vertexColors:true, map:sprite, alphaTest:.5, transparent:true}),
-            ]),
-    ])
-}
+            ),
+    ))
+});
 
 //color:new Color('hsl(0,0%,55%)'),})
 

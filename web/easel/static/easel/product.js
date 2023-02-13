@@ -37,8 +37,8 @@ export function Product(p) {
 	},[nodes]);
 
 	return (
-		r('group', {ref:group, dispose:null}, nodes.Scene.children.map((node)=>(
-			r(Line, {verts: node.geometry.attributes.position.array, ...p})
+		r('group', {ref:group, dispose:null}, nodes.Scene.children.map((node,i)=>(
+			r(Line, {key:i, verts: node.geometry.attributes.position.array, ...p})
 		)))
 	)
 }
