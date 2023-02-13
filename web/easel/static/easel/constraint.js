@@ -51,11 +51,3 @@ export function Coincident(line1, line2){
 
     return constraint;
 }
-
-export function Vert_to_Line(line1, line2){
-    constraint = {};
-    constraint.enforce = function(){
-        
-    }
-    return constraint;
-}
