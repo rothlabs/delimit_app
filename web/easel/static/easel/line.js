@@ -18,37 +18,54 @@ export const Line = forwardRef(function Line(p, ref) {
     const {camera} = useThree();
     const [selected, set_selected] = useState(false);
     const [selected_point, set_selected_point] = useState(-1);
-    const [verts, set_verts] = useState([]);
+    //const [verts, set_verts] = useState([]);
     const [endpoint_verts, set_endpoint_verts] = useState([]);
-    const [act, set_act] = useState({name:''});
+    //const [act, set_act] = useState({name:''});
     const [constraints, set_constraints] = useState([]);
     const [history, set_history] = useState({
         verts:[],
         index:0,
     });
 
-    useImperativeHandle(ref,()=>{return{
+    const make_endpoint_verts=()=> {
+        if(mesh_line.current) 
+            return vtx.endpoints(mesh_line.current.positions, (selected_point==0)?2:1, (selected_point==1)?2:1);
+        return [0,0,0,0,0,0];
+    }
+
+    function weak_update(args){
+        //console.log(mesh_line.current.positions[0]);
+        mesh_line.current.setPoints(args.verts);
+        endpoints_pos.current.array = make_endpoint_verts();//args.verts);
+        endpoints_geom.current.computeBoundingSphere();
+        if(args.depth > 0){
+            constraints.forEach(constraint =>{
+                constraint.enforce({strength:'weak', depth:args.depth});
+            });
+        }
+    }
+
+    useImperativeHandle(ref,()=>{return{ 
+        verts(){return mesh_line.current.positions}, //mesh_line.current.attributes.position.array},//
         set_verts(vts){
             mesh_line.current.setPoints(vts);
         },
         set_endpoint(new_endpoint){
-            if(selected_point == 0){
-                const new_verts = vtx.map(last_record(), new_endpoint, vtx.vect(last_record(),-1)); //[draw.point.x,draw.point.y,0]
-                update({verts:new_verts});
-                //set_act({name:'update', verts:new_verts, density:true});
-            }else if(selected_point == 1){
-                const new_verts = vtx.map(last_record(), vtx.vect(last_record(),0), new_endpoint); //vtx.first(line.last_record())
-                update({verts:new_verts});
-                //set_act({name:'update', verts:new_verts, density:true});
-            }
+            // function update(verts){
+            //     mesh_line.current.setPoints(verts);
+            //     endpoints_pos.current.array = make_endpoint_verts(verts);
+            //     endpoints_geom.current.computeBoundingSphere();
+            // }
+            if(selected_point == 0) weak_update({verts:vtx.map(last_record(), new_endpoint, vtx.vect(last_record(),-1)), depth:2});
+            if(selected_point == 1) weak_update({verts:vtx.map(last_record(), vtx.vect(last_record(),0), new_endpoint), depth:2});
+        },
+        weak_update:(args)=> weak_update(args),
+        strong_update:(args)=> strong_update(args),
+        last_record:()=>last_record(),//return history.verts[history.index-1]},//last_record, 
+        add_constraint(constraint){
+            set_constraints((c)=> [constraint, ...c]);
         },
     };});
-
-    function update(args){
-        mesh_line.current.setPoints(args.verts);
-        endpoints_pos.current.array = vtx.endpoints(args.verts, (selected_point==0)?3:2, (selected_point==1)?3:2);
-        endpoints_geom.current.computeBoundingSphere();
-    }
 
     useFrame(()=> {
         material.current.lineWidth = 4 / camera.zoom;
@@ -58,64 +75,60 @@ export const Line = forwardRef(function Line(p, ref) {
         }
     }); // make this run only on zoom change
 
-    useEffect(()=>{
-        if(act.name == 'update'){
-            if(act.density){
-                set_verts(vtx.set_density(act.verts,1,2));
-                set_endpoint_verts(vtx.endpoints(act.verts, (selected_point==0)?3:2, (selected_point==1)?3:2));
-            }
-            if(act.depth > 0){
-                constraints.forEach(constraint =>{
-                    constraint.set_act({name:'enforce', depth:act.depth});
-                });
-            }
-            if(act.record){
-                p.base.set_act({name:'record'});
-            }
+    function strong_update(args){
+        console.log('strong_update');
+        //console.log(args.verts);
+        var verts = args.verts;
+        if(!args.raw) verts = vtx.set_density(args.verts,1,2);
+        set_verts(verts);
+        set_endpoint_verts(make_endpoint_verts(verts));
+        if(args.depth > 0){
+            constraints.forEach(constraint =>{
+                //constraint.enforce({strength:'strong', depth:args.depth});
+            });
         }
-    },[act]);
+        if(args.record) p.base.set_act({name:'record'});
+    }
+
+    //useEffect(()=>{
+    //    if(act.name == 'update') strong_update(act);
+    //},[act]);
+
+    //useEffect(()=>{if(p.verts){
+    //    strong_update({verts:p.verts, record:true});  
+        //weak_update({verts:p.verts, record:true}); 
+    //}},[p.verts]);
 
     useEffect(()=>{
-        if(p.verts){
-            set_verts(p.verts);
-            set_endpoint_verts(vtx.endpoints(p.verts, (selected_point==0)?3:2, (selected_point==1)?3:2));
-        }
-    },[p.verts]);
-
-    useEffect(()=>{
+        //console.log(constraints.length);
         set_selected(false); 
         set_selected_point(-1); 
         if(p.selection){
-            if(p.selection.object == mesh.current){
-                set_selected(true);
-            }else if(p.selection.object == endpoints.current){
-                set_selected_point(p.selection.index);
-            }
+            if(p.selection.object == mesh.current)      set_selected(true);
+            if(p.selection.object == endpoints.current) set_selected_point(p.selection.index);
         }
     },[p.selection]);
 
     useEffect(()=>{ 
-       if(selected){
-            const closest = vtx.closest_to_endpoints(verts, p.mod_verts);
-            const new_verts = vtx.map(p.mod_verts, closest.v1, closest.v2);
+        if(selected && p.mod.verts.length>5){
+            const closest = vtx.closest_to_endpoints(verts, p.mod.verts);
+            const new_verts = vtx.map(p.mod.verts, closest.v1, closest.v2);
             const new_verts_2 = vtx.replace(verts, closest.i1, closest.i2, new_verts);
-            set_act({name:'update', verts: new_verts_2, density:true, constrain:true, record:true});
-       }
-	},[p.mod_verts]);
-
-    useEffect(()=>{ 
-        if(selected_point == 0){
-            const new_verts = vtx.map(last_record(), p.mod_vertex, vtx.vect(last_record(),-1)); //[draw.point.x,draw.point.y,0]
-            set_act({name:'update', verts:new_verts, density:true, record:true});
-        }else if(selected_point == 1){
-            const new_verts = vtx.map(last_record(), vtx.vect(last_record(),0), p.mod_vertex); //vtx.first(line.last_record())
-            set_act({name:'update', verts:new_verts, density:true, record:true});
+            //strong_update({verts: new_verts_2, depth:1, record:true});
         }
-    },[p.mod_vertex]);
+        if(selected_point == 0){
+            const new_verts = vtx.map(last_record(), p.mod.endpoint, vtx.vect(last_record(),-1)); //[draw.point.x,draw.point.y,0]
+            //strong_update({verts:new_verts, depth:2, record:true});
+        }else if(selected_point == 1){
+            const new_verts = vtx.map(last_record(), vtx.vect(last_record(),0), p.mod.endpoint); //vtx.first(line.last_record())
+            //strong_update({verts:new_verts, depth:2, record:true});
+        }
+	},[p.mod]);
 
     function last_record(){
-        return history.verts[history.index-1];
+        return p.verts;//history.verts[history.index-1];
     }
+
     useEffect(()=>{
         if(p.base.act && p.selection!='off'){
             if(p.base.act.name == 'record'){
@@ -130,34 +143,34 @@ export const Line = forwardRef(function Line(p, ref) {
             }else if(p.base.act.name == 'undo'){
                 if(history.index-1 > 0){
                     history.index--;
-                    set_verts(history.verts[history.index-1]);
-                    set_endpoint_verts(vtx.endpoints(history.verts[history.index-1], (selected_point==0)?3:2, (selected_point==1)?3:2));
+                    //strong_update({verts:history.verts[history.index-1], raw:true});
                 }
             }else if(p.base.act.name == 'redo'){
                 if(history.index+1 <= history.verts.length){
                     history.index++;
-                    set_verts(history.verts[history.index-1]);
-                    set_endpoint_verts(vtx.endpoints(history.verts[history.index-1], (selected_point==0)?3:2, (selected_point==1)?3:2));
+                    //strong_update({verts:history.verts[history.index-1], raw:true});
                 }
             }
             set_history(history);
         }
     },[p.base.act]);
 
+    //console.log('render line');
+    //console.log(mesh_line.current);
     return (r(Fragment,{},
         r('mesh', {
             name: 'line',
             ref: mesh,
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
         },
-            r('meshLine', {attach:'geometry', points: verts, ref:mesh_line}),
+            r('meshLine', {attach:'geometry', points: p.verts, ref:mesh_line}),
             r('meshLineMaterial', {ref:material, color:selected?'lightblue':'grey',}),
             //...constraints.map((constraint)=>
         ),
-        (verts.length<6 || p.selection=='off') ? null :
+        (p.verts.length<6 || p.selection=='off') ? null :
             r('points',{name:'endpoint', ref:endpoints}, //,onPointerUp:(event)=>{console.log('endpoint up');}
                 r('bufferGeometry',{ref:endpoints_geom},
-                    r('bufferAttribute',{ref:endpoints_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts}),
+                    r('bufferAttribute',{ref:endpoints_pos, attach: 'attributes-position', count:2, itemSize:3, array:make_endpoint_verts()}), //endpoint_verts
                     r('bufferAttribute',{ref:endpoints_color, attach:'attributes-color', count:2, itemSize:3, array:new Float32Array([
                             ...(selected_point==0)? [.1,.2,1] : [.05,.05,.05],
                             ...(selected_point==1)? [.1,.2,1] : [.05,.05,.05],

@@ -3,10 +3,12 @@ import {useGLTF} from 'drei';
 import {Box3} from 'three';
 import {Line} from 'easel/line.js';
 import {useThree} from 'r3f';
+import {Coincident} from 'easel/constraint.js';
 
 const product = JSON.parse(document.getElementById('product').innerHTML); 
 useGLTF.preload(product.url);
 const bounds = new Box3();
+var add_constraints = true;
 
 export const Product = forwardRef(function Product(p, ref) {
 	const group = useRef();
@@ -14,7 +16,8 @@ export const Product = forwardRef(function Product(p, ref) {
 	const {camera} = useThree(); 
 	const {nodes} = useGLTF(product.url);
 	//const [lines, set_lines] = useState();
-	const [fit_camera, set_fit_camera] = useState(false);
+	const [post_load, set_post_load] = useState(false);
+	const [post_load_2, set_post_load_2] = useState(false);
 
 	useImperativeHandle(ref,()=>{return{
         set_endpoint(ep){
@@ -32,19 +35,35 @@ export const Product = forwardRef(function Product(p, ref) {
 			camera.zoom = camera_height / (bounds.max.y - bounds.min.y)*.75;
 		}
 		camera.updateProjectionMatrix();
-	},[fit_camera]); 
+
+		set_post_load_2(true);
+
+	},[post_load]); 
 
 	useEffect(()=>{
-		//nodes.Scene.children.map((node)=>(
-		//	{verts: node.geometry.attributes.position.array, ...p})
-		//))
-		//set_lines();
-		set_fit_camera(true);
-		p.base.set_act({name:'record'});
+		if (add_constraints){
+			add_constraints = false;
+			console.log(lines.current);
+			lines.current.forEach(line1 => {
+				lines.current.forEach(line2=> Coincident(line1, line2));
+			});
+		}
+	},[post_load_2]); 
+
+	useEffect(()=>{
+		set_post_load(true);
 	},[nodes]);
 
 	return (
-		r('group', {ref:group, dispose:null}, nodes.Scene.children.map((node,i)=>(
+		r('group', {ref:group, dispose:null,
+			//onClick:(event)=>{ if (add_constraints){
+				//add_constraints = false;
+				//console.log(lines.current);
+				//lines.current.forEach(line1 => {
+					//lines.current.forEach(line2=> Coincident(line1, line2));
+				//});
+			//}},
+		}, nodes.Scene.children.map((node,i)=>(
 			r(Line, {ref:el=>lines.current[i]=el, key:i, verts:node.geometry.attributes.position.array, ...p})
 		)))
 	)

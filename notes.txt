@@ -1,3 +1,7 @@
+  
+  "zustand":   "https://esm.sh/zustand?dev", 
+      "nanoid":    "https://esm.sh/nanoid",
+
 {{ product.data | json_script:"product" }}
 <script type="module" src="{% static 'easel/init.js' %}"></script>
 

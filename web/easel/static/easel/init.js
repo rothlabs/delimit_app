@@ -15,18 +15,13 @@ var pointers_down = 0;
 var raycaster=null;
 
 function Board(p) {
-    const {camera} = useThree();
-    //const [draw_verts, set_draw_verts] = useState([]);
-    const [mod_verts, set_mod_verts] = useState();
-    const [mod_vertex, set_mod_vertex] = useState();
+    const {camera} = useThree(); 
+    const [mod, set_mod] = useState({verts:[],endpoint:null});
     const [selection, set_selection] = useState();
-    //const [allow_record, set_allow_record] = useState();
     const product = useRef();
     const draw_line = useRef();
 
     useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom);
-
-    //useEffect(()=>set_allow_record(true),[mod_vertex]);
 
     return (
         r('mesh', { 
@@ -53,23 +48,17 @@ function Board(p) {
                 event.stopPropagation();
                 if([0,1].includes(event.which)){
                     pointers_down--;
-                    if(selection){
-                        const point = event.intersections[event.intersections.length-1].point; 
-                        set_mod_vertex(point);
-                        if(new_verts.length > 5){
-                            set_mod_verts(new Float32Array(new_verts));
-                        }
+                    if(selection){ 
+                        set_mod({
+                            verts: new Float32Array(new_verts),
+                            endpoint: event.intersections[event.intersections.length-1].point,
+                        });
                         new_verts.length = 0;
                         draw_line.current.set_verts(new Float32Array());
                         if(selection.object.name == 'endpoint'){
-                            set_selection(null);
+                            set_selection(null); 
                         }
                     }
-                    //set_draw_verts(new Float32Array());
-                    //if(allow_record){
-                    //    p.base.set_act({name:'record'});
-                    //    set_allow_record(false);
-                    //}
                 }
             }, 
             onPointerMove:(event)=>{
@@ -81,20 +70,17 @@ function Board(p) {
                         if(pointer_start.distanceTo(pointer_vect) > 2){
                             new_verts.push(point.x,point.y,1);
                             draw_line.current.set_verts(new Float32Array(new_verts));
-                            //set_draw_verts(new Float32Array(new_verts));
                         }
                     }else if(selection.object.name == 'endpoint'){
                         product.current.set_endpoint(point);
-                        //set_allow_record(true);
-                        //set_mod_vertex(point);
                     }
                 }
             },
         },   
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
-            r(Product, {ref:product, mod_vertex:mod_vertex, mod_verts:mod_verts, selection:selection, ...p}), 
-            r(Line, {ref:draw_line, selection:'off', ...p}), // temp drawing line for visualization
+            r(Product, {ref:product, mod:mod, selection:selection, ...p}), 
+            r(Line, {ref:draw_line, verts:[], selection:'off', ...p}), // temp drawing line for visualization
         )
     )
 }

@@ -1,58 +1,61 @@
 import * as vtx from 'easel/vertex.js'; 
 
-// constrain endpoint of p.line2 to p.line1 of endpoints are overlaping
-export function Coincident(p){
+// constrain endpoint of line2 to line1 of endpoints are overlaping
+export function Coincident(line1,line2){
+    //line1 = line1.current;
+    //line2 = line2.current;
     const constraint = {};
-    const mount_dist = 2;
-    const max_dist = 0.5;
-    var v1 = () => {return vtx.vect(p.line1.verts,0);}
-    var v2 = () => {return vtx.vect(p.line2.verts,0);}
-    var v1b = () => {return vtx.vect(p.line1.verts,-1);}
-    var v2b = () => {return vtx.vect(p.line2.verts,-1);}
+    const mount_dist = 6;
+    const max_dist = 5;
+    var correction = null; 
+    var v1 = () => {return vtx.vect(line1.verts(),0);}
+    var v2 = () => {return vtx.vect(line2.verts(),0);}
+    var v1b = () => {return vtx.vect(line1.verts(),-1);}
+    var v2b = () => {return vtx.vect(line2.verts(),-1);}
 
-    constraint.enforce = function(depth){
-        if(correct != null){
+    constraint.enforce = function(args){
+        if(correction != null){
+            //console.log(v2());
             if(v1().distanceTo(v2()) > max_dist){
-                correct();
-                depth--;
-                p.line2.update({density:true, depth:depth}); 
+                args.depth--;
+                if(args.strength=='weak')   line2.weak_update({verts:correction(), depth:args.depth}); 
+                if(args.strength=='strong') line2.strong_update({verts:correction(), depth:args.depth}); 
             }
         }
     };
 
-    var correct = null;
-    if(p.line1 != p.line2){
+    if(line1 != line2){
         if(v1().distanceTo(v2()) < mount_dist){
-            correct=()=>{ p.line2.verts = vtx.map(p.line2.last_record(), v1(), vtx.vect(p.line2.last_record(),-1)); };
+            correction=()=>{return vtx.map(line2.last_record(), v1(), vtx.vect(line2.verts(),-1)); };
         }else if(v1().distanceTo(v2b()) < mount_dist){
             v2 = v2b;
-            correct=()=>{ p.line2.verts = vtx.map(p.line2.last_record(), vtx.vect(p.line2.last_record(),0), v1()); };
+            correction=()=>{return vtx.map(line2.last_record(), vtx.vect(line2.verts(),0), v1()); };
         }else if(v1b().distanceTo(v2()) < mount_dist){
             v1 = v1b;
-            correct=()=>{ p.line2.verts = vtx.map(p.line2.last_record(), v1(), vtx.vect(p.line2.last_record(),-1)) };
+            correction=()=>{return vtx.map(line2.last_record(), v1(), vtx.vect(line2.verts(),-1)) };
         }else if(v1b().distanceTo(v2b()) < mount_dist){
             v1 = v1b;
             v2 = v2b;
-            correct=()=>{ p.line2.verts = vtx.map(p.line2.last_record(), vtx.vect(p.line2.last_record(),0), v1()); };
-        }else if(vtx.closest(p.line1.verts, v2()).dist < mount_dist){
-            v1=()=>{ return vtx.closest(p.line1.verts, v2()).vert; }
-            correct=()=>{ p.line2.verts = vtx.map(p.line2.last_record(), v1(), vtx.vect(p.line2.last_record(),-1)); };
-            p.line2.set_constraints(constraint);
-        }else if(vtx.closest(p.line1.verts, v2b()).dist < mount_dist){
-            v1=()=>{ return vtx.closest(p.line1.verts, v2b()).vert; }
+            correction=()=>{return vtx.map(line2.last_record(), vtx.vect(line2.verts(),0), v1()); };
+        }else if(vtx.closest(line1.verts(), v2()).dist < mount_dist){
+            v1=()=>{return vtx.closest(line1.verts(), v2()).vert; }
+            correction=()=>{return vtx.map(line2.last_record(), v1(), vtx.vect(line2.verts(),-1)); };
+            line2.add_constraint(constraint);
+        }else if(vtx.closest(line1.verts(), v2b()).dist < mount_dist){
+            v1=()=>{return vtx.closest(line1.verts(), v2b()).vert; }
             v2 = v2b;
-            correct=()=>{ p.line2.verts = vtx.map(p.line2.last_record(), vtx.vect(p.line2.last_record(),0), v1()); };
-            p.line2.set_constraints(constraint);
+            correction=()=>{return vtx.map(line2.last_record(), vtx.vect(line2.verts(),0), v1()); };
+            line2.add_constraint(constraint);
         }
-        if(correct != null){
-            p.line1.set_constraints(constraint);
+        if(correction != null){
+            line1.add_constraint(constraint);
         }
     }
 
     return null;
 }
 
-// export function Vert_to_Line(p.line1, p.line2){
+// export function Vert_to_Line(line1, line2){
 //     constraint = {};
 //     constraint.enforce = function(){
         
