@@ -15,13 +15,14 @@ export const Product = forwardRef(function Product(p, ref) {
 	const lines = useRef([]);
 	const {camera} = useThree(); 
 	const {nodes} = useGLTF(product.url);
-	//const [lines, set_lines] = useState();
 	const [post_load, set_post_load] = useState(false);
-	const [post_load_2, set_post_load_2] = useState(false);
 
 	useImperativeHandle(ref,()=>{return{
-        set_endpoint(ep){
-			lines.current.forEach(line=>line.set_endpoint(ep));
+        set_endpoint(args){
+			lines.current.forEach(line=>line.set_endpoint(args));
+        },
+		set_mod(args){
+			lines.current.forEach(line=>line.set_mod(args));
         },
     };});
 	
@@ -35,12 +36,6 @@ export const Product = forwardRef(function Product(p, ref) {
 			camera.zoom = camera_height / (bounds.max.y - bounds.min.y)*.75;
 		}
 		camera.updateProjectionMatrix();
-
-		set_post_load_2(true);
-
-	},[post_load]); 
-
-	useEffect(()=>{
 		if (add_constraints){
 			add_constraints = false;
 			console.log(lines.current);
@@ -48,22 +43,15 @@ export const Product = forwardRef(function Product(p, ref) {
 				lines.current.forEach(line2=> Coincident(line1, line2));
 			});
 		}
-	},[post_load_2]); 
+		p.base.set_act({name:'record'});
+	},[post_load]); 
 
 	useEffect(()=>{
 		set_post_load(true);
 	},[nodes]);
 
 	return (
-		r('group', {ref:group, dispose:null,
-			//onClick:(event)=>{ if (add_constraints){
-				//add_constraints = false;
-				//console.log(lines.current);
-				//lines.current.forEach(line1 => {
-					//lines.current.forEach(line2=> Coincident(line1, line2));
-				//});
-			//}},
-		}, nodes.Scene.children.map((node,i)=>(
+		r('group', {ref:group, dispose:null}, nodes.Scene.children.map((node,i)=>(
 			r(Line, {ref:el=>lines.current[i]=el, key:i, verts:node.geometry.attributes.position.array, ...p})
 		)))
 	)

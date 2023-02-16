@@ -16,7 +16,6 @@ var raycaster=null;
 
 function Board(p) {
     const {camera} = useThree(); 
-    const [mod, set_mod] = useState({verts:[],endpoint:null});
     const [selection, set_selection] = useState();
     const product = useRef();
     const draw_line = useRef();
@@ -49,7 +48,7 @@ function Board(p) {
                 if([0,1].includes(event.which)){
                     pointers_down--;
                     if(selection){ 
-                        set_mod({
+                        product.current.set_mod({
                             verts: new Float32Array(new_verts),
                             endpoint: event.intersections[event.intersections.length-1].point,
                         });
@@ -79,8 +78,8 @@ function Board(p) {
         },   
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
-            r(Product, {ref:product, mod:mod, selection:selection, ...p}), 
-            r(Line, {ref:draw_line, verts:[], selection:'off', ...p}), // temp drawing line for visualization
+            r(Product, {ref:product, selection:selection, ...p}), 
+            r(Line, {ref:draw_line, selection:'off', verts:[], ...p}), // temp drawing line for visualization
         )
     )
 }
