@@ -3,8 +3,8 @@ import * as vtx from 'easel/vertex.js';
 // constrain endpoint of line2 to line1 of endpoints are overlaping
 export function Coincident(line1,line2){
     const constraint = {};
-    const mount_dist = 6;
-    const max_dist = 5;
+    const mount_dist = 0.5;
+    const max_dist = 0.5;
     var correction = null; 
     var v1 = () => {return vtx.vect(line1.verts(),0);}
     var v2 = () => {return vtx.vect(line2.verts(),0);}

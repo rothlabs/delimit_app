@@ -25,6 +25,7 @@ function Board(p) {
     return (
         r('mesh', { 
             name: 'board',
+            position:[0,0,-100],
             onClick:(event)=>{
                 event.stopPropagation();
                 if(event.delta < 3 && event.intersections[0].object.name != 'endpoint'){

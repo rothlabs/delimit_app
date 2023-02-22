@@ -13,6 +13,8 @@ var add_constraints = true;
 export const Product = forwardRef(function Product(p, ref) {
 	const group = useRef();
 	const lines = useRef([]);
+	const meshes = useRef([]);
+	const materials = useRef({});
 	const {camera} = useThree(); 
 	const {nodes} = useGLTF(product.url);
 	const [post_load, set_post_load] = useState(false);
@@ -26,39 +28,47 @@ export const Product = forwardRef(function Product(p, ref) {
         },
     };});
 	
-	useEffect(()=>{ // need to only call this on page load or when recenter button is pushed
+	useEffect(()=>{ 
 		bounds.setFromObject( group.current );
-		const camera_width  = camera.right*2;
-		const camera_height = camera.top  *2;
-		if(camera_width < camera_height){
-			camera.zoom = camera_width  / (bounds.max.x - bounds.min.x)*.75;
-		}else{
-			camera.zoom = camera_height / (bounds.max.y - bounds.min.y)*.75;
-		}
+		const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
+		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
+		if(zoom_x <= zoom_y) camera.zoom = zoom_x * 1.75;
+		if(zoom_x > zoom_y)  camera.zoom = zoom_y * 1.75;
 		camera.updateProjectionMatrix();
 		if (add_constraints){
-			add_constraints = false;
-			console.log(lines.current);
+			add_constraints = false; 
 			lines.current.forEach(line1 => {
 				lines.current.forEach(line2=> Coincident(line1, line2));
 			});
 		}
-		p.base.set_act({name:'record'});
+		p.base.set_act({name:'record'}); 
+
+		//const texture = materials.current.lv.map;
+		//const canvas = document.createElement('canvas');
+		//canvas.width = texture.image.width;
+		//canvas.height = texture.image.height;
+		//const context = canvas.getContext('2d');
+
 	},[post_load]); 
 
 	useEffect(()=>{
 		set_post_load(true);
 	},[nodes]);
 
+	console.log(nodes);
 	return (
-		r('group', {ref:group, dispose:null}, nodes.Scene.children.map((node,i)=>(
-			r(Line, {ref:el=>lines.current[i]=el, key:i, verts:node.geometry.attributes.position.array, ...p})
-		)))
+		r('group', {ref:group, dispose:null, position:[0,0,100]}, [
+			...Object.entries(nodes).map((n,i)=>(!n[1].isMesh ? null :
+				r('mesh',{ref:el=>meshes.current[i]=el, key:i+'s', geometry:n[1].geometry, position:n[1].position}, 
+					r('meshBasicMaterial',{ref:el=>materials.current[n[1].name]=el, map:n[1].material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
+				)
+			)),
+			...Object.entries(nodes).map((node,i)=>(!node[1].isLine ? null :
+				r(Line, {ref:el=>lines.current[i]=el, verts:node[1].geometry.attributes.position.array, key:i+'l', ...p})
+			)),
+		])
 	)
 });
 
-//r('mesh', {castShadow:true, receiveShadow:true, geometry:nodes.Scene.children[0].geometry, material:new MeshLineMaterial({color: new Color('hsl(0,0%,40%)')})}),
-			//r('mesh', {castShadow:true, receiveShadow:true, geometry:nodes[1].geometry, material:new MeshLineMaterial({color: new THREE.Color('hsl(0,0%,40%)')})}),
-			//<mesh castShadow receiveShadow geometry={nodes.Curve007_2.geometry} material={materials['Material.002']} />
 
 	

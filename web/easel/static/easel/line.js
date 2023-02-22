@@ -30,7 +30,7 @@ export const Line = forwardRef(function Line(p, ref) {
     const endpoint_verts=()=> {
         if(mesh_line.current) 
             return vtx.endpoints(mesh_line.current.positions, (selected_point==0)?3:2, (selected_point==1)?3:2);
-        return [0,0,0,0,0,0];
+        return new Float32Array([0,0,0,0,0,0]);
     }
 
     function prev_verts(){

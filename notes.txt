@@ -1,4 +1,20 @@
   
+ //context.drawImage(texture.image, 0, 0);
+		//const data = context.getImageData( 0, 0, canvas.width, canvas.height );
+		//console.log( data );
+ 
+
+//r('primitive', {ref:el=>sprites.current[i]=el, object:node[1], key:i+'s', ...p})
+//, position:node[1].position, rotation:node[1].rotation 
+// r('bufferGeometry',{attach:'geometry'},
+                    // 	r('bufferAttribute',{attach: 'attributes-position', count:node[1].geometry.attributes.position.count, array:node[1].geometry.attributes.position.array, itemSize:3}),
+					// 	r('bufferAttribute',{attach: 'attributes-uv', count:node[1].geometry.attributes.uv.count, array:node[1].geometry.attributes.uv.array, itemSize:2}),
+					// 	r('bufferAttribute',{attach: 'attributes-normal', count:node[1].geometry.attributes.normal.count, array:node[1].geometry.attributes.normal.array, itemSize:3}),
+					// ), 
+//r('mesh', {castShadow:true, receiveShadow:true, geometry:nodes.Scene.children[0].geometry, material:new MeshLineMaterial({color: new Color('hsl(0,0%,40%)')})}),
+			//r('mesh', {castShadow:true, receiveShadow:true, geometry:nodes[1].geometry, material:new MeshLineMaterial({color: new THREE.Color('hsl(0,0%,40%)')})}),
+			//<mesh castShadow receiveShadow geometry={nodes.Curve007_2.geometry} material={materials['Material.002']} />
+
   "zustand":   "https://esm.sh/zustand?dev", 
       "nanoid":    "https://esm.sh/nanoid",
 
