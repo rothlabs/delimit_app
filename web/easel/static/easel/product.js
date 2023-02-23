@@ -2,6 +2,7 @@ import {createElement as r, useRef, useEffect, useState, forwardRef, useImperati
 import {useGLTF} from 'drei';
 import {Box3} from 'three';
 import {Line} from 'easel/line.js';
+import {Surface} from 'easel/surface.js';
 import {useThree} from 'r3f';
 import {Coincident} from 'easel/constraint.js';
 
@@ -13,7 +14,8 @@ var add_constraints = true;
 export const Product = forwardRef(function Product(p, ref) {
 	const group = useRef();
 	const lines = useRef([]);
-	const meshes = useRef([]);
+	const surfaces = useRef([]);
+	const defaults = useRef([]);
 	const materials = useRef({});
 	const {camera} = useThree(); 
 	const {nodes} = useGLTF(product.url);
@@ -32,8 +34,8 @@ export const Product = forwardRef(function Product(p, ref) {
 		bounds.setFromObject( group.current );
 		const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
 		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
-		if(zoom_x <= zoom_y) camera.zoom = zoom_x * 1.75;
-		if(zoom_x > zoom_y)  camera.zoom = zoom_y * 1.75;
+		if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
+		if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
 		camera.updateProjectionMatrix();
 		if (add_constraints){
 			add_constraints = false; 
@@ -55,16 +57,18 @@ export const Product = forwardRef(function Product(p, ref) {
 		set_post_load(true);
 	},[nodes]);
 
-	console.log(nodes);
 	return (
 		r('group', {ref:group, dispose:null, position:[0,0,100]}, [
-			...Object.entries(nodes).map((n,i)=>(!n[1].isMesh ? null :
-				r('mesh',{ref:el=>meshes.current[i]=el, key:i+'s', geometry:n[1].geometry, position:n[1].position}, 
+			...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('default') ? null : //.isMesh ? null :
+				r('mesh',{ref:el=>defaults.current[i]=el, key:'default_'+i, geometry:n[1].geometry, position:n[1].position}, 
 					r('meshBasicMaterial',{ref:el=>materials.current[n[1].name]=el, map:n[1].material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
 				)
 			)),
-			...Object.entries(nodes).map((node,i)=>(!node[1].isLine ? null :
-				r(Line, {ref:el=>lines.current[i]=el, verts:node[1].geometry.attributes.position.array, key:i+'l', ...p})
+			...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('surface') ? null : //.isMesh ? null :
+				r(Surface, {ref:el=>surfaces.current[i]=el, key:'surface_'+i, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map)
+			)),
+			...Object.entries(nodes).map((n,i)=>(!n[1].isLine ? null :
+				r(Line, {ref:el=>lines.current[i]=el, verts:n[1].geometry.attributes.position.array, key:'line_'+i, ...p})
 			)),
 		])
 	)

@@ -4,6 +4,8 @@ import {extend, useThree, useFrame} from 'r3f';
 import {TextureLoader} from 'three';
 import * as vtx from 'easel/vertex.js';
 
+//SET OBJECT Z INSTEAD OF VERTEX Z FOR PROPER RENDERING ORDER ///////////////////////////
+
 extend({ MeshLine, MeshLineMaterial }) 
 const sprite = new TextureLoader().load('/static/texture/disc.png');
 

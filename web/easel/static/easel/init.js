@@ -1,12 +1,13 @@
 import {createRoot} from 'rdc'; 
 import {createElement as r, useRef, useState, useEffect, Fragment, StrictMode} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
-import {Camera_Control_2D} from 'core/camera_control.js';
 import {Vector2} from 'three';
 import {Product} from 'easel/product.js';
 import {Line} from 'easel/line.js';
 import {Toolbar} from 'easel/toolbar.js'
 import {Main_Navbar} from 'core/navbar.js';
+
+import {CameraControls} from 'drei';
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
@@ -87,13 +88,14 @@ function Board(p) {
 
 function Base(){
     const [act,set_act] = useState({name:''});
+    const camera_controls = useRef();
     return (r(Fragment,{},
         r(Main_Navbar),
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
             r(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}, onCreated:(state)=>raycaster=state.raycaster},
                 r(StrictMode,{},
-                    r(Camera_Control_2D),
-                    r(Board, {base:{act:act,set_act:set_act}}), 
+                    r(CameraControls, {ref: camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
+                    r(Board, {base:{act:act,set_act:set_act}, camera_controls:camera_controls}), 
                 )
             )
         ),
