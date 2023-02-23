@@ -1,12 +1,11 @@
 import {createRoot} from 'rdc'; 
-import {createElement as r, useRef, useState, useEffect, Fragment, StrictMode} from 'react';
+import {createElement as r, useRef, useState, Fragment, StrictMode} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
 import {Product} from 'easel/product.js';
 import {Line} from 'easel/line.js';
 import {Toolbar} from 'easel/toolbar.js'
 import {Main_Navbar} from 'core/navbar.js';
-
 import {CameraControls} from 'drei';
 
 const pointer_start = new Vector2();
