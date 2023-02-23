@@ -8,6 +8,8 @@ import {Toolbar} from 'easel/toolbar.js'
 import {Main_Navbar} from 'core/navbar.js';
 import {CameraControls} from 'drei';
 
+import * as THREE from 'three';
+
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
 const new_verts = [];
@@ -93,7 +95,7 @@ function Base(){
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
             r(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}, onCreated:(state)=>raycaster=state.raycaster},
                 r(StrictMode,{},
-                    r(CameraControls, {ref: camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
+                    r(CameraControls, {ref: camera_controls, camera:THREE.Orthographic, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
                     r(Board, {base:{act:act,set_act:set_act}, camera_controls:camera_controls}), 
                 )
             )

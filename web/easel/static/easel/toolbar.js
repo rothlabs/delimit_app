@@ -9,6 +9,9 @@ export function Toolbar(p){
                     r(Button,{text:'Undo', func:()=>p.set_act({name:'undo'})}),
                     r(Button,{text:'Redo', func:()=>p.set_act({name:'redo'})}),
                     r(Button,{text:'Greenware', func:()=>p.set_act({name:'greenware'})}),
+                    r(Button,{text:'Change URL', func:()=>{
+                        window.history.pushState('state_object', '', '/coolpage');
+                    }}),
                 ].map((item,i)=>r(Col,{key:i},item)))
             )
         )

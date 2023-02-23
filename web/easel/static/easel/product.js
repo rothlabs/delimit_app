@@ -36,6 +36,10 @@ export const Product = forwardRef(function Product(p, ref) {
 		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
 		if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
 		if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
+		//if(zoom_x <= zoom_y) camera.zoom = zoom_x * 1.75;
+		//if(zoom_x > zoom_y)  camera.zoom = zoom_y * 1.75;
+		console.log(camera.zoom);
+		p.camera_controls.current.zoomTo(3);
 		camera.updateProjectionMatrix();
 		if (add_constraints){
 			add_constraints = false; 
@@ -55,6 +59,7 @@ export const Product = forwardRef(function Product(p, ref) {
 
 	useEffect(()=>{
 		set_post_load(true);
+		console.log(nodes);
 	},[nodes]);
 
 	return (
