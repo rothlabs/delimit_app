@@ -8,8 +8,6 @@ import {Toolbar} from 'easel/toolbar.js'
 import {Main_Navbar} from 'core/navbar.js';
 import {CameraControls} from 'drei';
 
-import * as THREE from 'three';
-
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
 const new_verts = [];
@@ -27,7 +25,7 @@ function Board(p) {
     return (
         r('mesh', { 
             name: 'board',
-            position:[0,0,-100],
+            //position:[0,0,-500],
             onClick:(event)=>{
                 event.stopPropagation();
                 if(event.delta < 3 && event.intersections[0].object.name != 'endpoint'){
@@ -93,9 +91,9 @@ function Base(){
     return (r(Fragment,{},
         r(Main_Navbar),
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-            r(Canvas,{orthographic: true, camera:{position:[0, 0, 100]}, onCreated:(state)=>raycaster=state.raycaster},
+            r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, //camera:{position:[0, 0, 100]}
                 r(StrictMode,{},
-                    r(CameraControls, {ref: camera_controls, camera:THREE.Orthographic, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
+                    r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
                     r(Board, {base:{act:act,set_act:set_act}, camera_controls:camera_controls}), 
                 )
             )

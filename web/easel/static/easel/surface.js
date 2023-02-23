@@ -30,9 +30,9 @@ export const Surface = forwardRef(function Surface(p, ref) {
         },
     };});
 
-    useFrame(()=> {
+    //useFrame(()=> {
 
-    }); 
+    //}); 
 
     // useEffect(()=>{
     //     set_selected(false); 
@@ -67,7 +67,8 @@ export const Surface = forwardRef(function Surface(p, ref) {
         }
     },[p.base.act]);
 
-    return (r('mesh',{ref:mesh, geometry:p.node.geometry, position:p.node.position}, 
+    //console.log('surface');
+    return (r('mesh',{ref:mesh, geometry:p.node.geometry, position:[p.node.position.x,p.node.position.y,p.node.position.z]}, 
         r('meshBasicMaterial',{ref:material, map:p.node.material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
     ))
 });
