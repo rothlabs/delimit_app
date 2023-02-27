@@ -1,10 +1,10 @@
 import {createElement as r, useRef, useEffect, useState, forwardRef, useImperativeHandle} from 'react';
 import {useGLTF} from 'drei';
 import {Box3} from 'three';
-import {Line} from 'easel/line.js';
-import {Surface} from 'easel/surface.js';
+import {Line} from './line.js';
+import {Surface} from './surface.js';
 import {useThree} from 'r3f';
-import {Coincident} from 'easel/constraint.js';
+import {Coincident} from './constraint.js';
 
 
 //const product = JSON.parse(document.getElementById('product').innerHTML); 

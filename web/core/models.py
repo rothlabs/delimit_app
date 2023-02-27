@@ -12,16 +12,19 @@ class Base_Model(models.Model):
     date = models.DateTimeField(default=django.utils.timezone.now)
     def __str__(self): 
         return self.name+' ('+str(self.id)+')'
-    def data(self): # used to generate template json script tags with data for javascript 
-        d = dict(self.__dict__)
-        if hasattr(self,'file'):
-            d['url'] = self.file.url
-            del d['file']   # removed in favor of d['url'] = self.file.url which has complete url
-        del d['_state'] # removed because value of '_state' cannot be serialized
-        return d 
+    #def data(self): # used to generate template json script tags with data for javascript 
+    #   d = dict(self.__dict__)
+    #if hasattr(self,'file'):
+    #   d['url'] = self.file.url
+    #   del d['file']   # removed in favor of d['url'] = self.file.url which has complete url
+    #del d['_state'] # removed because value of '_state' cannot be serialized
+    #return d 
 
 class Product(Base_Model):
     file = models.FileField(upload_to='product', default='product/default.glb')
+    #owner = forignkey
+
+
 #    camera_x = models.FloatField(default=0)
 #    camera_y = models.FloatField(default=0)
 #    camera_z = models.FloatField(default=10)

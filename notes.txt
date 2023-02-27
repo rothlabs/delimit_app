@@ -1,4 +1,28 @@
+   https://esm.sh/@react-three/drei?pin=v106&deps=three@0.150.0&exports=CameraControls,useGLTF&dev
+   
+   <script id='nav' type='application/json'>{
+      "Home": "{% url "core:home" %}",
+      "main":[
+          {"name":"Catalog",   "url":"{% url "core:catalog" %}"},
+          {"name":"Studio",    "url":"{% url "core:studio" %}"}
+      ]
+  }</script>
+   
+    {% block content %}{% endblock %}
   
+  {% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+  <p>hello world</p>
+{% endblock %}
+  
+  "zustand":   "https://esm.sh/zustand?pin=v106&dev",
+  "core/":     "{% static "core" %}/",
+      "catalog/":  "{% static "catalog" %}/",
+      "easel/":    "{% static "easel" %}/"
+
+
  //context.drawImage(texture.image, 0, 0);
 		//const data = context.getImageData( 0, 0, canvas.width, canvas.height );
 		//console.log( data );
