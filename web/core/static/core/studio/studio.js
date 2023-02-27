@@ -1,10 +1,10 @@
 import {createRoot} from 'rdc'; 
-import {createElement as r, useRef, useState, Fragment, StrictMode} from 'react';
+import {createElement as r, useRef, useState, Fragment} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
 import {Product} from './product.js';
 import {Line} from './line.js';
-import {Toolbar} from './toolbar.js';
+import {History_Control} from './history_control.js';
 //import {Main_Navbar} from 'core/navbar.js';
 import {CameraControls} from 'drei';
 //import { create } from 'zustand'
@@ -105,13 +105,13 @@ export function Studio(p){
     return (r(Fragment,{},
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
             r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, //camera:{position:[0, 0, 100]}
-                r(StrictMode,{},
-                    r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                    r(Board, {base:{act:act,set_act:set_act}, camera_controls:camera_controls, ...p}), 
-                )
+                //r(StrictMode,{},
+                r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
+                r(Board, {base:{act:act,set_act:set_act}, camera_controls:camera_controls, ...p}), 
+                //)
             )
         ),
-        r(Toolbar, {set_act:set_act}),
+        r(History_Control, {set_act:set_act}),
     ))
 }
 

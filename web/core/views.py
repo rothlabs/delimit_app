@@ -8,15 +8,15 @@ import json
 
 #@never_cache
 def home(request):
-    context = {'meta':{'page':'/'}}
+    context = {'ctx':{'page':'/'}}
     return render(request, 'core/index.html', context)
 
 def catalog(request):
-    context = {'meta':{'page':'catalog'}}
+    context = {'ctx':{'page':'catalog'}}
     return render(request, 'core/index.html', context)
 
 def studio(request):
-    context = {'meta':{'page':'studio'}}
+    context = {'ctx':{'page':'studio'}}
     return render(request, 'core/index.html', context)
 
 def graphql_public(request):

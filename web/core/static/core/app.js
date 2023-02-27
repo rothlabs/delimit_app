@@ -7,14 +7,27 @@ import {createBrowserRouter,RouterProvider} from 'rrd';
 import {Root} from './root.js';
 import {Studio} from './studio/studio.js';
 
-export const app = {
-    logo:'/static/core/logo.png',
-};
-
 const http_link = createHttpLink({uri:'https://delimit.art/gql-public'});
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});
+
+const style = getComputedStyle(document.body);
+export const dd = {
+    ...JSON.parse(document.getElementById('dd').innerHTML),
+    theme:{
+        primary: style.getPropertyValue('--bs-primary'),
+        secondary: style.getPropertyValue('--bs-secondary'),
+        success: style.getPropertyValue('--bs-success'),
+        info: style.getPropertyValue('--bs-info'),
+        warning: style.getPropertyValue('--bs-warning'),
+        danger: style.getPropertyValue('--bs-danger'),
+        light: style.getPropertyValue('--bs-light'),
+        dark: style.getPropertyValue('--bs-dark'),
+    },
+}
+
+console.log(dd.theme);
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()})},
@@ -28,6 +41,11 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     )
 )));
 
+
+
+// export const app = {
+//     logo:'/static/core/logo.svg',
+// };
 
 // const client = new ApolloClient({
 //     link: auth_link.concat(http_link),

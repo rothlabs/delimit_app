@@ -7,6 +7,9 @@ __pycache__
 /web/static
 /web/media
 /web/delimit/settings.py
+/web/sass/bootstrap/
+/web/sass/dart-sass/
+/web/core/static/core/css/
 
 *.DS_Store
 
