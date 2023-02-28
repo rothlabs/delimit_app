@@ -12,34 +12,21 @@ const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});
 
-const style = getComputedStyle(document.body);
-export const dd = {
-    ...JSON.parse(document.getElementById('dd').innerHTML),
-    theme:{
-        primary: style.getPropertyValue('--bs-primary'),
-        secondary: style.getPropertyValue('--bs-secondary'),
-        success: style.getPropertyValue('--bs-success'),
-        info: style.getPropertyValue('--bs-info'),
-        warning: style.getPropertyValue('--bs-warning'),
-        danger: style.getPropertyValue('--bs-danger'),
-        light: style.getPropertyValue('--bs-light'),
-        dark: style.getPropertyValue('--bs-dark'),
-    },
-}
-
-console.log(dd.theme);
-
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()})},
         r(RouterProvider, {router:createBrowserRouter([
             {path:'/', element:r(Root), children:[
                 {path:'',        element:r('p',{},'At Home'), },
                 {path:'catalog', element:r('p',{},'At Catalog'), },
-                {path:'studio',  element:r(Studio,{product_url:'https://delimit.art/media/product/default.glb'})},
+                {path:'studio',  element:r(Studio), },
             ]},
         ])}),
     )
 )));
+
+export const dd = {
+    media:document.body.getAttribute('data-media-url'),
+};
 
 
 

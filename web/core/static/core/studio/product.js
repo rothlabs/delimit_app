@@ -20,7 +20,7 @@ export const Product = forwardRef(function Product(p, ref) {
 	const materials = useRef({});
 	const {camera} = useThree(); 
 	//const { products_loading, products_error, products_data } = useQuery(products);
-	const {nodes} = useGLTF(p.product_url);
+	const {nodes} = useGLTF(p.file);
 	const [post_load, set_post_load] = useState(false);
 
 	useImperativeHandle(ref,()=>{return{

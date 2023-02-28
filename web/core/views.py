@@ -15,7 +15,7 @@ def catalog(request):
     context = {'ctx':{'page':'catalog'}}
     return render(request, 'core/index.html', context)
 
-def studio(request):
+def studio(request, pk=0):
     context = {'ctx':{'page':'studio'}}
     return render(request, 'core/index.html', context)
 

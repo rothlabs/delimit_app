@@ -7,6 +7,7 @@ import {Line} from './line.js';
 import {History_Control} from './history_control.js';
 //import {Main_Navbar} from 'core/navbar.js';
 import {CameraControls} from 'drei';
+import {dd} from '../app.js';
 //import { create } from 'zustand'
 
 //export const useStore = create((set, get) => ({
@@ -93,7 +94,7 @@ function Board(p) {
         },   
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
-            r(Product, {ref:product, selection:selection, ...p}), 
+            r(Product, {ref:product, selection:selection, file:dd.media+'product/default.glb', ...p}), 
             r(Line, {ref:draw_line, selection:'off', verts:[], ...p}), // temp drawing line for visualization
         )
     )
