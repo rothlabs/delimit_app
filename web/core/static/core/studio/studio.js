@@ -1,27 +1,19 @@
-import {createRoot} from 'rdc'; 
 import {createElement as r, useRef, useState, Fragment} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
 import {Product} from './product.js';
 import {Line} from './line.js';
-import {History_Control} from './history_control.js';
-//import {Main_Navbar} from 'core/navbar.js';
+import {History_Control} from './history.js';
 import {CameraControls} from 'drei';
-import {dd} from '../app.js';
+import {useParams} from 'rrd';
+import {useQuery, gql} from 'apollo';
+import {Loading, Error_Page} from '../feedback.js';
 //import { create } from 'zustand'
 
 //export const useStore = create((set, get) => ({
 //  page: 'Easel',
   //set_page:()=>
 //}))
-
-import {useQuery, gql} from 'apollo';
-
-const products = gql`query{ 
-    products {
-        file
-    }
-}`;
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
@@ -34,9 +26,7 @@ function Board(p) {
     const [selection, set_selection] = useState();
     const product = useRef();
     const draw_line = useRef();
-
     useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom);
-
     return (
         r('mesh', { 
             name: 'board',
@@ -94,26 +84,43 @@ function Board(p) {
         },   
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
-            r(Product, {ref:product, selection:selection, file:dd.media+'product/default.glb', ...p}), 
+            r(Product, {ref:product, selection:selection, ...p}), 
             r(Line, {ref:draw_line, selection:'off', verts:[], ...p}), // temp drawing line for visualization
         )
     )
 }
 
+const get_product = gql`
+    query ProductQuery($cool: String) { 
+        productByName(name: $cool) {
+            file
+        }
+    }
+`;
+
 export function Studio(p){
+    const {productID} = useParams();
+    console.log(productID);
+    // const {loading, error, data} = useQuery(get_product, {
+    //     variables:{cool:'Line Art'},
+    // });
+    const {loading, error, data} = useQuery(gql`query ProductByID($id: String!){  
+        productByID(id: $id) {
+            file
+        }
+    }`,{variables:{id:productID}});
     const [act,set_act] = useState({name:''});
     const camera_controls = useRef();
+    if (loading) return r(Loading);
+    if (error)   return r(Error_Page);
+    console.log(data);
     return (r(Fragment,{},
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
             r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, //camera:{position:[0, 0, 100]}
-                //r(StrictMode,{},
                 r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                r(Board, {base:{act:act,set_act:set_act}, camera_controls:camera_controls, ...p}), 
-                //)
+                r(Board, {base:{act:act,set_act:set_act}, camera_controls:camera_controls, file:data.productByID.file, ...p}), 
             )
         ),
         r(History_Control, {set_act:set_act}),
     ))
 }
-
-//createRoot(document.getElementById('app')).render(r(StrictMode,{},r(Base)));

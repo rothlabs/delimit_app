@@ -21,7 +21,7 @@ def studio(request, pk=0):
 
 def graphql_public(request):
     query = json.loads(request.body)
-    result = schema.execute(query['query'], context_value=request)
+    result = schema.execute(query['query'], variable_values=query['variables']) #context_value
     response = {}
     response['data'] = result.data
     return JsonResponse(response, status=200)

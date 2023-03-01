@@ -5,6 +5,7 @@ import {Line} from './line.js';
 import {Surface} from './surface.js';
 import {useThree} from 'r3f';
 import {Coincident} from './constraint.js';
+import {dd} from '../app.js';
 
 
 //const product = JSON.parse(document.getElementById('product').innerHTML); 
@@ -20,7 +21,7 @@ export const Product = forwardRef(function Product(p, ref) {
 	const materials = useRef({});
 	const {camera} = useThree(); 
 	//const { products_loading, products_error, products_data } = useQuery(products);
-	const {nodes} = useGLTF(p.file);
+	const {nodes} = useGLTF(dd.media+p.file);
 	const [post_load, set_post_load] = useState(false);
 
 	useImperativeHandle(ref,()=>{return{

@@ -6,6 +6,6 @@ urlpatterns = [
     path('',        views.home,   name='home'),
     path('catalog', views.catalog, name='catalog'),
     path('studio',  views.studio,  name='studio'),
-    path('studio/<int:pk>', views.studio, name='studio'),
+    path('studio/<str:pk>', views.studio, name='studio'),
     path('gql-public', views.graphql_public, name='graphql'),
 ] 

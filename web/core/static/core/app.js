@@ -3,9 +3,11 @@ import {setContext} from 'aclc';
 import Cookie from "cookie";
 import {createElement as r, StrictMode} from 'react';
 import {createRoot} from 'rdc';
-import {createBrowserRouter,RouterProvider} from 'rrd';
+import {createBrowserRouter,RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
 import {Studio} from './studio/studio.js';
+import {Design_Browser} from './studio/browser.js';
+import {Error_Page} from './error.js';
 
 const http_link = createHttpLink({uri:'https://delimit.art/gql-public'});
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
@@ -15,10 +17,13 @@ const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()})},
         r(RouterProvider, {router:createBrowserRouter([
-            {path:'/', element:r(Root), children:[
-                {path:'',        element:r('p',{},'At Home'), },
-                {path:'catalog', element:r('p',{},'At Catalog'), },
-                {path:'studio',  element:r(Studio), },
+            {path:'/', element:r(Root), errorElement:r(Error_Page), children:[
+                {path:'',        element:r('p',{},'At Home')},
+                {path:'catalog', element:r('p',{},'At Catalog')},
+                {path:'studio',  element:r(Outlet), errorElement:r(Error_Page), children:[
+                    {path:'',         element:r(Design_Browser)},
+                    {path:':productID', element:r(Studio)},
+                ]},
             ]},
         ])}),
     )

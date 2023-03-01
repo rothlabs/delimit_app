@@ -2,12 +2,19 @@ import os
 from django.db import models
 from django.dispatch import receiver
 import django.utils
+from django.utils.crypto import get_random_string
+from django.contrib.auth.models import User
+
 
 # Probably want polymorphic: https://django-polymorphic.readthedocs.io/en/stable/
+
+def random_id():
+    return get_random_string(length=8)
 
 class Base_Model(models.Model):
     class Meta:
         abstract = True
+    id = models.CharField(primary_key=True, max_length=8, default=random_id)
     name = models.CharField(max_length=64)
     date = models.DateTimeField(default=django.utils.timezone.now)
     def __str__(self): 
@@ -22,7 +29,7 @@ class Base_Model(models.Model):
 
 class Product(Base_Model):
     file = models.FileField(upload_to='product', default='product/default.glb')
-    #owner = forignkey
+    owner = models.ForeignKey(User, default=0, on_delete=models.CASCADE)
 
 
 #    camera_x = models.FloatField(default=0)
