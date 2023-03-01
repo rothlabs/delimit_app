@@ -8,11 +8,36 @@ import {Root} from './root.js';
 import {Studio} from './studio/studio.js';
 import {Design_Browser} from './studio/browser.js';
 import {Error_Page} from './error.js';
+import {Color, ColorManagement} from 'three'; 
+
 
 const http_link = createHttpLink({uri:'https://delimit.art/gql-public'});
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});
+
+export const media = document.body.getAttribute('data-media-url');
+
+ColorManagement.enabled = true;
+const style = getComputedStyle(document.body);
+export const theme = {//.convertSRGBToLinear(),
+    primary: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)),
+    primary_s: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertLinearToSRGB(),
+    secondary: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)),
+    secondary_s: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertLinearToSRGB(),
+    success: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)), 
+    success_s: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertLinearToSRGB(), 
+    info: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)),
+    info_s: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertLinearToSRGB(),
+    warning: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)),
+    warning_s: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertLinearToSRGB(),
+    danger: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)),
+    danger_s: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertLinearToSRGB(),
+    light: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)),
+    light_s: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertLinearToSRGB(),
+    dark: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)),
+    dark_s: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertLinearToSRGB(),
+};
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()})},
@@ -29,9 +54,7 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     )
 )));
 
-export const dd = {
-    media:document.body.getAttribute('data-media-url'),
-};
+
 
 
 

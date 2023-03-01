@@ -73,7 +73,7 @@ function Board(p) {
                     if(selection.object.name == 'line'){
                         pointer_vect.set(event.clientX,event.clientY);
                         if(pointer_start.distanceTo(pointer_vect) > 2){
-                            new_verts.push(point.x,point.y,1);
+                            new_verts.push(point.x,point.y,10);
                             draw_line.current.set_verts(new Float32Array(new_verts));
                         }
                     }else if(selection.object.name == 'endpoint'){
@@ -90,20 +90,9 @@ function Board(p) {
     )
 }
 
-const get_product = gql`
-    query ProductQuery($cool: String) { 
-        productByName(name: $cool) {
-            file
-        }
-    }
-`;
 
 export function Studio(p){
     const {productID} = useParams();
-    console.log(productID);
-    // const {loading, error, data} = useQuery(get_product, {
-    //     variables:{cool:'Line Art'},
-    // });
     const {loading, error, data} = useQuery(gql`query ProductByID($id: String!){  
         productByID(id: $id) {
             file
@@ -113,7 +102,6 @@ export function Studio(p){
     const camera_controls = useRef();
     if (loading) return r(Loading);
     if (error)   return r(Error_Page);
-    console.log(data);
     return (r(Fragment,{},
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
             r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, //camera:{position:[0, 0, 100]}

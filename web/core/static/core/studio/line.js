@@ -3,6 +3,7 @@ import {MeshLine, MeshLineMaterial, MeshLineRaycast } from './mesh_line.js';
 import {extend, useThree, useFrame} from 'r3f';
 import {TextureLoader} from 'three';
 import * as vtx from './vertex.js';
+import {theme} from '../app.js';
 
 //SET OBJECT Z INSTEAD OF VERTEX Z FOR PROPER RENDERING ORDER ///////////////////////////
 
@@ -31,7 +32,7 @@ export const Line = forwardRef(function Line(p, ref) {
 
     const endpoint_verts=()=> {
         if(mesh_line.current) 
-            return vtx.endpoints(mesh_line.current.positions, (selected_point==0)?3:2, (selected_point==1)?3:2);
+            return vtx.endpoints(mesh_line.current.positions, (selected_point==0)?30:20, (selected_point==1)?30:20);
         return new Float32Array([0,0,0,0,0,0]);
     }
 
@@ -179,18 +180,18 @@ export const Line = forwardRef(function Line(p, ref) {
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
         },
             r('meshLine', {attach:'geometry', points: p.verts, ref:mesh_line}),
-            r('meshLineMaterial', {ref:material, color:selected?'lightblue':'grey',}),
+            r('meshLineMaterial', {ref:material, color:selected?theme.primary_s:theme.secondary_s}),
         ),
         (p.verts.length<6 || p.selection=='off') ? null :
             r('points',{name:'endpoint', ref:endpoints}, //,onPointerUp:(event)=>{console.log('endpoint up');}
                 r('bufferGeometry',{ref:endpoints_geom},
                     r('bufferAttribute',{ref:endpoints_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
                     r('bufferAttribute',{ref:endpoints_color, attach:'attributes-color', count:2, itemSize:3, array:new Float32Array([
-                            ...(selected_point==0)? [.1,.2,1] : [.05,.05,.05],
-                            ...(selected_point==1)? [.1,.2,1] : [.05,.05,.05],
+                            ...(selected_point==0)? theme.primary: theme.secondary,
+                            ...(selected_point==1)? theme.primary: theme.secondary,
                     ])}),
                 ),
-                r('pointsMaterial',{size:12, vertexColors:true, map:sprite, alphaTest:.5, transparent:true}),
+                r('pointsMaterial',{size:12, vertexColors:true, map:sprite, alphaTest:.2, transparent:true}),
             ),
     ))
 });
