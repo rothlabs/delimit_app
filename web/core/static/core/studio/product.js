@@ -6,6 +6,7 @@ import {Surface} from './surface.js';
 import {useThree} from 'r3f';
 import {Coincident} from './constraint.js';
 import {media} from '../app.js';
+import {history_act_var} from './studio.js';
 
 
 //const product = JSON.parse(document.getElementById('product').innerHTML); 
@@ -45,7 +46,7 @@ export const Product = forwardRef(function Product(p, ref) {
 		// 		lines.current.forEach(line2=> Coincident(line1, line2));
 		// 	});
 		// }
-		p.base.set_act({name:'record'}); 
+		history_act_var({name:'record'}); 
 
 		//const texture = materials.current.lv.map;
 		//const canvas = document.createElement('canvas');
@@ -56,8 +57,7 @@ export const Product = forwardRef(function Product(p, ref) {
 	},[post_load]); 
 
 	useEffect(()=>{
-		set_post_load(true);
-		//console.log(nodes);
+		set_post_load(true);;
 	},[nodes]);
 
 	return (

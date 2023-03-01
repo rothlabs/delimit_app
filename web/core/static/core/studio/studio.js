@@ -8,12 +8,14 @@ import {CameraControls} from 'drei';
 import {useParams} from 'rrd';
 import {useQuery, gql} from 'apollo';
 import {Loading, Error_Page} from '../feedback.js';
+import {makeVar} from 'apollo';
 //import { create } from 'zustand'
 
 //export const useStore = create((set, get) => ({
 //  page: 'Easel',
   //set_page:()=>
 //}))
+export const history_act_var = makeVar({name:'none'});
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
@@ -30,7 +32,6 @@ function Board(p) {
     return (
         r('mesh', { 
             name: 'board',
-            //position:[0,0,-500],
             onClick:(event)=>{
                 event.stopPropagation();
                 if(event.delta < 3 && event.intersections[0].object.name != 'endpoint'){
@@ -91,14 +92,13 @@ function Board(p) {
 }
 
 
-export function Studio(p){
+export function Studio(){
     const {productID} = useParams();
     const {loading, error, data} = useQuery(gql`query ProductByID($id: String!){  
         productByID(id: $id) {
             file
         }
     }`,{variables:{id:productID}});
-    const [act,set_act] = useState({name:''});
     const camera_controls = useRef();
     if (loading) return r(Loading);
     if (error)   return r(Error_Page);
@@ -106,9 +106,9 @@ export function Studio(p){
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
             r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, //camera:{position:[0, 0, 100]}
                 r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                r(Board, {base:{act:act,set_act:set_act}, camera_controls:camera_controls, file:data.productByID.file, ...p}), 
+                r(Board,{camera_controls:camera_controls, file:data.productByID.file}), 
             )
         ),
-        r(History_Control, {set_act:set_act}),
+        r(History_Control), //, {set_act:set_act}
     ))
 }

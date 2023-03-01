@@ -1,5 +1,7 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import {useFrame} from 'r3f';
+//import {useFrame} from 'r3f';
+import {history_act_var} from './studio.js';
+import {useReactiveVar} from 'apollo';
 //import {TextureLoader} from 'three';
 
 export const Surface = forwardRef(function Surface(p, ref) {
@@ -10,6 +12,7 @@ export const Surface = forwardRef(function Surface(p, ref) {
         textures:[],
         index:0,
     });
+    const history_act = useReactiveVar(history_act_var);
 
     function prev_texture(){
         return history.textures[history.index-1];
@@ -42,22 +45,20 @@ export const Surface = forwardRef(function Surface(p, ref) {
     // },[p.selection]);
 
     useEffect(()=>{
-        if(p.base.act && p.selection!='off'){
-            if(p.base.act.name == 'record'){
+        if(p.selection!='off'){
+            if(history_act.name == 'record'){
                 history.textures.splice(history.index);
                 history.textures.push(texture());
                 if(history.textures.length > 7){
                     history.textures.shift();
                 }
                 history.index = history.textures.length;
-            //}else if(p.base.act.name == 'revert'){
-            //    set_verts(history.verts[history.index-1]);
-            }else if(p.base.act.name == 'undo'){
+            }else if(history_act.name == 'undo'){
                 if(history.index-1 > 0){
                     history.index--;
                     //update({verts:history.verts[history.index-1], raw:true});
                 }
-            }else if(p.base.act.name == 'redo'){
+            }else if(history_act.name == 'redo'){
                 if(history.index+1 <= history.textures.length){
                     history.index++;
                     //update({verts:history.verts[history.index-1], raw:true});
@@ -65,7 +66,7 @@ export const Surface = forwardRef(function Surface(p, ref) {
             }
             set_history(history);
         }
-    },[p.base.act]);
+    },[history_act]);
 
     //console.log('surface');
     return (r('mesh',{ref:mesh, geometry:p.node.geometry, position:[p.node.position.x,p.node.position.y,p.node.position.z]}, 

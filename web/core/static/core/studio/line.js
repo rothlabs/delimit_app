@@ -4,8 +4,11 @@ import {extend, useThree, useFrame} from 'r3f';
 import {TextureLoader, Sphere, Vector3} from 'three';
 import * as vtx from './vertex.js';
 import {theme} from '../app.js';
+import {history_act_var} from './studio.js';
+import {useReactiveVar} from 'apollo';
 
 //SET OBJECT Z INSTEAD OF VERTEX Z FOR PROPER RENDERING ORDER ///////////////////////////
+//Maybe does not apply to mesh line and points, appears to be okay 
 
 extend({ MeshLine, MeshLineMaterial }) 
 const sprite = new TextureLoader().load('/static/texture/disc.png');
@@ -21,14 +24,12 @@ export const Line = forwardRef(function Line(p, ref) {
     const {camera} = useThree();
     const [selected, set_selected] = useState(false);
     const [selected_point, set_selected_point] = useState(-1);
-    //const [verts, set_verts] = useState([]);
-    //const [endpoint_verts, set_endpoint_verts] = useState([]);
-    //const [act, set_act] = useState({name:''});
     const [constraints, set_constraints] = useState([]);
     const [history, set_history] = useState({
         verts:[],
         index:0,
     });
+    const history_act = useReactiveVar(history_act_var);
 
     const endpoint_verts=()=> {
         if(mesh_line.current) 
@@ -41,7 +42,7 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     function verts(){
-        return mesh_line.current.positions; //mesh_line.current.attributes.position.array},//
+        return mesh_line.current.positions;
     }
 
     function update(args){
@@ -49,13 +50,12 @@ export const Line = forwardRef(function Line(p, ref) {
         if(!args.raw) verts = vtx.set_density(args.verts,1,2);
         mesh_line.current.setPoints(verts);
         endpoints_pos.current.array = endpoint_verts();
-        //endpoints_geom.current.computeBoundingSphere();
         if(args.depth > 0){
             constraints.forEach(constraint =>{
                 constraint.enforce({depth:args.depth});
             });
         }
-        if(args.record) p.base.set_act({name:'record'});
+        if(args.record) history_act_var({name:'record'});
     }
 
     useImperativeHandle(ref,()=>{return{ 
@@ -85,7 +85,7 @@ export const Line = forwardRef(function Line(p, ref) {
             }
         },
         add_constraint(constraint){
-            set_constraints((c)=> [constraint, ...c]);
+            set_constraints((c)=> [...c, constraint]);
         },
     };});
 
@@ -95,38 +95,13 @@ export const Line = forwardRef(function Line(p, ref) {
             endpoints_color.current.needsUpdate = true;
             endpoints_pos.current.needsUpdate = true;
         }
-    }); // make this run only on zoom change
-
-    // function strong_update(args){
-    //     console.log('strong_update');
-    //     //console.log(args.verts);
-    //     var verts = args.verts;
-    //     if(!args.raw) verts = vtx.set_density(args.verts,1,2);
-    //     set_verts(verts);
-    //     set_endpoint_verts(make_endpoint_verts(verts));
-    //     if(args.depth > 0){
-    //         constraints.forEach(constraint =>{
-    //             //constraint.enforce({strength:'strong', depth:args.depth});
-    //         });
-    //     }
-    //     if(args.record) p.base.set_act({name:'record'});
-    // }
-
-    //useEffect(()=>{
-    //    if(act.name == 'update') strong_update(act);
-    //},[act]);
-
-    //useEffect(()=>{if(p.verts){
-    //    strong_update({verts:p.verts, record:true});  
-        //weak_update({verts:p.verts, record:true}); 
-    //}},[p.verts]);
+    }); 
 
     useEffect(()=>{
         if(endpoints_pos.current) endpoints_geom.current.boundingSphere = new Sphere(new Vector3(),10000);
     },[endpoints_pos.current]);
 
     useEffect(()=>{
-        //console.log(constraints.length);
         set_selected(false); 
         set_selected_point(-1); 
         if(p.selection){
@@ -135,39 +110,21 @@ export const Line = forwardRef(function Line(p, ref) {
         }
     },[p.selection]);
 
-    // useEffect(()=>{ 
-    //     if(selected && p.mod.verts.length>5){
-    //         const closest = vtx.closest_to_endpoints(verts, p.mod.verts);
-    //         const new_verts = vtx.map(p.mod.verts, closest.v1, closest.v2);
-    //         const new_verts_2 = vtx.replace(verts, closest.i1, closest.i2, new_verts);
-    //         //strong_update({verts: new_verts_2, depth:1, record:true});
-    //     }
-    //     if(selected_point == 0){
-    //         const new_verts = vtx.map(prev_verts(), p.mod.endpoint, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
-    //         //strong_update({verts:new_verts, depth:2, record:true});
-    //     }else if(selected_point == 1){
-    //         const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), p.mod.endpoint); //vtx.first(line.prev_verts())
-    //         //strong_update({verts:new_verts, depth:2, record:true});
-    //     }
-	// },[p.mod]);
-
     useEffect(()=>{
-        if(p.base.act && p.selection!='off'){
-            if(p.base.act.name == 'record'){
+        if(p.selection!='off'){
+            if(history_act.name == 'record'){
                 history.verts.splice(history.index);
                 history.verts.push(verts());
                 if(history.verts.length > 7){
                     history.verts.shift();
                 }
                 history.index = history.verts.length;
-            //}else if(p.base.act.name == 'revert'){
-            //    set_verts(history.verts[history.index-1]);
-            }else if(p.base.act.name == 'undo'){
+            }else if(history_act.name == 'undo'){
                 if(history.index-1 > 0){
                     history.index--;
                     update({verts:history.verts[history.index-1], raw:true});
                 }
-            }else if(p.base.act.name == 'redo'){
+            }else if(history_act.name == 'redo'){
                 if(history.index+1 <= history.verts.length){
                     history.index++;
                     update({verts:history.verts[history.index-1], raw:true});
@@ -175,7 +132,7 @@ export const Line = forwardRef(function Line(p, ref) {
             }
             set_history(history);
         }
-    },[p.base.act]);
+    },[history_act]); 
 
     return (r(Fragment,{},
         r('mesh', {
