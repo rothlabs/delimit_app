@@ -39,12 +39,12 @@ export const Product = forwardRef(function Product(p, ref) {
 		if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
 		if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
 		camera.updateProjectionMatrix();
-		if (add_constraints){
-			add_constraints = false; 
-			lines.current.forEach(line1 => {
-				lines.current.forEach(line2=> Coincident(line1, line2));
-			});
-		}
+		// if (add_constraints){
+		// 	add_constraints = false; 
+		// 	lines.current.forEach(line1 => {
+		// 		lines.current.forEach(line2=> Coincident(line1, line2));
+		// 	});
+		// }
 		p.base.set_act({name:'record'}); 
 
 		//const texture = materials.current.lv.map;

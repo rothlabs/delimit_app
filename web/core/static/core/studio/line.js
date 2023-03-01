@@ -1,7 +1,7 @@
 import {createElement as r, useEffect, useRef, useState, Fragment, forwardRef, useImperativeHandle } from 'react';
 import {MeshLine, MeshLineMaterial, MeshLineRaycast } from './mesh_line.js';
 import {extend, useThree, useFrame} from 'r3f';
-import {TextureLoader} from 'three';
+import {TextureLoader, Sphere, Vector3} from 'three';
 import * as vtx from './vertex.js';
 import {theme} from '../app.js';
 
@@ -49,7 +49,7 @@ export const Line = forwardRef(function Line(p, ref) {
         if(!args.raw) verts = vtx.set_density(args.verts,1,2);
         mesh_line.current.setPoints(verts);
         endpoints_pos.current.array = endpoint_verts();
-        endpoints_geom.current.computeBoundingSphere();
+        //endpoints_geom.current.computeBoundingSphere();
         if(args.depth > 0){
             constraints.forEach(constraint =>{
                 constraint.enforce({depth:args.depth});
@@ -120,6 +120,10 @@ export const Line = forwardRef(function Line(p, ref) {
     //    strong_update({verts:p.verts, record:true});  
         //weak_update({verts:p.verts, record:true}); 
     //}},[p.verts]);
+
+    useEffect(()=>{
+        if(endpoints_pos.current) endpoints_geom.current.boundingSphere = new Sphere(new Vector3(),10000);
+    },[endpoints_pos.current]);
 
     useEffect(()=>{
         //console.log(constraints.length);
