@@ -22,7 +22,6 @@ const pointer_vect = new Vector2();
 const new_verts = [];
 var pointers_down = 0;
 var raycaster=null;
-//const point_offest = new Vector3(0,0,10);
 
 function Board(p) {
     const {camera} = useThree(); 
@@ -79,8 +78,6 @@ function Board(p) {
                             draw_line.current.set_verts(new Float32Array(new_verts));
                         }
                     }else if(selection.object.name == 'endpoint'){
-                        //point.add(point_offest);
-                        //console.log(point);
                         product.current.set_endpoint(point);
                     }
                 }
@@ -108,11 +105,11 @@ export function Studio(){
     if (error)   return r(Error_Page);
     return (r(Fragment,{},
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-            r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, //camera:{position:[0, 0, 100]}
+            r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, 
                 r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
                 r(Board,{camera_controls:camera_controls, file:data.product.file}), 
             )
         ),
-        r(History_Control), //, {set_act:set_act}
+        r(History_Control), 
     ))
 }

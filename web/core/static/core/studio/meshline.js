@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {extend} from 'r3f';
 //;(function() {
 //    'use strict'
   
@@ -713,6 +714,8 @@ import * as THREE from 'three';
     //   root.MeshLineRaycast = MeshLineRaycast
     // }
   //}.call(this))
+
+extend({ MeshLine, MeshLineMaterial });
   
 export {MeshLine, MeshLineMaterial, MeshLineRaycast}
 

@@ -96,19 +96,16 @@ function wrap_i(verts,i){i*=3; if(i<0)i+=verts.length; return(i);}
 
 export function vert(verts, i){
 	i = wrap_i(verts, i);
-	//i*=3; if(i<0) i+=verts.length;
   	return [verts[i],verts[i+1],verts[i+2]];
 }
 
 export function vect(verts, i){
 	i = wrap_i(verts, i);
-  	//i*=3; if(i<0) i+=verts.length;
   	return new Vector3(verts[i],verts[i+1],verts[i+2]);
 } 
 
 function append_vert(verts1,verts2,i){
 	i = wrap_i(verts2, i);
-	//i*=3; if(i<0) i+=verts2.length;
 	verts1.push(verts2[i  ]);
 	verts1.push(verts2[i+1]);
 	verts1.push(verts2[i+2]);
@@ -120,6 +117,10 @@ function append_vect(verts,vect){
 	verts.push(vect.z);
 }
 
+export function endpoints(verts){ // use get function here 
+	return new Float32Array([...vert(verts,0), ...vert(verts,-1)]);
+}
+
 //export function set(verts, i, point){
 //  i *= 3;
 //  if(i < 0){
@@ -129,12 +130,12 @@ function append_vect(verts,vect){
 //  verts[i+1] = point.y;
 //}
 
-export function endpoints(verts, z_offset_1, z_offset_2){ // use get function here 
-  	return new Float32Array([
-    	verts[0], verts[1], verts[2]+z_offset_1,//+Math.random()*10,  
-    	verts[verts.length-3], verts[verts.length-2], verts[verts.length-1]+z_offset_2
-	]);//+Math.random()*10]);
-}
+// export function endpoints(verts, z_offset_1, z_offset_2){ // use get function here 
+//   	return new Float32Array([
+//     	verts[0], verts[1], verts[2]+z_offset_1,//+Math.random()*10,  
+//     	verts[verts.length-3], verts[verts.length-2], verts[verts.length-1]+z_offset_2
+// 	]);//+Math.random()*10]);
+// }
 
 export function reline(verts,spacing){
 	if(verts.length > 6){

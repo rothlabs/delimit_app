@@ -1,88 +1,64 @@
-import {createElement as r, useEffect, useRef, useState, Fragment, forwardRef, useImperativeHandle } from 'react';
-import {MeshLine, MeshLineMaterial, MeshLineRaycast } from './mesh_line.js';
-import {extend, useThree, useFrame} from 'r3f';
-import {TextureLoader, Sphere, Vector3} from 'three';
-import * as vtx from './vertex.js';
+import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import {MeshLineRaycast } from './meshline.js';
+import {useThree, useFrame} from 'r3f';
+import {TextureLoader} from 'three';
 import {theme} from '../app.js';
 import {history_act_var} from './studio.js';
 import {useReactiveVar} from 'apollo';
+import * as vtx from './vertex.js';
 
 //SET OBJECT Z INSTEAD OF VERTEX Z FOR PROPER RENDERING ORDER ///////////////////////////
 //Maybe does not apply to mesh line and points, appears to be okay 
 
-extend({ MeshLine, MeshLineMaterial }) 
 const sprite = new TextureLoader().load('/static/texture/disc.png');
 
 export const Line = forwardRef(function Line(p, ref) {
     const mesh = useRef();
-    const mesh_line = useRef();
-    const endpoints = useRef();
-    const endpoints_geom = useRef();
-    const endpoints_color = useRef();
-    const endpoints_pos = useRef();
+    const meshline = useRef();
+    const endpoint = useRef();
+    const endpoint_attr_pos = useRef();
+    const endpoint_attr_color = useRef();
     const material = useRef();
     const {camera} = useThree();
     const [selected, set_selected] = useState(false);
     const [selected_point, set_selected_point] = useState(-1);
     const [constraints, set_constraints] = useState([]);
+    const history_act = useReactiveVar(history_act_var);
     const [history, set_history] = useState({
         verts:[],
         index:0,
     });
-    const history_act = useReactiveVar(history_act_var);
-    //const [verts, set_verts] = useState([]);
 
-    const endpoint_verts=()=> {
-        if(mesh_line.current) 
-            return vtx.endpoints(mesh_line.current.positions, (selected_point==0)?30:20, (selected_point==1)?30:20);
+    const verts=()=> vtx.reline(meshline.current.positions,1);
+    const prev_verts=()=> history.verts[history.index-1];
+
+    function endpoint_verts(){
+        if(endpoint_attr_pos.current) endpoint_attr_pos.current.needsUpdate = true;
+        if(meshline.current) return vtx.endpoints(meshline.current.positions);//, (selected_point==0)?30:20, (selected_point==1)?30:20);
         return new Float32Array([0,0,0,0,0,0]);
     }
 
-    function prev_verts(){
-        return history.verts[history.index-1];
+    function endpoint_colors(){
+        if(endpoint_attr_color.current) endpoint_attr_color.current.needsUpdate = true;
+        return (new Float32Array([...(selected_point==0)?theme.primary:theme.secondary, ...(selected_point==1)?theme.primary:theme.secondary]));
     }
 
-    function verts(){
-        //return history.verts[history.index];
-        //return vtx.remove_doubles(mesh_line.current.positions);
-        return(vtx.reline(mesh_line.current.positions,1));
-        //return(mesh_line.current.positions);
-    }
-
-    //useEffect(()=>{
-    //    if(mesh_line.current) console.log(verts().length/3);
-    //});
-
-    //useEffect(()=>{
-    //    if(p.verts) {
-    //        set_verts(p.verts);
-    //        console.log(p.name);
-    //        console.log(history.verts.length);
-    //        //history_act_var({name:'record'});
-    //    }
-    //},[p.verts]);
 
     function update(args){
-        //var verts = args.verts;
-        //if(!args.raw) args.verts = vtx.reline(args.verts,1);
-        mesh_line.current.setPoints(args.verts);
-        //set_verts(args.verts);
-        if(endpoints_pos.current) endpoints_pos.current.array = endpoint_verts();
+        meshline.current.setPoints(args.verts);
+        if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.depth > 0){
-            //console.log(constraints);
-            constraints.forEach(constraint =>{
-                constraint.enforce({depth:args.depth});
-            });
+            constraints.forEach(constraint => constraint.enforce({depth:args.depth}));
         }
         if(args.record) history_act_var({name:'record'});
     }
 
-    useImperativeHandle(ref,()=>{return{ 
-        update:(args)=> update(args),
-        verts:()=>verts(),
-        prev_verts:()=>prev_verts(),
+    useImperativeHandle(ref,()=>({ 
+        update:update,
+        verts:verts,
+        prev_verts:prev_verts,
         set_verts(vts){
-            mesh_line.current.setPoints(vts);
+            meshline.current.setPoints(vts);
         },
         set_endpoint(new_endpoint){
             if(selected_point == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), depth:1});
@@ -106,29 +82,18 @@ export const Line = forwardRef(function Line(p, ref) {
         add_constraint(constraint){
             set_constraints((c)=> [...c, constraint]);
         },
-    };});
+    }));
 
     useFrame(()=> {
         material.current.lineWidth = 4 / camera.zoom;
-        if(endpoints_color.current && endpoints_pos.current){
-            endpoints_color.current.needsUpdate = true;
-            endpoints_pos.current.needsUpdate = true;
-        }
     }); 
-
-    useEffect(()=>{
-        if(endpoints_pos.current) endpoints_geom.current.boundingSphere = new Sphere(new Vector3(),10000);
-    },[endpoints_pos.current]);
 
     useEffect(()=>{
         set_selected(false); 
         set_selected_point(-1); 
         if(p.selection){
             if(p.selection.object == mesh.current) set_selected(true);
-            if(p.selection.object == endpoints.current){
-                set_selected_point(p.selection.index);
-                set_selected(true);
-            }
+            if(p.selection.object == endpoint.current) set_selected_point(p.selection.index);
         }
     },[p.selection]);
 
@@ -156,29 +121,26 @@ export const Line = forwardRef(function Line(p, ref) {
         }
     },[history_act]); 
 
-    return (r(Fragment,{},
+    return (
         r('mesh', {
-            name: 'line',
             ref: mesh,
+            name: 'line',
             position: p.node? [p.node.position.x,p.node.position.y,p.node.position.z] : [0,0,0],
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
         },
-            r('meshLine', {attach:'geometry', points:p.verts, ref:mesh_line, name:p.name}),
+            r('meshLine', {attach:'geometry', points:p.verts, ref:meshline, name:p.name}),
             r('meshLineMaterial', {ref:material, color:selected?theme.primary_s:theme.secondary_s}),
-        ),
-        // add position to points so individual points don't need to be positioned with z offset
-        (p.verts.length<6 || p.selection=='off' || p.node.name=='iv__rim' || p.node.name=='iv__base') ? null : // || p.node.name.includes('rim') || p.node.name.includes('base')
-            r('points',{name:'endpoint', ref:endpoints}, //,onPointerUp:(event)=>{console.log('endpoint up');}
-                r('bufferGeometry',{ref:endpoints_geom},
-                    r('bufferAttribute',{ref:endpoints_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
-                    r('bufferAttribute',{ref:endpoints_color, attach:'attributes-color', count:2, itemSize:3, array:new Float32Array([
-                            ...(selected_point==0)? theme.primary: theme.secondary,
-                            ...(selected_point==1)? theme.primary: theme.secondary,
-                    ])}),
+            (p.verts.length<6 || p.selection=='off' || p.node.name=='iv__rim' || p.node.name=='iv__base') ? null :
+                r('points',{ref:endpoint, name:'endpoint', position:[0,0,10]}, //,onPointerUp:(event)=>{console.log('endpoint up');}
+                    r('bufferGeometry',{},
+                        r('sphere',{attach:'boundingSphere', radius:10000}),
+                        r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
+                        r('bufferAttribute',{ref:endpoint_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
+                    ),
+                    r('pointsMaterial',{size:12, vertexColors:true, map:sprite, alphaTest:.5, transparent:true}),
                 ),
-                r('pointsMaterial',{size:12, vertexColors:true, map:sprite, alphaTest:.5, transparent:true}),
-            ),
-    ))
+        )
+    )
 });
 
 //color:new Color('hsl(0,0%,55%)'),})
@@ -191,7 +153,7 @@ export const Line = forwardRef(function Line(p, ref) {
 //         p: p,
 //         ref: mesh, 
 //         //onPointerMove: (event) => set_vect(event.intersections[0].point),},[ 
-//         geometry: new MeshLine(),
+//         geometry: new meshline(),
 //     },[
 //             r('planeGeometry', {args:[10000, 10000]}),
 //             r('meshBasicMaterial', {color: 'white', toneMapped:false}),
@@ -201,10 +163,10 @@ export const Line = forwardRef(function Line(p, ref) {
 // export function camera_control_2d(){
 //     const { camera, gl } = useThree();
 //     useEffect(() => {
-//         const mesh_line = new MeshLine();
+//         const meshline = new meshline();
 
 //         return () => {
-// 			mesh_line.dispose();
+// 			meshline.dispose();
 // 		};
 //       },
 //       [camera, gl]
