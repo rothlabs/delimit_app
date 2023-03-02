@@ -30,6 +30,7 @@ export const Line = forwardRef(function Line(p, ref) {
         index:0,
     });
     const history_act = useReactiveVar(history_act_var);
+    //const [verts, set_verts] = useState([]);
 
     const endpoint_verts=()=> {
         if(mesh_line.current) 
@@ -42,17 +43,30 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     function verts(){
-        return vtx.remove_doubles(mesh_line.current.positions);
+        //return history.verts[history.index];
+        //return vtx.remove_doubles(mesh_line.current.positions);
+        return(vtx.reline(mesh_line.current.positions,1));
+        //return(mesh_line.current.positions);
     }
 
     //useEffect(()=>{
     //    if(mesh_line.current) console.log(verts().length/3);
     //});
 
+    //useEffect(()=>{
+    //    if(p.verts) {
+    //        set_verts(p.verts);
+    //        console.log(p.name);
+    //        console.log(history.verts.length);
+    //        //history_act_var({name:'record'});
+    //    }
+    //},[p.verts]);
+
     function update(args){
-        var verts = args.verts;
-        if(!args.raw) verts = vtx.set_density(args.verts,1.95,2.05);
-        mesh_line.current.setPoints(verts);
+        //var verts = args.verts;
+        //if(!args.raw) args.verts = vtx.reline(args.verts,1);
+        mesh_line.current.setPoints(args.verts);
+        //set_verts(args.verts);
         if(endpoints_pos.current) endpoints_pos.current.array = endpoint_verts();
         if(args.depth > 0){
             //console.log(constraints);
@@ -130,12 +144,12 @@ export const Line = forwardRef(function Line(p, ref) {
             }else if(history_act.name == 'undo'){
                 if(history.index-1 > 0){
                     history.index--;
-                    update({verts:history.verts[history.index-1], raw:true});
+                    update({verts:history.verts[history.index-1]}); //raw:true
                 }
             }else if(history_act.name == 'redo'){
                 if(history.index+1 <= history.verts.length){
                     history.index++;
-                    update({verts:history.verts[history.index-1], raw:true});
+                    update({verts:history.verts[history.index-1]}); //raw:true
                 }
             }
             set_history(history);
@@ -149,9 +163,10 @@ export const Line = forwardRef(function Line(p, ref) {
             position: p.node? [p.node.position.x,p.node.position.y,p.node.position.z] : [0,0,0],
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
         },
-            r('meshLine', {attach:'geometry', points:p.verts, ref:mesh_line}),
+            r('meshLine', {attach:'geometry', points:p.verts, ref:mesh_line, name:p.name}),
             r('meshLineMaterial', {ref:material, color:selected?theme.primary_s:theme.secondary_s}),
         ),
+        // add position to points so individual points don't need to be positioned with z offset
         (p.verts.length<6 || p.selection=='off' || p.node.name=='iv__rim' || p.node.name=='iv__base') ? null : // || p.node.name.includes('rim') || p.node.name.includes('base')
             r('points',{name:'endpoint', ref:endpoints}, //,onPointerUp:(event)=>{console.log('endpoint up');}
                 r('bufferGeometry',{ref:endpoints_geom},

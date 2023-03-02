@@ -1,86 +1,86 @@
-import * as THREE from 'three';
+import {Vector3} from 'three';
 
 /* given float32array of 3d vertices, remove doubles. */
-export function remove_doubles(vertices) {
-  var newVertices = [];
-  var newIndices = [];
-  var vertexMap = {};
-  for (var i = 0; i < vertices.length; i += 3) {
-    var key = vertices[i] + ',' + vertices[i + 1] + ',' + vertices[i + 2];
-    if (vertexMap[key] === undefined) {
-      vertexMap[key] = newVertices.length / 3;
-      newVertices.push(vertices[i]);
-      newVertices.push(vertices[i + 1]);
-      newVertices.push(vertices[i + 2]);
-    }
-    newIndices.push(vertexMap[key]);
-  }
-  return new Float32Array(newVertices);
-}
+// export function remove_doubles(vertices) {
+//   var newVertices = [];
+//   var newIndices = [];
+//   var vertexMap = {};
+//   for (var i = 0; i < vertices.length; i += 3) {
+//     var key = vertices[i] + ',' + vertices[i + 1] + ',' + vertices[i + 2];
+//     if (vertexMap[key] === undefined) {
+//       vertexMap[key] = newVertices.length / 3;
+//       newVertices.push(vertices[i]);
+//       newVertices.push(vertices[i + 1]);
+//       newVertices.push(vertices[i + 2]);
+//     }
+//     newIndices.push(vertexMap[key]);
+//   }
+//   return new Float32Array(newVertices);
+// }
 
 
-/* with float32array of 3D vertices representing a line, add vertices so there is never too big of a distance between consecutive vertices */
-function enforce_max_distance(vertices, maxDistance) {
-  var new_verts = [];//[vertices[0],vertices[1],vertices[2]];
-  new_verts.splice(0,0,vertices[2]);
-  new_verts.splice(0,0,vertices[1]);
-  new_verts.splice(0,0,vertices[0]);
-  for (var i = 0; i < vertices.length-5; i += 3) {
-    var x1 = vertices[i];
-    var y1 = vertices[i + 1];
-    var z1 = vertices[i + 2];
-    var x2 = vertices[(i + 3)];// % vertices.length];
-    var y2 = vertices[(i + 4)];// % vertices.length];
-    var z2 = vertices[(i + 5)];// % vertices.length];
-    var distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
-    if (distance > maxDistance) {
-      var numNewVertices = Math.floor(distance / maxDistance);
-      var xIncrement = (x2 - x1) / numNewVertices;
-      var yIncrement = (y2 - y1) / numNewVertices;
-      var zIncrement = (z2 - z1) / numNewVertices;
-      for (var j = 0; j < numNewVertices; j++) {
-        new_verts.push(x1 + xIncrement * j);
-        new_verts.push(y1 + yIncrement * j);
-        new_verts.push(z1 + zIncrement * j);
-      }
-    }
-    new_verts.push(x2);
-    new_verts.push(y2);
-    new_verts.push(z2);
-  }
-  //new_verts.push(vertices[vertices.length-3]);
-  //new_verts.push(vertices[vertices.length-2]);
-  //new_verts.push(vertices[vertices.length-1]);
-  return new Float32Array(new_verts);
-}
+// /* with float32array of 3D vertices representing a line, add vertices so there is never too big of a distance between consecutive vertices */
+// function enforce_max_distance(vertices, maxDistance) {
+//   var new_verts = [];//[vertices[0],vertices[1],vertices[2]];
+//   new_verts.splice(0,0,vertices[2]);
+//   new_verts.splice(0,0,vertices[1]);
+//   new_verts.splice(0,0,vertices[0]);
+//   for (var i = 0; i < vertices.length-5; i += 3) {
+//     var x1 = vertices[i];
+//     var y1 = vertices[i + 1];
+//     var z1 = vertices[i + 2];
+//     var x2 = vertices[(i + 3)];// % vertices.length];
+//     var y2 = vertices[(i + 4)];// % vertices.length];
+//     var z2 = vertices[(i + 5)];// % vertices.length];
+//     var distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
+//     if (distance > maxDistance) {
+//       var numNewVertices = Math.floor(distance / maxDistance);
+//       var xIncrement = (x2 - x1) / numNewVertices;
+//       var yIncrement = (y2 - y1) / numNewVertices;
+//       var zIncrement = (z2 - z1) / numNewVertices;
+//       for (var j = 0; j < numNewVertices; j++) {
+//         new_verts.push(x1 + xIncrement * j);
+//         new_verts.push(y1 + yIncrement * j);
+//         new_verts.push(z1 + zIncrement * j);
+//       }
+//     }
+//     new_verts.push(x2);
+//     new_verts.push(y2);
+//     new_verts.push(z2);
+//   }
+//   //new_verts.push(vertices[vertices.length-3]);
+//   //new_verts.push(vertices[vertices.length-2]);
+//   //new_verts.push(vertices[vertices.length-1]);
+//   return new Float32Array(new_verts);
+// }
 
-export function set_density(vertices, minDistance, maxDistance) {
-  /* Considering a Float32Array of 3D vertices representing line, write a function to remove vertices so that they are never too close. */
-  const new_verts = Array.from(vertices);
-  var i = 0;
-  //new_verts.splice(0,0,vertices[2]); // 0?
-  //new_verts.splice(0,0,vertices[1]);
-  //new_verts.splice(0,0,vertices[0]);
-  while (i < new_verts.length) {
-    var j = i + 3;
-    while (j < new_verts.length) {
-      var dx = new_verts[i] - new_verts[j];
-      var dy = new_verts[i + 1] - new_verts[j + 1];
-      var dz = new_verts[i + 2] - new_verts[j + 2];
-      var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (distance < minDistance) {
-        new_verts.splice(j, 3);
-      } else {
-          j += 3;
-      }
-    }
-    i += 3;
-  }
-  //new_verts.push(vertices[vertices.length-3]);
-  //new_verts.push(vertices[vertices.length-2]);
-  //new_verts.push(vertices[vertices.length-1]); // 0?
-  return enforce_max_distance(new_verts, maxDistance);
-}
+// export function set_density(vertices, minDistance, maxDistance) {
+//   /* Considering a Float32Array of 3D vertices representing line, write a function to remove vertices so that they are never too close. */
+//   const new_verts = Array.from(vertices);
+//   var i = 0;
+//   //new_verts.splice(0,0,vertices[2]); // 0?
+//   //new_verts.splice(0,0,vertices[1]);
+//   //new_verts.splice(0,0,vertices[0]);
+//   while (i < new_verts.length) {
+//     var j = i + 3;
+//     while (j < new_verts.length) {
+//       var dx = new_verts[i] - new_verts[j];
+//       var dy = new_verts[i + 1] - new_verts[j + 1];
+//       var dz = new_verts[i + 2] - new_verts[j + 2];
+//       var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+//       if (distance < minDistance) {
+//         new_verts.splice(j, 3);
+//       } else {
+//           j += 3;
+//       }
+//     }
+//     i += 3;
+//   }
+//   new_verts.push(vertices[vertices.length-3]);
+//   new_verts.push(vertices[vertices.length-2]);
+//   new_verts.push(vertices[vertices.length-1]); // 0?
+//   return enforce_max_distance(new_verts, maxDistance);
+// }
 
 /* given an array, return first 3 elements as new array */
 //export function first(verts) {
@@ -92,17 +92,33 @@ export function set_density(vertices, minDistance, maxDistance) {
 //  return verts.slice(verts.length - 3, verts.length);
 //}
 
-export function get(verts, i){
-  return [verts[i],verts[i+1],verts[i+2]];
+function wrap_i(verts,i){i*=3; if(i<0)i+=verts.length; return(i);}
+
+export function vert(verts, i){
+	i = wrap_i(verts, i);
+	//i*=3; if(i<0) i+=verts.length;
+  	return [verts[i],verts[i+1],verts[i+2]];
 }
 
 export function vect(verts, i){
-  i *= 3;
-  if(i < 0){
-    i = verts.length + i;
-  }
-  return new THREE.Vector3(verts[i],verts[i+1],verts[i+2]);
+	i = wrap_i(verts, i);
+  	//i*=3; if(i<0) i+=verts.length;
+  	return new Vector3(verts[i],verts[i+1],verts[i+2]);
 } 
+
+function append_vert(verts1,verts2,i){
+	i = wrap_i(verts2, i);
+	//i*=3; if(i<0) i+=verts2.length;
+	verts1.push(verts2[i  ]);
+	verts1.push(verts2[i+1]);
+	verts1.push(verts2[i+2]);
+}
+
+function append_vect(verts,vect){
+	verts.push(vect.x);
+	verts.push(vect.y);
+	verts.push(vect.z);
+}
 
 //export function set(verts, i, point){
 //  i *= 3;
@@ -113,10 +129,46 @@ export function vect(verts, i){
 //  verts[i+1] = point.y;
 //}
 
-export function endpoints(verts, z_offset_1, z_offset_2){
-  return new Float32Array([
-    verts[0], verts[1], verts[2]+z_offset_1,//+Math.random()*10,  
-    verts[verts.length-3], verts[verts.length-2], verts[verts.length-1]+z_offset_2]);//+Math.random()*10]);
+export function endpoints(verts, z_offset_1, z_offset_2){ // use get function here 
+  	return new Float32Array([
+    	verts[0], verts[1], verts[2]+z_offset_1,//+Math.random()*10,  
+    	verts[verts.length-3], verts[verts.length-2], verts[verts.length-1]+z_offset_2
+	]);//+Math.random()*10]);
+}
+
+export function reline(verts,spacing){
+	if(verts.length > 6){
+		var new_verts = [];
+		append_vert(new_verts, verts, 0);
+		//new_verts.push(verts[0]);
+		//new_verts.push(verts[1]);
+		//new_verts.push(verts[2]);
+		//var v1 = vect(verts,0);
+		//var v2 = vect(verts,1);
+		//for (var i = 0; i < (verts.length/3)-1; i++){ //make loop function that takes another function as argument 
+		//var accumulated = 0;
+		var i = 1;
+		var v1 = vect(verts,0);
+		while(i < (verts.length/3)-1){
+			var v2 = vect(verts,i);
+			var dist = v1.distanceTo(v2);
+			if(dist > spacing){
+				v1.add(v2.sub(v1).normalize().multiplyScalar(spacing));
+				append_vect(new_verts, v1);
+				//accumulated = 0;
+			}else{
+				//accumulated += dist;
+				i++;
+			}	
+		}
+		append_vert(new_verts, verts, -1);
+		//new_verts.push(verts[verts.length-3]);
+		//new_verts.push(verts[verts.length-2]);
+		//new_verts.push(verts[verts.length-1]);
+		return(new Float32Array(new_verts));
+	}else{
+		return(verts);
+	}
 }
 
 /* given float32array 3d vertices and two test vertices, return the closet vertex for each test vertex. */
@@ -160,7 +212,7 @@ export function map(verts, endpoint1, endpoint2) {
   const delta2_x = endpoint2.x-verts[verts.length-3];
   const delta2_y = endpoint2.y-verts[verts.length-2];
   const delta2_z = endpoint2.z-verts[verts.length-1];
-  console.log(verts.length);
+  //console.log(verts.length);
   for (var i = 0; i < verts.length-2; i += 3) {
     var ratio = i / (verts.length-3);
     //var distance = Math.sqrt(Math.pow(verts[i] - verts[i], 2) + Math.pow(verts[i+1] - verts[i], 2) + Math.pow(verts[i+2] - prev_vert.z, 2));

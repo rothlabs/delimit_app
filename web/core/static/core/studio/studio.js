@@ -89,7 +89,7 @@ function Board(p) {
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
             r(Product, {ref:product, selection:selection, ...p}), 
-            r(Line, {ref:draw_line, selection:'off', verts:[], ...p}), // temp drawing line for visualization
+            r(Line, {ref:draw_line, selection:'off', verts:[], name:'draw_line', ...p}), // temp drawing line for visualization
         )
     )
 }

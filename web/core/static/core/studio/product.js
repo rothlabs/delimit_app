@@ -65,7 +65,7 @@ export const Product = forwardRef(function Product(p, ref) {
 				r(Surface, {ref:el=>surfaces.current[n[1].name]=el, key:n[1].name, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map)
 			)),
 			...Object.entries(nodes).map((n,i)=>(!n[1].isLine ? null :
-				r(Line, {ref:el=>lines.current[i]=el, verts:n[1].geometry.attributes.position.array, key:n[1].name, node:n[1], ...p})
+				r(Line, {ref:el=>lines.current[i]=el, verts:n[1].geometry.attributes.position.array, key:'line_'+i, node:n[1], name:n[1].name, ...p})
 			)),
 		])
 	)
