@@ -1,7 +1,7 @@
 import * as vtx from './vertex.js'; 
 
 // constrain endpoint of line2 to line1 of endpoints are overlaping
-export function Coincident(line1,line2){
+export function Coincident(line1,line2, ids){
     if(line1 != line2){
         const constraint = {};
         const mount_dist = 0.5;
@@ -20,24 +20,24 @@ export function Coincident(line1,line2){
                 }
             }
         };
-
     
-
-       // var code = line1.name+'__'+line2.name+'__';
-        if(v1a().distanceTo(v2a()) < mount_dist){// && !codes.includes(code+'a_a')){
+        var id = line1.name()+'__'+line2.name()+'__';
+        if(v1a().distanceTo(v2a()) < mount_dist && !ids.includes(id+'a_a')){
             correction=()=> vtx.map(line2.prev_verts(), v1a(), vtx.vect(line2.prev_verts(),-1));
-            //code += 'a_a';
-        }else if(v1a().distanceTo(v2b()) < mount_dist){
+            id += 'a_a';
+        }else if(v1a().distanceTo(v2b()) < mount_dist && !ids.includes(id+'a_b')){
             v2a = v2b;
             correction=()=> vtx.map(line2.prev_verts(), vtx.vect(line2.prev_verts(),0), v1a());
-           // code += 'a_b';
-        }else if(v1b().distanceTo(v2a()) < mount_dist){
+            id += 'a_b';
+        }else if(v1b().distanceTo(v2a()) < mount_dist && !ids.includes(id+'b_a')){
             v1a = v1b;
             correction=()=> vtx.map(line2.prev_verts(), v1a(), vtx.vect(line2.prev_verts(),-1));
-        }else if(v1b().distanceTo(v2b()) < mount_dist){
+            id += 'b_a';
+        }else if(v1b().distanceTo(v2b()) < mount_dist && !ids.includes(id+'b_b')){
             v1a = v1b;
             v2a = v2b;
             correction=()=> vtx.map(line2.prev_verts(), vtx.vect(line2.prev_verts(),0), v1a());
+            id += 'b_b';
         }else if(vtx.closest(line1.verts(), v2a()).dist < mount_dist){
             v1a=()=> vtx.closest(line1.verts(), v2a()).vert; 
             correction=()=> vtx.map(line2.prev_verts(), v1a(), vtx.vect(line2.prev_verts(),-1)); 
@@ -50,6 +50,7 @@ export function Coincident(line1,line2){
         }
         if(correction != null){
             line1.add_constraint(constraint);
+            ids.push(id);
         }
 
     }

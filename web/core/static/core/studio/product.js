@@ -7,6 +7,7 @@ import {useThree, useLoader} from 'r3f';
 import {Coincident} from './constraint.js';
 import {media_url, static_url} from '../app.js';
 import {history_act_var} from './studio.js';
+import {reline} from './vertex.js';
 
 //useGLTF.preload(product.url);
 //var add_constraints = true;
@@ -40,9 +41,12 @@ export const Product = forwardRef(function Product(p, ref) {
 			if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
 			camera.updateProjectionMatrix();
 			//if(add_constraints){add_constraints=false; 
+			const ids = new Array();
+			for(var i=0; i<2; i++){ // run twice to get lines that need two constraints between them
 				lines.current.forEach(line1 => {
-					lines.current.forEach(line2=> Coincident(line1, line2));
+					lines.current.forEach(line2=> Coincident(line1, line2, ids));
 				});
+			}
 			//}
 			history_act_var({name:'record'}); 
 
@@ -55,6 +59,7 @@ export const Product = forwardRef(function Product(p, ref) {
 		}
 	},[group]); 
 
+	//console.log('product render');
 	return (
 		r('group', {ref:group, dispose:null}, [
 			...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('default') ? null : //.isMesh ? null :

@@ -140,32 +140,24 @@ export function endpoints(verts){ // use get function here
 export function reline(verts,spacing){
 	if(verts.length > 6){
 		var new_verts = [];
-		append_vert(new_verts, verts, 0);
-		//new_verts.push(verts[0]);
-		//new_verts.push(verts[1]);
-		//new_verts.push(verts[2]);
-		//var v1 = vect(verts,0);
-		//var v2 = vect(verts,1);
-		//for (var i = 0; i < (verts.length/3)-1; i++){ //make loop function that takes another function as argument 
-		//var accumulated = 0;
 		var i = 1;
 		var v1 = vect(verts,0);
 		while(i < (verts.length/3)-1){
 			var v2 = vect(verts,i);
 			var dist = v1.distanceTo(v2);
-			if(dist > spacing){
-				v1.add(v2.sub(v1).normalize().multiplyScalar(spacing));
-				append_vect(new_verts, v1);
-				//accumulated = 0;
-			}else{
-				//accumulated += dist;
-				i++;
-			}	
+			//if(Math.abs(dist-spacing) < spacing*0.05){
+			//	append_vect(new_verts, v2);
+			//	i++;
+			//}else{
+				if(spacing < dist){
+					v1.add(v2.sub(v1).normalize().multiplyScalar(spacing));
+					append_vect(new_verts, v1);
+				}else{
+					i++;
+				}	
+			//}
 		}
 		append_vert(new_verts, verts, -1);
-		//new_verts.push(verts[verts.length-3]);
-		//new_verts.push(verts[verts.length-2]);
-		//new_verts.push(verts[verts.length-1]);
 		return(new Float32Array(new_verts));
 	}else{
 		return(verts);
@@ -198,24 +190,25 @@ export function closest_to_endpoints(verts, endpoints_verts) {
 
 /* map line onto two endpoints */
 export function map(verts, endpoint1, endpoint2) {
-  var new_verts = [];
-  const delta1_x = endpoint1.x - verts[0];
-  const delta1_y = endpoint1.y - verts[1];
-  const delta1_z = endpoint1.z - verts[2];
-  const delta2_x = endpoint2.x-verts[verts.length-3];
-  const delta2_y = endpoint2.y-verts[verts.length-2];
-  const delta2_z = endpoint2.z-verts[verts.length-1];
-  //console.log(verts.length);
-  for (var i = 0; i < verts.length-2; i += 3) {
-    var ratio = i / (verts.length-3);
-    //var distance = Math.sqrt(Math.pow(verts[i] - verts[i], 2) + Math.pow(verts[i+1] - verts[i], 2) + Math.pow(verts[i+2] - prev_vert.z, 2));
-    //if((i/3) % 2 == 0){
-      new_verts.push(verts[i  ] + delta1_x*(1-ratio) + delta2_x*ratio);
-      new_verts.push(verts[i+1] + delta1_y*(1-ratio) + delta2_y*ratio);
-      new_verts.push(verts[i+2] + delta1_z*(1-ratio) + delta2_z*ratio);
-    //}
-  }
-  return new Float32Array(new_verts);
+	var new_verts = [];
+	verts = reline(verts,1);
+	const delta1_x = endpoint1.x - verts[0];
+	const delta1_y = endpoint1.y - verts[1];
+	const delta1_z = endpoint1.z - verts[2];
+	const delta2_x = endpoint2.x-verts[verts.length-3];
+	const delta2_y = endpoint2.y-verts[verts.length-2];
+	const delta2_z = endpoint2.z-verts[verts.length-1];
+	//console.log(verts.length);
+	for (var i = 0; i < verts.length-2; i += 3) {
+		var ratio = i / (verts.length-3);
+		//var distance = Math.sqrt(Math.pow(verts[i] - verts[i], 2) + Math.pow(verts[i+1] - verts[i], 2) + Math.pow(verts[i+2] - prev_vert.z, 2));
+		//if((i/3) % 2 == 0){
+		new_verts.push(verts[i  ] + delta1_x*(1-ratio) + delta2_x*ratio);
+		new_verts.push(verts[i+1] + delta1_y*(1-ratio) + delta2_y*ratio);
+		new_verts.push(verts[i+2] + delta1_z*(1-ratio) + delta2_z*ratio);
+		//}
+	}
+	return new Float32Array(new_verts);
 }
 
 // export function map(verts, endpoint1, endpoint2) {

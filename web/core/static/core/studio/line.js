@@ -25,9 +25,9 @@ export const Line = forwardRef(function Line(p, ref) {
         verts:[],
         index:0,
     });
-    const [vert_buffer, set_vert_buffer] = useState([]);
 
-    const verts=()=> vtx.reline(meshline.current.positions,0.5);
+    const name=()=> p.node.name;
+    const verts=()=> vtx.remove_doubles(meshline.current.positions);
     const prev_verts=()=> history.verts[history.index-1];
 
     function endpoint_verts(){
@@ -43,7 +43,6 @@ export const Line = forwardRef(function Line(p, ref) {
 
     function update(args){
         meshline.current.setPoints(args.verts);
-        set_vert_buffer(args.verts);
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.depth > 0){
             constraints.forEach(constraint => constraint.enforce({depth:args.depth}));
@@ -52,6 +51,7 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     useImperativeHandle(ref,()=>({ 
+        name:name,
         update:update,
         verts:verts,
         prev_verts:prev_verts,
@@ -62,7 +62,7 @@ export const Line = forwardRef(function Line(p, ref) {
         },
         set_mod(args){
             if(selected && args.verts.length>5){
-                //args.verts = vtx.reline(args.verts,1);
+                args.verts = vtx.reline(args.verts,1);
                 const closest = vtx.closest_to_endpoints(verts(), args.verts);
                 const new_verts_1 = vtx.map(args.verts, closest.v1, closest.v2);
                 const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
@@ -118,6 +118,7 @@ export const Line = forwardRef(function Line(p, ref) {
         }
     },[history_act]); 
 
+    //console.log('line render');
     return (
         r('mesh', {
             ref: mesh,
