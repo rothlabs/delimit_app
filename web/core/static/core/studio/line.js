@@ -1,7 +1,6 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame} from 'r3f';
-import {TextureLoader} from 'three';
 import {theme} from '../app.js';
 import {history_act_var} from './studio.js';
 import {useReactiveVar} from 'apollo';
@@ -9,8 +8,6 @@ import * as vtx from './vertex.js';
 
 //SET OBJECT Z INSTEAD OF VERTEX Z FOR PROPER RENDERING ORDER ///////////////////////////
 //Maybe does not apply to mesh line and points, appears to be okay 
-
-const sprite = new TextureLoader().load('/static/texture/disc.png');
 
 export const Line = forwardRef(function Line(p, ref) {
     const mesh = useRef();
@@ -28,8 +25,9 @@ export const Line = forwardRef(function Line(p, ref) {
         verts:[],
         index:0,
     });
+    const [vert_buffer, set_vert_buffer] = useState([]);
 
-    const verts=()=> vtx.reline(meshline.current.positions,1);
+    const verts=()=> vtx.reline(meshline.current.positions,0.5);
     const prev_verts=()=> history.verts[history.index-1];
 
     function endpoint_verts(){
@@ -43,9 +41,9 @@ export const Line = forwardRef(function Line(p, ref) {
         return (new Float32Array([...(selected_point==0)?theme.primary:theme.secondary, ...(selected_point==1)?theme.primary:theme.secondary]));
     }
 
-
     function update(args){
         meshline.current.setPoints(args.verts);
+        set_vert_buffer(args.verts);
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.depth > 0){
             constraints.forEach(constraint => constraint.enforce({depth:args.depth}));
@@ -57,15 +55,14 @@ export const Line = forwardRef(function Line(p, ref) {
         update:update,
         verts:verts,
         prev_verts:prev_verts,
-        set_verts(vts){
-            meshline.current.setPoints(vts);
-        },
+        set_verts:(vts)=> meshline.current.setPoints(vts),
         set_endpoint(new_endpoint){
             if(selected_point == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), depth:1});
             if(selected_point == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), depth:1});
         },
         set_mod(args){
             if(selected && args.verts.length>5){
+                //args.verts = vtx.reline(args.verts,1);
                 const closest = vtx.closest_to_endpoints(verts(), args.verts);
                 const new_verts_1 = vtx.map(args.verts, closest.v1, closest.v2);
                 const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
@@ -130,14 +127,14 @@ export const Line = forwardRef(function Line(p, ref) {
         },
             r('meshLine', {attach:'geometry', points:p.verts, ref:meshline, name:p.name}),
             r('meshLineMaterial', {ref:material, color:selected?theme.primary_s:theme.secondary_s}),
-            (p.verts.length<6 || p.selection=='off' || p.node.name=='iv__rim' || p.node.name=='iv__base') ? null :
+            (p.verts.length<6 || p.selection=='off' || p.node.name=='iv__rim' || p.node.name=='iv__base' || p.node.name.includes('__in__')) ? null :
                 r('points',{ref:endpoint, name:'endpoint', position:[0,0,10]}, //,onPointerUp:(event)=>{console.log('endpoint up');}
                     r('bufferGeometry',{},
                         r('sphere',{attach:'boundingSphere', radius:10000}),
                         r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
                         r('bufferAttribute',{ref:endpoint_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
                     ),
-                    r('pointsMaterial',{size:12, vertexColors:true, map:sprite, alphaTest:.5, transparent:true}),
+                    r('pointsMaterial',{size:12, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
                 ),
         )
     )

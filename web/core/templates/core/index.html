@@ -37,7 +37,7 @@
   <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
 </head>
 
-<body data-media-url='{% get_media_prefix %}'>
+<body data-media-url='{% get_media_prefix %}' data-static-url='{% get_static_prefix %}'>
   {{ ctx | json_script:"ctx" }}
   <div id='app'></div>
   <script src='{% static "core/app.js" %}' type='module'></script>

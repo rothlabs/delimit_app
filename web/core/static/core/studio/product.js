@@ -1,16 +1,16 @@
 import {createElement as r, useRef, useEffect, useState, forwardRef, useImperativeHandle} from 'react';
 import {useGLTF} from 'drei';
-import {Box3} from 'three';
+import {Box3,TextureLoader} from 'three';
 import {Line} from './line.js';
 import {Surface} from './surface.js';
-import {useThree} from 'r3f';
+import {useThree, useLoader} from 'r3f';
 import {Coincident} from './constraint.js';
-import {media} from '../app.js';
+import {media_url, static_url} from '../app.js';
 import {history_act_var} from './studio.js';
 
 //useGLTF.preload(product.url);
-const bounds = new Box3();
 //var add_constraints = true;
+const bounds = new Box3();
 
 export const Product = forwardRef(function Product(p, ref) {
 	const group = useRef();
@@ -19,7 +19,8 @@ export const Product = forwardRef(function Product(p, ref) {
 	const defaults = useRef([]);
 	const materials = useRef({});
 	const {camera} = useThree(); 
-	const {nodes} = useGLTF(media+p.file);
+	const {nodes} = useGLTF(media_url+p.file);
+	const disc_texture = useLoader(TextureLoader, static_url+'core/texture/disc.png');
 
 	useImperativeHandle(ref,()=>{return{
         set_endpoint(args){
@@ -65,7 +66,7 @@ export const Product = forwardRef(function Product(p, ref) {
 				r(Surface, {ref:el=>surfaces.current[n[1].name]=el, key:n[1].name, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map)
 			)),
 			...Object.entries(nodes).map((n,i)=>(!n[1].isLine ? null :
-				r(Line, {ref:el=>lines.current[i]=el, verts:n[1].geometry.attributes.position.array, key:'line_'+i, node:n[1], name:n[1].name, ...p})
+				r(Line, {ref:el=>lines.current[i]=el, verts:n[1].geometry.attributes.position.array, key:'line_'+i, node:n[1], point_texture:disc_texture, ...p})
 			)),
 		])
 	)

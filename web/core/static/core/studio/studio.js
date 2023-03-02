@@ -38,6 +38,9 @@ function Board(p) {
                     set_selection(event.intersections[0]);
                 }
             },
+            onPointerLeave:(event)=> {
+                if(!event.eventObject) pointers_down = 0;
+            },
             onPointerDown:(event)=> {
                 event.stopPropagation();
                 if([0,1].includes(event.which)){
@@ -54,6 +57,7 @@ function Board(p) {
                 event.stopPropagation();
                 if([0,1].includes(event.which)){
                     pointers_down--;
+                    if(pointers_down < 0) pointers_down = 0;
                     if(selection){ 
                         product.current.set_mod({
                             verts: new Float32Array(new_verts),
@@ -69,7 +73,7 @@ function Board(p) {
             }, 
             onPointerMove:(event)=>{
                 event.stopPropagation();
-                if(pointers_down==1 && selection){
+                if(pointers_down==1 && selection){ 
                     const point = event.intersections[event.intersections.length-1].point;
                     if(selection.object.name == 'line'){
                         pointer_vect.set(event.clientX,event.clientY);

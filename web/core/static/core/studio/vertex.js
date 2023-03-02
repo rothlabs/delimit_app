@@ -1,22 +1,22 @@
 import {Vector3} from 'three';
 
 /* given float32array of 3d vertices, remove doubles. */
-// export function remove_doubles(vertices) {
-//   var newVertices = [];
-//   var newIndices = [];
-//   var vertexMap = {};
-//   for (var i = 0; i < vertices.length; i += 3) {
-//     var key = vertices[i] + ',' + vertices[i + 1] + ',' + vertices[i + 2];
-//     if (vertexMap[key] === undefined) {
-//       vertexMap[key] = newVertices.length / 3;
-//       newVertices.push(vertices[i]);
-//       newVertices.push(vertices[i + 1]);
-//       newVertices.push(vertices[i + 2]);
-//     }
-//     newIndices.push(vertexMap[key]);
-//   }
-//   return new Float32Array(newVertices);
-// }
+export function remove_doubles(vertices) {
+  var newVertices = [];
+  var newIndices = [];
+  var vertexMap = {};
+  for (var i = 0; i < vertices.length; i += 3) {
+    var key = vertices[i] + ',' + vertices[i + 1] + ',' + vertices[i + 2];
+    if (vertexMap[key] === undefined) {
+      vertexMap[key] = newVertices.length / 3;
+      newVertices.push(vertices[i]);
+      newVertices.push(vertices[i + 1]);
+      newVertices.push(vertices[i + 2]);
+    }
+    newIndices.push(vertexMap[key]);
+  }
+  return new Float32Array(newVertices);
+}
 
 
 // /* with float32array of 3D vertices representing a line, add vertices so there is never too big of a distance between consecutive vertices */
@@ -174,23 +174,16 @@ export function reline(verts,spacing){
 
 /* given float32array 3d vertices and two test vertices, return the closet vertex for each test vertex. */
 export function closest_to_endpoints(verts, endpoints_verts) {
-  const vert1 = vect(endpoints_verts,0);//first(endpoints_verts);
-  const vert2 = vect(endpoints_verts,-1);//last(endpoints_verts);
+  const vert1 = vect(endpoints_verts,0);
+  const vert2 = vect(endpoints_verts,-1);
   var minDistance1 = Infinity;
   var minDistance2 = Infinity;
   var minIndex1 = 0;
   var minIndex2 = 0;
   for (var i = 0; i < verts.length/3; i ++) {
-    //var x = verts[i];
-    //var y = verts[i + 1];
-    //var z = verts[i + 2];
-    //var distance1 = Math.sqrt(Math.pow(x - vert1.x, 2) + Math.pow(y - vert1.y, 2) + Math.pow(z - vert1.z, 2));
-    //var distance2 = Math.sqrt(Math.pow(x - vert2.x, 2) + Math.pow(y - vert2.y, 2) + Math.pow(z - vert2.z, 2));
     var v = vect(verts,i);
     var distance1 = v.distanceTo(vert1);
     var distance2 = v.distanceTo(vert2);
-    //console.log('distance1: '+x +', '+y+', '+z);
-    //console.log('distance1b: '+v.x +', '+v.y+', '+v.z);
     if (distance1 < minDistance1) {
       minDistance1 = distance1;
       minIndex1 = i;
@@ -200,7 +193,6 @@ export function closest_to_endpoints(verts, endpoints_verts) {
       minIndex2 = i;
     }
   }
-  //return [minIndex1, minIndex2, get(verts,minIndex1), get(verts,minIndex2)];
   return {i1:minIndex1, i2:minIndex2, v1:vect(verts,minIndex1), v2:vect(verts,minIndex2)};
 }
 
@@ -293,15 +285,12 @@ export function replace(vertices, startIndex, endIndex, replacements) {
 
 /* given float32array of 3d vertices and test vertex, return the vertex closest to the test vertex. */
 export function closest(verts, test_vertex) {
-  //console.log(test_vertex);
   var closestVertex = vect(verts,0);
   var closestDistance = Infinity;
   for (var i = 0; i < verts.length/3; i++) {
-    //var distance = Math.sqrt(Math.pow(verts[i] - testVertex.x, 2) + Math.pow(verts[i+1] - testVertex.y, 2) + Math.pow(verts[i+2] - testVertex.z, 2));
     var v = vect(verts,i);
     var distance = v.distanceTo(test_vertex);
     if (distance < closestDistance) {
-      //console.log(distance);
       closestDistance = distance;
       closestVertex = v;
     }

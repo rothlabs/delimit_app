@@ -16,7 +16,8 @@ const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});
 
-export const media = document.body.getAttribute('data-media-url');
+export const media_url = document.body.getAttribute('data-media-url');
+export const static_url = document.body.getAttribute('data-static-url');
 
 ColorManagement.enabled = true;
 const style = getComputedStyle(document.body);
