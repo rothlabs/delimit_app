@@ -1,6 +1,6 @@
 import {createElement as r, useRef, useState, Fragment} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
-import {Vector2} from 'three';
+import {Vector2,Vector3} from 'three';
 import {Product} from './product.js';
 import {Line} from './line.js';
 import {History_Control} from './history.js';
@@ -22,6 +22,7 @@ const pointer_vect = new Vector2();
 const new_verts = [];
 var pointers_down = 0;
 var raycaster=null;
+//const point_offest = new Vector3(0,0,10);
 
 function Board(p) {
     const {camera} = useThree(); 
@@ -74,10 +75,12 @@ function Board(p) {
                     if(selection.object.name == 'line'){
                         pointer_vect.set(event.clientX,event.clientY);
                         if(pointer_start.distanceTo(pointer_vect) > 2){
-                            new_verts.push(point.x,point.y,10);
+                            new_verts.push(point.x,point.y,0); // will need to find other z value for 3d lines
                             draw_line.current.set_verts(new Float32Array(new_verts));
                         }
                     }else if(selection.object.name == 'endpoint'){
+                        //point.add(point_offest);
+                        //console.log(point);
                         product.current.set_endpoint(point);
                     }
                 }
@@ -92,10 +95,11 @@ function Board(p) {
 }
 
 
+//add light and cube to check if camera is orthographic like it should be 
 export function Studio(){
     const {productID} = useParams();
-    const {loading, error, data} = useQuery(gql`query ProductByID($id: String!){  
-        productByID(id: $id) {
+    const {loading, error, data} = useQuery(gql`query Product($id: String!){  
+        product(id: $id) {
             file
         }
     }`,{variables:{id:productID}});
@@ -106,7 +110,7 @@ export function Studio(){
         r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
             r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, //camera:{position:[0, 0, 100]}
                 r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                r(Board,{camera_controls:camera_controls, file:data.productByID.file}), 
+                r(Board,{camera_controls:camera_controls, file:data.product.file}), 
             )
         ),
         r(History_Control), //, {set_act:set_act}

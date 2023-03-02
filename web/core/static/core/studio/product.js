@@ -8,11 +8,9 @@ import {Coincident} from './constraint.js';
 import {media} from '../app.js';
 import {history_act_var} from './studio.js';
 
-
-//const product = JSON.parse(document.getElementById('product').innerHTML); 
 //useGLTF.preload(product.url);
 const bounds = new Box3();
-var add_constraints = true;
+//var add_constraints = true;
 
 export const Product = forwardRef(function Product(p, ref) {
 	const group = useRef();
@@ -22,7 +20,6 @@ export const Product = forwardRef(function Product(p, ref) {
 	const materials = useRef({});
 	const {camera} = useThree(); 
 	const {nodes} = useGLTF(media+p.file);
-	const [post_load, set_post_load] = useState(false);
 
 	useImperativeHandle(ref,()=>{return{
         set_endpoint(args){
@@ -34,31 +31,28 @@ export const Product = forwardRef(function Product(p, ref) {
     };});
 	
 	useEffect(()=>{ 
-		bounds.setFromObject( group.current );
-		const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
-		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
-		if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
-		if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
-		camera.updateProjectionMatrix();
-		// if (add_constraints){
-		// 	add_constraints = false; 
-		// 	lines.current.forEach(line1 => {
-		// 		lines.current.forEach(line2=> Coincident(line1, line2));
-		// 	});
-		// }
-		history_act_var({name:'record'}); 
+		if(group){
+			bounds.setFromObject( group.current );
+			const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
+			const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
+			if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
+			if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
+			camera.updateProjectionMatrix();
+			//if(add_constraints){add_constraints=false; 
+				lines.current.forEach(line1 => {
+					lines.current.forEach(line2=> Coincident(line1, line2));
+				});
+			//}
+			history_act_var({name:'record'}); 
 
-		//const texture = materials.current.lv.map;
-		//const canvas = document.createElement('canvas');
-		//canvas.width = texture.image.width;
-		//canvas.height = texture.image.height;
-		//const context = canvas.getContext('2d');
-
-	},[post_load]); 
-
-	useEffect(()=>{
-		set_post_load(true);;
-	},[nodes]);
+			//const texture = materials.current.lv.map;
+			//const canvas = document.createElement('canvas');
+			//canvas.width = texture.image.width;
+			//canvas.height = texture.image.height;
+			//const context = canvas.getContext('2d');
+			//console.log(nodes);
+		}
+	},[group]); 
 
 	return (
 		r('group', {ref:group, dispose:null}, [
@@ -71,7 +65,7 @@ export const Product = forwardRef(function Product(p, ref) {
 				r(Surface, {ref:el=>surfaces.current[n[1].name]=el, key:n[1].name, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map)
 			)),
 			...Object.entries(nodes).map((n,i)=>(!n[1].isLine ? null :
-				r(Line, {ref:el=>lines.current[i]=el, verts:n[1].geometry.attributes.position.array, key:n[1].name, ...p})
+				r(Line, {ref:el=>lines.current[i]=el, verts:n[1].geometry.attributes.position.array, key:n[1].name, node:n[1], ...p})
 			)),
 		])
 	)

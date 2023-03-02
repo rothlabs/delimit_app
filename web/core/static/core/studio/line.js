@@ -42,15 +42,20 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     function verts(){
-        return mesh_line.current.positions;
+        return vtx.remove_doubles(mesh_line.current.positions);
     }
+
+    //useEffect(()=>{
+    //    if(mesh_line.current) console.log(verts().length/3);
+    //});
 
     function update(args){
         var verts = args.verts;
-        if(!args.raw) verts = vtx.set_density(args.verts,1,2);
+        if(!args.raw) verts = vtx.set_density(args.verts,1.95,2.05);
         mesh_line.current.setPoints(verts);
-        endpoints_pos.current.array = endpoint_verts();
+        if(endpoints_pos.current) endpoints_pos.current.array = endpoint_verts();
         if(args.depth > 0){
+            //console.log(constraints);
             constraints.forEach(constraint =>{
                 constraint.enforce({depth:args.depth});
             });
@@ -78,10 +83,10 @@ export const Line = forwardRef(function Line(p, ref) {
             }
             if(selected_point == 0){
                 const new_verts = vtx.map(prev_verts(), args.endpoint, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
-                update({verts:new_verts, depth:2, record:true});
+                update({verts:new_verts, depth:1, record:true});
             }else if(selected_point == 1){
                 const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.endpoint); //vtx.first(line.prev_verts())
-                update({verts:new_verts, depth:2, record:true});
+                update({verts:new_verts, depth:1, record:true});
             }
         },
         add_constraint(constraint){
@@ -105,8 +110,11 @@ export const Line = forwardRef(function Line(p, ref) {
         set_selected(false); 
         set_selected_point(-1); 
         if(p.selection){
-            if(p.selection.object == mesh.current)      set_selected(true);
-            if(p.selection.object == endpoints.current) set_selected_point(p.selection.index);
+            if(p.selection.object == mesh.current) set_selected(true);
+            if(p.selection.object == endpoints.current){
+                set_selected_point(p.selection.index);
+                set_selected(true);
+            }
         }
     },[p.selection]);
 
@@ -138,12 +146,13 @@ export const Line = forwardRef(function Line(p, ref) {
         r('mesh', {
             name: 'line',
             ref: mesh,
+            position: p.node? [p.node.position.x,p.node.position.y,p.node.position.z] : [0,0,0],
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
         },
-            r('meshLine', {attach:'geometry', points: p.verts, ref:mesh_line}),
+            r('meshLine', {attach:'geometry', points:p.verts, ref:mesh_line}),
             r('meshLineMaterial', {ref:material, color:selected?theme.primary_s:theme.secondary_s}),
         ),
-        (p.verts.length<6 || p.selection=='off') ? null :
+        (p.verts.length<6 || p.selection=='off' || p.node.name=='iv__rim' || p.node.name=='iv__base') ? null : // || p.node.name.includes('rim') || p.node.name.includes('base')
             r('points',{name:'endpoint', ref:endpoints}, //,onPointerUp:(event)=>{console.log('endpoint up');}
                 r('bufferGeometry',{ref:endpoints_geom},
                     r('bufferAttribute',{ref:endpoints_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
@@ -152,7 +161,7 @@ export const Line = forwardRef(function Line(p, ref) {
                             ...(selected_point==1)? theme.primary: theme.secondary,
                     ])}),
                 ),
-                r('pointsMaterial',{size:12, vertexColors:true, map:sprite, alphaTest:.2, transparent:true}),
+                r('pointsMaterial',{size:12, vertexColors:true, map:sprite, alphaTest:.5, transparent:true}),
             ),
     ))
 });

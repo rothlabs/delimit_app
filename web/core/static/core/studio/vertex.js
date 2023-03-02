@@ -1,9 +1,28 @@
 import * as THREE from 'three';
 
+/* given float32array of 3d vertices, remove doubles. */
+export function remove_doubles(vertices) {
+  var newVertices = [];
+  var newIndices = [];
+  var vertexMap = {};
+  for (var i = 0; i < vertices.length; i += 3) {
+    var key = vertices[i] + ',' + vertices[i + 1] + ',' + vertices[i + 2];
+    if (vertexMap[key] === undefined) {
+      vertexMap[key] = newVertices.length / 3;
+      newVertices.push(vertices[i]);
+      newVertices.push(vertices[i + 1]);
+      newVertices.push(vertices[i + 2]);
+    }
+    newIndices.push(vertexMap[key]);
+  }
+  return new Float32Array(newVertices);
+}
+
+
 /* with float32array of 3D vertices representing a line, add vertices so there is never too big of a distance between consecutive vertices */
 function enforce_max_distance(vertices, maxDistance) {
   var new_verts = [];//[vertices[0],vertices[1],vertices[2]];
-  new_verts.splice(0,0,0);
+  new_verts.splice(0,0,vertices[2]);
   new_verts.splice(0,0,vertices[1]);
   new_verts.splice(0,0,vertices[0]);
   for (var i = 0; i < vertices.length-5; i += 3) {
@@ -29,9 +48,9 @@ function enforce_max_distance(vertices, maxDistance) {
     new_verts.push(y2);
     new_verts.push(z2);
   }
-  new_verts.push(vertices[vertices.length-3]);
-  new_verts.push(vertices[vertices.length-2]);
-  new_verts.push(0);
+  //new_verts.push(vertices[vertices.length-3]);
+  //new_verts.push(vertices[vertices.length-2]);
+  //new_verts.push(vertices[vertices.length-1]);
   return new Float32Array(new_verts);
 }
 
@@ -39,9 +58,9 @@ export function set_density(vertices, minDistance, maxDistance) {
   /* Considering a Float32Array of 3D vertices representing line, write a function to remove vertices so that they are never too close. */
   const new_verts = Array.from(vertices);
   var i = 0;
-  new_verts.splice(0,0,0);
-  new_verts.splice(0,0,vertices[1]);
-  new_verts.splice(0,0,vertices[0]);
+  //new_verts.splice(0,0,vertices[2]); // 0?
+  //new_verts.splice(0,0,vertices[1]);
+  //new_verts.splice(0,0,vertices[0]);
   while (i < new_verts.length) {
     var j = i + 3;
     while (j < new_verts.length) {
@@ -57,9 +76,9 @@ export function set_density(vertices, minDistance, maxDistance) {
     }
     i += 3;
   }
-  new_verts.push(vertices[vertices.length-3]);
-  new_verts.push(vertices[vertices.length-2]);
-  new_verts.push(0);
+  //new_verts.push(vertices[vertices.length-3]);
+  //new_verts.push(vertices[vertices.length-2]);
+  //new_verts.push(vertices[vertices.length-1]); // 0?
   return enforce_max_distance(new_verts, maxDistance);
 }
 
@@ -134,21 +153,49 @@ export function closest_to_endpoints(verts, endpoints_verts) {
 
 /* map line onto two endpoints */
 export function map(verts, endpoint1, endpoint2) {
-  verts = set_density(verts,0.1,0.2);
   var new_verts = [];
+  const delta1_x = endpoint1.x - verts[0];
+  const delta1_y = endpoint1.y - verts[1];
+  const delta1_z = endpoint1.z - verts[2];
+  const delta2_x = endpoint2.x-verts[verts.length-3];
+  const delta2_y = endpoint2.y-verts[verts.length-2];
+  const delta2_z = endpoint2.z-verts[verts.length-1];
+  console.log(verts.length);
   for (var i = 0; i < verts.length-2; i += 3) {
     var ratio = i / (verts.length-3);
-    var rts_x = verts[i]-verts[0];
-    var rts_y = verts[i+1]-verts[1];
-    var rte_x = verts[i]-verts[verts.length-3];
-    var rte_y = verts[i+1]-verts[verts.length-2];
-    new_verts.push((rts_x+endpoint1.x)*(1-ratio) + (rte_x+endpoint2.x)*ratio);
-    new_verts.push((rts_y+endpoint1.y)*(1-ratio) + (rte_y+endpoint2.y)*ratio);
-    new_verts.push(1);
-    
+    //var distance = Math.sqrt(Math.pow(verts[i] - verts[i], 2) + Math.pow(verts[i+1] - verts[i], 2) + Math.pow(verts[i+2] - prev_vert.z, 2));
+    //if((i/3) % 2 == 0){
+      new_verts.push(verts[i  ] + delta1_x*(1-ratio) + delta2_x*ratio);
+      new_verts.push(verts[i+1] + delta1_y*(1-ratio) + delta2_y*ratio);
+      new_verts.push(verts[i+2] + delta1_z*(1-ratio) + delta2_z*ratio);
+    //}
   }
   return new Float32Array(new_verts);
 }
+
+// export function map(verts, endpoint1, endpoint2) {
+//   verts = set_density(verts,.1,.2);
+//   //var last_ratio = 0;
+//   var new_verts = [];
+//   for (var i = 0; i < verts.length-2; i += 3) {
+//     var ratio = i / (verts.length-3);
+//     //console.log(ratio-last_ratio);
+//     //last_ratio = ratio;
+//     var rts_x = verts[i]-verts[0];
+//     var rts_y = verts[i+1]-verts[1];
+//     var rts_z = verts[i+2]-verts[2];
+//     var rte_x = verts[i]-verts[verts.length-3];
+//     var rte_y = verts[i+1]-verts[verts.length-2];
+//     var rte_z = verts[i+2]-verts[verts.length-1];
+//     new_verts.push((rts_x+endpoint1.x)*(1-ratio) + (rte_x+endpoint2.x)*ratio);
+//     new_verts.push((rts_y+endpoint1.y)*(1-ratio) + (rte_y+endpoint2.y)*ratio);
+//     new_verts.push((rts_z+endpoint1.z)*(1-ratio) + (rte_z+endpoint2.z)*ratio);
+//     //new_verts.push(0);
+    
+//   }
+//   //new_verts = set_density(new_verts,1,2);
+//   return new Float32Array(new_verts);
+// }
 
 /* given float32array of 3d vertices and start and end index and second array of vertices, replace the vertices between start and end with the second array. Use slice and/or splice. */ 
 // could be made much shorter with slice and concat?
