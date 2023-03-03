@@ -22,6 +22,7 @@ const pointer_vect = new Vector2();
 const new_verts = [];
 var pointers_down = 0;
 var raycaster=null;
+//var zero_pointers_down_on_enter = false;
 
 function Board(p) {
     const {camera} = useThree(); 
@@ -38,8 +39,16 @@ function Board(p) {
                     set_selection(event.intersections[0]);
                 }
             },
-            onPointerLeave:(event)=> {
-                if(!event.eventObject) pointers_down = 0;
+            //onPointerEnter:(event)=> {
+            //    if(zero_pointers_down_on_enter){pointers_down = 0; zero_pointers_down_on_enter=false;}
+            //},
+            onPointerLeave:(event)=> { 
+                if(event.intersections.length < 1) {
+                    pointers_down = 0;//{zero_pointers_down_on_enter = true;  console.log('zero_pointers_down_on_enter');}
+                    new_verts.length = 0;
+                    draw_line.current.set_verts(new Float32Array());
+                    set_selection(null);
+                }
             },
             onPointerDown:(event)=> {
                 event.stopPropagation();
@@ -56,19 +65,21 @@ function Board(p) {
             onPointerUp:(event)=>{
                 event.stopPropagation();
                 if([0,1].includes(event.which)){
-                    pointers_down--;
-                    if(pointers_down < 0) pointers_down = 0;
                     if(selection){ 
-                        product.current.set_mod({
-                            verts: new Float32Array(new_verts),
-                            endpoint: event.intersections[event.intersections.length-1].point,
-                        });
+                        if(pointers_down==1){
+                            product.current.set_mod({
+                                verts: new Float32Array(new_verts),
+                                endpoint: event.intersections[event.intersections.length-1].point,
+                            });
+                        }
                         new_verts.length = 0;
                         draw_line.current.set_verts(new Float32Array());
                         if(selection.object.name == 'endpoint'){
                             set_selection(null); 
                         }
                     }
+                    pointers_down--;
+                    if(pointers_down < 0) pointers_down = 0;
                 }
             }, 
             onPointerMove:(event)=>{

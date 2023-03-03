@@ -121,43 +121,29 @@ export function endpoints(verts){ // use get function here
 	return new Float32Array([...vert(verts,0), ...vert(verts,-1)]);
 }
 
-//export function set(verts, i, point){
-//  i *= 3;
-//  if(i < 0){
-//    i = verts.length + i;
-//  }
-//  verts[i] = point.x;
-//  verts[i+1] = point.y;
-//}
-
-// export function endpoints(verts, z_offset_1, z_offset_2){ // use get function here 
-//   	return new Float32Array([
-//     	verts[0], verts[1], verts[2]+z_offset_1,//+Math.random()*10,  
-//     	verts[verts.length-3], verts[verts.length-2], verts[verts.length-1]+z_offset_2
-// 	]);//+Math.random()*10]);
-// }
-
 export function reline(verts,spacing){
 	if(verts.length > 6){
 		var new_verts = [];
+    append_vert(new_verts, verts, 0);
 		var i = 1;
 		var v1 = vect(verts,0);
-		while(i < (verts.length/3)-1){
+		while(i < (verts.length/3)){
 			var v2 = vect(verts,i);
 			var dist = v1.distanceTo(v2);
-			//if(Math.abs(dist-spacing) < spacing*0.05){
-			//	append_vect(new_verts, v2);
-			//	i++;
-			//}else{
-				if(spacing < dist){
-					v1.add(v2.sub(v1).normalize().multiplyScalar(spacing));
-					append_vect(new_verts, v1);
-				}else{
-					i++;
-				}	
-			//}
+      if(Math.abs(spacing-dist) < spacing*0.2){
+        v1 = vect(verts,i);
+        append_vect(new_verts, v1);
+        i++;
+      }else{
+        if(spacing < dist){
+          v1.add(v2.sub(v1).normalize().multiplyScalar(spacing));
+          append_vect(new_verts, v1);
+        }else{
+          i++;
+        }	
+      }
 		}
-		append_vert(new_verts, verts, -1);
+		//append_vert(new_verts, verts, -1);
 		return(new Float32Array(new_verts));
 	}else{
 		return(verts);
@@ -198,15 +184,11 @@ export function map(verts, endpoint1, endpoint2) {
 	const delta2_x = endpoint2.x-verts[verts.length-3];
 	const delta2_y = endpoint2.y-verts[verts.length-2];
 	const delta2_z = endpoint2.z-verts[verts.length-1];
-	//console.log(verts.length);
 	for (var i = 0; i < verts.length-2; i += 3) {
 		var ratio = i / (verts.length-3);
-		//var distance = Math.sqrt(Math.pow(verts[i] - verts[i], 2) + Math.pow(verts[i+1] - verts[i], 2) + Math.pow(verts[i+2] - prev_vert.z, 2));
-		//if((i/3) % 2 == 0){
 		new_verts.push(verts[i  ] + delta1_x*(1-ratio) + delta2_x*ratio);
 		new_verts.push(verts[i+1] + delta1_y*(1-ratio) + delta2_y*ratio);
 		new_verts.push(verts[i+2] + delta1_z*(1-ratio) + delta2_z*ratio);
-		//}
 	}
 	return new Float32Array(new_verts);
 }

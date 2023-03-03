@@ -27,8 +27,10 @@ export const Line = forwardRef(function Line(p, ref) {
     });
 
     const name=()=> p.node.name;
-    const verts=()=> vtx.remove_doubles(meshline.current.positions);
+    const verts=()=> meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
+    const vect=(i)=> vtx.vect(meshline.current.positions,i);
     const prev_verts=()=> history.verts[history.index-1];
+    const prev_vect=(i)=> vtx.vect(history.verts[history.index-1],i);
 
     function endpoint_verts(){
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.needsUpdate = true;
@@ -38,7 +40,7 @@ export const Line = forwardRef(function Line(p, ref) {
 
     function endpoint_colors(){
         if(endpoint_attr_color.current) endpoint_attr_color.current.needsUpdate = true;
-        return (new Float32Array([...(selected_point==0)?theme.primary:theme.secondary, ...(selected_point==1)?theme.primary:theme.secondary]));
+        return (new Float32Array([...(selected_point==0)?theme.secondary:theme.secondary, ...(selected_point==1)?theme.primary:theme.primary]));
     }
 
     function update(args){
@@ -54,11 +56,13 @@ export const Line = forwardRef(function Line(p, ref) {
         name:name,
         update:update,
         verts:verts,
+        vect:vect,
         prev_verts:prev_verts,
+        prev_vect:prev_vect,
         set_verts:(vts)=> meshline.current.setPoints(vts),
         set_endpoint(new_endpoint){
-            if(selected_point == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), depth:1});
-            if(selected_point == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), depth:1});
+            if(selected_point == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), depth:2});
+            if(selected_point == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), depth:2});
         },
         set_mod(args){
             if(selected && args.verts.length>5){
@@ -70,10 +74,10 @@ export const Line = forwardRef(function Line(p, ref) {
             }
             if(selected_point == 0){
                 const new_verts = vtx.map(prev_verts(), args.endpoint, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
-                update({verts:new_verts, depth:1, record:true});
+                update({verts:new_verts, depth:2, record:true});
             }else if(selected_point == 1){
                 const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.endpoint); //vtx.first(line.prev_verts())
-                update({verts:new_verts, depth:1, record:true});
+                update({verts:new_verts, depth:2, record:true});
             }
         },
         add_constraint(constraint){
@@ -128,7 +132,7 @@ export const Line = forwardRef(function Line(p, ref) {
         },
             r('meshLine', {attach:'geometry', points:p.verts, ref:meshline, name:p.name}),
             r('meshLineMaterial', {ref:material, color:selected?theme.primary_s:theme.secondary_s}),
-            (p.verts.length<6 || p.selection=='off' || p.node.name=='iv__rim' || p.node.name=='iv__base' || p.node.name.includes('__in__')) ? null :
+            (p.verts.length<6 || p.selection=='off' || p.node.name.includes('v__rim') || p.node.name.includes('v__base') || p.node.name.includes('__out__')) ? null :
                 r('points',{ref:endpoint, name:'endpoint', position:[0,0,10]}, //,onPointerUp:(event)=>{console.log('endpoint up');}
                     r('bufferGeometry',{},
                         r('sphere',{attach:'boundingSphere', radius:10000}),
