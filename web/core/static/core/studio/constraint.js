@@ -14,8 +14,8 @@ export function Endpoints_To_Lines(line1, line2, line3, ids){
     var correction=()=> vtx.map(line3.prev_verts(), v1(), v2()); 
     constraint.enforce = function(args){
         if(v1().distanceTo(v3a()) > max_dist || v2().distanceTo(v3b()) > max_dist){
-            args.depth--;
-            line3.update({verts:correction(), depth:args.depth}); 
+            //args.depth--;
+            line3.update({verts:correction(), depth:args.depth-1}); 
         }
     };
     line1.add_constraint(constraint);
@@ -26,6 +26,8 @@ export function Endpoints_To_Lines(line1, line2, line3, ids){
 
 // if line1 changes, update line2 so its sepcified endpoint is coincident
 export function Coincident(line1, i1, line2, i2, ids){
+    const id = 'Coincident___'+line1.name()+'___'+i1+'___'+line2.name()+'___'+i2;
+    ids.push(id);
     const constraint = {};
     const max_dist = 0.5;
     var correction = null; 
@@ -34,13 +36,14 @@ export function Coincident(line1, i1, line2, i2, ids){
     if(i2== 0) correction=()=> vtx.map(line2.prev_verts(), v1(), line2.prev_vect(-1)); 
     if(i2==-1) correction=()=> vtx.map(line2.prev_verts(), line2.prev_vect(0),  v1()); 
     constraint.enforce = function(args){
+        //console.log(args.depth);
+        //console.log(id);
         if(v1().distanceTo(v2()) > max_dist){
-            args.depth--;
-            line2.update({verts:correction(), depth:args.depth}); 
+            //args.depth--;
+            line2.update({verts:correction(), depth:args.depth-1}); 
         }
     };
     line1.add_constraint(constraint);
-    ids.push('Coincident___'+line1.name()+'___'+i1+'___'+line2.name()+'___'+i2);
 }
 
 // make both endpoints coincident (0 to 0, -1 to -1 indecies)
@@ -55,8 +58,8 @@ export function Coincident_Endpoints(line1, line2, ids){
     correction=()=> vtx.map(line2.prev_verts(), v1a(), v1b()); 
     constraint.enforce = function(args){
         if(v1a().distanceTo(v2a()) > max_dist || v1b().distanceTo(v2b()) > max_dist){
-            args.depth--;
-            line2.update({verts:correction(), depth:args.depth}); 
+            //args.depth--;
+            line2.update({verts:correction(), depth:args.depth-1}); 
         }
     };
     line1.add_constraint(constraint);
@@ -64,27 +67,32 @@ export function Coincident_Endpoints(line1, line2, ids){
 }
 
 // if any line changes, update line3 so its endpoints are vertical with line1 and line2
-export function Vertical_Alignment(line1, i1, line2, i2, line3, ids){
+export function Vertical_Alignment(line1, i1, line2, i2, line3, triggers, ids){
+    const id = 'Vertical_Alignment___'+line1.name()+'___'+i1+'___'+line2.name()+'___'+i2+'___'+line3.name();
+    ids.push(id);
     const constraint = {};
     const max_dist = 0.5;
     var correction = null; 
-    var v3a=()=> vtx.vect(line3.verts(), 0);
-    var v3b=()=> vtx.vect(line3.verts(),-1);
+    var v3a=()=> line3.vect(0);
+    var v3b=()=> line3.vect(-1);
     var v1=()=> new Vector3(line1.vect(i1).x, v3a().y, v3a().z);
     var v2=()=> new Vector3(line2.vect(i2).x, v3b().y, v3b().z);
     var correction=()=> vtx.map(line3.prev_verts(), v1(), v2()); 
     constraint.enforce = function(args){
+        //console.log(args.depth);
+        //console.log(id);
         if(correction != null){
             if(Math.abs(v1().x-v3a().x) > max_dist || Math.abs(v2().x-v3b().x) > max_dist){
-                args.depth--;
-                line3.update({verts:correction(), depth:args.depth}); 
+                //args.depth--;
+                line3.update({verts:correction(), depth:args.depth-1}); 
+                
             }
         }
     };
     line1.add_constraint(constraint);
     line2.add_constraint(constraint);
     line3.add_constraint(constraint);
-    ids.push('Vertical_Alignment___'+line1.name()+'___'+i1+'___'+line2.name()+'___'+i2+'___'+line3.name());
+    triggers.forEach(n => n.add_constraint(constraint));
 }
 
 
