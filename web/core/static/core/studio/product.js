@@ -6,11 +6,8 @@ import {Surface} from './surface.js';
 import {useThree, useLoader} from 'r3f';
 import {Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
 import {media_url, static_url} from '../app.js';
-import {history_act_var} from './editor.js';
-import {reline} from './vertex.js';
+import {history_action} from './editor.js';
 
-//useGLTF.preload(product.url);
-//var add_constraints = true;
 const bounds = new Box3();
 
 export const Product = forwardRef(function Product(p, ref) {
@@ -40,22 +37,7 @@ export const Product = forwardRef(function Product(p, ref) {
 			if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
 			if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
 			camera.updateProjectionMatrix();
-			//if(add_constraints){add_constraints=false; 
-			const ids = new Array(); // IDs ensure the same constraint is not created more than once
-			// for(var i=0; i<2; i++){ // run twice to get lines that need two different constraints between them
-			// 	lines.current.forEach(line1 => {
-			// 		lines.current.forEach(line2=>{
-			// 			Coincident(line1, line2, ids);
-			// 			if(!line1.name().includes('front') && !line1.name().includes('rear')){
-			// 				if(line1.name().includes('iv') && line2.name().includes('tv__in__')){
-			// 					if(line1.name().split('__')[1] == line2.name().split('__')[2]){
-			// 						Vertical_Alignment(line1,line2,ids);
-			// 					}
-			// 				}
-			// 			}
-			// 		});
-			// 	});
-			// }
+
 			var tv_in_base=null, tv_in_rim=null, tv_in_mids=[];
 			var tv_out_base=null, tv_out_rim=null, tv_out_mids=[];
 			var iv_rear=null, iv_front=null, iv_mids=[]; 
@@ -77,31 +59,30 @@ export const Product = forwardRef(function Product(p, ref) {
 				lines.current.forEach(line2=>{
 					var words2=line2.name().split('__');
 					if(words1[0] == words2[0]){
-						if(line1.name().includes('v__rear')  && line2.name().includes('v__base')) Coincident(line1,  0, line2,  0, ids);
-						if(line1.name().includes('v__rear')  && line2.name().includes('v__rim'))  Coincident(line1, -1, line2,  0, ids);
-						if(line1.name().includes('v__front') && line2.name().includes('v__base')) Coincident(line1,  0, line2, -1, ids);
-						if(line1.name().includes('v__front') && line2.name().includes('v__rim'))  Coincident(line1, -1, line2, -1, ids);
+						if(line1.name().includes('v__rear')  && line2.name().includes('v__base')) Coincident(line1,  0, line2,  0);
+						if(line1.name().includes('v__rear')  && line2.name().includes('v__rim'))  Coincident(line1, -1, line2,  0);
+						if(line1.name().includes('v__front') && line2.name().includes('v__base')) Coincident(line1,  0, line2, -1);
+						if(line1.name().includes('v__front') && line2.name().includes('v__rim'))  Coincident(line1, -1, line2, -1);
 					}
 				});
 			});
 			if(tv_in_base && tv_in_rim && tv_in_mids && tv_out_base && tv_out_rim && tv_out_mids && iv_rear && iv_front && iv_mids && ov_rear && ov_front && ov_mids){
-				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_in_base, [], ids);
-				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_in_rim, [], ids);
-				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_out_base, [], ids);
-				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_out_rim, [], ids);
-				Coincident_Endpoints(tv_in_base, tv_out_base, ids);
-				Coincident_Endpoints(tv_in_rim, tv_out_rim, ids);
+				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_in_base, []);
+				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_in_rim, []);
+				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_out_base, []);
+				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_out_rim, []);
+				Coincident_Endpoints(tv_in_base, tv_out_base);
+				Coincident_Endpoints(tv_in_rim, tv_out_rim);
 				for(var i=0; i<tv_in_mids.length; i++){
-					Endpoints_To_Lines(iv_rear, iv_front, iv_mids[i], ids);
-					Endpoints_To_Lines(ov_rear, ov_front, ov_mids[i], ids);
-					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_in_mids[i], [iv_rear, iv_front], ids);
-					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_out_mids[i], [iv_rear, iv_front], ids);
-					Coincident_Endpoints(tv_in_mids[i], tv_out_mids[i], ids);
+					Endpoints_To_Lines(iv_rear, iv_front, iv_mids[i]);
+					Endpoints_To_Lines(ov_rear, ov_front, ov_mids[i]);
+					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_in_mids[i], [iv_rear, iv_front]);
+					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_out_mids[i], [iv_rear, iv_front]);
+					Coincident_Endpoints(tv_in_mids[i], tv_out_mids[i]);
 				}
 			}
-			//console.log(ids);
 
-			history_act_var({name:'record'}); 
+			history_action({name:'record'}); 
 		}
 	},[group]); 
 
@@ -123,6 +104,24 @@ export const Product = forwardRef(function Product(p, ref) {
 	)
 });
 
+
+
+//const ids = new Array(); // IDs ensure the same constraint is not created more than once
+
+// for(var i=0; i<2; i++){ // run twice to get lines that need two different constraints between them
+			// 	lines.current.forEach(line1 => {
+			// 		lines.current.forEach(line2=>{
+			// 			Coincident(line1, line2, ids);
+			// 			if(!line1.name().includes('front') && !line1.name().includes('rear')){
+			// 				if(line1.name().includes('iv') && line2.name().includes('tv__in__')){
+			// 					if(line1.name().split('__')[1] == line2.name().split('__')[2]){
+			// 						Vertical_Alignment(line1,line2,ids);
+			// 					}
+			// 				}
+			// 			}
+			// 		});
+			// 	});
+			// }
 
 //const texture = materials.current.lv.map;
 			//const canvas = document.createElement('canvas');

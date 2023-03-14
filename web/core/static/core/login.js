@@ -1,8 +1,8 @@
-import {createElement as r, useState, Fragment} from 'react';
+import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, Row} from 'boot';
 import {makeVar, useReactiveVar} from 'apollo';
 import {Logo} from './logo.js';
-import {use_server} from './app.js';
+import {use_db} from './app.js';
 
 export const show_login = makeVar(false);
 const attempt_login = makeVar(false);
@@ -12,13 +12,14 @@ export function Login(){
     const attempt = useReactiveVar(attempt_login);
     const [username, set_username] = useState('');
     const [password, set_password] = useState('');
-    const close=()=> show_login(false);
+    const key_press=(target)=> {if(target.charCode==13) attempt_login(true);};
+    useEffect(()=>{set_username('');set_password('')},[show]);
 	return (
-		r(Modal,{show:show, onHide:close},
+		r(Modal,{show:show, onHide:()=>show_login(false), autoFocus:false},
       		r(Modal.Header, {closeButton:true},  
                 r(Modal.Title, {}, 'Sign In'),
       		),
-            attempt ? r(Attempt, {username:username, password:password}) : 
+            attempt ? r(Attempt_Login, {username:username, password:password}) : 
                 r(Fragment,{},
                     r(Modal.Body, {}, 
                         r(Row,{className:'mb-3'},
@@ -26,33 +27,68 @@ export function Login(){
                         ),
                         r(Form.Group, {className:'mb-3'}, 
                             r(Form.Label, {}, 'Username'),
-                            r(Form.Control, {type:'text', value:username, onChange:(e)=>set_username(e.target.value)}),
+                            r(Form.Control, {type:'text', value:username, onChange:(e)=>set_username(e.target.value), onKeyPress:key_press, autoFocus:true}),
                         ),
                         r(Form.Group, {className:'mb-3'},
                             r(Form.Label, {}, 'Passwrod'),
-                            r(Form.Control, {type:'password', value:password, onChange:(e)=>set_password(e.target.value)}),
+                            r(Form.Control, {type:'password', value:password, onChange:(e)=>set_password(e.target.value), onKeyPress:key_press}),
                         ),
                     ),
                     r(Modal.Footer, {},
-                        r(Button, {onClick:close, variant:'secondary'}, 'Cancel'),
-                        r(Button, {onClick:()=>attempt_login(true)}, 'Submit'),
+                        r(Button, {onClick:()=>attempt_login(true)}, 'Sign In'),
                     )
                 ),
     	)
   	)
 }
 
-export function Attempt(p){
-    const {data, alt} = use_server([
+function Attempt_Login(p){
+    const {data, alt} = use_db([
         ['login firstName', ['String! username', p.username], ['String! password', p.password]],
     ]); if(alt) return r(alt);
     if(data.login){
         show_login(false);
         setTimeout(() => attempt_login(false), 250);
+        return r('p', {}, 'Welcome '+data.login.firstName);
     }else{
         attempt_login(false);
+        return null;
     }
-    return null;
+}
+
+export const show_logout = makeVar(false);
+
+export function Logout(){
+    const show = useReactiveVar(show_logout);
+    //const {data, alt} = use_db([
+    //    ['logout firstName'],
+    //]); 
+    //if(data && data.logout) setTimeout(()=> show_logout(false), 2000);
+    return (
+        r(Modal,{show:show, onHide:()=>show_logout(false)},
+      		r(Modal.Header, {closeButton:true},  
+                r(Modal.Title, {}, 'Sign Out'),
+      		),
+            r(Modal.Body, {}, r(Attempt_Logout))
+            // r(Modal.Body, {}, 
+            //     alt? r(alt): 
+            //         data.logout? r('p', {}, 'Farewell '+data.logout.firstName): 
+            //             r('p', {}, 'Sign out failed.')
+            // )
+    	)
+    )
+}
+
+function Attempt_Logout(){
+    const {data, alt} = use_db([
+        ['logout firstName'],
+    ]); if(alt) return r(alt);
+    if(data.logout){
+        setTimeout(()=> show_logout(false), 2000);
+        return r('p', {}, 'Farewell '+data.logout.firstName);
+    }else{
+        return r('p', {}, 'Sign out failed.');
+    }
 }
 
 

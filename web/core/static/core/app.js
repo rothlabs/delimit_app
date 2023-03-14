@@ -58,7 +58,7 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     )
 )));
 
-export function use_server(queries, args){
+export function use_db(queries){
     var header = '';
     var query = '';
     var variables = {};

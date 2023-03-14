@@ -1,13 +1,13 @@
-import {createElement as r, Fragment, useState} from 'react';
+import {createElement as r, Fragment} from 'react';
 import {Container, Nav, Navbar} from 'boot';
 import {Outlet, Link} from 'rrd';
-import {Login, show_login} from './login.js';
+import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
-import {use_server} from './app.js';
+import {use_db} from './app.js';
 
 
 export function Root(){
-	const {data, alt} = use_server([
+	const {data, alt} = use_db([
 		['user firstName'],
 	]); if(alt) return r(alt);
 	return (
@@ -21,20 +21,27 @@ export function Root(){
           			r(Navbar.Collapse, {id:"basic-navbar-nav"},
             			r(Nav, {className:"me-auto"},
               				r(Nav.Link, {as:Link, to:'catalog', eventKey:1}, 'Catalog'),
-              				r(Nav.Link, {as:Link, to:'studio', eventKey:1},  'Studio'),
+              				r(Nav.Link, {as:Link, to:'studio', eventKey:2},  'Studio'),
             			),
 						r(Nav, {className:"me-2"},
-							data.user ? r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')') : null,
-              				r(Nav.Link, {onClick:()=>show_login(true), eventKey:4}, 'Sign In'),
+							data.user ? r(Fragment,{},
+								r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')'),
+								r(Nav.Link, {onClick:()=>show_logout(true), eventKey:4}, 'Sign Out'),
+							): 
+								r(Nav.Link, {onClick:()=>show_login(true), eventKey:4}, 'Sign In'),
             			),
           			),
         		)
       		),
 			r(Login),
+			r(Logout),
       		r(Outlet),
     	)
   	)
 } 
+
+
+// const [Login_Modal, open_login, close_login] = use_modal();
 
 
 //import {makeVar, useReactiveVar, useQuery, gql} from 'apollo';

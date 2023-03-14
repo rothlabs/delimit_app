@@ -1,29 +1,21 @@
 import {createElement as r, useRef, useState, Fragment} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
-import {Vector2,Vector3} from 'three';
+import {Vector2} from 'three';
 import {Product} from './product.js';
 import {Line} from './line.js';
 import {History_Control} from './history.js';
 import {CameraControls} from 'drei';
 import {useParams} from 'rrd';
-import {useQuery, gql} from 'apollo';
-import {Loading, Error_Page} from '../feedback.js';
 import {makeVar} from 'apollo';
-import { use_server } from '../app.js';
-//import { create } from 'zustand'
+import { use_db } from '../app.js';
 
-//export const useStore = create((set, get) => ({
-//  page: 'Easel',
-  //set_page:()=>
-//}))
-export const history_act_var = makeVar({name:'none'});
+export const history_action = makeVar({name:'none'});
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
 const new_verts = [];
 var pointers_down = 0;
 var raycaster=null;
-//var zero_pointers_down_on_enter = false;
 
 function Board(p) {
     const {camera} = useThree(); 
@@ -112,6 +104,22 @@ function Board(p) {
 export function Studio_Editor(){
     const {id} = useParams(); //productID
     const camera_controls = useRef();
+    const {data, alt} = use_db([
+        ['product file', ['String! id', id]],
+    ]); if(alt) return r(alt);
+    return (r(Fragment,{},
+        r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
+            r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, 
+                r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
+                r(Board, {camera_controls:camera_controls, file:data.product.file}), 
+            )
+        ),
+        r(History_Control), 
+    ))
+}
+
+
+
     // const {loading, error, data} = useQuery(gql`query Product($id: String!){  
     //     product(id: $id) {
     //         file
@@ -119,16 +127,10 @@ export function Studio_Editor(){
     // }`,{variables:{id:productID}});
     // if (loading) return r(Loading);
     // if (error)   return r(Error_Page);
-    const {data, alt} = use_server([
-        ['product file', ['String! id', id]],
-    ]); if(alt) return r(alt);
-    return (r(Fragment,{},
-        r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-            r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, 
-                r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                r(Board,{camera_controls:camera_controls, file:data.product.file}), 
-            )
-        ),
-        r(History_Control), 
-    ))
-}
+
+//import { create } from 'zustand'
+
+//export const useStore = create((set, get) => ({
+//  page: 'Easel',
+  //set_page:()=>
+//}))

@@ -2,7 +2,7 @@ import {createElement as r, useEffect, useRef, useState, forwardRef, useImperati
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame} from 'r3f';
 import {theme} from '../app.js';
-import {history_act_var} from './editor.js';
+import {history_action} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
 
@@ -20,7 +20,7 @@ export const Line = forwardRef(function Line(p, ref) {
     const [selected, set_selected] = useState(false);
     const [selected_point, set_selected_point] = useState(-1);
     const [constraints, set_constraints] = useState([]);//[{enforce:()=>{},wow:'wow'}]);
-    const history_act = useReactiveVar(history_act_var);
+    const history_act = useReactiveVar(history_action);
     const [history, set_history] = useState({
         verts:[],
         index:0,
@@ -47,9 +47,9 @@ export const Line = forwardRef(function Line(p, ref) {
         meshline.current.setPoints(args.verts);
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.constrain){
-            constraints.forEach(constraint => constraint.enforce({depth:args.depth}));
+            constraints.forEach(constraint => constraint.enforce());
         }
-        if(args.record) history_act_var({name:'record'});
+        if(args.record) history_action({name:'record'});
     }
 
     useImperativeHandle(ref,()=>({ 

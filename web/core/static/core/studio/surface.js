@@ -1,6 +1,6 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 //import {useFrame} from 'r3f';
-import {history_act_var} from './editor.js';
+import {history_action} from './editor.js';
 import {useReactiveVar} from 'apollo';
 //import {TextureLoader} from 'three';
 
@@ -12,7 +12,7 @@ export const Surface = forwardRef(function Surface(p, ref) {
         textures:[],
         index:0,
     });
-    const history_act = useReactiveVar(history_act_var);
+    const history_act = useReactiveVar(history_action);
 
     function prev_texture(){
         return history.textures[history.index-1];

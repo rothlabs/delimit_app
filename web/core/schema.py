@@ -3,7 +3,7 @@ from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
 from core.models import Product
 from django.db.models import Q
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 
 class UserType(DjangoObjectType):
     class Meta:
@@ -17,6 +17,7 @@ class ProductType(DjangoObjectType):
 
 class Query(graphene.ObjectType):
     login = graphene.Field(UserType, username=graphene.String(required=True), password=graphene.String(required=True))
+    logout = graphene.Field(UserType)
     user = graphene.Field(UserType)
     products = graphene.List(ProductType)
     product = graphene.Field(ProductType, id=graphene.String(required=True))
@@ -25,6 +26,13 @@ class Query(graphene.ObjectType):
         user = authenticate(username=username, password=password)
         if user is not None: login(info.context, user)
         return user
+
+    def resolve_logout(root, info):
+        if info.context.user.is_authenticated: 
+            user = info.context.user
+            logout(info.context)
+            return user
+        else: return None
 
     def resolve_user(root, info):
         if info.context.user.is_authenticated: 
