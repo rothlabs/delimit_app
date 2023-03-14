@@ -3,11 +3,11 @@ import {Container, Nav, Navbar} from 'boot';
 import {Outlet, Link} from 'rrd';
 import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
-import {use_db} from './app.js';
+import {use_query} from './app.js';
 
 
 export function Root(){
-	const {data, alt} = use_db([
+	const {data, alt} = use_query('GetUser', [
 		['user firstName'],
 	]); if(alt) return r(alt);
 	return (

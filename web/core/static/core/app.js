@@ -1,4 +1,4 @@
-import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, gql} from 'apollo'; //makeVar, useReactiveVar, gql
+import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, useMutation, gql} from 'apollo'; //makeVar, useReactiveVar, gql
 import {setContext} from 'aclc';
 import Cookie from "cookie";
 import {createElement as r, StrictMode} from 'react';
@@ -58,44 +58,52 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     )
 )));
 
-export function use_db(queries){
+function compile_gql(name, gql_parts){
     var header = '';
-    var query = '';
+    var body = '';
     var variables = {};
-    queries.forEach(q => {
+    gql_parts.forEach(q => {
         const q_words = q[0].split(' ');
-        query += ' '+q_words[0]; // model name
-        if(q.length>1) {
-            header += 'header(';
-            query += '(';
-        }
-        for(var i=1; i<q.length; i++){ //for (const [key, value] of Object.entries(q)) {
+        for(var i=1; i<q.length; i++){ 
             const q_var_meta = q[i][0].split(' ');
             header += '$' + q_var_meta[1] + ': ' + q_var_meta[0];
-            query += q_var_meta[1] + ': $' + q_var_meta[1];
+            body += q_var_meta[1] + ': $' + q_var_meta[1];
             if(i<q.length-1){
                 header += ', ';
-                query += ', ';
+                body += ', ';
             }
             set(variables, q_var_meta[1], q[i][1]);
         }
-        if(q.length>1){
-            header += ')';
-            query += ')';
-        }
-        query += '{'+q[0].slice(q_words[0].length+1)+'}';
+        if(q.length>1) body = '(' +body+ ')';
+        body = q_words[0] + body + '{'+q[0].slice(q_words[0].length+1)+'}'; 
     });
-    //console.log(header);
-    //console.log(query);
-    //console.log(variables);
+    if(header.length>0) header = '(' + header + ')';
+    header = name + header;
+    return {header, body, variables}
+}
+
+export function use_query(name, gql_parts){
+    const {header, body, variables} = compile_gql(name, gql_parts);
     const {loading, error, data} = useQuery(
-        gql`query ${header}{${query}}`, 
-        {variables:variables, fetchPolicy:'no-cache'} // Add option for cache
+        gql`query ${header}{${body}}`, 
+        {variables:variables} // Add option for cache fetchPolicy:'no-cache'
     ); 
     var alt = null;
 	if (loading) alt = Loading;
     if (error)   alt = Error_Page;
     return {data, alt};
+}
+
+export function use_mutation(gql_parts, refetch){
+    const {header, body, variables} = compile_gql('Mutation', gql_parts);
+    const [mutate, {data, loading, error, reset}] = useMutation( 
+        gql`mutation ${header}{${body}}`, 
+        {variables:variables, refetchQueries:refetch.split(' ')} // Add option for cache
+    ); 
+    var alt = null;
+	if (loading) alt = Loading;
+    if (error)   alt = Error_Page;
+    return [mutate, { data, alt, reset }];
 }
 
 // export function use_server(query, args){

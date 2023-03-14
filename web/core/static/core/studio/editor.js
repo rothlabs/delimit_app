@@ -7,7 +7,7 @@ import {History_Control} from './history.js';
 import {CameraControls} from 'drei';
 import {useParams} from 'rrd';
 import {makeVar} from 'apollo';
-import { use_db } from '../app.js';
+import { use_query } from '../app.js';
 
 export const history_action = makeVar({name:'none'});
 
@@ -104,7 +104,7 @@ function Board(p) {
 export function Studio_Editor(){
     const {id} = useParams(); //productID
     const camera_controls = useRef();
-    const {data, alt} = use_db([
+    const {data, alt} = use_query('GetProduct',[
         ['product file', ['String! id', id]],
     ]); if(alt) return r(alt);
     return (r(Fragment,{},

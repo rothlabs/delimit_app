@@ -1,11 +1,11 @@
 import {createElement as r, useEffect} from 'react';
 import {Container, Card, Button, Row, Col} from 'boot';
 import {Link} from 'rrd';
-import {use_db} from '../app.js';
+import {use_query} from '../app.js';
 
 export function Studio_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
-    const {data, alt} = use_db([
+    const {data, alt} = use_query('GetProducts', [
 		['products id name'],
 	]); if(alt) return r(alt);
     return (
