@@ -1,6 +1,6 @@
 import {createElement as r} from 'react';
 import {Row, Col, Button, ButtonGroup, Container} from 'boot';
-import {history_act_var} from './studio.js';
+import {history_act_var} from './editor.js';
 
 export function History_Control(p){
     return(

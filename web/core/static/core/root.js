@@ -1,19 +1,15 @@
-import {createElement as r, Fragment} from 'react';
+import {createElement as r, Fragment, useState} from 'react';
 import {Container, Nav, Navbar} from 'boot';
 import {Outlet, Link} from 'rrd';
-//import {Row, Col, Button} from 'core/ui.js';
+import {Login, show_login} from './login.js';
 import {Logo} from './logo.js';
-//import {useStore} from 'easel/init.js'
-//import {Nav} from 'boot';
-//import {Navbar} from 'boot';
-//import NavDropdown from 'boot/NavDropdown'; 
+import {use_server} from './app.js';
 
-//const nav = JSON.parse(document.getElementById('nav').innerHTML); 
-
-//console.log(dd.theme);
 
 export function Root(){
-  //const set_page = useStore((state) => state.set_page); 
+	const {data, alt} = use_server([
+		['user firstName'],
+	]); if(alt) return r(alt);
 	return (
 		r(Fragment,{},
       		r(Navbar, {bg:'white', expand:'lg', collapseOnSelect:true},  
@@ -24,16 +20,45 @@ export function Root(){
 					r(Navbar.Toggle, {ariacontrols:"basic-navbar-nav"}),
           			r(Navbar.Collapse, {id:"basic-navbar-nav"},
             			r(Nav, {className:"me-auto"},
-              				r(Nav.Link, {as:Link, eventKey:1, to:'catalog'}, 'Catalog'),
-              				r(Nav.Link, {as:Link, eventKey:2, to:'studio'},  'Studio'),
-            			)
+              				r(Nav.Link, {as:Link, to:'catalog', eventKey:1}, 'Catalog'),
+              				r(Nav.Link, {as:Link, to:'studio', eventKey:1},  'Studio'),
+            			),
+						r(Nav, {className:"me-2"},
+							data.user ? r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')') : null,
+              				r(Nav.Link, {onClick:()=>show_login(true), eventKey:4}, 'Sign In'),
+            			),
           			),
         		)
       		),
+			r(Login),
       		r(Outlet),
     	)
   	)
 } 
+
+
+//import {makeVar, useReactiveVar, useQuery, gql} from 'apollo';
+
+//const user = useReactiveVar(user_state);
+	// const firstName = `firstName`;
+	//const {loading, error, data} = useQuery(gql`query{ 
+    //    user {
+    //        firstName
+    //    }
+    //}`, {variables:{},fetchPolicy:'no-cache'});
+	//if (loading) return r(Loading);
+    //if (error)   return r(Error_Page);
+
+//import {useStore} from 'easel/init.js'
+//import {Nav} from 'boot';
+//import {Navbar} from 'boot';
+//import NavDropdown from 'boot/NavDropdown'; 
+
+//const nav = JSON.parse(document.getElementById('nav').innerHTML); 
+
+//console.log(dd.theme);
+
+
 
                 //...nav.main.map((n,i)=>r(Nav.Link, {onClick:()=>page_var(n.name),key:i},n.name)),//r(Button, {text:n.name, func:()=>page_var(n.name), key:i} )),//r(Nav.Link, {key:i, href:item.url},item.name)),
   //         <NavDropdown title="Dropdown" id="basic-nav-dropdown">

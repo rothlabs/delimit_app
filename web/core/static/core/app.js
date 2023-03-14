@@ -1,17 +1,18 @@
-import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider} from 'apollo'; //makeVar, useReactiveVar, gql
+import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, gql} from 'apollo'; //makeVar, useReactiveVar, gql
 import {setContext} from 'aclc';
 import Cookie from "cookie";
 import {createElement as r, StrictMode} from 'react';
 import {createRoot} from 'rdc';
 import {createBrowserRouter,RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
-import {Studio} from './studio/studio.js';
-import {Design_Browser} from './studio/browser.js';
-import {Error_Page} from './error.js';
+import {Studio_Editor} from './studio/editor.js';
+import {Studio_Browser} from './studio/browser.js';
+import {Loading, Error_Page} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
+import set from 'lodash';
 
 
-const http_link = createHttpLink({uri:'https://delimit.art/gql-public'});
+const http_link = createHttpLink({uri:'https://delimit.art/gql'});
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});
@@ -40,6 +41,8 @@ export const theme = {//.convertSRGBToLinear(),
     dark_s: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertLinearToSRGB(),
 };
 
+//export const client = new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()});
+
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()})},
         r(RouterProvider, {router:createBrowserRouter([
@@ -47,14 +50,65 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
                 {path:'',        element:r('p',{},'At Home')},
                 {path:'catalog', element:r('p',{},'At Catalog')},
                 {path:'studio',  element:r(Outlet), errorElement:r(Error_Page), children:[
-                    {path:'',         element:r(Design_Browser)},
-                    {path:':productID', element:r(Studio)},
+                    {path:'',         element:r(Studio_Browser)},
+                    {path:':id', element:r(Studio_Editor)},
                 ]},
             ]},
         ])}),
     )
 )));
 
+export function use_server(queries, args){
+    var header = '';
+    var query = '';
+    var variables = {};
+    queries.forEach(q => {
+        const q_words = q[0].split(' ');
+        query += ' '+q_words[0]; // model name
+        if(q.length>1) {
+            header += 'header(';
+            query += '(';
+        }
+        for(var i=1; i<q.length; i++){ //for (const [key, value] of Object.entries(q)) {
+            const q_var_meta = q[i][0].split(' ');
+            header += '$' + q_var_meta[1] + ': ' + q_var_meta[0];
+            query += q_var_meta[1] + ': $' + q_var_meta[1];
+            if(i<q.length-1){
+                header += ', ';
+                query += ', ';
+            }
+            set(variables, q_var_meta[1], q[i][1]);
+        }
+        if(q.length>1){
+            header += ')';
+            query += ')';
+        }
+        query += '{'+q[0].slice(q_words[0].length+1)+'}';
+    });
+    //console.log(header);
+    //console.log(query);
+    //console.log(variables);
+    const {loading, error, data} = useQuery(
+        gql`query ${header}{${query}}`, 
+        {variables:variables, fetchPolicy:'no-cache'} // Add option for cache
+    ); 
+    var alt = null;
+	if (loading) alt = Loading;
+    if (error)   alt = Error_Page;
+    return {data, alt};
+}
+
+// export function use_server(query, args){
+//     const {loading, error, data} = useQuery(gql`query{ 
+//             ${query}
+//     }`, {fetchPolicy:'no-cache'}); // Add option for cache
+//     var alt = null;
+// 	if (loading) alt = Loading;
+//     if (error)   alt = Error_Page;
+//     return {data, alt};
+// }
+
+// Query($placeholder: String)
 
 
 

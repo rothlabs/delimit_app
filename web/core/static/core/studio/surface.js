@@ -1,6 +1,6 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 //import {useFrame} from 'r3f';
-import {history_act_var} from './studio.js';
+import {history_act_var} from './editor.js';
 import {useReactiveVar} from 'apollo';
 //import {TextureLoader} from 'three';
 

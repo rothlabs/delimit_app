@@ -6,7 +6,7 @@ import {Surface} from './surface.js';
 import {useThree, useLoader} from 'r3f';
 import {Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
 import {media_url, static_url} from '../app.js';
-import {history_act_var} from './studio.js';
+import {history_act_var} from './editor.js';
 import {reline} from './vertex.js';
 
 //useGLTF.preload(product.url);
@@ -84,18 +84,20 @@ export const Product = forwardRef(function Product(p, ref) {
 					}
 				});
 			});
-			Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_in_base, [], ids);
-			Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_in_rim, [], ids);
-			Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_out_base, [], ids);
-			Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_out_rim, [], ids);
-			Coincident_Endpoints(tv_in_base, tv_out_base, ids);
-			Coincident_Endpoints(tv_in_rim, tv_out_rim, ids);
-			for(var i=0; i<tv_in_mids.length; i++){
-				Endpoints_To_Lines(iv_rear, iv_front, iv_mids[i], ids);
-				Endpoints_To_Lines(ov_rear, ov_front, ov_mids[i], ids);
-				Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_in_mids[i], [iv_rear, iv_front], ids);
-				Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_out_mids[i], [iv_rear, iv_front], ids);
-				Coincident_Endpoints(tv_in_mids[i], tv_out_mids[i], ids);
+			if(tv_in_base && tv_in_rim && tv_in_mids && tv_out_base && tv_out_rim && tv_out_mids && iv_rear && iv_front && iv_mids && ov_rear && ov_front && ov_mids){
+				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_in_base, [], ids);
+				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_in_rim, [], ids);
+				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_out_base, [], ids);
+				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_out_rim, [], ids);
+				Coincident_Endpoints(tv_in_base, tv_out_base, ids);
+				Coincident_Endpoints(tv_in_rim, tv_out_rim, ids);
+				for(var i=0; i<tv_in_mids.length; i++){
+					Endpoints_To_Lines(iv_rear, iv_front, iv_mids[i], ids);
+					Endpoints_To_Lines(ov_rear, ov_front, ov_mids[i], ids);
+					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_in_mids[i], [iv_rear, iv_front], ids);
+					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_out_mids[i], [iv_rear, iv_front], ids);
+					Coincident_Endpoints(tv_in_mids[i], tv_out_mids[i], ids);
+				}
 			}
 			//console.log(ids);
 

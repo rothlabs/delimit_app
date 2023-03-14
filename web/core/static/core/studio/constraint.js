@@ -1,7 +1,7 @@
 import * as vtx from './vertex.js'; 
 import {Vector3} from 'three'; 
 
-const clip = 12;
+//const clip = 12;
 
 // if any line changes, update line3 so its endpoints fall on line1 and line2
 export function Endpoints_To_Lines(line1, line2, line3, ids){
@@ -14,8 +14,7 @@ export function Endpoints_To_Lines(line1, line2, line3, ids){
     var correction=()=> vtx.map(line3.prev_verts(), v1(), v2()); 
     constraint.enforce = function(args){
         if(v1().distanceTo(v3a()) > max_dist || v2().distanceTo(v3b()) > max_dist){
-            //args.depth--;
-            line3.update({verts:correction(), depth:args.depth-1}); 
+            line3.update({verts:correction()}); 
         }
     };
     line1.add_constraint(constraint);
@@ -36,11 +35,8 @@ export function Coincident(line1, i1, line2, i2, ids){
     if(i2== 0) correction=()=> vtx.map(line2.prev_verts(), v1(), line2.prev_vect(-1)); 
     if(i2==-1) correction=()=> vtx.map(line2.prev_verts(), line2.prev_vect(0),  v1()); 
     constraint.enforce = function(args){
-        //console.log(args.depth);
-        //console.log(id);
         if(v1().distanceTo(v2()) > max_dist){
-            //args.depth--;
-            line2.update({verts:correction(), depth:args.depth-1}); 
+            line2.update({verts:correction()}); 
         }
     };
     line1.add_constraint(constraint);
@@ -58,8 +54,7 @@ export function Coincident_Endpoints(line1, line2, ids){
     correction=()=> vtx.map(line2.prev_verts(), v1a(), v1b()); 
     constraint.enforce = function(args){
         if(v1a().distanceTo(v2a()) > max_dist || v1b().distanceTo(v2b()) > max_dist){
-            //args.depth--;
-            line2.update({verts:correction(), depth:args.depth-1}); 
+            line2.update({verts:correction()}); 
         }
     };
     line1.add_constraint(constraint);
@@ -79,12 +74,9 @@ export function Vertical_Alignment(line1, i1, line2, i2, line3, triggers, ids){
     var v2=()=> new Vector3(line2.vect(i2).x, v3b().y, v3b().z);
     var correction=()=> vtx.map(line3.prev_verts(), v1(), v2()); 
     constraint.enforce = function(args){
-        //console.log(args.depth);
-        //console.log(id);
         if(correction != null){
             if(Math.abs(v1().x-v3a().x) > max_dist || Math.abs(v2().x-v3b().x) > max_dist){
-                //args.depth--;
-                line3.update({verts:correction(), depth:args.depth-1}); 
+                line3.update({verts:correction()}); 
                 
             }
         }

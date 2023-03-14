@@ -2,7 +2,7 @@ import {createElement as r, useEffect, useRef, useState, forwardRef, useImperati
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame} from 'r3f';
 import {theme} from '../app.js';
-import {history_act_var} from './studio.js';
+import {history_act_var} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
 
@@ -43,64 +43,47 @@ export const Line = forwardRef(function Line(p, ref) {
         return (new Float32Array([...(selected_point==0)?theme.primary:theme.secondary, ...(selected_point==1)?theme.primary:theme.secondary]));
     }
 
-    const update = (args)=>{//, constraints){ //function update(args){
-        //var cstnts = constraints;
-        //if(constraints_override) cstnts = constraints_override;
+    function update(args){
         meshline.current.setPoints(args.verts);
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
-        if(args.depth > 0){
-            //if(args.depth>1) 
-            //console.log(constraints.length);
-            //var depth = 0 + args.depth;
-            //if(args.depth == 1){
-            //    console.log(constraints);
-            //}
+        if(args.constrain){
             constraints.forEach(constraint => constraint.enforce({depth:args.depth}));
         }
         if(args.record) history_act_var({name:'record'});
     }
 
-    useImperativeHandle(ref,()=>{
-        //console.log('useImperativeHandle createHandle');
-        //const constraints = [];
-        return { 
-            name:name,
-            update:update,//(args)=>update(args, constraints), // need to pass in useState variable in imperative handle for some reason?
-            verts:verts,
-            vect:vect,
-            prev_verts:prev_verts,
-            prev_vect:prev_vect,
-            set_verts:(vts)=> meshline.current.setPoints(vts),
-            set_endpoint(new_endpoint){
-                //console.log(this.cool);
-                //console.log(constraints);
-                //console.log(selected_point);
-                if(selected_point == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), depth:1});
-                if(selected_point == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), depth:1});
-            },
-            set_mod(args){
-                if(selected && args.verts.length>5){
-                    args.verts = vtx.reline(args.verts,1);
-                    const closest = vtx.closest_to_endpoints(verts(), args.verts);
-                    const new_verts_1 = vtx.map(args.verts, closest.v1, closest.v2);
-                    const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
-                    update({verts: new_verts_2, depth:1, record:true});
-                }
-                if(selected_point == 0){
-                    const new_verts = vtx.map(prev_verts(), args.endpoint, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
-                    update({verts:new_verts, depth:1, record:true});
-                }else if(selected_point == 1){
-                    const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.endpoint); //vtx.first(line.prev_verts())
-                    update({verts:new_verts, depth:1, record:true});
-                }
-            },
-            add_constraint(constraint){
-                //constraints.push(constraint);
-                //console.log(constraints);
-                set_constraints((c)=> [...c, constraint]);
-            },
-        }
-    });
+    useImperativeHandle(ref,()=>({ 
+        name:name,
+        update:update,//(args)=>update(args, constraints), // need to pass in useState variable in imperative handle for some reason?
+        verts:verts,
+        vect:vect,
+        prev_verts:prev_verts,
+        prev_vect:prev_vect,
+        set_verts:(vts)=> meshline.current.setPoints(vts),
+        set_endpoint(new_endpoint){
+            if(selected_point == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), constrain:true});
+            if(selected_point == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), constrain:true});
+        },
+        set_mod(args){
+            if(selected && args.verts.length>5){
+                args.verts = vtx.reline(args.verts,1);
+                const closest = vtx.closest_to_endpoints(verts(), args.verts);
+                const new_verts_1 = vtx.map(args.verts, closest.v1, closest.v2);
+                const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
+                update({verts: new_verts_2, constrain:true, record:true});
+            }
+            if(selected_point == 0){
+                const new_verts = vtx.map(prev_verts(), args.endpoint, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
+                update({verts:new_verts, constrain:true, record:true});
+            }else if(selected_point == 1){
+                const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.endpoint); //vtx.first(line.prev_verts())
+                update({verts:new_verts, constrain:true, record:true});
+            }
+        },
+        add_constraint(constraint){
+            set_constraints((c)=> [...c, constraint]);
+        },
+    }));
 
     useFrame(()=> {
         material.current.lineWidth = 4 / camera.zoom;

@@ -1,13 +1,9 @@
-#from django.views.decorators.cache import never_cache
-#from django.http import HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
 from django.shortcuts import render
-#from core.models import Product
 from core.schema import schema
 import json
 
-#@never_cache
 @ensure_csrf_cookie
 def home(request):
     context = {'ctx':{'page':'/'}}
@@ -24,9 +20,17 @@ def studio(request, pk=0):
     return render(request, 'core/index.html', context)
 
 @ensure_csrf_cookie
-def graphql_public(request):
+def graphql(request):
     query = json.loads(request.body)
-    result = schema.execute(query['query'], variable_values=query['variables']) #context_value
-    response = {}
-    response['data'] = result.data
+    result = schema.execute(query['query'], variable_values=query['variables'], context_value=request) #context_value
+    response = {'data':result.data}
     return JsonResponse(response, status=200)
+
+
+
+#from django.http import HttpResponse
+#from core.models import Product
+#from django.views.decorators.cache import never_cache
+#@never_cache
+
+#if request.user.is_authenticated:
