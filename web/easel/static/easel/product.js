@@ -1,88 +1,81 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
-import { Line } from 'easel/line.js';
-import * as constraint from 'easel/constraint.js';
-
-function Product(base){
-    const product = JSON.parse(document.getElementById('product').innerHTML); // get product meta data from html doc
-    product.sketch = {
-        lines: [],
-        bounds: new THREE.Box3(),
-        group: new THREE.Group(),
-        product: product,
-    };
-    product.sketch.group.name = 'sketch';
-
-    product.fit = function(){
-        product.sketch.lines.forEach(line => {line.fit();});
-    };
-
-    product.record = function(){
-        product.sketch.lines.forEach(line =>{
-            line.record();
-        });
-    };
-
-    const loader = new GLTFLoader();
-    loader.load(product.url, function ( data ) {
-        data.scene.children.forEach(source => {
-            Line(base, product.draw, product.sketch, source);
-        });
-        product.sketch.lines.forEach(line1 => {
-            product.sketch.lines.forEach(line2 => {
-                constraint.Coincident(line1, line2);
-            });
-        });
-        product.record();
-        product.sketch.bounds.setFromObject( product.sketch.group );
-        base.scene.add(product.sketch.group);
-        base.fit(product);
-    },function(xhr){},function(error){console.log(error);});
-
-    const exporter = new GLTFExporter();
-    product.greenware = function(){
-        exporter.parse(product.sketch.group, function ( glb ) {
-            const request = new Request('/easel/'+product.id+'/greenware/',{   
-                method: 'POST',
-                headers: {'X-CSRFToken': base.csrftoken, 'Accept': 'application/octet-stream', 'Content-Type': 'application/octet-stream'},
-                mode: 'same-origin',
-                body: glb,//JSON.stringify({'action':'next', 'glb':glb})
-            });
-            fetch(request).then((response) => response.json()).then((data) => {
-                console.log(data); 
-            });
-        },function ( error ) {console.log( 'GLTFExporter Error' );},
-        { binary: true});
-    };
-
-    product.revert = function(){
-        product.sketch.lines.forEach(line =>{
-            line.revert();
-        });
-    }
-
-    product.undo = function(){
-        product.sketch.lines.forEach(line =>{
-            line.undo();
-        });
-    };
-
-    product.redo = function(){
-        product.sketch.lines.forEach(line =>{
-            line.redo();
-        });
-    };
-
-    return product;
-}export{Product}
+import {createElement as r, useRef, useEffect, useState, forwardRef, useImperativeHandle} from 'react';
+import {useGLTF} from 'drei';
+import {Box3} from 'three';
+import {Line} from 'easel/line.js';
+import {Surface} from 'easel/surface.js';
+import {useThree} from 'r3f';
+import {Coincident} from 'easel/constraint.js';
 
 
-            //console.log(typeof glb);
-            //console.log(request.body);
+//const product = JSON.parse(document.getElementById('product').innerHTML); 
+//useGLTF.preload(product.url);
+const bounds = new Box3();
+var add_constraints = true;
 
-            //const blob =
-            //new Blob(
-            //    ["This is some important text"],
-            //    { type: "text/plain" }
-            //);
+export const Product = forwardRef(function Product(p, ref) {
+	const group = useRef();
+	const lines = useRef([]);
+	const surfaces = useRef([]);
+	const defaults = useRef([]);
+	const materials = useRef({});
+	const {camera} = useThree(); 
+	//const { products_loading, products_error, products_data } = useQuery(products);
+	const {nodes} = useGLTF(p.product_url);
+	const [post_load, set_post_load] = useState(false);
+
+	useImperativeHandle(ref,()=>{return{
+        set_endpoint(args){
+			lines.current.forEach(line=>line.set_endpoint(args));
+        },
+		set_mod(args){
+			lines.current.forEach(line=>line.set_mod(args));
+        },
+    };});
+	
+	useEffect(()=>{ 
+		bounds.setFromObject( group.current );
+		const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
+		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
+		if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
+		if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
+		camera.updateProjectionMatrix();
+		if (add_constraints){
+			add_constraints = false; 
+			lines.current.forEach(line1 => {
+				lines.current.forEach(line2=> Coincident(line1, line2));
+			});
+		}
+		p.base.set_act({name:'record'}); 
+
+		//const texture = materials.current.lv.map;
+		//const canvas = document.createElement('canvas');
+		//canvas.width = texture.image.width;
+		//canvas.height = texture.image.height;
+		//const context = canvas.getContext('2d');
+
+	},[post_load]); 
+
+	useEffect(()=>{
+		set_post_load(true);
+		//console.log(nodes);
+	},[nodes]);
+
+	return (
+		r('group', {ref:group, dispose:null}, [
+			...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('default') ? null : //.isMesh ? null :
+				r('mesh',{ref:el=>defaults.current[n[1].name]=el, key:n[1].name, geometry:n[1].geometry, position:[n[1].position.x,n[1].position.y,n[1].position.z]},  //position:n[1].position
+					r('meshBasicMaterial',{ref:el=>materials.current[n[1].name]=el, map:n[1].material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
+				)
+			)),
+			...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('surface') ? null : //.isMesh ? null :
+				r(Surface, {ref:el=>surfaces.current[n[1].name]=el, key:n[1].name, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map)
+			)),
+			...Object.entries(nodes).map((n,i)=>(!n[1].isLine ? null :
+				r(Line, {ref:el=>lines.current[n[1].name]=el, verts:n[1].geometry.attributes.position.array, key:n[1].name, ...p})
+			)),
+		])
+	)
+});
+
+
+	

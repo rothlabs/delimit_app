@@ -1,0 +1,17 @@
+/* import the necessary Bootstrap files */
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+
+$theme-colors: (
+  primary:    $pink-500,
+  secondary:  $gray-600,
+  success:    $teal-700,
+  info:       $cyan-700,
+  warning:    $yellow-500,
+  danger:     $red-500,
+  light:      $light,
+  dark:       $dark
+);
+
+/* finally, import Bootstrap */
+@import "bootstrap/scss/bootstrap";

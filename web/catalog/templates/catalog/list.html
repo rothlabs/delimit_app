@@ -1,17 +1,18 @@
 {% extends "core/base.html" %}
-{% block content %}
+{% load static %}
 
-{% if product_list %}
-    <h1>Catalog</h1>
-    <p>Wicked products found here.</p>
-    <p>Make sure there are product records to see list of products.</p>
-    <ul>
-    {% for product in product_list %}
-        <li><a href="{% url 'catalog:detail' product.id %}">{{ product.name }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No products are available.</p>
-{% endif %}
-    
+{% block content %}
+    <script defer src="{% static 'catalog/init.js' %}" type="module"></script>
+    {% if product_list %}
+        <h1>Catalog</h1>
+        <p>Wicked products found here.</p>
+        <p>Make sure there are product records to see list of products.</p>
+        <ul>
+        {% for product in product_list %}
+            <li><a href="{% url 'catalog:detail' product.id %}">{{ product.name }}</a></li>
+        {% endfor %}
+        </ul>
+        {% else %}
+        <p>No products are available.</p>
+    {% endif %}
 {% endblock %}

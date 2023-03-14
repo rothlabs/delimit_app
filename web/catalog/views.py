@@ -3,12 +3,12 @@ from django.views.decorators.cache import never_cache
 from django.views import generic
 from core.models import Product
 
-@method_decorator(never_cache, name='dispatch')
+#@method_decorator(never_cache, name='dispatch')
 class List_View(generic.ListView):
     model = Product
     template_name = 'catalog/list.html'
 
-@method_decorator(never_cache, name='dispatch')
+#@method_decorator(never_cache, name='dispatch')
 class Detail_View(generic.DetailView):
     model = Product
     template_name = 'catalog/detail.html'

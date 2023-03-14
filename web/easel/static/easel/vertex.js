@@ -83,7 +83,7 @@ export function vect(verts, i){
     i = verts.length + i;
   }
   return new THREE.Vector3(verts[i],verts[i+1],verts[i+2]);
-}
+} 
 
 //export function set(verts, i, point){
 //  i *= 3;
@@ -94,8 +94,10 @@ export function vect(verts, i){
 //  verts[i+1] = point.y;
 //}
 
-export function endpoints(verts, z_offset){
-  return [verts[0],verts[1],verts[2]+z_offset,  verts[verts.length-3],verts[verts.length-2],verts[verts.length-1]+z_offset];
+export function endpoints(verts, z_offset_1, z_offset_2){
+  return new Float32Array([
+    verts[0], verts[1], verts[2]+z_offset_1,//+Math.random()*10,  
+    verts[verts.length-3], verts[verts.length-2], verts[verts.length-1]+z_offset_2]);//+Math.random()*10]);
 }
 
 /* given float32array 3d vertices and two test vertices, return the closet vertex for each test vertex. */
@@ -142,7 +144,7 @@ export function map(verts, endpoint1, endpoint2) {
     var rte_y = verts[i+1]-verts[verts.length-2];
     new_verts.push((rts_x+endpoint1.x)*(1-ratio) + (rte_x+endpoint2.x)*ratio);
     new_verts.push((rts_y+endpoint1.y)*(1-ratio) + (rte_y+endpoint2.y)*ratio);
-    new_verts.push(0);
+    new_verts.push(1);
     
   }
   return new Float32Array(new_verts);

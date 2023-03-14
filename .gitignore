@@ -4,9 +4,12 @@ __pycache__
 /cax/freecad/Curves
 
 /web/env
-/web/web_env
 /web/static
 /web/media
+/web/delimit/settings.py
+/web/sass/bootstrap/
+/web/sass/dart-sass/
+/web/core/static/core/css/
 
 *.DS_Store
 

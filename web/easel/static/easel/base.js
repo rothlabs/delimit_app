@@ -2,6 +2,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+
+
 function Base(){
     const base = {
         csrftoken: document.querySelector('[name=csrfmiddlewaretoken]').value,
@@ -65,5 +67,5 @@ function Base(){
     return base;
 }export{Base}
 
-//const camera = new THREE.PerspectiveCamera( 75, viewport.outerWidth() / viewport.outerHeight(), 0.01, 10000 );
+const camera = new THREE.PerspectiveCamera( 75, viewport.outerWidth() / viewport.outerHeight(), 0.01, 10000 );
 
