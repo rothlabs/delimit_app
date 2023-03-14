@@ -2,7 +2,8 @@ import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, Row} from 'boot';
 import {makeVar, useReactiveVar} from 'apollo';
 import {Logo} from './logo.js';
-import {use_query, use_mutation} from './app.js';
+import {use_mutation} from './app.js';
+import {useNavigate} from 'rrd';
 
 export const show_login = makeVar(false);
 
@@ -10,11 +11,15 @@ export function Login(){
 	const show = useReactiveVar(show_login);
     const [username, set_username] = useState('');
     const [password, set_password] = useState('');
-    useEffect(()=>{set_username('');set_password('')},[show]);
     const [login, { data, alt, reset }] = use_mutation([
         ['login user {firstName}', ['String! username', username], ['String! password', password]],
     ], 'GetUser GetProducts');
-    if(data && data.login.user) show_login(false);
+    useEffect(()=>{
+        set_username('');
+        set_password('');
+        if(show) reset(); else setTimeout(()=> reset(), 250);
+    },[show]);
+    if(data && data.login.user) setTimeout(()=> show_login(false), 1500);
     const key_press=(target)=> {if(target.charCode==13) login()}; //attempt_login(true);};
 	return (
 		r(Modal,{show:show, onHide:()=>show_login(false), autoFocus:false},
@@ -50,18 +55,22 @@ export const show_logout = makeVar(false);
 
 export function Logout(){
     const show = useReactiveVar(show_logout);
+    const navigate = useNavigate();
     const [logout, { data, alt, reset }] = use_mutation([
         ['logout user {firstName}'],
     ], 'GetUser GetProducts');
-    if(data && data.logout) setTimeout(()=> show_logout(false), 2000);
-    useEffect(()=> {if(show) logout()}, [show]);
+    if(data && data.logout) setTimeout(()=> show_logout(false), 1500);
+    useEffect(()=> {if(show){
+        logout();
+        navigate('/');
+    }}, [show]);
     return (
         r(Modal,{show:show, onHide:()=>show_logout(false)},
       		r(Modal.Header, {closeButton:true},  
                 r(Modal.Title, {}, 'Sign Out'),
       		),
             r(Modal.Body, {}, 
-                 alt? r(alt): 
+                alt? r(alt): 
                     data && data.logout.user? r('p', {}, 'Farewell '+data.logout.user.firstName): 
                         r('p', {}, 'Sign out failed.')
              )
