@@ -1,4 +1,4 @@
-import {createElement as r, Fragment} from 'react';
+import {createElement as r, Fragment, useEffect} from 'react';
 import {Container, Nav, Navbar} from 'boot';
 import {Outlet, Link} from 'rrd';
 import {Login, show_login, Logout, show_logout} from './login.js';
@@ -10,7 +10,7 @@ import {use_query} from './app.js';
 export function Root(){
 	const {data, alt} = use_query('GetUser', [
 		['user firstName'],
-	]); if(alt) return r(alt);
+	]); 
 	return (
 		r(Fragment,{},
       		r(Navbar, {bg:'white', expand:'lg', collapseOnSelect:true},  
@@ -25,11 +25,12 @@ export function Root(){
               				r(Nav.Link, {as:Link, to:'studio', eventKey:2},  'Studio'),
             			),
 						r(Nav, {className:"me-2"},
-							data.user ? r(Fragment,{},
-								r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')'),
-								r(Nav.Link, {onClick:()=>show_logout(true), eventKey:4}, 'Sign Out'),
-							): 
-								r(Nav.Link, {onClick:()=>show_login(true), eventKey:4},  'Sign In'),
+							alt ? r(alt) :
+								data.user ? r(Fragment,{},
+									r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')'),
+									r(Nav.Link, {onClick:()=>show_logout(true), eventKey:4}, 'Sign Out'),
+								): 
+									r(Nav.Link, {onClick:()=>show_login(true), eventKey:4},  'Sign In'),
             			),
           			),
         		)

@@ -13,24 +13,23 @@ class Product(models.Model):
     name = models.CharField(max_length=64)
     date = models.DateTimeField(default=django.utils.timezone.now)
     file = models.FileField(upload_to='product', default='product/default.glb')
-    user = models.ForeignKey(User, default=0, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, default=0, on_delete=models.CASCADE)
     public = models.BooleanField(default=False)
-    description = models.TextField(default='')
+    description = models.TextField(default='', blank=True)
     def __str__(self): 
-        return self.name+' ('+str(self.id)+')'
+        return self.name+' ('+os.path.basename(self.file.name)+')'
 
 
-# The below functions are for deleting unused media files. They might not be safe. 
 # https://stackoverflow.com/questions/16041232/django-delete-filefield
-# @receiver(models.signals.post_delete, sender=Product)
-# def auto_delete_file_on_delete(sender, instance, **kwargs):
-#     """
-#     Deletes file from filesystem
-#     when corresponding `Product` object is deleted.
-#     """
-#     if instance.file:
-#         if os.path.isfile(instance.file.path):
-#             os.remove(instance.file.path)
+@receiver(models.signals.post_delete, sender=Product)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem
+    when corresponding `Product` object is deleted.
+    """
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
 
 # @receiver(models.signals.pre_save, sender=Product)
 # def auto_delete_file_on_change(sender, instance, **kwargs):

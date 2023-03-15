@@ -1,4 +1,4 @@
-import {createElement as r} from 'react';
+import {createElement as r, Fragment} from 'react';
 import {useRouteError} from 'rrd';
 
 export function Loading() {
@@ -7,10 +7,20 @@ export function Loading() {
 	);
 }
 
-export function Error_Page() {
+export function Router_Error() {
 	const error = useRouteError();
 	console.error(error);
 	return (
 		r('p',{},error.statusText || error.message)
+	);
+}
+
+export function GQL_Error(p) {
+	console.error(p.message);
+	return (
+		r(Fragment, {},
+			r('p', {}, 'GQL Error'),
+			r('p',{}, p.message)
+		)
 	);
 }

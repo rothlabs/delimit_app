@@ -22,7 +22,7 @@ def studio(request, pk=0):
 @ensure_csrf_cookie
 def graphql(request):
     query = json.loads(request.body)
-    result = schema.execute(query['query'], variable_values=query['variables'], context_value=request) #context_value
+    result = schema.execute(query['query'], variable_values=query['variables'], context_value=request)
     response = {'data':result.data}
     return JsonResponse(response, status=200)
 

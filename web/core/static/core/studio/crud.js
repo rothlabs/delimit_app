@@ -1,7 +1,7 @@
 import {createElement as r, useState, Fragment, useEffect} from 'react';
-import {Button, Modal, Form} from 'boot';
+import {Button, Modal, Form, InputGroup} from 'boot';
 import {makeVar, useReactiveVar} from 'apollo';
-import {use_mutation} from '../app.js';
+import {use_mutation,} from '../app.js';
 
 export const show_copy_product = makeVar();
 export function Copy_Product(){
@@ -14,7 +14,7 @@ export function Copy_Product(){
         if(product) set_name(product.name);
         if(!product) setTimeout(()=> reset(), 250);
     },[product]);
-    if(data && data.copyProduct.product) setTimeout(()=> show_copy_product(false), 1500);
+    if(data && data.copyProduct && data.copyProduct.product) setTimeout(()=> show_copy_product(false), 1500);
     const key_press=(target)=> {if(target.charCode==13) copy_product()}; 
 	return (
 		r(Modal,{show:product, onHide:()=>show_copy_product(false), autoFocus:false},
@@ -22,16 +22,17 @@ export function Copy_Product(){
                 product && r(Modal.Title, {}, 'Copy '+ product.name),
       		),
             alt ? r(Modal.Body, {}, r(alt)) :
-                data && data.copyProduct.product ? r(Modal.Body, {}, r('p', {}, 'Copied as '+data.copyProduct.product.name)) :
+                data && data.copyProduct && data.copyProduct.product ? r(Modal.Body, {}, r('p', {}, 'Copied as '+data.copyProduct.product.name)) :
                     r(Fragment,{},
                         r(Modal.Body, {}, 
-                            data && r('p', {}, 'Copy failed.'),
-                            r(Form.Group, {className:'mb-3'}, 
-                                r(Form.Label, {}, 'Name'),
-                                r(Form.Control, {type:'text', value:name, onChange:(e)=>set_name(e.target.value), onKeyPress:key_press, autoFocus:true}),
+                            data && r('p', {}, 'Failed to copy.'),
+                            r(InputGroup, {className:'mb-3'}, 
+                                r(InputGroup.Text, {}, 'Name'),
+                                r(Form.Control, {type:'text', maxLength:64, value:name, onChange:(e)=>set_name(e.target.value), onKeyPress:key_press, autoFocus:true}),
                             ),
                         ),
                         r(Modal.Footer, {},
+                            r(Button, {onClick:()=>show_copy_product(false), variant:'secondary'}, 'Cancel'),
                             r(Button, {onClick:copy_product}, 'Copy'),
                         )
                     ),
@@ -48,17 +49,17 @@ export function Delete_Product(){
     useEffect(()=>{
         if(!product) setTimeout(()=> reset(), 250);
     },[product]);
-    if(data && data.deleteProduct.product) setTimeout(()=> show_delete_product(false), 1500);
+    if(data && data.deleteProduct && data.deleteProduct.product) setTimeout(()=> show_delete_product(false), 1500);
 	return (
 		r(Modal,{show:product, onHide:()=>show_delete_product(false), autoFocus:false},
       		r(Modal.Header, {closeButton:true},  
                 product && r(Modal.Title, {}, 'Delete '+ product.name),
       		),
             alt ? r(Modal.Body, {}, r(alt)) :
-                data && data.deleteProduct.product ? r(Modal.Body, {}, r('p', {}, 'Deleted '+data.deleteProduct.product.name)) :
+                data && data.deleteProduct && data.deleteProduct.product ? r(Modal.Body, {}, r('p', {}, 'Deleted '+data.deleteProduct.product.name)) :
                     r(Fragment,{},
                         r(Modal.Body, {}, 
-                            data && r('p', {}, 'Delete failed.'),
+                            data && r('p', {}, 'Failed to delete.'),
                             product && r('p', {}, 'Are you sure you want to delete ' + product.name + '?')
                         ),
                         r(Modal.Footer, {},

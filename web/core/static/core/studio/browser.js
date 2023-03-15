@@ -7,30 +7,39 @@ import {show_copy_product, show_delete_product} from './crud.js';
 export function Studio_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
     const {data, alt} = use_query('GetProducts', [
-		['products id name public description'],
-	]); if(alt) return r(alt);
+		['products id name description public owner{id firstName}'], ['user id'],
+	]); 
     return (
-        r(Container,{fluid:true, className:'pt-4 pb-2'},
-            r(Row, {className:'gap-3'}, !data.products ? 'No products found.' : [
-                ...data.products.map((product,i)=>(
-                    r(Col,{key:i},
-                        r(Card, {style:{width:'20rem'}, className:'mx-auto'},
-                            r(Card.Img, {variant:'top', src:'holder.js/100px180', className:'hjs'}),
-                            r(Card.Body,{},
-                                r(Card.Title,{},product.name),
-                                r(Card.Text,{}, product.description),
-                                product.public ? r(Card.Text,{},r('i',{className:'bi-globe-europe-africa'}),r('span',{},' Public')) :
-                                    r(Card.Text,{},r('i',{className:'bi-file-lock2-fill'}),r('span',{},' Private')),
-                                r(Button, {as:Link, to:product.id, className:'w-50 me-3'}, 'Edit'),
-                                //r(ButtonGroup, {role:'group', arialabel:'Actions', className: 'position-absolute'},
-                                    r(Button, {onClick:()=>show_copy_product(product), variant:'secondary', className:'me-3'}, 'Copy'),
-                                    r(Button, {onClick:()=>show_delete_product(product), variant:'secondary'}, 'D'),
-                                //)
+        r(Container,{fluid:true, className:'ps-4 pe-4 pt-4 pb-4'},
+            r(Row, {className:'gap-3'}, //row-cols-auto  
+                alt ? r(alt) :
+                    data.products.length<1 ? 'No products found.' : 
+                        [...data.products.map((product,i)=>(
+                            r(Col,{key:i},
+                                r(Card, {style:{width:'20rem'}, className:'mx-auto'},
+                                    r(Card.Img, {variant:'top', src:'holder.js/100px180', className:'hjs'}),
+                                    r(Card.Body,{},
+                                        r(Card.Title,{},product.name),
+                                        r(Card.Text,{}, product.description),
+                                        r(Row, {className:'mb-3'},
+                                            r(Col, {},
+                                                product.public ? r(Card.Text,{},r('i',{className:'bi-globe-europe-africa'}),r('span',{},' Public')) :
+                                                    r(Card.Text,{},r('i',{className:'bi-lock-fill'}),r('span',{},' Private')),
+                                            ),
+                                            r(Col, {},
+                                                r(Card.Text,{},r('i',{className:'bi-person-fill'}),r('span',{},' '+product.owner.firstName))
+                                            ),
+                                        ),
+                                        r(Button, {as:Link, to:product.id, className:'w-50 me-3'}, 'Edit'),
+                                        //r(ButtonGroup, {role:'group', arialabel:'Actions', className: 'position-absolute'},
+                                            data.user && r(Button, {onClick:()=>show_copy_product(product), variant:'secondary', className:'me-3'}, 'Copy'),
+                                            data.user && (product.owner.id == data.user.id) && r(Button, {onClick:()=>show_delete_product(product), variant:'secondary'}, 'D'),
+                                        //)
+                                    )
+                                )
                             )
-                        )
-                    )
-                )),
-            ])
+                        ))]
+            )
         )
     )
 }

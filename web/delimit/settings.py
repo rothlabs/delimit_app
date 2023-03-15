@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 ################################ Allows python to print to console when gunicorn -R is used
-os.environ["PYTHONUNBUFFERED"] = "TRUE"
+#os.environ['PYTHONUNBUFFERED'] = 'TRUE'
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -141,13 +141,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/') # local  ##### STATIC_ROOT not used at all in local
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/') # dev  ##### STATIC_ROOT not used at all in dev
 #STATIC_ROOT = '/var/cache/delimit/static/'    # deployment
 
 # Media files (user uploaded images, generated 3D models, etc)
 # https://docs.djangoproject.com/en/4.1/topics/files/
 MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')   # local
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')   
 #MEDIA_ROOT = '/var/opt/delimit/media/'         # deployment
 
 

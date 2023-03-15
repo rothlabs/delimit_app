@@ -1,5 +1,5 @@
 import {createElement as r, useState, Fragment, useEffect} from 'react';
-import {Button, Modal, Form, Row} from 'boot';
+import {Button, Modal, Form, Row, InputGroup} from 'boot';
 import {makeVar, useReactiveVar} from 'apollo';
 import {Logo} from './logo.js';
 import {use_mutation} from './app.js';
@@ -33,13 +33,13 @@ export function Login(){
                             r(Row,{className:'mb-3'},
                                 r(Logo, {className:'mx-auto', height:80}),
                             ),
-                            data && r('p', {}, 'Sign in failed.'),
-                            r(Form.Group, {className:'mb-3'}, 
-                                r(Form.Label, {}, 'Username'),
+                            data && r('p', {}, 'Failed to sign in.'),
+                            r(InputGroup, {className:'mb-3'}, 
+                                r(InputGroup.Text, {}, 'Username'),
                                 r(Form.Control, {type:'text', value:username, onChange:(e)=>set_username(e.target.value), onKeyPress:key_press, autoFocus:true}),
                             ),
-                            r(Form.Group, {className:'mb-3'},
-                                r(Form.Label, {}, 'Passwrod'),
+                            r(InputGroup, {className:'mb-3'},
+                                r(InputGroup.Text, {}, 'Passwrod'),
                                 r(Form.Control, {type:'password', value:password, onChange:(e)=>set_password(e.target.value), onKeyPress:key_press}),
                             ),
                         ),
@@ -72,7 +72,7 @@ export function Logout(){
             r(Modal.Body, {}, 
                 alt? r(alt): 
                     data && data.logout.user? r('p', {}, 'Farewell '+data.logout.user.firstName): 
-                        r('p', {}, 'Sign out failed.')
+                        r('p', {}, 'Failed to sign out.')
              )
     	)
     )

@@ -8,7 +8,7 @@ __pycache__
 /web/media
 /web/sass/bootstrap/
 /web/sass/dart-sass/
-/web/core/static/core/css/
+/web/core/static/core/css/boot.css
 
 *.DS_Store
 *.FCStd1

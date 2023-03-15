@@ -3,7 +3,7 @@ import {Canvas, useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
 import {Product} from './product.js';
 import {Line} from './line.js';
-import {History_Control} from './history.js';
+import {Toolbar} from './toolbar.js';
 import {CameraControls} from 'drei';
 import {useParams} from 'rrd';
 import {makeVar} from 'apollo';
@@ -105,17 +105,20 @@ export function Studio_Editor(){
     const {id} = useParams(); //productID
     const camera_controls = useRef();
     const {data, alt} = use_query('GetProduct',[
-        ['product file', ['String! id', id]],
-    ]); if(alt) return r(alt);
-    return (r(Fragment,{},
-        r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-            r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, 
-                r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                r(Board, {camera_controls:camera_controls, file:data.product.file}), 
+        ['product name description file', ['String! id', id]],
+    ]); 
+    return (
+        alt ? r(alt) : 
+            r(Fragment,{},
+                r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
+                    r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, 
+                        r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
+                        r(Board, {camera_controls:camera_controls, file:data.product.file}), 
+                    )
+                ),
+                r(Toolbar, {product:data.product}), 
             )
-        ),
-        r(History_Control), 
-    ))
+    )
 }
 
 

@@ -1,4 +1,4 @@
-import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, useMutation, gql} from 'apollo'; //makeVar, useReactiveVar, gql
+import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, useMutation, gql, makeVar} from 'apollo'; //makeVar, useReactiveVar, gql
 import {setContext} from 'aclc';
 import Cookie from "cookie";
 import {createElement as r, StrictMode} from 'react';
@@ -7,7 +7,7 @@ import {createBrowserRouter,RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
 import {Studio_Editor} from './studio/editor.js';
 import {Studio_Browser} from './studio/browser.js';
-import {Loading, Error_Page} from './feedback.js';
+import {Loading, Router_Error, } from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
 import set from 'lodash';
 
@@ -42,14 +42,15 @@ export const theme = {//.convertSRGBToLinear(),
 };
 
 //export const client = new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()});
+//export const current_user_id = makeVar(-1);
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()})},
         r(RouterProvider, {router:createBrowserRouter([
-            {path:'/', element:r(Root), errorElement:r(Error_Page), children:[
+            {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
                 {path:'',        element:r('p',{},'At Home')},
                 {path:'catalog', element:r('p',{},'At Catalog')},
-                {path:'studio',  element:r(Outlet), errorElement:r(Error_Page), children:[
+                {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
                     {path:'',       element:r(Studio_Browser)},
                     {path:':id',    element:r(Studio_Editor)},
                 ]},
@@ -64,6 +65,8 @@ function compile_gql(name, gql_parts){
     var variables = {};
     gql_parts.forEach(q => {
         const q_words = q[0].split(' ');
+        body += q_words[0];
+        if(q.length>1) body += '(';
         for(var i=1; i<q.length; i++){ 
             const q_var_meta = q[i][0].split(' ');
             header += '$' + q_var_meta[1] + ': ' + q_var_meta[0];
@@ -71,11 +74,13 @@ function compile_gql(name, gql_parts){
             if(i<q.length-1){
                 header += ', ';
                 body += ', ';
-            }
+            }else{ body += ')'; }
             set(variables, q_var_meta[1], q[i][1]);
         }
-        if(q.length>1) body = '(' +body+ ')';
-        body = q_words[0] + body + '{'+q[0].slice(q_words[0].length+1)+'}'; 
+        //if(q.length>1) body += ')';
+        //if(q.length>1) body = '(' +body+ ')';
+        //body = q_words[0] + body + '{'+q[0].slice(q_words[0].length+1)+'}'; 
+        body += '{'+q[0].slice(q_words[0].length+1)+'} '; 
     });
     if(header.length>0) header = '(' + header + ')';
     header = name + header;
@@ -84,13 +89,16 @@ function compile_gql(name, gql_parts){
 
 export function use_query(name, gql_parts){
     const {header, body, variables} = compile_gql(name, gql_parts);
+    //console.log(header);
+    //console.log(body);
+    //console.log(variables);
     const {loading, error, data} = useQuery(
         gql`query ${header}{${body}}`, 
         {variables:variables} // Add option for cache fetchPolicy:'no-cache'
     ); 
     var alt = null;
 	if (loading) alt = Loading;
-    if (error)   alt = Error_Page;
+    if (error)   alt = r(GQL_Error, {message: error.message});
     return {data, alt};
 }
 
@@ -105,7 +113,7 @@ export function use_mutation(gql_parts, refetch){
     ); 
     var alt = null;
 	if (loading) alt = Loading;
-    if (error)   alt = Error_Page;
+    if (error) alt = r(GQL_Error, {message: error.message});
     return [mutate, { data, alt, reset }];
 }
 
