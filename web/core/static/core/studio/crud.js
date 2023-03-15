@@ -11,14 +11,10 @@ export function Copy_Product(){
         ['copyProduct product{name}', ['String! id', product && product.id], ['String! name', name]],
     ], 'GetProducts');
     useEffect(()=>{
-        if(product){
-            set_name(product.name);
-            reset(); 
-        }else{
-            setTimeout(()=> reset(), 250);
-        }
+        if(product) set_name(product.name);
+        if(!product) setTimeout(()=> reset(), 250);
     },[product]);
-    if(data && data.copyProduct.product) setTimeout(()=> show_copy_product(null), 1500);
+    if(data && data.copyProduct.product) setTimeout(()=> show_copy_product(false), 1500);
     const key_press=(target)=> {if(target.charCode==13) copy_product()}; 
 	return (
 		r(Modal,{show:product, onHide:()=>show_copy_product(false), autoFocus:false},
@@ -26,7 +22,7 @@ export function Copy_Product(){
                 product && r(Modal.Title, {}, 'Copy '+ product.name),
       		),
             alt ? r(Modal.Body, {}, r(alt)) :
-                data && data.copyProduct.product ? r(Modal.Body, {}, r('p', {}, 'Copied '+product.name)) :
+                data && data.copyProduct.product ? r(Modal.Body, {}, r('p', {}, 'Copied as '+data.copyProduct.product.name)) :
                     r(Fragment,{},
                         r(Modal.Body, {}, 
                             data && r('p', {}, 'Copy failed.'),
@@ -37,6 +33,37 @@ export function Copy_Product(){
                         ),
                         r(Modal.Footer, {},
                             r(Button, {onClick:copy_product}, 'Copy'),
+                        )
+                    ),
+    	)
+  	)
+}
+
+export const show_delete_product = makeVar();
+export function Delete_Product(){
+	const product = useReactiveVar(show_delete_product);
+    const [delete_product, { data, alt, reset }] = use_mutation([
+        ['deleteProduct product{name}', ['String! id', product && product.id]],
+    ], 'GetProducts');
+    useEffect(()=>{
+        if(!product) setTimeout(()=> reset(), 250);
+    },[product]);
+    if(data && data.deleteProduct.product) setTimeout(()=> show_delete_product(false), 1500);
+	return (
+		r(Modal,{show:product, onHide:()=>show_delete_product(false), autoFocus:false},
+      		r(Modal.Header, {closeButton:true},  
+                product && r(Modal.Title, {}, 'Delete '+ product.name),
+      		),
+            alt ? r(Modal.Body, {}, r(alt)) :
+                data && data.deleteProduct.product ? r(Modal.Body, {}, r('p', {}, 'Deleted '+data.deleteProduct.product.name)) :
+                    r(Fragment,{},
+                        r(Modal.Body, {}, 
+                            data && r('p', {}, 'Delete failed.'),
+                            product && r('p', {}, 'Are you sure you want to delete ' + product.name + '?')
+                        ),
+                        r(Modal.Footer, {},
+                            r(Button, {onClick:()=>show_delete_product(false), variant:'secondary'}, 'Cancel'),
+                            r(Button, {onClick:delete_product}, 'Delete'),
                         )
                     ),
     	)

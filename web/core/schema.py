@@ -59,19 +59,27 @@ class CopyProduct(graphene.Mutation):
     product = graphene.Field(ProductType)
     @classmethod
     def mutate(cls, root, info, id, name):
-        print('copy product')
-        print(id)
-        print(name)
         product = Product.objects.get(id=id)
         product.id = None
         product.name = name
         product.save()
         return CopyProduct(product=product)
 
+class DeleteProduct(graphene.Mutation):
+    class Arguments:
+        id = graphene.String(required=True)
+    product = graphene.Field(ProductType)
+    @classmethod
+    def mutate(cls, root, info, id):
+        product = Product.objects.get(id=id)
+        product.delete()
+        return DeleteProduct(product=product)
+
 class Mutation(graphene.ObjectType):
     login = Login.Field()
     logout = Logout.Field()
     copyProduct = CopyProduct.Field()
+    deleteProduct = DeleteProduct.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
 

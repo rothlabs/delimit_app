@@ -2,7 +2,7 @@ import {createElement as r, useEffect} from 'react';
 import {Container, ButtonGroup, Card, Button, Row, Col} from 'boot';
 import {Link} from 'rrd';
 import {use_query} from '../app.js';
-import {show_copy_product} from './crud.js';
+import {show_copy_product, show_delete_product} from './crud.js';
 
 export function Studio_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
@@ -24,7 +24,7 @@ export function Studio_Browser(){
                                 r(Button, {as:Link, to:product.id, className:'w-50 me-3'}, 'Edit'),
                                 //r(ButtonGroup, {role:'group', arialabel:'Actions', className: 'position-absolute'},
                                     r(Button, {onClick:()=>show_copy_product(product), variant:'secondary', className:'me-3'}, 'Copy'),
-                                    r(Button, {onClick:()=>console.log('delete: '+product.id), variant:'secondary'}, 'D'),
+                                    r(Button, {onClick:()=>show_delete_product(product), variant:'secondary'}, 'D'),
                                 //)
                             )
                         )
