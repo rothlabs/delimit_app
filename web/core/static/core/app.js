@@ -50,8 +50,8 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
                 {path:'',        element:r('p',{},'At Home')},
                 {path:'catalog', element:r('p',{},'At Catalog')},
                 {path:'studio',  element:r(Outlet), errorElement:r(Error_Page), children:[
-                    {path:'',         element:r(Studio_Browser)},
-                    {path:':id', element:r(Studio_Editor)},
+                    {path:'',       element:r(Studio_Browser)},
+                    {path:':id',    element:r(Studio_Editor)},
                 ]},
             ]},
         ])}),
@@ -96,6 +96,9 @@ export function use_query(name, gql_parts){
 
 export function use_mutation(gql_parts, refetch){
     const {header, body, variables} = compile_gql('Mutation', gql_parts);
+    //console.log(header);
+    //console.log(body);
+    //console.log(variables);
     const [mutate, {data, loading, error, reset}] = useMutation( 
         gql`mutation ${header}{${body}}`, 
         {variables:variables, refetchQueries:refetch.split(' ')} // Add option for cache

@@ -2,6 +2,7 @@ import {createElement as r, Fragment} from 'react';
 import {Container, Nav, Navbar} from 'boot';
 import {Outlet, Link} from 'rrd';
 import {Login, show_login, Logout, show_logout} from './login.js';
+import {Copy_Product} from './studio/crud.js'
 import {Logo} from './logo.js';
 import {use_query} from './app.js';
 
@@ -28,13 +29,14 @@ export function Root(){
 								r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')'),
 								r(Nav.Link, {onClick:()=>show_logout(true), eventKey:4}, 'Sign Out'),
 							): 
-								r(Nav.Link, {onClick:()=>show_login(true), eventKey:4}, 'Sign In'),
+								r(Nav.Link, {onClick:()=>show_login(true), eventKey:4},  'Sign In'),
             			),
           			),
         		)
       		),
 			r(Login),
 			r(Logout),
+			r(Copy_Product),
       		r(Outlet),
     	)
   	)

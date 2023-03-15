@@ -13,37 +13,20 @@ class UserType(DjangoObjectType):
 class ProductType(DjangoObjectType):
     class Meta:
         model = Product
-        fields = ('id', 'name', 'date', 'file', 'user', 'public')
+        fields = ('id', 'name', 'date', 'file', 'user', 'public', 'description')
 
 class Query(graphene.ObjectType):
-    #login = graphene.Field(UserType, username=graphene.String(required=True), password=graphene.String(required=True))
-    #logout = graphene.Field(UserType)
     user = graphene.Field(UserType)
     products = graphene.List(ProductType)
     product = graphene.Field(ProductType, id=graphene.String(required=True))
-
-    #def resolve_login(root, info, username, password):
-    #    user = authenticate(username=username, password=password)
-    #    if user is not None: login(info.context, user)
-    #    return user
-
-    # def resolve_logout(root, info):
-    #     if info.context.user.is_authenticated: 
-    #         user = info.context.user
-    #         logout(info.context)
-    #         return user
-    #     else: return None
-
     def resolve_user(root, info):
         if info.context.user.is_authenticated: 
             return info.context.user
         else: return None
-
     def resolve_products(root, info):
         if info.context.user.is_authenticated: 
             return Product.objects.filter(Q(public=True) | Q(user=info.context.user))
         else: return Product.objects.filter(public=True)
-
     def resolve_product(root, info, id):
         try: return Product.objects.get(id=id)
         except Product.DoesNotExist: return None
@@ -60,9 +43,6 @@ class Login(graphene.Mutation):
         return Login(user=user)
 
 class Logout(graphene.Mutation):
-    #class Arguments:
-    #    username = graphene.String(required=True)
-    #    password = graphene.String(required=True)
     user = graphene.Field(UserType)
     @classmethod
     def mutate(cls, root, info):
@@ -72,12 +52,45 @@ class Logout(graphene.Mutation):
             logout(info.context)
         return Logout(user=user)
 
+class CopyProduct(graphene.Mutation):
+    class Arguments:
+        id = graphene.String(required=True)
+        name = graphene.String(required=True)
+    product = graphene.Field(ProductType)
+    @classmethod
+    def mutate(cls, root, info, id, name):
+        print('copy product')
+        print(id)
+        print(name)
+        product = Product.objects.get(id=id)
+        product.id = None
+        product.name = name
+        product.save()
+        return CopyProduct(product=product)
+
 class Mutation(graphene.ObjectType):
     login = Login.Field()
     logout = Logout.Field()
+    copyProduct = CopyProduct.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
 
+
+
+#login = graphene.Field(UserType, username=graphene.String(required=True), password=graphene.String(required=True))
+    #logout = graphene.Field(UserType)
+
+    #def resolve_login(root, info, username, password):
+    #    user = authenticate(username=username, password=password)
+    #    if user is not None: login(info.context, user)
+    #    return user
+
+    # def resolve_logout(root, info):
+    #     if info.context.user.is_authenticated: 
+    #         user = info.context.user
+    #         logout(info.context)
+    #         return user
+    #     else: return None
 
 #try: return Product.objects.get(id=id)
 #except Product.DoesNotExist: return None

@@ -40,7 +40,7 @@ function Board(p) {
                     pointers_down = 0;//{zero_pointers_down_on_enter = true;  console.log('zero_pointers_down_on_enter');}
                     new_verts.length = 0;
                     draw_line.current.set_verts(new Float32Array());
-                    set_selection(null);
+                    if(selection && selection.object.name == 'endpoint') set_selection(null);
                 }
             },
             onPointerDown:(event)=> {

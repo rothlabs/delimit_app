@@ -14,7 +14,8 @@ class Product(models.Model):
     date = models.DateTimeField(default=django.utils.timezone.now)
     file = models.FileField(upload_to='product', default='product/default.glb')
     user = models.ForeignKey(User, default=0, on_delete=models.CASCADE)
-    public = models.BooleanField(default=False); 
+    public = models.BooleanField(default=False)
+    description = models.TextField(default='')
     def __str__(self): 
         return self.name+' ('+str(self.id)+')'
 
