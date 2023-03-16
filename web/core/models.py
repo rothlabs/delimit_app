@@ -15,7 +15,7 @@ class Product(models.Model):
     file = models.FileField(upload_to='product', default='product/default.glb')
     owner = models.ForeignKey(User, default=0, on_delete=models.CASCADE)
     public = models.BooleanField(default=False)
-    description = models.TextField(default='', blank=True)
+    story = models.TextField(default='', blank=True)
     def __str__(self): 
         return self.name+' ('+os.path.basename(self.file.name)+')'
 
@@ -31,23 +31,23 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
         if os.path.isfile(instance.file.path):
             os.remove(instance.file.path)
 
-# @receiver(models.signals.pre_save, sender=Product)
-# def auto_delete_file_on_change(sender, instance, **kwargs):
-#     """
-#     Deletes old file from filesystem
-#     when corresponding `Product` object is updated
-#     with new file.
-#     """
-#     if not instance.pk:
-#         return False
-#     try:
-#         old_file = Product.objects.get(pk=instance.pk).file
-#     except Product.DoesNotExist:
-#         return False
-#     new_file = instance.file
-#     if not old_file == new_file:
-#         if os.path.isfile(old_file.path):
-#             os.remove(old_file.path)
+@receiver(models.signals.pre_save, sender=Product)
+def auto_delete_file_on_change(sender, instance, **kwargs):
+    """
+    Deletes old file from filesystem
+    when corresponding `Product` object is updated
+    with new file.
+    """
+    if not instance.pk:
+        return False
+    try:
+        old_file = Product.objects.get(pk=instance.pk).file
+    except Product.DoesNotExist:
+        return False
+    new_file = instance.file
+    if not old_file == new_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
 
 
 

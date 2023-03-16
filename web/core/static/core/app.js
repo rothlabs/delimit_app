@@ -99,14 +99,12 @@ export function use_query(name, gql_parts){
     var alt = null;
 	if (loading) alt = Loading;
     if (error)   alt = r(GQL_Error, {message: error.message});
-    return {data, alt};
+    return [data, alt];
 }
 
 export function use_mutation(gql_parts, refetch){
     const {header, body, variables} = compile_gql('Mutation', gql_parts);
-    //console.log(header);
-    //console.log(body);
-    //console.log(variables);
+    //console.log({header, body, variables});
     const [mutate, {data, loading, error, reset}] = useMutation( 
         gql`mutation ${header}{${body}}`, 
         {variables:variables, refetchQueries:refetch.split(' ')} // Add option for cache
@@ -114,7 +112,7 @@ export function use_mutation(gql_parts, refetch){
     var alt = null;
 	if (loading) alt = Loading;
     if (error) alt = r(GQL_Error, {message: error.message});
-    return [mutate, { data, alt, reset }];
+    return [mutate, data, alt, reset];
 }
 
 // export function use_server(query, args){

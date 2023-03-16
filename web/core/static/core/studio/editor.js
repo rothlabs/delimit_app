@@ -104,8 +104,8 @@ function Board(p) {
 export function Studio_Editor(){
     const {id} = useParams(); //productID
     const camera_controls = useRef();
-    const {data, alt} = use_query('GetProduct',[
-        ['product name description file', ['String! id', id]],
+    const [data, alt] = use_query('GetProduct',[
+        ['product id name story file public owner{id firstName}', ['String! id', id]], ['user id'],
     ]); 
     return (
         alt ? r(alt) : 
@@ -116,7 +116,7 @@ export function Studio_Editor(){
                         r(Board, {camera_controls:camera_controls, file:data.product.file}), 
                     )
                 ),
-                r(Toolbar, {product:data.product}), 
+                r(Toolbar, {product:data.product, user:data.user}), 
             )
     )
 }

@@ -11,8 +11,8 @@ export function Login(){
 	const show = useReactiveVar(show_login);
     const [username, set_username] = useState('');
     const [password, set_password] = useState('');
-    const [login, { data, alt, reset }] = use_mutation([
-        ['login user {firstName}', ['String! username', username], ['String! password', password]],
+    const [login, data, alt, reset] = use_mutation([
+        ['login response user{firstName}', ['String! username', username], ['String! password', password]],
     ], 'GetUser GetProducts');
     useEffect(()=>{
         set_username('');
@@ -27,19 +27,19 @@ export function Login(){
                 r(Modal.Title, {}, 'Sign In'),
       		),
             alt ? r(Modal.Body, {}, r(alt)) :
-                data && data.login.user ? r(Modal.Body, {}, r('p', {}, 'Welcome '+data.login.user.firstName)) :
+                data && data.login.user ? r(Modal.Body, {}, r('p', {}, data.login.response)) :
                     r(Fragment,{},
                         r(Modal.Body, {}, 
                             r(Row,{className:'mb-3'},
-                                r(Logo, {className:'mx-auto', height:80}),
+                                r(Logo, {className:'mx-auto', height:70}),
                             ),
-                            data && r('p', {}, 'Failed to sign in.'),
+                            data && r('p', {}, data.login.response),
                             r(InputGroup, {className:'mb-3'}, 
                                 r(InputGroup.Text, {}, 'Username'),
                                 r(Form.Control, {type:'text', value:username, onChange:(e)=>set_username(e.target.value), onKeyPress:key_press, autoFocus:true}),
                             ),
                             r(InputGroup, {className:'mb-3'},
-                                r(InputGroup.Text, {}, 'Passwrod'),
+                                r(InputGroup.Text, {}, 'Password'),
                                 r(Form.Control, {type:'password', value:password, onChange:(e)=>set_password(e.target.value), onKeyPress:key_press}),
                             ),
                         ),
@@ -56,23 +56,22 @@ export const show_logout = makeVar(false);
 export function Logout(){
     const show = useReactiveVar(show_logout);
     const navigate = useNavigate();
-    const [logout, { data, alt, reset }] = use_mutation([
-        ['logout user {firstName}'],
+    const [logout, data, alt, reset] = use_mutation([
+        ['logout response user{firstName}'],
     ], 'GetUser GetProducts');
-    if(data && data.logout) setTimeout(()=> show_logout(false), 1500);
+    if(data) setTimeout(()=> show_logout(false), 1500);
     useEffect(()=> {if(show){
         logout();
         navigate('/');
-    }}, [show]);
+    }},[show]);
     return (
         r(Modal,{show:show, onHide:()=>show_logout(false)},
       		r(Modal.Header, {closeButton:true},  
                 r(Modal.Title, {}, 'Sign Out'),
       		),
             r(Modal.Body, {}, 
-                alt? r(alt): 
-                    data && data.logout.user? r('p', {}, 'Farewell '+data.logout.user.firstName): 
-                        r('p', {}, 'Failed to sign out.')
+                alt ? r(alt) : 
+                    data && r('p', {}, data.logout.response)
              )
     	)
     )

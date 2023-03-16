@@ -1,13 +1,13 @@
 import {createElement as r} from 'react';
 import {Row, Col, Button, ButtonGroup, Container} from 'boot';
-import {History_Tool} from './history.js';
-import {File_Tool} from './file.js';
+import {History_Tool} from './history_tool.js';
+import {File_Tool} from './file_tool.js';
 
 export function Toolbar(p){
     return(
         r(Container, {fluid:true, className:'bg-light'}, // pb:5,
             r(Row,{className:'row-cols-auto'},
-                r(Col,{}, r(File_Tool, {product:p.product})),
+                r(Col,{}, r(File_Tool, {product:p.product, user:p.user})),
                 r(Col,{}, r(History_Tool)),
             )
         )
