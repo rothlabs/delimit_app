@@ -28,9 +28,9 @@ export function Root(){
 							alt ? r(alt) :
 								data.user ? r(Fragment,{},
 									r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')'),
-									r(Nav.Link, {onClick:()=>show_logout(true), eventKey:4}, 'Sign Out'),
+									r(Nav.Link, {onClick:()=>show_logout(true), eventKey:4}, r('i',{className:'bi-box-arrow-left'}), ' Sign Out'),
 								): 
-									r(Nav.Link, {onClick:()=>show_login(true), eventKey:4},  'Sign In'),
+									r(Nav.Link, {onClick:()=>show_login(true), eventKey:4}, r('i',{className:'bi-box-arrow-in-right'}), ' Sign In'),
             			),
           			),
         		)

@@ -1,6 +1,7 @@
 import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Row, Col, Button, ButtonGroup, Container, Dropdown, DropdownButton, Form, InputGroup} from 'boot';
 import {use_mutation} from '../app.js';
+import {show_login} from '../login.js';
 
 export function File_Tool(p){
     const [show, set_show] = useState(false);
@@ -9,7 +10,6 @@ export function File_Tool(p){
     const [name, set_name] = useState(p.product.name);
     const [story, set_story] = useState(p.product.story);
     const [is_public, set_is_public] = useState(p.product.public);
-    //const [blob, set_blob] = useState(new Blob(['Empty Product File'], { type: 'text/plain' }));
     const [save_product, data, alt, reset] = use_mutation([
         ['saveProduct response product{name}', 
             ['Boolean! asCopy', false], 
@@ -50,19 +50,25 @@ export function File_Tool(p){
                             r(Form.Control, {as:'textarea', maxLength:512, value:story, onChange:(e)=>set_story(e.target.value), disabled:disabled}),
                         ),
                         r(Form.Check, {className:'mb-3', label:'Public', checked:is_public, onChange:(e)=>set_is_public(e.target.checked), disabled:disabled}),
-                        r(ButtonGroup, {},
-                            r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled}, 
-                                r('i',{className:'bi-disc-fill'}),' Save'),
-                            r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled}, 
-                                r('i',{className:'bi-files'}), ' Save Copy'),
-                        ),
-                        //r(Button,{onClick:save_with_file, className:'ms-3', variant:'outline-primary'}, 
-                        //        r('i',{className:'bi-disc'}), ' Test Save with File'),
+                        r(Row,{className:'row-cols-auto'},
+                            r(Col,{}, r(ButtonGroup, {},
+                                r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled}, 
+                                    r('i',{className:'bi-disc'}),' Save'),
+                                r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled}, 
+                                    r('i',{className:'bi-files'}), ' Save Copy'),
+                            )),
+                            disabled && save_disabled && r(Col,{}, r(Button,{onClick:()=>show_login(true), variant:'outline-primary'}, 
+                                    r('i',{className:'bi-box-arrow-in-right'}), ' Sign In')),
+                        )
                     )
         )
     )
 }
 
+
+//r(Container, {fluid:true},
+                //r(Row,{},
+                    //r(Col,{},
 
     //const [copy_func, copy_data, copy_alt, copy_reset] = use_mutation([
     //    ['copyProduct product{name}', ['String! id', p.product.id], ['String! name', name], ['String story', story]],

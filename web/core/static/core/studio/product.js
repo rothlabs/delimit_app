@@ -23,10 +23,6 @@ export const Product = forwardRef(function Product(p, ref) {
 	const {nodes} = useGLTF(media_url+p.file);
 	const disc_texture = useLoader(TextureLoader, static_url+'core/texture/disc.png');
 
-	//function get_group(){
-	//	return group.current;
-	//}
-
 	useImperativeHandle(ref,()=>{return{
         set_endpoint(args){
 			lines.current.forEach(line=>line.set_endpoint(args));

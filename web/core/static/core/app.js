@@ -21,12 +21,12 @@ const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});
 //const http_link = createHttpLink({uri:'https://delimit.art/gql'});
- const termination_link = createUploadLink({
-     uri: 'https://delimit.art/gql',
-     headers: {
+const termination_link = createUploadLink({
+    uri: 'https://delimit.art/gql',
+    headers: {
        'Apollo-Require-Preflight': 'true',
-     },
-   });
+    },
+});
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url');
@@ -54,21 +54,6 @@ export const theme = {//.convertSRGBToLinear(),
 
 //export const client = new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()});
 //export const current_user_id = makeVar(-1);
-
-createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
-    r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
-        r(RouterProvider, {router:createBrowserRouter([
-            {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
-                {path:'',        element:r('p',{},'At Home')},
-                {path:'catalog', element:r('p',{},'At Catalog')},
-                {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
-                    {path:'',       element:r(Studio_Browser)},
-                    {path:':id',    element:r(Studio_Editor)},
-                ]},
-            ]},
-        ])}),
-    )
-)));
 
 function compile_gql(name, gql_parts){
     var header = '';
@@ -123,6 +108,21 @@ export function use_mutation(gql_parts, refetch){
     if (error)   alt =()=> r(GQL_Error, {message: error.message});
     return [mutate, data, alt, reset];
 }
+
+createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
+    r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
+        r(RouterProvider, {router:createBrowserRouter([
+            {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
+                {path:'',        element:r('p',{},'At Home')},
+                {path:'catalog', element:r('p',{},'At Catalog')},
+                {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
+                    {path:'',       element:r(Studio_Browser)},
+                    {path:':id',    element:r(Studio_Editor)},
+                ]},
+            ]},
+        ])}),
+    )
+)));
 
 // export function use_server(query, args){
 //     const {loading, error, data} = useQuery(gql`query{ 

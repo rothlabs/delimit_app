@@ -31,8 +31,8 @@ export const Line = forwardRef(function Line(p, ref) {
     const name=()=> p.node.name;
     const verts=()=> meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
     const vect=(i)=> vtx.vect(meshline.current.positions,i);
-    const prev_verts=()=> history.verts[history.index-1];
-    const prev_vect=(i)=> vtx.vect(history.verts[history.index-1],i);
+    const prev_verts=()=> history.verts[history.index];
+    const prev_vect=(i)=> vtx.vect(history.verts[history.index],i);
 
     function endpoint_verts(){
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.needsUpdate = true;
@@ -68,11 +68,10 @@ export const Line = forwardRef(function Line(p, ref) {
             if(selected_point == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), constrain:true});
         },
         set_mod(args){
-            if(selected && args.verts.length>5){
-                //args.verts = vtx.reline(args.verts,1);
-                const closest = vtx.closest_to_endpoints(verts(), args.verts);
+            if(selected && args.verts.length > 4){
+                const closest =     vtx.closest_to_endpoints(verts(), args.verts);
                 const new_verts_1 = vtx.map(args.verts, closest.v1, closest.v2);
-                const new_verts_2 = vtx.reline(vtx.replace(verts(), closest.i1, closest.i2, new_verts_1),1);
+                const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
                 update({verts: new_verts_2, constrain:true, record:true});
             }
             if(selected_point == 0){
@@ -101,31 +100,45 @@ export const Line = forwardRef(function Line(p, ref) {
         }
     },[p.selection]);
 
-    useEffect(()=>{
+    useEffect(()=>{ // Switch to imparitive handler, or add prop that makes it rerender (no the prop was the old way)
         if(p.selection!='off'){
             if(history_act.name == 'record'){
-                history.verts.splice(history.index);
+                //console.log(history);
+                //console.log('record');
+                //if(history.index > -1) 
+                history.verts.splice(history.index+1); //history.verts.splice(history.index);
+                //console.log(verts().length);
                 history.verts.push(verts());
-                if(history.verts.length > 7){
+                if(history.verts.length > 10){
+                    const original_verts = history.verts.shift();
                     history.verts.shift();
+                    history.verts.unshift(original_verts);
                 }
-                history.index = history.verts.length;
+                history.index = history.verts.length-1;
             }else if(history_act.name == 'undo'){
-                if(history.index-1 > 0){
+                if(history.index > 0){
                     history.index--;
-                    update({verts:history.verts[history.index-1]}); //raw:true
+                    update({verts:history.verts[history.index]}); 
                 }
             }else if(history_act.name == 'redo'){
-                if(history.index+1 <= history.verts.length){
+                if(history.index < history.verts.length-1){
                     history.index++;
-                    update({verts:history.verts[history.index-1]}); //raw:true
+                    update({verts:history.verts[history.index]}); 
                 }
-            }
+            }//else if(history_act.name == 'revert'){
+                //if(verts().length > 1){
+            //        history.index = 0;
+            //        update({verts:history.verts[history.index]}); 
+                //}
+                //history.index = 0;
+            //}
             set_history(history);
+            //history_action({name:'none'});
+            console.log(history);
         }
     },[history_act]); 
 
-    //console.log('line render');
+    
     return (
         r('mesh', {
             ref: mesh,
@@ -144,19 +157,21 @@ export const Line = forwardRef(function Line(p, ref) {
                     ),
                     r('pointsMaterial',{size:12, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
                 ),
-            p.node && r('mesh', {
-                ref: export_mesh,
-                name: p.node.name, 
-                position: [p.node.position.x,p.node.position.y,p.node.position.z],
-                geometry: p.node.geometry,
-            },
-                //r('bufferGeometry', {},
-                //    r('bufferAttribute',{ref:endpoint_attr_pos, attach:'attributes-position', count:p.verts.length, itemSize:3, array:p.verts}), 
-                //),
+                p.node && r('mesh', { // For export
+                    ref: export_mesh,
+                    name: p.node.name, 
+                    position: [p.node.position.x,p.node.position.y,p.node.position.z],
+                    geometry: p.node.geometry,
+                },
             ),
         )
     )
 });
+
+
+//r('bufferGeometry', {},
+                //    r('bufferAttribute',{ref:endpoint_attr_pos, attach:'attributes-position', count:p.verts.length, itemSize:3, array:p.verts}), 
+                //),
 
 //color:new Color('hsl(0,0%,55%)'),})
 

@@ -5,8 +5,9 @@ import {history_action} from './editor.js';
 export function History_Tool(p){
     return(
         r(ButtonGroup, {}, //, role:'group', arialabel:'History' className: 'position-absolute'
-            r(Button,{onClick:()=>history_action({name:'undo'}), variant:'outline-primary'}, r('i',{className:'bi-caret-left-square-fill'}),  ' Undo'), //p.set_act({name:'undo'})
-            r(Button,{onClick:()=>history_action({name:'redo'}), variant:'outline-primary'}, r('i',{className:'bi-caret-right-square-fill'}), ' Redo'),
+            r(Button,{onClick:()=>history_action({name:'undo'}), variant:'outline-primary'}, r('i',{className:'bi-arrow-left'}),  ' Undo'), //p.set_act({name:'undo'})
+            r(Button,{onClick:()=>history_action({name:'redo'}), variant:'outline-primary'}, r('i',{className:'bi-arrow-right'}), ' Redo'),
+            r(Button,{onClick:()=>history_action({name:'revert'}), variant:'outline-primary', disabled:true}, r('i',{className:'bi-arrow-clockwise'}), ' Revert'),
         )
     )
 }

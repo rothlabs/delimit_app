@@ -1,22 +1,24 @@
 import {Vector3} from 'three';
 
+
+
 /* given float32array of 3d vertices, remove doubles. */
-export function remove_doubles(vertices) {
-  var newVertices = [];
-  var newIndices = [];
-  var vertexMap = {};
-  for (var i = 0; i < vertices.length; i += 3) {
-    var key = vertices[i] + ',' + vertices[i + 1] + ',' + vertices[i + 2];
-    if (vertexMap[key] === undefined) {
-      vertexMap[key] = newVertices.length / 3;
-      newVertices.push(vertices[i]);
-      newVertices.push(vertices[i + 1]);
-      newVertices.push(vertices[i + 2]);
-    }
-    newIndices.push(vertexMap[key]);
-  }
-  return new Float32Array(newVertices);
-}
+// export function remove_doubles(vertices) {
+//   var newVertices = [];
+//   var newIndices = [];
+//   var vertexMap = {};
+//   for (var i = 0; i < vertices.length; i += 3) {
+//     var key = vertices[i] + ',' + vertices[i + 1] + ',' + vertices[i + 2];
+//     if (vertexMap[key] === undefined) {
+//       vertexMap[key] = newVertices.length / 3;
+//       newVertices.push(vertices[i]);
+//       newVertices.push(vertices[i + 1]);
+//       newVertices.push(vertices[i + 2]);
+//     }
+//     newIndices.push(vertexMap[key]);
+//   }
+//   return new Float32Array(newVertices);
+// }
 
 
 // /* with float32array of 3D vertices representing a line, add vertices so there is never too big of a distance between consecutive vertices */
@@ -121,7 +123,7 @@ export function endpoints(verts){ // use get function here
 	return new Float32Array([...vert(verts,0), ...vert(verts,-1)]);
 }
 
-export function reline(verts,spacing){
+export function reline(verts, spacing = 2){
 	if(verts.length > 6){
 		var new_verts = [];
     append_vert(new_verts, verts, 0);
@@ -177,7 +179,7 @@ export function closest_to_endpoints(verts, endpoints_verts) {
 /* map line onto two endpoints */
 export function map(verts, endpoint1, endpoint2) {
 	var new_verts = [];
-	verts = reline(verts,1);
+	verts = reline(verts);
 	const delta1_x = endpoint1.x - verts[0];
 	const delta1_y = endpoint1.y - verts[1];
 	const delta1_z = endpoint1.z - verts[2];
@@ -229,33 +231,34 @@ export function replace(vertices, startIndex, endIndex, replacements) {
     endIndex = tmp;
     backwards_replacements = true;
   }
-  var newVertices2 = [];
+  var new_verts = [];
   for (var i = 0; i < vertices.length-2; i += 3) {
     if (i == startIndex){
       if(backwards_replacements){
         for (var k = replacements.length-3; k > 0; k -= 3) {
-          newVertices2.push(replacements[k]);
-          newVertices2.push(replacements[k + 1]);
-          newVertices2.push(replacements[k + 2]);
+          new_verts.push(replacements[k]);
+          new_verts.push(replacements[k + 1]);
+          new_verts.push(replacements[k + 2]);
         }
       }else{
         for (var k = 0; k < replacements.length-2; k += 3) {
-          newVertices2.push(replacements[k]);
-          newVertices2.push(replacements[k + 1]);
-          newVertices2.push(replacements[k + 2]);
+          new_verts.push(replacements[k]);
+          new_verts.push(replacements[k + 1]);
+          new_verts.push(replacements[k + 2]);
         }
       }
       i = endIndex;
     }else{
-      newVertices2.push(vertices[i]);
-      newVertices2.push(vertices[i + 1]);
-      newVertices2.push(vertices[i + 2]);
+      new_verts.push(vertices[i]);
+      new_verts.push(vertices[i + 1]);
+      new_verts.push(vertices[i + 2]);
     }
   }
   //newVertices2.push(vertices[vertices.length-3]);
   //newVertices2.push(vertices[vertices.length-2]);
   //newVertices2.push(0);
-  return new Float32Array(newVertices2);
+  //return new Float32Array(newVertices2);
+  return reline(new_verts);
 }
 
 /* given float32array of 3d vertices and test vertex, return the vertex closest to the test vertex. */
