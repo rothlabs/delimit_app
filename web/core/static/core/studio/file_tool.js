@@ -5,23 +5,36 @@ import {use_mutation} from '../app.js';
 export function File_Tool(p){
     const [show, set_show] = useState(false);
     const [disabled, set_disabled] = useState(true);
+    const [save_disabled, set_save_disabled] = useState(true);
     const [name, set_name] = useState(p.product.name);
     const [story, set_story] = useState(p.product.story);
     const [is_public, set_is_public] = useState(p.product.public);
+    //const [blob, set_blob] = useState(new Blob(['Empty Product File'], { type: 'text/plain' }));
     const [save_product, data, alt, reset] = use_mutation([
         ['saveProduct response product{name}', 
             ['Boolean! asCopy', false], 
             ['String! id', p.product.id], 
             ['String! name', name], 
             ['String story', story],
-            ['Boolean! public', is_public],]
-    ], 'GetProducts');
+            ['Boolean! public', is_public],
+            ['Upload blob', new Blob(['Empty Product File'], { type: 'text/plain' })],
+        ]
+    ], 'GetProducts GetProduct');
     useEffect(()=>{ if(!show) reset(); },[show]);
     useEffect(()=>{ 
         set_disabled(true);
-        if(p.user && p.user.id == p.product.owner.id) set_disabled(false);
+        set_save_disabled(true);
+        if(p.user && p.user.id == p.product.owner.id) {
+            set_disabled(false);
+            set_save_disabled(false);
+        }else{ if(p.user && is_public) set_disabled(false); }
     },[p.user]);
     if(data && data.saveProduct.product) setTimeout(()=>{reset(); set_show(false)}, 1500);
+    function save(as_copy){
+        p.board.current.export_glb((blob)=>{
+            save_product({variables:{blob:blob, asCopy:as_copy}});
+        });
+    }
     return(
         r(DropdownButton, {title:'File', variant:'outline-primary', show:show, onToggle:(s)=>set_show(s)},
             alt ? r(alt) :
@@ -38,11 +51,13 @@ export function File_Tool(p){
                         ),
                         r(Form.Check, {className:'mb-3', label:'Public', checked:is_public, onChange:(e)=>set_is_public(e.target.checked), disabled:disabled}),
                         r(ButtonGroup, {},
-                            r(Button,{onClick:()=>save_product(), variant:'outline-primary', disabled:disabled}, 
+                            r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled}, 
                                 r('i',{className:'bi-disc-fill'}),' Save'),
-                            r(Button,{onClick:()=>save_product({variables:{asCopy:true}}), variant:'outline-primary', disabled:disabled}, 
+                            r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled}, 
                                 r('i',{className:'bi-files'}), ' Save Copy'),
-                        )
+                        ),
+                        //r(Button,{onClick:save_with_file, className:'ms-3', variant:'outline-primary'}, 
+                        //        r('i',{className:'bi-disc'}), ' Test Save with File'),
                     )
         )
     )

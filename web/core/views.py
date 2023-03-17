@@ -19,12 +19,12 @@ def studio(request, pk=0):
     context = {'ctx':{'page':'studio'}}
     return render(request, 'core/index.html', context)
 
-@ensure_csrf_cookie
-def graphql(request):
-    query = json.loads(request.body)
-    result = schema.execute(query['query'], variable_values=query['variables'], context_value=request)
-    response = {'data':result.data}
-    return JsonResponse(response, status=200)
+# @ensure_csrf_cookie
+# def graphql(request):
+#     query = json.loads(request.body) #query = json.loads(request.body)
+#     result = schema.execute(query['query'], variable_values=query['variables'], context_value=request)
+#     response = {'data':result.data}
+#     return JsonResponse(response, status=200)
 
 
 

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from core.models import Product, random_id
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
+from graphene_file_upload.scalars import Upload
 
 class Authenticated_User_Type(DjangoObjectType):
     class Meta:
@@ -65,11 +66,12 @@ class Save_Product(graphene.Mutation): # rename to use _
         id = graphene.String(required=True)
         name = graphene.String(required=True)
         public = graphene.Boolean(required=True)
-        story = graphene.String(required=False, default_value='')
+        story = graphene.String(required=False, default_value = '')
+        blob = Upload(required=False, default_value = None)
     product = graphene.Field(Product_Type)
     response = graphene.String(default_value = 'Failed to save or copy product.') 
     @classmethod
-    def mutate(cls, root, info, asCopy, id, name, public, story):
+    def mutate(cls, root, info, asCopy, id, name, public, story, blob):
         try:
             product = None
             if info.context.user.is_authenticated:  
@@ -83,7 +85,8 @@ class Save_Product(graphene.Mutation): # rename to use _
                 if asCopy: 
                     response = 'Copied as ' + name + '.'
                     product.id = None
-                product.file.save(random_id()+'.glb', product.file, save = True) # product.file should be file from client when doing regular save
+                if blob: product.file.save(random_id()+'.glb', blob, save = True) # product.file should be file from client when doing regular save
+                else: product.file.save(random_id()+'.glb', product.file, save = True)
                 return Save_Product(response=response, product=product) 
         except Exception as e: print(e)
         return Save_Product() 

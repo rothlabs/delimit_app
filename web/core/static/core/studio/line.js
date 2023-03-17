@@ -5,12 +5,14 @@ import {theme} from '../app.js';
 import {history_action} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
+import * as THREE from 'three';
 
 //SET OBJECT Z INSTEAD OF VERTEX Z FOR PROPER RENDERING ORDER ///////////////////////////
 //Maybe does not apply to mesh line and points, appears to be okay 
 
 export const Line = forwardRef(function Line(p, ref) {
     const mesh = useRef();
+    const export_mesh = useRef();
     const meshline = useRef();
     const endpoint = useRef();
     const endpoint_attr_pos = useRef();
@@ -45,6 +47,7 @@ export const Line = forwardRef(function Line(p, ref) {
 
     function update(args){
         meshline.current.setPoints(args.verts);
+        export_mesh.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3 ) );
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.constrain){
             constraints.forEach(constraint => constraint.enforce());
@@ -66,10 +69,10 @@ export const Line = forwardRef(function Line(p, ref) {
         },
         set_mod(args){
             if(selected && args.verts.length>5){
-                args.verts = vtx.reline(args.verts,1);
+                //args.verts = vtx.reline(args.verts,1);
                 const closest = vtx.closest_to_endpoints(verts(), args.verts);
                 const new_verts_1 = vtx.map(args.verts, closest.v1, closest.v2);
-                const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
+                const new_verts_2 = vtx.reline(vtx.replace(verts(), closest.i1, closest.i2, new_verts_1),1);
                 update({verts: new_verts_2, constrain:true, record:true});
             }
             if(selected_point == 0){
@@ -130,7 +133,7 @@ export const Line = forwardRef(function Line(p, ref) {
             position: p.node? [p.node.position.x,p.node.position.y,p.node.position.z] : [0,0,0],
             raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
         },
-            r('meshLine', {attach:'geometry', points:p.verts, ref:meshline, name:p.name}),
+            r('meshLine', {ref:meshline, attach:'geometry', points:p.verts, name:p.name}),
             r('meshLineMaterial', {ref:material, color:selected?theme.primary_s:theme.secondary_s}),
             (p.verts.length<6 || p.selection=='off' || p.node.name.includes('v__rim') || p.node.name.includes('v__base') || p.node.name.includes('__out__')) ? null :
                 r('points',{ref:endpoint, name:'endpoint', position:[0,0,10]}, //,onPointerUp:(event)=>{console.log('endpoint up');}
@@ -141,6 +144,16 @@ export const Line = forwardRef(function Line(p, ref) {
                     ),
                     r('pointsMaterial',{size:12, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
                 ),
+            p.node && r('mesh', {
+                ref: export_mesh,
+                name: p.node.name, 
+                position: [p.node.position.x,p.node.position.y,p.node.position.z],
+                geometry: p.node.geometry,
+            },
+                //r('bufferGeometry', {},
+                //    r('bufferAttribute',{ref:endpoint_attr_pos, attach:'attributes-position', count:p.verts.length, itemSize:3, array:p.verts}), 
+                //),
+            ),
         )
     )
 });

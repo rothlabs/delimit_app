@@ -1,6 +1,11 @@
 # Delimit
 Artistic footwear design web app. Includes computer-aided design and manufacturing (CAx) module. 
 
+
+## Extra things installed on server
+pip install graphene-file-upload
+
+
 ## Getting Started
 
 ### Setup test database

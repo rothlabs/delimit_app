@@ -7,11 +7,14 @@ import {useThree, useLoader} from 'r3f';
 import {Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
 import {media_url, static_url} from '../app.js';
 import {history_action} from './editor.js';
+import {GLTFExporter} from './exporter.js';
 
 const bounds = new Box3();
+const exporter = new GLTFExporter();
 
 export const Product = forwardRef(function Product(p, ref) {
-	const group = useRef();
+	const export_group = useRef();
+	const work_group = useRef();
 	const lines = useRef([]);
 	const surfaces = useRef([]);
 	const defaults = useRef([]);
@@ -20,6 +23,10 @@ export const Product = forwardRef(function Product(p, ref) {
 	const {nodes} = useGLTF(media_url+p.file);
 	const disc_texture = useLoader(TextureLoader, static_url+'core/texture/disc.png');
 
+	//function get_group(){
+	//	return group.current;
+	//}
+
 	useImperativeHandle(ref,()=>{return{
         set_endpoint(args){
 			lines.current.forEach(line=>line.set_endpoint(args));
@@ -27,11 +34,16 @@ export const Product = forwardRef(function Product(p, ref) {
 		set_mod(args){
 			lines.current.forEach(line=>line.set_mod(args));
         },
+		export_glb(callback){
+			exporter.parse(work_group.current, function(buffer){
+				callback(new Blob([buffer], {type:'application/octet-stream'}));
+			},function(error){console.log(error);},{ binary:true });
+		}
     };});
 	
 	useEffect(()=>{ 
-		if(group){
-			bounds.setFromObject( group.current );
+		if(work_group){
+			bounds.setFromObject( work_group.current );
 			const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
 			const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
 			if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
@@ -84,23 +96,27 @@ export const Product = forwardRef(function Product(p, ref) {
 
 			history_action({name:'record'}); 
 		}
-	},[group]); 
+	},[work_group]); 
 
 	//console.log('product render');
+	//console.log(work_group);
 	return (
-		r('group', {ref:group, dispose:null}, [
-			...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('default') ? null : //.isMesh ? null :
-				r('mesh',{ref:el=>defaults.current[n[1].name]=el, key:n[1].name, geometry:n[1].geometry, position:[n[1].position.x,n[1].position.y,n[1].position.z]},  //position:n[1].position
-					r('meshBasicMaterial',{ref:el=>materials.current[n[1].name]=el, map:n[1].material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
-				)
-			)),
-			...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('surface') ? null : //.isMesh ? null :
-				r(Surface, {ref:el=>surfaces.current[n[1].name]=el, key:n[1].name, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map)
-			)),
-			...Object.entries(nodes).map((n,i)=>(!n[1].isLine ? null :
-				r(Line, {ref:el=>lines.current[i]=el, verts:n[1].geometry.attributes.position.array, key:'line_'+i, node:n[1], point_texture:disc_texture, ...p})
-			)),
-		])
+		//r('group', {ref:group, dispose:null}, 
+			//r('group', {ref:export_group, dispose:null}),
+			r('group', {ref:work_group, dispose:null},
+				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('default') ? null : //.isMesh ? null :
+					r('mesh',{ref:el=>defaults.current[n[1].name]=el, geometry:n[1].geometry, position:[n[1].position.x,n[1].position.y,n[1].position.z]},  //, key:n[1].name //position:n[1].position
+						r('meshBasicMaterial',{ref:el=>materials.current[n[1].name]=el, map:n[1].material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
+					)
+				)),
+				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('surface') ? null : //.isMesh ? null :
+					r(Surface, {ref:el=>surfaces.current[n[1].name]=el, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map) , key:n[1].name
+				)),
+				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('v__') ? null :
+					r(Line, {ref:el=>lines.current[i]=el, export_group:export_group, verts:n[1].geometry.attributes.position.array, node:n[1], point_texture:disc_texture, ...p}) //, key:'line_'+i
+				)),
+			)
+		//)
 	)
 });
 

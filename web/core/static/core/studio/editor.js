@@ -1,4 +1,4 @@
-import {createElement as r, useRef, useState, Fragment} from 'react';
+import {createElement as r, useRef, useState, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
 import {Product} from './product.js';
@@ -17,11 +17,16 @@ const new_verts = [];
 var pointers_down = 0;
 var raycaster=null;
 
-function Board(p) {
+export const Board = forwardRef( function Board(p, ref) {
     const {camera} = useThree(); 
     const [selection, set_selection] = useState();
     const product = useRef();
     const draw_line = useRef();
+
+    useImperativeHandle(ref,()=>{return{
+		export_glb: product.current.export_glb,
+    };});
+
     useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom);
     return (
         r('mesh', { 
@@ -97,12 +102,13 @@ function Board(p) {
             r(Line, {ref:draw_line, selection:'off', verts:[], name:'draw_line', ...p}), // temp drawing line for visualization
         )
     )
-}
+});
 
 
 //add light and cube to check if camera is orthographic like it should be 
 export function Studio_Editor(){
     const {id} = useParams(); //productID
+    const board = useRef();
     const camera_controls = useRef();
     const [data, alt] = use_query('GetProduct',[
         ['product id name story file public owner{id firstName}', ['String! id', id]], ['user id'],
@@ -113,10 +119,10 @@ export function Studio_Editor(){
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
                     r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, 
                         r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                        r(Board, {camera_controls:camera_controls, file:data.product.file}), 
+                        r(Board, {ref:board, camera_controls:camera_controls, file:data.product.file}), 
                     )
                 ),
-                r(Toolbar, {product:data.product, user:data.user}), 
+                r(Toolbar, {product:data.product, user:data.user, board:board}), 
             )
     )
 }

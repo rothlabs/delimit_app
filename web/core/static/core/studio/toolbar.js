@@ -7,7 +7,7 @@ export function Toolbar(p){
     return(
         r(Container, {fluid:true, className:'bg-light'}, // pb:5,
             r(Row,{className:'row-cols-auto'},
-                r(Col,{}, r(File_Tool, {product:p.product, user:p.user})),
+                r(Col,{}, r(File_Tool, {...p})),
                 r(Col,{}, r(History_Tool)),
             )
         )

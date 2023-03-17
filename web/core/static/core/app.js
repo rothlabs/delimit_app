@@ -1,5 +1,6 @@
 import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, useMutation, gql, makeVar} from 'apollo'; //makeVar, useReactiveVar, gql
 import {setContext} from 'aclc';
+//import {createUploadLink} from 'auc';
 import Cookie from "cookie";
 import {createElement as r, StrictMode} from 'react';
 import {createRoot} from 'rdc';
@@ -7,15 +8,25 @@ import {createBrowserRouter,RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
 import {Studio_Editor} from './studio/editor.js';
 import {Studio_Browser} from './studio/browser.js';
-import {Loading, Router_Error, } from './feedback.js';
+import {Loading, Router_Error, GQL_Error} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
 import set from 'lodash';
 
+//import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
+//"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
+import {createUploadLink} from './upload/upload.js';
 
-const http_link = createHttpLink({uri:'https://delimit.art/gql'});
+
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});
+//const http_link = createHttpLink({uri:'https://delimit.art/gql'});
+ const termination_link = createUploadLink({
+     uri: 'https://delimit.art/gql',
+     headers: {
+       'Apollo-Require-Preflight': 'true',
+     },
+   });
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url');
@@ -45,7 +56,7 @@ export const theme = {//.convertSRGBToLinear(),
 //export const current_user_id = makeVar(-1);
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
-    r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()})},
+    r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
         r(RouterProvider, {router:createBrowserRouter([
             {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
                 {path:'',        element:r('p',{},'At Home')},
@@ -97,8 +108,8 @@ export function use_query(name, gql_parts){
         {variables:variables} // Add option for cache fetchPolicy:'no-cache'
     ); 
     var alt = null;
-	if (loading) alt = Loading;
-    if (error)   alt = r(GQL_Error, {message: error.message});
+	if (loading) alt =     Loading;
+    if (error)   alt =()=> r(GQL_Error, {message: error.message});
     return [data, alt];
 }
 
@@ -110,8 +121,8 @@ export function use_mutation(gql_parts, refetch){
         {variables:variables, refetchQueries:refetch.split(' ')} // Add option for cache
     ); 
     var alt = null;
-	if (loading) alt = Loading;
-    if (error) alt = r(GQL_Error, {message: error.message});
+	if (loading) alt =     Loading;
+    if (error)   alt =()=> r(GQL_Error, {message: error.message});
     return [mutate, data, alt, reset];
 }
 
