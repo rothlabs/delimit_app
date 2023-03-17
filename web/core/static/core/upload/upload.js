@@ -1,18 +1,7 @@
 "use strict";
 
-// const { ApolloLink, Observable } = require("@apollo/client/core");
-// const {
-//   createSignalIfSupported,
-//   fallbackHttpConfig,
-//   parseAndCheckHttpResponse,
-//   rewriteURIForGET,
-//   selectHttpOptionsAndBody,
-//   selectURI,
-//   serializeFetchParameter,
-// } = require("@apollo/client/link/http");
-//const extractFiles = require("extract-files/public/extractFiles.js");
-//const formDataAppendFile = require("./formDataAppendFile.js");
-//const isExtractableFile = require("./isExtractableFile.js");
+// https://github.com/jaydenseric/apollo-upload-client
+
 import {ApolloLink, Observable} from 'apollo';
 import {
     createSignalIfSupported,

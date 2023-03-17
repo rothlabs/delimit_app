@@ -100,9 +100,7 @@ function compile_gql(name, gql_parts){
 
 export function use_query(name, gql_parts){
     const {header, body, variables} = compile_gql(name, gql_parts);
-    //console.log(header);
-    //console.log(body);
-    //console.log(variables);
+    //console.log({header, body, variables});
     const {loading, error, data} = useQuery(
         gql`query ${header}{${body}}`, 
         {variables:variables} // Add option for cache fetchPolicy:'no-cache'
