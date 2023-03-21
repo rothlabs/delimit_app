@@ -10,15 +10,16 @@ import {makeVar} from 'apollo';
 import { use_query } from '../app.js';
 
 export const history_action = makeVar({name:'none'});
+//export const history_index = makeVar(0);
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
 const new_verts = [];
 var pointers_down = 0;
-var raycaster=null;
+//var raycaster=null;
 
 export const Board = forwardRef( function Board(p, ref) {
-    const {camera} = useThree(); 
+    const {scene, camera, raycaster} = useThree(); 
     const [selection, set_selection] = useState();
     const product = useRef();
     const draw_line = useRef();
@@ -28,12 +29,14 @@ export const Board = forwardRef( function Board(p, ref) {
     };});
 
     useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom);
+
+    //console.log(scene);
     return (
         r('mesh', { 
             name: 'board',
             onClick:(event)=>{
                 event.stopPropagation();
-                if(event.delta < 3 && event.intersections[0].object.name != 'endpoint'){
+                if(event.delta < 3 && event.intersections[0].object.name != 'endpoints'){
                     set_selection(event.intersections[0]);
                 }
             },
@@ -45,7 +48,7 @@ export const Board = forwardRef( function Board(p, ref) {
                     pointers_down = 0;//{zero_pointers_down_on_enter = true;  console.log('zero_pointers_down_on_enter');}
                     new_verts.length = 0;
                     draw_line.current.set_verts(new Float32Array());
-                    if(selection && selection.object.name == 'endpoint') set_selection(null);
+                    if(selection && selection.object.name == 'endpoints') set_selection(null);
                 }
             },
             onPointerDown:(event)=> {
@@ -53,8 +56,8 @@ export const Board = forwardRef( function Board(p, ref) {
                 if([0,1].includes(event.which)){
                     pointers_down++;
                     pointer_start.set(event.clientX,event.clientY);
-                    if(!(selection && selection.object.name == 'line')){
-                        if(event.intersections[0].object.name == 'endpoint'){
+                    if(!(selection && selection.object.name == 'meshline')){
+                        if(event.intersections[0].object.name == 'endpoints'){
                             set_selection(event.intersections[0]);
                         }
                     }
@@ -72,7 +75,7 @@ export const Board = forwardRef( function Board(p, ref) {
                         }
                         new_verts.length = 0;
                         draw_line.current.set_verts(new Float32Array());
-                        if(selection.object.name == 'endpoint'){
+                        if(selection.object.name == 'endpoints'){
                             set_selection(null); 
                         }
                     }
@@ -84,13 +87,13 @@ export const Board = forwardRef( function Board(p, ref) {
                 event.stopPropagation();
                 if(pointers_down==1 && selection){ 
                     const point = event.intersections[event.intersections.length-1].point;
-                    if(selection.object.name == 'line'){
+                    if(selection.object.name == 'meshline'){
                         pointer_vect.set(event.clientX,event.clientY);
                         if(pointer_start.distanceTo(pointer_vect) > 2){
                             new_verts.push(point.x,point.y,0); // will need to find other z value for 3d lines
                             draw_line.current.set_verts(new Float32Array(new_verts));
                         }
-                    }else if(selection.object.name == 'endpoint'){
+                    }else if(selection.object.name == 'endpoints'){
                         product.current.set_endpoint(point);
                     }
                 }
@@ -105,6 +108,7 @@ export const Board = forwardRef( function Board(p, ref) {
 });
 
 
+
 //add light and cube to check if camera is orthographic like it should be 
 export function Studio_Editor(){
     const {id} = useParams(); //productID
@@ -112,14 +116,14 @@ export function Studio_Editor(){
     const camera_controls = useRef();
     const [data, alt] = use_query('GetProduct',[
         ['product id name story file public owner{id firstName}', ['String! id', id]], ['user id'],
-    ]); 
+    ], 'no-cache'); 
     return (
         alt ? r(alt) : 
             r(Fragment,{},
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                    r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}, onCreated:(state)=>raycaster=state.raycaster}, 
-                        r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                        r(Board, {ref:board, camera_controls:camera_controls, file:data.product.file}), 
+                    r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}}, //, onCreated:(state)=>raycaster=state.raycaster 
+                        r(CameraControls, {ref:camera_controls, polarRotateSpeed:1, azimuthRotateSpeed:1, draggingSmoothTime:0}), //camera:THREE.Orthographic
+                        r(Board, {ref:board, camera_controls:camera_controls, product:data.product}), //file:data.product.file
                     )
                 ),
                 r(Toolbar, {product:data.product, user:data.user, board:board}), 

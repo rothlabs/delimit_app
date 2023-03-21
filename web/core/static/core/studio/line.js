@@ -12,12 +12,12 @@ import * as THREE from 'three';
 
 export const Line = forwardRef(function Line(p, ref) {
     const mesh = useRef();
-    const export_mesh = useRef();
+    const meshline_mesh = useRef();
     const meshline = useRef();
-    const endpoint = useRef();
+    const endpoints = useRef();
     const endpoint_attr_pos = useRef();
     const endpoint_attr_color = useRef();
-    const material = useRef();
+    const meshline_material = useRef();
     const {camera} = useThree();
     const [selected, set_selected] = useState(false);
     const [selected_point, set_selected_point] = useState(-1);
@@ -27,16 +27,19 @@ export const Line = forwardRef(function Line(p, ref) {
         verts:[],
         index:0,
     });
+    //const history_i = useReactiveVar(history_index);
+    //const [history, set_history] = useState([]);
+
 
     const name=()=> p.node.name;
-    const verts=()=> meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
-    const vect=(i)=> vtx.vect(meshline.current.positions,i);
+    const verts=()=> mesh.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
+    const vect=(i)=> vtx.vect(mesh.current.geometry.attributes.position.array,i); //vtx.vect(meshline.current.positions,i);
     const prev_verts=()=> history.verts[history.index];
     const prev_vect=(i)=> vtx.vect(history.verts[history.index],i);
 
     function endpoint_verts(){
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.needsUpdate = true;
-        if(meshline.current) return vtx.endpoints(meshline.current.positions);//, (selected_point==0)?30:20, (selected_point==1)?30:20);
+        if(mesh.current) return vtx.endpoints(mesh.current.geometry.attributes.position.array);//vtx.endpoints(meshline.current.positions);//, (selected_point==0)?30:20, (selected_point==1)?30:20);
         return new Float32Array([0,0,0,0,0,0]);
     }
 
@@ -46,8 +49,9 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     function update(args){
+        //console.log(args);
         meshline.current.setPoints(args.verts);
-        export_mesh.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3 ) );
+        mesh.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3 ) );
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.constrain){
             constraints.forEach(constraint => constraint.enforce());
@@ -88,15 +92,16 @@ export const Line = forwardRef(function Line(p, ref) {
     }));
 
     useFrame(()=> {
-        material.current.lineWidth = 4 / camera.zoom;
+        //if(meshline_material.current) meshline_material.current.lineWidth = 4 / camera.zoom;
+        meshline_material.current.lineWidth = 4 / camera.zoom;
     }); 
 
     useEffect(()=>{
         set_selected(false); 
         set_selected_point(-1); 
         if(p.selection){
-            if(p.selection.object == mesh.current) set_selected(true);
-            if(p.selection.object == endpoint.current) set_selected_point(p.selection.index);
+            if(p.selection.object == meshline.current) set_selected(true);
+            if(p.selection.object == endpoints.current) set_selected_point(p.selection.index);
         }
     },[p.selection]);
 
@@ -125,31 +130,49 @@ export const Line = forwardRef(function Line(p, ref) {
                     history.index++;
                     update({verts:history.verts[history.index]}); 
                 }
-            }//else if(history_act.name == 'revert'){
+            }else if(history_act.name == 'revert'){
+                //var new_verts = new Float32Array(meshline.current.positions);
+                //var new_verts = Array.from(p.node_clone.geometry.attributes.position.array).splice(60);
+                var new_verts = Array.from(p.verts).splice(60);
+                console.log(new_verts);
+                meshline.current.setPoints(new_verts);
+                //update({verts:new_verts});  
                 //if(verts().length > 1){
             //        history.index = 0;
             //        update({verts:history.verts[history.index]}); 
                 //}
                 //history.index = 0;
-            //}
+            }
             set_history(history);
             //history_action({name:'none'});
-            console.log(history);
+            //console.log(history);
         }
     },[history_act]); 
 
-    
+
+    //console.log(history);
+    // on remount, set meshline points
+    var p_verts = [];
+    if(p.node) p_verts = p.node.geometry.attributes.position.array
     return (
-        r('mesh', {
+        r('mesh', { // source of truth for the line
             ref: mesh,
-            name: 'line',
-            position: p.node? [p.node.position.x,p.node.position.y,p.node.position.z] : [0,0,0],
-            raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
+            name: p.node && p.node.name, // change name to something supporting like "mesh"
+            position: p.node && [p.node.position.x,p.node.position.y,p.node.position.z],
+            geometry: p.node && p.node.geometry,
+            //visible: false, make material.visible:false instead
         },
-            r('meshLine', {ref:meshline, attach:'geometry', points:p.verts, name:p.name}),
-            r('meshLineMaterial', {ref:material, color:selected?theme.primary_s:theme.secondary_s}),
-            (p.verts.length<6 || p.selection=='off' || p.node.name.includes('v__rim') || p.node.name.includes('v__base') || p.node.name.includes('__out__')) ? null :
-                r('points',{ref:endpoint, name:'endpoint', position:[0,0,10]}, //,onPointerUp:(event)=>{console.log('endpoint up');}
+            r('mesh', { // for visualization
+                ref: meshline_mesh,
+                name: 'meshline', // give proper ID name that includes "line" or "meshline"
+                //position: p.node? [p.node.position.x,p.node.position.y,p.node.position.z] : [0,0,0],
+                raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
+            },
+                r('meshLine', {ref:meshline, attach:'geometry', points:p_verts, name:p.name}),
+                r('meshLineMaterial', {ref:meshline_material, color:selected?theme.primary_s:theme.secondary_s}),
+            ),
+            (p_verts.length<6 || p.selection=='off' || p.node.name.includes('v__rim') || p.node.name.includes('v__base') || p.node.name.includes('__out__')) ? null :
+                r('points',{ref:endpoints, name:'endpoints', position:[0,0,10]}, 
                     r('bufferGeometry',{},
                         r('sphere',{attach:'boundingSphere', radius:10000}),
                         r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
@@ -157,13 +180,6 @@ export const Line = forwardRef(function Line(p, ref) {
                     ),
                     r('pointsMaterial',{size:12, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
                 ),
-                p.node && r('mesh', { // For export
-                    ref: export_mesh,
-                    name: p.node.name, 
-                    position: [p.node.position.x,p.node.position.y,p.node.position.z],
-                    geometry: p.node.geometry,
-                },
-            ),
         )
     )
 });

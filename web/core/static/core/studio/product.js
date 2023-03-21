@@ -1,4 +1,4 @@
-import {createElement as r, useRef, useEffect, useState, forwardRef, useImperativeHandle} from 'react';
+import {createElement as r, useRef, useEffect, useState, useMemo, forwardRef, useImperativeHandle} from 'react';
 import {useGLTF} from 'drei';
 import {Box3,TextureLoader} from 'three';
 import {Line} from './line.js';
@@ -20,8 +20,21 @@ export const Product = forwardRef(function Product(p, ref) {
 	const defaults = useRef([]);
 	const materials = useRef({});
 	const {camera} = useThree(); 
-	const {nodes} = useGLTF(media_url+p.file);
+	const {nodes} = useGLTF(media_url+p.product.file);
+	//const scene = useLoader(
 	const disc_texture = useLoader(TextureLoader, static_url+'core/texture/disc.png');
+	//const copiedScene = useMemo(() => scene.clone(), [scene])
+	//useEffect(() => {
+		//var new_nodes = [];
+		//console.log(nodes);
+		//nodes.forEach((n) => {
+		//	new_nodes.push(n.clone());
+		//});
+		//Object.entries(nodes).map((n,i)=>{
+		//	if(n[1].geometry) n[1].geometry = n[1].geometry.clone();
+		//});
+	//}, [nodes])
+	//console.log(copiedScene);
 
 	useImperativeHandle(ref,()=>{return{
         set_endpoint(args){
@@ -95,21 +108,21 @@ export const Product = forwardRef(function Product(p, ref) {
 	},[work_group]); 
 
 	//console.log('product render');
-	//console.log(work_group);
+	console.log(work_group);
 	return (
 		//r('group', {ref:group, dispose:null}, 
 			//r('group', {ref:export_group, dispose:null}),
 			r('group', {ref:work_group, dispose:null},
-				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('default') ? null : //.isMesh ? null :
+				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('default__') ? null : //.isMesh ? null :
 					r('mesh',{ref:el=>defaults.current[n[1].name]=el, geometry:n[1].geometry, position:[n[1].position.x,n[1].position.y,n[1].position.z]},  //, key:n[1].name //position:n[1].position
 						r('meshBasicMaterial',{ref:el=>materials.current[n[1].name]=el, map:n[1].material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
 					)
 				)),
-				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('surface') ? null : //.isMesh ? null :
+				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('surface__') ? null : //.isMesh ? null :
 					r(Surface, {ref:el=>surfaces.current[n[1].name]=el, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map) , key:n[1].name
 				)),
 				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('v__') ? null :
-					r(Line, {ref:el=>lines.current[i]=el, export_group:export_group, verts:n[1].geometry.attributes.position.array, node:n[1], point_texture:disc_texture, ...p}) //, key:'line_'+i
+					r(Line, {ref:el=>lines.current[i]=el, node:n[1], point_texture:disc_texture, ...p}) //, key:'line_'+i export_group:export_group,   verts:n[1].geometry.attributes.position.array
 				)),
 			)
 		//)

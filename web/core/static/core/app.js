@@ -83,12 +83,13 @@ function compile_gql(name, gql_parts){
     return {header, body, variables}
 }
 
-export function use_query(name, gql_parts){
+export function use_query(name, gql_parts, fetchPolicy = 'cache-and-network'){
+    console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
     //console.log({header, body, variables});
     const {loading, error, data} = useQuery(
         gql`query ${header}{${body}}`, 
-        {variables:variables} // Add option for cache fetchPolicy:'no-cache'
+        {variables:variables, fetchPolicy:fetchPolicy} // Add option for cache fetchPolicy:'no-cache'
     ); 
     var alt = null;
 	if (loading) alt =     Loading;
