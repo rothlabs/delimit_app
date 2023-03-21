@@ -12,6 +12,7 @@ import * as THREE from 'three';
 
 export const Line = forwardRef(function Line(p, ref) {
     const mesh = useRef();
+    const catmull = useRef(); // catmull-rom curve
     const meshline_mesh = useRef();
     const meshline = useRef();
     const endpoints = useRef();
@@ -49,7 +50,6 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     function update(args){
-        //console.log(args);
         meshline.current.setPoints(args.verts);
         mesh.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3 ) );
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
@@ -108,11 +108,7 @@ export const Line = forwardRef(function Line(p, ref) {
     useEffect(()=>{ // Switch to imparitive handler, or add prop that makes it rerender (no the prop was the old way)
         if(p.selection!='off'){
             if(history_act.name == 'record'){
-                //console.log(history);
-                //console.log('record');
-                //if(history.index > -1) 
-                history.verts.splice(history.index+1); //history.verts.splice(history.index);
-                //console.log(verts().length);
+                history.verts.splice(history.index+1); 
                 history.verts.push(verts());
                 if(history.verts.length > 10){
                     const original_verts = history.verts.shift();
@@ -131,21 +127,10 @@ export const Line = forwardRef(function Line(p, ref) {
                     update({verts:history.verts[history.index]}); 
                 }
             }else if(history_act.name == 'revert'){
-                //var new_verts = new Float32Array(meshline.current.positions);
-                //var new_verts = Array.from(p.node_clone.geometry.attributes.position.array).splice(60);
-                //var new_verts = Array.from(p.verts).splice(60);
-                //console.log(new_verts);
-                //meshline.current.setPoints(new_verts);
-                //update({verts:new_verts});  
-                //if(verts().length > 1){
                 history.index = 0;
                 update({verts:history.verts[history.index]}); 
-                //}
-                //history.index = 0;
             }
             set_history(history);
-            //history_action({name:'none'});
-            //console.log(history);
         }
     },[history_act]); 
 
@@ -160,9 +145,20 @@ export const Line = forwardRef(function Line(p, ref) {
             name: p.source && p.source.name, // change name to something supporting like "mesh"
             position: p.source && [p.source.position.x,p.source.position.y,p.source.position.z],
             geometry: p.source && p.source.geometry,
-        },
-            r('pointsMaterial',{visible:false}),
-            r('sphere',{attach:'geometry-boundingSphere', radius:0, center:[10000,10000,0]}),
+        }, r('pointsMaterial',{visible:false}), r('sphere',{attach:'geometry-boundingSphere', radius:0, center:[10000,10000,0]}),
+
+            // r('points', {
+            //     ref: catmull,
+            //     name: 'catmull',
+            // },
+            //     r('bufferGeometry',{},
+            //         r('sphere',{attach:'boundingSphere', radius:10000}),
+            //         r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:catmull_verts()}), 
+            //         r('bufferAttribute',{ref:endpoint_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
+            //     ),
+            //     r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
+            // ),
+
             r('mesh', { // for visualization
                 ref: meshline_mesh,
                 name: 'meshline', // give proper ID name that includes "line" or "meshline"
@@ -172,6 +168,7 @@ export const Line = forwardRef(function Line(p, ref) {
                 r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
                 r('meshLineMaterial', {ref:meshline_material, color:selected?theme.primary_s:theme.secondary_s}),
             ),
+
             (source_verts.length<6 || p.selection=='off' || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :
                 r('points',{ref:endpoints, name:'endpoints', position:[0,0,20]}, 
                     r('bufferGeometry',{},
@@ -179,7 +176,7 @@ export const Line = forwardRef(function Line(p, ref) {
                         r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
                         r('bufferAttribute',{ref:endpoint_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
                     ),
-                    r('pointsMaterial',{size:12, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
+                    r('pointsMaterial',{size:15, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
                 ),
         )
     )
