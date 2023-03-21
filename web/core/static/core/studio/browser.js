@@ -8,7 +8,7 @@ export function Studio_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
     const [data, alt] = use_query('GetProducts', [
 		['products id name story public owner{id firstName}'], ['user id'],
-	],'no-cache'); 
+	]); 
     return (
         r(Container,{fluid:true, className:'ps-4 pe-4 pt-4 pb-4'},
             r(Row, {className:'gap-3'}, //row-cols-auto  

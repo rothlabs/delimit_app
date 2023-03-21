@@ -13,7 +13,7 @@ const bounds = new Box3();
 const exporter = new GLTFExporter();
 
 export const Product = forwardRef(function Product(p, ref) {
-	const export_group = useRef();
+	//const export_group = useRef();
 	const work_group = useRef();
 	const lines = useRef([]);
 	const surfaces = useRef([]);
@@ -64,22 +64,22 @@ export const Product = forwardRef(function Product(p, ref) {
 			var iv_rear=null, iv_front=null, iv_mids=[]; 
 			var ov_rear = null, ov_front=null, ov_mids=[];
 			lines.current.forEach(line1 => {
-				if(line1.name() == 'tv__in__base')   tv_in_base = line1;
-				if(line1.name() == 'tv__in__rim')    tv_in_rim = line1;
-				if(line1.name().includes('tv__in__mid')) tv_in_mids.push(line1);
-				if(line1.name() == 'tv__out__base')  tv_out_base = line1;
-				if(line1.name() == 'tv__out__rim')   tv_out_rim = line1;
-				if(line1.name().includes('tv__out__mid')) tv_out_mids.push(line1);
-				if(line1.name() == 'iv__rear')       iv_rear = line1;
-				if(line1.name() == 'iv__front')      iv_front = line1;
-				if(line1.name().includes('iv__mid')) iv_mids.push(line1);
-				if(line1.name() == 'ov__rear')       ov_rear = line1;
-				if(line1.name() == 'ov__front')      ov_front = line1;
-				if(line1.name().includes('ov__mid')) ov_mids.push(line1);
+				if(line1.name().includes('tv__in__base'))   tv_in_base = line1;
+				if(line1.name().includes('tv__in__rim'))    tv_in_rim = line1;
+				if(line1.name().includes('tv__in__mid')) 	tv_in_mids.push(line1);
+				if(line1.name().includes('tv__out__base'))  tv_out_base = line1;
+				if(line1.name().includes('tv__out__rim'))   tv_out_rim = line1;
+				if(line1.name().includes('tv__out__mid')) 	tv_out_mids.push(line1);
+				if(line1.name().includes('iv__rear'))       iv_rear = line1;
+				if(line1.name().includes('iv__front'))      iv_front = line1;
+				if(line1.name().includes('iv__mid')) 		iv_mids.push(line1);
+				if(line1.name().includes('ov__rear'))       ov_rear = line1;
+				if(line1.name().includes('ov__front'))      ov_front = line1;
+				if(line1.name().includes('ov__mid')) 		ov_mids.push(line1);
 				var words1=line1.name().split('__');
 				lines.current.forEach(line2=>{
 					var words2=line2.name().split('__');
-					if(words1[0] == words2[0]){
+					if(words1[1] == words2[1]){
 						if(line1.name().includes('v__rear')  && line2.name().includes('v__base')) Coincident(line1,  0, line2,  0);
 						if(line1.name().includes('v__rear')  && line2.name().includes('v__rim'))  Coincident(line1, -1, line2,  0);
 						if(line1.name().includes('v__front') && line2.name().includes('v__base')) Coincident(line1,  0, line2, -1);
@@ -108,11 +108,11 @@ export const Product = forwardRef(function Product(p, ref) {
 	},[work_group]); 
 
 	//console.log('product render');
-	console.log(work_group);
+	//console.log(work_group);
 	return (
 		//r('group', {ref:group, dispose:null}, 
 			//r('group', {ref:export_group, dispose:null}),
-			r('group', {ref:work_group, dispose:null},
+			r('group', {ref:work_group, name:p.product.name, dispose:null},
 				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('default__') ? null : //.isMesh ? null :
 					r('mesh',{ref:el=>defaults.current[n[1].name]=el, geometry:n[1].geometry, position:[n[1].position.x,n[1].position.y,n[1].position.z]},  //, key:n[1].name //position:n[1].position
 						r('meshBasicMaterial',{ref:el=>materials.current[n[1].name]=el, map:n[1].material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
@@ -121,7 +121,7 @@ export const Product = forwardRef(function Product(p, ref) {
 				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('surface__') ? null : //.isMesh ? null :
 					r(Surface, {ref:el=>surfaces.current[n[1].name]=el, node:n[1], ...p}) //geometry:n[1].geometry, position:n[1].position, map:n[1].material.map) , key:n[1].name
 				)),
-				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('v__') ? null :
+				...Object.entries(nodes).map((n,i)=>(!n[1].name.includes('line__') ? null :
 					r(Line, {ref:el=>lines.current[i]=el, node:n[1], point_texture:disc_texture, ...p}) //, key:'line_'+i export_group:export_group,   verts:n[1].geometry.attributes.position.array
 				)),
 			)

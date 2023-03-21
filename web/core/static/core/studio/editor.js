@@ -122,7 +122,8 @@ export function Studio_Editor(){
             r(Fragment,{},
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
                     r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}}, //, onCreated:(state)=>raycaster=state.raycaster 
-                        r(CameraControls, {ref:camera_controls, polarRotateSpeed:1, azimuthRotateSpeed:1, draggingSmoothTime:0}), //camera:THREE.Orthographic
+                        // need to disable Z pan!!!!! \/
+                        r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
                         r(Board, {ref:board, camera_controls:camera_controls, product:data.product}), //file:data.product.file
                     )
                 ),

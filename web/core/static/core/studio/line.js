@@ -100,7 +100,7 @@ export const Line = forwardRef(function Line(p, ref) {
         set_selected(false); 
         set_selected_point(-1); 
         if(p.selection){
-            if(p.selection.object == meshline.current) set_selected(true);
+            if(p.selection.object == meshline_mesh.current) set_selected(true);
             if(p.selection.object == endpoints.current) set_selected_point(p.selection.index);
         }
     },[p.selection]);
@@ -152,27 +152,34 @@ export const Line = forwardRef(function Line(p, ref) {
 
     //console.log(history);
     // on remount, set meshline points
-    var p_verts = [];
-    if(p.node) p_verts = p.node.geometry.attributes.position.array
+    var source_verts = [];
+    if(p.node) source_verts = p.node.geometry.attributes.position.array
     return (
-        r('mesh', { // source of truth for the line
+        r('points', { // source of truth for the line
             ref: mesh,
             name: p.node && p.node.name, // change name to something supporting like "mesh"
             position: p.node && [p.node.position.x,p.node.position.y,p.node.position.z],
             geometry: p.node && p.node.geometry,
+            //raycast: undefined,
+            //drawRange: {start:0, count:0},
             //visible: false, make material.visible:false instead
         },
+            r('pointsMaterial',{visible:false}),
+            //r('bufferAttribute',{attach:'index', count:source_verts.length, itemSize:1, array:new Uint16Array(source_verts.length).fill(0)}), 
+            //r('bufferGeometry',{},
+            //    p.node && r('bufferAttribute',{attach: 'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
+            //),
             r('mesh', { // for visualization
                 ref: meshline_mesh,
                 name: 'meshline', // give proper ID name that includes "line" or "meshline"
-                //position: p.node? [p.node.position.x,p.node.position.y,p.node.position.z] : [0,0,0],
+                position: [0,0,10],
                 raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
             },
-                r('meshLine', {ref:meshline, attach:'geometry', points:p_verts, name:p.name}),
+                r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
                 r('meshLineMaterial', {ref:meshline_material, color:selected?theme.primary_s:theme.secondary_s}),
             ),
-            (p_verts.length<6 || p.selection=='off' || p.node.name.includes('v__rim') || p.node.name.includes('v__base') || p.node.name.includes('__out__')) ? null :
-                r('points',{ref:endpoints, name:'endpoints', position:[0,0,10]}, 
+            (source_verts.length<6 || p.selection=='off' || p.node.name.includes('v__rim') || p.node.name.includes('v__base') || p.node.name.includes('__out__')) ? null :
+                r('points',{ref:endpoints, name:'endpoints', position:[0,0,20]}, 
                     r('bufferGeometry',{},
                         r('sphere',{attach:'boundingSphere', radius:10000}),
                         r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 

@@ -98,12 +98,12 @@ function wrap_i(verts,i){i*=3; if(i<0)i+=verts.length; return(i);}
 
 export function vert(verts, i){
 	i = wrap_i(verts, i);
-  	return [verts[i],verts[i+1],verts[i+2]];
+  return [verts[i],verts[i+1],verts[i+2]];
 }
 
 export function vect(verts, i){
 	i = wrap_i(verts, i);
-  	return new Vector3(verts[i],verts[i+1],verts[i+2]);
+  return new Vector3(verts[i],verts[i+1],verts[i+2]);
 } 
 
 function append_vert(verts1,verts2,i){
