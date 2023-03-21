@@ -1,44 +1,27 @@
-import {createElement as r, useRef, useEffect, useState, useMemo, forwardRef, useImperativeHandle} from 'react';
-import {useGLTF} from 'drei';
-import {Box3,TextureLoader} from 'three';
-//import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import {createElement as r, useRef, useEffect, useState, forwardRef, useImperativeHandle} from 'react';
+import {Box3, TextureLoader} from 'three';
 import {Line} from './line.js';
-import {Surface} from './surface.js';
+//import {Surface} from './surface.js';
 import {useThree, useLoader} from 'r3f';
 import {Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
-import {media_url, static_url} from '../app.js';
+import {use_media_gltf, static_url} from '../app.js';
 import {history_action} from './editor.js';
 import {GLTFExporter} from './exporter.js';
-import * as THREE from 'three';
 
 const bounds = new Box3();
 const exporter = new GLTFExporter();
 
 export const Product = forwardRef(function Product(p, ref) {
-	//const export_group = useRef();
 	const work_group = useRef();
 	const lines = useRef([]);
-	const surfaces = useRef([]);
-	const defaults = useRef([]);
-	const materials = useRef({});
+	//const surfaces = useRef([]);
+	//const defaults = useRef([]);
+	//const materials = useRef({});
 	const {camera} = useThree(); 
-	const {nodes} = useGLTF(media_url+p.product.file);
-	const [cloned_nodes, set_cloned_nodes] = useState([]);
 	const disc_texture = useLoader(TextureLoader, static_url+'core/texture/disc.png');
 
-	useEffect(() => {
-		if(nodes){
-			var new_nodes = []
-			nodes.AuxScene.children[0].children.forEach((n)=> {
-				new_nodes.push(n.clone(true));
-				const geo = new THREE.BufferGeometry();
-				geo.setAttribute('position', new THREE.BufferAttribute( new Float32Array(n.geometry.attributes.position.array), 3 ));
-				new_nodes[new_nodes.length-1].geometry = geo;
-			});
-			console.log(new_nodes);
-			set_cloned_nodes(new_nodes);
-		}
-	}, [nodes])
+	const nodes = use_media_gltf(p.product.file);
+
 
 	useImperativeHandle(ref,()=>{return{
         set_endpoint(args){
@@ -55,7 +38,7 @@ export const Product = forwardRef(function Product(p, ref) {
     };});
 	
 	useEffect(()=>{ 
-		if(cloned_nodes){
+		if(nodes){
 			bounds.setFromObject( work_group.current );
 			const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
 			const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
@@ -109,8 +92,10 @@ export const Product = forwardRef(function Product(p, ref) {
 
 			history_action({name:'record'}); 
 		}
-	},[cloned_nodes]); 
+	},[nodes]); 
 
+
+	//console.log(nodes);
 	//console.log('product render');
 	//console.log(work_group);
 	return (
@@ -127,14 +112,31 @@ export const Product = forwardRef(function Product(p, ref) {
 				// )),
 				//...Object.entries(cloned_nodes).map((n,i)=>(!n[1].name.includes('line__') ? null :
 					//r(Line, {ref:el=>lines.current[i]=el, node:n[1], point_texture:disc_texture, ...p})
-				...cloned_nodes.map((n, i)=>(!n.name.includes('line__') ? null :
-					r(Line, {ref:el=>lines.current[i]=el, rand:Math.random(), node:n, point_texture:disc_texture, ...p}) //, key:'line_'+i export_group:export_group,   verts:n[1].geometry.attributes.position.array
+				...nodes.map((n, i)=>(!n.name.includes('line__') ? null :
+					r(Line, {ref:l=>lines.current[i]=l, rand:Math.random(), source:n, point_texture:disc_texture, ...p}) //, key:'line_'+i export_group:export_group,   verts:n[1].geometry.attributes.position.array
 				)),
 			)
 		//)
 	)
 });
 
+//const {nodes} = useGLTF(media_url+p.product.file);
+	//const [cloned_nodes, set_cloned_nodes] = useState([]);
+
+
+	// useEffect(() => {
+	// 	if(nodes){
+	// 		var new_nodes = []
+	// 		nodes.AuxScene.children[0].children.forEach((n)=> {
+	// 			new_nodes.push(n.clone(true));
+	// 			const geo = new THREE.BufferGeometry();
+	// 			geo.setAttribute('position', new THREE.BufferAttribute( new Float32Array(n.geometry.attributes.position.array), 3 ));
+	// 			new_nodes[new_nodes.length-1].geometry = geo;
+	// 		});
+	// 		console.log(new_nodes);
+	// 		set_cloned_nodes(new_nodes);
+	// 	}
+	// }, [nodes])
 
 
 //const ids = new Array(); // IDs ensure the same constraint is not created more than once

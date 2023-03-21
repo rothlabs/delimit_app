@@ -19,7 +19,7 @@ var pointers_down = 0;
 //var raycaster=null;
 
 export const Board = forwardRef( function Board(p, ref) {
-    const {scene, camera, raycaster} = useThree(); 
+    const {camera, raycaster} = useThree(); 
     const [selection, set_selection] = useState();
     const product = useRef();
     const draw_line = useRef();
@@ -36,7 +36,7 @@ export const Board = forwardRef( function Board(p, ref) {
             name: 'board',
             onClick:(event)=>{
                 event.stopPropagation();
-                if(event.delta < 3 && event.intersections[0].object.name != 'endpoints'){
+                if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
                     set_selection(event.intersections[0]);
                 }
             },

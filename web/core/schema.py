@@ -80,7 +80,7 @@ class Save_Product(graphene.Mutation): # rename to use _
                 product.name = name
                 product.owner = info.context.user
                 product.public = public
-                if story: product.story = story
+                if story: product.story = story[1:] # remove first 't' character
                 response = 'Saved'
                 if asCopy: 
                     response = 'Copied as ' + name + '.'

@@ -17,7 +17,7 @@ export function File_Tool(p){
             ['Boolean! asCopy', false], 
             ['String! id', p.product.id], 
             ['String! name', name], 
-            ['String story', story],
+            ['String story', 't'+story],   /// 't' is present so the server knows story is being provided even if the user inputs nothing
             ['Boolean! public', is_public],
             ['Upload blob', new Blob(['Empty Product File'], { type: 'text/plain' })],
         ]

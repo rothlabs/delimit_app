@@ -2,7 +2,7 @@ import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, u
 import {setContext} from 'aclc';
 //import {createUploadLink} from 'auc';
 import Cookie from "cookie";
-import {createElement as r, StrictMode} from 'react';
+import {createElement as r, StrictMode, useEffect, useState} from 'react';
 import {createRoot} from 'rdc';
 import {createBrowserRouter,RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
@@ -11,6 +11,8 @@ import {Studio_Browser} from './studio/browser.js';
 import {Loading, Router_Error, GQL_Error} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
 import set from 'lodash';
+import {useGLTF} from 'drei';
+import * as THREE from 'three';
 
 //import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
 //"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
@@ -108,6 +110,24 @@ export function use_mutation(gql_parts, refetch){
 	if (loading) alt =     Loading;
     if (error)   alt =()=> r(GQL_Error, {message: error.message});
     return [mutate, data, alt, reset];
+}
+
+export function use_media_gltf(url){
+    const {nodes} = useGLTF(media_url+url);
+    const [cloned_nodes, set_cloned_nodes] = useState([]);
+    useEffect(() => {
+        if(nodes){
+            var node_buffer = []
+            nodes.AuxScene.children[0].children.forEach((n)=> {
+                node_buffer.push(n.clone(true));
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.BufferAttribute( new Float32Array(n.geometry.attributes.position.array), 3 ));
+                node_buffer[node_buffer.length-1].geometry = geo;
+            });
+            set_cloned_nodes(node_buffer);
+        }
+    }, [nodes])
+    return cloned_nodes;
 }
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},

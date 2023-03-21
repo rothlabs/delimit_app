@@ -31,7 +31,7 @@ export const Line = forwardRef(function Line(p, ref) {
     //const [history, set_history] = useState([]);
 
 
-    const name=()=> p.node.name;
+    const name=()=> p.source.name;
     const verts=()=> mesh.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
     const vect=(i)=> vtx.vect(mesh.current.geometry.attributes.position.array,i); //vtx.vect(meshline.current.positions,i);
     const prev_verts=()=> history.verts[history.index];
@@ -133,13 +133,13 @@ export const Line = forwardRef(function Line(p, ref) {
             }else if(history_act.name == 'revert'){
                 //var new_verts = new Float32Array(meshline.current.positions);
                 //var new_verts = Array.from(p.node_clone.geometry.attributes.position.array).splice(60);
-                var new_verts = Array.from(p.verts).splice(60);
-                console.log(new_verts);
-                meshline.current.setPoints(new_verts);
+                //var new_verts = Array.from(p.verts).splice(60);
+                //console.log(new_verts);
+                //meshline.current.setPoints(new_verts);
                 //update({verts:new_verts});  
                 //if(verts().length > 1){
-            //        history.index = 0;
-            //        update({verts:history.verts[history.index]}); 
+                history.index = 0;
+                update({verts:history.verts[history.index]}); 
                 //}
                 //history.index = 0;
             }
@@ -153,22 +153,16 @@ export const Line = forwardRef(function Line(p, ref) {
     //console.log(history);
     // on remount, set meshline points
     var source_verts = [];
-    if(p.node) source_verts = p.node.geometry.attributes.position.array
+    if(p.source) source_verts = p.source.geometry.attributes.position.array;
     return (
         r('points', { // source of truth for the line
             ref: mesh,
-            name: p.node && p.node.name, // change name to something supporting like "mesh"
-            position: p.node && [p.node.position.x,p.node.position.y,p.node.position.z],
-            geometry: p.node && p.node.geometry,
-            //raycast: undefined,
-            //drawRange: {start:0, count:0},
-            //visible: false, make material.visible:false instead
+            name: p.source && p.source.name, // change name to something supporting like "mesh"
+            position: p.source && [p.source.position.x,p.source.position.y,p.source.position.z],
+            geometry: p.source && p.source.geometry,
         },
             r('pointsMaterial',{visible:false}),
-            //r('bufferAttribute',{attach:'index', count:source_verts.length, itemSize:1, array:new Uint16Array(source_verts.length).fill(0)}), 
-            //r('bufferGeometry',{},
-            //    p.node && r('bufferAttribute',{attach: 'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
-            //),
+            r('sphere',{attach:'geometry-boundingSphere', radius:0, center:[10000,10000,0]}),
             r('mesh', { // for visualization
                 ref: meshline_mesh,
                 name: 'meshline', // give proper ID name that includes "line" or "meshline"
@@ -178,7 +172,7 @@ export const Line = forwardRef(function Line(p, ref) {
                 r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
                 r('meshLineMaterial', {ref:meshline_material, color:selected?theme.primary_s:theme.secondary_s}),
             ),
-            (source_verts.length<6 || p.selection=='off' || p.node.name.includes('v__rim') || p.node.name.includes('v__base') || p.node.name.includes('__out__')) ? null :
+            (source_verts.length<6 || p.selection=='off' || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :
                 r('points',{ref:endpoints, name:'endpoints', position:[0,0,20]}, 
                     r('bufferGeometry',{},
                         r('sphere',{attach:'boundingSphere', radius:10000}),
@@ -190,6 +184,15 @@ export const Line = forwardRef(function Line(p, ref) {
         )
     )
 });
+
+//raycast: undefined,
+            //drawRange: {start:0, count:0},
+            //visible: false, make material.visible:false instead
+
+//r('bufferAttribute',{attach:'index', count:source_verts.length, itemSize:1, array:new Uint16Array(source_verts.length).fill(0)}), 
+            //r('bufferGeometry',{},
+            //    p.source && r('bufferAttribute',{attach: 'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
+            //),
 
 
 //r('bufferGeometry', {},
