@@ -1,4 +1,4 @@
-import {createElement as r, useRef, useState, Fragment, useImperativeHandle, forwardRef} from 'react';
+import {createElement as r, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
 import {Product} from './product.js';
@@ -111,9 +111,10 @@ export const Board = forwardRef( function Board(p, ref) {
 
 //add light and cube to check if camera is orthographic like it should be 
 export function Studio_Editor(){
-    const {id} = useParams(); //productID
+    const {id} = useParams(); // from react router
     const board = useRef();
     const camera_controls = useRef();
+    //const [temp_id, set_temp_id] = useState('Kt1JsV1H');
     const [data, alt] = use_query('GetProduct',[
         ['product id name story file public owner{id firstName}', ['String! id', id]], ['user id'],
     ], 'no-cache'); 
@@ -122,7 +123,7 @@ export function Studio_Editor(){
             r(Fragment,{},
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
                     r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}}, //, onCreated:(state)=>raycaster=state.raycaster 
-                        // need to disable Z pan!!!!! \/
+                        // need to disable Z pan!!!!! \/ (holding scroll wheel appears to activate it
                         r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
                         r(Board, {ref:board, camera_controls:camera_controls, product:data.product}), //file:data.product.file
                     )
