@@ -11,10 +11,12 @@ import * as THREE from 'three';
 //Maybe does not apply to mesh line and points, appears to be okay 
 
 export const Line = forwardRef(function Line(p, ref) {
-    const mesh = useRef();
-    const catmull = useRef(); // catmull-rom curve
+    const main = useRef();
+    //const catmull = useRef(); // catmull-rom curve
+    const main_attr_pos = useRef();
+    const main_attr_color = useRef();
     const meshline_mesh = useRef();
-    const meshline = useRef();
+    const meshline_geom = useRef();
     const endpoints = useRef();
     const endpoint_attr_pos = useRef();
     const endpoint_attr_color = useRef();
@@ -33,14 +35,14 @@ export const Line = forwardRef(function Line(p, ref) {
 
 
     const name=()=> p.source.name;
-    const verts=()=> mesh.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
-    const vect=(i)=> vtx.vect(mesh.current.geometry.attributes.position.array,i); //vtx.vect(meshline.current.positions,i);
+    const verts=()=> main.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
+    const vect=(i)=> vtx.vect(main.current.geometry.attributes.position.array,i); //vtx.vect(meshline.current.positions,i);
     const prev_verts=()=> history.verts[history.index];
     const prev_vect=(i)=> vtx.vect(history.verts[history.index],i);
 
     function endpoint_verts(){
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.needsUpdate = true;
-        if(mesh.current) return vtx.endpoints(mesh.current.geometry.attributes.position.array);//vtx.endpoints(meshline.current.positions);//, (selected_point==0)?30:20, (selected_point==1)?30:20);
+        if(main.current) return vtx.endpoints(main.current.geometry.attributes.position.array);//vtx.endpoints(meshline.current.positions);//, (selected_point==0)?30:20, (selected_point==1)?30:20);
         return new Float32Array([0,0,0,0,0,0]);
     }
 
@@ -50,8 +52,8 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     function update(args){
-        meshline.current.setPoints(args.verts);
-        mesh.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3 ) );
+        meshline_geom.current.setPoints(args.verts);
+        main.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3 ) );
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.constrain){
             constraints.forEach(constraint => constraint.enforce());
@@ -66,7 +68,7 @@ export const Line = forwardRef(function Line(p, ref) {
         vect:vect,
         prev_verts:prev_verts,
         prev_vect:prev_vect,
-        set_verts:(vts)=> meshline.current.setPoints(vts),
+        set_verts:(vts)=> meshline_geom.current.setPoints(vts),
         set_endpoint(new_endpoint){
             if(selected_point == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), constrain:true});
             if(selected_point == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), constrain:true});
@@ -141,11 +143,20 @@ export const Line = forwardRef(function Line(p, ref) {
     if(p.source) source_verts = p.source.geometry.attributes.position.array;
     return (
         r('points', { // source of truth for the line
-            ref: mesh,
+            ref: main,
             name: p.source && p.source.name, // change name to something supporting like "mesh"
             position: p.source && [p.source.position.x,p.source.position.y,p.source.position.z],
             geometry: p.source && p.source.geometry,
-        }, r('pointsMaterial',{visible:false}), r('sphere',{attach:'geometry-boundingSphere', radius:0, center:[10000,10000,0]}),
+        }, 
+            r('sphere',{attach:'geometry-boundingSphere', radius:10000}),
+            r('pointsMaterial',{visible:false}), 
+            // r('bufferGeometry',{},
+            //     r('sphere',{attach:'boundingSphere', radius:10000}),
+            //     r('bufferAttribute',{ref:main_attr_pos, attach:'attributes-position', count:2, itemSize:3, array:new Float32Array([0,0,0,1,1,1])}),
+            //     //p.source && p.selection!='off' && r('bufferAttribute',{ref:main_attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
+            //     //r('bufferAttribute',{ref:main_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
+            // ),
+            // r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
 
             // r('points', {
             //     ref: catmull,
@@ -165,7 +176,7 @@ export const Line = forwardRef(function Line(p, ref) {
                 position: [0,0,10],
                 raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
             },
-                r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
+                r('meshLine', {ref:meshline_geom, attach:'geometry', points:source_verts}),
                 r('meshLineMaterial', {ref:meshline_material, color:selected?theme.primary_s:theme.secondary_s}),
             ),
 
