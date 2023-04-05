@@ -129,16 +129,14 @@ export function map(verts, endpoint1, endpoint2) {
 export function replace(vertices, startIndex, endIndex, replacements) { // use splice for this instead of loops!
 	var backwards_replacements = false;
 	if(startIndex > endIndex){
-		var tmp = startIndex;
-		startIndex = endIndex;
-		endIndex = tmp;
+		var tmp = startIndex; startIndex = endIndex; endIndex = tmp; // switch start and end index
 		backwards_replacements = true;
 	}
-	var new_verts = [];
+	var new_verts = []; 
 	for (var i = 0; i < vertices.length/3; i++) {
-		if (i == startIndex){
+		if (i == startIndex){ 
 			if(backwards_replacements){
-				for (var k = replacements.length/3-1; k > 0; k--) {
+				for (var k = replacements.length/3-1; k >= 0; k--) {
 					append_vert(new_verts, replacements, k);
 				}
 			}else{

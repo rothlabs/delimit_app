@@ -15,14 +15,6 @@ const max_points = 100;
 export const Line = forwardRef(function Line(p, ref) {
     var source_verts = [];
     for_child(p.source,'points', (child)=> source_verts = child.geometry.attributes.position.array);
-    //if(points_child) source_verts = points_child.geometry.attributes.position.array;
-    // if(p.source){
-    //     p.source.children.forEach(n => {
-    //         if(n.name.slice(0,6) == 'points') {
-    //             source_verts = n.geometry.attributes.position.array; // second child should be 'points' object
-    //         }
-    //     });
-    // }
     const points = useRef();
     const point_attr_pos = useRef();
     const point_attr_color = useRef();
@@ -152,6 +144,7 @@ export const Line = forwardRef(function Line(p, ref) {
                     history.verts.unshift(original_verts);
                 }
                 history.index = history.verts.length-1;
+                if(history_act.init) update({verts:history.verts[0]}); 
             }else if(history_act.name == 'undo'){
                 if(history.index > 0){
                     history.index--;
@@ -170,10 +163,6 @@ export const Line = forwardRef(function Line(p, ref) {
         }
     },[history_act]); 
 
-
-    //console.log(history);
-    // on remount, set meshline points
-    
     return (
         r('group', {
             name: p.source? p.source.name : 'line',
@@ -214,6 +203,16 @@ export const Line = forwardRef(function Line(p, ref) {
     )
 });
 
+
+
+    //if(points_child) source_verts = points_child.geometry.attributes.position.array;
+    // if(p.source){
+    //     p.source.children.forEach(n => {
+    //         if(n.name.slice(0,6) == 'points') {
+    //             source_verts = n.geometry.attributes.position.array; // second child should be 'points' object
+    //         }
+    //     });
+    // }
 
 
 

@@ -93,7 +93,7 @@ export const Product = forwardRef(function Product(p, ref) {
 				}
 			}
 
-			history_action({name:'record'}); 
+			history_action({name:'record', init:true}); 
 		}
 	},[nodes]); 
 

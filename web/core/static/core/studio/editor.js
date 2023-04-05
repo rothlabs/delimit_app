@@ -21,6 +21,7 @@ var pointers_down = 0;
 export const Board = forwardRef( function Board(p, ref) {
     const {camera, raycaster} = useThree(); 
     const [selection, set_selection] = useState();
+    const [dragging, set_dragging] = useState();
     const product = useRef();
     const draw_line = useRef();
 
@@ -59,15 +60,16 @@ export const Board = forwardRef( function Board(p, ref) {
                     if(!(selection && selection.object.name == 'meshline')){
                         if(['endpoints','points'].includes(event.intersections[0].object.name)){
                             set_selection(event.intersections[0]);
+                            set_dragging(true);
                         }
                     }
                 }
             },
             onPointerUp:(event)=>{
                 event.stopPropagation();
-                if([0,1].includes(event.which)){
+                if([0,1].includes(event.which)){ // touch or left mouse button? (not sure about 0 and 1)
                     if(selection){ 
-                        if(pointers_down==1){
+                        if(pointers_down==1 && (new_verts.length>0 || dragging)){
                             product.current.set_mod({
                                 verts: new Float32Array(new_verts),
                                 point: event.intersections[event.intersections.length-1].point,
@@ -75,10 +77,13 @@ export const Board = forwardRef( function Board(p, ref) {
                         }
                         new_verts.length = 0;
                         draw_line.current.set_verts(new Float32Array());
-                        if(['points','endpoints'].includes(selection.object.name)){//if(selection.object.name == 'endpoints'){
-                            set_selection(null); 
-                        }
+                        //if(['points','endpoints'].includes(selection.object.name)){//if(selection.object.name == 'endpoints'){
+                        
+                            //set_selection(null); 
+                            
+                        //}
                     }
+                    set_dragging(false);
                     pointers_down--;
                     if(pointers_down < 0) pointers_down = 0;
                 }
@@ -93,10 +98,13 @@ export const Board = forwardRef( function Board(p, ref) {
                             new_verts.push(point.x,point.y,0); // will need to find other z value for 3d lines
                             draw_line.current.set_verts(new Float32Array(new_verts));
                         }
-                    }else if(selection.object.name == 'endpoints'){
-                        product.current.set_endpoint(point);
-                    }else if(selection.object.name == 'points'){
-                        product.current.set_point(point);
+                    }
+                    if(dragging){
+                        if(selection.object.name == 'endpoints'){
+                            product.current.set_endpoint(point);
+                        }else if(selection.object.name == 'points'){
+                            product.current.set_point(point);
+                        }
                     }
                 }
             },
