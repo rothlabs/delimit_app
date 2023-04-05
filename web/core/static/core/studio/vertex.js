@@ -126,7 +126,7 @@ export function map(verts, endpoint1, endpoint2) {
 
 /* given float32array of 3d vertices and start and end index and second array of vertices, replace the vertices between start and end with the second array. Use slice and/or splice. */ 
 // could be made much shorter with slice and concat?
-export function replace(vertices, startIndex, endIndex, replacements) {
+export function replace(vertices, startIndex, endIndex, replacements) { // use splice for this instead of loops!
 	var backwards_replacements = false;
 	if(startIndex > endIndex){
 		var tmp = startIndex;

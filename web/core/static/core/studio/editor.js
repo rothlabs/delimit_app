@@ -36,7 +36,7 @@ export const Board = forwardRef( function Board(p, ref) {
             name: 'board',
             onClick:(event)=>{
                 event.stopPropagation();
-                if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
+                if(event.delta < 5 && !['endpoints','points'].includes(event.intersections[0].object.name)){ //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
                     set_selection(event.intersections[0]);
                 }
             },
@@ -57,7 +57,7 @@ export const Board = forwardRef( function Board(p, ref) {
                     pointers_down++;
                     pointer_start.set(event.clientX,event.clientY);
                     if(!(selection && selection.object.name == 'meshline')){
-                        if(event.intersections[0].object.name == 'endpoints'){
+                        if(['endpoints','points'].includes(event.intersections[0].object.name)){
                             set_selection(event.intersections[0]);
                         }
                     }
@@ -95,6 +95,8 @@ export const Board = forwardRef( function Board(p, ref) {
                         }
                     }else if(selection.object.name == 'endpoints'){
                         product.current.set_endpoint(point);
+                    }else if(selection.object.name == 'points'){
+                        product.current.set_point(point);
                     }
                 }
             },

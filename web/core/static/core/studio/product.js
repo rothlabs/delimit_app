@@ -24,6 +24,9 @@ export const Product = forwardRef(function Product(p, ref) {
 
 
 	useImperativeHandle(ref,()=>{return{
+		set_point(args){
+			lines.current.forEach(line=>line.set_point(args));
+        },
         set_endpoint(args){
 			lines.current.forEach(line=>line.set_endpoint(args));
         },
@@ -112,7 +115,7 @@ export const Product = forwardRef(function Product(p, ref) {
 				// )),
 				//...Object.entries(cloned_nodes).map((n,i)=>(!n[1].name.includes('line__') ? null :
 					//r(Line, {ref:el=>lines.current[i]=el, node:n[1], point_texture:disc_texture, ...p})
-				...nodes.map((n, i) => !n.name.includes('line__') ? null :
+				...nodes.map((n, i) => !n.name.includes('line__') ? null : // n = n.child_of_name('points)
 					r(Line, {ref:l=>lines.current[i]=l, rand:Math.random(), source:n, point_texture:disc_texture, ...p}) //, key:'line_'+i export_group:export_group,   verts:n[1].geometry.attributes.position.array
 				),
 			)
