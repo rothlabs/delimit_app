@@ -1,7 +1,7 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame} from 'r3f';
-import {theme} from '../app.js';
+import {theme, for_child} from '../app.js';
 import {history_action} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
@@ -14,7 +14,15 @@ const max_points = 100;
 
 export const Line = forwardRef(function Line(p, ref) {
     var source_verts = [];
-    if(p.source) source_verts = p.source.geometry.attributes.position.array;
+    for_child(p.source,'points', (child)=> source_verts = child.geometry.attributes.position.array);
+    //if(points_child) source_verts = points_child.geometry.attributes.position.array;
+    // if(p.source){
+    //     p.source.children.forEach(n => {
+    //         if(n.name.slice(0,6) == 'points') {
+    //             source_verts = n.geometry.attributes.position.array; // second child should be 'points' object
+    //         }
+    //     });
+    // }
     const points = useRef();
     const point_attr_pos = useRef();
     const point_attr_color = useRef();
@@ -100,11 +108,16 @@ export const Line = forwardRef(function Line(p, ref) {
                 update({verts: new_verts_2, constrain:true, record:true});
             }
             if(selected_endpoint == 0){
-                const new_verts = vtx.map(prev_verts(), args.endpoint, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
+                const new_verts = vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
                 update({verts:new_verts, constrain:true, record:true});
             }else if(selected_endpoint == 1){
-                const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.endpoint); //vtx.first(line.prev_verts())
+                const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point); //vtx.first(line.prev_verts())
                 update({verts:new_verts, constrain:true, record:true});
+            }
+            if(selected_point > -1){
+                const new_verts = Array.from(verts());
+                new_verts.splice(selected_point*3, 3, args.point.x, args.point.y, args.point.z);
+                update({verts:new_verts, record:true});
             }
         },
         add_constraint(constraint){
@@ -166,15 +179,6 @@ export const Line = forwardRef(function Line(p, ref) {
             name: p.source? p.source.name : 'line',
             position: p.source ? [p.source.position.x,p.source.position.y,p.source.position.z] : [0,0,0],
         }, 
-            r('mesh', { // for visualization
-                ref: mesh,
-                name: 'meshline', // give proper ID name that includes "line" or "meshline"
-                position: [0,0,0],
-                raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
-            },
-                r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
-                r('meshLineMaterial', {ref:meshline_material, color:selected_line?theme.primary_s:theme.secondary_s}),
-            ),
             p.source && r('points', { // source of truth for the line
                 ref: points,
                 name: 'points',
@@ -188,6 +192,15 @@ export const Line = forwardRef(function Line(p, ref) {
                 r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
                 //r('pointsMaterial',{visible:false}), 
             ),
+            r('mesh', { // for visualization
+                ref: mesh,
+                name: 'meshline', // give proper ID name that includes "line" or "meshline"
+                position: [0,0,0],
+                raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
+            },
+                r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
+                r('meshLineMaterial', {ref:meshline_material, color:selected_line?theme.primary_s:theme.secondary_s}),
+            ),
             !p.source || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__') ? null :
                 r('points',{ref:endpoints, name:'endpoints', position:[0,0,20]}, 
                     r('bufferGeometry',{},
@@ -200,6 +213,11 @@ export const Line = forwardRef(function Line(p, ref) {
         )
     )
 });
+
+
+
+
+//if(p.source) source_verts = p.source.children[1].geometry.attributes.position.array; 
 
 
 //(source_verts.length<6 || p.selection=='off' || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :

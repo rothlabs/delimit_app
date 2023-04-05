@@ -117,6 +117,7 @@ export function use_media_gltf(url){
     const [cloned_nodes, set_cloned_nodes] = useState([]);
     useEffect(() => {
         if(nodes){
+            //console.log(nodes);
             var node_buffer = [];
             //nodes.AuxScene.children[0].children.forEach((group)=> {
             Object.entries(nodes).map((n,i)=>{n=n[1];
@@ -135,6 +136,18 @@ export function use_media_gltf(url){
         }
     }, [nodes])
     return cloned_nodes;
+}
+
+export function for_child(source, name, func){
+    if(source){
+        source.children.forEach(n => {
+            if(n.name.slice(0,name.length) == name) {
+                func(n); 
+                return n;
+            } 
+        });
+    }
+    return null;
 }
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
