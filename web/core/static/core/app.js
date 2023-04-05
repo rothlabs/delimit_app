@@ -117,12 +117,19 @@ export function use_media_gltf(url){
     const [cloned_nodes, set_cloned_nodes] = useState([]);
     useEffect(() => {
         if(nodes){
-            var node_buffer = []
-            nodes.AuxScene.children[0].children.forEach((n)=> {
+            var node_buffer = [];
+            //nodes.AuxScene.children[0].children.forEach((group)=> {
+            Object.entries(nodes).map((n,i)=>{n=n[1];
+                //group.children.forEach((n)=> {
+                //    if(n.name.includes){
                 node_buffer.push(n.clone(true));
-                const geo = new THREE.BufferGeometry();
-                geo.setAttribute('position', new THREE.BufferAttribute( new Float32Array(n.geometry.attributes.position.array), 3 ));
-                node_buffer[node_buffer.length-1].geometry = geo;
+                if(n.geometry && n.geometry.attributes.position){
+                    const geo = new THREE.BufferGeometry();
+                    geo.setAttribute('position', new THREE.BufferAttribute( new Float32Array(n.geometry.attributes.position.array), 3 ));
+                    node_buffer[node_buffer.length-1].geometry = geo;
+                }
+                    //}
+                //});
             });
             set_cloned_nodes(node_buffer);
         }

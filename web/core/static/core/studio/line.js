@@ -11,12 +11,12 @@ import * as THREE from 'three';
 //Maybe does not apply to mesh line and points, appears to be okay 
 
 export const Line = forwardRef(function Line(p, ref) {
-    const main = useRef();
+    const points = useRef();
     //const catmull = useRef(); // catmull-rom curve
-    const main_attr_pos = useRef();
-    const main_attr_color = useRef();
-    const meshline_mesh = useRef();
-    const meshline_geom = useRef();
+    const points_attr_pos = useRef();
+    const points_attr_color = useRef();
+    const mesh = useRef();
+    const meshline = useRef();
     const endpoints = useRef();
     const endpoint_attr_pos = useRef();
     const endpoint_attr_color = useRef();
@@ -33,16 +33,15 @@ export const Line = forwardRef(function Line(p, ref) {
     //const history_i = useReactiveVar(history_index);
     //const [history, set_history] = useState([]);
 
-
     const name=()=> p.source.name;
-    const verts=()=> main.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
-    const vect=(i)=> vtx.vect(main.current.geometry.attributes.position.array,i); //vtx.vect(meshline.current.positions,i);
+    const verts=()=> points.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
+    const vect=(i)=> vtx.vect(points.current.geometry.attributes.position.array,i); //vtx.vect(meshline.current.positions,i);
     const prev_verts=()=> history.verts[history.index];
     const prev_vect=(i)=> vtx.vect(history.verts[history.index],i);
 
     function endpoint_verts(){
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.needsUpdate = true;
-        if(main.current) return vtx.endpoints(main.current.geometry.attributes.position.array);//vtx.endpoints(meshline.current.positions);//, (selected_point==0)?30:20, (selected_point==1)?30:20);
+        if(points.current) return vtx.endpoints(points.current.geometry.attributes.position.array);//vtx.endpoints(meshline.current.positions);//, (selected_point==0)?30:20, (selected_point==1)?30:20);
         return new Float32Array([0,0,0,0,0,0]);
     }
 
@@ -52,8 +51,11 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     function update(args){
-        meshline_geom.current.setPoints(args.verts);
-        main.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3 ) );
+        //const buffer = new THREE.Float32BufferAttribute(args.verts, 3);
+        const curve = new THREE.CatmullRomCurve3(vtx.vects(args.verts));
+        //const meshline_points = curve.getPoints( 50 );
+        meshline.current.setPoints(curve.getPoints( 100 ));
+        points.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3));
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.constrain){
             constraints.forEach(constraint => constraint.enforce());
@@ -68,15 +70,16 @@ export const Line = forwardRef(function Line(p, ref) {
         vect:vect,
         prev_verts:prev_verts,
         prev_vect:prev_vect,
-        set_verts:(vts)=> meshline_geom.current.setPoints(vts),
+        set_verts:(vts)=> meshline.current.setPoints(vtx.reline(vts)), // for direct line drawing
         set_endpoint(new_endpoint){
             if(selected_point == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), constrain:true});
             if(selected_point == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), constrain:true});
         },
         set_mod(args){
-            if(selected && args.verts.length > 4){
-                const closest =     vtx.closest_to_endpoints(verts(), args.verts);
-                const new_verts_1 = vtx.map(args.verts, closest.v1, closest.v2);
+            if(selected && args.verts.length > 5){
+                const new_verts_0 = vtx.reline(args.verts);
+                const closest     = vtx.closest_to_endpoints(verts(), new_verts_0);
+                const new_verts_1 = vtx.map(new_verts_0, closest.v1, closest.v2);
                 const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
                 update({verts: new_verts_2, constrain:true, record:true});
             }
@@ -102,7 +105,7 @@ export const Line = forwardRef(function Line(p, ref) {
         set_selected(false); 
         set_selected_point(-1); 
         if(p.selection){
-            if(p.selection.object == meshline_mesh.current) set_selected(true);
+            if(p.selection.object == mesh.current) set_selected(true);
             if(p.selection.object == endpoints.current) set_selected_point(p.selection.index);
         }
     },[p.selection]);
@@ -142,22 +145,23 @@ export const Line = forwardRef(function Line(p, ref) {
     var source_verts = [];
     if(p.source) source_verts = p.source.geometry.attributes.position.array;
     return (
-        r('points', { // source of truth for the line
-            ref: main,
-            name: p.source && p.source.name, // change name to something supporting like "mesh"
-            position: p.source && [p.source.position.x,p.source.position.y,p.source.position.z],
-            geometry: p.source && p.source.geometry,
-        }, 
-            r('sphere',{attach:'geometry-boundingSphere', radius:10000}),
-            r('pointsMaterial',{visible:false}), 
-            // r('bufferGeometry',{},
-            //     r('sphere',{attach:'boundingSphere', radius:10000}),
-            //     r('bufferAttribute',{ref:main_attr_pos, attach:'attributes-position', count:2, itemSize:3, array:new Float32Array([0,0,0,1,1,1])}),
-            //     //p.source && p.selection!='off' && r('bufferAttribute',{ref:main_attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
-            //     //r('bufferAttribute',{ref:main_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
-            // ),
-            // r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
-
+        r('group', {}, 
+            p.source && r('points', { // source of truth for the line
+                ref: points,
+                name: p.source.name,
+                position: [p.source.position.x,p.source.position.y,p.source.position.z],
+                //geometry: p.source && p.source.geometry,
+            }, 
+                //r('sphere',{attach:'geometry-boundingSphere', radius:0}),
+                //r('pointsMaterial',{visible:false}), 
+                r('bufferGeometry',{},
+                     r('sphere',{attach:'boundingSphere', radius:0}),
+                     //r('bufferAttribute',{ref:points_attr_pos, attach:'attributes-position', count:2, itemSize:3, array:new Float32Array([0,0,0,1,1,1])}),
+                     r('bufferAttribute',{ref:points_attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
+                     //r('bufferAttribute',{ref:points_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
+                ),
+                r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
+            ),
             // r('points', {
             //     ref: catmull,
             //     name: 'catmull',
@@ -171,16 +175,17 @@ export const Line = forwardRef(function Line(p, ref) {
             // ),
 
             r('mesh', { // for visualization
-                ref: meshline_mesh,
+                ref: mesh,
                 name: 'meshline', // give proper ID name that includes "line" or "meshline"
                 position: [0,0,10],
                 raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
             },
-                r('meshLine', {ref:meshline_geom, attach:'geometry', points:source_verts}),
+                r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
                 r('meshLineMaterial', {ref:meshline_material, color:selected?theme.primary_s:theme.secondary_s}),
             ),
 
-            (source_verts.length<6 || p.selection=='off' || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :
+            //(source_verts.length<6 || p.selection=='off' || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :
+            (!p.source || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :
                 r('points',{ref:endpoints, name:'endpoints', position:[0,0,20]}, 
                     r('bufferGeometry',{},
                         r('sphere',{attach:'boundingSphere', radius:10000}),
