@@ -2,10 +2,13 @@ import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Row, Col, Button, ButtonGroup, Container, Dropdown, DropdownButton, Form, InputGroup} from 'boot';
 import {use_mutation} from '../app.js';
 import {show_login} from '../login.js';
-import {useNavigate} from 'rrd';
+import {useNavigate, useLocation} from 'rrd';
+
+// 'Save' works except it reverts back to original in the buffer!! You need to go away and come back to the page for it to show the new model!!!
 
 export function File_Tool(p){
     const navigate = useNavigate();
+    //const location = useLocation();
     const [show, set_show] = useState(false);
     const [disabled, set_disabled] = useState(true);
     const [save_disabled, set_save_disabled] = useState(true);
@@ -31,11 +34,12 @@ export function File_Tool(p){
             set_save_disabled(false);
         }else{ if(p.user && is_public) set_disabled(false); }
     },[p.user]);
-    if(data && data.saveProduct.product) setTimeout(()=>{ 
-        reset(); 
-        set_show(false);
-        navigate('/studio/'+data.saveProduct.product.id);
-    }, 1200);
+    useEffect(()=>{ 
+        if(data && data.saveProduct.product){
+            setTimeout(()=>{ reset(); set_show(false); }, 1200);
+            navigate('/studio/'+data.saveProduct.product.id);
+        }
+    },[data]);
     function save(as_copy){
         p.board.current.export_glb((blob)=>{
             save_product({variables:{blob:blob, asCopy:as_copy}});

@@ -147,7 +147,7 @@ export const Line = forwardRef(function Line(p, ref) {
                         history.verts.unshift(original_verts);
                     }
                     history.index = history.verts.length-1;
-                    if(editor_act.init) update({verts:history.verts[0]}); 
+                    if(editor_act.init) update({verts:history.verts[history.index]}); 
                     set_history(history);
                 break; case 'undo':
                     if(history.index > 0){
@@ -186,20 +186,21 @@ export const Line = forwardRef(function Line(p, ref) {
             p.source && r('points', { // source of truth for the line
                 ref: points,
                 name: 'points',
-                position: [0,0,show_points ? 10 : -1000],//geometry: p.source && p.source.geometry,
+                position: [0,0,10],//geometry: p.source && p.source.geometry,
+                raycast: show_points ? THREE.Points.prototype.raycast : ()=>null,
             }, 
                 r('bufferGeometry',{},
                     r('sphere',{attach:'boundingSphere', radius:10000}),
                     r('bufferAttribute',{ref:point_attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
                     r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:max_points, itemSize:3, array:point_colors()}),//r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:source_verts.length, itemSize:3, array:point_colors(source_verts.length)}),
                 ),
-                r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true, visible:show_points}), 
+                r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true, visible:show_points}),  
             ),
             r('mesh', { // for visualization
                 ref: mesh,
                 name: 'meshline', // give proper ID name that includes "line" or "meshline"
                 position: [0,0,0],
-                raycast: (p.selection!='off') ? MeshLineRaycast : undefined,
+                raycast: (p.selection!='off') ? MeshLineRaycast : ()=>null,
             },
                 r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
                 r('meshLineMaterial', {ref:meshline_material, color:selected_line?theme.primary_s:theme.secondary_s}),
