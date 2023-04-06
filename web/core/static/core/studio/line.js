@@ -2,7 +2,7 @@ import {createElement as r, useEffect, useRef, useState, forwardRef, useImperati
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame} from 'r3f';
 import {theme, for_child} from '../app.js';
-import {history_action} from './editor.js';
+import {editor_action, show_points_var} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
 import * as THREE from 'three';
@@ -29,11 +29,13 @@ export const Line = forwardRef(function Line(p, ref) {
     const [selected_point, set_selected_point] = useState(-1);
     const [selected_endpoint, set_selected_endpoint] = useState(-1);
     const [constraints, set_constraints] = useState([]);//[{enforce:()=>{},wow:'wow'}]);
-    const history_act = useReactiveVar(history_action);
+    const editor_act = useReactiveVar(editor_action);
     const [history, set_history] = useState({
         verts:[],
         index:0,
     });
+    const show_points = useReactiveVar(show_points_var);
+    //const [show_points, set_show_points] = useState(true);
 
     const name=()=> p.source.name;
     const verts=()=> points.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
@@ -62,14 +64,14 @@ export const Line = forwardRef(function Line(p, ref) {
     }
 
     function update(args){
-        const curve = new THREE.CatmullRomCurve3(vtx.vects(args.verts));
+        const curve = new THREE.CatmullRomCurve3(vtx.vects(args.verts), false, 'centripetal', 0.5);
         meshline.current.setPoints(curve.getPoints( 100 ));
         points.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3)); //points.current.geometry.setAttribute('color', new THREE.BufferAttribute(point_colors(args.verts.length), 3));
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.constrain){
             constraints.forEach(constraint => constraint.enforce());
         }
-        if(args.record) history_action({name:'record'});
+        if(args.record) editor_action({name:'record'});
     }
 
     useImperativeHandle(ref,()=>({ 
@@ -85,7 +87,7 @@ export const Line = forwardRef(function Line(p, ref) {
             if(selected_endpoint == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), constrain:true});
         },
         set_point(new_point){
-            if(selected_point > -1) {
+            if(selected_point >= 0) {
                 const new_verts = Array.from(verts());
                 new_verts.splice(selected_point*3, 3, new_point.x, new_point.y, new_point.z);
                 update({verts:new_verts});
@@ -106,7 +108,7 @@ export const Line = forwardRef(function Line(p, ref) {
                 const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point); //vtx.first(line.prev_verts())
                 update({verts:new_verts, constrain:true, record:true});
             }
-            if(selected_point > -1){
+            if(selected_point >= 0){
                 const new_verts = Array.from(verts());
                 new_verts.splice(selected_point*3, 3, args.point.x, args.point.y, args.point.z);
                 update({verts:new_verts, record:true});
@@ -135,33 +137,46 @@ export const Line = forwardRef(function Line(p, ref) {
 
     useEffect(()=>{ // Switch to imparitive handler, or add prop that makes it rerender (no the prop was the old way)
         if(p.selection!='off'){
-            if(history_act.name == 'record'){
-                history.verts.splice(history.index+1); 
-                history.verts.push(verts());
-                if(history.verts.length > 10){
-                    const original_verts = history.verts.shift();
-                    history.verts.shift();
-                    history.verts.unshift(original_verts);
-                }
-                history.index = history.verts.length-1;
-                if(history_act.init) update({verts:history.verts[0]}); 
-            }else if(history_act.name == 'undo'){
-                if(history.index > 0){
-                    history.index--;
+            switch (editor_act.name) {
+                case 'record':
+                    history.verts.splice(history.index+1); 
+                    history.verts.push(verts());
+                    if(history.verts.length > 10){
+                        const original_verts = history.verts.shift();
+                        history.verts.shift();
+                        history.verts.unshift(original_verts);
+                    }
+                    history.index = history.verts.length-1;
+                    if(editor_act.init) update({verts:history.verts[0]}); 
+                    set_history(history);
+                break; case 'undo':
+                    if(history.index > 0){
+                        history.index--;
+                        update({verts:history.verts[history.index]}); 
+                    }
+                    set_history(history);
+                break; case 'redo':
+                    if(history.index < history.verts.length-1){
+                        history.index++;
+                        update({verts:history.verts[history.index]}); 
+                    }
+                    set_history(history);
+                break; case 'revert':
+                    history.index = 0;
                     update({verts:history.verts[history.index]}); 
-                }
-            }else if(history_act.name == 'redo'){
-                if(history.index < history.verts.length-1){
-                    history.index++;
-                    update({verts:history.verts[history.index]}); 
-                }
-            }else if(history_act.name == 'revert'){
-                history.index = 0;
-                update({verts:history.verts[history.index]}); 
+                    set_history(history);
+                break; case 'delete_points':
+                    if(selected_point >= 0){
+                        const new_verts = Array.from(verts());
+                        new_verts.splice(selected_point*3, 3);
+                        update({verts:new_verts, record:true});
+                        set_selected_point(-1);
+                    }
+                //break; case 'show_points':
+                //    set_show_points(editor_act.show);
             }
-            set_history(history);
         }
-    },[history_act]); 
+    },[editor_act]); 
 
     return (
         r('group', {
@@ -171,15 +186,14 @@ export const Line = forwardRef(function Line(p, ref) {
             p.source && r('points', { // source of truth for the line
                 ref: points,
                 name: 'points',
-                position: [0,0,10],//geometry: p.source && p.source.geometry,
+                position: [0,0,show_points ? 10 : -1000],//geometry: p.source && p.source.geometry,
             }, 
                 r('bufferGeometry',{},
                     r('sphere',{attach:'boundingSphere', radius:10000}),
                     r('bufferAttribute',{ref:point_attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
                     r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:max_points, itemSize:3, array:point_colors()}),//r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:source_verts.length, itemSize:3, array:point_colors(source_verts.length)}),
                 ),
-                r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
-                //r('pointsMaterial',{visible:false}), 
+                r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true, visible:show_points}), 
             ),
             r('mesh', { // for visualization
                 ref: mesh,

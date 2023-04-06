@@ -5,7 +5,7 @@ import {Line} from './line.js';
 import {useThree, useLoader} from 'r3f';
 import {Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
 import {use_media_gltf, static_url} from '../app.js';
-import {history_action} from './editor.js';
+import {editor_action} from './editor.js';
 import {GLTFExporter} from './exporter.js';
 
 const bounds = new Box3();
@@ -93,7 +93,7 @@ export const Product = forwardRef(function Product(p, ref) {
 				}
 			}
 
-			history_action({name:'record', init:true}); 
+			editor_action({name:'record', init:true}); 
 		}
 	},[nodes]); 
 

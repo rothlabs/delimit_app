@@ -41,7 +41,7 @@ export function endpoint_vects(verts){ // use get function here
 	return [vect(verts,0), vect(verts,-1)];
 }
 
-export function reline(verts, spacing = 6){
+export function reline(verts, spacing = 10){
 	if(verts.length > 6){
 		var new_verts = [];
     	append_vert(new_verts, verts, 0);

@@ -6,7 +6,7 @@ import {Vector3} from 'three';
 // if any line changes, update line3 so its endpoints fall on line1 and line2
 export function Endpoints_To_Lines(line1, line2, line3){
     const constraint = {};
-    const max_dist = 0.5;
+    const max_dist = 0.1;
     var v3a=()=> line3.vect(0);
     var v3b=()=> line3.vect(-1);
     var v1=()=> vtx.closest(line1.verts(), v3a()).vert; 
@@ -28,7 +28,7 @@ export function Coincident(line1, i1, line2, i2){
     //const id = 'Coincident___'+line1.name()+'___'+i1+'___'+line2.name()+'___'+i2;
     //ids.push(id);
     const constraint = {};
-    const max_dist = 0.5;
+    const max_dist = 0.1;
     var correction = null; 
     var v1=()=> line1.vect(i1);
     var v2=()=> line2.vect(i2);
@@ -45,7 +45,7 @@ export function Coincident(line1, i1, line2, i2){
 // make both endpoints coincident (0 to 0, -1 to -1 indecies)
 export function Coincident_Endpoints(line1, line2){
     const constraint = {};
-    const max_dist = 0.5;
+    const max_dist = 0.1;
     var correction = null; 
     var v1a=()=> line1.vect(0);
     var v1b=()=> line1.vect(-1);
@@ -66,7 +66,7 @@ export function Vertical_Alignment(line1, i1, line2, i2, line3, triggers){
     //const id = 'Vertical_Alignment___'+line1.name()+'___'+i1+'___'+line2.name()+'___'+i2+'___'+line3.name();
     //ids.push(id);
     const constraint = {};
-    const max_dist = 0.5;
+    const max_dist = 0.1;
     var correction = null; 
     var v3a=()=> line3.vect(0);
     var v3b=()=> line3.vect(-1);

@@ -9,7 +9,9 @@ import {useParams} from 'rrd';
 import {makeVar} from 'apollo';
 import { use_query } from '../app.js';
 
-export const history_action = makeVar({name:'none'});
+export const editor_action = makeVar({name:'none'});
+export const show_points_var = makeVar(true);
+//export const vertex_action  = makeVar({name:'none'});
 //export const history_index = makeVar(0);
 
 const pointer_start = new Vector2();
@@ -24,6 +26,7 @@ export const Board = forwardRef( function Board(p, ref) {
     const [dragging, set_dragging] = useState();
     const product = useRef();
     const draw_line = useRef();
+    //const show_points = useReactiveVar(show_points_var);
 
     useImperativeHandle(ref,()=>{return{
 		export_glb: product.current.export_glb,

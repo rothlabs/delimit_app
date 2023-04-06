@@ -42,7 +42,7 @@ export function File_Tool(p){
         });
     }
     return(
-        r(DropdownButton, {title:'File', variant:'outline-primary', show:show, onToggle:(s)=>set_show(s)},
+        r(DropdownButton, {title:'File', variant:p.button_variant, show:show, onToggle:(s)=>set_show(s)},
             alt ? r(alt) :
                 data && data.saveProduct.product ? r('p',{}, data.saveProduct.response) :
                     r(Fragment,{},
