@@ -82,36 +82,38 @@ export const Line = forwardRef(function Line(p, ref) {
         prev_verts:prev_verts,
         prev_vect:prev_vect,
         set_verts:(vts)=> meshline.current.setPoints(vts), // vtx.reline(vts) for direct line drawing
-        set_endpoint(new_endpoint){
-            if(selected_endpoint == 0) update({verts:vtx.map(prev_verts(), new_endpoint, vtx.vect(prev_verts(),-1)), constrain:true});
-            if(selected_endpoint == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), new_endpoint), constrain:true});
-        },
-        set_point(new_point){
-            if(selected_point >= 0) {
-                const new_verts = Array.from(verts());
-                new_verts.splice(selected_point*3, 3, new_point.x, new_point.y, new_point.z);
-                update({verts:new_verts});
-            }
-        },
-        set_mod(args){
-            if(selected_line && args.verts.length > 5){
+        // set_tmp(args){
+        //     if(args.selection.object == endpoints.current){
+        //         if(args.selection.index == 0) update({verts:vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)), constrain:true});
+        //         if(args.selection.index == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point), constrain:true});
+        //     }
+        // //},
+        // //set_point(args){
+        //     if(args.selection.object == points.current){ //&& selected_point >= 0) {
+        //         const new_verts = Array.from(verts());
+        //         new_verts.splice(args.selection.index*3, 3, args.point.x, args.point.y, args.point.z);
+        //         update({verts:new_verts});
+        //     }
+        // },
+        mutate(args){ // change so args contains selection and it checks against that (see set_tmp)
+            if(args.selection.object == mesh.current && args.verts.length > 5){
                 const new_verts_0 = vtx.reline(args.verts);
                 const closest     = vtx.closest_to_endpoints(verts(), new_verts_0);
                 const new_verts_1 = vtx.map(new_verts_0, closest.v1, closest.v2);
                 const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
-                update({verts: new_verts_2, constrain:true, record:true});
-            }
-            if(selected_endpoint == 0){
-                const new_verts = vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
-                update({verts:new_verts, constrain:true, record:true});
-            }else if(selected_endpoint == 1){
-                const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point); //vtx.first(line.prev_verts())
-                update({verts:new_verts, constrain:true, record:true});
-            }
-            if(selected_point >= 0){
+                update({verts: new_verts_2, constrain:true, record:args.record});
+            }else if(args.selection.object == points.current){
                 const new_verts = Array.from(verts());
-                new_verts.splice(selected_point*3, 3, args.point.x, args.point.y, args.point.z);
-                update({verts:new_verts, record:true});
+                new_verts.splice(args.selection.index*3, 3, args.point.x, args.point.y, args.point.z);
+                update({verts:new_verts, record:args.record});
+            }else if(args.selection.object == endpoints.current){
+                if(args.selection.index == 0){
+                    //const new_verts = vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
+                    update({verts:vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)), constrain:true, record:args.record});
+                }else if(args.selection.index == 1){
+                    //const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point); //vtx.first(line.prev_verts())
+                    update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point), constrain:true, record:args.record});
+                }
             }
         },
         add_constraint(constraint){
@@ -165,13 +167,13 @@ export const Line = forwardRef(function Line(p, ref) {
                     history.index = 0;
                     update({verts:history.verts[history.index]}); 
                     set_history(history);
-                break; case 'delete_points':
-                    if(selected_point >= 0){
-                        const new_verts = Array.from(verts());
-                        new_verts.splice(selected_point*3, 3);
-                        update({verts:new_verts, record:true});
-                        set_selected_point(-1);
-                    }
+                // break; case 'delete_points':
+                //     if(selected_point >= 0){
+                //         const new_verts = Array.from(verts());
+                //         new_verts.splice(selected_point*3, 3);
+                //         update({verts:new_verts, record:true});
+                //         set_selected_point(-1);
+                //     }
                 //break; case 'show_points':
                 //    set_show_points(editor_act.show);
             }
@@ -217,6 +219,27 @@ export const Line = forwardRef(function Line(p, ref) {
         )
     )
 });
+
+
+// if(selected_line && args.verts.length > 5){
+//     const new_verts_0 = vtx.reline(args.verts);
+//     const closest     = vtx.closest_to_endpoints(verts(), new_verts_0);
+//     const new_verts_1 = vtx.map(new_verts_0, closest.v1, closest.v2);
+//     const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
+//     update({verts: new_verts_2, constrain:true, record:true});
+// }
+// if(selected_endpoint == 0){
+//     const new_verts = vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
+//     update({verts:new_verts, constrain:true, record:true});
+// }else if(selected_endpoint == 1){
+//     const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point); //vtx.first(line.prev_verts())
+//     update({verts:new_verts, constrain:true, record:true});
+// }
+// if(selected_point >= 0){
+//     const new_verts = Array.from(verts());
+//     new_verts.splice(selected_point*3, 3, args.point.x, args.point.y, args.point.z);
+//     update({verts:new_verts, record:true});
+// }
 
 
 

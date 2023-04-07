@@ -24,14 +24,17 @@ export const Product = forwardRef(function Product(p, ref) {
 
 
 	useImperativeHandle(ref,()=>{return{
-		set_point(args){
-			lines.current.forEach(line=>line.set_point(args));
-        },
-        set_endpoint(args){
-			lines.current.forEach(line=>line.set_endpoint(args));
-        },
-		set_mod(args){
-			lines.current.forEach(line=>line.set_mod(args));
+		//set_point(args){
+		//	lines.current.forEach(line=>line.set_point(args));
+        //},
+        //set_endpoint(args){
+		//	lines.current.forEach(line=>line.set_endpoint(args));
+        //},
+		//set_tmp(args){
+		//	lines.current.forEach(line=>line.set_tmp(args));
+        //},
+		mutate(args){
+			lines.current.forEach(line=>line.mutate(args));
         },
 		export_glb(callback){
 			exporter.parse(work_group.current, function(buffer){

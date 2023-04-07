@@ -6,31 +6,33 @@ import {Line} from './line.js';
 import {Toolbar} from './toolbar.js';
 import {CameraControls} from 'drei';
 import {useParams} from 'rrd';
-import {makeVar} from 'apollo';
-import { use_query } from '../app.js';
+import {makeVar, useReactiveVar} from 'apollo';
+import {use_query} from '../app.js';
 
 export const editor_action = makeVar({name:'none'});
 export const show_points_var = makeVar(true);
+export const draw_mode_var = makeVar('draw');
 //export const vertex_action  = makeVar({name:'none'});
 //export const history_index = makeVar(0);
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
-const new_verts = [];
+const draw_verts = [];
 var pointers_down = 0;
-//var raycaster=null;
+
+/// Sometimes trying to drag another point makes the already selected point warp to new selection!!!
 
 export const Board = forwardRef( function Board(p, ref) {
     const {camera, raycaster} = useThree(); 
-    const [selection, set_selection] = useState();
+    const [selection, set_selection] = useState(); //{object:{name:'none'}}
     const [dragging, set_dragging] = useState();
     const product = useRef();
     const draw_line = useRef();
-    //const show_points = useReactiveVar(show_points_var);
+    const draw_mode = useReactiveVar(draw_mode_var);
 
     useImperativeHandle(ref,()=>{return{
 		export_glb: product.current.export_glb,
-    };});
+    }});
 
     useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom);
 
@@ -41,18 +43,16 @@ export const Board = forwardRef( function Board(p, ref) {
             onClick:(event)=>{
                 event.stopPropagation();
                 if(event.delta < 5 && !['endpoints','points'].includes(event.intersections[0].object.name)){ //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
-                    set_selection(event.intersections[0]);
+                    if(draw_mode == 'draw') set_selection(event.intersections[0]);
+                    //if(draw_mode == 'add' && event.intersections[0].object.name == 'meshline') console.log('add point');
                 }
             },
-            //onPointerEnter:(event)=> {
-            //    if(zero_pointers_down_on_enter){pointers_down = 0; zero_pointers_down_on_enter=false;}
-            //},
             onPointerLeave:(event)=> { 
                 if(event.intersections.length < 1) {
                     pointers_down = 0;//{zero_pointers_down_on_enter = true;  console.log('zero_pointers_down_on_enter');}
-                    new_verts.length = 0;
+                    draw_verts.length = 0;
                     draw_line.current.set_verts(new Float32Array());
-                    if(selection && selection.object.name == 'endpoints') set_selection(null);
+                    set_dragging(false);
                 }
             },
             onPointerDown:(event)=> {
@@ -72,19 +72,16 @@ export const Board = forwardRef( function Board(p, ref) {
                 event.stopPropagation();
                 if([0,1].includes(event.which)){ // touch or left mouse button? (not sure about 0 and 1)
                     if(selection){ 
-                        if(pointers_down==1 && (new_verts.length>0 || dragging)){
-                            product.current.set_mod({
-                                verts: new Float32Array(new_verts),
+                        if(pointers_down==1 && (draw_verts.length>0 || dragging)){
+                            product.current.mutate({
+                                selection: selection,
+                                verts: new Float32Array(draw_verts),
                                 point: event.intersections[event.intersections.length-1].point,
+                                record: true,
                             });
                         }
-                        new_verts.length = 0;
+                        draw_verts.length = 0;
                         draw_line.current.set_verts(new Float32Array());
-                        //if(['points','endpoints'].includes(selection.object.name)){//if(selection.object.name == 'endpoints'){
-                        
-                            //set_selection(null); 
-                            
-                        //}
                     }
                     set_dragging(false);
                     pointers_down--;
@@ -98,16 +95,12 @@ export const Board = forwardRef( function Board(p, ref) {
                     if(selection.object.name == 'meshline'){
                         pointer_vect.set(event.clientX,event.clientY);
                         if(pointer_start.distanceTo(pointer_vect) > 2){
-                            new_verts.push(point.x,point.y,0); // will need to find other z value for 3d lines
-                            draw_line.current.set_verts(new Float32Array(new_verts));
+                            draw_verts.push(point.x,point.y,0); // will need to find other z value for 3d lines
+                            draw_line.current.set_verts(new Float32Array(draw_verts));
                         }
                     }
                     if(dragging){
-                        if(selection.object.name == 'endpoints'){
-                            product.current.set_endpoint(point);
-                        }else if(selection.object.name == 'points'){
-                            product.current.set_point(point);
-                        }
+                        product.current.mutate({selection:selection, point:point, record:false});
                     }
                 }
             },
@@ -146,6 +139,10 @@ export function Studio_Editor(){
     )
 }
 
+
+//onPointerEnter:(event)=> {
+            //    if(zero_pointers_down_on_enter){pointers_down = 0; zero_pointers_down_on_enter=false;}
+            //},
 
 
     // const {loading, error, data} = useQuery(gql`query Product($id: String!){  
