@@ -1,42 +1,22 @@
 import {createElement as r} from 'react';
-import {Row, Col, Button, ButtonGroup, Container} from 'boot';
+import {Button, ButtonGroup} from 'boot';
 import {editor_action} from './editor.js';
 
 export function History_Tool(p){
+    const mode_buttons = [
+        {name:'Undo',   icon:'bi-arrow-left',      action:'undo'},
+        {name:'Redo',   icon:'bi-arrow-right',     action:'redo'},
+        {name:'Revert', icon:'bi-arrow-clockwise', action:'revert'},
+    ];
     return(
-        r(ButtonGroup, {}, //, role:'group', arialabel:'History' className: 'position-absolute'
-            r(Button,{
-                onClick:()=>editor_action({name:'undo'}), 
-                variant:p.button_variant
-            }, r('i',{className:'bi-arrow-left'}),  ' Undo'), //p.set_act({name:'undo'})
-            r(Button,{
-                onClick:()=>editor_action({name:'redo'}), 
-                variant:p.button_variant
-            }, r('i',{className:'bi-arrow-right'}), ' Redo'),
-            r(Button,{
-                onClick:()=>editor_action({name:'revert'}), 
-                variant:p.button_variant, //disabled:false
-            }, r('i',{className:'bi-arrow-clockwise'}), ' Revert'),
+        r(ButtonGroup, {},
+            ...mode_buttons.map(button=>
+                r(Button,{
+                    onClick:()=>editor_action({name:button.action}), 
+                    variant: p.button_variant,
+                    className: button.icon,
+                })
+            )
         )
     )
 }
-
-// r(Button,{onClick:()=>{
-            //     var hi = history_index() - 1;
-            //     if(hi < 0) hi = 0;
-            //     history_index(hi);
-            // }, variant:'outline-primary'}, r('i',{className:'bi-arrow-left'}),  ' Undo'), //p.set_act({name:'undo'})
-            // r(Button,{onClick:()=>{
-            //     var hi = history_index() + 1;
-            //     if(hi > 5) hi = 5;
-            //     history_index(hi);
-            // }, variant:'outline-primary'}, r('i',{className:'bi-arrow-right'}), ' Redo'),
-            // r(Button,{onClick:()=>history_index(0), variant:'outline-primary', disabled:true}, r('i',{className:'bi-arrow-clockwise'}), ' Revert'),
-
-//r('div', {className: 'position-absolute start-0 end-0'},
-           // r('div', {className: 'container-fluid pb-2 bg-body'}, //text-center
-            //r(Container, {fluid:true, pb:5, className:'pb-2 bg-body'},
-
-            //r(Row,{},//[
-            //)
-                //].map((n,i)=>r(Col,{key:i},n)))

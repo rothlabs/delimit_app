@@ -11,6 +11,7 @@ import {use_query} from '../app.js';
 
 export const editor_action = makeVar({name:'none'});
 export const show_points_var = makeVar(true);
+export const show_endpoints_var = makeVar(true);
 export const draw_mode_var = makeVar('draw');
 //export const vertex_action  = makeVar({name:'none'});
 //export const history_index = makeVar(0);
@@ -43,6 +44,7 @@ export const Board = forwardRef( function Board(p, ref) {
             onClick:(event)=>{
                 event.stopPropagation();
                 if(event.delta < 5 && !['endpoints','points'].includes(event.intersections[0].object.name)){ //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
+                    set_selection(null);
                     if(draw_mode == 'draw') set_selection(event.intersections[0]);
                     //if(draw_mode == 'add' && event.intersections[0].object.name == 'meshline') console.log('add point');
                 }
@@ -55,12 +57,17 @@ export const Board = forwardRef( function Board(p, ref) {
                     set_dragging(false);
                 }
             },
-            onPointerDown:(event)=> {
+            onPointerDown:(event)=>{
                 event.stopPropagation();
                 if([0,1].includes(event.which)){
                     pointers_down++;
                     pointer_start.set(event.clientX,event.clientY);
-                    if(!(selection && selection.object.name == 'meshline')){
+                    if(!(selection && selection.object.name == 'meshline')){ // if no line selected 
+                        if(draw_mode == 'add'){
+                            if(event.intersections[0].object.name == 'meshline'){
+                                console.log('add point!');
+                            }
+                        }
                         if(['endpoints','points'].includes(event.intersections[0].object.name)){
                             set_selection(event.intersections[0]);
                             set_dragging(true);

@@ -2,7 +2,7 @@ import {createElement as r, useEffect, useRef, useState, forwardRef, useImperati
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame} from 'r3f';
 import {theme, for_child} from '../app.js';
-import {editor_action, show_points_var} from './editor.js';
+import {editor_action, show_points_var, show_endpoints_var} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
 import * as THREE from 'three';
@@ -35,6 +35,7 @@ export const Line = forwardRef(function Line(p, ref) {
         index:0,
     });
     const show_points = useReactiveVar(show_points_var);
+    const show_endpoints = useReactiveVar(show_endpoints_var);
     //const [show_points, set_show_points] = useState(true);
 
     const name=()=> p.source.name;
@@ -82,19 +83,6 @@ export const Line = forwardRef(function Line(p, ref) {
         prev_verts:prev_verts,
         prev_vect:prev_vect,
         set_verts:(vts)=> meshline.current.setPoints(vts), // vtx.reline(vts) for direct line drawing
-        // set_tmp(args){
-        //     if(args.selection.object == endpoints.current){
-        //         if(args.selection.index == 0) update({verts:vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)), constrain:true});
-        //         if(args.selection.index == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point), constrain:true});
-        //     }
-        // //},
-        // //set_point(args){
-        //     if(args.selection.object == points.current){ //&& selected_point >= 0) {
-        //         const new_verts = Array.from(verts());
-        //         new_verts.splice(args.selection.index*3, 3, args.point.x, args.point.y, args.point.z);
-        //         update({verts:new_verts});
-        //     }
-        // },
         mutate(args){ // change so args contains selection and it checks against that (see set_tmp)
             if(args.selection.object == mesh.current && args.verts.length > 5){
                 const new_verts_0 = vtx.reline(args.verts);
@@ -208,17 +196,37 @@ export const Line = forwardRef(function Line(p, ref) {
                 r('meshLineMaterial', {ref:meshline_material, color:selected_line?theme.primary_s:theme.secondary_s}),
             ),
             !p.source || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__') ? null :
-                r('points',{ref:endpoints, name:'endpoints', position:[0,0,20]}, 
+                r('points',{
+                    ref:endpoints, 
+                    name:'endpoints', 
+                    position:[0,0,20],
+                    raycast: show_endpoints ? THREE.Points.prototype.raycast : ()=>null,
+                }, 
                     r('bufferGeometry',{},
                         r('sphere',{attach:'boundingSphere', radius:10000}),
                         r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
                         r('bufferAttribute',{ref:endpoint_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
                     ),
-                    r('pointsMaterial',{size:15, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true}),
+                    r('pointsMaterial',{size:15, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true, visible:show_endpoints}),
                 ),
         )
     )
 });
+
+
+// set_tmp(args){
+        //     if(args.selection.object == endpoints.current){
+        //         if(args.selection.index == 0) update({verts:vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)), constrain:true});
+        //         if(args.selection.index == 1) update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point), constrain:true});
+        //     }
+        // //},
+        // //set_point(args){
+        //     if(args.selection.object == points.current){ //&& selected_point >= 0) {
+        //         const new_verts = Array.from(verts());
+        //         new_verts.splice(args.selection.index*3, 3, args.point.x, args.point.y, args.point.z);
+        //         update({verts:new_verts});
+        //     }
+        // },
 
 
 // if(selected_line && args.verts.length > 5){

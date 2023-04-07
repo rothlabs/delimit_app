@@ -1,5 +1,5 @@
 import {createElement as r, useState, Fragment, useEffect} from 'react';
-import {Row, Col, Button, ButtonGroup, Container, Dropdown, DropdownButton, Form, InputGroup} from 'boot';
+import {Row, Col, Button, ButtonGroup, Dropdown, Form, InputGroup} from 'boot';
 import {use_mutation} from '../app.js';
 import {show_login} from '../login.js';
 import {useNavigate, useLocation} from 'rrd';
@@ -46,31 +46,35 @@ export function File_Tool(p){
         });
     }
     return(
-        r(DropdownButton, {title:'File', variant:p.button_variant, show:show, onToggle:(s)=>set_show(s)},
-            alt ? r(alt) :
-                data && data.saveProduct.product ? r('p',{}, data.saveProduct.response) :
-                    r(Fragment,{},
-                        data && r('p', {}, data.saveProduct.response),
-                        r(InputGroup, {className:'mb-3'}, 
-                            r(InputGroup.Text, {}, 'Name'),
-                            r(Form.Control, {maxLength:64, value:name, onChange:(e)=>set_name(e.target.value), disabled:disabled}),
-                        ),
-                        r(InputGroup, {className:'mb-3'}, 
-                            r(InputGroup.Text, {}, 'Story'),
-                            r(Form.Control, {as:'textarea', maxLength:512, value:story, onChange:(e)=>set_story(e.target.value), disabled:disabled}),
-                        ),
-                        r(Form.Check, {className:'mb-3', label:'Public', checked:is_public, onChange:(e)=>set_is_public(e.target.checked), disabled:disabled}),
-                        r(Row,{className:'row-cols-auto'},
-                            r(Col,{}, r(ButtonGroup, {},
-                                r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled}, 
-                                    r('i',{className:'bi-disc'}),' Save'),
-                                r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled}, 
-                                    r('i',{className:'bi-files'}), ' Save Copy'),
-                            )),
-                            disabled && save_disabled && r(Col,{}, r(Button,{onClick:()=>show_login(true), variant:'outline-primary'}, 
-                                    r('i',{className:'bi-box-arrow-in-right'}), ' Sign In')),
+        //r(DropdownButton, {title:'', className:'bi-card-heading', variant:p.button_variant, show:show, onToggle:(s)=>set_show(s)},
+        r(Dropdown, {show:show, onToggle:(s)=>set_show(s)},
+            r(Dropdown.Toggle, {className:'bi-card-heading', variant:p.button_variant}, ' '),
+            r(Dropdown.Menu, {},
+                alt ? r(alt) :
+                    data && data.saveProduct.product ? r('p',{}, data.saveProduct.response) :
+                        r(Fragment,{},
+                            data && r('p', {}, data.saveProduct.response),
+                            r(InputGroup, {className:'mb-3'}, 
+                                r(InputGroup.Text, {}, 'Name'),
+                                r(Form.Control, {maxLength:64, value:name, onChange:(e)=>set_name(e.target.value), disabled:disabled}),
+                            ),
+                            r(InputGroup, {className:'mb-3'}, 
+                                r(InputGroup.Text, {}, 'Story'),
+                                r(Form.Control, {as:'textarea', maxLength:512, value:story, onChange:(e)=>set_story(e.target.value), disabled:disabled}),
+                            ),
+                            r(Form.Check, {className:'mb-3', label:'Public', checked:is_public, onChange:(e)=>set_is_public(e.target.checked), disabled:disabled}),
+                            r(Row,{className:'row-cols-auto'},
+                                r(Col,{}, r(ButtonGroup, {},
+                                    r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled}, 
+                                        r('i',{className:'bi-disc'}),' Save'),
+                                    r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled}, 
+                                        r('i',{className:'bi-files'}), ' Save Copy'),
+                                )),
+                                disabled && save_disabled && r(Col,{}, r(Button,{onClick:()=>show_login(true), variant:'outline-primary'}, 
+                                        r('i',{className:'bi-box-arrow-in-right'}), ' Sign In')),
+                            )
                         )
-                    )
+            )
         )
     )
 }
