@@ -21,7 +21,7 @@ export function Pref_Tool(p){
                 }),
                 r(Form.Check, {
                     className:'mt-2 mb-2', 
-                    label:'Nodes', 
+                    label:'Endpoints', 
                     checked:show_endpoints, 
                     onChange:(e)=> show_endpoints_var(e.target.checked), 
                     disabled:show_points,

@@ -65,7 +65,11 @@ export const Board = forwardRef( function Board(p, ref) {
                     if(!(selection && selection.object.name == 'meshline')){ // if no line selected 
                         if(draw_mode == 'add'){
                             if(event.intersections[0].object.name == 'meshline'){
-                                console.log('add point!');
+                                //set_selection(event.intersections[0]);
+                                //const new_selection = 
+                                product.current.mutate({selection:event.intersections[0], new_point:event.intersections[event.intersections.length-1].point, record: false});
+                                //set_selection(new_selection);
+                                //set_dragging(true);
                             }
                         }
                         if(['endpoints','points'].includes(event.intersections[0].object.name)){
@@ -82,8 +86,8 @@ export const Board = forwardRef( function Board(p, ref) {
                         if(pointers_down==1 && (draw_verts.length>0 || dragging)){
                             product.current.mutate({
                                 selection: selection,
-                                verts: new Float32Array(draw_verts),
-                                point: event.intersections[event.intersections.length-1].point,
+                                draw_verts: new Float32Array(draw_verts),
+                                move_point: event.intersections[event.intersections.length-1].point,
                                 record: true,
                             });
                         }
@@ -107,7 +111,7 @@ export const Board = forwardRef( function Board(p, ref) {
                         }
                     }
                     if(dragging){
-                        product.current.mutate({selection:selection, point:point, record:false});
+                        product.current.mutate({selection:selection, move_point:point, record:false});
                     }
                 }
             },

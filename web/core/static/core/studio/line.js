@@ -40,6 +40,7 @@ export const Line = forwardRef(function Line(p, ref) {
 
     const name=()=> p.source.name;
     const verts=()=> points.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
+    const meshline_verts=()=> meshline.current.positions;
     const vect=(i)=> vtx.vect(points.current.geometry.attributes.position.array,i); //vtx.vect(meshline.current.positions,i);
     const prev_verts=()=> history.verts[history.index];
     const prev_vect=(i)=> vtx.vect(history.verts[history.index],i);
@@ -84,24 +85,26 @@ export const Line = forwardRef(function Line(p, ref) {
         prev_vect:prev_vect,
         set_verts:(vts)=> meshline.current.setPoints(vts), // vtx.reline(vts) for direct line drawing
         mutate(args){ // change so args contains selection and it checks against that (see set_tmp)
-            if(args.selection.object == mesh.current && args.verts.length > 5){
-                const new_verts_0 = vtx.reline(args.verts);
-                const closest     = vtx.closest_to_endpoints(verts(), new_verts_0);
-                const new_verts_1 = vtx.map(new_verts_0, closest.v1, closest.v2);
-                const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
-                update({verts: new_verts_2, constrain:true, record:args.record});
+            if(args.selection.object == mesh.current){
+                if(args.new_point){
+                    const new_verts = vtx.insert(verts(), meshline_verts(), args.new_point);
+                    update({verts: new_verts, record:args.record});
+                }else if(args.draw_verts.length/3 >= 2){ 
+                    const new_verts_0 = vtx.reline(args.draw_verts);
+                    const closest     = vtx.closest_to_endpoints(verts(), new_verts_0);
+                    const new_verts_1 = vtx.map(new_verts_0, closest.v1, closest.v2);
+                    const new_verts_2 = vtx.replace(verts(), closest.i1, closest.i2, new_verts_1);
+                    update({verts: new_verts_2, constrain:true, record:args.record});
+                }
             }else if(args.selection.object == points.current){
                 const new_verts = Array.from(verts());
-                new_verts.splice(args.selection.index*3, 3, args.point.x, args.point.y, args.point.z);
+                new_verts.splice(args.selection.index*3, 3, args.move_point.x, args.move_point.y, args.move_point.z);
                 update({verts:new_verts, record:args.record});
             }else if(args.selection.object == endpoints.current){
-                if(args.selection.index == 0){
-                    //const new_verts = vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)); //[draw.point.x,draw.point.y,0]
-                    update({verts:vtx.map(prev_verts(), args.point, vtx.vect(prev_verts(),-1)), constrain:true, record:args.record});
-                }else if(args.selection.index == 1){
-                    //const new_verts = vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point); //vtx.first(line.prev_verts())
-                    update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.point), constrain:true, record:args.record});
-                }
+                if(args.selection.index == 0)
+                    update({verts:vtx.map(prev_verts(), args.move_point, vtx.vect(prev_verts(),-1)), constrain:true, record:args.record});
+                if(args.selection.index == 1)
+                    update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.move_point), constrain:true, record:args.record});
             }
         },
         add_constraint(constraint){

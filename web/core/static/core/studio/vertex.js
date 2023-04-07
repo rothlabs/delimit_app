@@ -70,6 +70,29 @@ export function reline(verts, spacing = 10){
 	}
 }
 
+export function insert(verts, test_verts, new_point){
+	var index = 0;
+	var prev_dist = 0;
+	var prev_dist_point = vect(test_verts,0).distanceTo(new_point);
+	for (var i = 0; i < test_verts.length/3; i ++) {
+		const tv = vect(test_verts, i);
+		const dist = tv.distanceTo(vect(verts,index));
+		if(dist > prev_dist) {
+			index++;
+			prev_dist = tv.distanceTo(vect(verts,index));
+		}else{ prev_dist = dist; }
+		const dist_point = tv.distanceTo(new_point);
+		if(dist_point > prev_dist_point){
+			const new_verts = Array.from(verts);
+			console.log(index);
+			new_verts.splice(index, 0, new_point.x, new_point.y, new_point.z); 
+			return new Float32Array(new_verts);
+		}
+		prev_dist_point = dist_point;
+	}
+	return verts;
+}
+
 /* given float32array of 3d vertices and test vertex, return the vertex closest to the test vertex. */
 export function closest(verts, test_vertex) {
 	var closestVertex = vect(verts,0);
