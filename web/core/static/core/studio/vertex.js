@@ -77,7 +77,7 @@ export function insert(verts, test_verts, new_point){
 	for (var i = 0; i < test_verts.length/3; i ++) {
 		const tv = vect(test_verts, i);
 		const dist = tv.distanceTo(vect(verts,index));
-		if(dist > prev_dist) {
+		if(dist > prev_dist+0.01){
 			index++;
 			prev_dist = tv.distanceTo(vect(verts,index));
 		}else{ prev_dist = dist; }
@@ -85,7 +85,7 @@ export function insert(verts, test_verts, new_point){
 		if(dist_point > prev_dist_point){
 			const new_verts = Array.from(verts);
 			console.log(index);
-			new_verts.splice(index, 0, new_point.x, new_point.y, new_point.z); 
+			new_verts.splice(index*3, 0, new_point.x, new_point.y, new_point.z); 
 			return new Float32Array(new_verts);
 		}
 		prev_dist_point = dist_point;
