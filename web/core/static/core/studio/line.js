@@ -7,10 +7,7 @@ import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
 import * as THREE from 'three';
 
-//SET OBJECT Z INSTEAD OF VERTEX Z FOR PROPER RENDERING ORDER ///////////////////////////
-//Maybe does not apply to mesh line and points, appears to be okay 
-
-const max_points = 100;
+const max_points = 100; // This is used for point colors. Alternative is to create a new BufferAttribute each update
 
 export const Line = forwardRef(function Line(p, ref) {
     var source_verts = [];
@@ -36,7 +33,6 @@ export const Line = forwardRef(function Line(p, ref) {
     });
     const show_points = useReactiveVar(show_points_var);
     const show_endpoints = useReactiveVar(show_endpoints_var);
-    //const [show_points, set_show_points] = useState(true);
 
     const name=()=> p.source.name;
     const verts=()=> points.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
@@ -48,9 +44,8 @@ export const Line = forwardRef(function Line(p, ref) {
     function point_colors(){
         if(point_attr_color.current) point_attr_color.current.needsUpdate = true;
         const colors = [];
-        for(var i=0; i<max_points; i++){
+        for(var i=0; i<max_points; i++)
             colors.push(...selected_point==i ? theme.primary : theme.secondary);
-        }
         return new Float32Array(colors);
     }
 
@@ -164,15 +159,6 @@ export const Line = forwardRef(function Line(p, ref) {
                     history.index = 0;
                     update({verts:history.verts[history.index]}); 
                     set_history(history);
-                // break; case 'delete_points':
-                //     if(selected_point >= 0){
-                //         const new_verts = Array.from(verts());
-                //         new_verts.splice(selected_point*3, 3);
-                //         update({verts:new_verts, record:true});
-                //         set_selected_point(-1);
-                //     }
-                //break; case 'show_points':
-                //    set_show_points(editor_act.show);
             }
         }
     },[editor_act]); 

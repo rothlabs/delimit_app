@@ -8,7 +8,7 @@ export function Pref_Tool(p){
     const show_endpoints = useReactiveVar(show_endpoints_var);
     return(
         r(Dropdown, {},
-            r(Dropdown.Toggle, {className:'bi-eye', variant:p.button_variant}, ' '),
+            r(Dropdown.Toggle, {className:'bi-eye', variant:p.button_variant}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
             r(Dropdown.Menu, {},
                 r(Form.Check, {
                     className:'mt-2 mb-2', 

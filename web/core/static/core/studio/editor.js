@@ -13,15 +13,14 @@ export const editor_action = makeVar({name:'none'});
 export const show_points_var = makeVar(true);
 export const show_endpoints_var = makeVar(true);
 export const draw_mode_var = makeVar('draw');
-//export const vertex_action  = makeVar({name:'none'});
-//export const history_index = makeVar(0);
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
 const draw_verts = [];
 var pointers_down = 0;
-
-/// Sometimes trying to drag another point makes the already selected point warp to new selection!!!
+const point=(e)=> e.intersections[e.intersections.length-1].point;
+const name=(e)=> e.intersections[0].object.name
+const select=(e)=> e.intersections[0];
 
 export const Board = forwardRef( function Board(p, ref) {
     const {camera, raycaster} = useThree(); 
@@ -41,55 +40,50 @@ export const Board = forwardRef( function Board(p, ref) {
     return (
         r('mesh', { 
             name: 'board',
-            onClick:(event)=>{
-                event.stopPropagation();
-                if(event.delta < 5){
-                    set_selection(null);
-                    if(draw_mode == 'delete' && event.intersections[0].object.name == 'points'){
-                        product.current.mutate({selection:event.intersections[0], record:true});
-                    }
-                    if(draw_mode == 'draw' && event.intersections[0].object.name == 'meshline'){ //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
-                        set_selection(event.intersections[0]);
-                    }
+            onClick:(e)=>{ e.stopPropagation();
+                if(e.delta < 5){
+                    if(name(e) == 'board') set_selection(null);
+                    if(draw_mode == 'delete' && name(e) == 'points')
+                        product.current.mutate({selection:select(e), record:true});
+                    if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
+                        set_selection(select(e));
                 }
             },
-            onPointerLeave:(event)=> { 
-                if(event.intersections.length < 1) {
+            onPointerLeave:(e)=> { 
+                if(e.intersections.length < 1) {
                     pointers_down = 0;//{zero_pointers_down_on_enter = true;  console.log('zero_pointers_down_on_enter');}
                     draw_verts.length = 0;
                     draw_line.current.set_verts(new Float32Array());
                     set_dragging(false);
                 }
             },
-            onPointerDown:(event)=>{
-                event.stopPropagation();
-                if([0,1].includes(event.which)){
+            onPointerDown:(e)=>{ e.stopPropagation();
+                if([0,1].includes(e.which)){
                     pointers_down++;
-                    pointer_start.set(event.clientX,event.clientY);
+                    pointer_start.set(e.clientX,e.clientY);
                     if(!(selection && selection.object.name == 'meshline')){ // if no line selected 
                         if(draw_mode == 'add'){
-                            if(event.intersections[0].object.name == 'meshline'){
-                                const result = product.current.mutate({selection:event.intersections[0], new_point:event.intersections[event.intersections.length-1].point, record: false});
+                            if(name(e) == 'meshline'){
+                                const result = product.current.mutate({selection:select(e), new_point:point(e), record: false});
                                 set_selection(result);
                                 set_dragging(true);
                             }
                         }
-                        if(['endpoints','points'].includes(event.intersections[0].object.name)){
-                            set_selection(event.intersections[0]);
+                        if(['endpoints','points'].includes(name(e))){
+                            set_selection(select(e));
                             set_dragging(true);
                         }
                     }
                 }
             },
-            onPointerUp:(event)=>{
-                event.stopPropagation();
-                if([0,1].includes(event.which)){ // touch or left mouse button? (not sure about 0 and 1)
+            onPointerUp:(e)=>{ e.stopPropagation();
+                if([0,1].includes(e.which)){ // touch or left mouse button? (not sure about 0 and 1)
                     if(selection){ 
                         if(pointers_down==1 && (draw_verts.length>0 || dragging)){
                             product.current.mutate({
                                 selection: selection,
                                 draw_verts: new Float32Array(draw_verts),
-                                move_point: event.intersections[event.intersections.length-1].point,
+                                move_point: point(e),
                                 record: true,
                             });
                         }
@@ -101,19 +95,17 @@ export const Board = forwardRef( function Board(p, ref) {
                     if(pointers_down < 0) pointers_down = 0;
                 }
             }, 
-            onPointerMove:(event)=>{
-                event.stopPropagation();
+            onPointerMove:(e)=>{ e.stopPropagation();
                 if(pointers_down==1 && selection){ 
-                    const point = event.intersections[event.intersections.length-1].point;
                     if(selection.object.name == 'meshline'){
-                        pointer_vect.set(event.clientX,event.clientY);
+                        pointer_vect.set(e.clientX,e.clientY);
                         if(pointer_start.distanceTo(pointer_vect) > 2){
-                            draw_verts.push(point.x,point.y,0); // will need to find other z value for 3d lines
+                            draw_verts.push(point(e).x, point(e).y, 0); // will need to find other z value for 3d lines
                             draw_line.current.set_verts(new Float32Array(draw_verts));
                         }
                     }
                     if(dragging){
-                        product.current.mutate({selection:selection, move_point:point, record:false});
+                        product.current.mutate({selection:selection, move_point:point(e), record:false});
                     }
                 }
             },
@@ -133,7 +125,6 @@ export function Studio_Editor(){
     const {id} = useParams(); // from react router
     const board = useRef();
     const camera_controls = useRef();
-    //const [temp_id, set_temp_id] = useState('Kt1JsV1H');
     const [data, alt] = use_query('GetProduct',[
         ['product id name story file public owner{id firstName}', ['String! id', id]], ['user id'],
     ], 'no-cache'); 
