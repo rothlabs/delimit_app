@@ -35,7 +35,7 @@ export const Board = forwardRef( function Board(p, ref) {
 		export_glb: product.current.export_glb,
     }});
 
-    useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom);
+    useFrame(()=>raycaster.params.Points.threshold = 11/camera.zoom);
 
     //console.log(scene);
     return (
@@ -43,10 +43,14 @@ export const Board = forwardRef( function Board(p, ref) {
             name: 'board',
             onClick:(event)=>{
                 event.stopPropagation();
-                if(event.delta < 5 && !['endpoints','points'].includes(event.intersections[0].object.name)){ //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
+                if(event.delta < 5){
                     set_selection(null);
-                    if(draw_mode == 'draw') set_selection(event.intersections[0]);
-                    //if(draw_mode == 'add' && event.intersections[0].object.name == 'meshline') console.log('add point');
+                    if(draw_mode == 'delete' && event.intersections[0].object.name == 'points'){
+                        product.current.mutate({selection:event.intersections[0], record:true});
+                    }
+                    if(draw_mode == 'draw' && event.intersections[0].object.name == 'meshline'){ //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
+                        set_selection(event.intersections[0]);
+                    }
                 }
             },
             onPointerLeave:(event)=> { 
@@ -65,11 +69,9 @@ export const Board = forwardRef( function Board(p, ref) {
                     if(!(selection && selection.object.name == 'meshline')){ // if no line selected 
                         if(draw_mode == 'add'){
                             if(event.intersections[0].object.name == 'meshline'){
-                                //set_selection(event.intersections[0]);
-                                //const new_selection = 
-                                product.current.mutate({selection:event.intersections[0], new_point:event.intersections[event.intersections.length-1].point, record: false});
-                                //set_selection(new_selection);
-                                //set_dragging(true);
+                                const result = product.current.mutate({selection:event.intersections[0], new_point:event.intersections[event.intersections.length-1].point, record: false});
+                                set_selection(result);
+                                set_dragging(true);
                             }
                         }
                         if(['endpoints','points'].includes(event.intersections[0].object.name)){

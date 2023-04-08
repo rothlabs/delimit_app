@@ -71,26 +71,28 @@ export function reline(verts, spacing = 10){
 }
 
 export function insert(verts, test_verts, new_point){
+	const tests = [];
 	var index = 0;
 	var prev_dist = 0;
-	var prev_dist_point = vect(test_verts,0).distanceTo(new_point);
-	for (var i = 0; i < test_verts.length/3; i ++) {
+	for (var i = 0; i < test_verts.length/3; i++) {
 		const tv = vect(test_verts, i);
 		const dist = tv.distanceTo(vect(verts,index));
-		if(dist > prev_dist+0.01){
+		if(dist > prev_dist){
 			index++;
 			prev_dist = tv.distanceTo(vect(verts,index));
 		}else{ prev_dist = dist; }
-		const dist_point = tv.distanceTo(new_point);
-		if(dist_point > prev_dist_point){
-			const new_verts = Array.from(verts);
-			console.log(index);
-			new_verts.splice(index*3, 0, new_point.x, new_point.y, new_point.z); 
-			return new Float32Array(new_verts);
-		}
-		prev_dist_point = dist_point;
+		tests.push({index:index, dist:tv.distanceTo(new_point)});
 	}
-	return verts;
+	prev_dist = Infinity;
+	for (var i = 0; i < tests.length; i++) {
+		if(tests[i].dist < prev_dist){
+			index = tests[i].index;
+			prev_dist = tests[i].dist;
+		}
+	}
+	const new_verts = Array.from(verts);
+	new_verts.splice(index*3, 0, new_point.x, new_point.y, new_point.z); 
+	return {verts:new Float32Array(new_verts), i:index};
 }
 
 /* given float32array of 3d vertices and test vertex, return the vertex closest to the test vertex. */
@@ -175,6 +177,8 @@ export function replace(vertices, startIndex, endIndex, replacements) { // use s
 	return new_verts; //return new Float32Array(newVertices2);
 }
 
+
+
 /* given a float32array, return true if any elements are NaN */
 // function hasNaN(array) {
 //   for (var i = 0; i < array.length; i++) {
@@ -186,3 +190,13 @@ export function replace(vertices, startIndex, endIndex, replacements) { // use s
 // }
 
 // export{set_density, closet_to_endpoints, endpoints, map, replace, first, last, get, set, vector, hasNaN}
+
+//const dist_point = tv.distanceTo(new_point);
+//var prev_dist_point = vect(test_verts,0).distanceTo(new_point);
+		//if(dist_point > prev_dist_point && dist_point < 2){
+		//	const new_verts = Array.from(verts);
+		//	console.log(index);
+		//	new_verts.splice(index*3, 0, new_point.x, new_point.y, new_point.z); 
+		//	return new Float32Array(new_verts);
+		//}
+		//prev_dist_point = dist_point;

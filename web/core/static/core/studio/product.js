@@ -34,7 +34,12 @@ export const Product = forwardRef(function Product(p, ref) {
 		//	lines.current.forEach(line=>line.set_tmp(args));
         //},
 		mutate(args){
-			lines.current.forEach(line=>line.mutate(args));
+			var result = null;
+			lines.current.forEach(line=>{
+				const r = line.mutate(args);
+				if(r) result = r;
+			});
+			return result;
         },
 		export_glb(callback){
 			exporter.parse(work_group.current, function(buffer){

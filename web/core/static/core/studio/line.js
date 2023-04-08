@@ -87,8 +87,9 @@ export const Line = forwardRef(function Line(p, ref) {
         mutate(args){ // change so args contains selection and it checks against that (see set_tmp)
             if(args.selection.object == mesh.current){
                 if(args.new_point){
-                    const new_verts = vtx.insert(verts(), meshline_verts(), args.new_point);
-                    update({verts: new_verts, record:args.record});
+                    const insert = vtx.insert(verts(), meshline_verts(), args.new_point);
+                    update({verts: insert.verts, record:args.record});
+                    return {object:points.current, index:insert.i};
                 }else if(args.draw_verts.length/3 >= 2){ 
                     const new_verts_0 = vtx.reline(args.draw_verts);
                     const closest     = vtx.closest_to_endpoints(verts(), new_verts_0);
@@ -98,7 +99,11 @@ export const Line = forwardRef(function Line(p, ref) {
                 }
             }else if(args.selection.object == points.current){
                 const new_verts = Array.from(verts());
-                new_verts.splice(args.selection.index*3, 3, args.move_point.x, args.move_point.y, args.move_point.z);
+                if(args.move_point){
+                    new_verts.splice(args.selection.index*3, 3, args.move_point.x, args.move_point.y, args.move_point.z);
+                }else{
+                    new_verts.splice(args.selection.index*3, 3);
+                }
                 update({verts:new_verts, record:args.record});
             }else if(args.selection.object == endpoints.current){
                 if(args.selection.index == 0)
@@ -106,6 +111,7 @@ export const Line = forwardRef(function Line(p, ref) {
                 if(args.selection.index == 1)
                     update({verts:vtx.map(prev_verts(), vtx.vect(prev_verts(),0), args.move_point), constrain:true, record:args.record});
             }
+            return null;
         },
         add_constraint(constraint){
             set_constraints((c)=> [...c, constraint]);
