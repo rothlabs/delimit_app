@@ -99,7 +99,7 @@ export const Line = forwardRef(function Line(p, ref) {
                 }else{
                     new_verts.splice(args.selection.index*3, 3);
                 }
-                update({verts:new_verts, record:args.record});
+                update({verts:new_verts, constrain:true, record:args.record});
             }else if(args.selection.object == endpoints.current){
                 if(args.selection.index == 0)
                     update({verts:vtx.map(prev_verts(), args.move_point, vtx.vect(prev_verts(),-1)), constrain:true, record:args.record});

@@ -177,6 +177,17 @@ export function replace(vertices, startIndex, endIndex, replacements) { // use s
 	return new_verts; //return new Float32Array(newVertices2);
 }
 
+export function mirror_x(verts){
+	const new_verts = [];
+	for(var i=0; i<verts.length/3; i++){
+		const v = vect(verts,i);
+		new_verts.push(-v.x);
+		new_verts.push(v.y);
+		new_verts.push(v.z);
+	}
+	return new Float32Array(new_verts);
+}
+
 
 
 /* given a float32array, return true if any elements are NaN */

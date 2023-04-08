@@ -3,6 +3,17 @@ import {Vector3} from 'three';
 
 //const clip = 12;
 
+// if any line changes, update line2 so its x-axis is mirrored of line1
+export function Mirror_X(line1, line2){
+    const constraint = {};
+    var correction=()=> vtx.mirror_x(line1.verts()); 
+    constraint.enforce = function(){
+        line2.update({verts:correction(), constrain:true}); 
+    };
+    line1.add_constraint(constraint);
+    line2.add_constraint(constraint);
+}
+
 // if any line changes, update line3 so its endpoints fall on line1 and line2
 export function Endpoints_To_Lines(line1, line2, line3){
     const constraint = {};
@@ -77,7 +88,6 @@ export function Vertical_Alignment(line1, i1, line2, i2, line3, triggers){
         if(correction != null){
             if(Math.abs(v1().x-v3a().x) > max_dist || Math.abs(v2().x-v3b().x) > max_dist){
                 line3.update({verts:correction()}); 
-                
             }
         }
     };

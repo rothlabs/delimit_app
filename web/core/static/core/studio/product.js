@@ -3,7 +3,7 @@ import {Box3, TextureLoader} from 'three';
 import {Line} from './line.js';
 //import {Surface} from './surface.js';
 import {useThree, useLoader} from 'r3f';
-import {Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
+import {Mirror_X, Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
 import {use_media_gltf, static_url} from '../app.js';
 import {editor_action} from './editor.js';
 import {GLTFExporter} from './exporter.js';
@@ -57,7 +57,7 @@ export const Product = forwardRef(function Product(p, ref) {
 			if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
 			camera.updateProjectionMatrix();
 
-			var tv_in_base=null, tv_in_rim=null, tv_in_mids=[];
+			var tv_in_base=null, tv_in_rim=null, tv_in_mids=[]; // use an object with keys instead
 			var tv_out_base=null, tv_out_rim=null, tv_out_mids=[];
 			var iv_rear=null, iv_front=null, iv_mids=[]; 
 			var ov_rear = null, ov_front=null, ov_mids=[];
@@ -74,6 +74,12 @@ export const Product = forwardRef(function Product(p, ref) {
 				if(line1.name().includes('ov__rear'))       ov_rear = line1;
 				if(line1.name().includes('ov__front'))      ov_front = line1;
 				if(line1.name().includes('ov__mid')) 		ov_mids.push(line1);
+			});
+			if(iv_front && iv_rear && ov_front && ov_rear){
+				Mirror_X(iv_front, ov_front);
+				Mirror_X(iv_rear, ov_rear);
+			}
+			lines.current.forEach(line1 => {
 				var words1=line1.name().split('__');
 				lines.current.forEach(line2=>{
 					var words2=line2.name().split('__');
@@ -99,6 +105,7 @@ export const Product = forwardRef(function Product(p, ref) {
 					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_out_mids[i], [iv_rear, iv_front]);
 					Coincident_Endpoints(tv_in_mids[i], tv_out_mids[i]);
 				}
+				
 			}
 
 			editor_action({name:'record', init:true}); 
