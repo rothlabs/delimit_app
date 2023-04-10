@@ -9,44 +9,45 @@ import {useParams} from 'rrd';
 import {makeVar, useReactiveVar} from 'apollo';
 import {use_query} from '../app.js';
 
-export const editor_action = makeVar({name:'none'});
-export const show_points_var = makeVar(true);
-export const show_endpoints_var = makeVar(true);
-export const draw_mode_var = makeVar('draw');
+export const editor_act_rv = makeVar({name:'none'});
+export const editor_qr_rv = makeVar();
+export const show_points_rv = makeVar(true);
+export const show_endpoints_rv = makeVar(true);
+export const draw_mode_rv = makeVar('draw');
+export const product_rv = makeVar();
+export const selection_rv = makeVar();
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
 const draw_verts = [];
 var pointers_down = 0;
-const point=(e)=> e.intersections[e.intersections.length-1].point;
-const name=(e)=> e.intersections[0].object.name
+const point=(e)=>  e.intersections[e.intersections.length-1].point;
+const name=(e)=>   e.intersections[0].object.name
 const select=(e)=> e.intersections[0];
 
-export const Board = forwardRef( function Board(p, ref) {
+//export const View_2D = forwardRef( 
+function View_2D(p) {
     const {camera, raycaster} = useThree(); 
-    const [selection, set_selection] = useState(); //{object:{name:'none'}}
+    //const camera_controls = useRef();
+    //const [selection, set_selection] = useState(); //{object:{name:'none'}}
     const [dragging, set_dragging] = useState();
     const product = useRef();
     const draw_line = useRef();
-    const draw_mode = useReactiveVar(draw_mode_var);
-
-    useImperativeHandle(ref,()=>{return{
-		export_glb: product.current.export_glb,
-    }});
+    const draw_mode = useReactiveVar(draw_mode_rv);
+    const selection = useReactiveVar(selection_rv);
 
     useFrame(()=>raycaster.params.Points.threshold = 11/camera.zoom);
 
-    //console.log(scene);
     return (
         r('mesh', { 
             name: 'board',
             onClick:(e)=>{ e.stopPropagation();
                 if(e.delta < 5){
-                    if(name(e) == 'board') set_selection(null);
+                    if(name(e) == 'board') selection_rv(null);
                     if(draw_mode == 'delete' && name(e) == 'points')
                         product.current.mutate({selection:select(e), record:true});
                     if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
-                        set_selection(select(e));
+                        selection_rv(select(e));
                 }
             },
             onPointerLeave:(e)=> { 
@@ -65,12 +66,12 @@ export const Board = forwardRef( function Board(p, ref) {
                         if(draw_mode == 'add'){
                             if(name(e) == 'meshline'){
                                 const result = product.current.mutate({selection:select(e), new_point:point(e), record: false});
-                                set_selection(result);
+                                selection_rv(result);
                                 set_dragging(true);
                             }
                         }
                         if(['endpoints','points'].includes(name(e))){
-                            set_selection(select(e));
+                            selection_rv(select(e));
                             set_dragging(true);
                         }
                     }
@@ -112,54 +113,34 @@ export const Board = forwardRef( function Board(p, ref) {
         },   
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
-            r(Product, {ref:product, selection:selection, ...p}), 
-            r(Line, {ref:draw_line, selection:'off', verts:[], name:'draw_line', ...p}), // temp drawing line for visualization
+            r(Product, {ref:rf=>{product_rv(rf); product.current=rf}}),  
+            r(Line, {ref:draw_line, selection:'off', verts:[], name:'draw_line'}), // temp drawing line for visualization
         )
     )
-});
+};
 
-
-
-//add light and cube to check if camera is orthographic like it should be 
 export function Studio_Editor(){
     const {id} = useParams(); // from react router
-    const board = useRef();
-    const camera_controls = useRef();
     const [data, alt] = use_query('GetProduct',[
         ['product id name story file public owner{id firstName}', ['String! id', id]], ['user id'],
-    ], 'no-cache'); 
+    ], 'no-cache', editor_qr_rv); 
     return (
         alt ? r(alt) : 
             r(Fragment,{},
+                r(Toolbar),//, {product:data.product, user:data.user}), //, view_2d:view_2d
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                    r(Canvas,{orthographic: true, camera:{position:[0, 0, 900]}}, //, onCreated:(state)=>raycaster=state.raycaster 
-                        // need to disable Z pan!!!!! \/ (holding scroll wheel appears to activate it
-                        r(CameraControls, {ref:camera_controls, polarRotateSpeed:0, azimuthRotateSpeed:0, draggingSmoothTime:0}), //camera:THREE.Orthographic
-                        r(Board, {ref:board, camera_controls:camera_controls, product:data.product}), //file:data.product.file
+                    r(Canvas,{orthographic:true, camera:{position:[0, 0, 900]}}, //, onCreated:(state)=>raycaster=state.raycaster 
+                        r(CameraControls, {
+                            makeDefault: true,
+                            minDistance: 100, 
+                            maxDistance: 100, 
+                            polarRotateSpeed: 0, 
+                            azimuthRotateSpeed: 0, 
+                            draggingSmoothTime: 0,
+                        }), 
+                        r(View_2D),
                     )
                 ),
-                r(Toolbar, {product:data.product, user:data.user, board:board}), 
             )
     )
 }
-
-
-//onPointerEnter:(event)=> {
-            //    if(zero_pointers_down_on_enter){pointers_down = 0; zero_pointers_down_on_enter=false;}
-            //},
-
-
-    // const {loading, error, data} = useQuery(gql`query Product($id: String!){  
-    //     product(id: $id) {
-    //         file
-    //     }
-    // }`,{variables:{id:productID}});
-    // if (loading) return r(Loading);
-    // if (error)   return r(Error_Page);
-
-//import { create } from 'zustand'
-
-//export const useStore = create((set, get) => ({
-//  page: 'Easel',
-  //set_page:()=>
-//}))

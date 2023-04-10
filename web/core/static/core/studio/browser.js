@@ -1,5 +1,5 @@
 import {createElement as r, useEffect} from 'react';
-import {Container, ButtonGroup, Card, Button, Row, Col} from 'boot';
+import {Container, Card, Button, Row, Col} from 'boot';
 import {Link} from 'rrd';
 import {use_query} from '../app.js';
 import {show_copy_product, show_delete_product} from './crud.js';

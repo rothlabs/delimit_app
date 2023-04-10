@@ -5,25 +5,31 @@ import {Line} from './line.js';
 import {useThree, useLoader} from 'r3f';
 import {Mirror_X, Mirror_Endpoints_X, Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
 import {use_media_gltf, static_url} from '../app.js';
-import {editor_action} from './editor.js';
+import {editor_act_rv, editor_qr_rv} from './editor.js'; //camera_controls_rv
 import {GLTFExporter} from './exporter.js';
+import {useReactiveVar} from 'apollo';
+//import {Bounds} from 'drei';
 
 const bounds = new Box3();
 const exporter = new GLTFExporter();
 
-export const Product = forwardRef(function Product(p, ref) {
-	const work_group = useRef();
+//export const product_rv = makeVar();
+
+export const Product = forwardRef(function Product(p, ref) { // make product set product_rv(ref) ?
+	const group = useRef();
 	const lines = useRef([]);
 	//const surfaces = useRef([]);
 	//const defaults = useRef([]);
 	//const materials = useRef({});
-	const {camera} = useThree(); 
-	const disc_texture = useLoader(TextureLoader, static_url+'core/texture/disc.png');
+	const {camera, controls} = useThree(); 
+	//const camera_controls = useReactiveVar(camera_controls_rv);
+	const editor_qr = useReactiveVar(editor_qr_rv);
+	//const disc_texture = useLoader(TextureLoader, static_url+'core/texture/disc.png');
 
-	const nodes = use_media_gltf(p.product.file);
+	const nodes = use_media_gltf(editor_qr.product.file);
 
 
-	useImperativeHandle(ref,()=>{return{
+	useImperativeHandle(ref,()=>({
 		//set_point(args){
 		//	lines.current.forEach(line=>line.set_point(args));
         //},
@@ -42,19 +48,19 @@ export const Product = forwardRef(function Product(p, ref) {
 			return result;
         },
 		export_glb(callback){
-			exporter.parse(work_group.current, function(buffer){
+			exporter.parse(group.current, function(buffer){
 				callback(new Blob([buffer], {type:'application/octet-stream'}));
 			},function(error){console.log(error);},{ binary:true });
 		}
-    };});
+    }));
 	
 	useEffect(()=>{ 
-		if(nodes){
-			bounds.setFromObject( work_group.current );
+		if(nodes && controls){// && camera_controls){
+			bounds.setFromObject( group.current );
 			const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
 			const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
-			if(zoom_x <= zoom_y) p.camera_controls.current.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
-			if(zoom_x > zoom_y)  p.camera_controls.current.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
+			if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
+			if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
 			camera.updateProjectionMatrix();
 
 			var tv_in_base=null, tv_in_rim=null, tv_in_mids=[]; // use an object with keys instead
@@ -110,19 +116,26 @@ export const Product = forwardRef(function Product(p, ref) {
 				}
 			}
 
-			editor_action({name:'record', init:true}); 
+			editor_act_rv({name:'record', init:true}); 
 		}
-	},[nodes]); 
+	},[nodes, controls]); //camera_controls 
 
-
-	//console.log(nodes);
-	//console.log('product render');
-	//console.log(work_group);
 	return (
-		//r('group', {ref:group, dispose:null}, 
-			//r('group', {ref:export_group, dispose:null}),
-			r('group', {ref:work_group, name:p.product.name}, //, dispose:null
-				// ...Object.entries(cloned_nodes).map((n,i)=>(!n[1].name.includes('default__') ? null : //.isMesh ? null :
+		r('group', {ref:group, name:editor_qr.product.name}, //, dispose:null
+			...nodes.map((sketch, i) => !sketch.name.includes('sketch__') ? null :
+				r('group', {name: sketch.name},
+					...sketch.children.map((line, i) => !line.name.includes('line__') ? null : // n = n.child_of_name('points)
+						r(Line, {ref:l=>lines.current[i]=l, source:line, ...p}) //point_texture:disc_texture //, rand:Math.random() key:'line_'+i export_group:export_group,   verts:n[1].geometry.attributes.position.array
+					),
+				)
+			)
+		)
+	)
+});
+
+
+
+// ...Object.entries(cloned_nodes).map((n,i)=>(!n[1].name.includes('default__') ? null : //.isMesh ? null :
 				// 	r('mesh',{ref:el=>defaults.current[n[1].name]=el, geometry:n[1].geometry, position:[n[1].position.x,n[1].position.y,n[1].position.z]},  //, key:n[1].name //position:n[1].position
 				// 		r('meshBasicMaterial',{ref:el=>materials.current[n[1].name]=el, map:n[1].material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
 				// 	)
@@ -132,15 +145,6 @@ export const Product = forwardRef(function Product(p, ref) {
 				// )),
 				//...Object.entries(cloned_nodes).map((n,i)=>(!n[1].name.includes('line__') ? null :
 					//r(Line, {ref:el=>lines.current[i]=el, node:n[1], point_texture:disc_texture, ...p})
-				...nodes.map((n, i) => !n.name.includes('line__') ? null : // n = n.child_of_name('points)
-					r(Line, {ref:l=>lines.current[i]=l, source:n, point_texture:disc_texture, ...p}) //, rand:Math.random() key:'line_'+i export_group:export_group,   verts:n[1].geometry.attributes.position.array
-				),
-			)
-		//)
-	)
-});
-
-
 
 //if(tv_in_base && tv_in_rim && tv_in_mids && tv_out_base && tv_out_rim && tv_out_mids && iv_rear && iv_front && iv_mids && ov_rear && ov_front && ov_mids){
 

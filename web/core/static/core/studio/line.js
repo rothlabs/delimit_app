@@ -1,8 +1,8 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import {MeshLineRaycast } from './meshline.js';
-import {useThree, useFrame} from 'r3f';
-import {theme, for_child} from '../app.js';
-import {editor_action, show_points_var, show_endpoints_var} from './editor.js';
+import {useThree, useFrame, useLoader} from 'r3f';
+import {theme, for_child, static_url} from '../app.js';
+import {editor_act_rv, show_points_rv, show_endpoints_rv, selection_rv} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
 import * as THREE from 'three';
@@ -26,13 +26,12 @@ export const Line = forwardRef(function Line(p, ref) {
     const [selected_point, set_selected_point] = useState(-1);
     const [selected_endpoint, set_selected_endpoint] = useState(-1);
     const [constraints, set_constraints] = useState([]);//[{enforce:()=>{},wow:'wow'}]);
-    const editor_act = useReactiveVar(editor_action);
-    const [history, set_history] = useState({
-        verts:[],
-        index:0,
-    });
-    const show_points = useReactiveVar(show_points_var);
-    const show_endpoints = useReactiveVar(show_endpoints_var);
+    const editor_act = useReactiveVar(editor_act_rv);
+    const [history, set_history] = useState({verts:[], index:0});
+    const show_points = useReactiveVar(show_points_rv);
+    const show_endpoints = useReactiveVar(show_endpoints_rv);
+    const selection = useReactiveVar(selection_rv);
+    const point_texture = useLoader(THREE.TextureLoader, static_url+'core/texture/disc.png');
 
     const name=()=> p.source.name;
     const verts=()=> points.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
@@ -75,7 +74,7 @@ export const Line = forwardRef(function Line(p, ref) {
                 constraints.forEach(constraint => constraint.enforce());
             //}
         }
-        if(args.record) editor_action({name:'record'});
+        if(args.record) editor_act_rv({name:'record'});
     }
 
     useImperativeHandle(ref,()=>({ 
@@ -132,12 +131,12 @@ export const Line = forwardRef(function Line(p, ref) {
         set_selected_line(false); 
         set_selected_point(-1); 
         set_selected_endpoint(-1); 
-        if(p.selection){
-            if(p.selection.object == mesh.current)      set_selected_line(true);
-            if(p.selection.object == points.current)    set_selected_point(p.selection.index);
-            if(p.selection.object == endpoints.current) set_selected_endpoint(p.selection.index);
+        if(selection){
+            if(selection.object == mesh.current)      set_selected_line(true);
+            if(selection.object == points.current)    set_selected_point(selection.index);
+            if(selection.object == endpoints.current) set_selected_endpoint(selection.index);
         }
-    },[p.selection]);
+    },[selection]);
 
     useEffect(()=>{ // Switch to imparitive handler, or add prop that makes it rerender (no the prop was the old way)
         if(p.selection!='off'){
@@ -176,12 +175,21 @@ export const Line = forwardRef(function Line(p, ref) {
     return (
         r('group', {
             name: p.source? p.source.name : 'line',
-            position: p.source ? [p.source.position.x,p.source.position.y,p.source.position.z] : [0,0,0],
+            //position: p.source ? [p.source.position.x,p.source.position.y,p.source.position.z] : [0,0,0],
         }, 
+            r('mesh', { // for visualization
+                ref: mesh,
+                name: 'meshline', // give proper ID name that includes "line" or "meshline"
+                position: [0,0,10],
+                raycast: (p.selection!='off') ? MeshLineRaycast : ()=>null,
+            },
+                r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
+                r('meshLineMaterial', {ref:meshline_material, color:selected_line?theme.primary_s:theme.secondary_s}),
+            ),
             p.source && r('points', { // source of truth for the line
                 ref: points,
                 name: 'points',
-                position: [0,0,10],//geometry: p.source && p.source.geometry,
+                position: [0,0,20],//geometry: p.source && p.source.geometry,
                 raycast: show_points ? THREE.Points.prototype.raycast : ()=>null,
             }, 
                 r('bufferGeometry',{},
@@ -189,22 +197,13 @@ export const Line = forwardRef(function Line(p, ref) {
                     r('bufferAttribute',{ref:point_attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
                     r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:max_points, itemSize:3, array:point_colors()}),//r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:source_verts.length, itemSize:3, array:point_colors(source_verts.length)}),
                 ),
-                r('pointsMaterial',{size:10, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true, visible:show_points}),  
-            ),
-            r('mesh', { // for visualization
-                ref: mesh,
-                name: 'meshline', // give proper ID name that includes "line" or "meshline"
-                position: [0,0,0],
-                raycast: (p.selection!='off') ? MeshLineRaycast : ()=>null,
-            },
-                r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
-                r('meshLineMaterial', {ref:meshline_material, color:selected_line?theme.primary_s:theme.secondary_s}),
+                r('pointsMaterial',{size:10, vertexColors:true, map:point_texture, alphaTest:.5, transparent:true, visible:show_points}),  
             ),
             !p.source || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__') ? null :
                 r('points',{
                     ref:endpoints, 
                     name:'endpoints', 
-                    position:[0,0,20],
+                    position:[0,0,30],
                     raycast: show_endpoints ? THREE.Points.prototype.raycast : ()=>null,
                 }, 
                     r('bufferGeometry',{},
@@ -212,7 +211,7 @@ export const Line = forwardRef(function Line(p, ref) {
                         r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
                         r('bufferAttribute',{ref:endpoint_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
                     ),
-                    r('pointsMaterial',{size:15, vertexColors:true, map:p.point_texture, alphaTest:.5, transparent:true, visible:show_endpoints}),
+                    r('pointsMaterial',{size:15, vertexColors:true, map:point_texture, alphaTest:.5, transparent:true, visible:show_endpoints}),
                 ),
         )
     )
@@ -270,7 +269,7 @@ export const Line = forwardRef(function Line(p, ref) {
 //if(p.source) source_verts = p.source.children[1].geometry.attributes.position.array; 
 
 
-//(source_verts.length<6 || p.selection=='off' || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :
+//(source_verts.length<6 || selection=='off' || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :
 
 //const history_i = useReactiveVar(history_index);
     //const [history, set_history] = useState([]);

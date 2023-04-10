@@ -3,22 +3,26 @@ import {Row, Col, Button, ButtonGroup, Dropdown, Form, InputGroup} from 'boot';
 import {use_mutation} from '../app.js';
 import {show_login} from '../login.js';
 import {useNavigate, useLocation} from 'rrd';
+import {useReactiveVar} from 'apollo';
+import {product_rv, editor_qr_rv} from './editor.js';
 
 // 'Save' works except it reverts back to original in the buffer!! You need to go away and come back to the page for it to show the new model!!!
 
 export function File_Tool(p){
     const navigate = useNavigate();
     //const location = useLocation();
+    const product = useReactiveVar(product_rv);
+    const editor_qr = useReactiveVar(editor_qr_rv);
     const [show, set_show] = useState(false);
     const [disabled, set_disabled] = useState(true);
     const [save_disabled, set_save_disabled] = useState(true);
-    const [name, set_name] = useState(p.product.name);
-    const [story, set_story] = useState(p.product.story);
-    const [is_public, set_is_public] = useState(p.product.public);
+    const [name, set_name] = useState(editor_qr.product.name);
+    const [story, set_story] = useState(editor_qr.product.story);
+    const [is_public, set_is_public] = useState(editor_qr.product.public);
     const [save_product, data, alt, reset] = use_mutation([
         ['saveProduct response product{name, id}', 
             ['Boolean! asCopy', false], 
-            ['String! id', p.product.id], 
+            ['String! id', editor_qr.product.id], 
             ['String! name', name], 
             ['String story', 't'+story],   /// 't' is present so the server knows story is being provided even if the user inputs nothing
             ['Boolean! public', is_public],
@@ -29,11 +33,11 @@ export function File_Tool(p){
     useEffect(()=>{ 
         set_disabled(true);
         set_save_disabled(true);
-        if(p.user && p.user.id == p.product.owner.id) {
+        if(editor_qr.user && editor_qr.user.id == editor_qr.product.owner.id) {
             set_disabled(false);
             set_save_disabled(false);
-        }else{ if(p.user && is_public) set_disabled(false); }
-    },[p.user]);
+        }else{ if(editor_qr.user && is_public) set_disabled(false); }
+    },[editor_qr.user]);
     useEffect(()=>{ 
         if(data && data.saveProduct.product){
             setTimeout(()=>{ reset(); set_show(false); }, 1200);
@@ -41,7 +45,7 @@ export function File_Tool(p){
         }
     },[data]);
     function save(as_copy){
-        p.board.current.export_glb((blob)=>{
+        product.export_glb((blob)=>{
             save_product({variables:{blob:blob, asCopy:as_copy}});
         });
     }
