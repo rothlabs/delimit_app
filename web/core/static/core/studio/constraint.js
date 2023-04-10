@@ -8,14 +8,30 @@ export function Mirror_X(line1, line2){
     const constraint = {};
     var correction=()=> vtx.mirror_x(line1.verts()); 
     constraint.enforce = function(){
-        line2.update({verts:correction(), constrain:true}); 
+        line2.update({verts:correction()}); // constrain:true
     };
     line1.add_constraint(constraint);
-    line2.add_constraint(constraint);
+    //line2.add_constraint(constraint);
+}
+
+export function Mirror_Endpoints_X(line1, line2){
+    const constraint = {};
+    //const ep1=()=> vtx.endpoint_vects(line1.verts())[0];
+    //const ep2=()=> vtx.endpoint_vects(line1.verts())[1];
+    var correction=()=> {
+        const ep1 = vtx.endpoint_vects(line1.verts())[0];
+        const ep2 = vtx.endpoint_vects(line1.verts())[1];
+        return vtx.map(line2.prev_verts(), new Vector3(-ep1.x,ep1.y,ep1.z), new Vector3(-ep2.x,ep2.y,ep2.z));
+    }
+    constraint.enforce = function(){
+        line2.update({verts:correction()}); // constrain:true
+    };
+    line1.add_constraint(constraint);
+    //line2.add_constraint(constraint);
 }
 
 // if any line changes, update line3 so its endpoints fall on line1 and line2
-export function Endpoints_To_Lines(line1, line2, line3){
+export function Endpoints_To_Lines(line1, line2, line3, triggers){
     const constraint = {};
     const max_dist = 0.1;
     var v3a=()=> line3.vect(0);
@@ -24,18 +40,19 @@ export function Endpoints_To_Lines(line1, line2, line3){
     var v2=()=> vtx.closest(line2.verts(), v3b()).vert; 
     var correction=()=> vtx.map(line3.prev_verts(), v1(), v2()); 
     constraint.enforce = function(){
-        if(v1().distanceTo(v3a()) > max_dist || v2().distanceTo(v3b()) > max_dist){
+        if(v1().distanceTo(v3a()) > max_dist || v2().distanceTo(v3b()) > max_dist){ 
             line3.update({verts:correction()}); 
         }
     };
-    line1.add_constraint(constraint);
-    line2.add_constraint(constraint);
+    //line1.add_constraint(constraint);
+    //line2.add_constraint(constraint);
     line3.add_constraint(constraint);
+    if(triggers) triggers.forEach(n => n.add_constraint(constraint));
     //ids.push('Endpoints_To_Lines___'+line1.name()+'___'+line2.name()+'___'+line3.name());
 }
 
 // if line1 changes, update line2 so its sepcified endpoint is coincident
-export function Coincident(line1, i1, line2, i2){
+export function Coincident(line1, i1, line2, i2, triggers){
     //const id = 'Coincident___'+line1.name()+'___'+i1+'___'+line2.name()+'___'+i2;
     //ids.push(id);
     const constraint = {};
@@ -43,14 +60,15 @@ export function Coincident(line1, i1, line2, i2){
     var correction = null; 
     var v1=()=> line1.vect(i1);
     var v2=()=> line2.vect(i2);
-    if(i2== 0) correction=()=> vtx.map(line2.prev_verts(), v1(), line2.prev_vect(-1)); 
+    if(i2== 0) correction=()=> vtx.map(line2.prev_verts(), v1(), line2.prev_vect(-1)); // should it be verts() instead of prev_verts()?
     if(i2==-1) correction=()=> vtx.map(line2.prev_verts(), line2.prev_vect(0),  v1()); 
     constraint.enforce = function(){
         if(v1().distanceTo(v2()) > max_dist){
             line2.update({verts:correction()}); 
         }
     };
-    line1.add_constraint(constraint);
+    //line1.add_constraint(constraint);
+    if(triggers) triggers.forEach(n => n.add_constraint(constraint));
 }
 
 // make both endpoints coincident (0 to 0, -1 to -1 indecies)
@@ -69,6 +87,7 @@ export function Coincident_Endpoints(line1, line2){
         }
     };
     line1.add_constraint(constraint);
+    //if(triggers) triggers.forEach(n => n.add_constraint(constraint));
     //ids.push('Coincident_Endpoints___'+line1.name()+'___'+line2.name());
 }
 
@@ -91,10 +110,10 @@ export function Vertical_Alignment(line1, i1, line2, i2, line3, triggers){
             }
         }
     };
-    line1.add_constraint(constraint);
-    line2.add_constraint(constraint);
+    //line1.add_constraint(constraint);
+    //line2.add_constraint(constraint);
     line3.add_constraint(constraint);
-    triggers.forEach(n => n.add_constraint(constraint));
+    if(triggers) triggers.forEach(n => n.add_constraint(constraint));
 }
 
 

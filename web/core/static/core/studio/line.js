@@ -66,14 +66,21 @@ export const Line = forwardRef(function Line(p, ref) {
         points.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3)); //points.current.geometry.setAttribute('color', new THREE.BufferAttribute(point_colors(args.verts.length), 3));
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.constrain){
-            constraints.forEach(constraint => constraint.enforce());
+            //console.log(name());
+            //console.log(args.constraints);
+            //console.log(constraints);
+            //if(args.constraints){
+            //    args.constraints.forEach(constraint => constraint.enforce());
+            //}else{
+                constraints.forEach(constraint => constraint.enforce());
+            //}
         }
         if(args.record) editor_action({name:'record'});
     }
 
     useImperativeHandle(ref,()=>({ 
         name:name,
-        update:update,//(args)=>update(args, constraints), // need to pass in useState variable in imperative handle for some reason?
+        update:update,//(args)=>update({...args, constraints:constraints}), // need to pass in useState variable in imperative handle for some reason?
         verts:verts,
         vect:vect,
         prev_verts:prev_verts,
@@ -111,6 +118,9 @@ export const Line = forwardRef(function Line(p, ref) {
         add_constraint(constraint){
             set_constraints((c)=> [...c, constraint]);
         },
+        //shift_constraint(constraint){
+        //    set_constraints((c)=> [constraint, ...c]);
+        //},
     }));
 
     useFrame(()=> {

@@ -3,7 +3,7 @@ import {Box3, TextureLoader} from 'three';
 import {Line} from './line.js';
 //import {Surface} from './surface.js';
 import {useThree, useLoader} from 'r3f';
-import {Mirror_X, Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
+import {Mirror_X, Mirror_Endpoints_X, Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
 import {use_media_gltf, static_url} from '../app.js';
 import {editor_action} from './editor.js';
 import {GLTFExporter} from './exporter.js';
@@ -59,8 +59,8 @@ export const Product = forwardRef(function Product(p, ref) {
 
 			var tv_in_base=null, tv_in_rim=null, tv_in_mids=[]; // use an object with keys instead
 			var tv_out_base=null, tv_out_rim=null, tv_out_mids=[];
-			var iv_rear=null, iv_front=null, iv_mids=[]; 
-			var ov_rear = null, ov_front=null, ov_mids=[];
+			var iv_rear=null, iv_front=null, iv_base=null, iv_rim=null, iv_mids=[]; 
+			var ov_rear=null, ov_front=null, ov_base=null, ov_rim=null, ov_mids=[];
 			lines.current.forEach(line1 => {
 				if(line1.name().includes('tv__in__base'))   tv_in_base = line1;
 				if(line1.name().includes('tv__in__rim'))    tv_in_rim = line1;
@@ -70,42 +70,44 @@ export const Product = forwardRef(function Product(p, ref) {
 				if(line1.name().includes('tv__out__mid')) 	tv_out_mids.push(line1);
 				if(line1.name().includes('iv__rear'))       iv_rear = line1;
 				if(line1.name().includes('iv__front'))      iv_front = line1;
+				if(line1.name().includes('iv__base'))       iv_base = line1;
+				if(line1.name().includes('iv__rim'))      	iv_rim = line1;
 				if(line1.name().includes('iv__mid')) 		iv_mids.push(line1);
 				if(line1.name().includes('ov__rear'))       ov_rear = line1;
 				if(line1.name().includes('ov__front'))      ov_front = line1;
+				if(line1.name().includes('ov__base'))       ov_base = line1;
+				if(line1.name().includes('ov__rim'))      	ov_rim = line1;
 				if(line1.name().includes('ov__mid')) 		ov_mids.push(line1);
 			});
-			if(iv_front && iv_rear && ov_front && ov_rear){
+			if(tv_in_base){
+				const triggers = [iv_rear, iv_front, ov_rear, ov_front];
 				Mirror_X(iv_front, ov_front);
 				Mirror_X(iv_rear, ov_rear);
-			}
-			lines.current.forEach(line1 => {
-				var words1=line1.name().split('__');
-				lines.current.forEach(line2=>{
-					var words2=line2.name().split('__');
-					if(words1[1] == words2[1]){
-						if(line1.name().includes('v__rear')  && line2.name().includes('v__base')) Coincident(line1,  0, line2,  0);
-						if(line1.name().includes('v__rear')  && line2.name().includes('v__rim'))  Coincident(line1, -1, line2,  0);
-						if(line1.name().includes('v__front') && line2.name().includes('v__base')) Coincident(line1,  0, line2, -1);
-						if(line1.name().includes('v__front') && line2.name().includes('v__rim'))  Coincident(line1, -1, line2, -1);
-					}
-				});
-			});
-			if(tv_in_base && tv_in_rim && tv_in_mids && tv_out_base && tv_out_rim && tv_out_mids && iv_rear && iv_front && iv_mids && ov_rear && ov_front && ov_mids){
-				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_in_base, []);
-				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_in_rim, []);
-				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_out_base, []);
-				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_out_rim, []);
+				Mirror_X(ov_front, iv_front);
+				Mirror_X(ov_rear, iv_rear);
+				Coincident(iv_rear,   0,  iv_base,  0, triggers);
+				Coincident(iv_rear,  -1,  iv_rim,   0, triggers);
+				Coincident(iv_front,  0,  iv_base, -1, triggers);
+				Coincident(iv_front, -1,  iv_rim,  -1, triggers);
+				Coincident(ov_rear,   0,  ov_base,  0, triggers);
+				Coincident(ov_rear,  -1,  ov_rim,   0, triggers);
+				Coincident(ov_front,  0,  ov_base, -1, triggers);
+				Coincident(ov_front, -1,  ov_rim,  -1, triggers);
+				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_in_base,  triggers);
+				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_in_rim,   triggers);
+				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_out_base, triggers);
+				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_out_rim,  triggers);
 				Coincident_Endpoints(tv_in_base, tv_out_base);
 				Coincident_Endpoints(tv_in_rim, tv_out_rim);
 				for(var i=0; i<tv_in_mids.length; i++){
-					Endpoints_To_Lines(iv_rear, iv_front, iv_mids[i]);
-					Endpoints_To_Lines(ov_rear, ov_front, ov_mids[i]);
-					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_in_mids[i], [iv_rear, iv_front]);
-					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_out_mids[i], [iv_rear, iv_front]);
+					Endpoints_To_Lines(iv_rear, iv_front, iv_mids[i], triggers);
+					Endpoints_To_Lines(ov_rear, ov_front, ov_mids[i], triggers);
+					Mirror_Endpoints_X(iv_mids[i], ov_mids[i]);
+					Mirror_Endpoints_X(ov_mids[i], iv_mids[i]);
+					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_in_mids[i],  [iv_mids[i], ov_mids[i], ...triggers]);
+					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_out_mids[i], [iv_mids[i], ov_mids[i], ...triggers]);
 					Coincident_Endpoints(tv_in_mids[i], tv_out_mids[i]);
 				}
-				
 			}
 
 			editor_action({name:'record', init:true}); 
@@ -137,6 +139,28 @@ export const Product = forwardRef(function Product(p, ref) {
 		//)
 	)
 });
+
+
+
+//if(tv_in_base && tv_in_rim && tv_in_mids && tv_out_base && tv_out_rim && tv_out_mids && iv_rear && iv_front && iv_mids && ov_rear && ov_front && ov_mids){
+
+			// if(iv_front && iv_rear && ov_front && ov_rear){
+			// 	Mirror_X(iv_front, ov_front);
+			// 	Mirror_X(iv_rear, ov_rear);
+			// }
+			// lines.current.forEach(line1 => {
+			// 	var words1=line1.name().split('__');
+			// 	lines.current.forEach(line2=>{
+			// 		var words2=line2.name().split('__');
+			// 		if(words1[1] == words2[1]){
+			// 			if(line1.name().includes('v__rear')  && line2.name().includes('v__base')) Coincident(line1,  0, line2,  0);
+			// 			if(line1.name().includes('v__rear')  && line2.name().includes('v__rim'))  Coincident(line1, -1, line2,  0);
+			// 			if(line1.name().includes('v__front') && line2.name().includes('v__base')) Coincident(line1,  0, line2, -1);
+			// 			if(line1.name().includes('v__front') && line2.name().includes('v__rim'))  Coincident(line1, -1, line2, -1);
+			// 		}
+			// 	});
+			// });
+
 
 //const {nodes} = useGLTF(media_url+p.product.file);
 	//const [cloned_nodes, set_cloned_nodes] = useState([]);
