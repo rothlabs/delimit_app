@@ -1,78 +1,36 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import {use_child} from '../app.js';
 //import {useFrame} from 'r3f';
-import {history_action} from './editor.js';
+import {editor_act_rv} from './editor.js';
 import {useReactiveVar} from 'apollo';
 //import {TextureLoader} from 'three';
 
 export const Surface = forwardRef(function Surface(p, ref) {
-    const mesh = useRef();
-    const material = useRef();
-    //const [selected, set_selected] = useState(false);
-    const [history, set_history] = useState({
-        textures:[],
-        index:0,
-    });
-    const history_act = useReactiveVar(history_action);
-
-    function prev_texture(){
-        return history.textures[history.index-1];
-    }
-
-    function texture(){
-        return material.current.map; 
-    }
-
-    function update(args){
-        if(args.record) p.base.set_act({name:'record'});
-    }
-
-    useImperativeHandle(ref,()=>{return{ 
-        update:(args)=> update(args),
-        set_texture(){
-
-        },
-    };});
-
-    //useFrame(()=> {
-
-    //}); 
-
-    // useEffect(()=>{
-    //     set_selected(false); 
-    //     if(p.selection){
-    //         if(p.selection.object == mesh.current)  set_selected(true);
-    //     }
-    // },[p.selection]);
-
-    useEffect(()=>{
-        if(p.selection!='off'){
-            if(history_act.name == 'record'){
-                history.textures.splice(history.index);
-                history.textures.push(texture());
-                if(history.textures.length > 7){
-                    history.textures.shift();
-                }
-                history.index = history.textures.length;
-            }else if(history_act.name == 'undo'){
-                if(history.index-1 > 0){
-                    history.index--;
-                    //update({verts:history.verts[history.index-1], raw:true});
-                }
-            }else if(history_act.name == 'redo'){
-                if(history.index+1 <= history.textures.length){
-                    history.index++;
-                    //update({verts:history.verts[history.index-1], raw:true});
-                }
-            }
-            set_history(history);
-        }
-    },[history_act]);
-
-    //console.log('surface');
-    return (r('mesh',{ref:mesh, geometry:p.node.geometry, position:[p.node.position.x,p.node.position.y,p.node.position.z]}, 
-        r('meshBasicMaterial',{ref:material, map:p.node.material.map, transparent:true, toneMapped:false})//, , depthWrite:false 
-    ))
+    const source_verts = use_child(p.source,'mesh', c=> c.geometry.attributes.position.array);
+    const attr_pos = useRef();
+    return (
+        r('group', {name:p.source.name},
+            r('mesh',{
+                name:'mesh',
+            }, 
+                r('bufferGeometry',{},
+                    r('sphere',{attach:'boundingSphere', radius:10000}),
+                    r('bufferAttribute',{ref:attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
+                    //r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:max_points, itemSize:3, array:point_colors()}),//r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:source_verts.length, itemSize:3, array:point_colors(source_verts.length)}),
+                ),
+            )
+        )
+    )
 });
+
+// r('boxGeometry',{
+//     args: [50, 50, 50],
+// }),
+
+
+//r('meshBasicMaterial',{ref:material, map:p.node.material.map, transparent:true, toneMapped:false}),
+
+//, , depthWrite:false 
 
 //color:new Color('hsl(0,0%,55%)'),})
 

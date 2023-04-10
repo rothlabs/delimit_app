@@ -65,8 +65,7 @@ function View_2D(p) {
                     if(!(selection && selection.object.name == 'meshline')){ // if no line selected 
                         if(draw_mode == 'add'){
                             if(name(e) == 'meshline'){
-                                const result = product.current.mutate({selection:select(e), new_point:point(e), record: false});
-                                selection_rv(result);
+                                product.current.mutate({selection:select(e), new_point:point(e), record:false});
                                 set_dragging(true);
                             }
                         }
@@ -114,7 +113,7 @@ function View_2D(p) {
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
             r(Product, {ref:rf=>{product_rv(rf); product.current=rf}}),  
-            r(Line, {ref:draw_line, selection:'off', verts:[], name:'draw_line'}), // temp drawing line for visualization
+            r(Line, {ref:draw_line}), // temp drawing line for visualization
         )
     )
 };
@@ -129,7 +128,7 @@ export function Studio_Editor(){
             r(Fragment,{},
                 r(Toolbar),//, {product:data.product, user:data.user}), //, view_2d:view_2d
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                    r(Canvas,{orthographic:true, camera:{position:[0, 0, 900]}}, //, onCreated:(state)=>raycaster=state.raycaster 
+                    r(Canvas,{orthographic:true, camera:{position:[0, 0, 100]}}, //, onCreated:(state)=>raycaster=state.raycaster 
                         r(CameraControls, {
                             makeDefault: true,
                             minDistance: 100, 

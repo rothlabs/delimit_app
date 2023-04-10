@@ -1,7 +1,7 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame, useLoader} from 'r3f';
-import {theme, for_child, static_url} from '../app.js';
+import {theme, static_url, use_child} from '../app.js';
 import {editor_act_rv, show_points_rv, show_endpoints_rv, selection_rv} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
@@ -10,8 +10,7 @@ import * as THREE from 'three';
 const max_points = 100; // This is used for point colors. Alternative is to create a new BufferAttribute each update
 
 export const Line = forwardRef(function Line(p, ref) {
-    var source_verts = [];
-    for_child(p.source,'points', (child)=> source_verts = child.geometry.attributes.position.array);
+    const source_verts = use_child(p.source,'points', c=> c.geometry.attributes.position.array);
     const points = useRef();
     const point_attr_pos = useRef();
     const point_attr_color = useRef();
@@ -64,33 +63,24 @@ export const Line = forwardRef(function Line(p, ref) {
         meshline.current.setPoints(curve.getPoints( 100 ));
         points.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3)); //points.current.geometry.setAttribute('color', new THREE.BufferAttribute(point_colors(args.verts.length), 3));
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
-        if(args.constrain){
-            //console.log(name());
-            //console.log(args.constraints);
-            //console.log(constraints);
-            //if(args.constraints){
-            //    args.constraints.forEach(constraint => constraint.enforce());
-            //}else{
-                constraints.forEach(constraint => constraint.enforce());
-            //}
-        }
+        if(args.constrain) constraints.forEach(constraint => constraint.enforce());
         if(args.record) editor_act_rv({name:'record'});
     }
 
     useImperativeHandle(ref,()=>({ 
         name:name,
-        update:update,//(args)=>update({...args, constraints:constraints}), // need to pass in useState variable in imperative handle for some reason?
+        update:update,
         verts:verts,
         vect:vect,
         prev_verts:prev_verts,
         prev_vect:prev_vect,
-        set_verts:(vts)=> meshline.current.setPoints(vts), // vtx.reline(vts) for direct line drawing
-        mutate(args){ // change so args contains selection and it checks against that (see set_tmp)
+        set_verts:(vts)=> meshline.current.setPoints(vts),
+        mutate(args){
             if(args.selection.object == mesh.current){
                 if(args.new_point){
                     const insert = vtx.insert(verts(), meshline_verts(), args.new_point);
                     update({verts: insert.verts, record:args.record});
-                    return {object:points.current, index:insert.i};
+                    selection_rv({object:points.current, index:insert.i});//return {object:points.current, index:insert.i};
                 }else if(args.draw_verts.length/3 >= 2){ 
                     const new_verts_0 = vtx.reline(args.draw_verts);
                     const closest     = vtx.closest_to_endpoints(verts(), new_verts_0);
@@ -117,9 +107,6 @@ export const Line = forwardRef(function Line(p, ref) {
         add_constraint(constraint){
             set_constraints((c)=> [...c, constraint]);
         },
-        //shift_constraint(constraint){
-        //    set_constraints((c)=> [constraint, ...c]);
-        //},
     }));
 
     useFrame(()=> {
@@ -139,7 +126,7 @@ export const Line = forwardRef(function Line(p, ref) {
     },[selection]);
 
     useEffect(()=>{ // Switch to imparitive handler, or add prop that makes it rerender (no the prop was the old way)
-        if(p.selection!='off'){
+        if(p.source){
             switch (editor_act.name) {
                 case 'record':
                     history.verts.splice(history.index+1); 
@@ -174,14 +161,13 @@ export const Line = forwardRef(function Line(p, ref) {
 
     return (
         r('group', {
-            name: p.source? p.source.name : 'line',
-            //position: p.source ? [p.source.position.x,p.source.position.y,p.source.position.z] : [0,0,0],
+            name: p.source ? p.source.name : 'line', //position: p.source ? [p.source.position.x,p.source.position.y,p.source.position.z] : [0,0,0],
         }, 
             r('mesh', { // for visualization
                 ref: mesh,
                 name: 'meshline', // give proper ID name that includes "line" or "meshline"
                 position: [0,0,10],
-                raycast: (p.selection!='off') ? MeshLineRaycast : ()=>null,
+                raycast: p.source ? MeshLineRaycast : ()=>null,
             },
                 r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
                 r('meshLineMaterial', {ref:meshline_material, color:selected_line?theme.primary_s:theme.secondary_s}),
@@ -216,6 +202,11 @@ export const Line = forwardRef(function Line(p, ref) {
         )
     )
 });
+
+
+//console.log(source_verts);
+    //var source_verts = [];
+    //for_child(p.source,'points', (child)=> source_verts = child.geometry.attributes.position.array);
 
 
 // set_tmp(args){

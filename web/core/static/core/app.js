@@ -113,7 +113,7 @@ export function use_mutation(gql_parts, refetch){
     return [mutate, data, alt, reset];
 }
 
-export function use_media_gltf(url){
+export function use_media_glb(url){
     const {nodes} = useGLTF(media_url+url);
     const [cloned_nodes, set_cloned_nodes] = useState([]);
     useEffect(() => {
@@ -139,16 +139,14 @@ export function use_media_gltf(url){
     return cloned_nodes;
 }
 
-export function for_child(source, name, func){
+export function use_child(source, name, func){
+    var response = null;
     if(source){
-        source.children.forEach(n => {
-            if(n.name.slice(0,name.length) == name) {
-                func(n); 
-                return n;
-            } 
+        source.children.forEach(child => {
+            if(child.name.slice(0,name.length) == name) response = func(child);
         });
     }
-    return null;
+    return response;
 }
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
@@ -165,6 +163,36 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
         ])}),
     )
 )));
+
+
+
+// export function child(source, name){
+//     if(source){
+//         source.children.forEach(n => {
+//             if(n.name.slice(0,name.length) == name) {
+//                 console.log(n);
+//                 return n;
+//             }
+//         });
+//     }
+//     return null;
+// }
+
+//export const empty_verts = new Float32Array([0,0,0,0,0,0]);
+
+
+// export function for_child(source, name, func){
+//     var child = null;
+//     if(source){
+//         source.children.forEach(c => {
+//             if(c.name.slice(0,name.length) == name){
+//                 func(c);
+//                 child = c;
+//             }
+//         });
+//     }
+//     return child;
+// }
 
 // export function use_server(query, args){
 //     const {loading, error, data} = useQuery(gql`query{ 

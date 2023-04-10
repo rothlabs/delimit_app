@@ -1,11 +1,10 @@
-import {createElement as r, useRef, useEffect, useState, forwardRef, useImperativeHandle} from 'react';
-import {Box3, TextureLoader} from 'three';
-import {Line} from './line.js';
-//import {Surface} from './surface.js';
-import {useThree, useLoader} from 'r3f';
-import {Mirror_X, Mirror_Endpoints_X, Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
-import {use_media_gltf, static_url} from '../app.js';
-import {editor_act_rv, editor_qr_rv} from './editor.js'; //camera_controls_rv
+import {createElement as r, useRef, useEffect, forwardRef, useImperativeHandle} from 'react';
+import {Box3} from 'three';
+import {Surface} from './surface.js';
+import {Sketch} from './sketch.js';
+import {useThree} from 'r3f';
+import {use_media_glb} from '../app.js';
+import {editor_act_rv, editor_qr_rv} from './editor.js'; 
 import {GLTFExporter} from './exporter.js';
 import {useReactiveVar} from 'apollo';
 //import {Bounds} from 'drei';
@@ -13,127 +12,52 @@ import {useReactiveVar} from 'apollo';
 const bounds = new Box3();
 const exporter = new GLTFExporter();
 
-//export const product_rv = makeVar();
-
-export const Product = forwardRef(function Product(p, ref) { // make product set product_rv(ref) ?
-	const group = useRef();
-	const lines = useRef([]);
-	//const surfaces = useRef([]);
-	//const defaults = useRef([]);
-	//const materials = useRef({});
+export const Product = forwardRef(function Product(p, ref) { 
+	const product = useRef();
+	const sketches = useRef([]);
+	const surfaces = useRef([]);
 	const {camera, controls} = useThree(); 
-	//const camera_controls = useReactiveVar(camera_controls_rv);
 	const editor_qr = useReactiveVar(editor_qr_rv);
-	//const disc_texture = useLoader(TextureLoader, static_url+'core/texture/disc.png');
-
-	const nodes = use_media_gltf(editor_qr.product.file);
-
+	const nodes = use_media_glb(editor_qr.product.file);
 
 	useImperativeHandle(ref,()=>({
-		//set_point(args){
-		//	lines.current.forEach(line=>line.set_point(args));
-        //},
-        //set_endpoint(args){
-		//	lines.current.forEach(line=>line.set_endpoint(args));
-        //},
-		//set_tmp(args){
-		//	lines.current.forEach(line=>line.set_tmp(args));
-        //},
-		mutate(args){
-			var result = null;
-			lines.current.forEach(line=>{
-				const r = line.mutate(args);
-				if(r) result = r;
-			});
-			return result;
-        },
+		mutate:(args)=> sketches.current.forEach(sketch=> sketch.mutate(args)),
 		export_glb(callback){
-			exporter.parse(group.current, function(buffer){
+			exporter.parse(product.current, function(buffer){
 				callback(new Blob([buffer], {type:'application/octet-stream'}));
 			},function(error){console.log(error);},{ binary:true });
 		}
     }));
 	
 	useEffect(()=>{ 
-		if(nodes && controls){// && camera_controls){
-			bounds.setFromObject( group.current );
+		if(nodes && controls){
+			bounds.setFromObject( product.current );
 			const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
 			const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
-			if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);//camera.zoom = zoom_x * 3;
-			if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);//camera.zoom = zoom_y * 3;
+			if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);
+			if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);
 			camera.updateProjectionMatrix();
-
-			var tv_in_base=null, tv_in_rim=null, tv_in_mids=[]; // use an object with keys instead
-			var tv_out_base=null, tv_out_rim=null, tv_out_mids=[];
-			var iv_rear=null, iv_front=null, iv_base=null, iv_rim=null, iv_mids=[]; 
-			var ov_rear=null, ov_front=null, ov_base=null, ov_rim=null, ov_mids=[];
-			lines.current.forEach(line1 => {
-				if(line1.name().includes('tv__in__base'))   tv_in_base = line1;
-				if(line1.name().includes('tv__in__rim'))    tv_in_rim = line1;
-				if(line1.name().includes('tv__in__mid')) 	tv_in_mids.push(line1);
-				if(line1.name().includes('tv__out__base'))  tv_out_base = line1;
-				if(line1.name().includes('tv__out__rim'))   tv_out_rim = line1;
-				if(line1.name().includes('tv__out__mid')) 	tv_out_mids.push(line1);
-				if(line1.name().includes('iv__rear'))       iv_rear = line1;
-				if(line1.name().includes('iv__front'))      iv_front = line1;
-				if(line1.name().includes('iv__base'))       iv_base = line1;
-				if(line1.name().includes('iv__rim'))      	iv_rim = line1;
-				if(line1.name().includes('iv__mid')) 		iv_mids.push(line1);
-				if(line1.name().includes('ov__rear'))       ov_rear = line1;
-				if(line1.name().includes('ov__front'))      ov_front = line1;
-				if(line1.name().includes('ov__base'))       ov_base = line1;
-				if(line1.name().includes('ov__rim'))      	ov_rim = line1;
-				if(line1.name().includes('ov__mid')) 		ov_mids.push(line1);
-			});
-			if(tv_in_base){
-				const triggers = [iv_rear, iv_front, ov_rear, ov_front];
-				Mirror_X(iv_front, ov_front);
-				Mirror_X(iv_rear, ov_rear);
-				Mirror_X(ov_front, iv_front);
-				Mirror_X(ov_rear, iv_rear);
-				Coincident(iv_rear,   0,  iv_base,  0, triggers);
-				Coincident(iv_rear,  -1,  iv_rim,   0, triggers);
-				Coincident(iv_front,  0,  iv_base, -1, triggers);
-				Coincident(iv_front, -1,  iv_rim,  -1, triggers);
-				Coincident(ov_rear,   0,  ov_base,  0, triggers);
-				Coincident(ov_rear,  -1,  ov_rim,   0, triggers);
-				Coincident(ov_front,  0,  ov_base, -1, triggers);
-				Coincident(ov_front, -1,  ov_rim,  -1, triggers);
-				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_in_base,  triggers);
-				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_in_rim,   triggers);
-				Vertical_Alignment(iv_rear,  0, iv_front,  0, tv_out_base, triggers);
-				Vertical_Alignment(iv_rear, -1, iv_front, -1, tv_out_rim,  triggers);
-				Coincident_Endpoints(tv_in_base, tv_out_base);
-				Coincident_Endpoints(tv_in_rim, tv_out_rim);
-				for(var i=0; i<tv_in_mids.length; i++){
-					Endpoints_To_Lines(iv_rear, iv_front, iv_mids[i], triggers);
-					Endpoints_To_Lines(ov_rear, ov_front, ov_mids[i], triggers);
-					Mirror_Endpoints_X(iv_mids[i], ov_mids[i]);
-					Mirror_Endpoints_X(ov_mids[i], iv_mids[i]);
-					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_in_mids[i],  [iv_mids[i], ov_mids[i], ...triggers]);
-					Vertical_Alignment(iv_mids[i], 0, iv_mids[i], -1, tv_out_mids[i], [iv_mids[i], ov_mids[i], ...triggers]);
-					Coincident_Endpoints(tv_in_mids[i], tv_out_mids[i]);
-				}
-			}
-
 			editor_act_rv({name:'record', init:true}); 
 		}
-	},[nodes, controls]); //camera_controls 
+	},[nodes, controls]);
 
 	return (
-		r('group', {ref:group, name:editor_qr.product.name}, //, dispose:null
-			...nodes.map((sketch, i) => !sketch.name.includes('sketch__') ? null :
-				r('group', {name: sketch.name},
-					...sketch.children.map((line, i) => !line.name.includes('line__') ? null : // n = n.child_of_name('points)
-						r(Line, {ref:l=>lines.current[i]=l, source:line, ...p}) //point_texture:disc_texture //, rand:Math.random() key:'line_'+i export_group:export_group,   verts:n[1].geometry.attributes.position.array
-					),
-				)
-			)
+		r('group', {ref:product, name:editor_qr.product.name}, //, dispose:null
+			...nodes.map((sketch, i) => sketch.name.split('__')[0]=='sketch' &&
+				r(Sketch, {ref:rf=>sketches.current[i]=rf, source:sketch}) 
+			),
+			...nodes.map((surface, i) => surface.name.split('__')[0]=='surface' &&
+				r(Surface, {ref:rf=>surfaces.current[i]=rf, source:surface}) 
+			),
 		)
 	)
 });
 
 
+			// r('group', {name:'surface__0'},
+			// 	r('group', {name:'arg__sketch__0'}),
+			// 	r(Surface),
+			// ),
 
 // ...Object.entries(cloned_nodes).map((n,i)=>(!n[1].name.includes('default__') ? null : //.isMesh ? null :
 				// 	r('mesh',{ref:el=>defaults.current[n[1].name]=el, geometry:n[1].geometry, position:[n[1].position.x,n[1].position.y,n[1].position.z]},  //, key:n[1].name //position:n[1].position
