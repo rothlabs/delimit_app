@@ -58,6 +58,7 @@ export const theme = {//.convertSRGBToLinear(),
 //export const current_user_id = makeVar(-1);
 
 function compile_gql(name, gql_parts){
+    const header_vars = [];
     var header = '';
     var body = '';
     var variables = {};
@@ -67,20 +68,20 @@ function compile_gql(name, gql_parts){
         if(q.length>1) body += '(';
         for(var i=1; i<q.length; i++){ 
             const q_var_meta = q[i][0].split(' ');
-            header += '$' + q_var_meta[1] + ': ' + q_var_meta[0];
+            if(!header_vars.includes(q_var_meta[1])) header += ', $' + q_var_meta[1] + ': ' + q_var_meta[0];
             body += q_var_meta[1] + ': $' + q_var_meta[1];
-            if(i<q.length-1){
-                header += ', ';
+            if(i<q.length-1){//header += ', ';
                 body += ', ';
             }else{ body += ')'; }
             set(variables, q_var_meta[1], q[i][1]);
+            header_vars.push(q_var_meta[1]);
         }
         //if(q.length>1) body += ')';
         //if(q.length>1) body = '(' +body+ ')';
         //body = q_words[0] + body + '{'+q[0].slice(q_words[0].length+1)+'}'; 
         body += '{'+q[0].slice(q_words[0].length+1)+'} '; 
     });
-    if(header.length>0) header = '(' + header + ')';
+    if(header.length>0) header = '(' + header.slice(2) + ')';
     header = name + header;
     return {header, body, variables}
 }
@@ -88,7 +89,7 @@ function compile_gql(name, gql_parts){
 export function use_query(name, gql_parts, fetchPolicy=null, reactive_var){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
-    //console.log({header, body, variables});
+    console.log({header, body, variables});
     const {loading, error, data} = useQuery(
         gql`query ${header}{${body}}`, 
         {variables:variables, fetchPolicy:fetchPolicy} // Add option for cache fetchPolicy:'no-cache'
@@ -139,7 +140,7 @@ export function use_media_glb(url){
     return cloned_nodes;
 }
 
-export function use_child(source, name, func){
+export function child(source, name, func){ 
     var response = null;
     if(source){
         source.children.forEach(child => {

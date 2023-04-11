@@ -1,15 +1,26 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import {use_child} from '../app.js';
+import {child} from '../app.js';
 //import {useFrame} from 'r3f';
-import {editor_act_rv} from './editor.js';
+import {editor_act_rv, sketches_rv, editor_qr_rv} from './editor.js';
 import {useReactiveVar} from 'apollo';
 //import {TextureLoader} from 'three';
 
 export const Surface = forwardRef(function Surface(p, ref) {
-    const source_verts = use_child(p.source,'mesh', c=> c.geometry.attributes.position.array);
+    const source_verts = child(p.source,'mesh', c=> c.geometry.attributes.position.array);
+    //const sketch_name = child(p.source,'arg__sketch', c=> c.geometry.attributes.position.array);
+    //const sketch = product_rv.sketch(child(p.source,'arg__sketch', c=> c.name.split('__')[2])); //use_child(product_rv,'sketch__0', c=> c.geometry.attributes.position.array);
+    const surface = useRef();
     const attr_pos = useRef();
+    const editor_qr = useReactiveVar(editor_qr_rv);
+
+    if(editor_qr){
+        //surface.userData = {sketch:0};
+        //surface.userData = {gltfExtensions:{sketch:0}};
+        console.log(editor_qr);
+    }
+
     return (
-        r('group', {name:p.source.name},
+        r('group', {ref:surface, name:p.source.name},
             r('mesh',{
                 name:'mesh',
             }, 

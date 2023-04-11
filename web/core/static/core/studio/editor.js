@@ -16,6 +16,7 @@ export const show_endpoints_rv = makeVar(true);
 export const draw_mode_rv = makeVar('draw');
 export const product_rv = makeVar();
 export const selection_rv = makeVar();
+export const sketches_rv = makeVar();
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
@@ -119,9 +120,12 @@ function View_2D(p) {
 };
 
 export function Studio_Editor(){
-    const {id} = useParams(); // from react router
+    const id = ['String! id', useParams().id]; // from react router
     const [data, alt] = use_query('GetProduct',[
-        ['product id name story file public owner{id firstName}', ['String! id', id]], ['user id'],
+        ['product id name story file public owner{id firstName} ', id], 
+        ['sketches id name', id], // input is product id, output is sketch id
+        ['surfaces id name sketch{id}', id], 
+        ['user id'],
     ], 'no-cache', editor_qr_rv); 
     return (
         alt ? r(alt) : 

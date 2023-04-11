@@ -16,8 +16,27 @@ class Product(models.Model):
     owner = models.ForeignKey(User, default=0, on_delete=models.CASCADE)
     public = models.BooleanField(default=False)
     story = models.TextField(default='', blank=True)
-    def __str__(self): 
-        return self.name+' ('+os.path.basename(self.file.name)+')'
+    def __str__(self): return self.name+' ('+os.path.basename(self.file.name)+')'
+
+class Sketch(models.Model):
+    name = models.CharField(max_length=64)
+    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+    def __str__(self): return self.name+' ('+str(self.id)+')'
+
+class Surface(models.Model):
+    name = models.CharField(max_length=64)
+    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+    sketch = models.ForeignKey(Sketch, default=0, on_delete=models.CASCADE)
+    def __str__(self): return self.name+' ('+str(self.id)+')'
+
+#class Product_Sketch(models.Model):
+#    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+#    sketch = models.ForeignKey(Sketch, default=0, on_delete=models.CASCADE)
+
+#class Product_Surface(models.Model):
+#    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+#    surface = models.ForeignKey(Surface, default=0, on_delete=models.CASCADE)
+
 
 
 # https://stackoverflow.com/questions/16041232/django-delete-filefield

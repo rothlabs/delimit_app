@@ -1,7 +1,7 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame, useLoader} from 'r3f';
-import {theme, static_url, use_child} from '../app.js';
+import {theme, static_url, child} from '../app.js';
 import {editor_act_rv, show_points_rv, show_endpoints_rv, selection_rv} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
@@ -10,7 +10,7 @@ import * as THREE from 'three';
 const max_points = 100; // This is used for point colors. Alternative is to create a new BufferAttribute each update
 
 export const Line = forwardRef(function Line(p, ref) {
-    const source_verts = use_child(p.source,'points', c=> c.geometry.attributes.position.array);
+    const source_verts = child(p.source,'points', c=> c.geometry.attributes.position.array);
     const points = useRef();
     const point_attr_pos = useRef();
     const point_attr_color = useRef();

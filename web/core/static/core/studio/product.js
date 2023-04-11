@@ -4,7 +4,7 @@ import {Surface} from './surface.js';
 import {Sketch} from './sketch.js';
 import {useThree} from 'r3f';
 import {use_media_glb} from '../app.js';
-import {editor_act_rv, editor_qr_rv} from './editor.js'; 
+import {editor_act_rv, editor_qr_rv, sketches_rv} from './editor.js'; 
 import {GLTFExporter} from './exporter.js';
 import {useReactiveVar} from 'apollo';
 //import {Bounds} from 'drei';
@@ -21,12 +21,15 @@ export const Product = forwardRef(function Product(p, ref) {
 	const nodes = use_media_glb(editor_qr.product.file);
 
 	useImperativeHandle(ref,()=>({
-		mutate:(args)=> sketches.current.forEach(sketch=> sketch.mutate(args)),
+		mutate:args=> sketches.current.forEach(sketch=> sketch.mutate(args)),
 		export_glb(callback){
 			exporter.parse(product.current, function(buffer){
 				callback(new Blob([buffer], {type:'application/octet-stream'}));
-			},function(error){console.log(error);},{ binary:true });
-		}
+			},function(error){console.log(error);},{ binary:true, includeCustomExtensions:true });
+		},
+		//sketch:target=>{
+			
+		//},
     }));
 	
 	useEffect(()=>{ 
@@ -38,6 +41,7 @@ export const Product = forwardRef(function Product(p, ref) {
 			if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);
 			camera.updateProjectionMatrix();
 			editor_act_rv({name:'record', init:true}); 
+			//sketches_rv(sketches.current.map(s=>s));
 		}
 	},[nodes, controls]);
 

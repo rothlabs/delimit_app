@@ -6,8 +6,6 @@ import {useNavigate, useLocation} from 'rrd';
 import {useReactiveVar} from 'apollo';
 import {product_rv, editor_qr_rv} from './editor.js';
 
-// 'Save' works except it reverts back to original in the buffer!! You need to go away and come back to the page for it to show the new model!!!
-
 export function File_Tool(p){
     const navigate = useNavigate();
     //const location = useLocation();
@@ -27,6 +25,7 @@ export function File_Tool(p){
             ['String story', 't'+story],   /// 't' is present so the server knows story is being provided even if the user inputs nothing
             ['Boolean! public', is_public],
             ['Upload blob', new Blob(['Empty Product File'], { type: 'text/plain' })],
+            //['String! binding', ],
         ]
     ], 'GetProducts GetProduct');
     useEffect(()=>{ if(!show) reset(); },[show]);
