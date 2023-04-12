@@ -1,7 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
-from core.models import Product, Sketch, Surface, random_id
+from core.models import Product, Vector, Sketch, Surface, random_id
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
@@ -16,27 +16,35 @@ class User_Type(DjangoObjectType):
         model = User
         fields = ('id', 'first_name',)
 
+class Vector_Type(DjangoObjectType):
+    class Meta:
+        model = Vector
+        fields = '__all__'
+
 class Product_Type(DjangoObjectType):
     class Meta:
         model = Product
-        fields = ('id', 'name', 'date', 'file', 'public', 'story', 'owner',)
+        fields = '__all__'
+    vectors = graphene.List(Vector_Type) 
+    def resolve_vectors(self, info):
+        return self.vector_set.all()
 
-class Sketch_Type(DjangoObjectType):
-    class Meta:
-        model = Sketch
-        fields = ('id', 'name', 'product',)
+# class Sketch_Type(DjangoObjectType):
+#     class Meta:
+#         model = Sketch
+#         fields = ('id', 'name', 'product',)
 
-class Surface_Type(DjangoObjectType):
-    class Meta:
-        model = Surface
-        fields = ('id', 'name', 'product', 'sketch',)
+# class Surface_Type(DjangoObjectType):
+#     class Meta:
+#         model = Surface
+#         fields = ('id', 'name', 'product', 'sketch',)
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
     products = graphene.List(Product_Type)
     product = graphene.Field(Product_Type, id=graphene.String(required=True))
-    sketches = graphene.List(Sketch_Type,  id=graphene.String(required=True))
-    surfaces = graphene.List(Surface_Type, id=graphene.String(required=True))
+    #sketches = graphene.List(Sketch_Type,  id=graphene.String(required=True))
+    #surfaces = graphene.List(Surface_Type, id=graphene.String(required=True))
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
@@ -45,11 +53,12 @@ class Query(graphene.ObjectType):
         else: return Product.objects.filter(public=True)
     def resolve_product(root, info, id): # need to check if owner or is public?
         return Product.objects.get(id=id)
+
         #except Product.DoesNotExist: return None
-    def resolve_sketches(root, info, id):
-        return Sketch.objects.filter(product=Product.objects.get(id=id))
-    def resolve_surfaces(root, info, id):
-        return Surface.objects.filter(product=Product.objects.get(id=id))
+    # def resolve_sketches(root, info, id):
+    #     return Sketch.objects.filter(product=Product.objects.get(id=id))
+    # def resolve_surfaces(root, info, id):
+    #     return Surface.objects.filter(product=Product.objects.get(id=id))
 
 
 class Login(graphene.Mutation):
@@ -129,6 +138,10 @@ class Mutation(graphene.ObjectType):
     deleteProduct = Delete_Product.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
+
+
+
+
 
 
 

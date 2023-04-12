@@ -18,46 +18,33 @@ class Product(models.Model):
     story = models.TextField(default='', blank=True)
     def __str__(self): return self.name+' ('+os.path.basename(self.file.name)+')'
 
-class Point(models.Model):
-    #name = models.CharField(max_length=64) # still encode type in name?
+class Part(models.Model):
+    class Meta: abstract = True
     product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
-    line = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
+
+class Named(models.Model):
+    class Meta: abstract = True
+    name = models.CharField(max_length=64)
+
+class Group(Named, Part): pass #vector = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE) 
+
+class Vector(Named, Part):
     x = models.FloatField(default=0)
     y = models.FloatField(default=0)
     z = models.FloatField(default=0)
-    def __str__(self): return self.name+' ('+str(self.id)+')'
 
-class Line(models.Model):
-    name = models.CharField(max_length=64) # still encode type in name?
-    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
-    def __str__(self): return self.name+' ('+str(self.id)+')'
+class Line(Part):
+    group = models.ForeignKey(Group, default=0, on_delete=models.CASCADE)
+    point = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE)
 
-class Sketch(models.Model):
-    name = models.CharField(max_length=64)
-    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
-    #iv_base = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
-    def __str__(self): return self.name+' ('+str(self.id)+')'
+class Sketch(Part):
+    group = models.ForeignKey(Group, default=0, on_delete=models.CASCADE)
+    line  = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
+    a     = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE, related_name='a') 
+    b     = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE, related_name='b') 
 
-class Sketch_Line(models.Model):
-    #name = models.CharField(max_length=64)
-    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+class Surface(Named, Part):
     sketch = models.ForeignKey(Sketch, default=0, on_delete=models.CASCADE)
-    line = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
-    def __str__(self): return self.name+' ('+str(self.id)+')'
-
-class Surface(models.Model):
-    name = models.CharField(max_length=64)
-    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
-    sketch = models.ForeignKey(Sketch, default=0, on_delete=models.CASCADE)
-    def __str__(self): return self.name+' ('+str(self.id)+')'
-
-#class Product_Sketch(models.Model):
-#    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
-#    sketch = models.ForeignKey(Sketch, default=0, on_delete=models.CASCADE)
-
-#class Product_Surface(models.Model):
-#    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
-#    surface = models.ForeignKey(Surface, default=0, on_delete=models.CASCADE)
 
 
 

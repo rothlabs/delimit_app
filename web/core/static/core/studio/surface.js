@@ -13,14 +13,14 @@ export const Surface = forwardRef(function Surface({source}, ref) {
     const surface = useRef();
     const geom = useRef();
     const sketches = useReactiveVar(sketches_rv);
-    const editor = useReactiveVar(editor_rv);
+    //const editor = useReactiveVar(editor_rv);
     //const meta = use_meta(source); // this will automatically grab meta data for this object collected by editor query 
 
-    use_effect([sketches, editor], ()=>{ 
-        const surf = editor.surfaces.find(s=> s.id == id_of(source)); //source.name.split('__')[1]
-        const sketch = sketches.get(surf.sketch.id);
-        console.log(sketch);
-    });
+    //use_effect([sketches, editor], ()=>{ 
+        //const surf = editor.surfaces.find(s=> s.id == id_of(source)); //source.name.split('__')[1]
+        //const sketch = sketches.get(surf.sketch.id);
+        //console.log(sketch);
+    //});
 
     return (
         r('group', {ref:surface, name:source.name}, 
