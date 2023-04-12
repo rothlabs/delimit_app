@@ -1,16 +1,16 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import {MeshLineRaycast } from './meshline.js';
 import {useThree, useFrame, useLoader} from 'r3f';
-import {theme, static_url, child} from '../app.js';
-import {editor_act_rv, show_points_rv, show_endpoints_rv, selection_rv} from './editor.js';
+import {theme, use_effect, static_url, child} from '../app.js';
+import {action_rv, show_points_rv, show_endpoints_rv, selection_rv} from './editor.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from './vertex.js';
 import * as THREE from 'three';
 
 const max_points = 100; // This is used for point colors. Alternative is to create a new BufferAttribute each update
 
-export const Line = forwardRef(function Line(p, ref) {
-    const source_verts = child(p.source,'points', c=> c.geometry.attributes.position.array);
+export const Line = forwardRef(function Line({source}, ref) {
+    const source_verts = child(source,'points', c=> c.geometry.attributes.position.array);
     const points = useRef();
     const point_attr_pos = useRef();
     const point_attr_color = useRef();
@@ -25,14 +25,14 @@ export const Line = forwardRef(function Line(p, ref) {
     const [selected_point, set_selected_point] = useState(-1);
     const [selected_endpoint, set_selected_endpoint] = useState(-1);
     const [constraints, set_constraints] = useState([]);//[{enforce:()=>{},wow:'wow'}]);
-    const editor_act = useReactiveVar(editor_act_rv);
+    const action = useReactiveVar(action_rv);
     const [history, set_history] = useState({verts:[], index:0});
     const show_points = useReactiveVar(show_points_rv);
     const show_endpoints = useReactiveVar(show_endpoints_rv);
     const selection = useReactiveVar(selection_rv);
     const point_texture = useLoader(THREE.TextureLoader, static_url+'core/texture/disc.png');
 
-    const name=()=> p.source.name;
+    //const name=()=> source.name;
     const verts=()=> points.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);
     const meshline_verts=()=> meshline.current.positions;
     const vect=(i)=> vtx.vect(points.current.geometry.attributes.position.array,i); //vtx.vect(meshline.current.positions,i);
@@ -64,11 +64,11 @@ export const Line = forwardRef(function Line(p, ref) {
         points.current.geometry.setAttribute('position', new THREE.Float32BufferAttribute(args.verts, 3)); //points.current.geometry.setAttribute('color', new THREE.BufferAttribute(point_colors(args.verts.length), 3));
         if(endpoint_attr_pos.current) endpoint_attr_pos.current.array = endpoint_verts();
         if(args.constrain) constraints.forEach(constraint => constraint.enforce());
-        if(args.record) editor_act_rv({name:'record'});
+        if(args.record) action_rv({name:'record'});
     }
 
     useImperativeHandle(ref,()=>({ 
-        name:name,
+        name: source ? source.name : 'line',//name,
         update:update,
         verts:verts,
         vect:vect,
@@ -125,57 +125,55 @@ export const Line = forwardRef(function Line(p, ref) {
         }
     },[selection]);
 
-    useEffect(()=>{ // Switch to imparitive handler, or add prop that makes it rerender (no the prop was the old way)
-        if(p.source){
-            switch (editor_act.name) {
-                case 'record':
-                    history.verts.splice(history.index+1); 
-                    history.verts.push(verts());
-                    if(history.verts.length > 10){
-                        const original_verts = history.verts.shift();
-                        history.verts.shift();
-                        history.verts.unshift(original_verts);
-                    }
-                    history.index = history.verts.length-1;
-                    if(editor_act.init) update({verts:history.verts[history.index]}); 
-                    set_history(history);
-                break; case 'undo':
-                    if(history.index > 0){
-                        history.index--;
-                        update({verts:history.verts[history.index]}); 
-                    }
-                    set_history(history);
-                break; case 'redo':
-                    if(history.index < history.verts.length-1){
-                        history.index++;
-                        update({verts:history.verts[history.index]}); 
-                    }
-                    set_history(history);
-                break; case 'revert':
-                    history.index = 0;
+    use_effect([source, action], ()=>{ // Switch to imparitive handler, or add prop that makes it rerender (no the prop was the old way)
+        switch (action.name) {
+            case 'record':
+                history.verts.splice(history.index+1); 
+                history.verts.push(verts());
+                if(history.verts.length > 10){
+                    const original_verts = history.verts.shift();
+                    history.verts.shift();
+                    history.verts.unshift(original_verts);
+                }
+                history.index = history.verts.length-1;
+                if(action.init) update({verts:history.verts[history.index]}); 
+                set_history(history);
+            break; case 'undo':
+                if(history.index > 0){
+                    history.index--;
                     update({verts:history.verts[history.index]}); 
-                    set_history(history);
-            }
+                }
+                set_history(history);
+            break; case 'redo':
+                if(history.index < history.verts.length-1){
+                    history.index++;
+                    update({verts:history.verts[history.index]}); 
+                }
+                set_history(history);
+            break; case 'revert':
+                history.index = 0;
+                update({verts:history.verts[history.index]}); 
+                set_history(history);
         }
-    },[editor_act]); 
+    }); 
 
     return (
         r('group', {
-            name: p.source ? p.source.name : 'line', //position: p.source ? [p.source.position.x,p.source.position.y,p.source.position.z] : [0,0,0],
+            name: source ? source.name : 'line', //position: source ? [source.position.x,source.position.y,source.position.z] : [0,0,0],
         }, 
             r('mesh', { // for visualization
                 ref: mesh,
                 name: 'meshline', // give proper ID name that includes "line" or "meshline"
                 position: [0,0,10],
-                raycast: p.source ? MeshLineRaycast : ()=>null,
+                raycast: source ? MeshLineRaycast : ()=>null,
             },
                 r('meshLine', {ref:meshline, attach:'geometry', points:source_verts}),
                 r('meshLineMaterial', {ref:meshline_material, color:selected_line?theme.primary_s:theme.secondary_s}),
             ),
-            p.source && r('points', { // source of truth for the line
+            source && r('points', { // source of truth for the line
                 ref: points,
                 name: 'points',
-                position: [0,0,20],//geometry: p.source && p.source.geometry,
+                position: [0,0,20],//geometry: source && source.geometry,
                 raycast: show_points ? THREE.Points.prototype.raycast : ()=>null,
             }, 
                 r('bufferGeometry',{},
@@ -185,7 +183,7 @@ export const Line = forwardRef(function Line(p, ref) {
                 ),
                 r('pointsMaterial',{size:10, vertexColors:true, map:point_texture, alphaTest:.5, transparent:true, visible:show_points}),  
             ),
-            !p.source || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__') ? null :
+            !source || source.name.includes('v__rim') || source.name.includes('v__base') || source.name.includes('__out__') ? null :
                 r('points',{
                     ref:endpoints, 
                     name:'endpoints', 
@@ -206,7 +204,7 @@ export const Line = forwardRef(function Line(p, ref) {
 
 //console.log(source_verts);
     //var source_verts = [];
-    //for_child(p.source,'points', (child)=> source_verts = child.geometry.attributes.position.array);
+    //for_child(source,'points', (child)=> source_verts = child.geometry.attributes.position.array);
 
 
 // set_tmp(args){
@@ -247,8 +245,8 @@ export const Line = forwardRef(function Line(p, ref) {
 
 
     //if(points_child) source_verts = points_child.geometry.attributes.position.array;
-    // if(p.source){
-    //     p.source.children.forEach(n => {
+    // if(source){
+    //     source.children.forEach(n => {
     //         if(n.name.slice(0,6) == 'points') {
     //             source_verts = n.geometry.attributes.position.array; // second child should be 'points' object
     //         }
@@ -257,10 +255,10 @@ export const Line = forwardRef(function Line(p, ref) {
 
 
 
-//if(p.source) source_verts = p.source.children[1].geometry.attributes.position.array; 
+//if(source) source_verts = source.children[1].geometry.attributes.position.array; 
 
 
-//(source_verts.length<6 || selection=='off' || p.source.name.includes('v__rim') || p.source.name.includes('v__base') || p.source.name.includes('__out__')) ? null :
+//(source_verts.length<6 || selection=='off' || source.name.includes('v__rim') || source.name.includes('v__base') || source.name.includes('__out__')) ? null :
 
 //const history_i = useReactiveVar(history_index);
     //const [history, set_history] = useState([]);
@@ -277,7 +275,7 @@ export const Line = forwardRef(function Line(p, ref) {
 
 //r('bufferAttribute',{attach:'index', count:source_verts.length, itemSize:1, array:new Uint16Array(source_verts.length).fill(0)}), 
             //r('bufferGeometry',{},
-            //    p.source && r('bufferAttribute',{attach: 'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
+            //    source && r('bufferAttribute',{attach: 'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
             //),
 
 

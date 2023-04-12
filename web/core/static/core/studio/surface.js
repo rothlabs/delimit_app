@@ -1,38 +1,52 @@
-import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import {child} from '../app.js';
+import {createElement as r, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import {id_of, child, use_effect} from '../app.js';
 //import {useFrame} from 'r3f';
-import {editor_act_rv, sketches_rv, editor_qr_rv} from './editor.js';
+import {editor_rv, action_rv, sketches_rv} from './editor.js';
 import {useReactiveVar} from 'apollo';
 //import {TextureLoader} from 'three';
 
-export const Surface = forwardRef(function Surface(p, ref) {
-    const source_verts = child(p.source,'mesh', c=> c.geometry.attributes.position.array);
-    //const sketch_name = child(p.source,'arg__sketch', c=> c.geometry.attributes.position.array);
-    //const sketch = product_rv.sketch(child(p.source,'arg__sketch', c=> c.name.split('__')[2])); //use_child(product_rv,'sketch__0', c=> c.geometry.attributes.position.array);
+export const Surface = forwardRef(function Surface({source}, ref) {
+    //const source_verts = child(source,'mesh', c=> c.geometry.attributes.position.array);
+    //const source_verts = new Float32Array([0,0,0, 25,0,0, 25,25,0]);
+    //const sketch_name = child(source,'arg__sketch', c=> c.geometry.attributes.position.array);
+    //const sketch = product_rv.sketch(child(source,'arg__sketch', c=> c.name.split('__')[2])); //use_child(product_rv,'sketch__0', c=> c.geometry.attributes.position.array);
     const surface = useRef();
-    const attr_pos = useRef();
-    const editor_qr = useReactiveVar(editor_qr_rv);
+    const geom = useRef();
+    const sketches = useReactiveVar(sketches_rv);
+    const editor = useReactiveVar(editor_rv);
+    //const meta = use_meta(source); // this will automatically grab meta data for this object collected by editor query 
 
-    if(editor_qr){
-        //surface.userData = {sketch:0};
-        //surface.userData = {gltfExtensions:{sketch:0}};
-        console.log(editor_qr);
-    }
+    use_effect([sketches, editor], ()=>{ 
+        const surf = editor.surfaces.find(s=> s.id == id_of(source)); //source.name.split('__')[1]
+        const sketch = sketches.get(surf.sketch.id);
+        console.log(sketch);
+    });
 
     return (
-        r('group', {ref:surface, name:p.source.name},
-            r('mesh',{
-                name:'mesh',
-            }, 
-                r('bufferGeometry',{},
-                    r('sphere',{attach:'boundingSphere', radius:10000}),
-                    r('bufferAttribute',{ref:attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
-                    //r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:max_points, itemSize:3, array:point_colors()}),//r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:source_verts.length, itemSize:3, array:point_colors(source_verts.length)}),
-                ),
-            )
+        r('group', {ref:surface, name:source.name}, 
+             r('mesh',{
+                 name:'mesh',
+             }, 
+                r('planeGeometry',{
+                    ref: geom,
+                    args: [50, 50, 10, 10],
+                }),
+             )
         )
     )
 });
+
+            //     r('bufferGeometry',{},
+            //         r('sphere',{attach:'boundingSphere', radius:10000}),
+            //         r('bufferAttribute',{ref:attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
+            //         //r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:max_points, itemSize:3, array:point_colors()}),//r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:source_verts.length, itemSize:3, array:point_colors(source_verts.length)}),
+            //     ),
+
+
+//let planeGeom = new THREE.PlaneGeometry(1, 1, divisions, frames.length + tailfinSlices -1);
+//planeGeom.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+//planeGeom.computeVertexNormals();
+
 
 // r('boxGeometry',{
 //     args: [50, 50, 50],

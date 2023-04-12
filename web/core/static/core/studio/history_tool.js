@@ -1,6 +1,6 @@
 import {createElement as r} from 'react';
 import {Button, ButtonGroup} from 'boot';
-import {editor_act_rv} from './editor.js';
+import {action_rv} from './editor.js';
 
 export function History_Tool(p){
     const mode_buttons = [
@@ -12,7 +12,7 @@ export function History_Tool(p){
         r(ButtonGroup, {},
             ...mode_buttons.map(button=>
                 r(Button,{
-                    onClick:()=>editor_act_rv({name:button.act}), 
+                    onClick:()=>action_rv({name:button.act}), 
                     variant: p.button_variant,
                     className: button.icon,
                 })

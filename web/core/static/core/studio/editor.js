@@ -9,8 +9,8 @@ import {useParams} from 'rrd';
 import {makeVar, useReactiveVar} from 'apollo';
 import {use_query} from '../app.js';
 
-export const editor_act_rv = makeVar({name:'none'});
-export const editor_qr_rv = makeVar();
+export const action_rv = makeVar({name:'none'});
+export const editor_rv = makeVar();
 export const show_points_rv = makeVar(true);
 export const show_endpoints_rv = makeVar(true);
 export const draw_mode_rv = makeVar('draw');
@@ -126,7 +126,7 @@ export function Studio_Editor(){
         ['sketches id name', id], // input is product id, output is sketch id
         ['surfaces id name sketch{id}', id], 
         ['user id'],
-    ], 'no-cache', editor_qr_rv); 
+    ], 'no-cache', editor_rv); 
     return (
         alt ? r(alt) : 
             r(Fragment,{},

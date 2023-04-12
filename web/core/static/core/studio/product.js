@@ -1,10 +1,10 @@
-import {createElement as r, useRef, useEffect, forwardRef, useImperativeHandle} from 'react';
+import {createElement as r, useRef, forwardRef, useImperativeHandle} from 'react';
 import {Box3} from 'three';
 import {Surface} from './surface.js';
 import {Sketch} from './sketch.js';
 import {useThree} from 'r3f';
-import {use_media_glb} from '../app.js';
-import {editor_act_rv, editor_qr_rv, sketches_rv} from './editor.js'; 
+import {is_type, use_effect, use_media_glb} from '../app.js';
+import {action_rv, editor_rv, sketches_rv} from './editor.js'; 
 import {GLTFExporter} from './exporter.js';
 import {useReactiveVar} from 'apollo';
 //import {Bounds} from 'drei';
@@ -17,41 +17,36 @@ export const Product = forwardRef(function Product(p, ref) {
 	const sketches = useRef([]);
 	const surfaces = useRef([]);
 	const {camera, controls} = useThree(); 
-	const editor_qr = useReactiveVar(editor_qr_rv);
-	const nodes = use_media_glb(editor_qr.product.file);
+	const editor = useReactiveVar(editor_rv);
+	const nodes = use_media_glb(editor.product.file);
 
 	useImperativeHandle(ref,()=>({
 		mutate:args=> sketches.current.forEach(sketch=> sketch.mutate(args)),
 		export_glb(callback){
 			exporter.parse(product.current, function(buffer){
 				callback(new Blob([buffer], {type:'application/octet-stream'}));
-			},function(error){console.log(error);},{ binary:true, includeCustomExtensions:true });
+			},function(error){console.log(error);},{ binary:true});
 		},
-		//sketch:target=>{
-			
-		//},
     }));
 	
-	useEffect(()=>{ 
-		if(nodes && controls){
-			bounds.setFromObject( product.current );
-			const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
-			const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
-			if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);
-			if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);
-			camera.updateProjectionMatrix();
-			editor_act_rv({name:'record', init:true}); 
-			//sketches_rv(sketches.current.map(s=>s));
-		}
-	},[nodes, controls]);
+	use_effect([nodes, controls],()=>{ 
+		bounds.setFromObject( product.current );
+		const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
+		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
+		if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);
+		if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);
+		camera.updateProjectionMatrix();
+		action_rv({name:'record', init:true}); 
+		sketches_rv({get:id=> sketches.current.find(sketch=> {if(sketch) return sketch.id==id})});
+	});
 
 	return (
-		r('group', {ref:product, name:editor_qr.product.name}, //, dispose:null
-			...nodes.map((sketch, i) => sketch.name.split('__')[0]=='sketch' &&
-				r(Sketch, {ref:rf=>sketches.current[i]=rf, source:sketch}) 
+		r('group', {ref:product, name:editor.product.name}, //, dispose:null
+			...nodes.map((node, i)=> is_type(node,'sketch') && //sketch.name.split('__')[0]=='sketch'
+				r(Sketch, {ref:rf=>sketches.current[i]=rf, source:node}) 
 			),
-			...nodes.map((surface, i) => surface.name.split('__')[0]=='surface' &&
-				r(Surface, {ref:rf=>surfaces.current[i]=rf, source:surface}) 
+			...nodes.map((node, i)=> is_type(node,'surface') && //node.name.split('__')[0]=='surface'
+				r(Surface, {ref:rf=>surfaces.current[i]=rf, source:node}) 
 			),
 		)
 	)

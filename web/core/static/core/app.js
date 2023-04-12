@@ -89,7 +89,7 @@ function compile_gql(name, gql_parts){
 export function use_query(name, gql_parts, fetchPolicy=null, reactive_var){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
-    console.log({header, body, variables});
+    //console.log({header, body, variables});
     const {loading, error, data} = useQuery(
         gql`query ${header}{${body}}`, 
         {variables:variables, fetchPolicy:fetchPolicy} // Add option for cache fetchPolicy:'no-cache'
@@ -140,15 +140,27 @@ export function use_media_glb(url){
     return cloned_nodes;
 }
 
-export function child(source, name, func){ 
-    var response = null;
+export function child(source, name, func){ // use Array.find(test_func) see moz docs
+    //var response = undefined;
     if(source){
-        source.children.forEach(child => {
-            if(child.name.slice(0,name.length) == name) response = func(child);
-        });
+        const c = source.children.find(c=> c.name.slice(0,name.length)==name)
+        if(c) return func(c);
+        //source.children.forEach(child => {
+        //    if(child.name.slice(0,name.length) == name) response = func(child);
+        //});
     }
-    return response;
+    //return response;
 }
+
+export function use_effect(deps, func){
+    useEffect(()=> {
+        if(!deps.includes(undefined) && !deps.includes(null) && !deps.includes([])) func(); // only run func if all dependencies contain a value
+    }, deps); 
+}
+
+// For gltf items. Example: sketch__37 has type 'sketch' and id 37
+export const is_type=(target, name)=> target.name.split('__')[0]==name;
+export const id_of=(target)=> target.name.split('__')[1];
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},

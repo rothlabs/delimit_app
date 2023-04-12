@@ -18,6 +18,11 @@ class Product(models.Model):
     story = models.TextField(default='', blank=True)
     def __str__(self): return self.name+' ('+os.path.basename(self.file.name)+')'
 
+class Line(models.Model):
+    name = models.CharField(max_length=64) # still encode type in name?
+    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+    def __str__(self): return self.name+' ('+str(self.id)+')'
+
 class Sketch(models.Model):
     name = models.CharField(max_length=64)
     product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)

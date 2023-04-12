@@ -4,23 +4,23 @@ import {use_mutation} from '../app.js';
 import {show_login} from '../login.js';
 import {useNavigate, useLocation} from 'rrd';
 import {useReactiveVar} from 'apollo';
-import {product_rv, editor_qr_rv} from './editor.js';
+import {product_rv, editor_rv} from './editor.js';
 
 export function File_Tool(p){
     const navigate = useNavigate();
     //const location = useLocation();
     const product = useReactiveVar(product_rv);
-    const editor_qr = useReactiveVar(editor_qr_rv);
+    const editor = useReactiveVar(editor_rv);
     const [show, set_show] = useState(false);
     const [disabled, set_disabled] = useState(true);
     const [save_disabled, set_save_disabled] = useState(true);
-    const [name, set_name] = useState(editor_qr.product.name);
-    const [story, set_story] = useState(editor_qr.product.story);
-    const [is_public, set_is_public] = useState(editor_qr.product.public);
+    const [name, set_name] = useState(editor.product.name);
+    const [story, set_story] = useState(editor.product.story);
+    const [is_public, set_is_public] = useState(editor.product.public);
     const [save_product, data, alt, reset] = use_mutation([
         ['saveProduct response product{name, id}', 
             ['Boolean! asCopy', false], 
-            ['String! id', editor_qr.product.id], 
+            ['String! id', editor.product.id], 
             ['String! name', name], 
             ['String story', 't'+story],   /// 't' is present so the server knows story is being provided even if the user inputs nothing
             ['Boolean! public', is_public],
@@ -32,11 +32,11 @@ export function File_Tool(p){
     useEffect(()=>{ 
         set_disabled(true);
         set_save_disabled(true);
-        if(editor_qr.user && editor_qr.user.id == editor_qr.product.owner.id) {
+        if(editor.user && editor.user.id == editor.product.owner.id) {
             set_disabled(false);
             set_save_disabled(false);
-        }else{ if(editor_qr.user && is_public) set_disabled(false); }
-    },[editor_qr.user]);
+        }else{ if(editor.user && is_public) set_disabled(false); }
+    },[editor.user]);
     useEffect(()=>{ 
         if(data && data.saveProduct.product){
             setTimeout(()=>{ reset(); set_show(false); }, 1200);
@@ -68,10 +68,8 @@ export function File_Tool(p){
                             r(Form.Check, {className:'mb-3', label:'Public', checked:is_public, onChange:(e)=>set_is_public(e.target.checked), disabled:disabled}),
                             r(Row,{className:'row-cols-auto'},
                                 r(Col,{}, r(ButtonGroup, {},
-                                    r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled}, 
-                                        r('i',{className:'bi-disc'}),' Save'),
-                                    r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled}, 
-                                        r('i',{className:'bi-files'}), ' Save Copy'),
+                                    r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled, className:'bi-disc'}, ' Save'), //r('i',{className:'bi-disc'}),
+                                    r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled, className:'bi-files'}, ' Copy'), //r('i',{className:'bi-files'}),
                                 )),
                                 disabled && save_disabled && r(Col,{}, r(Button,{onClick:()=>show_login(true), variant:'outline-primary'}, 
                                         r('i',{className:'bi-box-arrow-in-right'}), ' Sign In')),
