@@ -18,6 +18,15 @@ class Product(models.Model):
     story = models.TextField(default='', blank=True)
     def __str__(self): return self.name+' ('+os.path.basename(self.file.name)+')'
 
+class Point(models.Model):
+    #name = models.CharField(max_length=64) # still encode type in name?
+    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+    line = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
+    x = models.FloatField(default=0)
+    y = models.FloatField(default=0)
+    z = models.FloatField(default=0)
+    def __str__(self): return self.name+' ('+str(self.id)+')'
+
 class Line(models.Model):
     name = models.CharField(max_length=64) # still encode type in name?
     product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
@@ -26,6 +35,14 @@ class Line(models.Model):
 class Sketch(models.Model):
     name = models.CharField(max_length=64)
     product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+    #iv_base = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
+    def __str__(self): return self.name+' ('+str(self.id)+')'
+
+class Sketch_Line(models.Model):
+    #name = models.CharField(max_length=64)
+    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+    sketch = models.ForeignKey(Sketch, default=0, on_delete=models.CASCADE)
+    line = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
     def __str__(self): return self.name+' ('+str(self.id)+')'
 
 class Surface(models.Model):
