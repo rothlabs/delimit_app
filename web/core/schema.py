@@ -1,7 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
-from core.models import Product, Vector, Sketch, Surface, random_id
+from core.models import Product, Group, Vector, Line, Sketch, Surface, random_id
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
@@ -21,18 +21,33 @@ class Vector_Type(DjangoObjectType):
         model = Vector
         fields = '__all__'
 
+class Line_Type(graphene.ObjectType):
+    id = graphene.ID() # points to core.models.Group.id
+    name = graphene.String()
+    points = graphene.List(graphene.ID)
+
+# class Sketch_Type(graphene.ObjectType):
+#     id = graphene.ID() # points to core.models.Group.id
+#     name = graphene.String()
+#     lines = graphene.List(graphene.ID)
+
 class Product_Type(DjangoObjectType):
     class Meta:
         model = Product
         fields = '__all__'
     vectors = graphene.List(Vector_Type) 
-    def resolve_vectors(self, info):
+    lines   = graphene.List(Line_Type) 
+    def resolve_vectors(self, info): 
         return self.vector_set.all()
+    def resolve_lines(self, info):
+        try:
+            table = self.line_set.all()
+            return[{'id':     id, 
+                    'name':   self.group_set.get(id=id).name,
+                    'points': [r.point.id for r in table if r.group_id==id]} 
+                        for id in {r.group_id for r in table} ]
+        except Exception as e: print(e)
 
-# class Sketch_Type(DjangoObjectType):
-#     class Meta:
-#         model = Sketch
-#         fields = ('id', 'name', 'product',)
 
 # class Surface_Type(DjangoObjectType):
 #     class Meta:
@@ -43,8 +58,6 @@ class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
     products = graphene.List(Product_Type)
     product = graphene.Field(Product_Type, id=graphene.String(required=True))
-    #sketches = graphene.List(Sketch_Type,  id=graphene.String(required=True))
-    #surfaces = graphene.List(Surface_Type, id=graphene.String(required=True))
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
@@ -53,13 +66,6 @@ class Query(graphene.ObjectType):
         else: return Product.objects.filter(public=True)
     def resolve_product(root, info, id): # need to check if owner or is public?
         return Product.objects.get(id=id)
-
-        #except Product.DoesNotExist: return None
-    # def resolve_sketches(root, info, id):
-    #     return Sketch.objects.filter(product=Product.objects.get(id=id))
-    # def resolve_surfaces(root, info, id):
-    #     return Surface.objects.filter(product=Product.objects.get(id=id))
-
 
 class Login(graphene.Mutation):
     class Arguments:

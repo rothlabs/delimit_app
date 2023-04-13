@@ -120,11 +120,11 @@ function View_2D(p) {
 };
 
 export function Studio_Editor(){
-    const id = ['String! id', useParams().id]; // from react router
     const [data, alt] = use_query('GetProduct',[
-        ['product id name story file public owner{id firstName} vectors{name x y z}', id], 
-        //['sketches id name', id], // input is product id, output is sketch id
-        //['surfaces id name sketch{id}', id], 
+        [`product id name story file public owner{id firstName} 
+          vectors{id name x y z} 
+          lines{id name points}`, 
+          ['String! id', useParams().id]], 
         ['user id'],
     ], 'no-cache', editor_rv); 
     if(data && data.product) console.log(data.product);
