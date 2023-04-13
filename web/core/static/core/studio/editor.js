@@ -122,8 +122,7 @@ function View_2D(p) {
 export function Studio_Editor(){
     const [data, alt] = use_query('GetProduct',[
         [`product id name story file public owner{id firstName} 
-          vectors{id name x y z} 
-          lines{id name points}`, 
+          floats{id val}`, 
           ['String! id', useParams().id]], 
         ['user id'],
     ], 'no-cache', editor_rv); 
@@ -148,3 +147,6 @@ export function Studio_Editor(){
             )
     )
 }
+
+// vectors{id name x y z} 
+//           lines{id name points}`

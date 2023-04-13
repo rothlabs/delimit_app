@@ -5,46 +5,78 @@ import django.utils
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 
-def random_id():
-    return get_random_string(length=8)
+def random_id(): return get_random_string(length=16)
 
 class Product(models.Model):
-    id = models.CharField(primary_key=True, max_length=8, default=random_id)
-    name = models.CharField(max_length=64)
+    id = models.CharField(default=random_id, max_length=16, primary_key=True) # change to TextField with no max_limit max_length=16, 
+    name = models.CharField(default='', max_length=64) # change to TextField with no max_limit TextField
     date = models.DateTimeField(default=django.utils.timezone.now)
-    file = models.FileField(upload_to='product', default='product/default.glb')
-    owner = models.ForeignKey(User, default=0, on_delete=models.CASCADE)
+    file = models.FileField(default='product/default.glb', upload_to='product')
+    owner = models.ForeignKey(User, default=1, on_delete=models.CASCADE)
     public = models.BooleanField(default=False)
-    story = models.TextField(default='', blank=True)
+    story = models.TextField(default='')
+    #part = models.ForeignKey(Part, default=1, on_delete=models.CASCADE)
     def __str__(self): return self.name+' ('+os.path.basename(self.file.name)+')'
 
-class Part(models.Model):
+#class Bool_Atom(models.Model):   val = models.BooleanField(default=False)
+
+class Float_Atom(models.Model):  
+    val = models.FloatField(default=0)
+    def __str__(self): return str(self.val)+' ('+str(self.id)+')'
+class Char_Atom(models.Model):   
+    val = models.CharField(max_length=64)
+    def __str__(self): return str(self.val)+' ('+str(self.id)+')'
+
+class Part(models.Model): 
+    def __str__(self): 
+        try: return self.char_prop_set.get(key=Char_Atom.objects.get(val='name')).atom.val+' ('+str(self.id)+')'
+        except: return 'part ('+str(self.id)+')'
+
+#class Key(models.Model): 
+#    val = models.CharField(default='', max_length=64)
+#    def __str__(self): return self.val+' ('+str(self.id)+')'
+
+class Prop(models.Model): 
     class Meta: abstract = True
-    product = models.ForeignKey(Product, default=0, on_delete=models.CASCADE)
+    part = models.ForeignKey(Part, default=1, on_delete=models.CASCADE) #, related_name='part'
+    key  = models.ForeignKey(Char_Atom,  default=1, on_delete=models.CASCADE)
 
-class Named(models.Model):
-    class Meta: abstract = True
-    name = models.CharField(max_length=64)
+class Part_Prop(Prop):
+    val = models.ForeignKey(Part, default=1, on_delete=models.CASCADE, related_name='val')
 
-class Group(Named, Part): pass #vector = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE) 
+#class Bool_Prop(Prop):
+#    val  = models.ForeignKey(Bool_Atom, default=0, on_delete=models.CASCADE)
 
-class Vector(Named, Part):
-    x = models.FloatField(default=0)
-    y = models.FloatField(default=0)
-    z = models.FloatField(default=0)
+class Float_Prop(Prop):
+    atom = models.ForeignKey(Float_Atom, default=1, on_delete=models.CASCADE, related_name='atom')
 
-class Line(Part):
-    group = models.ForeignKey(Group, default=0, on_delete=models.CASCADE)
-    point = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE)
+class Char_Prop(Prop):
+    atom  = models.ForeignKey(Char_Atom, default=0, on_delete=models.CASCADE, related_name='atom')
 
-class Sketch(Part):
-    group = models.ForeignKey(Group, default=0, on_delete=models.CASCADE)
-    line  = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
-    a     = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE, related_name='a') 
-    b     = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE, related_name='b') 
 
-class Surface(Named, Part):
-    sketch = models.ForeignKey(Sketch, default=0, on_delete=models.CASCADE)
+# class Named(models.Model):
+#     class Meta: abstract = True
+#     name = models.CharField(max_length=64)
+
+# class Group(Named, Part): pass #vector = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE) 
+
+# class Vector(Named, Part):
+#     x = models.FloatField(default=0)
+#     y = models.FloatField(default=0)
+#     z = models.FloatField(default=0)
+
+# class Line(Part):
+#     group = models.ForeignKey(Group, default=0, on_delete=models.CASCADE)
+#     point = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE)
+
+# class Sketch(Part):
+#     group = models.ForeignKey(Group, default=0, on_delete=models.CASCADE)
+#     line  = models.ForeignKey(Line, default=0, on_delete=models.CASCADE)
+#     a     = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE, related_name='a') 
+#     b     = models.ForeignKey(Vector, default=0, on_delete=models.CASCADE, related_name='b') 
+
+# class Surface(Named, Part):
+#     sketch = models.ForeignKey(Sketch, default=0, on_delete=models.CASCADE)
 
 
 
@@ -81,27 +113,3 @@ def auto_delete_file_on_change(sender, instance, **kwargs):
 
 
 # Probably want polymorphic: https://django-polymorphic.readthedocs.io/en/stable/
-
-#    camera_x = models.FloatField(default=0)
-#    camera_y = models.FloatField(default=0)
-#    camera_z = models.FloatField(default=10)
-    
-#class Shoe(Product):
-#    heel_height = models.FloatField(default=.5)
-
-
-#class Base_Model(models.Model):
-#    class Meta:
-#        abstract = True
-#    id = models.CharField(primary_key=True, max_length=8, default=get_random_string(length=8))
-#    name = models.CharField(max_length=64)
-#    date = models.DateTimeField(default=django.utils.timezone.now)
-#    def __str__(self): 
-#        return self.name+' ('+str(self.id)+')'
-    #def data(self): # used to generate template json script tags with data for javascript 
-    #   d = dict(self.__dict__)
-    #if hasattr(self,'file'):
-    #   d['url'] = self.file.url
-    #   del d['file']   # removed in favor of d['url'] = self.file.url which has complete url
-    #del d['_state'] # removed because value of '_state' cannot be serialized
-    #return d 

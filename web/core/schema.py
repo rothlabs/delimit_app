@@ -1,7 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
-from core.models import Product, Group, Vector, Line, Sketch, Surface, random_id
+from core.models import Product, Float_Atom, Part, Part_Prop, Float_Prop, Char_Atom
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
@@ -16,37 +16,55 @@ class User_Type(DjangoObjectType):
         model = User
         fields = ('id', 'first_name',)
 
-class Vector_Type(DjangoObjectType):
-    class Meta:
-        model = Vector
-        fields = '__all__'
+# class Vector_Type(DjangoObjectType):
+#     class Meta:
+#         model = Vector
+#         fields = '__all__'
 
-class Line_Type(graphene.ObjectType):
-    id = graphene.ID() # points to core.models.Group.id
-    name = graphene.String()
-    points = graphene.List(graphene.ID)
+# class Line_Type(graphene.ObjectType):
+#     id = graphene.ID() # points to core.models.Group.id
+#     name = graphene.String()
+#     points = graphene.List(graphene.ID)
 
 # class Sketch_Type(graphene.ObjectType):
 #     id = graphene.ID() # points to core.models.Group.id
 #     name = graphene.String()
 #     lines = graphene.List(graphene.ID)
 
+class Float_Atom_Type(DjangoObjectType):
+    class Meta:
+        model = Float_Atom
+        fields = '__all__'
+
 class Product_Type(DjangoObjectType):
     class Meta:
         model = Product
         fields = '__all__'
-    vectors = graphene.List(Vector_Type) 
-    lines   = graphene.List(Line_Type) 
-    def resolve_vectors(self, info): 
-        return self.vector_set.all()
-    def resolve_lines(self, info):
-        try:
-            table = self.line_set.all()
-            return[{'id':     id, 
-                    'name':   self.group_set.get(id=id).name,
-                    'points': [r.point.id for r in table if r.group_id==id]} 
-                        for id in {r.group_id for r in table} ]
+    floats  = graphene.List(Float_Atom_Type) 
+    #vectors = graphene.List(Vector_Type) 
+    #lines   = graphene.List(Line_Type) 
+    # def resolve_name(self, info): 
+    #     try:
+    #         return self.char_prop_set.get(key='name').val
+    #     except Exception as e: print(e)
+    def resolve_floats(self, info): 
+        try: return [float_prop.atom.val for float_prop in 
+                self.part.float_prop_set.get(key=Char_Atom.objects.get(val='root'))]
         except Exception as e: print(e)
+    # def resolve_vectors(self, info): 
+    #     try:
+    #         self.part_prop_set.filter(key='vector').
+    #     except Exception as e: print(e)
+    #     #return self.vector_set.all()
+    # def resolve_lines(self, info):
+    #     try:
+
+    #         # table = self.line_set.all()
+    #         # return[{'id':     id, 
+    #         #         'name':   self.group_set.get(id=id).name,
+    #         #         'points': [r.point.id for r in table if r.group_id==id]} 
+    #         #             for id in {r.group_id for r in table} ]
+    #     except Exception as e: print(e)
 
 
 # class Surface_Type(DjangoObjectType):
@@ -65,7 +83,7 @@ class Query(graphene.ObjectType):
         if info.context.user.is_authenticated: return Product.objects.filter(Q(public=True) | Q(owner=info.context.user))
         else: return Product.objects.filter(public=True)
     def resolve_product(root, info, id): # need to check if owner or is public?
-        return Product.objects.get(id=id)
+        return Product.objects.get(id=id) #return Part.objects.get(id=id)
 
 class Login(graphene.Mutation):
     class Arguments:
