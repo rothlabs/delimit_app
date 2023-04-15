@@ -19,13 +19,13 @@ export function File_Tool(p){
     const [is_public, set_is_public] = useState(editor.product.public);
     const [save_product, data, alt, reset] = use_mutation([
         ['saveProduct response product{name, id}', 
-            ['Boolean! asCopy', false], 
+            ['Boolean! toNew', false], 
             ['String! id', editor.product.id], 
             ['String! name', name], 
             ['String story', 't'+story],   /// 't' is present so the server knows story is being provided even if the user inputs nothing
             ['Boolean! public', is_public],
             ['Upload blob', new Blob(['Empty Product File'], { type: 'text/plain' })],
-            //['String! binding', ],
+            //['[ID] parts', ['t',1,2]], // if map returns empty it might be like ['t',] which causes graphql error! 
         ]
     ], 'GetProducts GetProduct');
     useEffect(()=>{ if(!show) reset(); },[show]);
@@ -43,9 +43,9 @@ export function File_Tool(p){
             navigate('/studio/'+data.saveProduct.product.id);
         }
     },[data]);
-    function save(as_copy){
+    function save(to_new){
         product.export_glb((blob)=>{
-            save_product({variables:{blob:blob, asCopy:as_copy}});
+            save_product({variables:{blob:blob, toNew:to_new}});
         });
     }
     return(
@@ -57,6 +57,7 @@ export function File_Tool(p){
                     data && data.saveProduct.product ? r('p',{}, data.saveProduct.response) :
                         r(Fragment,{},
                             data && r('p', {}, data.saveProduct.response),
+                            r('p',{}, 'Loaded: '+editor.product.name),
                             r(InputGroup, {className:'mb-3'}, 
                                 r(InputGroup.Text, {}, 'Name'),
                                 r(Form.Control, {maxLength:64, value:name, onChange:(e)=>set_name(e.target.value), disabled:disabled}),
@@ -69,7 +70,7 @@ export function File_Tool(p){
                             r(Row,{className:'row-cols-auto'},
                                 r(Col,{}, r(ButtonGroup, {},
                                     r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled, className:'bi-disc'}, ' Save'), //r('i',{className:'bi-disc'}),
-                                    r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled, className:'bi-files'}, ' Copy'), //r('i',{className:'bi-files'}),
+                                    r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled, className:'bi-file-earmark-plus'}, ' Save New'), //r('i',{className:'bi-files'}),
                                 )),
                                 disabled && save_disabled && r(Col,{}, r(Button,{onClick:()=>show_login(true), variant:'outline-primary'}, 
                                         r('i',{className:'bi-box-arrow-in-right'}), ' Sign In')),

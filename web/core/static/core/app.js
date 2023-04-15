@@ -73,6 +73,7 @@ function compile_gql(name, gql_parts){
             if(i<q.length-1){//header += ', ';
                 body += ', ';
             }else{ body += ')'; }
+            //const val = q[i][1]; // lodash set method appears to not work correctly for [item,] unless [item,] is accessed first
             set(variables, q_var_meta[1], q[i][1]);
             header_vars.push(q_var_meta[1]);
         }

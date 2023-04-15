@@ -121,7 +121,7 @@ function View_2D(p) {
 
 export function Studio_Editor(){
     const [data, alt] = use_query('GetProduct',[ // this will allow a single import and single export and all semantics will be managed in editor
-        [`product id name story file public owner{id firstName}
+        [`product id name story file public owner{id firstName} parts{id}
             p{id p{id} u{id} f{id} s{id}} f{id v} s{id v}`, 
             ['String! id', useParams().id]], 
         ['user id'],
@@ -129,7 +129,7 @@ export function Studio_Editor(){
     if(data && data.product) console.log(data.product);
     return (
         alt ? r(alt) : 
-            r(Fragment,{},
+            r(Fragment,{}, // data && 
                 r(Toolbar),//, {product:data.product, user:data.user}), //, view_2d:view_2d
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
                     r(Canvas,{orthographic:true, camera:{position:[0, 0, 100]}}, //, onCreated:(state)=>raycaster=state.raycaster 

@@ -1,7 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
-from core.models import Product, Part, Float, String
+from core.models import Product, Part, Float, String, random_id
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
@@ -93,33 +93,42 @@ class Logout(graphene.Mutation):
             return Logout(response='Farewell '+user.first_name, user=user)
         return Logout()
 
-class Save_Product(graphene.Mutation): # rename to use _ 
+class Save_Product(graphene.Mutation): 
     class Arguments:
-        asCopy = graphene.Boolean(required=True)
+        toNew = graphene.Boolean(required=True)
         id = graphene.String(required=True)
         name = graphene.String(required=True)
         public = graphene.Boolean(required=True)
         story = graphene.String(required=False, default_value = '')
         blob = Upload(required=False, default_value = None)
+        parts = graphene.List(graphene.ID, required=False, default_value=[])
     product = graphene.Field(Product_Type)
     response = graphene.String(default_value = 'Failed to save or copy product.') 
     @classmethod
-    def mutate(cls, root, info, asCopy, id, name, public, story, blob):
+    def mutate(cls, root, info, toNew, id, name, public, story, blob, parts):
         try:
             product = None
             if info.context.user.is_authenticated:  
-                if asCopy: product = Product.objects.get(id = id)
+                if toNew:  product = Product.objects.get(id = id)
                 else:      product = Product.objects.get(id = id, owner=info.context.user)
+                response = 'Saved '+name+' to '+product.name+'.'
+                prev_parts = None
+                if toNew: 
+                    if not parts: prev_parts = product.parts.all()#[part.id for part in product.parts.all()]
+                    response = 'Saved '+name+' to new file.'
+                    product.id = None
+                else: 
+                    if parts: product.parts.set(parts[1:])
                 product.name = name
                 product.owner = info.context.user
                 product.public = public
-                if story: product.story = story[1:] # remove first 't' character
-                response = 'Saved'
-                if asCopy: 
-                    response = 'Copied as ' + name + '.'
-                    product.id = None
-                if blob: product.file.save(random_id()+'.glb', blob, save = True) # product.file should be file from client when doing regular save
-                else: product.file.save(random_id()+'.glb', product.file, save = True)
+                if story: product.story = story[1:] # remove first 't' character (use not story == None instead?)
+                if blob: product.file.save(random_id()+'.glb', blob, save = True) # automatrically call product.save()
+                else: product.file.save(random_id()+'.glb', product.file, save = True) 
+                if toNew: 
+                    if prev_parts: parts = prev_parts
+                    else: parts = Part.objects.filter(id__in=parts[1:])
+                    for part in parts: part.products.add(product.id)
                 return Save_Product(response=response, product=product) 
         except Exception as e: print(e)
         return Save_Product() 
