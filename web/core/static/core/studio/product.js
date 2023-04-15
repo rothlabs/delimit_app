@@ -29,7 +29,7 @@ export const Product = forwardRef(function Product(p, ref) {
 		},
     }));
 	
-	use_effect([nodes, controls],()=>{ 
+	use_effect([nodes, controls],()=>{ // only runs second time going to editor
 		bounds.setFromObject( product.current );
 		const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
 		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
@@ -51,6 +51,13 @@ export const Product = forwardRef(function Product(p, ref) {
 		)
 	)
 });
+
+
+//...product.parts.map((p,i)=> p.v == 'sketch' && r(Sketch, {part:p}) 
+
+
+//...part.d.map((p,i)=> p.v == 'line' && r(Line, {part:p}))
+
 
 
 			// r('group', {name:'surface__0'},

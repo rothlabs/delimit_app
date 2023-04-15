@@ -1,7 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
-from core.models import Product, Float_Atom, Part, Part_Prop, Float_Prop, Char_Atom
+from core.models import Product, Part, Float, String
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
@@ -16,61 +16,44 @@ class User_Type(DjangoObjectType):
         model = User
         fields = ('id', 'first_name',)
 
-# class Vector_Type(DjangoObjectType):
-#     class Meta:
-#         model = Vector
-#         fields = '__all__'
-
-# class Line_Type(graphene.ObjectType):
-#     id = graphene.ID() # points to core.models.Group.id
-#     name = graphene.String()
-#     points = graphene.List(graphene.ID)
-
-# class Sketch_Type(graphene.ObjectType):
-#     id = graphene.ID() # points to core.models.Group.id
-#     name = graphene.String()
-#     lines = graphene.List(graphene.ID)
-
-class Float_Atom_Type(DjangoObjectType):
+class Part_Type(DjangoObjectType):
     class Meta:
-        model = Float_Atom
+        model = Part
         fields = '__all__'
+class Float_Type(DjangoObjectType):
+    class Meta:
+        model = Float
+        fields = '__all__'
+class String_Type(DjangoObjectType):
+    class Meta:
+        model = String
+        fields = '__all__'
+
+def all_atoms(parts, model, access):
+    def add_atoms(atoms, part):
+        atoms = atoms.union(access(part).all())
+        for p in part.p.all(): atoms = atoms.union(add_atoms(atoms, p))
+        return atoms
+    atoms = model.objects.none()
+    for p in parts.all(): atoms = add_atoms(atoms, p)
+    return atoms
 
 class Product_Type(DjangoObjectType):
     class Meta:
         model = Product
         fields = '__all__'
-    floats  = graphene.List(Float_Atom_Type) 
-    #vectors = graphene.List(Vector_Type) 
-    #lines   = graphene.List(Line_Type) 
-    # def resolve_name(self, info): 
-    #     try:
-    #         return self.char_prop_set.get(key='name').val
-    #     except Exception as e: print(e)
-    def resolve_floats(self, info): 
-        try: return [float_prop.atom.val for float_prop in 
-                self.part.float_prop_set.get(key=Char_Atom.objects.get(val='root'))]
+    p = graphene.List(Part_Type) 
+    f = graphene.List(Float_Type) 
+    s = graphene.List(String_Type) 
+    def resolve_p(self, info):
+        try: return all_atoms(self.parts, Part, lambda p:p.p).union(self.parts.all())
         except Exception as e: print(e)
-    # def resolve_vectors(self, info): 
-    #     try:
-    #         self.part_prop_set.filter(key='vector').
-    #     except Exception as e: print(e)
-    #     #return self.vector_set.all()
-    # def resolve_lines(self, info):
-    #     try:
-
-    #         # table = self.line_set.all()
-    #         # return[{'id':     id, 
-    #         #         'name':   self.group_set.get(id=id).name,
-    #         #         'points': [r.point.id for r in table if r.group_id==id]} 
-    #         #             for id in {r.group_id for r in table} ]
-    #     except Exception as e: print(e)
-
-
-# class Surface_Type(DjangoObjectType):
-#     class Meta:
-#         model = Surface
-#         fields = ('id', 'name', 'product', 'sketch',)
+    def resolve_f(self, info):
+        try: return all_atoms(self.parts, Float, lambda p:p.f)
+        except Exception as e: print(e)
+    def resolve_s(self, info):
+        try: return all_atoms(self.parts, String, lambda p:p.s)
+        except Exception as e: print(e)
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)

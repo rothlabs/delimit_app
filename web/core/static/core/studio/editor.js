@@ -120,10 +120,10 @@ function View_2D(p) {
 };
 
 export function Studio_Editor(){
-    const [data, alt] = use_query('GetProduct',[
-        [`product id name story file public owner{id firstName} 
-          floats{id val}`, 
-          ['String! id', useParams().id]], 
+    const [data, alt] = use_query('GetProduct',[ // this will allow a single import and single export and all semantics will be managed in editor
+        [`product id name story file public owner{id firstName}
+            p{id p{id} u{id} f{id} s{id}} f{id v} s{id v}`, 
+            ['String! id', useParams().id]], 
         ['user id'],
     ], 'no-cache', editor_rv); 
     if(data && data.product) console.log(data.product);
@@ -147,6 +147,12 @@ export function Studio_Editor(){
             )
     )
 }
+
+//p{id p{id} u{id} f{id} s{id}}
+//            f{id v} s{id v}`
+// parts{id deps sups floats{id} chars{id}}
+// floats{id val}
+// chars{id val}
 
 // vectors{id name x y z} 
 //           lines{id name points}`

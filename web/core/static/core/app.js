@@ -154,6 +154,7 @@ export function child(source, name, func){ // use Array.find(test_func) see moz 
 
 export function use_effect(deps, func){
     useEffect(()=> {
+        //console.log(deps);
         if(!deps.includes(undefined) && !deps.includes(null) && !deps.includes([])) func(); // only run func if all dependencies contain a value
     }, deps); 
 }
