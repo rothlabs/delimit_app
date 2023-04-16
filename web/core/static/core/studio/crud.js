@@ -9,7 +9,7 @@ export function Copy_Product(){
     const [name, set_name] = useState('');
     const [save_product, data, alt, reset] = use_mutation([
         ['saveProduct response product{name}', 
-            ['Boolean! asCopy', true], 
+            ['Boolean! toNew', true], 
             ['String! id', product && product.id], 
             ['String! name', name],
             ['Boolean! public', false],]
