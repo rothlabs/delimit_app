@@ -7,8 +7,9 @@ import {Toolbar} from './toolbar.js';
 import {CameraControls} from 'drei';
 import {useParams} from 'rrd';
 import {makeVar, useReactiveVar} from 'apollo';
-import {use_query} from '../app.js';
+import {use_query, use_effect} from '../app.js';
 
+export const no_edit_rv = makeVar(true);
 export const action_rv = makeVar({name:'none'});
 export const editor_rv = makeVar();
 export const show_points_rv = makeVar(true);
@@ -25,6 +26,9 @@ var pointers_down = 0;
 const point=(e)=>  e.intersections[e.intersections.length-1].point;
 const name=(e)=>   e.intersections[0].object.name
 const select=(e)=> e.intersections[0];
+
+//var onPointerMove_enabled = true;
+//const enable_onPointerMove=()=> onPointerMove_enabled=true;
 
 //export const View_2D = forwardRef( 
 function View_2D(p) {
@@ -96,19 +100,24 @@ function View_2D(p) {
                     if(pointers_down < 0) pointers_down = 0;
                 }
             }, 
-            onPointerMove:(e)=>{ e.stopPropagation();
-                if(pointers_down==1 && selection){ 
-                    if(selection.object.name == 'meshline'){
-                        pointer_vect.set(e.clientX,e.clientY);
-                        if(pointer_start.distanceTo(pointer_vect) > 2){
-                            draw_verts.push(point(e).x, point(e).y, 0); // will need to find other z value for 3d lines
-                            draw_line.current.set_verts(new Float32Array(draw_verts));
+            onPointerMove:(e)=>{ 
+                //if (onPointerMove_enabled) {
+                    //onPointerMove_enabled = false; 
+                    e.stopPropagation();
+                    if(pointers_down==1 && selection){ 
+                        if(selection.object.name == 'meshline'){
+                            pointer_vect.set(e.clientX,e.clientY);
+                            if(pointer_start.distanceTo(pointer_vect) > 2){
+                                draw_verts.push(point(e).x, point(e).y, 0); // will need to find other z value for 3d lines
+                                draw_line.current.set_verts(new Float32Array(draw_verts));
+                            }
+                        }
+                        if(dragging){
+                            product.current.mutate({selection:selection, move_point:point(e), record:false});
                         }
                     }
-                    if(dragging){
-                        product.current.mutate({selection:selection, move_point:point(e), record:false});
-                    }
-                }
+                    //window.setTimeout(enable_onPointerMove, 10);
+                //}
             },
         },   
             r('planeGeometry', {args:[10000, 10000]}),
@@ -126,7 +135,11 @@ export function Studio_Editor(){
             ['String! id', useParams().id]], 
         ['user id'],
     ], 'no-cache', editor_rv); 
-    if(data && data.product) console.log(data.product);
+    //if(data && data.product) console.log(data.product);
+    use_effect([data],()=>{
+        no_edit_rv(true);
+        if(data.user && data.user.id == data.product.owner.id) no_edit_rv(false);
+    });
     return (
         alt ? r(alt) : 
             r(Fragment,{}, // data && 

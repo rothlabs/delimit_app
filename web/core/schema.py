@@ -101,7 +101,7 @@ class Save_Product(graphene.Mutation):
         public = graphene.Boolean(required=True)
         story = graphene.String(required=False, default_value = '')
         blob = Upload(required=False, default_value = None)
-        parts = graphene.List(graphene.ID, required=False, default_value=[])
+        parts = graphene.List(graphene.List(graphene.ID, required=False, default_value=[]), required=False, default_value=[])
     product = graphene.Field(Product_Type)
     response = graphene.String(default_value = 'Failed to save or copy product.') 
     @classmethod
@@ -111,24 +111,25 @@ class Save_Product(graphene.Mutation):
             if info.context.user.is_authenticated:  
                 if toNew:  product = Product.objects.get(id = id)
                 else:      product = Product.objects.get(id = id, owner=info.context.user)
-                response = 'Saved '+name+' to '+product.name+'.'
-                prev_parts = None
+                response = 'Saved'
+                print(parts)
+                #prev_parts = None
                 if toNew: 
-                    if not parts: prev_parts = product.parts.all()#[part.id for part in product.parts.all()]
-                    response = 'Saved '+name+' to new file.'
+                    #if not parts: prev_parts = product.parts.all()#[part.id for part in product.parts.all()]
+                    response = 'Copied '+product.name+' as '+name
                     product.id = None
-                else: 
-                    if parts: product.parts.set(parts[1:])
+                #else: 
+                    #if parts: product.parts.set(parts[1:])
                 product.name = name
                 product.owner = info.context.user
                 product.public = public
                 if story: product.story = story[1:] # remove first 't' character (use not story == None instead?)
                 if blob: product.file.save(random_id()+'.glb', blob, save = True) # automatrically call product.save()
                 else: product.file.save(random_id()+'.glb', product.file, save = True) 
-                if toNew: 
-                    if prev_parts: parts = prev_parts
-                    else: parts = Part.objects.filter(id__in=parts[1:])
-                    for part in parts: part.products.add(product.id)
+                #if toNew: 
+                #    if prev_parts: parts = prev_parts
+                #    else: parts = Part.objects.filter(id__in=parts[1:])
+                #    for part in parts: part.products.add(product.id)
                 return Save_Product(response=response, product=product) 
         except Exception as e: print(e)
         return Save_Product() 

@@ -10,7 +10,7 @@ import {Studio_Editor} from './studio/editor.js';
 import {Studio_Browser} from './studio/browser.js';
 import {Loading, Router_Error, GQL_Error} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
-import set from 'lodash';
+//import set from 'lodash';
 import {useGLTF} from 'drei';
 import * as THREE from 'three';
 
@@ -74,7 +74,8 @@ function compile_gql(name, gql_parts){
                 body += ', ';
             }else{ body += ')'; }
             //const val = q[i][1]; // lodash set method appears to not work correctly for [item,] unless [item,] is accessed first
-            set(variables, q_var_meta[1], q[i][1]);
+            //set(variables, q_var_meta[1], q[i][1]);
+            variables[q_var_meta[1]] = q[i][1]
             header_vars.push(q_var_meta[1]);
         }
         //if(q.length>1) body += ')';

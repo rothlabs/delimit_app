@@ -111,7 +111,7 @@ export const Line = forwardRef(function Line({source}, ref) {
 
     useFrame(()=> {
         //if(meshline_material.current) meshline_material.current.lineWidth = 4 / camera.zoom;
-        meshline_material.current.lineWidth = 4 / camera.zoom;
+        meshline_material.current.lineWidth = 3 / camera.zoom;
     }); 
 
     useEffect(()=>{
@@ -181,7 +181,7 @@ export const Line = forwardRef(function Line({source}, ref) {
                     r('bufferAttribute',{ref:point_attr_pos, attach:'attributes-position', count:source_verts.length, itemSize:3, array:source_verts}), 
                     r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:max_points, itemSize:3, array:point_colors()}),//r('bufferAttribute',{ref:point_attr_color, attach:'attributes-color', count:source_verts.length, itemSize:3, array:point_colors(source_verts.length)}),
                 ),
-                r('pointsMaterial',{size:10, vertexColors:true, map:point_texture, alphaTest:.5, transparent:true, visible:show_points}),  
+                r('pointsMaterial',{size:9, vertexColors:true, map:point_texture, alphaTest:.5, transparent:true, visible:show_points}),  
             ),
             !source || source.name.includes('v__rim') || source.name.includes('v__base') || source.name.includes('__out__') ? null :
                 r('points',{
@@ -195,7 +195,7 @@ export const Line = forwardRef(function Line({source}, ref) {
                         r('bufferAttribute',{ref:endpoint_attr_pos, attach: 'attributes-position', count:2, itemSize:3, array:endpoint_verts()}), 
                         r('bufferAttribute',{ref:endpoint_attr_color, attach:'attributes-color', count:2, itemSize:3, array:endpoint_colors()}),
                     ),
-                    r('pointsMaterial',{size:15, vertexColors:true, map:point_texture, alphaTest:.5, transparent:true, visible:show_endpoints}),
+                    r('pointsMaterial',{size:12, vertexColors:true, map:point_texture, alphaTest:.5, transparent:true, visible:show_endpoints}),
                 ),
         )
     )

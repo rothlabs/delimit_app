@@ -4,75 +4,87 @@ import {use_mutation} from '../app.js';
 import {show_login} from '../login.js';
 import {useNavigate, useLocation} from 'rrd';
 import {useReactiveVar} from 'apollo';
-import {product_rv, editor_rv} from './editor.js';
+import {product_rv, editor_rv, no_edit_rv} from './editor.js';
+import {show_copy_product} from './crud.js';
 
 export function File_Tool(p){
     const navigate = useNavigate();
     //const location = useLocation();
-    const product = useReactiveVar(product_rv);
+    //const product = useReactiveVar(product_rv);
+    const no_edit = useReactiveVar(no_edit_rv);
     const editor = useReactiveVar(editor_rv);
     const [show, set_show] = useState(false);
-    const [disabled, set_disabled] = useState(true);
-    const [save_disabled, set_save_disabled] = useState(true);
+    //const [disabled, set_disabled] = useState(true);
+    //const [save_disabled, set_save_disabled] = useState(true);
     const [name, set_name] = useState(editor.product.name);
     const [story, set_story] = useState(editor.product.story);
     const [is_public, set_is_public] = useState(editor.product.public);
-    const [save_product, data, alt, reset] = use_mutation([
+    const [edit_product, data, alt, reset] = use_mutation([
         ['saveProduct response product{name, id}', 
             ['Boolean! toNew', false], 
             ['String! id', editor.product.id], 
             ['String! name', name], 
-            ['String story', 't'+story],   /// 't' is present so the server knows story is being provided even if the user inputs nothing
             ['Boolean! public', is_public],
-            ['Upload blob', new Blob(['Empty Product File'], { type: 'text/plain' })],
-            //['[ID] parts', ['t',1,2]], // if map returns empty it might be like ['t',] which causes graphql error! 
+            ['String story', 't'+story],   /// 't' is present so the server knows story is being provided even if the user inputs nothing
+            //['Upload blob', new Blob(['Empty Product File'], { type: 'text/plain' })],
+            //['[ID [ID] [ID] [ID]] parts', ['t',[7,9],[5,0],[1,1]]], // if map returns empty it might be like ['t',] which causes graphql error! 
         ]
-    ], 'GetProducts GetProduct');
-    useEffect(()=>{ if(!show) reset(); },[show]);
-    useEffect(()=>{ 
-        set_disabled(true);
-        set_save_disabled(true);
-        if(editor.user && editor.user.id == editor.product.owner.id) {
-            set_disabled(false);
-            set_save_disabled(false);
-        }else{ if(editor.user && is_public) set_disabled(false); }
-    },[editor.user]);
-    useEffect(()=>{ 
-        if(data && data.saveProduct.product){
-            setTimeout(()=>{ reset(); set_show(false); }, 1200);
-            navigate('/studio/'+data.saveProduct.product.id);
-        }
-    },[data]);
-    function save(to_new){
-        product.export_glb((blob)=>{
-            save_product({variables:{blob:blob, toNew:to_new}});
-        });
-    }
+    ], 'GetProducts'); //GetProduct
+    //useEffect(()=>{ if(!show) reset(); },[show]);
+    //useEffect(()=>{ 
+    //    disabled(true);
+        //set_save_disabled(true);
+    //    if(editor.user && editor.user.id == editor.product.owner.id) {
+    //        disabled(false);
+            //set_save_disabled(false);
+    //    }//else{ if(editor.user && is_public) set_disabled(false); }
+    //},[editor.user]);
+    //useEffect(()=>{ 
+    //    if(data && data.saveProduct.product){
+    //        setTimeout(()=>{ reset(); set_show(false); }, 1200);
+            //navigate('/studio/'+data.saveProduct.product.id);
+    //    }
+    //},[data]);
+    //function save(to_new){
+        //save_product({variables:{blob:blob, toNew:to_new}});
+        //product.export_glb((blob)=>{
+            //save_product({variables:{blob:blob, toNew:to_new}});
+        //});
+    //}
     return(
         //r(DropdownButton, {title:'', className:'bi-card-heading', variant:p.button_variant, show:show, onToggle:(s)=>set_show(s)},
         r(Dropdown, {show:show, onToggle:(s)=>set_show(s)},
             r(Dropdown.Toggle, {className:'bi-card-heading', variant:p.button_variant}, ' '),
             r(Dropdown.Menu, {},
-                alt ? r(alt) :
-                    data && data.saveProduct.product ? r('p',{}, data.saveProduct.response) :
+                //alt ? r(alt) :
+                    //data && data.saveProduct.product ? r('p',{}, data.saveProduct.response) :
                         r(Fragment,{},
-                            data && r('p', {}, data.saveProduct.response),
-                            r('p',{}, 'Loaded: '+editor.product.name),
+                            r('p', {}, data ? data.saveProduct.response : '...'),
+                            //r('p',{}, 'Original: '+editor.product.name),
                             r(InputGroup, {className:'mb-3'}, 
                                 r(InputGroup.Text, {}, 'Name'),
-                                r(Form.Control, {maxLength:64, value:name, onChange:(e)=>set_name(e.target.value), disabled:disabled}),
+                                r(Form.Control, {maxLength:64, value:name, disabled:no_edit, onChange:(e)=>{
+                                    set_name(e.target.value);
+                                    edit_product({variables:{name:e.target.value}});
+                                }}),
                             ),
                             r(InputGroup, {className:'mb-3'}, 
                                 r(InputGroup.Text, {}, 'Story'),
-                                r(Form.Control, {as:'textarea', maxLength:512, value:story, onChange:(e)=>set_story(e.target.value), disabled:disabled}),
+                                r(Form.Control, {as:'textarea', maxLength:512, value:story, disabled:no_edit, onChange:(e)=>{
+                                    set_story(e.target.value);
+                                    edit_product({variables:{story:'t'+e.target.value}});
+                                }}),
                             ),
-                            r(Form.Check, {className:'mb-3', label:'Public', checked:is_public, onChange:(e)=>set_is_public(e.target.checked), disabled:disabled}),
+                            r(Form.Check, {className:'mb-3', label:'Public', checked:is_public, disabled:no_edit, onChange:(e)=>{
+                                set_is_public(e.target.checked);
+                                edit_product({variables:{public:e.target.checked}});
+                            }}),
                             r(Row,{className:'row-cols-auto'},
                                 r(Col,{}, r(ButtonGroup, {},
-                                    r(Button,{onClick:()=>save(false), variant:'outline-primary', disabled:save_disabled, className:'bi-disc'}, ' Save'), //r('i',{className:'bi-disc'}),
-                                    r(Button,{onClick:()=>save(true), variant:'outline-primary', disabled:disabled, className:'bi-file-earmark-plus'}, ' Save New'), //r('i',{className:'bi-files'}),
+                                    r(Button,{onClick:()=>show_copy_product(editor.product), variant:'outline-primary', disabled:no_edit, className:'bi-stack'}, ' Copy'), //r('i',{className:'bi-disc'}),
+                                    r(Button,{onClick:()=>show_copy_product(editor.product), variant:'outline-primary', disabled:no_edit, className:'bi-layers'}, ' Shallow Copy'), //r('i',{className:'bi-files'}),
                                 )),
-                                disabled && save_disabled && r(Col,{}, r(Button,{onClick:()=>show_login(true), variant:'outline-primary'}, 
+                                no_edit && r(Col,{}, r(Button,{onClick:()=>show_login(true), variant:'outline-primary'}, 
                                         r('i',{className:'bi-box-arrow-in-right'}), ' Sign In')),
                             )
                         )

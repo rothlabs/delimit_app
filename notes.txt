@@ -1,3 +1,9 @@
+  "aclh":      "https://esm.sh/@apollo/client/link/http?pin=v115&dev",
+  
+  "lodash":    "https://esm.sh/lodash/set?pin=v115&dev"
+  
+  importmap: react-three/fiber and react-three/drei from esm.sh must have the same dependancies or else it double imports three.js
+  
   "three":     "https://esm.sh/three@0.151.3?pin=v115&dev", 
   0.150.0 to 0.151.3
   

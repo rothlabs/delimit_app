@@ -13,7 +13,7 @@ export function Login(){
     const [password, set_password] = useState('');
     const [login, data, alt, reset] = use_mutation([
         ['login response user{firstName}', ['String! username', username], ['String! password', password]],
-    ], 'GetUser GetProducts');
+    ], 'GetUser GetProducts GetProduct');
     useEffect(()=>{
         set_username('');
         set_password('');
