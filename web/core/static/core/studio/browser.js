@@ -6,13 +6,13 @@ import {show_copy_product, show_delete_product} from './crud.js';
 
 export function Studio_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
-    const [data, alt] = use_query('GetProducts', [
+    const [data, status] = use_query('GetProducts', [
 		['products id name story public owner{id firstName}'], ['user id'],
 	]); 
     return (
         r(Container,{fluid:true, className:'ps-4 pe-4 pt-4 pb-4'},
             r(Row, {className:'gap-3'}, //row-cols-auto  
-                alt ? r(alt) :
+                !data ? status && r(status) :
                     data.products.length<1 ? 'No products found.' : 
                         [...data.products.map((product,i)=>(
                             r(Col,{key:i},
@@ -31,7 +31,7 @@ export function Studio_Browser(){
                                             ),
                                         ),
                                         r(Button, {as:Link, to:product.id, className:'w-50 me-3'}, 'Edit'),
-                                        data.user && r(Button, {onClick:()=>show_copy_product(product), variant:'secondary', className:'me-3'}, 'Copy'),
+                                        data.user && r(Button, {onClick:()=>show_copy_product([product, false]), variant:'secondary', className:'me-3'}, 'Copy'),
                                         data.user && (product.owner.id == data.user.id) && r(Button, {onClick:()=>show_delete_product(product), variant:'secondary'}, 'D'),
                                     )
                                 )

@@ -19,8 +19,8 @@ export function File_Tool(p){
     const [name, set_name] = useState(editor.product.name);
     const [story, set_story] = useState(editor.product.story);
     const [is_public, set_is_public] = useState(editor.product.public);
-    const [edit_product, data, alt, reset] = use_mutation([
-        ['saveProduct response product{name, id}', 
+    const [edit_product, data, status, reset] = use_mutation([
+        ['editProduct reply', 
             ['Boolean! toNew', false], 
             ['String! id', editor.product.id], 
             ['String! name', name], 
@@ -59,7 +59,8 @@ export function File_Tool(p){
                 //alt ? r(alt) :
                     //data && data.saveProduct.product ? r('p',{}, data.saveProduct.response) :
                         r(Fragment,{},
-                            r('p', {}, data ? data.saveProduct.response : '...'),
+                            status && r(status),
+                            //r('p', {}, data ? data.saveProduct.response : '...'),
                             //r('p',{}, 'Original: '+editor.product.name),
                             r(InputGroup, {className:'mb-3'}, 
                                 r(InputGroup.Text, {}, 'Name'),
@@ -81,8 +82,8 @@ export function File_Tool(p){
                             }}),
                             r(Row,{className:'row-cols-auto'},
                                 r(Col,{}, r(ButtonGroup, {},
-                                    r(Button,{onClick:()=>show_copy_product(editor.product), variant:'outline-primary', disabled:no_edit, className:'bi-stack'}, ' Copy'), //r('i',{className:'bi-disc'}),
-                                    r(Button,{onClick:()=>show_copy_product(editor.product), variant:'outline-primary', disabled:no_edit, className:'bi-layers'}, ' Shallow Copy'), //r('i',{className:'bi-files'}),
+                                    r(Button,{onClick:()=>show_copy_product([editor.product,true]), variant:'outline-primary', disabled:no_edit, className:'bi-stack'}, ' Copy'), //r('i',{className:'bi-disc'}),
+                                    r(Button,{onClick:()=>show_copy_product([editor.product,true]), variant:'outline-primary', disabled:no_edit, className:'bi-layers'}, ' Shallow Copy'), //r('i',{className:'bi-files'}),
                                 )),
                                 no_edit && r(Col,{}, r(Button,{onClick:()=>show_login(true), variant:'outline-primary'}, 
                                         r('i',{className:'bi-box-arrow-in-right'}), ' Sign In')),

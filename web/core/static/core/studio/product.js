@@ -29,7 +29,9 @@ export const Product = forwardRef(function Product(p, ref) {
 		},
     }));
 	
-	use_effect([nodes, controls],()=>{ // only runs second time going to editor
+	// must change so it depends on a reactive variable that is set true once all parts have rendered
+	use_effect([nodes, controls],()=>{ // appears to always run once but first time loading the editor the product bounds aren't there yet
+		//console.log(product.current);
 		bounds.setFromObject( product.current );
 		const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
 		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);

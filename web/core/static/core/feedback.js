@@ -1,11 +1,11 @@
 import {createElement as r, Fragment} from 'react';
 import {useRouteError} from 'rrd';
 
-export function Loading() {
-	return (
-		r('p',{},'Loading...')
-	);
-}
+// export function Loading() {
+// 	return (
+// 		r('p',{},'Loading...')
+// 	);
+// }
 
 export function Router_Error() {
 	const error = useRouteError();
@@ -15,12 +15,19 @@ export function Router_Error() {
 	);
 }
 
-export function GQL_Error(p) {
-	console.error(p.message);
+// export function GQL_Error(p) {
+// 	console.error(p.message);
+// 	return (
+// 		r(Fragment, {},
+// 			r('p', {}, 'GQL Error'),
+// 			r('p',{}, p.message)
+// 		)
+// 	);
+// }
+
+export function Query_Status({message}) {
+	//console.error(message);
 	return (
-		r(Fragment, {},
-			r('p', {}, 'GQL Error'),
-			r('p',{}, p.message)
-		)
+		r('p',{}, message)
 	);
 }

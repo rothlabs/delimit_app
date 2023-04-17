@@ -73,27 +73,27 @@ class Login(graphene.Mutation):
         username = graphene.String(required=True)
         password = graphene.String(required=True)
     user = graphene.Field(User_Type)
-    response = graphene.String(default_value = 'Failed to sign in.')
+    reply = graphene.String(default_value = 'Failed to sign in.')
     @classmethod
     def mutate(cls, root, info, username, password):
         user = authenticate(username=username, password=password)
         if user: 
             login(info.context, user)
-            return Login(response='Welcome ' + user.first_name, user=user)
+            return Login(reply='Welcome ' + user.first_name, user=user)
         return Login()
 
 class Logout(graphene.Mutation):
     user = graphene.Field(User_Type)
-    response = graphene.String(default_value = 'Failed to sign out.')
+    reply = graphene.String(default_value = 'Failed to sign out.')
     @classmethod
     def mutate(cls, root, info):
         if info.context.user.is_authenticated: 
             user = info.context.user
             logout(info.context)
-            return Logout(response='Farewell '+user.first_name, user=user)
+            return Logout(reply='Farewell '+user.first_name, user=user)
         return Logout()
 
-class Save_Product(graphene.Mutation): 
+class Edit_Product(graphene.Mutation): 
     class Arguments:
         toNew = graphene.Boolean(required=True)
         id = graphene.String(required=True)
@@ -103,7 +103,7 @@ class Save_Product(graphene.Mutation):
         blob = Upload(required=False, default_value = None)
         parts = graphene.List(graphene.List(graphene.ID, required=False, default_value=[]), required=False, default_value=[])
     product = graphene.Field(Product_Type)
-    response = graphene.String(default_value = 'Failed to save or copy product.') 
+    reply = graphene.String(default_value = 'Failed to save or copy product.') 
     @classmethod
     def mutate(cls, root, info, toNew, id, name, public, story, blob, parts):
         try:
@@ -111,12 +111,12 @@ class Save_Product(graphene.Mutation):
             if info.context.user.is_authenticated:  
                 if toNew:  product = Product.objects.get(id = id)
                 else:      product = Product.objects.get(id = id, owner=info.context.user)
-                response = 'Saved'
+                reply = 'Saved'
                 print(parts)
                 #prev_parts = None
                 if toNew: 
                     #if not parts: prev_parts = product.parts.all()#[part.id for part in product.parts.all()]
-                    response = 'Copied '+product.name+' as '+name
+                    reply = 'Copied '+product.name+' as '+name
                     product.id = None
                 #else: 
                     #if parts: product.parts.set(parts[1:])
@@ -130,28 +130,28 @@ class Save_Product(graphene.Mutation):
                 #    if prev_parts: parts = prev_parts
                 #    else: parts = Part.objects.filter(id__in=parts[1:])
                 #    for part in parts: part.products.add(product.id)
-                return Save_Product(response=response, product=product) 
+                return Edit_Product(reply=reply, product=product) 
         except Exception as e: print(e)
-        return Save_Product() 
+        return Edit_Product() 
 
 class Delete_Product(graphene.Mutation):
     class Arguments:
         id = graphene.String(required=True)
     product = graphene.Field(Product_Type)
-    response = graphene.String(default_value = 'Failed to delete product.')
+    reply = graphene.String(default_value = 'Failed to delete product.')
     @classmethod
     def mutate(cls, root, info, id):
         try:
             product = Product.objects.get(id=id, owner=info.context.user)
             product.delete()
-            return Delete_Product(response='Deleted '+product.name + '.', product=product)
+            return Delete_Product(reply='Deleted '+product.name + '.', product=product)
         except Exception as e: print(e)
         return Delete_Product()
 
 class Mutation(graphene.ObjectType):
     login = Login.Field()
     logout = Logout.Field()
-    saveProduct = Save_Product.Field()
+    editProduct = Edit_Product.Field()
     deleteProduct = Delete_Product.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

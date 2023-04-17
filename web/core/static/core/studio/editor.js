@@ -129,19 +129,20 @@ function View_2D(p) {
 };
 
 export function Studio_Editor(){
-    const [data, alt] = use_query('GetProduct',[ // this will allow a single import and single export and all semantics will be managed in editor
+    const [data, status] = use_query('GetProduct',[ // this will allow a single import and single export and all semantics will be managed in editor
         [`product id name story file public owner{id firstName} parts{id}
             p{id p{id} u{id} f{id} s{id}} f{id v} s{id v}`, 
             ['String! id', useParams().id]], 
         ['user id'],
-    ], 'no-cache', editor_rv); 
+    ], null, editor_rv);  // no-cache not needed anymore?
     //if(data && data.product) console.log(data.product);
     use_effect([data],()=>{
         no_edit_rv(true);
         if(data.user && data.user.id == data.product.owner.id) no_edit_rv(false);
     });
     return (
-        alt ? r(alt) : 
+        //alt ? r(alt) : 
+        !data ? status && r(status) :
             r(Fragment,{}, // data && 
                 r(Toolbar),//, {product:data.product, user:data.user}), //, view_2d:view_2d
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},

@@ -8,7 +8,7 @@ import {use_query} from './app.js';
 
 
 export function Root(){
-	const [data, alt] = use_query('GetUser', [
+	const [data, status] = use_query('GetUser', [
 		['user firstName'],
 	]); 
 	return (
@@ -25,7 +25,7 @@ export function Root(){
               				r(Nav.Link, {as:Link, to:'studio', eventKey:2},  'Studio'),
             			),
 						r(Nav, {className:"me-2"},
-							alt ? r(alt) :
+							!data ? status && r(status) :
 								data.user ? r(Fragment,{},
 									r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')'),
 									r(Nav.Link, {onClick:()=>show_logout(true), eventKey:4}, r('i',{className:'bi-box-arrow-left'}), ' Sign Out'),

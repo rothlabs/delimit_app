@@ -8,7 +8,7 @@ import {createBrowserRouter,RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
 import {Studio_Editor} from './studio/editor.js';
 import {Studio_Browser} from './studio/browser.js';
-import {Loading, Router_Error, GQL_Error} from './feedback.js';
+import {Router_Error, Query_Status} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
 //import set from 'lodash';
 import {useGLTF} from 'drei';
@@ -88,6 +88,14 @@ function compile_gql(name, gql_parts){
     return {header, body, variables}
 }
 
+function status(loading, error, data, done){
+    var result = null;// {message: 'Idle'};
+	if (loading) result=()=> r(Query_Status, {message: 'Working...'});
+    if (error)   result=()=> r(Query_Status, {message: error.message});
+    if (data)    result=()=> r(Query_Status, {message: done()}); 
+    return result;
+}
+
 export function use_query(name, gql_parts, fetchPolicy=null, reactive_var){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
@@ -96,11 +104,11 @@ export function use_query(name, gql_parts, fetchPolicy=null, reactive_var){ // '
         gql`query ${header}{${body}}`, 
         {variables:variables, fetchPolicy:fetchPolicy} // Add option for cache fetchPolicy:'no-cache'
     ); 
-    var alt = null;
-	if(loading) alt =     Loading;
-    if(error)   alt =()=> r(GQL_Error, {message: error.message});
     if(reactive_var) reactive_var(data);
-    return [data, alt];
+    //var alt = null;
+	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
+    //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
+    return [data, status(loading,error,data,()=>'Done')];
 }
 
 export function use_mutation(gql_parts, refetch){
@@ -110,10 +118,7 @@ export function use_mutation(gql_parts, refetch){
         gql`mutation ${header}{${body}}`, 
         {variables:variables, refetchQueries:refetch.split(' ')} // Add option for cache
     ); 
-    var alt = null;
-	if (loading) alt =     Loading;
-    if (error)   alt =()=> r(GQL_Error, {message: error.message});
-    return [mutate, data, alt, reset];
+    return [mutate, data, status(loading,error,data,()=>data[body.split('(')[0]].reply), reset];
 }
 
 export function use_media_glb(url){
