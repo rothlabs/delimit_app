@@ -118,7 +118,8 @@ export function use_mutation(gql_parts, refetch){
         gql`mutation ${header}{${body}}`, 
         {variables:variables, refetchQueries:refetch.split(' ')} // Add option for cache
     ); 
-    return [mutate, data, status(loading,error,data,()=>data[body.split('(')[0]].reply), reset];
+    const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
+    return [mutate, data, status(loading,error,data,done), reset];
 }
 
 export function use_media_glb(url){

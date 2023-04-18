@@ -1,10 +1,11 @@
 import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
-from core.models import Product, Part, Float, String, random_id
+from core.models import Project, Part, Float, String, random_id
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
+import django.utils
 
 class Authenticated_User_Type(DjangoObjectType):
     class Meta:
@@ -38,9 +39,9 @@ def all_atoms(parts, model, access):
     for p in parts.all(): atoms = add_atoms(atoms, p)
     return atoms
 
-class Product_Type(DjangoObjectType):
+class Project_Type(DjangoObjectType):
     class Meta:
-        model = Product
+        model = Project
         fields = '__all__'
     p = graphene.List(Part_Type) 
     f = graphene.List(Float_Type) 
@@ -57,16 +58,16 @@ class Product_Type(DjangoObjectType):
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    products = graphene.List(Product_Type)
-    product = graphene.Field(Product_Type, id=graphene.String(required=True))
+    projects = graphene.List(Project_Type)
+    project = graphene.Field(Project_Type, id=graphene.String(required=True))
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
-    def resolve_products(root, info):
-        if info.context.user.is_authenticated: return Product.objects.filter(Q(public=True) | Q(owner=info.context.user))
-        else: return Product.objects.filter(public=True)
-    def resolve_product(root, info, id): # need to check if owner or is public?
-        return Product.objects.get(id=id) #return Part.objects.get(id=id)
+    def resolve_projects(root, info):
+        if info.context.user.is_authenticated: return Project.objects.filter(Q(public=True) | Q(owner=info.context.user))
+        else: return Project.objects.filter(public=True)
+    def resolve_project(root, info, id): # need to check if owner or is public?
+        return Project.objects.get(id=id) #return Part.objects.get(id=id)
 
 class Login(graphene.Mutation):
     class Arguments:
@@ -93,7 +94,7 @@ class Logout(graphene.Mutation):
             return Logout(reply='Farewell '+user.first_name, user=user)
         return Logout()
 
-class Edit_Product(graphene.Mutation): 
+class Edit_Project(graphene.Mutation): 
     class Arguments:
         toNew = graphene.Boolean(required=True)
         id = graphene.String(required=True)
@@ -102,57 +103,58 @@ class Edit_Product(graphene.Mutation):
         story = graphene.String(required=False, default_value = '')
         blob = Upload(required=False, default_value = None)
         parts = graphene.List(graphene.List(graphene.ID, required=False, default_value=[]), required=False, default_value=[])
-    product = graphene.Field(Product_Type)
-    reply = graphene.String(default_value = 'Failed to save or copy product.') 
+    project = graphene.Field(Project_Type)
+    reply = graphene.String(default_value = 'Failed to save or copy project.') 
     @classmethod
     def mutate(cls, root, info, toNew, id, name, public, story, blob, parts):
         try:
-            product = None
+            project = None
             if info.context.user.is_authenticated:  
-                if toNew:  product = Product.objects.get(id = id)
-                else:      product = Product.objects.get(id = id, owner=info.context.user)
+                if toNew:  project = Project.objects.get(id = id)
+                else:      project = Project.objects.get(id = id, owner=info.context.user)
                 reply = 'Saved'
-                print(parts)
+                #print(parts)
                 #prev_parts = None
                 if toNew: 
-                    #if not parts: prev_parts = product.parts.all()#[part.id for part in product.parts.all()]
-                    reply = 'Copied '+product.name+' as '+name
-                    product.id = None
+                    #if not parts: prev_parts = project.parts.all()#[part.id for part in project.parts.all()]
+                    reply = 'Copied '+project.name+' as '+name
+                    project.id = None
+                    #project.date = str(django.utils.timezone.now)
                 #else: 
-                    #if parts: product.parts.set(parts[1:])
-                product.name = name
-                product.owner = info.context.user
-                product.public = public
-                if story: product.story = story[1:] # remove first 't' character (use not story == None instead?)
-                if blob: product.file.save(random_id()+'.glb', blob, save = True) # automatrically call product.save()
-                else: product.file.save(random_id()+'.glb', product.file, save = True) 
+                    #if parts: project.parts.set(parts[1:])
+                project.name = name
+                project.owner = info.context.user
+                project.public = public
+                if story: project.story = story[1:] # remove first 't' character (use not story == None instead?)
+                if blob: project.file.save(random_id()+'.glb', blob, save = True) # automatrically call project.save()
+                else: project.file.save(random_id()+'.glb', project.file, save = True) 
                 #if toNew: 
                 #    if prev_parts: parts = prev_parts
                 #    else: parts = Part.objects.filter(id__in=parts[1:])
-                #    for part in parts: part.products.add(product.id)
-                return Edit_Product(reply=reply, product=product) 
+                #    for part in parts: part.projects.add(project.id)
+                return Edit_Project(reply=reply, project=project) 
         except Exception as e: print(e)
-        return Edit_Product() 
+        return Edit_Project() 
 
-class Delete_Product(graphene.Mutation):
+class Delete_Project(graphene.Mutation):
     class Arguments:
         id = graphene.String(required=True)
-    product = graphene.Field(Product_Type)
-    reply = graphene.String(default_value = 'Failed to delete product.')
+    project = graphene.Field(Project_Type)
+    reply = graphene.String(default_value = 'Failed to delete project.')
     @classmethod
     def mutate(cls, root, info, id):
         try:
-            product = Product.objects.get(id=id, owner=info.context.user)
-            product.delete()
-            return Delete_Product(reply='Deleted '+product.name + '.', product=product)
+            project = Project.objects.get(id=id, owner=info.context.user)
+            project.delete()
+            return Delete_Project(reply='Deleted '+project.name + '.', project=project)
         except Exception as e: print(e)
-        return Delete_Product()
+        return Delete_Project()
 
 class Mutation(graphene.ObjectType):
     login = Login.Field()
     logout = Logout.Field()
-    editProduct = Edit_Product.Field()
-    deleteProduct = Delete_Product.Field()
+    editProject = Edit_Project.Field()
+    deleteProject = Delete_Project.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
 
@@ -162,25 +164,25 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
 
 
 
-# class CopyProduct(graphene.Mutation):
+# class CopyProject(graphene.Mutation):
 #     class Arguments:
 #         id = graphene.String(required=True)
 #         name = graphene.String(required=True)
 #         story = graphene.String(required=False, default_value=None)
-#     product = graphene.Field(Product_Type)
+#     project = graphene.Field(Project_Type)
 #     @classmethod
 #     def mutate(cls, root, info, id, name, story):
-#         product = None
+#         project = None
 #         if info.context.user.is_authenticated:  
-#             product = Product.objects.get(id=id)
-#             if product:  
-#                 product.id = None
-#                 product.name = name
-#                 product.owner = info.context.user
-#                 product.public = False
-#                 if story: product.story = story
-#                 product.file.save(random_id() + '.glb', product.file, save = True)
-#         return CopyProduct(product=product)
+#             project = Project.objects.get(id=id)
+#             if project:  
+#                 project.id = None
+#                 project.name = name
+#                 project.owner = info.context.user
+#                 project.public = False
+#                 if story: project.story = story
+#                 project.file.save(random_id() + '.glb', project.file, save = True)
+#         return CopyProject(project=project)
 
 
 #owner_name = graphene.String()
@@ -209,17 +211,17 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
     #         return user
     #     else: return None
 
-#try: return Product.objects.get(id=id)
-#except Product.DoesNotExist: return None
+#try: return Project.objects.get(id=id)
+#except Project.DoesNotExist: return None
 
 #from django.contrib.auth import authenticate
 #user = authenticate(username='john', password='secret')
 
 
 
-#product_by_name = graphene.Field(Product_Type, name=graphene.String(required=True))
+#project_by_name = graphene.Field(Project_Type, name=graphene.String(required=True))
 
-# def resolve_product_by_name(root, info, name):
+# def resolve_project_by_name(root, info, name):
     #     print(name)
-    #     try: return Product.objects.get(name=name)
-    #     except Product.DoesNotExist: return None
+    #     try: return Project.objects.get(name=name)
+    #     except Project.DoesNotExist: return None

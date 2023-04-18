@@ -9,11 +9,11 @@ from django.db.models.signals import post_save
 def random_id(): return get_random_string(length=16)
 
 # class Account(models.Model): # name it Profile?
-#     user     = models.OneToOneField  (User, on_delete=models.CASCADE)
-#     products = models.ManyToManyField(Product, related_name='accounts', blank=True)
-#     parts    = models.ManyToManyField(Product, related_name='accounts', blank=True)
-#     floats   = models.ManyToManyField(Float,   related_name='accounts', blank=True)
-#     strings  = models.ManyToManyField(String,  related_name='accounts', blank=True)
+#     user = models.OneToOneField  (User, on_delete=models.CASCADE)
+#     b = models.ManyToManyField(Bool,   related_name='au', blank=True)
+#     i = models.ManyToManyField(Int,    related_name='au', blank=True)
+#     f = models.ManyToManyField(Float,  related_name='au', blank=True)
+#     s = models.ManyToManyField(String, related_name='au', blank=True)
 # @receiver(post_save, sender=User)
 # def create_user_profile(sender, instance, created, **kwargs):
 #     if created: Account.objects.create(user=instance)
@@ -21,12 +21,20 @@ def random_id(): return get_random_string(length=16)
 # def save_user_profile(sender, instance, **kwargs):
 #     instance.account.save()
 
-
+class Bool(models.Model):
+    id = models.CharField(default=random_id, max_length=16, primary_key=True)
+    v = models.BooleanField(default=False)
+    def __str__(self): return str(self.v)+' ('+str(self.id)+')'
+class Int(models.Model):
+    id = models.CharField(default=random_id, max_length=16, primary_key=True)
+    v = models.IntegerField(default=0)
+    def __str__(self): return str(self.v)+' ('+str(self.id)+')'
 class Float(models.Model):
+    id = models.CharField(default=random_id, max_length=16, primary_key=True)
     v = models.FloatField(default=0)
     def __str__(self): return str(self.v)+' ('+str(self.id)+')'
-    
-class String(models.Model):   
+class String(models.Model):
+    id = models.CharField(default=random_id, max_length=16, primary_key=True)
     v = models.TextField(default='', blank=True)
     def __str__(self): return str(self.v)+' ('+str(self.id)+')'
 
@@ -35,7 +43,10 @@ class String(models.Model):
 #     y = models.ForeignKey(Float, default=1, on_delete=models.CASCADE)
 
 class Part(models.Model): # p for part, u for user (a part that is using this part)
+    id = models.CharField(default=random_id, max_length=16, primary_key=True)
     p = models.ManyToManyField('self', related_name='u', blank=True, symmetrical=False)
+    b = models.ManyToManyField(Bool,   related_name='u', blank=True)
+    i = models.ManyToManyField(Int,    related_name='u', blank=True)
     f = models.ManyToManyField(Float,  related_name='u', blank=True)
     s = models.ManyToManyField(String, related_name='u', blank=True)
     def __str__(self): 
@@ -47,16 +58,58 @@ class Part(models.Model): # p for part, u for user (a part that is using this pa
             return name+' ('+str(self.id)+')'
         except: return 'part ('+str(self.id)+')'
 
-class Product(models.Model):
+class Project(models.Model):
     id = models.CharField(default=random_id, max_length=16, primary_key=True) # change to TextField with no max_limit max_length=16, 
     name = models.CharField(default='', max_length=64) # change to TextField with no max_limit TextField
-    date = models.DateTimeField(default=django.utils.timezone.now)
-    file = models.FileField(default='product/default.glb', upload_to='product')
-    owner = models.ForeignKey(User, default=1, on_delete=models.CASCADE)
-    public = models.BooleanField(default=False)
     story = models.TextField(default='')
-    parts = models.ManyToManyField(Part, related_name='products', blank=True)
+    public = models.BooleanField(default=False)
+    parts = models.ManyToManyField(Part, related_name='projects', blank=True)
+    date_new  = models.DateTimeField(auto_now_add=True) #default=django.utils.timezone.now
+    date_edit = models.DateTimeField(auto_now=True)
+    #file = models.FileField(default='project/default.glb', upload_to='project')
+    #owner = models.ForeignKey(User, default=1, on_delete=models.CASCADE)
     def __str__(self): return self.name+' ('+os.path.basename(self.file.name)+')'
+
+
+# # https://stackoverflow.com/questions/16041232/django-delete-filefield
+# @receiver(models.signals.post_delete, sender=Project)
+# def auto_delete_file_on_delete(sender, instance, **kwargs):
+#     """
+#     Deletes file from filesystem
+#     when corresponding `Project` object is deleted.
+#     """
+#     if instance.file:
+#         if os.path.isfile(instance.file.path):
+#             os.remove(instance.file.path)
+
+# @receiver(models.signals.pre_save, sender=Project)
+# def auto_delete_file_on_change(sender, instance, **kwargs):
+#     """
+#     Deletes old file from filesystem
+#     when corresponding `Project` object is updated
+#     with new file.
+#     """
+#     if not instance.pk:
+#         return False
+#     try:
+#         old_file = Project.objects.get(pk=instance.pk).file
+#     except Project.DoesNotExist:
+#         return False
+#     new_file = instance.file
+#     if not old_file == new_file:
+#         if os.path.isfile(old_file.path):
+#             os.remove(old_file.path)
+
+
+
+
+
+
+
+
+
+
+
 
 # class Atom(models.Model):
 #     class Meta: abstract = True
@@ -116,34 +169,7 @@ class Product(models.Model):
 
 
 
-# https://stackoverflow.com/questions/16041232/django-delete-filefield
-@receiver(models.signals.post_delete, sender=Product)
-def auto_delete_file_on_delete(sender, instance, **kwargs):
-    """
-    Deletes file from filesystem
-    when corresponding `Product` object is deleted.
-    """
-    if instance.file:
-        if os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)
 
-@receiver(models.signals.pre_save, sender=Product)
-def auto_delete_file_on_change(sender, instance, **kwargs):
-    """
-    Deletes old file from filesystem
-    when corresponding `Product` object is updated
-    with new file.
-    """
-    if not instance.pk:
-        return False
-    try:
-        old_file = Product.objects.get(pk=instance.pk).file
-    except Product.DoesNotExist:
-        return False
-    new_file = instance.file
-    if not old_file == new_file:
-        if os.path.isfile(old_file.path):
-            os.remove(old_file.path)
 
 
 

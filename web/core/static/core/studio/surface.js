@@ -9,7 +9,7 @@ export const Surface = forwardRef(function Surface({source}, ref) {
     //const source_verts = child(source,'mesh', c=> c.geometry.attributes.position.array);
     //const source_verts = new Float32Array([0,0,0, 25,0,0, 25,25,0]);
     //const sketch_name = child(source,'arg__sketch', c=> c.geometry.attributes.position.array);
-    //const sketch = product_rv.sketch(child(source,'arg__sketch', c=> c.name.split('__')[2])); //use_child(product_rv,'sketch__0', c=> c.geometry.attributes.position.array);
+    //const sketch = project_rv.sketch(child(source,'arg__sketch', c=> c.name.split('__')[2])); //use_child(project_rv,'sketch__0', c=> c.geometry.attributes.position.array);
     const surface = useRef();
     const geom = useRef();
     const sketches = useReactiveVar(sketches_rv);

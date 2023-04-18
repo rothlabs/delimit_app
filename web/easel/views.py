@@ -3,19 +3,19 @@ from django.views.decorators.cache import never_cache
 from django.http import JsonResponse
 from django.core import serializers
 from django.views import generic
-from core.models import Product
+from core.models import Project
 import util
 import os
 import subprocess
 
 #@method_decorator(never_cache, name='dispatch')
 class List_View(generic.ListView):
-    model = Product
+    model = Project
     template_name = 'easel/list.html'
 
 #@method_decorator(never_cache, name='dispatch')
 class Detail_View(generic.DetailView):
-    model = Product
+    model = Project
     template_name = 'easel/detail.html'
 
 def greenware(request, *args, **kwargs):

@@ -12,27 +12,27 @@ import {useReactiveVar} from 'apollo';
 const bounds = new Box3();
 const exporter = new GLTFExporter();
 
-export const Product = forwardRef(function Product(p, ref) { 
-	const product = useRef();
+export const Project = forwardRef(function Project(p, ref) { 
+	const project = useRef();
 	const sketches = useRef([]);
 	const surfaces = useRef([]);
 	const {camera, controls} = useThree(); 
 	const editor = useReactiveVar(editor_rv);
-	const nodes = use_media_glb(editor.product.file);
+	const nodes = use_media_glb(editor.project.file);
 
 	useImperativeHandle(ref,()=>({
 		mutate:args=> sketches.current.forEach(sketch=> sketch.mutate(args)),
 		export_glb(callback){
-			exporter.parse(product.current, function(buffer){
+			exporter.parse(project.current, function(buffer){
 				callback(new Blob([buffer], {type:'application/octet-stream'}));
 			},function(error){console.log(error);},{ binary:true});
 		},
     }));
 	
 	// must change so it depends on a reactive variable that is set true once all parts have rendered
-	use_effect([nodes, controls],()=>{ // appears to always run once but first time loading the editor the product bounds aren't there yet
-		//console.log(product.current);
-		bounds.setFromObject( product.current );
+	use_effect([nodes, controls],()=>{ // appears to always run once but first time loading the editor the project bounds aren't there yet
+		//console.log(project.current);
+		bounds.setFromObject( project.current );
 		const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
 		const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
 		if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);
@@ -43,7 +43,7 @@ export const Product = forwardRef(function Product(p, ref) {
 	});
 
 	return (
-		r('group', {ref:product, name:editor.product.name}, //, dispose:null
+		r('group', {ref:project, name:editor.project.name}, //, dispose:null
 			...nodes.map((node, i)=> is_type(node,'sketch') && //sketch.name.split('__')[0]=='sketch'
 				r(Sketch, {ref:rf=>sketches.current[i]=rf, source:node}) 
 			),
@@ -55,7 +55,7 @@ export const Product = forwardRef(function Product(p, ref) {
 });
 
 
-//...product.parts.map((p,i)=> p.v == 'sketch' && r(Sketch, {part:p}) 
+//...project.parts.map((p,i)=> p.v == 'sketch' && r(Sketch, {part:p}) 
 
 
 //...part.d.map((p,i)=> p.v == 'line' && r(Line, {part:p}))
@@ -98,7 +98,7 @@ export const Product = forwardRef(function Product(p, ref) {
 			// });
 
 
-//const {nodes} = useGLTF(media_url+p.product.file);
+//const {nodes} = useGLTF(media_url+p.project.file);
 	//const [cloned_nodes, set_cloned_nodes] = useState([]);
 
 

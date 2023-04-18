@@ -1,7 +1,7 @@
 import {createElement as r, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
-import {Product} from './product.js';
+import {Project} from './project.js';
 import {Line} from './line.js';
 import {Toolbar} from './toolbar.js';
 import {CameraControls} from 'drei';
@@ -10,12 +10,13 @@ import {makeVar, useReactiveVar} from 'apollo';
 import {use_query, use_effect} from '../app.js';
 
 export const no_edit_rv = makeVar(true);
+export const no_copy_rv = makeVar(true);
 export const action_rv = makeVar({name:'none'});
 export const editor_rv = makeVar();
 export const show_points_rv = makeVar(true);
 export const show_endpoints_rv = makeVar(true);
 export const draw_mode_rv = makeVar('draw');
-export const product_rv = makeVar();
+export const project_rv = makeVar();
 export const selection_rv = makeVar();
 export const sketches_rv = makeVar();
 
@@ -36,7 +37,7 @@ function View_2D(p) {
     //const camera_controls = useRef();
     //const [selection, set_selection] = useState(); //{object:{name:'none'}}
     const [dragging, set_dragging] = useState();
-    const product = useRef();
+    const project = useRef();
     const draw_line = useRef();
     const draw_mode = useReactiveVar(draw_mode_rv);
     const selection = useReactiveVar(selection_rv);
@@ -50,7 +51,7 @@ function View_2D(p) {
                 if(e.delta < 5){
                     if(name(e) == 'board') selection_rv(null);
                     if(draw_mode == 'delete' && name(e) == 'points')
-                        product.current.mutate({selection:select(e), record:true});
+                        project.current.mutate({selection:select(e), record:true});
                     if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
                         selection_rv(select(e));
                 }
@@ -70,7 +71,7 @@ function View_2D(p) {
                     if(!(selection && selection.object.name == 'meshline')){ // if no line selected 
                         if(draw_mode == 'add'){
                             if(name(e) == 'meshline'){
-                                product.current.mutate({selection:select(e), new_point:point(e), record:false});
+                                project.current.mutate({selection:select(e), new_point:point(e), record:false});
                                 set_dragging(true);
                             }
                         }
@@ -85,7 +86,7 @@ function View_2D(p) {
                 if([0,1].includes(e.which)){ // touch or left mouse button? (not sure about 0 and 1)
                     if(selection){ 
                         if(pointers_down==1 && (draw_verts.length>0 || dragging)){
-                            product.current.mutate({
+                            project.current.mutate({
                                 selection: selection,
                                 draw_verts: new Float32Array(draw_verts),
                                 move_point: point(e),
@@ -113,7 +114,7 @@ function View_2D(p) {
                             }
                         }
                         if(dragging){
-                            product.current.mutate({selection:selection, move_point:point(e), record:false});
+                            project.current.mutate({selection:selection, move_point:point(e), record:false});
                         }
                     }
                     //window.setTimeout(enable_onPointerMove, 10);
@@ -122,29 +123,31 @@ function View_2D(p) {
         },   
             r('planeGeometry', {args:[10000, 10000]}),
             r('meshBasicMaterial', {color:'white', toneMapped:false}),
-            r(Product, {ref:rf=>{product_rv(rf); product.current=rf}}),  
+            r(Project, {ref:rf=>{project_rv(rf); project.current=rf}}),  
             r(Line, {ref:draw_line}), // temp drawing line for visualization
         )
     )
 };
 
 export function Studio_Editor(){
-    const [data, status] = use_query('GetProduct',[ // this will allow a single import and single export and all semantics will be managed in editor
-        [`product id name story file public owner{id firstName} parts{id}
+    const [data, status] = use_query('GetProject',[ // this will allow a single import and single export and all semantics will be managed in editor
+        [`project id name story file public owner{id firstName} parts{id}
             p{id p{id} u{id} f{id} s{id}} f{id v} s{id v}`, 
             ['String! id', useParams().id]], 
         ['user id'],
     ], null, editor_rv);  // no-cache not needed anymore?
-    //if(data && data.product) console.log(data.product);
+    //if(data && data.project) console.log(data.project);
     use_effect([data],()=>{
-        no_edit_rv(true);
-        if(data.user && data.user.id == data.product.owner.id) no_edit_rv(false);
+        no_edit_rv(true); no_copy_rv(true);
+        if(data.user && data.user.id == data.project.owner.id) {
+            no_edit_rv(false); no_copy_rv(false);
+        }else{ if(data.user && data.project.public) no_copy_rv(false); }
     });
     return (
         //alt ? r(alt) : 
         !data ? status && r(status) :
             r(Fragment,{}, // data && 
-                r(Toolbar),//, {product:data.product, user:data.user}), //, view_2d:view_2d
+                r(Toolbar),//, {project:data.project, user:data.user}), //, view_2d:view_2d
                 r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
                     r(Canvas,{orthographic:true, camera:{position:[0, 0, 100]}}, //, onCreated:(state)=>raycaster=state.raycaster 
                         r(CameraControls, {

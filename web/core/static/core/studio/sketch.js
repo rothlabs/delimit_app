@@ -108,7 +108,7 @@ export const Sketch = forwardRef(function Sketch(p, ref) {
 			// });
 
 
-//const {nodes} = useGLTF(media_url+p.product.file);
+//const {nodes} = useGLTF(media_url+p.project.file);
 	//const [cloned_nodes, set_cloned_nodes] = useState([]);
 
 

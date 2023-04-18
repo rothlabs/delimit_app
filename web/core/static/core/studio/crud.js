@@ -1,42 +1,42 @@
 import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, InputGroup} from 'boot';
 import {makeVar, useReactiveVar} from 'apollo';
-import {use_mutation} from '../app.js';
+import {use_mutation, use_effect} from '../app.js';
 import {useNavigate} from 'rrd';
 
-export const show_copy_product = makeVar([null,false]);
-export function Copy_Product(){
+export const show_copy_project = makeVar([null,false]);
+export function Copy_Project(){
     const navigate = useNavigate();
-	const [product, nav] = useReactiveVar(show_copy_product);
+	const [project, nav] = useReactiveVar(show_copy_project);
     const [name, set_name] = useState('');
-    const [save_product, data, status, reset] = use_mutation([
-        ['editProduct reply product{id name}', 
+    const [save_project, data, status, reset] = use_mutation([
+        ['editProject reply project{id name}', 
             ['Boolean! toNew', true], 
-            ['String! id', product && product.id], 
+            ['String! id', project && project.id], 
             ['String! name', name],
             ['Boolean! public', false],]
-    ], 'GetProducts');
+    ], 'GetProjects');
     useEffect(()=>{
-        if(product) set_name(product.name);
-        if(!product) setTimeout(()=> reset(), 250);
-    },[product]);
+        if(project) set_name(project.name);
+        if(!project) setTimeout(()=> reset(), 250);
+    },[project]);
     useEffect(()=>{
-        if(data && data.editProduct.product){ 
-            setTimeout(()=> show_copy_product([null,false]), 1500)
-            nav && navigate('/studio/'+data.editProduct.product.id);
-        }; //&& data.editProduct
+        if(data && data.editProject.project){ 
+            setTimeout(()=> show_copy_project([null,false]), 1500)
+            nav && navigate('/studio/'+data.editProject.project.id);
+        }; //&& data.editProject
     },[data]);
-    const key_press=(target)=> {if(target.charCode==13) save_product()}; 
+    const key_press=(target)=> {if(target.charCode==13) save_project()}; 
 	return (
-		r(Modal,{show:product, onHide:()=>show_copy_product(false), autoFocus:false},
+		r(Modal,{show:project, onHide:()=>show_copy_project([null,false]), autoFocus:false},
       		r(Modal.Header, {closeButton:true},  
-                product && r(Modal.Title, {}, 'Copy '+ product.name),
+                project && r(Modal.Title, {}, 'Copy '+ project.name),
       		),
             //alt ? r(Modal.Body, {}, r(alt)) :
-                //data && data.editProduct.product ? r(Modal.Body, {}, r('p', {}, data.editProduct.response)) :
+                //data && data.editProject.project ? r(Modal.Body, {}, r('p', {}, data.editProject.response)) :
                     //r(Fragment,{},
                         r(Modal.Body, {}, 
-                            //data && r('p', {}, data.editProduct.response),
+                            //data && r('p', {}, data.editProject.response),
                             status ? r(status) :
                                 r(InputGroup, {className:'mb-3'}, 
                                     r(InputGroup.Text, {}, 'Name'),
@@ -44,39 +44,44 @@ export function Copy_Product(){
                                 ),
                         ),
                         r(Modal.Footer, {},
-                            r(Button, {onClick:()=>show_copy_product(false), variant:'secondary'}, 'Cancel'),
-                            r(Button, {onClick:save_product}, 'Copy'),
+                            r(Button, {onClick:()=>show_copy_project([null,false]), variant:'secondary'}, 'Cancel'),
+                            r(Button, {onClick:save_project}, 'Copy'),
                         )
                     //),
     	)
   	)
 }
 
-export const show_delete_product = makeVar();
-export function Delete_Product(){
-	const product = useReactiveVar(show_delete_product);
-    const [delete_product, data, status, reset] = use_mutation([
-        ['deleteProduct reply product{name}', ['String! id', product && product.id]],
-    ], 'GetProducts');
-    useEffect(()=>{
-        if(!product) setTimeout(()=> reset(), 250);
-    },[product]);
-    if(data && data.deleteProduct.product) setTimeout(()=> show_delete_product(false), 1500);
+export const show_delete_project = makeVar();
+export function Delete_Project(){
+	const project = useReactiveVar(show_delete_project);
+    const [delete_project, data, status, reset] = use_mutation([
+        ['deleteProject reply project{name}', ['String! id', project && project.id]],
+    ], 'GetProjects');
+    // useEffect(()=>{
+    //     if(!project) setTimeout(()=> reset(), 250);
+    // },[project]);
+    use_effect([!project],()=>{
+        setTimeout(()=> reset(), 250);
+    });
+    use_effect([data],()=>{
+        if(data.deleteProject.project) setTimeout(()=> show_delete_project(false), 1500);
+    });
 	return (
-		r(Modal,{show:product, onHide:()=>show_delete_product(false), autoFocus:false},
+		r(Modal,{show:project, onHide:()=>show_delete_project(false), autoFocus:false},
       		r(Modal.Header, {closeButton:true},  
-                product && r(Modal.Title, {}, 'Delete '+ product.name),
+                project && r(Modal.Title, {}, 'Delete '+ project.name),
       		),
             //alt ? r(Modal.Body, {}, r(alt)) :
-                //data && data.deleteProduct.product ? r(Modal.Body, {}, r('p', {}, data.deleteProduct.response)) :
+                //data && data.deleteProject.project ? r(Modal.Body, {}, r('p', {}, data.deleteProject.response)) :
                     //r(Fragment,{},
                         r(Modal.Body, {}, 
-                            //data && r('p', {}, data.deleteProduct.response),
-                            status ? r(status) : product && r('p', {}, 'Are you sure you want to delete ' + product.name + '?')
+                            //data && r('p', {}, data.deleteProject.response),
+                            status ? r(status) : project && r('p', {}, 'Are you sure you want to delete ' + project.name + '?')
                         ),
                         r(Modal.Footer, {},
-                            r(Button, {onClick:()=>show_delete_product(false), variant:'secondary'}, 'Cancel'),
-                            r(Button, {onClick:delete_product}, 'Delete'),
+                            r(Button, {onClick:()=>show_delete_project(false), variant:'secondary'}, 'Cancel'),
+                            r(Button, {onClick:delete_project}, 'Delete'),
                         )
                     //),
     	)
