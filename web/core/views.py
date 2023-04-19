@@ -2,21 +2,22 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
 from django.shortcuts import render
 from core.schema import schema
+#from core.models import ntc, ctn
 import json
 
 @ensure_csrf_cookie
 def home(request):
-    context = {'ctx':{'page':'/'}}
+    context = {'ctx':{'entry':'/'}} #'ntc':ntc, 'ctn':ctn, 
     return render(request, 'core/index.html', context)
 
 @ensure_csrf_cookie
 def catalog(request):
-    context = {'ctx':{'page':'catalog'}}
+    context = {'ctx':{'entry':'catalog'}}
     return render(request, 'core/index.html', context)
 
 @ensure_csrf_cookie
 def studio(request, pk=0):
-    context = {'ctx':{'page':'studio'}}
+    context = {'ctx':{'entry':'studio'}}
     return render(request, 'core/index.html', context)
 
 # @ensure_csrf_cookie

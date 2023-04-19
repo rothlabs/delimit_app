@@ -32,6 +32,10 @@ const termination_link = createUploadLink({
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url');
+//console.log(document.getElementById('ctx'));
+const ctx = JSON.parse(document.getElementById('ctx').text);
+//export const ntc = ctx.ntc;
+//export const ctn = ctx.ctn;
 
 ColorManagement.enabled = true;
 const style = getComputedStyle(document.body);
@@ -96,15 +100,17 @@ function status(loading, error, data, done){
     return result;
 }
 
-export function use_query(name, gql_parts, fetchPolicy=null, reactive_var){ // 'cache-and-network'
+export function use_query(name, gql_parts, args){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
-    //console.log({header, body, variables});
+    console.log({header, body, variables});
     const {loading, error, data} = useQuery(
-        gql`query ${header}{${body}}`, 
-        {variables:variables, fetchPolicy:fetchPolicy} // Add option for cache fetchPolicy:'no-cache'
-    ); 
-    if(reactive_var) reactive_var(data);
+        gql`query ${header}{${body}}`, {   
+        variables:variables, 
+        fetchPolicy: args && args.fetchPolicy, 
+        onCompleted: args && args.onCompleted
+    }); 
+    //if(reactive_var) reactive_var(data);
     //var alt = null;
 	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
     //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});

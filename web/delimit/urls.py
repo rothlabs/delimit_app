@@ -21,8 +21,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', include('core.urls')),
-    path('catalog/', include('catalog.urls')),
-    path('easel/', include('easel.urls')),
+    #path('catalog/', include('catalog.urls')),
+    #path('easel/', include('easel.urls')),
     path('admin/', admin.site.urls),
     #url(r'^ajax_select/', include(ajax_select_urls)),
     #url(r'^admin/', include(admin.site.urls)),

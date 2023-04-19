@@ -11,7 +11,7 @@ export function Router_Error() {
 	const error = useRouteError();
 	console.error(error);
 	return (
-		r('p',{},error.statusText || error.message)
+		r('p',{}, error.statusText || error.message)
 	);
 }
 

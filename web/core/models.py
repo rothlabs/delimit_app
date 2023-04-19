@@ -6,6 +6,14 @@ from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
+# ntc = {
+#     'name':     'LWTFvT6MaxB6CszA',
+#     'public':   'JMUGkRCzV3C7V0Qf', 
+#     'viewable': 'CAOXNrjlhYjWtG8q', 
+#     'editable': 'kAbLj0N34E0HhCnQ',
+# }
+# ctn = {ntc[n]:n for n in list(ntc.keys())}
+
 def random_id(): return get_random_string(length=16)
 
 class Id(models.Model):
@@ -15,29 +23,28 @@ class Atom(models.Model):
     class Meta: abstract = True
     def __str__(self): return str(self.v)+' ('+str(self.id)+')'
 
+class Tag(Id, Atom):    v = models.TextField(default='', blank=True)
 class Bool(Id, Atom):   v = models.BooleanField(default=False)
 class Int(Id, Atom):    v = models.IntegerField(default=0)
 class Float(Id, Atom):  v = models.FloatField(default=0)
 class String(Id, Atom): v = models.TextField(default='', blank=True)
+    # def __str__(self): 
+    #     display = self.v
+    #     if display in ctn: display = ctn[display]+' : '+self.v
+    #     return display+' ('+str(self.id)+')'
 
 class Part(Id): # p for part, u for user (a part that is using this part)
-    c = models.ManyToManyField('self', related_name='p', blank=True, symmetrical=False)
-    b = models.ManyToManyField(Bool,   related_name='p', blank=True)
-    i = models.ManyToManyField(Int,    related_name='p', blank=True)
-    f = models.ManyToManyField(Float,  related_name='p', blank=True)
-    s = models.ManyToManyField(String, related_name='p', blank=True)
-    u = models.ManyToManyField(User,   related_name='p', blank=True)
-    def __str__(self): 
-        try: 
-            name = self.s.first().v
-            if name == 'point': 
-                c = self.f.all()
-                name += '('+str(c[0].v)+', '+str(c[1].v)+', '+str(c[2].v)+')' 
-            return name+' ('+str(self.id)+')'
-        except: return 'part ('+str(self.id)+')'
+    p = models.ManyToManyField('self', related_name='r', blank=True, symmetrical=False)
+    t = models.ManyToManyField(Tag,    related_name='r', blank=True)
+    b = models.ManyToManyField(Bool,   related_name='r', blank=True)
+    i = models.ManyToManyField(Int,    related_name='r', blank=True)
+    f = models.ManyToManyField(Float,  related_name='r', blank=True)
+    s = models.ManyToManyField(String, related_name='r', blank=True)
+    u = models.ManyToManyField(User,   related_name='r', blank=True)
+    def __str__(self): return ' '.join(self.t.values_list('v', flat=True)) + ' ('+str(self.id)+')'
 
-class Account(models.Model): # name it Profile?
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+#class Account(models.Model): # name it Profile?
+#    user = models.OneToOneField(User, on_delete=models.CASCADE)
     #viewable = models.OneToOneField(Part, blank=True)
     #editable = models.OneToOneField(Part, blank=True)
     #p = models.ManyToManyField(Part,   related_name='au', blank=True)

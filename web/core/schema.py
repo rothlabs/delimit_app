@@ -1,12 +1,12 @@
 import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
-from core.models import random_id, Account, Part, Bool, Int, Float, String
+from core.models import random_id, Part, Tag, Bool, Int, Float, String
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
 import django.utils
-from core.part import parts, children, common
+from core.part import tagged, common, c_list
 
 class Authenticated_User_Type(DjangoObjectType):
     class Meta:
@@ -21,6 +21,18 @@ class User_Type(DjangoObjectType):
 class Part_Type(DjangoObjectType):
     class Meta:
         model = Part
+        fields = '__all__'
+class Tag_Type(DjangoObjectType):
+    class Meta:
+        model = Tag
+        fields = '__all__'
+class Bool_Type(DjangoObjectType):
+    class Meta:
+        model = Bool
+        fields = '__all__'
+class Int_Type(DjangoObjectType):
+    class Meta:
+        model = Int
         fields = '__all__'
 class Float_Type(DjangoObjectType):
     class Meta:
@@ -57,23 +69,51 @@ class String_Type(DjangoObjectType):
 #         try: return all_atoms(self.parts, String, lambda p:p.s)
 #         except Exception as e: print(e)
 
+class Pack_Type(graphene.ObjectType):
+    def __init__(self,groups): self.groups = groups
+    p = graphene.List(Part_Type) 
+    t = graphene.List(Tag_Type) 
+    b = graphene.List(Bool_Type) 
+    i = graphene.List(Int_Type) 
+    f = graphene.List(Float_Type) 
+    s = graphene.List(String_Type) 
+    def resolve_p(self, info):
+        try: return c_list(self.groups,'p') #Part.objects.filter(id__in=self.groups.values_list('c', flat=True))
+        except Exception as e: print(e)
+    def resolve_t(self, info):
+        try: return c_list(self.groups,'t')#Tag.objects.filter(id__in=self.groups.values_list('t', flat=True))
+        except Exception as e: print(e)
+    def resolve_b(self, info):
+        try: return c_list(self.groups,'b')#Bool.objects.filter(id__in=self.groups.values_list('b', flat=True))
+        except Exception as e: print(e)
+    def resolve_i(self, info):
+        try: return c_list(self.groups,'i')#Int.objects.filter(id__in=self.groups.values_list('i', flat=True))
+        except Exception as e: print(e)
+    def resolve_f(self, info):
+        try: return c_list(self.groups,'f')#Float.objects.filter(id__in=self.groups.values_list('f', flat=True))
+        except Exception as e: print(e)
+    def resolve_s(self, info):
+        try: return c_list(self.groups,'s')#String.objects.filter(id__in=self.groups.values_list('s', flat=True))
+        except Exception as e: print(e)
+
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    parts = graphene.List(Part_Type)
+    pack = graphene.Field(Pack_Type)
     #bom = graphene.Field(Part_Type, id=graphene.String(required=True))
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
-    def resolve_parts(root, info): # include, exclude filters   offset, limit for pages
+    def resolve_pack(root, info): # include, exclude filters   offset, limit for pages
         try:
             user = info.context.user
             #public_parts = String.objects.get(v=public).p
             if user.is_authenticated: 
                 #user_viewable_parts = user.p.intersection(String.objects.get(v=view_list).p.all()).p
-                viewables = children(common(user.p, parts('viewable')))
-                return parts('public').union(viewables) #Part.objects.filter(Q(public=True) | Q(owner=info.context.user))
-            else: return parts('public') #Part.objects.filter()
+                viewables = common(user.r, tagged('viewable'))
+                return Pack_Type(tagged('public').union(viewables)) #Part.objects.filter(Q(public=True) | Q(owner=info.context.user))
+            else: return Pack_Type(tagged('public')) #Part.objects.filter()
         except Exception as e: print(e)
+        return None
     #def resolve_bom(root, info, id): # need to check if owner or is public?
     #    return Project.objects.get(id=id) #return Part.objects.get(id=id)
 

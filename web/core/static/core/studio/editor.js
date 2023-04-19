@@ -135,14 +135,13 @@ export function Studio_Editor(){
             p{id p{id} u{id} f{id} s{id}} f{id v} s{id v}`, 
             ['String! id', useParams().id]], 
         ['user id'],
-    ], null, editor_rv);  // no-cache not needed anymore?
-    //if(data && data.project) console.log(data.project);
-    use_effect([data],()=>{
+    ],{onCompleted:(data)=>{
+        editor_rv(data)
         no_edit_rv(true); no_copy_rv(true);
         if(data.user && data.user.id == data.project.owner.id) {
             no_edit_rv(false); no_copy_rv(false);
         }else{ if(data.user && data.project.public) no_copy_rv(false); }
-    });
+    }}); 
     return (
         //alt ? r(alt) : 
         !data ? status && r(status) :
