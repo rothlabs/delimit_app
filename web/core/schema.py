@@ -43,75 +43,34 @@ class String_Type(DjangoObjectType):
         model = String
         fields = '__all__'
 
-# def all_atoms(parts, model, access):
-#     def add_atoms(atoms, part):
-#         atoms = atoms.union(access(part).all())
-#         for p in part.p.all(): atoms = atoms.union(add_atoms(atoms, p))
-#         return atoms
-#     atoms = model.objects.none()
-#     for p in parts.all(): atoms = add_atoms(atoms, p)
-#     return atoms
-
-# class Project_Type(DjangoObjectType):
-#     class Meta:
-#         model = Project
-#         fields = '__all__'
-#     p = graphene.List(Part_Type) 
-#     f = graphene.List(Float_Type) 
-#     s = graphene.List(String_Type) 
-#     def resolve_p(self, info):
-#         try: return all_atoms(self.parts, Part, lambda p:p.p).union(self.parts.all())
-#         except Exception as e: print(e)
-#     def resolve_f(self, info):
-#         try: return all_atoms(self.parts, Float, lambda p:p.f)
-#         except Exception as e: print(e)
-#     def resolve_s(self, info):
-#         try: return all_atoms(self.parts, String, lambda p:p.s)
-#         except Exception as e: print(e)
-
-class Pack_Type(graphene.ObjectType):
-    def __init__(self,groups): self.groups = groups
-    p = graphene.List(Part_Type) 
-    t = graphene.List(Tag_Type) 
-    b = graphene.List(Bool_Type) 
-    i = graphene.List(Int_Type) 
-    f = graphene.List(Float_Type) 
-    s = graphene.List(String_Type) 
-    def resolve_p(self, info):
-        try: return c_list(self.groups,'p') #Part.objects.filter(id__in=self.groups.values_list('c', flat=True))
-        except Exception as e: print(e)
-    def resolve_t(self, info):
-        try: return c_list(self.groups,'t')#Tag.objects.filter(id__in=self.groups.values_list('t', flat=True))
-        except Exception as e: print(e)
-    def resolve_b(self, info):
-        try: return c_list(self.groups,'b')#Bool.objects.filter(id__in=self.groups.values_list('b', flat=True))
-        except Exception as e: print(e)
-    def resolve_i(self, info):
-        try: return c_list(self.groups,'i')#Int.objects.filter(id__in=self.groups.values_list('i', flat=True))
-        except Exception as e: print(e)
-    def resolve_f(self, info):
-        try: return c_list(self.groups,'f')#Float.objects.filter(id__in=self.groups.values_list('f', flat=True))
-        except Exception as e: print(e)
-    def resolve_s(self, info):
-        try: return c_list(self.groups,'s')#String.objects.filter(id__in=self.groups.values_list('s', flat=True))
-        except Exception as e: print(e)
-
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    pack = graphene.Field(Pack_Type)
+    pack = graphene.Field(
+        Part_Type, 
+        id=graphene.ID(), 
+        include=graphene.List(graphene.String()), 
+        exclude=graphene.List(graphene.String()), 
+    )
     #bom = graphene.Field(Part_Type, id=graphene.String(required=True))
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
-    def resolve_pack(root, info): # include, exclude filters   offset, limit for pages
+    def resolve_pack(root, info, id, include, exclude): # include, exclude filters   offset, limit for pages
         try:
-            user = info.context.user
-            #public_parts = String.objects.get(v=public).p
-            if user.is_authenticated: 
-                #user_viewable_parts = user.p.intersection(String.objects.get(v=view_list).p.all()).p
-                viewables = common(user.r, tagged('viewable'))
-                return Pack_Type(tagged('public').union(viewables)) #Part.objects.filter(Q(public=True) | Q(owner=info.context.user))
-            else: return Pack_Type(tagged('public')) #Part.objects.filter()
+            return None
+            # # Make a root part that contains all top level items
+            # root = Part.objects.create()
+            # root.save()
+            # # Make a part that will contain all the results with first child part as the root
+            # result = Part.objects.create()
+            # result.save() 
+            # result.p.add(root)
+            # user = info.context.user
+            # if user.is_authenticated: 
+            #     viewables = common(user.r, tagged('viewable'))
+            #     return Pack_Type(tagged('public').union(viewables)) #Part.objects.filter(Q(public=True) | Q(owner=info.context.user))
+            # else: 
+            #     return Pack_Type(tagged('public')) #Part.objects.filter()
         except Exception as e: print(e)
         return None
     #def resolve_bom(root, info, id): # need to check if owner or is public?
@@ -205,6 +164,55 @@ class Mutation(graphene.ObjectType):
     #deleteProject = Delete_Project.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
+
+
+
+
+
+
+
+# class Pack_Type(graphene.ObjectType):
+#     #def __init__(self,roots): self.root = root # roots is one part that contains p, t, 
+#     root = graphene.List(Part_Type) 
+#     p = graphene.List(Part_Type) 
+#     t = graphene.List(Tag_Type) 
+#     b = graphene.List(Bool_Type) 
+#     i = graphene.List(Int_Type) 
+#     f = graphene.List(Float_Type) 
+#     s = graphene.List(String_Type) 
+#     def resolve_root(self, info):
+#         return root
+#     def resolve_p(self, info):
+#         try: return c_list(self.groups,'p') #Part.objects.filter(id__in=self.groups.values_list('c', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_t(self, info):
+#         try: return c_list(self.groups,'t')#Tag.objects.filter(id__in=self.groups.values_list('t', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_b(self, info):
+#         try: return c_list(self.groups,'b')#Bool.objects.filter(id__in=self.groups.values_list('b', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_i(self, info):
+#         try: return c_list(self.groups,'i')#Int.objects.filter(id__in=self.groups.values_list('i', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_f(self, info):
+#         try: return c_list(self.groups,'f')#Float.objects.filter(id__in=self.groups.values_list('f', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_s(self, info):
+#         try: return c_list(self.groups,'s')#String.objects.filter(id__in=self.groups.values_list('s', flat=True))
+#         except Exception as e: print(e)
+
+# def resolve_pack(root, info): # include, exclude filters   offset, limit for pages
+#         try:
+#             user = info.context.user
+#             #public_parts = String.objects.get(v=public).p
+#             if user.is_authenticated: 
+#                 #user_viewable_parts = user.p.intersection(String.objects.get(v=view_list).p.all()).p
+#                 viewables = common(user.r, tagged('viewable'))
+#                 return Pack_Type(tagged('public').union(viewables)) #Part.objects.filter(Q(public=True) | Q(owner=info.context.user))
+#             else: return Pack_Type(tagged('public')) #Part.objects.filter()
+#         except Exception as e: print(e)
+#         return None
+
 
 
 

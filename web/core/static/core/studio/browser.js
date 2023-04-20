@@ -7,25 +7,31 @@ import {show_copy_project, show_delete_project} from './crud.js';
 export function Studio_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
     // also request list of names where names[part] = 'Cool Part'
-    const [data, status] = use_query('GetPack', [
-		['pack roots{model id} p{id r props{name model ids}} t{id v r} b{id v r} i{id v r} f{id v r} s{id v r}'], ['user id'], //['parts id name story public owner{id firstName}'], ['user id'],
+    const [data, status] = use_query('GetPack', [ //props{name model ids} root{p{id} b{id} i{id} f{id} s{id}}
+		['pack p{id p{id t} t{id } b{id} i{id} f{id} s{id} r{id}} t{id v r} b{id v r} i{id v r} f{id v r} s{id v r}',
+            ['ID id', null], ['[String] include', null], ['[String] exclude', null]], 
+        ['user id'], //['parts id name story public owner{id firstName}'], ['user id'],
 	],{onCompleted:(data)=>{
         console.log(data.pack);
         const pack = {roots:[], p:{}};
-        data.pack.p.forEach(e=> pack.p[e.id] = {r:e.r, props:e.props});
+        data.pack.p.forEach(part=>{
+            pack.p[part.id] = {};
+            ['p','t','b','i','f','s','r'].forEach(model=>{
+                pack.p[part.id][model] = part[model].map(e=> e.id); //{p:e.p, t:e.t, b:e.b, i:e.i, f:e.f, s:e.s, r:e.r}
+            });
+        }); 
         ['t','b','i','f','s'].forEach(model=>{
             pack[model] = {};
-            data.pack[model].forEach(e=> pack[model][e.id] = {v:e.v, r:e.r});
+            data.pack[model].forEach(e=> pack[model][e.id] = {v:e.v, r:e.r}); // come back to make r a list of objects instead of list of ids
         });
         pack.p.forEach(part=>{
-            part.props.forEach(prop=>{
-                part[prop.name] = [];
-                prop.ids.forEach((id)=> part[prop.name].push(pack[prop.model][id]));
-            });
+            if(part.t) part.r.forEach(r=> pack.p[r][pack.t[part.t[0]].v] = part);
         });
-        data.pack.roots.forEach(root=>{
-            pack.roots.push(pack[root.model][root.id]);
-        });
+        // ['p','b','i','f','s'].forEach(model=>{
+        //     pack.p[0][model].forEach(id=>{
+        //         pack.roots.push(pack[model][id]);
+        //     });
+        // });
         console.log(pack);
     }}); 
     // props{partId valueId name model}
@@ -62,6 +68,39 @@ export function Studio_Browser(){
         )
     )
 }
+
+
+
+// pack.p.forEach(part=>{
+//     if(part.t && pack.t[part.t[0]] == 'property'){ 
+//         pack.p[part.p[0]][part.t[1]] = part.p[1];
+//     }
+// });
+
+//const tags = [  pack.t[part.t[0]],  pack.t[part.t[1]]  ];
+        //const i = tags.indexOf('property');
+
+        // data.pack.p.forEach(part=> {
+        //     pack.p[part.id] = {};//{p:e.p, t:e.t, b:e.b, i:e.i, f:e.f, s:e.s, r:e.r}
+        //     ['t','b','i','f','s'].forEach(model=>{
+        //         pack[model]
+        //         pack.p[part.id][tag]
+        //     });
+        // }); 
+
+        //data.pack.p.forEach(e=> pack.p[e.id] = {p:e.p, t:e.t, b:e.b, i:e.i, f:e.f, s:e.s, r:e.r}); //props:e.props
+        // pack.p.forEach(part=>{
+        //     part.props.forEach(prop=>{
+        //         part[prop.name] = [];
+        //         prop.ids.forEach((id)=> part[prop.name].push(pack[prop.model][id]));
+        //     });
+        // });
+        // pack.p.forEach(part=>{
+        //     part.props.forEach(prop=>{
+        //         part[prop.name] = [];
+        //         prop.ids.forEach((id)=> part[prop.name].push(pack[prop.model][id]));
+        //     });
+        // });
 
 
 // function build_part(part){
