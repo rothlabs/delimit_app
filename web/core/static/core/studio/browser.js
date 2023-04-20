@@ -8,9 +8,25 @@ export function Studio_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
     // also request list of names where names[part] = 'Cool Part'
     const [data, status] = use_query('GetPack', [
-		['pack p{id} t{id v} b{id v} i{id v} f{id v} s{id v}'], ['user id'], //['parts id name story public owner{id firstName}'], ['user id'],
+		['pack roots{model id} p{id r props{name model ids}} t{id v r} b{id v r} i{id v r} f{id v r} s{id v r}'], ['user id'], //['parts id name story public owner{id firstName}'], ['user id'],
 	],{onCompleted:(data)=>{
-        console.log(data);
+        console.log(data.pack);
+        const pack = {roots:[], p:{}};
+        data.pack.p.forEach(e=> pack.p[e.id] = {r:e.r, props:e.props});
+        ['t','b','i','f','s'].forEach(model=>{
+            pack[model] = {};
+            data.pack[model].forEach(e=> pack[model][e.id] = {v:e.v, r:e.r});
+        });
+        pack.p.forEach(part=>{
+            part.props.forEach(prop=>{
+                part[prop.name] = [];
+                prop.ids.forEach((id)=> part[prop.name].push(pack[prop.model][id]));
+            });
+        });
+        data.pack.roots.forEach(root=>{
+            pack.roots.push(pack[root.model][root.id]);
+        });
+        console.log(pack);
     }}); 
     // props{partId valueId name model}
     return (
@@ -46,3 +62,25 @@ export function Studio_Browser(){
         )
     )
 }
+
+
+// function build_part(part){
+        //     part.props.forEach((prop)=>{
+        //         values = [];
+        //         prop.ids.forEach((id)=> values.push(pack[prop.model][id])); //data.pack[prop.model].find(e=> e.id==prop.id);
+        //         if(prop.model == 'p') {
+        //             part[prop.name] = values.map(e=> build_part(e));
+        //         }else{
+        //             part[prop.name] = values;
+        //         }
+        //     });
+        //     return part;
+        // }
+        // data.pack.roots.forEach(data_root => {
+        //     value = pack[data_root.model][data_root.id] //data.pack[data_root.model].find(e=> e.id==data_root.id);
+        //     if(data_root.model == 'p') {
+        //         pack.roots.push(build_part(value));
+        //     }else{
+        //         pack.roots.push(value);
+        //     }
+        // });
