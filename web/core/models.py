@@ -40,39 +40,53 @@ class String(Id, Atom): v = models.TextField(default='', blank=True)
 #     values
 
 class Part(Id): # p for part, u for user (a part that is using this part)
-    #t = models.ForeignKey(Tag, default=1, related_name='r', on_delete=models.CASCADE)
-    p = models.ManyToManyField('self', related_name='r', blank=True, through='PartPart')#, symmetrical=False)
-    #t = models.ManyToManyField(Tag,    related_name='r', blank=True) # just one tage per part? so ForiegnKey?
-    b = models.ManyToManyField(Bool,   related_name='r', blank=True, through='PartBool')
-    i = models.ManyToManyField(Int,    related_name='r', blank=True, through='PartInt')
-    f = models.ManyToManyField(Float,  related_name='r', blank=True, through='PartFloat')
-    s = models.ManyToManyField(String, related_name='r', blank=True, through='PartString')
-    u = models.ManyToManyField(User,   related_name='r', blank=True, through='PartUser')
-    def __str__(self): return ' '.join(self.t.values_list('v', flat=True)) + ' ('+str(self.id)+')'
+    p = models.ManyToManyField('self', related_name='r', blank=True, through='Part_Part', symmetrical=False)
+    t = models.ManyToManyField(Tag,    related_name='r', blank=True, through='Part_Tag') #  through_fields=('p','t')
+    b = models.ManyToManyField(Bool,   related_name='r', blank=True, through='Part_Bool')
+    i = models.ManyToManyField(Int,    related_name='r', blank=True, through='Part_Int')
+    f = models.ManyToManyField(Float,  related_name='r', blank=True, through='Part_Float')
+    s = models.ManyToManyField(String, related_name='r', blank=True, through='Part_String')
+    u = models.ManyToManyField(User,   related_name='r', blank=True, through='Part_User')
+    def __str__(self): 
+        try:
+            return ' '.join(list(Tag.objects.filter(pt__in=self.pt.all()).order_by('pt__n').values_list('v',flat=True))) + ' ('+str(self.id)+')' #return ' '.join(self.t.values_list('v', flat=True)) + ' ('+str(self.id)+')'
+        except Exception as e: print(e)
+        return 'part' + ' ('+str(self.id)+')'
 
-class Tagged(): 
+class Through(models.Model): 
     class Meta: abstract = True
-    t = models.ForeignKey(Tag, related_name='r', on_delete=models.CASCADE) 
-    o = models.IntegerField(default=0) # order (look into PositiveIntegerField)
+    #t = models.ForeignKey(Tag, on_delete=models.CASCADE) #related_name='r', 
+    n = models.IntegerField(default=0) # order (look into PositiveIntegerField)
+    def __str__(self): 
+        return str(self.t.v)+' ('+str(self.id)+')'
 
-class PartPart(Tagged):
-    p1 = models.ForeignKey(Part, on_delete=models.CASCADE)
-    p2 = models.ForeignKey(Part, on_delete=models.CASCADE)
-class PartBool(Tagged):
-    p = models.ForeignKey(Part, on_delete=models.CASCADE)
-    b = models.ForeignKey(Bool, on_delete=models.CASCADE)
-class PartInt(Tagged):
-    p = models.ForeignKey(Part, on_delete=models.CASCADE)
-    i = models.ForeignKey(Int, on_delete=models.CASCADE)
-class PartFloat(Tagged):
-    p = models.ForeignKey(Part, on_delete=models.CASCADE)
-    f = models.ForeignKey(Float, on_delete=models.CASCADE)
-class PartString(Tagged):
-    p = models.ForeignKey(Part, on_delete=models.CASCADE)
-    s = models.ForeignKey(String, on_delete=models.CASCADE)
-class PartUser(Tagged):
-    p = models.ForeignKey(Part, on_delete=models.CASCADE)
-    u = models.ForeignKey(User, on_delete=models.CASCADE)
+class Part_Part(Through):
+    p1 = models.ForeignKey(Part, related_name='pp1', on_delete=models.CASCADE)
+    t = models.ForeignKey(Tag, related_name='pp', on_delete=models.CASCADE)
+    p2 = models.ForeignKey(Part, related_name='pp2', on_delete=models.CASCADE)
+class Part_Tag(Through):
+    p = models.ForeignKey(Part, related_name='pt', on_delete=models.CASCADE)
+    t = models.ForeignKey(Tag, related_name='pt', on_delete=models.CASCADE)
+class Part_Bool(Through):
+    p = models.ForeignKey(Part, related_name='pb', on_delete=models.CASCADE)
+    t = models.ForeignKey(Tag, related_name='pb', on_delete=models.CASCADE)
+    b = models.ForeignKey(Bool, related_name='pb', on_delete=models.CASCADE)
+class Part_Int(Through):
+    p = models.ForeignKey(Part, related_name='pi', on_delete=models.CASCADE)
+    t = models.ForeignKey(Tag, related_name='pi', on_delete=models.CASCADE)
+    i = models.ForeignKey(Int, related_name='pi', on_delete=models.CASCADE)
+class Part_Float(Through):
+    p = models.ForeignKey(Part, related_name='pf', on_delete=models.CASCADE)
+    t = models.ForeignKey(Tag, related_name='pf', on_delete=models.CASCADE)
+    f = models.ForeignKey(Float, related_name='pf', on_delete=models.CASCADE)
+class Part_String(Through):
+    p = models.ForeignKey(Part, related_name='ps', on_delete=models.CASCADE)
+    t = models.ForeignKey(Tag, related_name='ps', on_delete=models.CASCADE)
+    s = models.ForeignKey(String, related_name='ps', on_delete=models.CASCADE)
+class Part_User(Through):
+    p = models.ForeignKey(Part, related_name='pu', on_delete=models.CASCADE)
+    t = models.ForeignKey(Tag, related_name='pu', on_delete=models.CASCADE)
+    u = models.ForeignKey(User, related_name='pu', on_delete=models.CASCADE)
 
 
 #class Account(models.Model): # name it Profile?

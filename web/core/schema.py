@@ -48,8 +48,8 @@ class Query(graphene.ObjectType):
     pack = graphene.Field(
         Part_Type, 
         id=graphene.ID(), 
-        include=graphene.List(graphene.String()), 
-        exclude=graphene.List(graphene.String()), 
+        include=graphene.List(graphene.String), 
+        exclude=graphene.List(graphene.String), 
     )
     #bom = graphene.Field(Part_Type, id=graphene.String(required=True))
     def resolve_user(root, info):
