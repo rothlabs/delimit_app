@@ -23,7 +23,7 @@ class Atom(models.Model):
     class Meta: abstract = True
     def __str__(self): return str(self.v)+' ('+str(self.id)+')'
 
-class Tag(Id, Atom):    v = models.TextField(default='', blank=True)
+class Tag(Id, Atom):    v = models.CharField(default='', blank=True, max_length=128)
 class Bool(Id, Atom):   v = models.BooleanField(default=False)
 class Int(Id, Atom):    v = models.IntegerField(default=0)
 class Float(Id, Atom):  v = models.FloatField(default=0)
@@ -39,6 +39,7 @@ class String(Id, Atom): v = models.TextField(default='', blank=True)
 class Part(Id): # p for part, u for user (a part that is using this part)
     t    = models.ForeignKey(Tag, related_name='p', null=True, on_delete=models.SET_NULL)#, through='Part_Tag') #  through_fields=('p','t')
     p    = models.ManyToManyField('self', related_name='r', blank=True, through='Part_Part', symmetrical=False) #related_name='r', 
+    #t    = models.ManyToManyField(Tag,    related_name='p', blank=True, through='Part_Tag')#, through='Part_Tag') #  through_fields=('p','t')
     b    = models.ManyToManyField(Bool,   related_name='p', blank=True, through='Part_Bool')
     i    = models.ManyToManyField(Int,    related_name='p', blank=True, through='Part_Int')
     f    = models.ManyToManyField(Float,  related_name='p', blank=True, through='Part_Float')
@@ -64,8 +65,8 @@ class Part_Part(Through):
     t2 = models.ForeignKey(Tag,  related_name='pp2', null=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(Part, related_name='pp2', on_delete=models.CASCADE)
 #class Part_Tag(Through):
-#    p = models.ForeignKey(Part, related_name='pt', on_delete=models.CASCADE)
-#    t = models.ForeignKey(Tag, related_name='pt', on_delete=models.CASCADE, null=True)
+#    m1 = models.ForeignKey(Part, related_name='pt1', on_delete=models.CASCADE)
+#    m2 = models.ForeignKey(Tag,  related_name='pt2', on_delete=models.CASCADE, null=True)
 class Part_Bool(Through):
     t1 = models.ForeignKey(Tag,  related_name='pb1', null=True, on_delete=models.SET_NULL)
     m1 = models.ForeignKey(Part, related_name='pb1', on_delete=models.CASCADE)

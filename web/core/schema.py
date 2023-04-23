@@ -78,6 +78,7 @@ class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
     pack = graphene.Field(
         Part_Type, 
+        depth = graphene.Int(),
         id=graphene.ID(), 
         include=graphene.List(graphene.List(graphene.String)), 
         exclude=graphene.List(graphene.List(graphene.String)), 
@@ -86,39 +87,61 @@ class Query(graphene.ObjectType):
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
-    def resolve_pack(root, info, id, include, exclude): # include, exclude filters   offset, limit for pages
+    def resolve_pack(root, info, depth, id, include, exclude): # include, exclude filters   offset, limit for pages
         try:
             # delete trash if older than 10 seconds (move to another function that does it periodically)
             try: Int.objects.filter(pi2__t2=trash_time_tag, v__lt=int(time())-10).delete()
             except Exception as e: print(e)
             try: Part.objects.filter(~Q(pi1__t2=trash_time_tag), t=trash_tag).delete()
             except Exception as e: print(e)
-            # make root and pack:
+            # make pack:
             time_int = Int.objects.create(v=int(time()))
             root = Part.objects.create(t=trash_tag)
             root.i.add(time_int, through_defaults={'t2':trash_time_tag})
             pack = Part.objects.create(t=trash_tag)
             pack.i.add(time_int, through_defaults={'t2':trash_time_tag})
-            pack.p.add(root)
             # get public parts
             parts = Part.objects.filter(pb1__t2__v='public', pb1__m2__v=True)
             # get viewable parts
-            viewable_parts = Part.objects.none()
             user = info.context.user
             if user.is_authenticated: 
                 viewable_parts = Part.objects.filter(Q(pp1__t2__v='viewer') | Q(pp1__t2__v='editor'), pp1__m2__pu1__m2=user)  
                 parts = parts.union(viewable_parts)
-            # get include filtered parts
+            # get include-filtered parts
             include_filter_parts = Part.objects.none()
             if include:
                 for incl in include:
                     include_filter_parts = Part.objects.filter(**{'p'+incl[0]+'1__t2__v': incl[1], 'p'+incl[0]+'1__m2__v': incl[2]})
                 parts = parts.intersection(include_filter_parts)
-            # set final root parts
-            #parts = public_parts.union(viewable_parts).intersection(include_filter_parts)
+            # set root parts
             root.p.set(parts.all())
-            # select dependancy records to specified depth
-            
+            # get dependencies 
+            if not depth: depth = -1
+            print('start depth: '+str(depth))
+            current_parts = parts.all()
+            while depth > 0 or depth < 0:  # replace with Part.objects.raw(recursive sql)!!!!
+                next_parts = Part.objects.none()
+                for p in current_parts: next_parts = next_parts.union(p.p.all()) 
+                if len(next_parts.all()) > 0 and len(next_parts.difference(parts).all()) > 0:
+                    parts = parts.union(next_parts)
+                    current_parts = next_parts.all()
+                    depth -= 1
+                else: break
+            print('end depth: '+str(depth))
+            pack.p.set(parts.all(), through_defaults={'n':1}) 
+            pack.p.add(root, through_defaults={'n':0}) 
+            bools   = Bool.objects.none()
+            ints    = Int.objects.none()
+            floats  = Float.objects.none()
+            strings = String.objects.none()
+            for p in parts: bools   = bools.union(p.b.all())  
+            for p in parts: ints    = ints.union(p.i.all())
+            for p in parts: floats  = floats.union(p.f.all())  
+            for p in parts: strings = strings.union(p.s.all())    
+            pack.b.set(bools.all())
+            pack.i.set(ints.all())
+            pack.f.set(floats.all())
+            pack.s.set(strings.all())
             return pack
         except Exception as e: print(e)
         return None
@@ -216,6 +239,23 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
 
 
 
+            # select dependancy records to specified depth
+            # def union_parts(parts, current_parts, depth):
+            #     if depth > 0 or depth < 0:
+            #         next_parts = Part.objects.none()
+            #         for p in current_parts: next_parts = next_parts.union(p.p.all()) 
+            #         if len(next_parts.all()) > 0 and len(next_parts.difference(parts).all()) > 0:
+            #             parts = parts.union(next_parts)
+            #             print(parts)
+            #             depth = union_parts(parts, next_parts, depth-1) 
+            #     return depth
+            #depth = union_parts(parts, parts, depth)
+
+# current_parts = parts.all()
+            # while depth >= 0 or not depth:
+            #     depth -= 1
+            #     next_parts = Part.objects.none()
+            #     for p in current_parts: next_parts = next_parts.union(p.p.all()) 
 
 #q = Q(**{'p'+include[0][0]+'1__t2__v': include[0][1], 'p'+include[0][0]+'1__m2__v': include[0][2]})
                 #for incl in include[1:]: q |= Q(**{'p'+incl[0]+'1__t2__v': incl[1], 'p'+incl[0]+'1__m2__v': incl[2]})
