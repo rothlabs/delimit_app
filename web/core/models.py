@@ -14,11 +14,11 @@ from django.db.models.signals import post_save
 # }
 # ctn = {ntc[n]:n for n in list(ntc.keys())}
 
-def random_id(): return get_random_string(length=16)
+def make_id(): return get_random_string(length=16)
 
 class Id(models.Model):
     class Meta: abstract = True
-    id = models.CharField(default=random_id, max_length=16, primary_key=True)
+    id = models.CharField(default=make_id, max_length=16, primary_key=True)
 class Atom(models.Model):
     class Meta: abstract = True
     def __str__(self): return str(self.v)+' ('+str(self.id)+')'
@@ -28,65 +28,73 @@ class Bool(Id, Atom):   v = models.BooleanField(default=False)
 class Int(Id, Atom):    v = models.IntegerField(default=0)
 class Float(Id, Atom):  v = models.FloatField(default=0)
 class String(Id, Atom): v = models.TextField(default='', blank=True)
+#class Time(Id, Atom):   v = models.DateTimeField(default=django.utils.timezone.now) 
     # def __str__(self): 
     #     display = self.v
     #     if display in ctn: display = ctn[display]+' : '+self.v
     #     return display+' ('+str(self.id)+')'
 
-# class Prop(Id):
-#     parts
-#     tags
-#     model
-#     values
+#def default_tag(): return Tag.objects.get(v='')
 
 class Part(Id): # p for part, u for user (a part that is using this part)
-    p = models.ManyToManyField('self', related_name='r', blank=True, through='Part_Part', symmetrical=False)
-    t = models.ManyToManyField(Tag,    related_name='r', blank=True, through='Part_Tag') #  through_fields=('p','t')
-    b = models.ManyToManyField(Bool,   related_name='r', blank=True, through='Part_Bool')
-    i = models.ManyToManyField(Int,    related_name='r', blank=True, through='Part_Int')
-    f = models.ManyToManyField(Float,  related_name='r', blank=True, through='Part_Float')
-    s = models.ManyToManyField(String, related_name='r', blank=True, through='Part_String')
-    u = models.ManyToManyField(User,   related_name='r', blank=True, through='Part_User')
+    t    = models.ForeignKey(Tag, related_name='p', null=True, on_delete=models.SET_NULL)#, through='Part_Tag') #  through_fields=('p','t')
+    p    = models.ManyToManyField('self', related_name='r', blank=True, through='Part_Part', symmetrical=False) #related_name='r', 
+    b    = models.ManyToManyField(Bool,   related_name='p', blank=True, through='Part_Bool')
+    i    = models.ManyToManyField(Int,    related_name='p', blank=True, through='Part_Int')
+    f    = models.ManyToManyField(Float,  related_name='p', blank=True, through='Part_Float')
+    s    = models.ManyToManyField(String, related_name='p', blank=True, through='Part_String')
+    u    = models.ManyToManyField(User,   related_name='p', blank=True, through='Part_User')
+    #time = models.ManyToManyField(Time,   related_name='p', blank=True, through='Part_Time')
     def __str__(self): 
         try:
-            return ' '.join(list(Tag.objects.filter(pt__in=self.pt.all()).order_by('pt__n').values_list('v',flat=True))) + ' ('+str(self.id)+')' #return ' '.join(self.t.values_list('v', flat=True)) + ' ('+str(self.id)+')'
+            return str(self.t.v)+' ('+str(self.id)+')' #' '.join(list(self.t.order_by('pt__n').values_list('v',flat=True))) + ' ('+str(self.id)+')' 
         except Exception as e: print(e)
         return 'part' + ' ('+str(self.id)+')'
 
 class Through(models.Model): 
     class Meta: abstract = True
-    #t = models.ForeignKey(Tag, on_delete=models.CASCADE) #related_name='r', 
     n = models.IntegerField(default=0) # order (look into PositiveIntegerField)
     def __str__(self): 
-        return str(self.t.v)+' ('+str(self.id)+')'
-
+        if self.t1 and self.t2: return ''+str(self.t1.v)+' <--->> '+str(self.t2.v)+'  ('+str(self.id)+')'
+        return 'through ('+str(self.id)+')'
+ 
 class Part_Part(Through):
-    p1 = models.ForeignKey(Part, related_name='pp1', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag, related_name='pp', on_delete=models.CASCADE)
-    p2 = models.ForeignKey(Part, related_name='pp2', on_delete=models.CASCADE)
-class Part_Tag(Through):
-    p = models.ForeignKey(Part, related_name='pt', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag, related_name='pt', on_delete=models.CASCADE)
+    t1 = models.ForeignKey(Tag,  related_name='pp1', null=True, on_delete=models.SET_NULL)
+    m1 = models.ForeignKey(Part, related_name='pp1', on_delete=models.CASCADE)
+    t2 = models.ForeignKey(Tag,  related_name='pp2', null=True, on_delete=models.SET_NULL)
+    m2 = models.ForeignKey(Part, related_name='pp2', on_delete=models.CASCADE)
+#class Part_Tag(Through):
+#    p = models.ForeignKey(Part, related_name='pt', on_delete=models.CASCADE)
+#    t = models.ForeignKey(Tag, related_name='pt', on_delete=models.CASCADE, null=True)
 class Part_Bool(Through):
-    p = models.ForeignKey(Part, related_name='pb', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag, related_name='pb', on_delete=models.CASCADE)
-    b = models.ForeignKey(Bool, related_name='pb', on_delete=models.CASCADE)
+    t1 = models.ForeignKey(Tag,  related_name='pb1', null=True, on_delete=models.SET_NULL)
+    m1 = models.ForeignKey(Part, related_name='pb1', on_delete=models.CASCADE)
+    t2 = models.ForeignKey(Tag,  related_name='pb2', null=True, on_delete=models.SET_NULL)
+    m2 = models.ForeignKey(Bool, related_name='pb2', on_delete=models.CASCADE)
 class Part_Int(Through):
-    p = models.ForeignKey(Part, related_name='pi', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag, related_name='pi', on_delete=models.CASCADE)
-    i = models.ForeignKey(Int, related_name='pi', on_delete=models.CASCADE)
+    t1 = models.ForeignKey(Tag,  related_name='pi1', null=True, on_delete=models.SET_NULL)
+    m1 = models.ForeignKey(Part, related_name='pi1', on_delete=models.CASCADE)
+    t2 = models.ForeignKey(Tag,  related_name='pi2', null=True, on_delete=models.SET_NULL)
+    m2 = models.ForeignKey(Int,  related_name='pi2', on_delete=models.CASCADE)
 class Part_Float(Through):
-    p = models.ForeignKey(Part, related_name='pf', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag, related_name='pf', on_delete=models.CASCADE)
-    f = models.ForeignKey(Float, related_name='pf', on_delete=models.CASCADE)
+    t1 = models.ForeignKey(Tag,   related_name='pf1', null=True, on_delete=models.SET_NULL)
+    m1 = models.ForeignKey(Part,  related_name='pf1', on_delete=models.CASCADE)
+    t2 = models.ForeignKey(Tag,   related_name='pf2', null=True, on_delete=models.SET_NULL)
+    m2 = models.ForeignKey(Float, related_name='pf2', on_delete=models.CASCADE)
 class Part_String(Through):
-    p = models.ForeignKey(Part, related_name='ps', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag, related_name='ps', on_delete=models.CASCADE)
-    s = models.ForeignKey(String, related_name='ps', on_delete=models.CASCADE)
+    t1 = models.ForeignKey(Tag,    related_name='ps1', null=True, on_delete=models.SET_NULL)
+    m1 = models.ForeignKey(Part,   related_name='ps1', on_delete=models.CASCADE)
+    t2 = models.ForeignKey(Tag,    related_name='ps2', null=True, on_delete=models.SET_NULL)
+    m2 = models.ForeignKey(String, related_name='ps2', on_delete=models.CASCADE)
 class Part_User(Through):
-    p = models.ForeignKey(Part, related_name='pu', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag, related_name='pu', on_delete=models.CASCADE)
-    u = models.ForeignKey(User, related_name='pu', on_delete=models.CASCADE)
+    t1 = models.ForeignKey(Tag,  related_name='pu1', null=True, on_delete=models.SET_NULL)
+    m1 = models.ForeignKey(Part, related_name='pu1', on_delete=models.CASCADE)
+    t2 = models.ForeignKey(Tag,  related_name='pu2', null=True, on_delete=models.SET_NULL)
+    m2 = models.ForeignKey(User, related_name='pu2', on_delete=models.CASCADE)
+# class Part_Time(Through):
+#     p    = models.ForeignKey(Part, related_name='pTime', on_delete=models.CASCADE)
+#     t    = models.ForeignKey(Tag, related_name='pTime', on_delete=models.CASCADE, null=True)
+#     time = models.ForeignKey(Time, related_name='pTime', on_delete=models.CASCADE)
 
 
 #class Account(models.Model): # name it Profile?

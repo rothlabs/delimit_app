@@ -1,45 +1,64 @@
-import {createElement as r, useEffect} from 'react';
+import {createElement as r, useEffect, useState} from 'react';
 import {Container, Card, Button, Row, Col} from 'boot';
 import {Link} from 'rrd';
 import {use_query} from '../app.js';
 import {show_copy_project, show_delete_project} from './crud.js';
 
+const throughs = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t1{id} t2{id} m2{id}}').join(' ');
+
 export function Studio_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
-    // also request list of names where names[part] = 'Cool Part'
-    const [data, status] = use_query('GetPack', [ //props{name model ids} root{p{id} b{id} i{id} f{id} s{id}}
-		['pack p{id p{id t} t{id } b{id} i{id} f{id} s{id} r{id}} t{id v r} b{id v r} i{id v r} f{id v r} s{id v r}',
-            ['ID id', null], ['[String] include', null], ['[String] exclude', null]], 
+    // also request list of names where names[part] = 'Cool Part'  
+    const [pack, set_pack] = useState({root:null});
+    const [data, status] = use_query('GetPack', [  // pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
+    //p{id p{id pp{t{id}}} t{id} b{id pb{t{id}}} i{id pi{t{id}}} f{id pf{t{id}}} s{id ps{t{id}}}}
+    //pack p{id rp{t{id} p{id}} t{id} pb{t{id} b{id}} pi{t{id} i{id}} pf{t{id} f{id}} ps{t{id} s{id}}} t{id v} b{id v} i{id v} f{id v} s{id v}
+		['pack p{id t{id} '+throughs+' } t{id v} b{id v} i{id v} f{id v} s{id v}',
+            ['ID id', null], ['[[String]] include', null], ['[[String]] exclude', null]],  //[['s','name','cool awesome']]
         ['user id'], //['parts id name story public owner{id firstName}'], ['user id'],
-	],{onCompleted:(data)=>{
+	],{fetchPolicy: 'no-cache', onCompleted:(data)=>{
         console.log(data.pack);
-        const pack = {roots:[], p:{}};
-        data.pack.p.forEach(part=>{
-            pack.p[part.id] = {};
-            ['p','t','b','i','f','s','r'].forEach(model=>{
-                pack.p[part.id][model] = part[model].map(e=> e.id); //{p:e.p, t:e.t, b:e.b, i:e.i, f:e.f, s:e.s, r:e.r}
-            });
-        }); 
-        ['t','b','i','f','s'].forEach(model=>{
-            pack[model] = {};
-            data.pack[model].forEach(e=> pack[model][e.id] = {v:e.v, r:e.r}); // come back to make r a list of objects instead of list of ids
+        const packet = {p:{}};
+        ['t','b','i','f','s'].forEach(m=>{
+            packet[m] = {};
+            data.pack[m].forEach(e=> packet[m][e.id] = {v:e.v}); // come back to make r a list of objects instead of list of ids
         });
-        pack.p.forEach(part=>{
-            if(part.t) part.r.forEach(r=> pack.p[r][pack.t[part.t[0]].v] = part);
+        data.pack.p.forEach(p=>{ 
+            packet.p[p.id] = {t: p.t.map(t=> part.t[t.id])};
+            //if(packet.p[p.id].t[0]=='root')
         });
+        // Must change this so it creates an array for each relationship tag and pushes to that array. There might be more than one point for example !!!!!
+        // data.pack.p.forEach(p=>{ 
+        //     ['rp','pb','pi','pf','ps'].forEach(m=>{
+        //         p[m].forEach(e=>{
+        //             packet.p[p.id][packet.t[e.t.id].v] = packet[m.charAt(1)][e[m.charAt(1)].id];
+        //             //packet.p[p.id][packet.t[e.t1.id].v] = packet[m.charAt(1)][e[m.charAt(1)].id];  // <<<<<<<<< forward relationship !!!!
+        //             //packet.p[e[m.charAt(1)].id][packet.t[e.t2.id].v] = packet[m.charAt(1)][p.id];  // <<<<<<<<< reverse relationship !!!!
+        //         });
+        //     });
+        // }); 
+        // packet.root = pack.p[data.pack.p[0].id];
+        // console.log(packet);
+        set_pack(packet);
+        //['p','b','i','f','s'].forEach(m=>{
+        //    data.pack.p[0][m].forEach(e=> packet.roots.push(packet[m][e.id]) );
+        //});
+        //{p:e.p, t:e.t, b:e.b, i:e.i, f:e.f, s:e.s, r:e.r}
+        // pack.p.forEach(part=>{
+        //     if(part.t) part.r.forEach(r=> pack.p[r][pack.t[part.t[0]].v] = part);
+        // });
         // ['p','b','i','f','s'].forEach(model=>{
         //     pack.p[0][model].forEach(id=>{
         //         pack.roots.push(pack[model][id]);
         //     });
         // });
-        console.log(pack);
     }}); 
     // props{partId valueId name model}
     return (
         r(Container,{fluid:true, className:'ps-4 pe-4 pt-4 pb-4'},
             r(Row, {className:'gap-3'}, //row-cols-auto  
                 !data ? status && r(status) :
-                    data.pack.p.length<1 ? 'No parts found.' : 
+                    !pack.root ? 'No parts found.' : 
                         'found products'
                         // [...data.parts.map((part,i)=>(
                         //     r(Col,{key:i},
@@ -69,6 +88,34 @@ export function Studio_Browser(){
     )
 }
 
+
+// const [data, status] = use_query('GetPack', [ //props{name model ids} root{p{id} b{id} i{id} f{id} s{id}}
+// 		['pack p{id p{id t} t{id } b{id} i{id} f{id} s{id} r{id}} t{id v r} b{id v r} i{id v r} f{id v r} s{id v r}',
+//             ['ID id', null], ['[String] include', null], ['[String] exclude', null]], 
+//         ['user id'], //['parts id name story public owner{id firstName}'], ['user id'],
+// 	],{onCompleted:(data)=>{
+//         console.log(data.pack);
+//         const pack = {roots:[], p:{}};
+//         data.pack.p.forEach(part=>{
+//             pack.p[part.id] = {};
+//             ['p','t','b','i','f','s','r'].forEach(model=>{
+//                 pack.p[part.id][model] = part[model].map(e=> e.id); //{p:e.p, t:e.t, b:e.b, i:e.i, f:e.f, s:e.s, r:e.r}
+//             });
+//         }); 
+//         ['t','b','i','f','s'].forEach(model=>{
+//             pack[model] = {};
+//             data.pack[model].forEach(e=> pack[model][e.id] = {v:e.v, r:e.r}); // come back to make r a list of objects instead of list of ids
+//         });
+//         pack.p.forEach(part=>{
+//             if(part.t) part.r.forEach(r=> pack.p[r][pack.t[part.t[0]].v] = part);
+//         });
+//         // ['p','b','i','f','s'].forEach(model=>{
+//         //     pack.p[0][model].forEach(id=>{
+//         //         pack.roots.push(pack[model][id]);
+//         //     });
+//         // });
+//         console.log(pack);
+//     }}); 
 
 
 // pack.p.forEach(part=>{

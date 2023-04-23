@@ -10,8 +10,9 @@ def tagged(tag): return Tag.objects.get(v=tag).r.all()
 def common(*p): return p[0].intersection(*[p[i].all() for i in range(1,len(p)-1)])
 
 #def children(p): return p.values_list('c', flat=True)
+#def c_list(p, model): return alias[model].objects.filter(id__in = p.values_list(model, flat=True))
 
-def c_list(p, model): return alias[model].objects.filter(id__in = p.values_list(model, flat=True))
+
 
 
 #def public:   return String.objects.get(v='JMUGkRCzV3C7V0Qf').p
