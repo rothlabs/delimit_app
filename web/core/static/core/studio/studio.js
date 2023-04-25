@@ -27,7 +27,7 @@ export function Studio(){
     return (
         r(Fragment,{}, 
             r(Toolbar),
-            t(Graph),
+            r(Graph),
             r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
                 r(Canvas,{orthographic:true, camera:{position:[0, 0, 100]}}, //, onCreated:(state)=>raycaster=state.raycaster 
                     r(Viewport),
