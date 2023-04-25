@@ -1,6 +1,6 @@
 import {createElement as r, useRef, forwardRef, useImperativeHandle} from 'react';
 import {Box3} from 'three';
-import {Surface} from './surface.js';
+//import {Surface} from './surface.js';
 import {Sketch} from './sketch.js';
 import {useThree} from 'r3f';
 import {is_type, use_effect, use_media_glb} from '../app.js';

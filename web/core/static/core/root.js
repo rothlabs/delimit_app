@@ -8,7 +8,7 @@ import {use_query} from './app.js';
 
 
 export function Root(){
-	const [data, status] = use_query('GetUser', [
+	const {data, status} = use_query('GetUser', [
 		['user firstName'],
 	]); 
 	return (

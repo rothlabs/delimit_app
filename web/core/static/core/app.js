@@ -100,32 +100,34 @@ function status(loading, error, data, done){
     return result;
 }
 
-export function use_query(name, gql_parts, args){ // 'cache-and-network'
+export function use_query(name, gql_parts, arg){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
-    console.log({header, body, variables});
+    //console.log({header, body, variables});
     const {loading, error, data} = useQuery(
         gql`query ${header}{${body}}`, {   
         variables:variables, 
-        fetchPolicy: args && args.fetchPolicy, 
-        onCompleted: args && args.onCompleted
+        fetchPolicy: arg && arg.fetchPolicy, 
+        onCompleted: arg && arg.onCompleted,
     }); 
     //if(reactive_var) reactive_var(data);
     //var alt = null;
 	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
     //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
-    return [data, status(loading,error,data,()=>'Done')];
+    return {data:data, status:status(loading,error,data,()=>'Done')};
 }
 
-export function use_mutation(gql_parts, refetch){
-    const {header, body, variables} = compile_gql('Mutation', gql_parts);
+export function use_mutation(name, gql_parts, arg){
+    const {header, body, variables} = compile_gql(name, gql_parts);
     //console.log({header, body, variables});
     const [mutate, {data, loading, error, reset}] = useMutation( 
-        gql`mutation ${header}{${body}}`, 
-        {variables:variables, refetchQueries:refetch.split(' ')} // Add option for cache
-    ); 
+        gql`mutation ${header}{${body}}`, {
+        variables:variables, 
+        refetchQueries: arg && arg.refetch && arg.refetch.split(' '),
+        onCompleted: arg && arg.onCompleted,
+    } ); // Add option for cache
     const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
-    return [mutate, data, status(loading,error,data,done), reset];
+    return {mutate:mutate, data:data, status:status(loading,error,data,done), reset:reset};
 }
 
 export function use_media_glb(url){

@@ -6,15 +6,13 @@ import {show_copy_project, show_delete_project} from './crud.js';
 
 const throughs = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t1{v} t2{v} m2{id}}').join(' ');
 
-export function Studio_Browser(){
+export function Graph(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
     // also request list of names where names[part] = 'Cool Part'  
     const [pack, set_pack] = useState({root:null});
     const [data, status] = use_query('GetPack', [  // pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
-    //p{id p{id pp{t{id}}} t{id} b{id pb{t{id}}} i{id pi{t{id}}} f{id pf{t{id}}} s{id ps{t{id}}}}
-    //pack p{id rp{t{id} p{id}} t{id} pb{t{id} b{id}} pi{t{id} i{id}} pf{t{id} f{id}} ps{t{id} s{id}}} t{id v} b{id v} i{id v} f{id v} s{id v}
 		['pack p{id t{v} '+throughs+'} b{id v} i{id v} f{id v} s{id v}',
-            ['Int depth', null], ['ID id', null], ['[[String]] include', [['s','name','cool awesome']]], ['[[String]] exclude', null]],  
+            ['Int depth', null], ['ID id', null], ['[[String]] include', null], ['[[String]] exclude', null]],  //[['s','name','cool awesome']]
         ['user id'], //['parts id name story public owner{id firstName}'], ['user id'],
 	],{fetchPolicy: 'no-cache', onCompleted:(data)=>{
         console.log(data.pack);

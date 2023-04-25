@@ -1,7 +1,7 @@
 import {createElement as r} from 'react';
 import {Row, Col, Container} from 'boot';
 import {History_Tool} from './history_tool.js';
-import {File_Tool} from './file_tool.js';
+//import {File_Tool} from './file_tool.js';
 import {Draw_Tool} from './draw_tool.js';
 import {Pref_Tool} from './pref_tool.js';
 

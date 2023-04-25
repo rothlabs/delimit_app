@@ -1,12 +1,13 @@
 import {createElement as r, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {Canvas, useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
-import {Project} from './project.js';
+//import {Project} from './project.js';
 import {Line} from './line.js';
 import {CameraControls} from 'drei';
 import {makeVar, useReactiveVar} from 'apollo';
-import {use_query, use_effect} from '../app.js';
+//import {use_query, use_effect} from '../app.js';
 import {draw_mode_rv, selection_rv} from './studio.js';
+//import { Graph } from './graph.js';
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
@@ -19,7 +20,7 @@ const select=(e)=> e.intersections[0];
 export function Viewport(){
     const {camera, raycaster} = useThree(); 
     const [dragging, set_dragging] = useState();
-    const project = useRef();
+    //const project = useRef();
     const draw_line = useRef();
     const draw_mode = useReactiveVar(draw_mode_rv);
     const selection = useReactiveVar(selection_rv);
@@ -109,6 +110,7 @@ export function Viewport(){
                 r('planeGeometry', {args:[10000, 10000]}),
                 r('meshBasicMaterial', {color:'white', toneMapped:false}),
                 //r(Project, {ref:rf=>{project_rv(rf); project.current=rf}}),  
+                //r(Graph),
                 r(Line, {ref:draw_line}), // temp drawing line for visualization
             ),
         )

@@ -9,7 +9,7 @@ export function Copy_Project(){
     const navigate = useNavigate();
 	const [project, nav] = useReactiveVar(show_copy_project);
     const [name, set_name] = useState('');
-    const [save_project, data, status, reset] = use_mutation([
+    const {mutate, data, status, reset} = use_mutation('CopyPart',[
         ['editProject reply project{id name}', 
             ['Boolean! toNew', true], 
             ['String! id', project && project.id], 
@@ -26,7 +26,7 @@ export function Copy_Project(){
             nav && navigate('/studio/'+data.editProject.project.id);
         }; //&& data.editProject
     },[data]);
-    const key_press=(target)=> {if(target.charCode==13) save_project()}; 
+    const key_press=(target)=> {if(target.charCode==13) mutate()}; 
 	return (
 		r(Modal,{show:project, onHide:()=>show_copy_project([null,false]), autoFocus:false},
       		r(Modal.Header, {closeButton:true},  
@@ -45,7 +45,7 @@ export function Copy_Project(){
                         ),
                         r(Modal.Footer, {},
                             r(Button, {onClick:()=>show_copy_project([null,false]), variant:'secondary'}, 'Cancel'),
-                            r(Button, {onClick:save_project}, 'Copy'),
+                            r(Button, {onClick:mutate}, 'Copy'),
                         )
                     //),
     	)
@@ -55,7 +55,7 @@ export function Copy_Project(){
 export const show_delete_project = makeVar();
 export function Delete_Project(){
 	const project = useReactiveVar(show_delete_project);
-    const [delete_project, data, status, reset] = use_mutation([
+    const {mutate, data, status, reset} = use_mutation('DeletePart',[
         ['deleteProject reply project{name}', ['String! id', project && project.id]],
     ], 'GetProjects');
     // useEffect(()=>{
@@ -81,7 +81,7 @@ export function Delete_Project(){
                         ),
                         r(Modal.Footer, {},
                             r(Button, {onClick:()=>show_delete_project(false), variant:'secondary'}, 'Cancel'),
-                            r(Button, {onClick:delete_project}, 'Delete'),
+                            r(Button, {onClick:mutate}, 'Delete'),
                         )
                     //),
     	)

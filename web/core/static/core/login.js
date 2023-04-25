@@ -11,16 +11,16 @@ export function Login(){
 	const show = useReactiveVar(show_login);
     const [username, set_username] = useState('');
     const [password, set_password] = useState('');
-    const [login, data, status, reset] = use_mutation([
+    const {mutate, data, status, reset} = use_mutation('Login',[
         ['login reply user{firstName}', ['String! username', username], ['String! password', password]],
-    ], 'GetUser GetProjects GetProject');
+    ], {refetch:'GetUser GetProjects GetProject'});
     useEffect(()=>{
         set_username('');
         set_password('');
         if(show) reset(); else setTimeout(()=> reset(), 250);
     },[show]);
     if(data && data.login.user) setTimeout(()=> show_login(false), 1500);
-    const key_press=(target)=> {if(target.charCode==13) login()}; //attempt_login(true);};
+    const key_press=(target)=> {if(target.charCode==13) mutate()}; //attempt_login(true);};
 	return (
 		r(Modal,{show:show, onHide:()=>show_login(false), autoFocus:false},
       		r(Modal.Header, {closeButton:true},  
@@ -46,7 +46,7 @@ export function Login(){
                     ),
                 ),
                 r(Modal.Footer, {},
-                    r(Button, {onClick:login}, 'Sign In'),
+                    r(Button, {onClick:mutate}, 'Sign In'),
                 )
             ),
     	)
@@ -58,12 +58,12 @@ export const show_logout = makeVar(false);
 export function Logout(){
     const show = useReactiveVar(show_logout);
     const navigate = useNavigate();
-    const [logout, data, status, reset] = use_mutation([
+    const {mutate, data, status, reset} = use_mutation('Logout',[
         ['logout reply user{firstName}'],
-    ], 'GetUser GetProjects');
+    ], {refetch:'GetUser GetProjects'});
     if(data) setTimeout(()=> show_logout(false), 1500);
     useEffect(()=> {if(show){
-        logout();
+        mutate(); // sign out
         navigate('/');
     }},[show]);
     return (
