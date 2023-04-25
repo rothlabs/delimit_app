@@ -56,8 +56,11 @@ class Through(models.Model):
     class Meta: abstract = True
     n = models.IntegerField(default=0) # order (look into PositiveIntegerField)
     def __str__(self): 
-        if self.t1 and self.t2: return ''+str(self.t1.v)+' <--->> '+str(self.t2.v)+'  ('+str(self.id)+')'
-        return 'through ('+str(self.id)+')'
+        tag1_name = ''
+        tag2_name = ''
+        if self.t1: tag1_name = str(self.t1.v)
+        if self.t2: tag2_name = str(self.t2.v)
+        return ''+tag1_name+' <--->> '+tag2_name+'  ('+str(self.id)+')'
  
 class Part_Part(Through):
     t1 = models.ForeignKey(Tag,  related_name='pp1', null=True, on_delete=models.SET_NULL)

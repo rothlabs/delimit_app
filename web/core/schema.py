@@ -7,8 +7,8 @@ from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
 import django.utils
-from core.part import tagged, common#, c_list
-from time import time
+#from core.part import tagged, common#, c_list
+import time#, sched
 
 class Authenticated_User_Type(DjangoObjectType):
     class Meta:
@@ -69,6 +69,11 @@ trash_tag = Tag.objects.get(v='trash') # users must never be allowed to add this
 trash_time_tag = Tag.objects.get(v='trash_time') # users must never be allowed to add this tag to anything! Forbidden in mutations
 editor_tag = Tag.objects.get(v='editor')
 editable_tag = Tag.objects.get(v='editable')
+open_pack_tag = Tag.objects.get(v='open_pack')
+poll_pack_tag = Tag.objects.get(v='poll_pack')
+buffer_pack_tag = Tag.objects.get(v='buffer_pack')
+
+#scheduler = sched.scheduler(time.monotonic, time.sleep)
 
 def clear_part(part):
     part.p.clear()
@@ -79,11 +84,11 @@ def clear_part(part):
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    pack = graphene.Field(Part_Type)
+    pollPack = graphene.Field(Part_Type)
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
-    def resolve_pack(root, info): 
+    def resolve_pollPack(root, info): 
         try:
             buffer_pack = None
             user = info.context.user
@@ -91,11 +96,11 @@ class Query(graphene.ObjectType):
                 # if the units in the poll_pack refer to units that the client does not have open, it is up to the client to decide to open them or not
                 poll_pack = Pack.objects.get(t__v='poll_pack', pu1__m2=user)
                 buffer_pack = Pack.objects.get(t__v='buffer_pack', pu1__m2=user)
-                buffer_pack.p.set(poll_pack.p)
-                buffer_pack.b.set(poll_pack.b)
-                buffer_pack.i.set(poll_pack.i)
-                buffer_pack.f.set(poll_pack.f)
-                buffer_pack.s.set(poll_pack.s)
+                buffer_pack.p.set(poll_pack.p, through_defaults={'t1':buffer_pack_tag})
+                buffer_pack.b.set(poll_pack.b, through_defaults={'t1':buffer_pack_tag})
+                buffer_pack.i.set(poll_pack.i, through_defaults={'t1':buffer_pack_tag})
+                buffer_pack.f.set(poll_pack.f, through_defaults={'t1':buffer_pack_tag})
+                buffer_pack.s.set(poll_pack.s, through_defaults={'t1':buffer_pack_tag})
                 clear_part(poll_pack)
             return buffer_pack
         except Exception as e: print(e)
@@ -126,39 +131,52 @@ class Logout(graphene.Mutation):
             return Logout(reply='Farewell '+user.first_name, user=user)
         return Logout()
 
+# remove trash if older than 8 seconds
+# def clear_trash():
+#     try:
+#         Int.objects.filter(pi2__t2=trash_time_tag, v__lt=int(time.time())-8).delete()
+#         Part.objects.filter(~Q(pi1__t2=trash_time_tag), t=trash_tag).delete()
+#     except Exception as e: print(e)
+
 class Open_Pack(graphene.Mutation):
     class Arguments:
         depth = graphene.Int()
         ids = graphene.List(graphene.ID)
-        include = graphene.List(graphene.List(graphene.String)) 
+        include = graphene.List(graphene.List(graphene.String))
         exclude = graphene.List(graphene.List(graphene.String))
     pack = graphene.Field(Part_Type)
     reply = graphene.String(default_value = 'Failed to open pack.')
     @classmethod
     def mutate(cls, root, info, depth, ids, include, exclude): # offset, limit for pages
+        print('open pack!!!')
         try:
-            # delete trash if older than 10 seconds (move to another function that does it periodically)
-            Int.objects.filter(pi2__t2=trash_time_tag, v__lt=int(time())-10).delete()
+            # clear trash that is older than 10 seconds
+            Int.objects.filter(pi2__t2=trash_time_tag, v__lt=int(time.time())-10).delete()
             Part.objects.filter(~Q(pi1__t2=trash_time_tag), t=trash_tag).delete()
+            #scheduler.enter(10, 1, clear_trash)
             # get context
             user = info.context.user
             # record time:
-            time_int = Int.objects.create(v=int(time()))
+            time_int = Int.objects.create(v=int(time.time()))
             # filter by ids:
+            parts = None
             if ids: parts = Part.objects.filter(id__in = ids)
             # filter by public and viewable :
             is_public = Q(pb1__t2__v='public', pb1__m2__v=True)
             viewable = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__m1__pu1__m2=user)# & Q(pp1__m2__pu1__m2=user) is_owner = Q(pu1__t2__v='owner', pu1__m2=user)
-            parts = parts.filter(is_public | viewable)
+            if parts: parts = parts.filter(is_public | viewable)
+            else: parts = Part.objects.filter(is_public | viewable)
             # filter by include and exclude props:
-            for prop in include:
-                parts = parts.filter(**{'p'+prop[0]+'1__t2__v': prop[1], 'p'+prop[0]+'1__m2__v': prop[2]})
-            for prop in exclude:
-                parts = parts.filter(~Q(**{'p'+prop[0]+'1__t2__v': prop[1], 'p'+prop[0]+'1__m2__v': prop[2]}))
+            if include:
+                for prop in include:
+                    parts = parts.filter(**{'p'+prop[0]+'1__t2__v': prop[1], 'p'+prop[0]+'1__m2__v': prop[2]})
+            if exclude:
+                for prop in exclude:
+                    parts = parts.filter(~Q(**{'p'+prop[0]+'1__t2__v': prop[1], 'p'+prop[0]+'1__m2__v': prop[2]}))
             # make root:
             root = Part.objects.create(t=trash_tag)
-            root.i.add(time_int, through_defaults={'t2':trash_time_tag})
-            root.p.set(parts.all())
+            root.i.add(time_int, through_defaults={'t1':trash_tag, 't2':trash_time_tag})
+            root.p.set(parts.all(), through_defaults={'t1':trash_tag})
             # get dependencies filtered by public and viewable
             if not depth: depth = -1
             current_parts = parts.all()
@@ -191,11 +209,11 @@ class Open_Pack(graphene.Mutation):
             # add to opened pack (filter out objects without view permission?)
             if user.is_authenticated: 
                 open_pack = Part.objects.get(t__v='open_pack', pu1__m2=user)
-                open_pack.p.set(open_pack.p.union(parts))
-                open_pack.b.set(open_pack.b.union(bools))
-                open_pack.i.set(open_pack.i.union(ints))
-                open_pack.f.set(open_pack.f.union(floats))
-                open_pack.s.set(open_pack.s.union(strings))
+                open_pack.p.set(open_pack.p.union(parts), through_defaults={'t1':open_pack_tag})
+                open_pack.b.set(open_pack.b.union(bools), through_defaults={'t1':open_pack_tag})
+                open_pack.i.set(open_pack.i.union(ints), through_defaults={'t1':open_pack_tag})
+                open_pack.f.set(open_pack.f.union(floats), through_defaults={'t1':open_pack_tag})
+                open_pack.s.set(open_pack.s.union(strings), through_defaults={'t1':open_pack_tag})
             # return pack:
             return Open_Pack(pack=pack, reply='Parts opened.')
         except Exception as e: print(e)
@@ -224,7 +242,7 @@ class Push_Pack(graphene.Mutation):
                 obj = model_cls.objects.create(id=id).object
                 team[m].add(obj, through_defaults={'t1':editor_tag, 't2':editable_tag}) # getattr
             except Exception as e: print(e)
-        if obj: buffer_pack[m].add(obj)
+        if obj: buffer_pack[m].add(obj, through_defaults={'t1':buffer_pack_tag})
         return obj
     def add_atom(part, model_cls, m, id, index, t1, t2): # check if m is correct value?
         try:
@@ -305,7 +323,7 @@ class Push_Pack(graphene.Mutation):
                         except Exception as e: print(e)
                 for p in buffer_pack.p: # do this for b, i, f, s as well
                     poll_packs = Part.objects.filter(t__V='poll_pack', pp1__t2__v='open_pack', pp1__m2__p = p)
-                    poll_packs.p.add(p) #for poll_pack in poll_packs: poll_pack.p.add(p)
+                    poll_packs.p.add(p, through_defaults={'t1':poll_pack_tag}) #for poll_pack in poll_packs: poll_pack.p.add(p)
                 clear_part(buffer_pack) # not really needed? 
             return Push_Pack(reply='Clsoed pack.')
         except Exception as e: print(e)
@@ -327,11 +345,11 @@ class Close_Pack(graphene.Mutation):
             if user.is_authenticated: 
                 parts = Part.objects.filter(id__in=ids)
                 open_pack = Part.objects.get(t__v='open_pack', pu1__m2=user)
-                open_pack.p.set(open_pack.p.difference(parts.p))
-                open_pack.b.set(open_pack.b.difference(parts.b))
-                open_pack.i.set(open_pack.i.difference(parts.i))
-                open_pack.f.set(open_pack.f.difference(parts.f))
-                open_pack.s.set(open_pack.s.difference(parts.s))
+                open_pack.p.set(open_pack.p.difference(parts.p), through_defaults={'t1':open_pack_tag})
+                open_pack.b.set(open_pack.b.difference(parts.b), through_defaults={'t1':open_pack_tag})
+                open_pack.i.set(open_pack.i.difference(parts.i), through_defaults={'t1':open_pack_tag})
+                open_pack.f.set(open_pack.f.difference(parts.f), through_defaults={'t1':open_pack_tag})
+                open_pack.s.set(open_pack.s.difference(parts.s), through_defaults={'t1':open_pack_tag})
             return Close_Pack(reply='Clsoed pack.')
         except Exception as e: print(e)
         return Close_Pack()
@@ -339,9 +357,9 @@ class Close_Pack(graphene.Mutation):
 class Mutation(graphene.ObjectType):
     login = Login.Field()
     logout = Logout.Field()
-    open_pack = Open_Pack.Field()
-    push_pack = Push_Pack.Field()
-    close_pack = Close_Pack.Field()
+    openPack = Open_Pack.Field()
+    pushPack = Push_Pack.Field()
+    closePack = Close_Pack.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
 
