@@ -8,7 +8,7 @@ import {Pref_Tool} from './pref_tool.js';
 const button_variant = 'outline-primary';
 
 export function Toolbar(p){
-    const tools = [File_Tool, History_Tool, Draw_Tool, Pref_Tool];
+    const tools = [History_Tool, Draw_Tool, Pref_Tool];
     return(
         r(Container, {fluid:true, className:'bg-light pt-2 pb-2'}, // pb:5,
             r(Row,{className:'row-cols-auto gap-2'},

@@ -1,7 +1,7 @@
 import {createElement as r} from 'react';
 import {ToggleButton, ButtonGroup} from 'boot';
 import {useReactiveVar} from 'apollo';
-import {draw_mode_rv} from './editor.js';
+import {draw_mode_rv} from './studio.js';
 
 export function Draw_Tool(p){
     const draw_mode = useReactiveVar(draw_mode_rv);

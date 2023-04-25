@@ -4,7 +4,7 @@ import {Surface} from './surface.js';
 import {Sketch} from './sketch.js';
 import {useThree} from 'r3f';
 import {is_type, use_effect, use_media_glb} from '../app.js';
-import {action_rv, editor_rv, sketches_rv} from './editor.js'; 
+import {action_rv, editor_rv, sketches_rv} from './studio.js'; 
 import {GLTFExporter} from './exporter.js';
 import {useReactiveVar} from 'apollo';
 //import {Bounds} from 'drei';

@@ -1,6 +1,6 @@
 import {createElement as r} from 'react';
 import {Button, ButtonGroup} from 'boot';
-import {action_rv} from './editor.js';
+import {action_rv} from './studio.js';
 
 export function History_Tool(p){
     const mode_buttons = [

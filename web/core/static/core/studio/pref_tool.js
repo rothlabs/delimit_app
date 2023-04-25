@@ -1,7 +1,7 @@
 import {createElement as r} from 'react';
 import {Dropdown, Form} from 'boot';
 import {useReactiveVar} from 'apollo';
-import {show_points_rv, show_endpoints_rv} from './editor.js';
+import {show_points_rv, show_endpoints_rv} from './studio.js';
 
 export function Pref_Tool(p){
     const show_points = useReactiveVar(show_points_rv);

@@ -4,7 +4,7 @@ import {use_mutation} from '../app.js';
 import {show_login} from '../login.js';
 import {useNavigate, useLocation} from 'rrd';
 import {useReactiveVar} from 'apollo';
-import {project_rv, editor_rv, no_edit_rv, no_copy_rv} from './editor.js';
+import {project_rv, editor_rv, no_edit_rv, no_copy_rv} from './studio.js';
 import {show_copy_project} from './crud.js';
 
 export function File_Tool(p){  // call it project or meta tool

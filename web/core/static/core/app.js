@@ -6,8 +6,8 @@ import {createElement as r, StrictMode, useEffect, useState} from 'react';
 import {createRoot} from 'rdc';
 import {createBrowserRouter,RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
-import {Studio_Editor} from './studio/editor.js';
-import {Studio_Browser} from './studio/browser.js';
+import {Studio} from './studio/studio.js';
+//import {Studio_Browser} from './studio/browser.js';
 import {Router_Error, Query_Status} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
 //import set from 'lodash';
@@ -183,10 +183,10 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
             {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
                 {path:'',        element:r('p',{},'At Home')},
                 {path:'catalog', element:r('p',{},'At Catalog')},
-                {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
-                    {path:'',       element:r(Studio_Browser)},
-                    {path:':id',    element:r(Studio_Editor)},
-                ]},
+                {path:'studio',  element:r(Studio), errorElement:r(Router_Error)},  // {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
+                    //{path:'',       element:r(Studio_Browser)},
+                    //{path:':id',    element:r(Studio_Editor)},
+                //]},
             ]},
         ])}),
     )
