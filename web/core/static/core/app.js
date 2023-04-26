@@ -4,7 +4,7 @@ import {setContext} from 'aclc';
 import Cookie from "cookie";
 import {createElement as r, StrictMode, useEffect, useState} from 'react';
 import {createRoot} from 'rdc';
-import {createBrowserRouter,RouterProvider, Outlet} from 'rrd';
+import {createBrowserRouter, RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
 import {Studio} from './studio/studio.js';
 //import {Studio_Browser} from './studio/browser.js';
@@ -32,10 +32,8 @@ const termination_link = createUploadLink({
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url');
-//console.log(document.getElementById('ctx'));
-const ctx = JSON.parse(document.getElementById('ctx').text);
-//export const ntc = ctx.ntc;
-//export const ctn = ctx.ctn;
+export const ctx = JSON.parse(document.getElementById('ctx').text);
+
 
 ColorManagement.enabled = true;
 const style = getComputedStyle(document.body);
@@ -176,8 +174,8 @@ export function use_effect(deps, func){
 }
 
 // For gltf items. Example: sketch__37 has type 'sketch' and id 37
-export const is_type=(target, name)=> target.name.split('__')[0]==name;
-export const id_of=(target)=> target.name.split('__')[1];
+//export const is_type=(target, name)=> target.name.split('__')[0]==name;
+//export const id_of=(target)=> target.name.split('__')[1];
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},

@@ -23,7 +23,13 @@ class Atom(models.Model):
     class Meta: abstract = True
     def __str__(self): return str(self.v)+' ('+str(self.id)+')'
 
-class Tag(Id, Atom):    v = models.CharField(default='', blank=True, max_length=128)
+class Tag(Id):    
+    v = models.CharField(default='', blank=True, max_length=128)
+    system = models.BooleanField(default=False)
+    def __str__(self): 
+        system_text = ' '
+        if self.system: system_text = 'SYSTEM'
+        return str(self.v)+' '+system_text+' ('+str(self.id)+')'
 class Bool(Id, Atom):   v = models.BooleanField(default=False)
 class Int(Id, Atom):    v = models.IntegerField(default=0)
 class Float(Id, Atom):  v = models.FloatField(default=0)
@@ -58,42 +64,42 @@ class Through(models.Model):
     def __str__(self): 
         tag1_name = ''
         tag2_name = ''
-        if self.t1: tag1_name = str(self.t1.v)
-        if self.t2: tag2_name = str(self.t2.v)
-        return ''+tag1_name+' <--->> '+tag2_name+'  ('+str(self.id)+')'
+        if self.t1: tag1_name = str(self.t1.v) + ' ('+str(self.m1.id)+')'
+        if self.t2: tag2_name = str(self.t2.v) + ' ('+str(self.m2.id)+')'
+        return ''+tag1_name+' <--->> '+tag2_name+' ('+str(self.id)+')'
  
 class Part_Part(Through):
-    t1 = models.ForeignKey(Tag,  related_name='pp1', null=True, on_delete=models.SET_NULL)
+    t1 = models.ForeignKey(Tag,  related_name='pp1', null=True, blank=True, on_delete=models.SET_NULL)
     m1 = models.ForeignKey(Part, related_name='pp1', on_delete=models.CASCADE)
-    t2 = models.ForeignKey(Tag,  related_name='pp2', null=True, on_delete=models.SET_NULL)
+    t2 = models.ForeignKey(Tag,  related_name='pp2', null=True, blank=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(Part, related_name='pp2', on_delete=models.CASCADE)
 #class Part_Tag(Through):
 #    m1 = models.ForeignKey(Part, related_name='pt1', on_delete=models.CASCADE)
 #    m2 = models.ForeignKey(Tag,  related_name='pt2', on_delete=models.CASCADE, null=True)
 class Part_Bool(Through):
-    t1 = models.ForeignKey(Tag,  related_name='pb1', null=True, on_delete=models.SET_NULL)
+    t1 = models.ForeignKey(Tag,  related_name='pb1', null=True, blank=True, on_delete=models.SET_NULL)
     m1 = models.ForeignKey(Part, related_name='pb1', on_delete=models.CASCADE)
-    t2 = models.ForeignKey(Tag,  related_name='pb2', null=True, on_delete=models.SET_NULL)
+    t2 = models.ForeignKey(Tag,  related_name='pb2', null=True, blank=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(Bool, related_name='pb2', on_delete=models.CASCADE)
 class Part_Int(Through):
-    t1 = models.ForeignKey(Tag,  related_name='pi1', null=True, on_delete=models.SET_NULL)
+    t1 = models.ForeignKey(Tag,  related_name='pi1', null=True, blank=True, on_delete=models.SET_NULL)
     m1 = models.ForeignKey(Part, related_name='pi1', on_delete=models.CASCADE)
-    t2 = models.ForeignKey(Tag,  related_name='pi2', null=True, on_delete=models.SET_NULL)
+    t2 = models.ForeignKey(Tag,  related_name='pi2', null=True, blank=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(Int,  related_name='pi2', on_delete=models.CASCADE)
 class Part_Float(Through):
-    t1 = models.ForeignKey(Tag,   related_name='pf1', null=True, on_delete=models.SET_NULL)
+    t1 = models.ForeignKey(Tag,   related_name='pf1', null=True, blank=True, on_delete=models.SET_NULL)
     m1 = models.ForeignKey(Part,  related_name='pf1', on_delete=models.CASCADE)
-    t2 = models.ForeignKey(Tag,   related_name='pf2', null=True, on_delete=models.SET_NULL)
+    t2 = models.ForeignKey(Tag,   related_name='pf2', null=True, blank=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(Float, related_name='pf2', on_delete=models.CASCADE)
 class Part_String(Through):
-    t1 = models.ForeignKey(Tag,    related_name='ps1', null=True, on_delete=models.SET_NULL)
+    t1 = models.ForeignKey(Tag,    related_name='ps1', null=True, blank=True, on_delete=models.SET_NULL)
     m1 = models.ForeignKey(Part,   related_name='ps1', on_delete=models.CASCADE)
-    t2 = models.ForeignKey(Tag,    related_name='ps2', null=True, on_delete=models.SET_NULL)
+    t2 = models.ForeignKey(Tag,    related_name='ps2', null=True, blank=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(String, related_name='ps2', on_delete=models.CASCADE)
 class Part_User(Through):
-    t1 = models.ForeignKey(Tag,  related_name='pu1', null=True, on_delete=models.SET_NULL)
+    t1 = models.ForeignKey(Tag,  related_name='pu1', null=True, blank=True, on_delete=models.SET_NULL)
     m1 = models.ForeignKey(Part, related_name='pu1', on_delete=models.CASCADE)
-    t2 = models.ForeignKey(Tag,  related_name='pu2', null=True, on_delete=models.SET_NULL)
+    t2 = models.ForeignKey(Tag,  related_name='pu2', null=True, blank=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(User, related_name='pu2', on_delete=models.CASCADE)
 # class Part_Time(Through):
 #     p    = models.ForeignKey(Part, related_name='pTime', on_delete=models.CASCADE)

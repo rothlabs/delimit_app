@@ -6,14 +6,8 @@ import {makeVar, useReactiveVar} from 'apollo';
 import {use_query, use_mutation, use_effect} from '../app.js';
 import { Viewport } from './viewport.js';
 
-//export const pack_rv
-//export const no_edit_rv = makeVar(true);
-//export const no_copy_rv = makeVar(true);
-//export const sketches_rv = makeVar();
-//export const editor_rv = makeVar();
-//export const project_rv = makeVar();
 export const pack_rv = makeVar({p:{},b:{},i:{},f:{},s:{}});
-export const search_rv = makeVar({ids:null});
+export const search_rv = makeVar({depth:null, ids:null});
 export const action_rv = makeVar({name:'none'});
 export const show_points_rv = makeVar(true);
 export const show_endpoints_rv = makeVar(true);
@@ -26,20 +20,19 @@ const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join('
 export function Studio(){
     const pack = useReactiveVar(pack_rv);
     const search = useReactiveVar(search_rv);
-    const open_pack = use_mutation('Mutation', [  // pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
+    const open_pack = use_mutation('Mutation', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{p{id t{v} '+edges+' pp2{t1{v} m1{id}}} '+atoms+ '}',
-            ['Int depth', null], ['[ID] ids', null], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
+            ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{
         data = data.openPack;
-        //console.log(data);
         ['b','i','f','s'].forEach(m=>{
             data.pack[m].forEach(a=>{
                 if(pack[m][a.id]){
                     pack[m][a.id].id = a.id;
                     pack[m][a.id].v = a.v;
                     pack[m][a.id].e2 = {} // clear edges
-                }  else{pack[m][a.id] = {v:a.v, e2:{}}}
-            }); // come back to make r a list of objects instead of list of ids
+                }else{  pack[m][a.id] = {v:a.v, e2:{}, x:Math.random()*100, y:Math.random()*100}  }
+            }); 
         });
         data.pack.p.forEach(p=>{
             if(pack.p[p.id]){
@@ -47,7 +40,7 @@ export function Studio(){
                 pack.p[p.id].t = p.t.v; 
                 pack.p[p.id].e1 = {}; // clear forward edges 
                 pack.p[p.id].e2 = {}; // clear reverse edges 
-            }else{pack.p[p.id] = {t:p.t.v, e1:{}, e2:{}}}
+            }else{pack.p[p.id] = {t:p.t.v, e1:{}, e2:{}, x:Math.random()*100, y:Math.random()*100}}
         });
         ['b','i','f','s'].forEach(m=>{
             data.pack[m].forEach(a=>{
@@ -78,7 +71,6 @@ export function Studio(){
                 }
             });
         }); 
-        // pack.root = pack.p[data.pack.p[0].id];
         console.log(pack);
         pack_rv(pack);
     }}); 
@@ -90,7 +82,9 @@ export function Studio(){
         r(Fragment,{}, 
             r(Toolbar),
             r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                r(Canvas,{orthographic:true, camera:{position:[0, 0, 100]}}, r(Viewport))
+                r(Canvas,{orthographic:true, camera:{position:[0, 0, 100]}}, 
+                    r(Viewport),
+                )
             )
         )
     )

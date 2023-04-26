@@ -7,7 +7,7 @@ import {CameraControls} from 'drei';
 import {makeVar, useReactiveVar} from 'apollo';
 //import {use_query, use_effect} from '../app.js';
 import {draw_mode_rv, selection_rv} from './studio.js';
-//import { Graph } from './graph.js';
+import { Graph } from './graph/graph.js';
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
@@ -110,7 +110,7 @@ export function Viewport(){
                 r('planeGeometry', {args:[10000, 10000]}),
                 r('meshBasicMaterial', {color:'white', toneMapped:false}),
                 //r(Project, {ref:rf=>{project_rv(rf); project.current=rf}}),  
-                //r(Graph),
+                r(Graph),
                 r(Line, {ref:draw_line}), // temp drawing line for visualization
             ),
         )
