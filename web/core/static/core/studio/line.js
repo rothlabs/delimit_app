@@ -30,7 +30,7 @@ export const Line = forwardRef(function Line({source}, ref) {
     const show_points = useReactiveVar(show_points_rv);
     const show_endpoints = useReactiveVar(show_endpoints_rv);
     const selection = useReactiveVar(selection_rv);
-    const point_texture = useLoader(THREE.TextureLoader, static_url+'core/texture/disc.png');
+    const point_texture = useLoader(THREE.TextureLoader, static_url+'texture/disc.png');
 
     //const name=()=> source.name;
     const verts=()=> points.current.geometry.attributes.position.array;//meshline.current.positions;//vtx.remove_doubles(meshline.current.positions);

@@ -2,7 +2,7 @@ import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, u
 import {setContext} from 'aclc';
 //import {createUploadLink} from 'auc';
 import Cookie from "cookie";
-import {createElement as r, StrictMode, useEffect, useState} from 'react';
+import {createElement as r, StrictMode, useEffect, useState, useRef} from 'react';
 import {createRoot} from 'rdc';
 import {createBrowserRouter, RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
@@ -13,6 +13,7 @@ import {Color, ColorManagement} from 'three';
 //import set from 'lodash';
 import {useGLTF} from 'drei';
 import * as THREE from 'three';
+import {useFrame, useThree} from 'r3f';
 
 //import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
 //"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
@@ -31,7 +32,7 @@ const termination_link = createUploadLink({
 });
 
 export const media_url = document.body.getAttribute('data-media-url');
-export const static_url = document.body.getAttribute('data-static-url');
+export const static_url = document.body.getAttribute('data-static-url')+'core/';
 export const ctx = JSON.parse(document.getElementById('ctx').text);
 
 
@@ -171,6 +172,31 @@ export function use_effect(deps, func){
         //console.log(deps);
         if(!deps.includes(undefined) && !deps.includes(null) && !deps.includes([])) func(); // only run func if all dependencies contain a value
     }, deps); 
+}
+
+export function Fixed_Size({size, group_props, children}){
+    const obj = useRef();
+    const {camera} = useThree();
+    useFrame(() => {
+        var factor = size / camera.zoom;
+        //console.log(camera.zoom);
+        obj.current.scale.set(factor,factor,factor);
+    });
+    return(
+        r('group', {ref: obj, ...group_props, children:children})
+    )
+}
+
+export function Spinner({children}){
+    const obj = useRef();
+    useFrame((state, delta) => {
+        obj.current.rotation.x += delta * 0.5;
+        obj.current.rotation.y += delta * 0.5;
+        obj.current.rotation.z += delta * 0.5;
+    });
+    return(
+        r('group', {ref:obj, children:children})
+    )
 }
 
 // For gltf items. Example: sketch__37 has type 'sketch' and id 37

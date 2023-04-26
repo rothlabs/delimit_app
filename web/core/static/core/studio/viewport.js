@@ -20,7 +20,7 @@ const select=(e)=> e.intersections[0];
 export function Viewport(){
     const {camera, raycaster} = useThree(); 
     const [dragging, set_dragging] = useState();
-    //const project = useRef();
+    //const board = useRef();
     const draw_line = useRef();
     const draw_mode = useReactiveVar(draw_mode_rv);
     const selection = useReactiveVar(selection_rv);
@@ -29,12 +29,21 @@ export function Viewport(){
         r('group', {}, 
             r(CameraControls, {
                 makeDefault: true,
-                minDistance: 100, 
-                maxDistance: 100, 
+                minDistance: 1000, 
+                maxDistance: 1000, 
                 polarRotateSpeed: 0, 
                 azimuthRotateSpeed: 0, 
                 draggingSmoothTime: 0,
             }), 
+            r('ambientLight', {
+                color: 'white',
+                intensity: 0.5,
+            }),
+            r('directionalLight', { 
+                color: 'white',
+                intensity: 0.5,
+                position: [2,2,1],
+            }),
             r('mesh', { 
                 name: 'board',
                 onClick:(e)=>{ e.stopPropagation();

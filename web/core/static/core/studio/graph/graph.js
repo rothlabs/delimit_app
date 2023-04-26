@@ -7,7 +7,7 @@ export function Graph(){
     const pack = useReactiveVar(pack_rv);
     return (
         r('group', {name:'graph'}, // ref:graph, dispose:null
-			...pack.p.map((part, i)=> 
+			...Object.entries(pack.p).map(([key, part], i)=> 
 				r(Part, {part:part})//{ref:rf=>sketches.current[i]=rf, source:node}) 
 			),
 		)
