@@ -20,44 +20,62 @@ export const show_endpoints_rv = makeVar(true);
 export const draw_mode_rv = makeVar('draw');
 export const selection_rv = makeVar();
 
-const edges = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t1{v} t2{v} m2{id}}').join(' ');
+const edges = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t2{v} m2{id}}').join(' ');
+const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join(' ');
 
 export function Studio(){
     const pack = useReactiveVar(pack_rv);
     const search = useReactiveVar(search_rv);
     const open_pack = use_mutation('Mutation', [  // pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
-        ['openPack pack{p{id t{v} '+edges+'} b{id v} i{id v} f{id v} s{id v}}',
-            ['Int depth', null], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
+        ['openPack pack{p{id t{v} '+edges+' pp2{t1{v} m1{id}}} '+atoms+ '}',
+            ['Int depth', null], ['[ID] ids', null], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{
         data = data.openPack;
-        console.log(data);
+        //console.log(data);
         ['b','i','f','s'].forEach(m=>{
             data.pack[m].forEach(a=>{
-                if(pack[m][a.id]){pack[m][a.id].v = a.v}  else{pack[m][a.id] = {v:a.v}}
+                if(pack[m][a.id]){
+                    pack[m][a.id].id = a.id;
+                    pack[m][a.id].v = a.v;
+                    pack[m][a.id].e2 = {} // clear edges
+                }  else{pack[m][a.id] = {v:a.v, e2:{}}}
             }); // come back to make r a list of objects instead of list of ids
         });
         data.pack.p.forEach(p=>{
             if(pack.p[p.id]){
-                pack.p[p.id].t = p.t; 
-                pack.p[p.id].e = {}; // clear edges 
-            }else{pack.p[p.id] = {t:p.t.v, e:{}}}
+                pack.p[p.id].id = p.id; 
+                pack.p[p.id].t = p.t.v; 
+                pack.p[p.id].e1 = {}; // clear forward edges 
+                pack.p[p.id].e2 = {}; // clear reverse edges 
+            }else{pack.p[p.id] = {t:p.t.v, e1:{}, e2:{}}}
+        });
+        ['b','i','f','s'].forEach(m=>{
+            data.pack[m].forEach(a=>{
+                a['p'+m+'2'].forEach(e2=>{ if(e2.t1) pack[m][a.id].e2[e2.t1.v] = []; });
+                a['p'+m+'2'].forEach(e2=>{ 
+                    if(e2.t1){ 
+                        if(pack.p[e2.m1.id]){  pack[m][a.id].e2[e2.t1.v].push(pack.p[e2.m1.id]);  } // <<<<<<<<< reverse relationship !!!!
+                        else{  pack[m][a.id].e2[e2.t1.v].push(e2.m1.id);  } // if record not loaded, add id so it can be loaded at the press of a button
+                    }
+                });
+            });
         });
         data.pack.p.forEach(p=>{ 
-            ['b','i','f','s'].forEach(m=>{
-                p['p'+m+'1'].forEach(e=>{
-                    if(e.t1) pack.p[p.id].e[e.t1.v] = [];
-                    //if(m=='p' && e.t2 && pack[m][e.m2.id]) pack[m][e.m2.id].e[e.t2.v] = [];
-                });
-                p['p'+m+'1'].forEach(e=>{
-                    if(e.t1 && pack[m][e.m2.id]) pack.p[p.id].e[e.t1.v].push(pack[m][e.m2.id]);  // <<<<<<<<< forward relationship !!!!
-                    //if(e.t2 && pack[m][e.m2.id]) pack[m][e.m2.id].e[e.t2.v].push(pack.p[p.id]);  // <<<<<<<<< reverse relationship !!!!
+            ['p','b','i','f','s'].forEach(m=>{
+                p['p'+m+'1'].forEach(e1=>{ if(e1.t2) pack.p[p.id].e1[e1.t2.v] = []; });
+                p['p'+m+'1'].forEach(e1=>{
+                    if(e1.t2){
+                        if(pack[m][e1.m2.id]){  pack.p[p.id].e1[e1.t2.v].push(pack[m][e1.m2.id]); } // <<<<<<<<< forward relationship !!!!
+                        else{  pack.p[p.id].e1[e1.t2.v].push(e1.m2.id);  }
+                    }
                 });
             });
-            p['pp1'].forEach(e=>{
-                if(e.t2 && pack.p[e.m2.id]) pack.p[e.m2.id].e[e.t2.v] = [];
-            });
-            p['pp1'].forEach(e=>{
-                if(e.t2 && pack.p[e.m2.id]) pack.p[e.m2.id].e[e.t2.v].push(pack.p[p.id]);  // <<<<<<<<< reverse relationship !!!!
+            p['pp2'].forEach(e2=>{ if(e2.t1) pack.p[p.id].e2[e2.t1.v] = []; });
+            p['pp2'].forEach(e2=>{
+                if(e2.t1){ 
+                    if(pack.p[e2.m1.id]){  pack.p[p.id].e2[e2.t1.v].push(pack.p[e2.m1.id]);  } // <<<<<<<<< reverse relationship !!!!
+                    else{  pack.p[p.id].e2[e2.t1.v].push(e2.m1.id);  }
+                }
             });
         }); 
         // pack.root = pack.p[data.pack.p[0].id];
