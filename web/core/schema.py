@@ -133,7 +133,36 @@ class Logout(graphene.Mutation):
             return Logout(reply='Farewell '+user.first_name, user=user)
         return Logout()
 
-        
+
+# class Pack_Type(graphene.ObjectType):
+#     #def __init__(self,roots): self.root = root # roots is one part that contains p, t, 
+#     root = graphene.List(Part_Type) 
+#     p = graphene.List(Part_Type) 
+#     t = graphene.List(Tag_Type) 
+#     b = graphene.List(Bool_Type) 
+#     i = graphene.List(Int_Type) 
+#     f = graphene.List(Float_Type) 
+#     s = graphene.List(String_Type) 
+#     def resolve_root(self, info):
+#         return root
+#     def resolve_p(self, info):
+#         try: return c_list(self.groups,'p') #Part.objects.filter(id__in=self.groups.values_list('c', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_t(self, info):
+#         try: return c_list(self.groups,'t')#Tag.objects.filter(id__in=self.groups.values_list('t', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_b(self, info):
+#         try: return c_list(self.groups,'b')#Bool.objects.filter(id__in=self.groups.values_list('b', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_i(self, info):
+#         try: return c_list(self.groups,'i')#Int.objects.filter(id__in=self.groups.values_list('i', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_f(self, info):
+#         try: return c_list(self.groups,'f')#Float.objects.filter(id__in=self.groups.values_list('f', flat=True))
+#         except Exception as e: print(e)
+#     def resolve_s(self, info):
+#         try: return c_list(self.groups,'s')#String.objects.filter(id__in=self.groups.values_list('s', flat=True))
+#         except Exception as e: print(e)
 
 class Open_Pack(graphene.Mutation):
     class Arguments:
