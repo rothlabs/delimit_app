@@ -31,7 +31,7 @@ export function Studio(){
                     pack[m][a.id].id = a.id;
                     pack[m][a.id].v = a.v;
                     pack[m][a.id].e2 = {} // clear edges
-                }else{  pack[m][a.id] = {v:a.v, e2:{}, x:Math.random()*40-20, y:Math.random()*40-20}  }
+                }else{  pack[m][a.id] = {v:a.v, e2:{}, x:Math.random()*40-20, y:Math.random()*40-20, z:0}  }
             }); 
         });
         data.pack.p.forEach(p=>{
@@ -40,7 +40,7 @@ export function Studio(){
                 pack.p[p.id].t = p.t.v; 
                 pack.p[p.id].e1 = {}; // clear forward edges 
                 pack.p[p.id].e2 = {}; // clear reverse edges 
-            }else{pack.p[p.id] = {t:p.t.v, e1:{}, e2:{}, x:Math.random()*40-20, y:Math.random()*40-20}}
+            }else{pack.p[p.id] = {t:p.t.v, e1:{}, e2:{}, x:Math.random()*40-20, y:Math.random()*40-20, z:0}}
         });
         ['b','i','f','s'].forEach(m=>{
             data.pack[m].forEach(a=>{
