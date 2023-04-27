@@ -2,7 +2,7 @@ import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, u
 import {setContext} from 'aclc';
 //import {createUploadLink} from 'auc';
 import Cookie from "cookie";
-import {createElement as r, StrictMode, useEffect, useState, useRef} from 'react';
+import {createElement as r, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle} from 'react';
 import {createRoot} from 'rdc';
 import {createBrowserRouter, RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
@@ -19,6 +19,15 @@ import {useFrame, useThree} from 'r3f';
 //"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
 import {createUploadLink} from './upload/upload.js';
 
+export const random=(min, max)=> Math.random() * (max - min) + min;
+
+export function random_vector({min, max, x, y ,z}){
+    const vect = new THREE.Vector3(x?0:random(-1,1),y?0:random(-1,1),z?0:random(-1,1)).normalize().multiplyScalar(random(min,max));
+    x && vect.setX(x);
+    y && vect.setY(y);
+    z && vect.setZ(z);
+    return vect;
+}
 
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
@@ -174,18 +183,20 @@ export function use_effect(deps, func){
     }, deps); 
 }
 
-export function Fixed_Size({size, group_props, children}){
+export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, props, children}, ref){
     const obj = useRef();
     const {camera} = useThree();
+    useImperativeHandle(ref,()=>({ 
+        obj:obj.current,
+    }));
     useFrame(() => {
         var factor = size / camera.zoom;
-        //console.log(camera.zoom);
         obj.current.scale.set(factor,factor,factor);
     });
     return(
-        r('group', {ref: obj, ...group_props, children:children})
+        r('group', {ref: obj, ...props, children:children})
     )
-}
+});
 
 export function Spinner({children}){
     const obj = useRef();
@@ -197,6 +208,10 @@ export function Spinner({children}){
     return(
         r('group', {ref:obj, children:children})
     )
+}
+
+export function uppercase(text){
+    return text.toLowerCase().split(' ').map((s) => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
 }
 
 // For gltf items. Example: sketch__37 has type 'sketch' and id 37

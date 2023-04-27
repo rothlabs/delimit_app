@@ -1,18 +1,20 @@
 import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
-import {Canvas} from 'r3f';
+import {Canvas, useThree} from 'r3f';
 import {Toolbar} from './toolbar.js';
 import {useParams} from 'rrd';
 import {makeVar, useReactiveVar} from 'apollo';
-import {use_query, use_mutation, use_effect} from '../app.js';
+import {use_query, use_mutation, use_effect, random_vector} from '../app.js';
 import { Viewport } from './viewport.js';
+import {Vector3} from 'three';
 
-export const pack_rv = makeVar({p:{},b:{},i:{},f:{},s:{}});
+export const pack_rv = makeVar({all:{},p:{},b:{},i:{},f:{},s:{}});
 export const search_rv = makeVar({depth:null, ids:null});
 export const action_rv = makeVar({name:'none'});
 export const show_points_rv = makeVar(true);
 export const show_endpoints_rv = makeVar(true);
 export const draw_mode_rv = makeVar('draw');
 export const selection_rv = makeVar();
+export const graph_z = 300;
 
 const edges = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t2{v} m2{id}}').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join(' ');
@@ -20,69 +22,94 @@ const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join('
 export function Studio(){
     const pack = useReactiveVar(pack_rv);
     const search = useReactiveVar(search_rv);
-    const open_pack = use_mutation('Mutation', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
+    //const {camera} = useThree();
+    const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{p{id t{v} '+edges+' pp2{t1{v} m1{id}}} '+atoms+ '}',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{
         data = data.openPack;
-        ['b','i','f','s'].forEach(m=>{
-            data.pack[m].forEach(a=>{
-                if(pack[m][a.id]){
-                    pack[m][a.id].id = a.id;
-                    pack[m][a.id].v = a.v;
-                    pack[m][a.id].e2 = {} // clear edges
-                }else{  pack[m][a.id] = {v:a.v, e2:{}, x:Math.random()*40-20, y:Math.random()*40-20, z:0}  }
-            }); 
-        });
-        data.pack.p.forEach(p=>{
-            if(pack.p[p.id]){
-                pack.p[p.id].id = p.id; 
-                pack.p[p.id].t = p.t.v; 
-                pack.p[p.id].e1 = {}; // clear forward edges 
-                pack.p[p.id].e2 = {}; // clear reverse edges 
-            }else{pack.p[p.id] = {t:p.t.v, e1:{}, e2:{}, x:Math.random()*40-20, y:Math.random()*40-20, z:0}}
-        });
-        ['b','i','f','s'].forEach(m=>{
-            data.pack[m].forEach(a=>{
-                a['p'+m+'2'].forEach(e2=>{ if(e2.t1) pack[m][a.id].e2[e2.t1.v] = []; });
-                a['p'+m+'2'].forEach(e2=>{ 
-                    if(e2.t1){ 
-                        if(pack.p[e2.m1.id]){  pack[m][a.id].e2[e2.t1.v].push(pack.p[e2.m1.id]);  } // <<<<<<<<< reverse relationship !!!!
-                        else{  pack[m][a.id].e2[e2.t1.v].push(e2.m1.id);  } // if record not loaded, add id so it can be loaded at the press of a button
+        if(data.pack){
+            const window_size = (window.innerWidth+window.innerHeight)/4;
+            ['b','i','f','s'].forEach(m=>{
+                data.pack[m].forEach(a=>{
+                    if(pack[m][a.id]){
+                        pack[m][a.id].id = a.id;
+                        pack[m][a.id].v = a.v;
+                        pack[m][a.id].e2 = {}; // clear edges
+                        pack[m][a.id].all_e = [];
+                    }else{  
+                        pack[m][a.id] = { m:m, v:a.v, e2:{}, all_e:[], 
+                            pos:random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
+                            dir:new Vector3()};
+                        pack.all[a.id] = pack[m][a.id];
                     }
-                });
+                }); 
             });
-        });
-        data.pack.p.forEach(p=>{ 
-            ['p','b','i','f','s'].forEach(m=>{
-                p['p'+m+'1'].forEach(e1=>{ if(e1.t2) pack.p[p.id].e1[e1.t2.v] = []; });
-                p['p'+m+'1'].forEach(e1=>{
-                    if(e1.t2){
-                        if(pack[m][e1.m2.id]){  pack.p[p.id].e1[e1.t2.v].push(pack[m][e1.m2.id]); } // <<<<<<<<< forward relationship !!!!
-                        else{  pack.p[p.id].e1[e1.t2.v].push(e1.m2.id);  }
-                    }
-                });
-            });
-            p['pp2'].forEach(e2=>{ if(e2.t1) pack.p[p.id].e2[e2.t1.v] = []; });
-            p['pp2'].forEach(e2=>{
-                if(e2.t1){ 
-                    if(pack.p[e2.m1.id]){  pack.p[p.id].e2[e2.t1.v].push(pack.p[e2.m1.id]);  } // <<<<<<<<< reverse relationship !!!!
-                    else{  pack.p[p.id].e2[e2.t1.v].push(e2.m1.id);  }
+            data.pack.p.forEach(p=>{
+                if(pack.p[p.id]){
+                    pack.p[p.id].id = p.id; 
+                    pack.p[p.id].t = p.t.v; 
+                    pack.p[p.id].e1 = {}; // clear forward edges 
+                    pack.p[p.id].e2 = {}; // clear reverse edges 
+                    pack.p[p.id].all_e = [];
+                }else{
+                    pack.p[p.id] = {  m:'p', t:p.t.v, e1:{}, e2:{}, all_e:[], 
+                        pos:random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
+                        dir:new Vector3()}; 
+                    pack.all[p.id] = pack.p[p.id];
                 }
             });
-        }); 
-        console.log(pack);
-        pack_rv(pack);
+            ['b','i','f','s'].forEach(m=>{
+                data.pack[m].forEach(a=>{
+                    a['p'+m+'2'].forEach(e2=>{ if(e2.t1) pack[m][a.id].e2[e2.t1.v] = []; });
+                    a['p'+m+'2'].forEach(e2=>{ 
+                        if(e2.t1){ 
+                            if(pack.p[e2.m1.id]){  
+                                pack[m][a.id].e2[e2.t1.v].push(pack.p[e2.m1.id]);  // <<<<<<<<< reverse relationship !!!!
+                                pack[m][a.id].all_e.push(pack.p[e2.m1.id]);
+                            } 
+                            else{  pack[m][a.id].e2[e2.t1.v].push(e2.m1.id);  } // if record not loaded, add id so it can be loaded at the press of a button
+                        }
+                    });
+                });
+            });
+            data.pack.p.forEach(p=>{ 
+                ['p','b','i','f','s'].forEach(m=>{
+                    p['p'+m+'1'].forEach(e1=>{ if(e1.t2) pack.p[p.id].e1[e1.t2.v] = []; });
+                    p['p'+m+'1'].forEach(e1=>{
+                        if(e1.t2){
+                            if(pack[m][e1.m2.id]){  
+                                pack.p[p.id].e1[e1.t2.v].push(pack[m][e1.m2.id]); // <<<<<<<<< forward relationship !!!!
+                                pack.p[p.id].all_e.push(pack[m][e1.m2.id]); 
+                            } 
+                            else{  pack.p[p.id].e1[e1.t2.v].push(e1.m2.id);  }
+                        }
+                    });
+                });
+                p['pp2'].forEach(e2=>{ if(e2.t1) pack.p[p.id].e2[e2.t1.v] = []; });
+                p['pp2'].forEach(e2=>{
+                    if(e2.t1){ 
+                        if(pack.p[e2.m1.id]){  
+                            pack.p[p.id].e2[e2.t1.v].push(pack.p[e2.m1.id]);   // <<<<<<<<< reverse relationship !!!!
+                            pack.p[p.id].all_e.push(pack.p[e2.m1.id]);
+                        } 
+                        else{  pack.p[p.id].e2[e2.t1.v].push(e2.m1.id);  }
+                    }
+                });
+            }); 
+            console.log(pack);
+            pack_rv(pack);
+        }
     }}); 
     use_effect([search],()=>{
-        console.log('search');
+        //console.log('search');
         open_pack.mutate();
     });
     return (
         r(Fragment,{}, 
             r(Toolbar),
             r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                r(Canvas,{orthographic:true, camera:{position:[0, 0, 1000], zoom:10}}, //, far:10000
+                r(Canvas,{orthographic:true, camera:{position:[0, 0, 1000]}}, //, far:10000 zoom:1
                     r(Viewport),
                 )
             )
