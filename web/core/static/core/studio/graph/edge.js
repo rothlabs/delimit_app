@@ -16,16 +16,15 @@ export function Edge({source, tag, target}){
     const [hover, set_hover] = useState(false);
     const equilibrium = useReactiveVar(equilibrium_rv);
     const camera_zoom = useReactiveVar(camera_zoom_rv);
-    useFrame(()=> {
-        if(!equilibrium) {
-            meshline.current.setPoints([source.pos.x,source.pos.y,source.pos.z-100, target.pos.x,target.pos.y,target.pos.z-100]);
-            text.current.obj.position.x = (source.pos.x + target.pos.x) / 2; // setX?
-            text.current.obj.position.y = (source.pos.y + target.pos.y) / 2;
-        }
-    }); 
     useEffect(()=>{
         meshline_material.current.lineWidth = 1.5 / camera_zoom;
     },[camera_zoom]);
+    function sync(){
+        meshline.current.setPoints([source.pos.x,source.pos.y,source.pos.z-100, target.pos.x,target.pos.y,target.pos.z-100]);
+        text.current.obj.position.copy(source.pos).add(target.pos).multiplyScalar(.5).setZ(target.pos.z-90);
+    }
+    useEffect(()=>   sync(),   []);  // <-- runs after first render
+    useFrame(()=>{   if(!equilibrium) sync();   });
     return(
         r('group', {
             name: 'edge',
@@ -40,16 +39,12 @@ export function Edge({source, tag, target}){
                 r('meshLine', {
                     ref: meshline, 
                     attach: 'geometry', 
-                    points: [source.pos.x,source.pos.y,source.pos.z-100, target.pos.x,target.pos.y,target.pos.z-100],
                 }), 
                 r('meshLineMaterial', {ref:meshline_material, color:active||hover? theme.primary_s : theme.secondary_s}),
             ),
             r(Fixed_Size_Group, {
                 ref: text,
-                size: 13,//active ? 25 : 18,
-                props: {
-                    position: [(source.pos.x+target.pos.x)/2, (source.pos.y+target.pos.y)/2, source.pos.z-90],
-                },
+                size: active ? 18 : 13,
             },
                 r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 

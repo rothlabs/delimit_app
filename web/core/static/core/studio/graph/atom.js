@@ -1,4 +1,4 @@
-import {createElement as r, useState, useRef, useMemo} from 'react';
+import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 import {useFrame} from 'r3f';
 import {theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
 import {Text, Edges} from 'drei';
@@ -17,18 +17,16 @@ export function Atom({atom}){
     const [hover, set_hover] = useState(false);
     const equilibrium = useReactiveVar(equilibrium_rv);
     const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
-    useFrame(()=>{
-        if(!equilibrium) obj.current.obj.position.copy(atom.pos);
-    });
-    //console.log('render atom');
+    function sync(){
+        obj.current.obj.position.copy(atom.pos);
+    }
+    useEffect(()=>   sync(),   []);  // <-- runs after first render
+    useFrame(()=>{   if(!equilibrium) sync();   });
     return(
         r('group', {name: 'atom'}, 
             r(Fixed_Size_Group, {
                 ref: obj,
                 size: active ? 25 : 18,
-                props: {
-                    position: [atom.pos.x, atom.pos.y, atom.pos.z],
-                },
             },
                 r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
