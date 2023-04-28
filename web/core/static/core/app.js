@@ -1,4 +1,4 @@
-import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, useMutation, gql, makeVar} from 'apollo'; //makeVar, useReactiveVar, gql
+import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, useMutation, gql, makeVar, useReactiveVar} from 'apollo'; // gql
 import {setContext} from 'aclc';
 //import {createUploadLink} from 'auc';
 import Cookie from "cookie";
@@ -14,6 +14,7 @@ import {Color, ColorManagement} from 'three';
 import {useGLTF} from 'drei';
 import * as THREE from 'three';
 import {useFrame, useThree} from 'r3f';
+import {camera_zoom_rv} from './studio/viewport.js';
 
 //import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
 //"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
@@ -186,6 +187,7 @@ export function use_effect(deps, func){
 export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, props, children}, ref){
     const obj = useRef();
     const {camera} = useThree();
+    //const camera_zoom = useReactiveVar(camera_zoom_rv);
     useImperativeHandle(ref,()=>({ 
         obj:obj.current,
     }));
@@ -193,6 +195,10 @@ export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, prop
         var factor = size / camera.zoom;
         obj.current.scale.set(factor,factor,factor);
     });
+    // useEffect(()=>{
+    //     var factor = size / camera_zoom;
+    //     obj.current.scale.set(factor,factor,factor);
+    // },[camera_zoom]);
     return(
         r('group', {ref: obj, ...props, children:children})
     )
@@ -200,14 +206,16 @@ export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, prop
 
 export function Spinner({children}){
     const obj = useRef();
+    const [dir, set_dir] = useState(random_vector({min:0.5, max:0.5}));
     useFrame((state, delta) => {
-        obj.current.rotation.x += delta * 0.5;
-        obj.current.rotation.y += delta * 0.5;
-        obj.current.rotation.z += delta * 0.5;
+        obj.current.rotateX(delta * dir.x);
+        obj.current.rotateY(delta * dir.y);
+        obj.current.rotateZ(delta * dir.z);
+        //obj.current.rotation.x += delta * dir.x;
+        //obj.current.rotation.y += delta * dir.y;
+        //obj.current.rotation.z += delta * dir.z;
     });
-    return(
-        r('group', {ref:obj, children:children})
-    )
+    return r('group', {ref:obj, children:children});
 }
 
 export function uppercase(text){

@@ -4,8 +4,9 @@ import {Toolbar} from './toolbar.js';
 import {useParams} from 'rrd';
 import {makeVar, useReactiveVar} from 'apollo';
 import {use_query, use_mutation, use_effect, random_vector} from '../app.js';
-import { Viewport } from './viewport.js';
+import {Viewport} from './viewport.js';
 import {Vector3} from 'three';
+import {graph_z} from './graph/graph.js';
 
 export const pack_rv = makeVar({all:{},p:{},b:{},i:{},f:{},s:{}});
 export const search_rv = makeVar({depth:null, ids:null});
@@ -14,7 +15,6 @@ export const show_points_rv = makeVar(true);
 export const show_endpoints_rv = makeVar(true);
 export const draw_mode_rv = makeVar('draw');
 export const selection_rv = makeVar();
-export const graph_z = 300;
 
 const edges = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t2{v} m2{id}}').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join(' ');
@@ -109,7 +109,7 @@ export function Studio(){
         r(Fragment,{}, 
             r(Toolbar),
             r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                r(Canvas,{orthographic:true, camera:{position:[0, 0, 1000]}}, //, far:10000 zoom:1
+                r(Canvas,{orthographic:true, camera:{position:[0, 0, 1000]}}, //, far:10000 zoom:1    //frameloop:'demand', 
                     r(Viewport),
                 )
             )
