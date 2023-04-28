@@ -1,9 +1,8 @@
 import {createElement as r, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast } from '../meshline.js';
 import {useThree, useFrame} from 'r3f';
-import {theme, static_url, Fixed_Size_Group, uppercase} from '../../app.js';
+import {theme, static_url, Fixed_Size_Group, uppercase, use_node} from '../../app.js';
 import {useReactiveVar} from 'apollo';
-import {equilibrium_rv} from './graph.js';
 import {camera_zoom_rv} from '../viewport.js';
 import {Text} from 'drei';
 
@@ -14,7 +13,6 @@ export function Edge({source, tag, target}){
     const text = useRef();
     const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
-    const equilibrium = useReactiveVar(equilibrium_rv);
     const camera_zoom = useReactiveVar(camera_zoom_rv);
     useEffect(()=>{
         meshline_material.current.lineWidth = 1.5 / camera_zoom;
@@ -23,8 +21,8 @@ export function Edge({source, tag, target}){
         meshline.current.setPoints([source.pos.x,source.pos.y,source.pos.z-100, target.pos.x,target.pos.y,target.pos.z-100]);
         text.current.obj.position.copy(source.pos).add(target.pos).multiplyScalar(.5).setZ(target.pos.z-90);
     }
-    useEffect(()=>   sync(),   []);  // <-- runs after first render
-    useFrame(()=>{   if(!equilibrium) sync();   });
+    use_node(source, sync);
+    use_node(target, sync);
     return(
         r('group', {
             name: 'edge',

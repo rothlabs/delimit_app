@@ -1,11 +1,11 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 import {useFrame} from 'r3f';
 //import {pack_rv} from '../studio.js';
-import {theme, static_url, Spinner, Fixed_Size_Group, uppercase, use_effect} from '../../app.js';
+import {theme, static_url, Spinner, Fixed_Size_Group, uppercase, use_node} from '../../app.js';
 import {Text, Edges} from 'drei';
 import {Edge} from './edge.js';
 import {useReactiveVar} from 'apollo';
-import {equilibrium_rv} from './graph.js';
+//import {equilibrium_rv} from './graph.js';
 import * as THREE from 'three';
 
 const circle_size = 1.25;
@@ -17,18 +17,15 @@ export function Part({part}){
     const arrows = useRef({});
     const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
-    const equilibrium = useReactiveVar(equilibrium_rv);
     const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
-    function sync(){
+    use_node(part, ()=>{
         obj.current.obj.position.copy(part.pos);
         Object.entries(arrows.current).forEach(([key, arrow]) => {
             arrow.obj.position.copy(arrow.target.pos).sub(part.pos).normalize().multiplyScalar(circle_size+0.4);
             arrow.obj.lookAt(part.pos);
             arrow.obj.rotateX(1.5708);
         });
-    }
-    useEffect(()=>   sync(),   []);  // <-- runs after first render
-    useFrame(()=>{   if(!equilibrium) sync();   });
+    });
     return(
         r('group', {name: 'part'}, 
             ...Object.entries(part.e1).map(([key, tag_group], i)=> 

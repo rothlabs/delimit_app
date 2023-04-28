@@ -14,14 +14,22 @@ import {Color, ColorManagement} from 'three';
 import {useGLTF} from 'drei';
 import * as THREE from 'three';
 import {useFrame, useThree} from 'r3f';
-import {camera_zoom_rv} from './studio/viewport.js';
+//import {camera_zoom_rv} from './studio/viewport.js';
 
-//import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
-//"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
-import {createUploadLink} from './upload/upload.js';
+// "immer":     "https://esm.sh/immer?pin=v117&dev",
+// import {produce} from 'immer';
+// export function immer(reactive_var, func){
+//     return reactive_var(produce(reactive_var(), draft=>func(draft)));
+// }
+
+export function use_node(node, sync){
+    const meta = useReactiveVar(node.meta);
+    //const [mounted, set_mounted] = useState(false);
+    useEffect(()=>{  sync();  }, [meta]);
+    useFrame((state, delta)=>{   if(meta.dynamic) sync(state, delta);  });
+}
 
 export const random=(min, max)=> Math.random() * (max - min) + min;
-
 export function random_vector({min, max, x, y ,z}){
     const vect = new THREE.Vector3(x?0:random(-1,1),y?0:random(-1,1),z?0:random(-1,1)).normalize().multiplyScalar(random(min,max));
     x && vect.setX(x);
@@ -29,6 +37,10 @@ export function random_vector({min, max, x, y ,z}){
     z && vect.setZ(z);
     return vect;
 }
+
+//import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
+//"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
+import {createUploadLink} from './upload/upload.js';
 
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),

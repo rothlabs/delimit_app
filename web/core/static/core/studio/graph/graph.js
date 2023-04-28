@@ -1,4 +1,4 @@
-import {createElement as r, useEffect} from 'react';
+import {createElement as r, useEffect, useState} from 'react';
 import {useFrame, useThree} from 'r3f';
 import {pack_rv} from '../studio.js';
 import {Part} from './part.js';
@@ -6,7 +6,7 @@ import {Atom} from './atom.js';
 import {makeVar, useReactiveVar} from 'apollo';
 import {Vector3} from 'three';
 
-export const equilibrium_rv = makeVar(false);
+//export const equilibrium_rv = makeVar(false);
 export const graph_z = 300;
 
 const repulsion = 100000;
@@ -15,9 +15,9 @@ const part_spring = 0.05;
 const tv = new Vector3();
 
 export function Graph(){
-    const {invalidate} = useThree();
+    //const {invalidate} = useThree();
     const pack = useReactiveVar(pack_rv);
-    const equilibrium = useReactiveVar(equilibrium_rv);
+    const [equilibrium, set_equilibrium] = useState(false);//useReactiveVar(equilibrium_rv);
     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
         if(!equilibrium && Object.entries(pack.all).length > 0){
             var equilibrium_reached = true;
@@ -42,9 +42,12 @@ export function Graph(){
                 if(o.dir.length() > 1){
                     equilibrium_reached = false;
                     o.pos.add(o.dir).setZ(graph_z);  // o.pos.add(o.dir.multiplyScalar(delta)).setZ(graph_z);
+                    o.meta().dynamic = true; // will not trigger rerender
+                }else{
+                    o.meta().dynamic = false;
                 }
             });
-            equilibrium_rv(equilibrium_reached); 
+            set_equilibrium(equilibrium_reached); 
         }
     });
     //console.log('equilibrium: '+equilibrium);

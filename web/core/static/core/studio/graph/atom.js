@@ -1,10 +1,10 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 import {useFrame} from 'r3f';
-import {theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
+import {theme, static_url, Spinner, Fixed_Size_Group, use_node} from '../../app.js';
 import {Text, Edges} from 'drei';
 import {Edge} from './edge.js';
 import {useReactiveVar} from 'apollo';
-import {equilibrium_rv} from './graph.js';
+//import {equilibrium_rv} from './graph.js';
 import * as THREE from 'three';
 
 const circle_geometry = new THREE.CircleGeometry(1.25,16); // do this for the other geometries as well for reuse
@@ -15,15 +15,13 @@ export function Atom({atom}){
     const obj = useRef();
     const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
-    const equilibrium = useReactiveVar(equilibrium_rv);
     const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
-    function sync(){
+    use_node(atom, ()=>{
         obj.current.obj.position.copy(atom.pos);
-    }
-    useEffect(()=>   sync(),   []);  // <-- runs after first render
-    useFrame(()=>{   if(!equilibrium) sync();   });
+    });
     return(
         r('group', {name: 'atom'}, 
+            //dynamic && r(Dynamic, {sync:sync}),
             r(Fixed_Size_Group, {
                 ref: obj,
                 size: active ? 25 : 18,

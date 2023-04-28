@@ -40,7 +40,8 @@ export function Studio(){
                     }else{  
                         pack[m][a.id] = { m:m, v:a.v, e2:{}, all_e:[], 
                             pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
-                            dir: new Vector3()};
+                            dir: new Vector3(),
+                            meta: makeVar({dynamic:false})};
                         pack.all[a.id] = pack[m][a.id];
                     }
                 }); 
@@ -55,7 +56,8 @@ export function Studio(){
                 }else{
                     pack.p[p.id] = {  m:'p', t:p.t.v, e1:{}, e2:{}, all_e:[], 
                         pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
-                        dir: new Vector3()}; 
+                        dir: new Vector3(),
+                        meta: makeVar({dynamic:false})}; 
                     pack.all[p.id] = pack.p[p.id];
                 }
             });
@@ -99,6 +101,9 @@ export function Studio(){
             }); 
             console.log(pack);
             pack_rv(pack);
+            //pack_rv().p['WRNPQizoTxfaqOYh'].wow = 'so cool'; // not reactive
+            //immer(pack_rv, draft => {draft.p['WRNPQizoTxfaqOYh'].wow = 'so cool';}); // reactive 
+            //console.log(pack_rv()); // hope it shows the change. this means i could change without reacting if needed 
         }
     }}); 
     use_effect([search],()=>{
@@ -117,6 +122,17 @@ export function Studio(){
         )
     )
 }
+
+
+// produce(pack[m][a.id], draft => {
+                        //     draft.id = a.id;
+                        //     draft.v = a.v;
+                        //     draft.e2 = {}; // clear edges
+                        //     draft.all_e = [];
+                        // });
+                        //reactive_var(reactive_var(), draft => {
+                        //    draft
+                        //}));
 
 
 //{t: p.t.map(t=> part.t[t.id])};
