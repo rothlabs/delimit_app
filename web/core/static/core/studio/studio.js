@@ -1,5 +1,5 @@
 import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
-import {Canvas, useThree} from 'r3f';
+import {Canvas} from 'r3f';
 import {Toolbar} from './toolbar.js';
 import {useParams} from 'rrd';
 import {makeVar, useReactiveVar} from 'apollo';
@@ -22,7 +22,6 @@ const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join('
 export function Studio(){
     const pack = useReactiveVar(pack_rv);
     const search = useReactiveVar(search_rv);
-    //const {camera} = useThree();
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{p{id t{v} '+edges+' pp2{t1{v} m1{id}}} '+atoms+ '}',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
@@ -39,8 +38,8 @@ export function Studio(){
                         pack[m][a.id].all_e = [];
                     }else{  
                         pack[m][a.id] = { m:m, v:a.v, e2:{}, all_e:[], 
-                            pos:random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
-                            dir:new Vector3()};
+                            pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
+                            dir: new Vector3()};
                         pack.all[a.id] = pack[m][a.id];
                     }
                 }); 
@@ -54,8 +53,8 @@ export function Studio(){
                     pack.p[p.id].all_e = [];
                 }else{
                     pack.p[p.id] = {  m:'p', t:p.t.v, e1:{}, e2:{}, all_e:[], 
-                        pos:random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
-                        dir:new Vector3()}; 
+                        pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
+                        dir: new Vector3()}; 
                     pack.all[p.id] = pack.p[p.id];
                 }
             });

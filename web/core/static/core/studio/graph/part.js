@@ -12,7 +12,6 @@ const circle_size = 1.25;
 const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 const tv = new THREE.Vector3();
-//const tv2 = new THREE.Vector3();
 
 export function Part({part}){
     const obj = useRef();
@@ -21,31 +20,22 @@ export function Part({part}){
     const [hover, set_hover] = useState(false);
     const equilibrium = useReactiveVar(equilibrium_rv);
     const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
-    useFrame(()=>{
-        if(!equilibrium) {
-            obj.current.obj.position.copy(part.pos);
-            Object.entries(arrows.current).forEach(([key, arrow]) => {
-                if(arrow.obj){
-                    arrow.obj.position.set(...arrow_pos(arrow.target));
-                    arrow.obj.lookAt(part.pos);
-                    arrow.obj.rotateX(1.5708);
-                }
-            });
-        }
-    });
-    useEffect(()=>{
+    function update_arrows(){
         Object.entries(arrows.current).forEach(([key, arrow]) => {
-            arrow.obj.position.set(...arrow_pos(arrow.target));
+            arrow.obj.position.copy(arrow.target.pos).sub(part.pos).normalize().multiplyScalar(circle_size+0.4);
             arrow.obj.lookAt(part.pos);
             arrow.obj.rotateX(1.5708);
         });
-    },[]);
-    function arrow_pos(target){
-        tv.copy(target.pos).sub(part.pos).normalize().multiplyScalar(circle_size+0.4);
-        return [tv.x, tv.y, tv.z];
     }
-    //myInterval = setInterval(function, milliseconds);
-    //console.log('render part');
+    useFrame(()=>{
+        if(!equilibrium) {
+            obj.current.obj.position.copy(part.pos);
+            update_arrows();
+        }
+    });
+    useEffect(()=>{
+        update_arrows();
+    },[]);
     return(
         r('group', {name: 'part'}, 
             ...Object.entries(part.e1).map(([key, tag_group], i)=> 
@@ -102,9 +92,8 @@ export function Part({part}){
                             key: i+'_'+k,
                             ref: rf=>arrows.current[i+'_'+k]={obj:rf, target:target},
                         },
-                            r('coneGeometry', {args:[.2,1,16]}),
+                            r('coneGeometry', {args:[.15,1,16]}),
                             r('meshBasicMaterial', {color: theme.secondary, toneMapped:false}),
-                            //r(Edges, {scale:1.05, color:active||hover? 'white' : theme.primary},),
                         )
                     )
                 ),
@@ -112,3 +101,6 @@ export function Part({part}){
         )
     )
 }
+
+//myInterval = setInterval(function, milliseconds);
+    //console.log('render part');

@@ -60,15 +60,6 @@ export function Edge({source, tag, target}){
                     r('meshBasicMaterial', {color: active||hover? theme.primary : theme.secondary, toneMapped:false}),
                 ),
             ),
-            // r(Fixed_Size_Group, {
-            //     ref: arrow,
-            //     size: 10,
-            //     props: {
-            //         position: [(source.pos.x+target.pos.x)/2, (source.pos.y+target.pos.y)/2, source.pos.z-90],
-            //     },
-            // },
-
-            // ),
         )
     )
 }
