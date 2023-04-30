@@ -82,7 +82,7 @@ export function Studio(){
                         if(e1.t2){
                             if(pack[m][e1.m2.id]){  
                                 pack.p[p.id].e1[e1.t2.v].push(pack[m][e1.m2.id]); // <<<<<<<<< forward relationship !!!!
-                                pack.p[p.id].all_e.push(pack[m][e1.m2.id]); 
+                                if(!pack.p[p.id].all_e.includes(pack[m][e1.m2.id])) pack.p[p.id].all_e.push(pack[m][e1.m2.id]); 
                             } 
                             else{  pack.p[p.id].e1[e1.t2.v].push(e1.m2.id);  }
                         }
@@ -93,7 +93,7 @@ export function Studio(){
                     if(e2.t1){ 
                         if(pack.p[e2.m1.id]){  
                             pack.p[p.id].e2[e2.t1.v].push(pack.p[e2.m1.id]);   // <<<<<<<<< reverse relationship !!!!
-                            pack.p[p.id].all_e.push(pack.p[e2.m1.id]);
+                            if(!pack.p[p.id].all_e.includes(pack.p[e2.m1.id])) pack.p[p.id].all_e.push(pack.p[e2.m1.id]);
                         } 
                         else{  pack.p[p.id].e2[e2.t1.v].push(e2.m1.id);  }
                     }

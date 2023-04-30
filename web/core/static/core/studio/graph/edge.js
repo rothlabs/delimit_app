@@ -1,7 +1,7 @@
 import {createElement as r, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast } from '../meshline.js';
 import {useThree, useFrame} from 'r3f';
-import {theme, static_url, Fixed_Size_Group, uppercase, use_node} from '../../app.js';
+import {theme, static_url, Fixed_Size_Group, uppercase, use_nodes} from '../../app.js';
 import {useReactiveVar} from 'apollo';
 import {camera_zoom_rv} from '../viewport.js';
 import {Text} from 'drei';
@@ -21,8 +21,7 @@ export function Edge({source, tag, target}){
         meshline.current.setPoints([source.pos.x,source.pos.y,source.pos.z-100, target.pos.x,target.pos.y,target.pos.z-100]);
         text.current.obj.position.copy(source.pos).add(target.pos).multiplyScalar(.5).setZ(target.pos.z-90);
     }
-    use_node(source, sync);
-    use_node(target, sync);
+    use_nodes([source, target], sync);
     return(
         r('group', {
             name: 'edge',

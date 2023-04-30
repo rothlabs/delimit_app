@@ -15,7 +15,6 @@ const part_spring = 0.05;
 const tv = new Vector3();
 
 export function Graph(){
-    //const {invalidate} = useThree();
     const pack = useReactiveVar(pack_rv);
     const [equilibrium, set_equilibrium] = useState(false);//useReactiveVar(equilibrium_rv);
     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
@@ -72,6 +71,7 @@ export function Graph(){
     )
 }
 
+//const {invalidate} = useThree();
 // useEffect(()=>{
     //     const request_frame = setInterval(()=> invalidate(), 100);
     //     return ()=> clearInterval(request_frame);

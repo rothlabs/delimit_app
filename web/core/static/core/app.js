@@ -22,11 +22,15 @@ import {useFrame, useThree} from 'r3f';
 //     return reactive_var(produce(reactive_var(), draft=>func(draft)));
 // }
 
-export function use_node(node, sync){
-    const meta = useReactiveVar(node.meta);
-    //const [mounted, set_mounted] = useState(false);
-    useEffect(()=>{  sync();  }, [meta]);
-    useFrame((state, delta)=>{   if(meta.dynamic) sync(state, delta);  });
+// export function use_node(node, sync){
+//     const meta = useReactiveVar(node.meta);//const [mounted, set_mounted] = useState(false);
+//     useEffect(()=>{  sync();  }, [meta]);
+//     useFrame((state, delta)=>{   if(meta.dynamic) sync(state, delta);  });
+// }
+export function use_nodes(nodes, sync){
+    const metas = nodes.map(n=>useReactiveVar(n.meta));
+    useEffect(()=>{  sync();  }, metas);
+    useFrame((state, delta)=>{   if(metas.map(m=>m.dynamic).includes(true)) sync(state, delta);  });
 }
 
 export const random=(min, max)=> Math.random() * (max - min) + min;

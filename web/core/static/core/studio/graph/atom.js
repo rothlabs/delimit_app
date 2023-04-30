@@ -1,6 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 import {useFrame} from 'r3f';
-import {theme, static_url, Spinner, Fixed_Size_Group, use_node} from '../../app.js';
+import {theme, static_url, Spinner, Fixed_Size_Group, use_nodes} from '../../app.js';
 import {Text, Edges} from 'drei';
 import {Edge} from './edge.js';
 import {useReactiveVar} from 'apollo';
@@ -16,7 +16,7 @@ export function Atom({atom}){
     const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
     const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
-    use_node(atom, ()=>{
+    use_nodes([atom], ()=>{
         obj.current.obj.position.copy(atom.pos);
     });
     return(
