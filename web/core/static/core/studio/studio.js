@@ -8,7 +8,6 @@ import {use_mutation, use_effect} from '../app.js';
 import {Viewport} from './viewport.js';
 import {use_d} from '../state/state.js';
 
-
 export const selection_rv = makeVar();
 export const search_rv = makeVar({depth:null, ids:null});
 export const action_rv = makeVar({name:'none'}); // renamed to history action ?
@@ -19,7 +18,6 @@ export const draw_mode_rv = makeVar('draw');
 const edges = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t2{v} m2{id}}').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join(' ');
 
-
 export function Studio(){
     const add_pack = use_d(d=> d.add_pack);
     const search = useReactiveVar(search_rv);
@@ -29,6 +27,7 @@ export function Studio(){
     ],{onCompleted:(data)=>{
         data = data.openPack;
         if(data.pack) add_pack(data); 
+        console.log(use_d.getState().n)
     }}); 
     use_effect([search],()=>{
         //console.log('search');

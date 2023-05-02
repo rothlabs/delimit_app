@@ -16,32 +16,30 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
         ['b','i','f','s'].forEach(m=>{
             data.pack[m].forEach(a=>{
                 if(d.n[a.id]){
-                    //d.n[a.id].id = a.id;
                     d.n[a.id].v = a.v;
-                    d.n[a.id].e2 = {}; // clear edges
                     d.n[a.id].e = [];
+                    d.n[a.id].e2 = {}; 
                 }else{  
                     d.n[a.id] = { m:m, v:a.v, e2:{}, e:[], 
-                        pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
-                        dir: new Vector3(),
-                        num: 0}; //makeVar({dynamic:false})
-                    //store.all.push(a.id);//store.all[a.id] = store[m][a.id];
+                        vis: {
+                            pos:random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
+                            dir: new Vector3(),
+                        }}; 
                 }
             }); 
         });
         data.pack.p.forEach(p=>{
             if(d.n[p.id]){
-                //d.n[p.id].id = p.id; 
                 d.n[p.id].t = p.t.v; 
+                d.n[p.id].e = [];
                 d.n[p.id].e1 = {}; // clear forward edges 
                 d.n[p.id].e2 = {}; // clear reverse edges 
-                d.n[p.id].e = [];
             }else{
                 d.n[p.id] = {  m:'p', t:p.t.v, e1:{}, e2:{}, e:[], 
-                    pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}), 
-                    dir: new Vector3(),
-                    num: 0}; 
-                //store.all.push(p.id);//store.all[p.id] = store.p[p.id];
+                    vis: {
+                        pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
+                        dir: new Vector3(),
+                    }}; 
             }
         });
         ['b','i','f','s'].forEach(m=>{

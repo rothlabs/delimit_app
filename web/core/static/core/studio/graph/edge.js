@@ -4,7 +4,6 @@ import {useThree, useFrame} from 'r3f';
 import {theme, static_url, Fixed_Size_Group, uppercase} from '../../app.js';
 import {Text} from 'drei';
 import {use_d} from '../../state/state.js';
-import { circle_size } from './part.js';
 import {Vector3} from 'three';
 
 const tv = new Vector3();
@@ -13,7 +12,6 @@ export function Edge({id1, tag, id2}){
     const meshline = useRef();
     const meshline_material = useRef();
     const text = useRef();
-    //const arrow_base = useRef();
     const arrow = useRef();
     const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
@@ -22,11 +20,9 @@ export function Edge({id1, tag, id2}){
     useFrame(()=>{
         meshline_material.current.lineWidth = 1.5 / camera.zoom;
     });
-    useEffect(()=>use_d.subscribe(d=>({   num:d.n[id1].num, num:d.n[id2].num, pos1:d.n[id1].pos, pos2:d.n[id2].pos   }),d=>{
-        //text.current.obj.position.copy(d.pos1).add(d.pos2).multiplyScalar(.25);//.setZ(d.pos1.z-90);
+    useEffect(()=>use_d.subscribe(d=>({   pos1:d.n[id1].vis.pos, pos2:d.n[id2].vis.pos   }),d=>{  //num:d.n[id1].num, num:d.n[id2].num,
         text .current.obj.position.copy(d.pos2).add( tv.copy(d.pos1).sub(d.pos2).multiplyScalar(.35) );
         arrow.current.obj.position.copy(d.pos2).add( tv.copy(d.pos1).sub(d.pos2).multiplyScalar(.65) );
-        //arrow.current.position.copy(d.pos1).sub(d.pos2).normalize().multiplyScalar(24);
         arrow.current.obj.lookAt(d.pos1);
         arrow.current.obj.rotateX(1.5708);
         arrow.current.obj.position.setZ(d.pos1.z-100);
@@ -53,12 +49,6 @@ export function Edge({id1, tag, id2}){
                 ref: text,
                 size: active ? 1.5 : 1,
             },
-                // r('mesh', {
-                //     ref: arrow,
-                // },
-                //     r('coneGeometry', {args:[4,24,8]}),
-                //     r('meshBasicMaterial', {color: color, toneMapped:false}),
-                // ),
                 r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     outlineWidth: '25%',
@@ -73,9 +63,7 @@ export function Edge({id1, tag, id2}){
                 ref: arrow,
                 size: active ? 1.5 : 1,
             },
-                r('mesh', {
-                    //ref: arrow,
-                },
+                r('mesh', {},
                     r('coneGeometry', {args:[4,24,8]}),
                     r('meshBasicMaterial', {color: color, toneMapped:false}),
                 ),
@@ -84,6 +72,10 @@ export function Edge({id1, tag, id2}){
     )
 }
 
+
+//text.current.obj.position.copy(d.pos1).add(d.pos2).multiplyScalar(.25);//.setZ(d.pos1.z-90);
+
+//arrow.current.position.copy(d.pos1).sub(d.pos2).normalize().multiplyScalar(24);
 
 //obj.current.obj.updateMatrixWorld(true);
 //arrow.current.getWorldPosition(tv);
