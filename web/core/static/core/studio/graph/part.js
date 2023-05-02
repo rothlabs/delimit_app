@@ -1,60 +1,33 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
-import {useFrame} from 'r3f';
-import {use_store} from '../studio.js';
-import {theme, static_url, Spinner, Fixed_Size_Group, uppercase, use_nodes} from '../../app.js';
+import {use_d, shallow} from '../../state/state.js';
+import {theme, static_url, Spinner, Fixed_Size_Group, uppercase} from '../../app.js';
 import {Text, Edges} from 'drei';
 import {Edge} from './edge.js';
-//import {useReactiveVar} from 'apollo';
-//import {equilibrium_rv} from './graph.js';
 import * as THREE from 'three';
-//import {shallow} from 'shallow';
 
-const circle_size = 1.25;
+export const circle_size = 1.25;
 const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 
-
-
 export function Part({id}){ 
-    const name = use_store((d)=> d.n[id].e1.name ? d.n[d.n[id].e1.name[0]].v : null);
-    const tag = use_store((d)=> d.n[id].t);
-    //const pos = use_store(d=> d.n[id].pos);
-    //const nodes = use_store((d)=> d.n);
-    //const pos_x = use_store((d)=> d.n[id].pos.x);
-    //const pos_y = use_store((d)=> d.n[id].pos.y);
-    //const pos_z = use_store((d)=> d.n[id].pos.z);
     const obj = useRef();
-    const arrows = useRef({});
     const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
     const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
-    //useFrame(()=>{
-        //var x = use_store.getState().n[id].pos.x;
-    //    console.log(use_store.getState().n);
-    //});
-    useEffect(() => use_store.subscribe(d=> ({num:d.n[id].num, pos:d.n[id].pos}), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
-        console.log('part pos update');
+    const name = use_d(d=> d.n[id].e1.name ? d.n[d.n[id].e1.name[0]].v : null);
+    const tag = use_d(d=> uppercase(d.n[id].t));
+    const e1 = use_d(d=> Object.keys(d.n[id].e1).map(t=>d.n[id].e1[t].map(n=>t+'__'+n)).flat(1), shallow);
+    useEffect(() => use_d.subscribe(d=> ({num:d.n[id].num, pos:d.n[id].pos}), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
         obj.current.obj.position.copy(d.pos);
-        // Object.values(arrows.current).forEach(arrow=> {
-        //     arrow.obj.position.copy(arrow.target.pos).sub(d.n[id].pos).normalize().multiplyScalar(circle_size+0.4);
-        //     arrow.obj.lookAt(d.n[id].pos);
-        //     arrow.obj.rotateX(1.5708);
-        // });
-    }), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
-    console.log('render part');
+    },{fireImmediately:true}), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
     return(
         r('group', {name: 'part'}, 
-            // ...Object.entries(part.e1).map(([key, tag_group], i)=> 
-            //     tag_group.map((target, k)=>
-            //         r(Edge, {source:part, tag:key, target:target, key:i+'_'+k}),
-            //     )
-            // ),
+            ...e1.map(e=> 
+                id != e.split('__')[1] && r(Edge, {id1:id, tag:e.split('__')[0], id2:e.split('__')[1]})//, key:i+'_'+k}),
+            ),
             r(Fixed_Size_Group, {
                 ref: obj,
-                size: active ? 35 : 25,
-                //props:{
-                //    position: [pos.x,pos.y,pos.z],
-                //}
+                size: active ? 35 : 25, // 1.5 : 1, adjust size of other items
             },
                 name && r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
@@ -92,7 +65,13 @@ export function Part({id}){
                     onPointerOver: (e)=> {e.stopPropagation(); set_hover(true);},
                     onPointerOut: (e)=> {e.stopPropagation(); set_hover(false)},
                 }),
-                // ...Object.entries(part.e1).map(([key, tag_group], i)=> 
+            )
+        )
+    )
+}
+
+
+// ...Object.entries(part.e1).map(([key, tag_group], i)=> 
                 //     tag_group.map((target, k)=>
                 //         r('mesh', {
                 //             key: i+'_'+k,
@@ -103,10 +82,6 @@ export function Part({id}){
                 //         )
                 //     )
                 // ),
-            )
-        )
-    )
-}
 
 
 //use_nodes([part], ()=>{

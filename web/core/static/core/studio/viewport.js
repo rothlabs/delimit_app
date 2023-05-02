@@ -9,7 +9,7 @@ import {makeVar, useReactiveVar} from 'apollo';
 import {draw_mode_rv, selection_rv} from './studio.js';
 import { Graph } from './graph/graph.js';
 
-export const camera_zoom_rv = makeVar(1);
+//export const camera_zoom_rv = makeVar(1);
 
 const pointer_start = new Vector2();
 const pointer_vect = new Vector2();
@@ -29,9 +29,9 @@ export function Viewport(){
     //const draw_mode = useReactiveVar(draw_mode_rv);
     //const selection = useReactiveVar(selection_rv);
     ////////useFrame(()=>raycaster.params.Points.threshold = 10/camera.zoom); < ----- needed for point clicking!
-    useFrame(()=>{
-        camera_zoom_rv(camera.zoom);
-    });
+    //useFrame(()=>{
+    //    camera_zoom_rv(camera.zoom);
+    //});
     return (
         r('group', {}, 
             r(CameraControls, {

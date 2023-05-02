@@ -27,11 +27,11 @@ import {useFrame, useThree} from 'r3f';
 //     useEffect(()=>{  sync();  }, [meta]);
 //     useFrame((state, delta)=>{   if(meta.dynamic) sync(state, delta);  });
 // }
-export function use_nodes(nodes, sync){
-    const metas = nodes.map(n=>useReactiveVar(n.meta));
-    useEffect(()=>{  sync();  }, metas);
-    useFrame((state, delta)=>{   if(metas.map(m=>m.dynamic).includes(true)) sync(state, delta);  });
-}
+// export function use_nodes(nodes, sync){
+//     const metas = nodes.map(n=>useReactiveVar(n.meta));
+//     useEffect(()=>{  sync();  }, metas);
+//     useFrame((state, delta)=>{   if(metas.map(m=>m.dynamic).includes(true)) sync(state, delta);  });
+// }
 
 export const random=(min, max)=> Math.random() * (max - min) + min;
 export function random_vector({min, max, x, y ,z}){
