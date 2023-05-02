@@ -90,50 +90,24 @@ class Query(graphene.ObjectType):
         else: return None
     def resolve_pollPack(root, info): 
         try:
-            #buffer_pack = None
             user = info.context.user
             if user.is_authenticated:
-                # if the units in the poll_pack refer to units that the client does not have open, it is up to the client to decide to open them or not
-                #buffer_pack = Part.objects.get(t__v='buffer_pack', u=user) # pu1__m2=user
-                #open_pack = Part.objects.get(t__v='open_pack', pu1__m2=user)
-                poll_pack = Part.objects.get(t__v='poll_pack', u=user)
-                pack = Part_Type(p=poll_pack.p, b=poll_pack.b, i=poll_pack.i, f=poll_pack.f, s=poll_pack.s)
-                clear_part(poll_pack)
-                #poll_pack.p.remove(open_pack)
-                # buffer_pack.p.set(poll_pack.p, through_defaults={'t1':buffer_pack_tag})
-                # buffer_pack.b.set(poll_pack.b, through_defaults={'t1':buffer_pack_tag})
-                # buffer_pack.i.set(poll_pack.i, through_defaults={'t1':buffer_pack_tag})
-                # buffer_pack.f.set(poll_pack.f, through_defaults={'t1':buffer_pack_tag})
-                # buffer_pack.s.set(poll_pack.s, through_defaults={'t1':buffer_pack_tag})
-                #poll_pack.p.add(open_pack, through_defaults={'t1':poll_pack_tag,'t2':open_pack_tag})
-            return pack
+                return Part.objects.get(t__v='poll_pack', u=user)
+            return None
         except Exception as e: print(e)
         return None
 
-class Login(graphene.Mutation):
-    class Arguments:
-        username = graphene.String(required=True)
-        password = graphene.String(required=True)
-    user = graphene.Field(User_Type)
-    reply = graphene.String(default_value = 'Failed to sign in.')
-    @classmethod
-    def mutate(cls, root, info, username, password):
-        user = authenticate(username=username, password=password)
-        if user: 
-            login(info.context, user)
-            return Login(reply='Welcome ' + user.first_name, user=user)
-        return Login()
-
-class Logout(graphene.Mutation):
-    user = graphene.Field(User_Type)
-    reply = graphene.String(default_value = 'Failed to sign out.')
+class Clear_Poll(graphene.Mutation):
+    reply = graphene.String(default_value = 'Failed to clear poll.')
     @classmethod
     def mutate(cls, root, info):
-        if info.context.user.is_authenticated: 
+        try:
             user = info.context.user
-            logout(info.context)
-            return Logout(reply='Farewell '+user.first_name, user=user)
-        return Logout()
+            if user.is_authenticated: 
+                clear_part(Part.objects.get(t__v='poll_pack', u=user))
+            return Clear_Poll(reply='Cleared Poll.')
+        except Exception as e: print(e)
+        return Clear_Poll()
 
 class Open_Pack(graphene.Mutation):
     class Arguments:
@@ -198,6 +172,27 @@ class Open_Pack(graphene.Mutation):
             return Open_Pack(pack=Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
         except Exception as e: print(e)
         return Open_Pack()
+
+class Close_Pack(graphene.Mutation):
+    class Arguments:
+        ids = graphene.List(graphene.ID)
+    reply = graphene.String(default_value = 'Failed to close pack.')
+    @classmethod
+    def mutate(cls, root, info, ids):
+        try:
+            user = info.context.user
+            if user.is_authenticated: 
+                parts = Part.objects.filter(id__in=ids)
+                open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__m2=user
+                open_pack.p.remove(parts.p) #(open_pack.p.difference(parts.p), through_defaults={'t1':open_pack_tag})
+                open_pack.b.remove(parts.b)
+                open_pack.i.remove(parts.i)
+                open_pack.f.remove(parts.f)
+                open_pack.s.remove(parts.s)
+            return Close_Pack(reply='Closed pack.')
+        except Exception as e: print(e)
+        return Close_Pack()
+
 
 permission_tags = ['editor', 'editable', 'viewer', 'viewable', 'public']
 class Push_Pack(graphene.Mutation):
@@ -304,32 +299,38 @@ class Push_Pack(graphene.Mutation):
                                 add_atom(part, String, 's', pids[p][5][idi], idi, t1[p][5][idi], t2[p][5][idi], temp_pack)
                         except Exception as e: print(e)
                 # add to poll packs:
-                for p in temp_pack.p: # do this for b, i, f, s as well
-                    poll_packs = Part.objects.filter(t__V='poll_pack', pp2__t1__v='open_pack', pp2__m1__p = p)
-                    for poll_pack in poll_packs: poll_pack.p.add(p, through_defaults={'t1':poll_pack_tag})
+                #for p in temp_pack.p: # do this for b, i, f, s as well
+                #    poll_packs = Part.objects.filter(t__V='poll_pack', pp2__t1__v='open_pack', pp2__m1__p = p)
+                #    for poll_pack in poll_packs: poll_pack.p.add(p, through_defaults={'t1':poll_pack_tag})
             return Push_Pack(reply='Pushed pack.')
         except Exception as e: print(e)
         return Push_Pack()
 
-class Close_Pack(graphene.Mutation):
+
+class Login(graphene.Mutation):
     class Arguments:
-        ids = graphene.List(graphene.ID)
-    reply = graphene.String(default_value = 'Failed to close pack.')
+        username = graphene.String(required=True)
+        password = graphene.String(required=True)
+    user = graphene.Field(User_Type)
+    reply = graphene.String(default_value = 'Failed to sign in.')
     @classmethod
-    def mutate(cls, root, info, ids):
-        try:
+    def mutate(cls, root, info, username, password):
+        user = authenticate(username=username, password=password)
+        if user: 
+            login(info.context, user)
+            return Login(reply='Welcome ' + user.first_name, user=user)
+        return Login()
+        
+class Logout(graphene.Mutation):
+    user = graphene.Field(User_Type)
+    reply = graphene.String(default_value = 'Failed to sign out.')
+    @classmethod
+    def mutate(cls, root, info):
+        if info.context.user.is_authenticated: 
             user = info.context.user
-            if user.is_authenticated: 
-                parts = Part.objects.filter(id__in=ids)
-                open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__m2=user
-                open_pack.p.remove(parts.p) #(open_pack.p.difference(parts.p), through_defaults={'t1':open_pack_tag})
-                open_pack.b.remove(parts.b)
-                open_pack.i.remove(parts.i)
-                open_pack.f.remove(parts.f)
-                open_pack.s.remove(parts.s)
-            return Close_Pack(reply='Closed pack.')
-        except Exception as e: print(e)
-        return Close_Pack()
+            logout(info.context)
+            return Logout(reply='Farewell '+user.first_name, user=user)
+        return Logout()
 
 class Mutation(graphene.ObjectType):
     login = Login.Field()
@@ -337,6 +338,7 @@ class Mutation(graphene.ObjectType):
     openPack = Open_Pack.Field()
     pushPack = Push_Pack.Field()
     closePack = Close_Pack.Field()
+    clearPoll = Clear_Poll.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
 

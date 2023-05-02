@@ -20,7 +20,7 @@ export function Graph(){
         if(!equilibrium && nodes.length > 0){
             var equilibrium_reached = true;
             d.mutate(d=>{
-                Object.values(d.n).forEach(n1=>{//pack.all.forEach(n1=>{n1=//Object.entries(pack.all).forEach(([key, n1]) => {
+                Object.values(d.n).forEach(n1=>{
                     n1.vis.dir.copy(n1.vis.pos).normalize().negate().multiplyScalar(inward_force).setZ(0);
                     Object.values(n1.e).forEach(id => {
                         const n2 = d.n[id];
@@ -53,7 +53,7 @@ export function Graph(){
     return (
         r('group', {name:'graph'}, // ref:graph, dispose:null
 			...nodes.map(id=> 
-				d.n[id].m=='p' ? r(Part, {id:id}) : r(Atom, {id:id}) 
+				d.n[id].m=='p' ? r(Part,{id:id, key:id}) : r(Atom, {id:id, key:id}) 
             ),
 		)
     )

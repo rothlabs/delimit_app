@@ -15,6 +15,7 @@ export function Atom({id}){
     const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
     const name = use_d((d)=> ''+d.n[id].v);
     const tag = use_d((d)=> atom_types[d.n[id].m]);
+    const pos = use_d(d=> d.n[id].vis.pos);
     useEffect(()=>use_d.subscribe(d=>({   pos:d.n[id].vis.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[id].num, 
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}),[]); 
@@ -23,6 +24,9 @@ export function Atom({id}){
             r(Fixed_Size_Group, {
                 ref: obj,
                 size: active ? 25 : 18,
+                props:{
+                    position: [pos.x, pos.y, pos.z],
+                }
             },
                 r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 

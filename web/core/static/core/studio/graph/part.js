@@ -17,17 +17,22 @@ export function Part({id}){
     const name = use_d(d=> d.n[id].e1.name ? d.n[d.n[id].e1.name[0]].v : null);
     const tag = use_d(d=> uppercase(d.n[id].t));
     const e1 = use_d(d=> Object.keys(d.n[id].e1).map(t=>d.n[id].e1[t].map(n=>t+'__'+n)).flat(1), shallow);
+    const pos = use_d(d=> d.n[id].vis.pos);
     useEffect(() => use_d.subscribe(d=> ({    pos:d.n[id].vis.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
+    //console.log('render part');
     return(
         r('group', {name: 'part'}, 
             ...e1.map(e=> 
-                id != e.split('__')[1] && r(Edge, {id1:id, tag:e.split('__')[0], id2:e.split('__')[1]})
+                id != e.split('__')[1] && r(Edge, {id1:id, tag:e.split('__')[0], id2:e.split('__')[1], key:e.split('__')[1]})
             ),
             r(Fixed_Size_Group, {
                 ref: obj,
                 size: active ? 35 : 25, // 1.5 : 1, adjust size of other items
+                props:{
+                    position: [pos.x, pos.y, pos.z],
+                }
             },
                 name && r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 

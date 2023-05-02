@@ -6,14 +6,6 @@ from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
-# ntc = {
-#     'name':     'LWTFvT6MaxB6CszA',
-#     'public':   'JMUGkRCzV3C7V0Qf', 
-#     'viewable': 'CAOXNrjlhYjWtG8q', 
-#     'editable': 'kAbLj0N34E0HhCnQ',
-# }
-# ctn = {ntc[n]:n for n in list(ntc.keys())}
-
 def make_id(): return get_random_string(length=16)
 
 class Id(models.Model):
@@ -34,6 +26,8 @@ class Bool(Id, Atom):   v = models.BooleanField(default=False)
 class Int(Id, Atom):    v = models.IntegerField(default=0)
 class Float(Id, Atom):  v = models.FloatField(default=0)
 class String(Id, Atom): v = models.TextField(default='', blank=True)
+
+
 #class Time(Id, Atom):   v = models.DateTimeField(default=django.utils.timezone.now) 
     # def __str__(self): 
     #     display = self.v
@@ -58,6 +52,28 @@ class Part(Id): # p for part, u for user (a part that is using this part)
         except Exception as e: print(e)
         return 'part' + ' ('+str(self.id)+')'
 
+poll_pack_tag = Tag.objects.get(v='poll_pack')
+@receiver(post_save, sender=Part)
+def add_int_to_poll_packs(sender, instance, **kwargs):
+    poll_packs = Part.objects.filter(t__v='poll_pack', pp2__t1__v='open_pack', pp2__m1__p = instance)
+    for pack in poll_packs: pack.p.add(instance, through_defaults={'t1':poll_pack_tag})
+@receiver(post_save, sender=Bool)
+def add_int_to_poll_packs(sender, instance, **kwargs):
+    poll_packs = Part.objects.filter(t__v='poll_pack', pp2__t1__v='open_pack', pp2__m1__b = instance)
+    for pack in poll_packs: pack.b.add(instance, through_defaults={'t1':poll_pack_tag})
+@receiver(post_save, sender=Int)
+def add_int_to_poll_packs(sender, instance, **kwargs):
+    poll_packs = Part.objects.filter(t__v='poll_pack', pp2__t1__v='open_pack', pp2__m1__i = instance)
+    for pack in poll_packs: pack.i.add(instance, through_defaults={'t1':poll_pack_tag})
+@receiver(post_save, sender=Float)
+def add_float_to_poll_packs(sender, instance, **kwargs):
+    poll_packs = Part.objects.filter(t__v='poll_pack', pp2__t1__v='open_pack', pp2__m1__f = instance)
+    for pack in poll_packs: pack.f.add(instance, through_defaults={'t1':poll_pack_tag})
+@receiver(post_save, sender=String)
+def add_string_to_poll_packs(sender, instance, **kwargs):
+    poll_packs = Part.objects.filter(t__v='poll_pack', pp2__t1__v='open_pack', pp2__m1__s = instance)
+    for pack in poll_packs: pack.s.add(instance, through_defaults={'t1':poll_pack_tag})
+
 class Through(models.Model): 
     class Meta: abstract = True
     n = models.IntegerField(default=0) # order (look into PositiveIntegerField)
@@ -66,11 +82,11 @@ class Through(models.Model):
         tag2_name = ''
         if self.t1: tag1_name = str(self.t1.v) + ' ('+str(self.m1.id)+')'
         if self.t2: tag2_name = str(self.t2.v) + ' ('+str(self.m2.id)+')'
-        return ''+tag1_name+' <--->> '+tag2_name+' ('+str(self.id)+')'
+        return ''+tag1_name+' <---- '+tag2_name+' ('+str(self.id)+')'
  
 class Part_Part(Through):
     t1 = models.ForeignKey(Tag,  related_name='pp1', null=True, blank=True, on_delete=models.SET_NULL)
-    m1 = models.ForeignKey(Part, related_name='pp1', on_delete=models.CASCADE)
+    m1 = models.ForeignKey(Part, related_name='pp1', on_delete=models.CASCADE)  # should be n1 and n2 (not m1)
     t2 = models.ForeignKey(Tag,  related_name='pp2', null=True, blank=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(Part, related_name='pp2', on_delete=models.CASCADE)
 #class Part_Tag(Through):
@@ -101,6 +117,17 @@ class Part_User(Through):
     m1 = models.ForeignKey(Part, related_name='pu1', on_delete=models.CASCADE)
     t2 = models.ForeignKey(Tag,  related_name='pu2', null=True, blank=True, on_delete=models.SET_NULL)
     m2 = models.ForeignKey(User, related_name='pu2', on_delete=models.CASCADE)
+
+
+
+# ntc = {
+#     'name':     'LWTFvT6MaxB6CszA',
+#     'public':   'JMUGkRCzV3C7V0Qf', 
+#     'viewable': 'CAOXNrjlhYjWtG8q', 
+#     'editable': 'kAbLj0N34E0HhCnQ',
+# }
+# ctn = {ntc[n]:n for n in list(ntc.keys())}
+
 # class Part_Time(Through):
 #     p    = models.ForeignKey(Part, related_name='pTime', on_delete=models.CASCADE)
 #     t    = models.ForeignKey(Tag, related_name='pTime', on_delete=models.CASCADE, null=True)

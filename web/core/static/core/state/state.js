@@ -11,10 +11,10 @@ export const shallow = shallow_compare;
 export const use_d = create(subscribeWithSelector((set,get) => ({
     n: {},
     mutate: func=>set(produce(d=>func(d))),
-    add_pack: data=>set(produce(d=>{
+    merge: data=>set(produce(d=>{
         const window_size = (window.innerWidth+window.innerHeight)/4;
         ['b','i','f','s'].forEach(m=>{
-            data.pack[m].forEach(a=>{
+            data[m].forEach(a=>{
                 if(d.n[a.id]){
                     d.n[a.id].v = a.v;
                     d.n[a.id].e = [];
@@ -28,7 +28,7 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
                 }
             }); 
         });
-        data.pack.p.forEach(p=>{
+        data.p.forEach(p=>{
             if(d.n[p.id]){
                 d.n[p.id].t = p.t.v; 
                 d.n[p.id].e = [];
@@ -43,7 +43,7 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
             }
         });
         ['b','i','f','s'].forEach(m=>{
-            data.pack[m].forEach(a=>{
+            data[m].forEach(a=>{
                 a['p'+m+'2'].forEach(e2=>{ if(e2.t1) d.n[a.id].e2[e2.t1.v] = []; });
                 a['p'+m+'2'].forEach(e2=>{ 
                     if(e2.t1){ 
@@ -57,7 +57,7 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
                 });
             });
         });
-        data.pack.p.forEach(p=>{ 
+        data.p.forEach(p=>{ 
             ['p','b','i','f','s'].forEach(m=>{
                 p['p'+m+'1'].forEach(e1=>{ if(e1.t2) d.n[p.id].e1[e1.t2.v] = []; });
                 p['p'+m+'1'].forEach(e1=>{

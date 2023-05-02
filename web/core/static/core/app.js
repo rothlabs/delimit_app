@@ -129,17 +129,20 @@ export function use_query(name, gql_parts, arg){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
     //console.log({header, body, variables});
-    const {loading, error, data} = useQuery(
+    const {loading, error, data, startPolling} = useQuery(
         gql`query ${header}{${body}}`, {   
-        variables:variables, 
-        fetchPolicy: arg && arg.fetchPolicy, 
-        onCompleted: arg && arg.onCompleted,
+        variables:    variables, 
+        fetchPolicy:  arg && arg.fetchPolicy, 
+        onCompleted:  arg && arg.onCompleted,
+        pollInterval: arg && arg.pollInterval,
+        notifyOnNetworkStatusChange: arg && arg.notifyOnNetworkStatusChange,
     }); 
+
     //if(reactive_var) reactive_var(data);
     //var alt = null;
 	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
     //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
-    return {data:data, status:status(loading,error,data,()=>'Done')};
+    return {data:data, status:status(loading,error,data,()=>'Done'), startPolling:startPolling};
 }
 
 export function use_mutation(name, gql_parts, arg){
