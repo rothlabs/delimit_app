@@ -3,14 +3,35 @@ import {produce} from 'immer';
 import {subscribeWithSelector} from 'zmiddle';
 import {Vector3} from 'three';
 import {graph_z} from '../studio/graph/graph.js';
-import {random_vector} from '../app.js';
+import {random_vector, uppercase} from '../app.js';
 import {shallow as shallow_compare} from 'shallow';
 
 export const shallow = shallow_compare;
+const default_tags={'p':'Part', 'b':'Switch', 'i':'Integer', 'f':'Decimal', 's':'Text'}; 
 
-export const use_d = create(subscribeWithSelector((set,get) => ({
+export const use_d = create(subscribeWithSelector((set,get) => ({ 
     n: {},
-    mutate: func=>set(produce(d=>func(d))),
+    name: (id)=> {
+        const n = get().n;
+        return n[id].m=='p' && n[id].e1.name ? n[n[id].e1.name[0]].v : '';
+    },
+    tag: (id)=> {
+        const n = get().n;
+        return n[id].m=='p' && n[id].t ? uppercase(n[id].t) : default_tags[n[id].m];
+    },
+    selection: [],
+    select: (id,selected)=>set(produce(d=>{
+        if(selected){ 
+            const i = d.selection.indexOf(id);
+            if (i < 0) d.selection.push(id); 
+        } 
+        else{ 
+            const i = d.selection.indexOf(id);
+            if (i !== -1) d.selection.splice(i, 1);
+        } 
+    })),
+    search: {depth:null, ids:null},
+    set: func=>set(produce(d=>func(d))),
     merge: data=>set(produce(d=>{
         const window_size = (window.innerWidth+window.innerHeight)/4;
         ['b','i','f','s'].forEach(m=>{

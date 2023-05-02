@@ -19,7 +19,7 @@ export function Graph(){
     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
         if(!equilibrium && nodes.length > 0){
             var equilibrium_reached = true;
-            d.mutate(d=>{
+            d.set(d=>{
                 Object.values(d.n).forEach(n1=>{
                     n1.vis.dir.copy(n1.vis.pos).normalize().negate().multiplyScalar(inward_force).setZ(0);
                     Object.values(n1.e).forEach(id => {

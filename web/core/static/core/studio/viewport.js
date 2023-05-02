@@ -1,12 +1,9 @@
 import {createElement as r, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
-import {Canvas, useThree, useFrame} from 'r3f';
+import {useThree, useFrame} from 'r3f';
 import {Vector2} from 'three';
 //import {Project} from './project.js';
-import {Line} from './line.js';
+//import {Line} from './line.js';
 import {CameraControls} from 'drei';
-import {makeVar, useReactiveVar} from 'apollo';
-//import {use_query, use_effect} from '../app.js';
-import {draw_mode_rv, selection_rv} from './studio.js';
 import { Graph } from './graph/graph.js';
 
 //export const camera_zoom_rv = makeVar(1);

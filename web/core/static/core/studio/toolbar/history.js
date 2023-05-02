@@ -1,19 +1,18 @@
-import {createElement as r} from 'react';
+import {createElement as c} from 'react';
 import {Button, ButtonGroup} from 'boot';
-import {action_rv} from './studio.js';
 
-export function History_Tool(p){
+export function History(p){
     const mode_buttons = [
         {name:'Undo',   icon:'bi-arrow-left',      act:'undo'},
         {name:'Redo',   icon:'bi-arrow-right',     act:'redo'},
         {name:'Revert', icon:'bi-arrow-clockwise', act:'revert'},
     ];
     return(
-        r(ButtonGroup, {},
+        c(ButtonGroup, {},
             ...mode_buttons.map(button=>
-                r(Button,{
-                    onClick:()=>action_rv({name:button.act}), 
-                    variant: p.button_variant,
+                c(Button,{
+                    //onClick:()=>action_rv({name:button.act}), 
+                    variant: 'outline-primary',
                     className: button.icon,
                 })
             )

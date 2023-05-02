@@ -1,8 +1,8 @@
-import {ApolloClient, InMemoryCache, createHttpLink, ApolloProvider, useQuery, useMutation, gql, makeVar, useReactiveVar} from 'apollo'; // gql
+import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql} from 'apollo'; // gql  createHttpLink
 import {setContext} from 'aclc';
 //import {createUploadLink} from 'auc';
 import Cookie from "cookie";
-import {createElement as r, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle} from 'react';
+import {createElement as r, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
 import {createRoot} from 'rdc';
 import {createBrowserRouter, RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
@@ -32,6 +32,20 @@ import {useFrame, useThree} from 'r3f';
 //     useEffect(()=>{  sync();  }, metas);
 //     useFrame((state, delta)=>{   if(metas.map(m=>m.dynamic).includes(true)) sync(state, delta);  });
 // }
+
+export function use_window_size() {
+    const [size, setSize] = useState([0, 0]);
+    useLayoutEffect(() => {
+        function updateSize() {
+        setSize([window.innerWidth, window.innerHeight]);
+        }
+        window.addEventListener('resize', updateSize);
+        updateSize();
+        return () => window.removeEventListener('resize', updateSize);
+    }, []);
+    return {width:size[0], height:size[1]};
+}
+
 
 export const random=(min, max)=> Math.random() * (max - min) + min;
 export function random_vector({min, max, x, y ,z}){

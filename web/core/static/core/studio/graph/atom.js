@@ -6,15 +6,16 @@ import * as THREE from 'three';
 
 const circle_geometry = new THREE.CircleGeometry(1.8,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
-const atom_types = {'b':'Switch', 'i':'Integer', 'f':'Decimal', 's':'Text'};
 
 export function Atom({id}){
     const obj = useRef();
-    const [active, set_active] = useState(false);
+    const select = use_d(d=> d.select);
+    const selected = use_d(d=> d.selection.includes(id));
     const [hover, set_hover] = useState(false);
-    const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
-    const name = use_d((d)=> ''+d.n[id].v);
-    const tag = use_d((d)=> atom_types[d.n[id].m]);
+    const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
+    const val = use_d(d=> ''+d.n[id].v);
+    const tag = use_d(d=> d.tag(id));
+    //const name = use_d(d=> d.name(id));
     const pos = use_d(d=> d.n[id].vis.pos);
     useEffect(()=>use_d.subscribe(d=>({   pos:d.n[id].vis.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[id].num, 
         obj.current.obj.position.copy(d.pos);
@@ -23,7 +24,7 @@ export function Atom({id}){
         r('group', {name: 'atom'}, 
             r(Fixed_Size_Group, {
                 ref: obj,
-                size: active ? 25 : 18,
+                size: selected ? 25 : 18,
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }
@@ -35,14 +36,14 @@ export function Atom({id}){
                     outlineWidth: '25%',
                     outlineColor: 'white',
                 },
-                    name,
+                    val,
                     r('meshBasicMaterial', {color: color, toneMapped:false}),
                 ),
                 r(Spinner, {}, 
                     r('mesh', {},
                         r('tetrahedronGeometry'),
-                        r('meshBasicMaterial', {color: active||hover? theme.primary : 'white', toneMapped:false}),
-                        r(Edges, {scale:1.05, color:active||hover? 'white' : theme.primary},),
+                        r('meshBasicMaterial', {color: selected||hover? theme.primary : 'white', toneMapped:false}),
+                        r(Edges, {scale:1.05, color:selected||hover? 'white' : theme.primary},),
                     )
                 ),
                 r(Text, {
@@ -59,8 +60,8 @@ export function Atom({id}){
                     position: [0,0,-1],
                     geometry: circle_geometry,
                     material: background_material,
-                    onClick: (e)=> {e.stopPropagation(); set_active(true);},
-                    onPointerMissed: (e)=> {if(e.which == 1) set_active(false);},
+                    onClick: (e)=> {e.stopPropagation(); select(id, true);},
+                    onPointerMissed: (e)=> {if(e.which == 1) select(id, false);},
                     onPointerOver: (e)=> {e.stopPropagation(); set_hover(true);},
                     onPointerOut: (e)=> {e.stopPropagation(); set_hover(false)},
                 }),

@@ -1,26 +1,23 @@
 import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from 'r3f';
-import {Toolbar} from './toolbar.js';
-//import {Inspector} from './inspector/inspector.js';
-//import {useParams} from 'rrd';
-import {makeVar, useReactiveVar} from 'apollo';
-import {use_query, use_mutation, use_effect} from '../app.js';
+import {Toolbar} from './toolbar/toolbar.js';
+import {use_query, use_mutation} from '../app.js';
 import {Viewport} from './viewport.js';
 import {use_d} from '../state/state.js';
 
-export const selection_rv = makeVar();
-export const search_rv = makeVar({depth:null, ids:null});
-export const action_rv = makeVar({name:'none'}); // renamed to history action ?
-export const show_points_rv = makeVar(true);
-export const show_endpoints_rv = makeVar(true);
-export const draw_mode_rv = makeVar('draw');
+//export const selection_rv = makeVar();
+//export const action_rv = makeVar({name:'none'}); // renamed to history action ?
+//export const show_points_rv = makeVar(true);
+//export const show_endpoints_rv = makeVar(true);
+//export const draw_mode_rv = makeVar('draw');
 
 const edges = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t2{v} m2{id}}').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join(' ');
 
 export function Studio(){
+    const d = use_d.getState();
     const merge = use_d(d=> d.merge);
-    const search = useReactiveVar(search_rv);
+    const search = use_d(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{p{id t{v} '+edges+' pp2{t1{v} m1{id}}} '+atoms+ '}',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
@@ -29,16 +26,14 @@ export function Studio(){
         if(data.pack) merge(data.pack); 
         //console.log(use_d.getState().n)
     }}); 
-    use_effect([search],()=>{
-        //console.log('search');
-        open_pack.mutate();
-    });
+    useEffect(()=>{
+        if(Object.keys(d.n).length < 1) open_pack.mutate();
+    },[]);
     //console.log('render studio');
     return (
         r(Fragment,{}, 
             r(Poll), 
             r(Toolbar),
-            //r(Inspector),
             r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
                 r(Canvas,{orthographic:true, camera:{position:[0, 0, 1000]}}, //, far:10000 zoom:1    //frameloop:'demand', 
                     r(Viewport),
@@ -62,6 +57,8 @@ function Poll(){
     return null;
 }
 
+
+//import {useParams} from 'rrd';
 
 // produce(pack[m][a.id], draft => {
                         //     draft.id = a.id;

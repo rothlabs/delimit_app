@@ -10,18 +10,21 @@ const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 
 export function Part({id}){ 
+    //console.log('render part');
     const obj = useRef();
-    const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
-    const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
-    const name = use_d(d=> d.n[id].e1.name ? d.n[d.n[id].e1.name[0]].v : null);
-    const tag = use_d(d=> uppercase(d.n[id].t));
-    const e1 = use_d(d=> Object.keys(d.n[id].e1).map(t=>d.n[id].e1[t].map(n=>t+'__'+n)).flat(1), shallow);
+    const select = use_d(d=> d.select);
+    const selected = use_d(d=> d.selection.includes(id));
+    const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
+    //const name = use_d(d=> d.n[id].e1.name ? d.n[d.n[id].e1.name[0]].v : null);
+    const name = use_d(d=> d.name(id));
+    const tag = use_d(d=> d.tag(id));
+    //const tag = use_d(d=> uppercase(d.n[id].t));
+    const e1 = use_d(d=> Object.keys(d.n[id].e1).map(t=>d.n[id].e1[t].map(n=>t+'__'+n)).flat(1), shallow); // split into two use_d for tag and id of e1
     const pos = use_d(d=> d.n[id].vis.pos);
     useEffect(() => use_d.subscribe(d=> ({    pos:d.n[id].vis.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
-    //console.log('render part');
     return(
         r('group', {name: 'part'}, 
             ...e1.map(e=> 
@@ -29,7 +32,7 @@ export function Part({id}){
             ),
             r(Fixed_Size_Group, {
                 ref: obj,
-                size: active ? 35 : 25, // 1.5 : 1, adjust size of other items
+                size: selected ? 35 : 25, // 1.5 : 1, adjust size of other items
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }
@@ -47,8 +50,8 @@ export function Part({id}){
                 r(Spinner, {}, 
                     r('mesh', {},
                         r('icosahedronGeometry'),
-                        r('meshBasicMaterial', {color: active||hover? theme.primary : 'white', toneMapped:false}),
-                        r(Edges, {scale:1.05, color:active||hover? 'white' : theme.primary},),
+                        r('meshBasicMaterial', {color: selected||hover? theme.primary : 'white', toneMapped:false}),
+                        r(Edges, {scale:1.05, color:selected||hover? 'white' : theme.primary},),
                     )
                 ),
                 r(Text, {
@@ -65,8 +68,8 @@ export function Part({id}){
                     position:[0,0,-1], 
                     geometry: circle_geometry,
                     material: background_material, //raycast:()=>null,
-                    onClick: (e)=> {e.stopPropagation(); set_active(true);},
-                    onPointerMissed: (e)=> {if(e.which == 1) set_active(false);},
+                    onClick: (e)=> {e.stopPropagation(); select(id, true);},
+                    onPointerMissed: (e)=> {if(e.which == 1) select(id, false);},
                     onPointerOver: (e)=> {e.stopPropagation(); set_hover(true);},
                     onPointerOut: (e)=> {e.stopPropagation(); set_hover(false)},
                 }),
