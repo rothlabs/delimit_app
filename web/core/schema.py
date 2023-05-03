@@ -127,9 +127,10 @@ class Open_Pack(graphene.Mutation):
             if ids: parts = Part.objects.filter(id__in = ids)
             # filter by public and viewable :
             is_public = Q(pp2__t1__v='public') #  Q(pb1__t2__v='public', pb1__m2__v=True)
-            viewable = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__m1__u=user)#   pp2__m1__u=user?   pp2__m1__pu1__m2       & Q(pp1__m2__pu1__m2=user) is_owner = Q(pu1__t2__v='owner', pu1__m2=user)
-            if parts: parts = parts.filter(is_public | viewable)
-            else: parts = Part.objects.filter(is_public | viewable)
+            viewable_by_person = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__m1__u=user)#   pp2__m1__u=user?   pp2__m1__pu1__m2       & Q(pp1__m2__pu1__m2=user) is_owner = Q(pu1__t2__v='owner', pu1__m2=user)
+            #viewable_by_team = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__m1__) # r__t__v='viewer'
+            if parts: parts = parts.filter(is_public | viewable_by_person)
+            else: parts = Part.objects.filter(is_public | viewable_by_person)
             # filter by include and exclude props:
             if include:
                 for prop in include:
@@ -149,7 +150,7 @@ class Open_Pack(graphene.Mutation):
             while depth > 0 or depth < 0:  # replace with Part.objects.raw(recursive sql)!!!!
                 next_parts = Part.objects.none()
                 for p in current_parts: 
-                    next_parts = next_parts.union(p.p.filter(is_public | viewable).all()) 
+                    next_parts = next_parts.union(p.p.filter(is_public | viewable_by_person).all()) 
                 if len(next_parts.all()) > 0 and len(next_parts.difference(parts).all()) > 0:
                     parts = parts.union(next_parts)
                     current_parts = next_parts.all()
@@ -193,8 +194,7 @@ class Close_Pack(graphene.Mutation):
         except Exception as e: print(e)
         return Close_Pack()
 
-
-permission_tags = ['editor', 'editable', 'viewer', 'viewable', 'public']
+permission_tags = ['editor', 'editable', 'viewer', 'viewable', 'public'] # public, view, viewer, edit, editor,      asset instead of edit/editable? 
 class Push_Pack(graphene.Mutation):
     class Arguments:
         vids = graphene.List(graphene.List(graphene.ID)) # vids[m][id]
@@ -208,26 +208,26 @@ class Push_Pack(graphene.Mutation):
     reply = graphene.String(default_value = 'Failed to push pack.')
     def get_or_create_atom(model_cls, m, id, user, temp_pack): # check if m is correct value?
         obj = None
-        try: obj = model_cls.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__m1__pu1__m2':user})
+        try: obj = model_cls.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__m1__u':user}) #'p'+m+'2__m1__pu1__m2':user
         except Exception as e: print(e)
         if not obj:
             try: 
-                team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__m2=user
-                obj = model_cls.objects.create(id=id).object
-                team[m].add(obj, through_defaults={'t1':editor_tag, 't2':editable_tag}) # getattr
-                temp_pack.p.append(team)
+                #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__m2=user
+                obj = model_cls.objects.create(id=id).object # obj.u.add(user, through_defaults={'t1':editable_tag, 't2':editor_tag})
+                #team[m].add(obj, through_defaults={'t1':editor_tag, 't2':editable_tag}) # getattr
+                #temp_pack.p.append(team)
             except Exception as e: print(e)
-        if obj: temp_pack[m].append(obj)
+        #if obj: temp_pack[m].append(obj)
         return obj
     def add_atom(part, model_cls, m, id, index, t1, t2, temp_pack): # check if m is correct value?
         try:
             tag1 = Tag.objects.get(v=t1, system=False)
             tag2 = Tag.objects.get(v=t2, system=False)
             if tag1.v in permission_tags or tag2.v in permission_tags: 
-                obj = model_cls.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__m1__pu1__m2':user})
+                obj = model_cls.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__m1__u':user}) #'p'+m+'2__m1__pu1__m2':user
             else: obj = model_cls.objects.get(id=id) 
             part[m].add(obj, through_defaults={'n':index, 't1':tag1, 't2':tag2})
-            temp_pack[m].append(obj)
+            #temp_pack[m].append(obj)
         except Exception as e: print(e)
     @classmethod
     def mutate(cls, root, info, vids, b, i, f, s, pids, t1, t2): # should set default team in case client fails to assign team to part?
@@ -269,7 +269,7 @@ class Push_Pack(graphene.Mutation):
                                 team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__m2=user
                                 part = Part.objects.create(id=pids[p][0][0]).object
                                 team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
-                                temp_pack.p.append(team)
+                                #temp_pack.p.append(team)
                             except Exception as e: print(e)
                     # mutate parts
                     for p in range(len(pids)-1): # need to check if id is in correct format
@@ -278,7 +278,7 @@ class Push_Pack(graphene.Mutation):
                             part.t = Tag.objects.get(v=t1[p][0][0], system=False)
                             part.save()
                             clear_part(part)
-                            temp_pack.p.append(part)
+                            #temp_pack.p.append(part)
                             for idi in range(len(pids[p][1])-1):
                                 try:
                                     tag1 = Tag.objects.get(v=t1[p][1][idi], system=False)
@@ -287,7 +287,7 @@ class Push_Pack(graphene.Mutation):
                                         obj = Part.objects.get(editable, id = pids[p][1][idi])
                                     else: obj = Part.objects.get(id = pids[p][1][idi]) 
                                     part.p.add(obj, through_defaults={'n':idi, 't1':tag1, 't2':tag2})
-                                    temp_pack.p.append(obj)
+                                    #temp_pack.p.append(obj)
                                 except Exception as e: print(e)
                             for idi in range(len(pids[p][2])-1):
                                 add_atom(part, Bool, 'b', pids[p][2][idi], idi, t1[p][2][idi], t2[p][2][idi], temp_pack)

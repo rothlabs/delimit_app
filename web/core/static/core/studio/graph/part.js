@@ -10,21 +10,19 @@ const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 
 export function Part({id}){ 
-    //console.log('render part');
     const obj = useRef();
     const [hover, set_hover] = useState(false);
     const select = use_d(d=> d.select);
     const selected = use_d(d=> d.selection.includes(id));
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
-    //const name = use_d(d=> d.n[id].e1.name ? d.n[d.n[id].e1.name[0]].v : null);
     const name = use_d(d=> d.name(id));
     const tag = use_d(d=> d.tag(id));
-    //const tag = use_d(d=> uppercase(d.n[id].t));
     const e1 = use_d(d=> Object.keys(d.n[id].e1).map(t=>d.n[id].e1[t].map(n=>t+'__'+n)).flat(1), shallow); // split into two use_d for tag and id of e1
     const pos = use_d(d=> d.n[id].vis.pos);
     useEffect(() => use_d.subscribe(d=> ({    pos:d.n[id].vis.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
+    //console.log('render part');
     return(
         r('group', {name: 'part'}, 
             ...e1.map(e=> 

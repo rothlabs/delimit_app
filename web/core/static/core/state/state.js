@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {produce} from 'immer';
+import {produce, enablePatches} from 'immer';
 import {subscribeWithSelector} from 'zmiddle';
 import {Vector3} from 'three';
 import {graph_z} from '../studio/graph/graph.js';
@@ -8,18 +8,21 @@ import {shallow as shallow_compare} from 'shallow';
 
 export const shallow = shallow_compare;
 const default_tags={'p':'Part', 'b':'Switch', 'i':'Integer', 'f':'Decimal', 's':'Text'}; 
+enablePatches();
 
 export const use_d = create(subscribeWithSelector((set,get) => ({ 
     n: {},
-    name: (id)=> {
+    selection: [],
+    search: {depth:null, ids:null},
+    mutations: [],
+    name: id=> {
         const n = get().n;
-        return n[id].m=='p' && n[id].e1.name ? n[n[id].e1.name[0]].v : '';
+        return n[id].m=='p' && n[id].e1.name ? n[n[id].e1.name[0]].v : null;
     },
-    tag: (id)=> {
+    tag: id=> {
         const n = get().n;
         return n[id].m=='p' && n[id].t ? uppercase(n[id].t) : default_tags[n[id].m];
     },
-    selection: [],
     select: (id,selected)=>set(produce(d=>{
         if(selected){ 
             const i = d.selection.indexOf(id);
@@ -30,8 +33,10 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
             if (i !== -1) d.selection.splice(i, 1);
         } 
     })),
-    search: {depth:null, ids:null},
     set: func=>set(produce(d=>func(d))),
+    mutate: func=>set(d=>produce(d, d=>func(d),
+        patches=> set(d=> ({mutations: patches})) // auto merges patches into mutations state slice 
+    )),
     merge: data=>set(produce(d=>{
         const window_size = (window.innerWidth+window.innerHeight)/4;
         ['b','i','f','s'].forEach(m=>{
