@@ -126,31 +126,31 @@ class Open_Pack(graphene.Mutation):
             parts = None
             if ids: parts = Part.objects.filter(id__in = ids)
             # filter by public and viewable :
-            is_public = Q(pp2__t1__v='public') #  Q(pb1__t2__v='public', pb1__m2__v=True)
-            viewable_by_person = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__m1__u=user)#   pp2__m1__u=user?   pp2__m1__pu1__m2       & Q(pp1__m2__pu1__m2=user) is_owner = Q(pu1__t2__v='owner', pu1__m2=user)
-            #viewable_by_team = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__m1__) # r__t__v='viewer'
-            if parts: parts = parts.filter(is_public | viewable_by_person)
-            else: parts = Part.objects.filter(is_public | viewable_by_person)
+            is_public = Q(r__t__v='public') #  Q(pb1__t2__v='public', pb1__m2__v=True)
+            viewable_by_person = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), r__u=user)#   pp2__m1__u=user?   pp2__m1__pu1__m2   r__u    & Q(pp1__m2__pu1__m2=user) is_owner = Q(pu1__t2__v='owner', pu1__m2=user)
+            #viewable_by_team = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__m1__pp1__t2='member', pp2__m1__pp1__m2__u=user) # r__t__v='viewer'
+            if parts: parts = parts.filter(is_public | viewable_by_person).distinct()
+            else: parts = Part.objects.filter(is_public | viewable_by_person).distinct()
             # filter by include and exclude props:
             if include:
                 for prop in include:
-                    if prop[0]=='b': parts = parts.filter(pb1__t2__v=prop[1], pb1__m2__v=prop[2]=='true') # is it higher or lower case?
-                    if prop[0]=='i': parts = parts.filter(pi1__t2__v=prop[1], pi1__m2__v=int(prop[2]))
-                    if prop[0]=='f': parts = parts.filter(pf1__t2__v=prop[1], pf1__m2__v=float(prop[2]))
-                    if prop[0]=='s': parts = parts.filter(ps1__t2__v=prop[1], ps1__m2__v=prop[2])
+                    if prop[0]=='b': parts = parts.filter(pb1__t2__v=prop[1], pb1__m2__v=prop[2]=='true').distinct() # is it higher or lower case?
+                    if prop[0]=='i': parts = parts.filter(pi1__t2__v=prop[1], pi1__m2__v=int(prop[2])).distinct()
+                    if prop[0]=='f': parts = parts.filter(pf1__t2__v=prop[1], pf1__m2__v=float(prop[2])).distinct()
+                    if prop[0]=='s': parts = parts.filter(ps1__t2__v=prop[1], ps1__m2__v=prop[2]).distinct()
             if exclude:
                 for prop in exclude:
-                    if prop[0]=='b': parts = parts.filter(~Q(pb1__t2__v=prop[1], pb1__m2__v=prop[2]=='true')) # is it higher or lower case?
-                    if prop[0]=='i': parts = parts.filter(~Q(pi1__t2__v=prop[1], pi1__m2__v=int(prop[2])))
-                    if prop[0]=='f': parts = parts.filter(~Q(pf1__t2__v=prop[1], pf1__m2__v=float(prop[2])))
-                    if prop[0]=='s': parts = parts.filter(~Q(ps1__t2__v=prop[1], ps1__m2__v=prop[2]))
+                    if prop[0]=='b': parts = parts.filter(~Q(pb1__t2__v=prop[1], pb1__m2__v=prop[2]=='true')).distinct() # is it higher or lower case?
+                    if prop[0]=='i': parts = parts.filter(~Q(pi1__t2__v=prop[1], pi1__m2__v=int(prop[2]))).distinct()
+                    if prop[0]=='f': parts = parts.filter(~Q(pf1__t2__v=prop[1], pf1__m2__v=float(prop[2]))).distinct()
+                    if prop[0]=='s': parts = parts.filter(~Q(ps1__t2__v=prop[1], ps1__m2__v=prop[2])).distinct()
             # get dependencies filtered by public and viewable
             if depth is None: depth = -1
             current_parts = parts.all()
             while depth > 0 or depth < 0:  # replace with Part.objects.raw(recursive sql)!!!!
                 next_parts = Part.objects.none()
                 for p in current_parts: 
-                    next_parts = next_parts.union(p.p.filter(is_public | viewable_by_person).all()) 
+                    next_parts = next_parts.union(p.p.filter(is_public | viewable_by_person).distinct()) 
                 if len(next_parts.all()) > 0 and len(next_parts.difference(parts).all()) > 0:
                     parts = parts.union(next_parts)
                     current_parts = next_parts.all()

@@ -44,7 +44,7 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
                 if(d.n[a.id]){
                     d.n[a.id].v = a.v;
                     d.n[a.id].e = [];
-                    d.n[a.id].e2 = {}; 
+                    d.n[a.id].e2 = {}; // parts
                 }else{  
                     d.n[a.id] = { m:m, v:a.v, e2:{}, e:[], 
                         vis: {
@@ -58,8 +58,8 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
             if(d.n[p.id]){
                 d.n[p.id].t = p.t.v; 
                 d.n[p.id].e = [];
-                d.n[p.id].e1 = {}; // clear forward edges 
-                d.n[p.id].e2 = {}; // clear reverse edges 
+                d.n[p.id].e1 = {}; // clear forward edges      // props (parts or atoms)
+                d.n[p.id].e2 = {}; // clear reverse edges      // parts
             }else{
                 d.n[p.id] = {  m:'p', t:p.t.v, e1:{}, e2:{}, e:[], 
                     vis: {
@@ -70,13 +70,14 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
         });
         ['b','i','f','s'].forEach(m=>{
             data[m].forEach(a=>{
-                a['p'+m+'2'].forEach(e2=>{ if(e2.t1) d.n[a.id].e2[e2.t1.v] = []; });
+                //a['p'+m+'2'].forEach(e2=>{ if(e2.t1 && ) d.n[a.id].e2[e2.t1.v] = []; });
                 a['p'+m+'2'].forEach(e2=>{ 
                     if(e2.t1){ 
                         //d.n[a.id].edges.push({id:e2.m1.id, t1:e2.t1.v}); 
                         //if(store.p[e2.m1.id]){  
+                            if(!d.n[a.id].e2[e2.t1.v]) d.n[a.id].e2[e2.t1.v] = [];
                             d.n[a.id].e2[e2.t1.v].push(e2.m1.id);  // <<<<<<<<< reverse relationship !!!!
-                            d.n[a.id].e.push(e2.m1.id);
+                            if(!d.n[a.id].e.includes(e2.m1.id)) d.n[a.id].e.push(e2.m1.id);
                         //} 
                         //else{  store[m][a.id].e2[e2.t1.v].push(e2.m1.id);  } // if record not loaded, add id so it can be loaded at the press of a button
                     }
@@ -85,11 +86,12 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
         });
         data.p.forEach(p=>{ 
             ['p','b','i','f','s'].forEach(m=>{
-                p['p'+m+'1'].forEach(e1=>{ if(e1.t2) d.n[p.id].e1[e1.t2.v] = []; });
+                //p['p'+m+'1'].forEach(e1=>{  if(e1.t2) d.n[p.id].e1[e1.t2.v] = [];  });
                 p['p'+m+'1'].forEach(e1=>{
                     if(e1.t2){
                         //d.n[p.id].edges.push({id:e1.m2.id, t2:e1.t2.v});
                         //if(store[m][e1.m2.id]){  
+                            if(!d.n[p.id].e1[e1.t2.v]) d.n[p.id].e1[e1.t2.v] = []; 
                             d.n[p.id].e1[e1.t2.v].push(e1.m2.id); // <<<<<<<<< forward relationship !!!!
                             if(!d.n[p.id].e.includes(e1.m2.id)) d.n[p.id].e.push(e1.m2.id); 
                         //} 
@@ -97,11 +99,12 @@ export const use_d = create(subscribeWithSelector((set,get) => ({
                     }
                 });
             });
-            p['pp2'].forEach(e2=>{ if(e2.t1) d.n[p.id].e2[e2.t1.v] = []; });
+            //p['pp2'].forEach(e2=>{  if(e2.t1) d.n[p.id].e2[e2.t1.v] = [];  });
             p['pp2'].forEach(e2=>{
                 if(e2.t1){ 
                     //d.n[p.id].edges.push({id:e2.m1.id, t1:e2.t1.v});
                     //if(store.p[e2.m1.id]){  
+                        if(!d.n[p.id].e2[e2.t1.v]) d.n[p.id].e2[e2.t1.v] = [];
                         d.n[p.id].e2[e2.t1.v].push(e2.m1.id);   // <<<<<<<<< reverse relationship !!!!
                         if(!d.n[p.id].e.includes(e2.m1.id)) d.n[p.id].e.push(e2.m1.id);
                     //} 

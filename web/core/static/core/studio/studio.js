@@ -23,8 +23,9 @@ export function Studio(){
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{
         data = data.openPack;
+        //console.log(data.pack) //.p[7].pp1.map(e1=> e1.m2.id).join(', ')
         if(data.pack) merge(data.pack); 
-        //console.log(use_d.getState().n)
+        console.log(use_d.getState().n)
     }}); 
     useEffect(()=>{
         if(Object.keys(d.n).length < 1) open_pack.mutate();

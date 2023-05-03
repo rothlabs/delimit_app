@@ -10,6 +10,7 @@ const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 
 export function Part({id}){ 
+    const d = use_d.getState();
     const obj = useRef();
     const [hover, set_hover] = useState(false);
     const select = use_d(d=> d.select);
@@ -26,7 +27,7 @@ export function Part({id}){
     return(
         r('group', {name: 'part'}, 
             ...e1.map(e=> 
-                id != e.split('__')[1] && r(Edge, {id1:id, tag:e.split('__')[0], id2:e.split('__')[1], key:e.split('__')[1]})
+                id != e.split('__')[1] && d.n[e.split('__')[1]] && r(Edge, {id1:id, tag:e.split('__')[0], id2:e.split('__')[1], key:e.split('__')[1]})
             ),
             r(Fixed_Size_Group, {
                 ref: obj,
