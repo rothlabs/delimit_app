@@ -1,9 +1,8 @@
 import {createElement as r, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast} from '../meshline.js';
 import {useThree, useFrame} from 'r3f';
-import {theme, static_url, Fixed_Size_Group, uppercase} from '../../app.js';
+import {useD, theme, static_url, Fixed_Size_Group, uppercase} from '../../app.js';
 import {Text} from 'drei';
-import {use_d} from '../../state/state.js';
 import {Vector3} from 'three';
 
 const tv = new Vector3();
@@ -20,7 +19,7 @@ export function Edge({id1, tag, id2}){
     useFrame(()=>{
         meshline_material.current.lineWidth = 1.5 / camera.zoom;
     });
-    useEffect(()=>use_d.subscribe(d=>({   pos1:d.n[id1].vis.pos, pos2:d.n[id2].vis.pos   }),d=>{  //num:d.n[id1].num, num:d.n[id2].num,
+    useEffect(()=>useD.subscribe(d=>({   pos1:d.n[id1].vis.pos, pos2:d.n[id2].vis.pos   }),d=>{  
         text .current.obj.position.copy(d.pos2).add( tv.copy(d.pos1).sub(d.pos2).multiplyScalar(.35) );
         arrow.current.obj.position.copy(d.pos2).add( tv.copy(d.pos1).sub(d.pos2).multiplyScalar(.65) );
         arrow.current.obj.lookAt(d.pos1);
@@ -28,6 +27,7 @@ export function Edge({id1, tag, id2}){
         arrow.current.obj.position.setZ(d.pos1.z-100);
         meshline.current.setPoints([arrow.current.obj.position.x,arrow.current.obj.position.y,arrow.current.obj.position.z, d.pos2.x,d.pos2.y,d.pos2.z-100]);
     },{fireImmediately:true}),[]); 
+    //console.log('render edge');
     return(
         r('group', {
             name: 'edge',

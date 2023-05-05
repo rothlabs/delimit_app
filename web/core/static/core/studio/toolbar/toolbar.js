@@ -7,7 +7,7 @@ import {Visual} from './visual.js';
 
 
 export function Toolbar(){
-    const tools = [Inspection, History, Instrument, Visual];
+    const tools = [Inspection, Visual, History, Instrument];
     return(
         c(Container, {fluid:true, className:'bg-white pt-2 pb-2'}, // pb:5,
             c(Row,{className:'row-cols-auto gap-2'},

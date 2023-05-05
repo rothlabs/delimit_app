@@ -1,19 +1,19 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {Row, Col, Container, Dropdown, Badge, Form, InputGroup} from 'boot';
-import {use_d, shallow} from '../../../state/state.js';
-import {use_window_size} from '../../../app.js';
+//import {use_d, shallow} from '../../../state/state.js';
+import {useD, useDS, use_window_size} from '../../../app.js';
 //import {Part} from './part.js';
 //import {Atom} from './atom.js';
 
 
 export function Inspection(){
-    const d = use_d.getState();//(d=> d.mutate);
+    const d = useD.getState();//(d=> d.mutate);
     const [show, set_show] = useState(false);
     const window_size = use_window_size();
-    const ids = use_d(d=> d.selection);
-    const names = use_d(d=> ids.map(id=> d.name(id)), shallow); //.filter(String)
+    const ids = useD(d=> d.selection);
+    const names = useDS(d=> ids.map(id=> d.name(id))); //.filter(String)
     const name = names.find(name=> name != null);
-    const tags = use_d(d=> ids.map(id=> d.tag(id)), shallow);
+    const tags = useDS(d=> ids.map(id=> d.tag(id)));
     useEffect(()=>{
         if(window_size.width>=576){
             ids.length ? set_show(true) : set_show(false);

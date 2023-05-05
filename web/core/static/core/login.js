@@ -60,7 +60,7 @@ export function Logout(){
     const navigate = useNavigate();
     const {mutate, data, status, reset} = use_mutation('Logout',[
         ['logout reply user{firstName}'],
-    ], {refetch:'GetUser GetProjects'});
+    ], {refetch:'GetUser'});
     if(data) setTimeout(()=> show_logout(false), 1500);
     useEffect(()=> {if(show){
         mutate(); // sign out

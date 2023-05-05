@@ -1,7 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
-import {theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
+import {useD, theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
 import {Text, Edges} from 'drei';
-import {use_d} from '../../state/state.js';
 import * as THREE from 'three';
 
 const circle_geometry = new THREE.CircleGeometry(1.8,16); // do this for the other geometries as well for reuse
@@ -9,17 +8,17 @@ const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMap
 
 export function Atom({id}){
     const obj = useRef();
-    const select = use_d(d=> d.select);
-    const selected = use_d(d=> d.selection.includes(id));
+    const select = useD(d=> d.select);
+    const selected = useD(d=> d.selection.includes(id));
     const [hover, set_hover] = useState(false);
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
-    const val = use_d(d=> ''+d.n[id].v);
-    const tag = use_d(d=> d.tag(id));
-    //const name = use_d(d=> d.name(id));
-    const pos = use_d(d=> d.n[id].vis.pos);
-    useEffect(()=>use_d.subscribe(d=>({   pos:d.n[id].vis.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[id].num, 
+    const val = useD(d=> ''+d.n[id].v);
+    const tag = useD(d=> d.tag(id));
+    const pos = useD(d=> d.n[id].vis.pos);
+    useEffect(()=>useD.subscribe(d=>({   pos:d.n[id].vis.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[id].num, 
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}),[]); 
+    //console.log('render atom');
     return(
         r('group', {name: 'atom'}, 
             r(Fixed_Size_Group, {

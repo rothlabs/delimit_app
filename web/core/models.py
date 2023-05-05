@@ -79,38 +79,42 @@ class Part_User(Edge):
 
 system_tags = ['user', 'profile', 'open_pack', 'poll_pack']
 tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [
-    'user', 'open_pack', 'poll_pack', 'public', 'view', 'asset', 'profile'
+    'user', 'open_pack', 'poll_pack', 'public', 'view', 'asset', 'profile', 'name',
 ]}
 
 @receiver(post_save, sender=User)
 def create_user_system_packs(sender, instance, created, **kwargs):
     if created:  
+        name = String.objects.create(v=instance.first_name) # might be firstName!!!!
+        profile = Part.objects.create(t=tag['profile'])
+        profile.u.add(instance, through_defaults={'t':tag['user']})
+        profile.s.add(name, through_defaults={'t':tag['name']})
         poll_pack = Part.objects.create(t=tag['poll_pack'])
-        poll_pack.u.add(instance)
+        poll_pack.u.add(instance, through_defaults={'t':tag['user']})
         open_pack = Part.objects.create(t=tag['open_pack'])
-        open_pack.u.add(instance)
-        open_pack.p.add(poll_pack)
+        open_pack.u.add(instance, through_defaults={'t':tag['user']})
+        open_pack.p.add(poll_pack, through_defaults={'t':tag['poll_pack']})
 
 @receiver(post_save, sender=Part)
 def add_part_to_poll_packs(sender, instance, **kwargs):
     poll_packs = Part.objects.filter(t__v='poll_pack', r__t__v='open_pack', r__p = instance) # change so it also adds to poll and open if a user is open
-    for pack in poll_packs: pack.p.add(instance)
+    for pack in poll_packs: pack.p.add(instance, through_defaults={'t':tag['poll_pack']})
 @receiver(post_save, sender=Bool)
 def add_bool_to_poll_packs(sender, instance, **kwargs):
     poll_packs = Part.objects.filter(t__v='poll_pack', r__t__v='open_pack', r__b = instance)
-    for pack in poll_packs: pack.b.add(instance)
+    for pack in poll_packs: pack.b.add(instance, through_defaults={'t':tag['poll_pack']})
 @receiver(post_save, sender=Int)
 def add_int_to_poll_packs(sender, instance, **kwargs):
     poll_packs = Part.objects.filter(t__v='poll_pack', r__t__v='open_pack', r__i = instance)
-    for pack in poll_packs: pack.i.add(instance)
+    for pack in poll_packs: pack.i.add(instance, through_defaults={'t':tag['poll_pack']})
 @receiver(post_save, sender=Float)
 def add_float_to_poll_packs(sender, instance, **kwargs):
     poll_packs = Part.objects.filter(t__v='poll_pack', r__t__v='open_pack', r__f = instance)
-    for pack in poll_packs: pack.f.add(instance)
+    for pack in poll_packs: pack.f.add(instance, through_defaults={'t':tag['poll_pack']})
 @receiver(post_save, sender=String)
 def add_string_to_poll_packs(sender, instance, **kwargs):
     poll_packs = Part.objects.filter(t__v='poll_pack', r__t__v='open_pack', r__s = instance)
-    for pack in poll_packs: pack.s.add(instance)
+    for pack in poll_packs: pack.s.add(instance, through_defaults={'t':tag['poll_pack']})
 
 
 

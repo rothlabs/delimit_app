@@ -7,31 +7,25 @@ import {createRoot} from 'rdc';
 import {createBrowserRouter, RouterProvider, Outlet} from 'rrd';
 import {Root} from './root.js';
 import {Studio} from './studio/studio.js';
-//import {Studio_Browser} from './studio/browser.js';
 import {Router_Error, Query_Status} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
 //import set from 'lodash';
 import {useGLTF} from 'drei';
 import * as THREE from 'three';
 import {useFrame, useThree} from 'r3f';
-//import {camera_zoom_rv} from './studio/viewport.js';
 
-// "immer":     "https://esm.sh/immer?pin=v117&dev",
-// import {produce} from 'immer';
-// export function immer(reactive_var, func){
-//     return reactive_var(produce(reactive_var(), draft=>func(draft)));
-// }
-
-// export function use_node(node, sync){
-//     const meta = useReactiveVar(node.meta);//const [mounted, set_mounted] = useState(false);
-//     useEffect(()=>{  sync();  }, [meta]);
-//     useFrame((state, delta)=>{   if(meta.dynamic) sync(state, delta);  });
-// }
-// export function use_nodes(nodes, sync){
-//     const metas = nodes.map(n=>useReactiveVar(n.meta));
-//     useEffect(()=>{  sync();  }, metas);
-//     useFrame((state, delta)=>{   if(metas.map(m=>m.dynamic).includes(true)) sync(state, delta);  });
-// }
+import {create} from 'zustand';
+import {subscribeWithSelector} from 'zmiddle';
+import {shallow} from 'shallow';
+import {create_base_slice} from './state/base.js';
+import {create_graph_slice} from './state/graph.js';
+export const useD = create(
+    subscribeWithSelector((...a) => ({ 
+        ...create_base_slice(...a),
+        ...create_graph_slice(...a),
+    }))
+);
+export const useDS = (selector)=> useD(selector, shallow);
 
 export function use_window_size() {
     const [size, setSize] = useState([0, 0]);
@@ -55,21 +49,6 @@ export function random_vector({min, max, x, y ,z}){
     z && vect.setZ(z);
     return vect;
 }
-
-//import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
-//"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
-import {createUploadLink} from './upload/upload.js';
-
-const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
-    'x-csrftoken': Cookie.get('csrftoken'),
-}}});
-//const http_link = createHttpLink({uri:'https://delimit.art/gql'});
-const termination_link = createUploadLink({
-    uri: 'https://delimit.art/gql',
-    headers: {
-       'Apollo-Require-Preflight': 'true',
-    },
-});
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
@@ -97,8 +76,6 @@ export const theme = {//.convertSRGBToLinear(),
     dark_s: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertLinearToSRGB(),
 };
 
-//export const client = new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()});
-//export const current_user_id = makeVar(-1);
 
 function compile_gql(name, gql_parts){
     const header_vars = [];
@@ -113,17 +90,12 @@ function compile_gql(name, gql_parts){
             const q_var_meta = q[i][0].split(' ');
             if(!header_vars.includes(q_var_meta[1])) header += ', $' + q_var_meta[1] + ': ' + q_var_meta[0];
             body += q_var_meta[1] + ': $' + q_var_meta[1];
-            if(i<q.length-1){//header += ', ';
+            if(i<q.length-1){
                 body += ', ';
             }else{ body += ')'; }
-            //const val = q[i][1]; // lodash set method appears to not work correctly for [item,] unless [item,] is accessed first
-            //set(variables, q_var_meta[1], q[i][1]);
             variables[q_var_meta[1]] = q[i][1]
             header_vars.push(q_var_meta[1]);
         }
-        //if(q.length>1) body += ')';
-        //if(q.length>1) body = '(' +body+ ')';
-        //body = q_words[0] + body + '{'+q[0].slice(q_words[0].length+1)+'}'; 
         body += '{'+q[0].slice(q_words[0].length+1)+'} '; 
     });
     if(header.length>0) header = '(' + header.slice(2) + ')';
@@ -131,7 +103,7 @@ function compile_gql(name, gql_parts){
     return {header, body, variables}
 }
 
-function status(loading, error, data, done){
+function gql_status(loading, error, data, done){
     var result = null;// {message: 'Idle'};
 	if (loading) result=()=> r(Query_Status, {message: 'Working...'});
     if (error)   result=()=> r(Query_Status, {message: error.message});
@@ -156,7 +128,7 @@ export function use_query(name, gql_parts, arg){ // 'cache-and-network'
     //var alt = null;
 	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
     //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
-    return {data:data, status:status(loading,error,data,()=>'Done'), startPolling:startPolling};
+    return {data:data, status:gql_status(loading,error,data,()=>'Done'), startPolling:startPolling};
 }
 
 export function use_mutation(name, gql_parts, arg){
@@ -169,10 +141,10 @@ export function use_mutation(name, gql_parts, arg){
         onCompleted: arg && arg.onCompleted,
     } ); // Add option for cache
     const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
-    return {mutate:mutate, data:data, status:status(loading,error,data,done), reset:reset};
+    return {mutate:mutate, data:data, status:gql_status(loading,error,data,done), reset:reset};
 }
 
-export function use_media_glb(url){
+export function use_media_glb(url){ // makes fresh copy of glb geom and such on each load so it actually changes
     const {nodes} = useGLTF(media_url+url);
     const [cloned_nodes, set_cloned_nodes] = useState([]);
     useEffect(() => {
@@ -198,29 +170,9 @@ export function use_media_glb(url){
     return cloned_nodes;
 }
 
-export function child(source, name, func){ // use Array.find(test_func) see moz docs
-    //var response = undefined;
-    if(source){
-        const c = source.children.find(c=> c.name.slice(0,name.length)==name)
-        if(c) return func(c);
-        //source.children.forEach(child => {
-        //    if(child.name.slice(0,name.length) == name) response = func(child);
-        //});
-    }
-    //return response;
-}
-
-export function use_effect(deps, func){
-    useEffect(()=> {
-        //console.log(deps);
-        if(!deps.includes(undefined) && !deps.includes(null) && !deps.includes([])) func(); // only run func if all dependencies contain a value
-    }, deps); 
-}
-
 export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, props, children}, ref){
     const obj = useRef();
     const {camera} = useThree();
-    //const camera_zoom = useReactiveVar(camera_zoom_rv);
     useImperativeHandle(ref,()=>({ 
         obj:obj.current,
     }));
@@ -228,10 +180,6 @@ export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, prop
         var factor = size / camera.zoom;
         obj.current.scale.set(factor,factor,factor);
     });
-    // useEffect(()=>{
-    //     var factor = size / camera_zoom;
-    //     obj.current.scale.set(factor,factor,factor);
-    // },[camera_zoom]);
     return(
         r('group', {ref: obj, ...props, children:children})
     )
@@ -241,12 +189,10 @@ export function Spinner({children}){
     const obj = useRef();
     const [dir, set_dir] = useState(random_vector({min:0.5, max:0.5}));
     useFrame((state, delta) => {
-        obj.current.rotateX(delta * dir.x);
-        obj.current.rotateY(delta * dir.y);
-        obj.current.rotateZ(delta * dir.z);
-        //obj.current.rotation.x += delta * dir.x;
-        //obj.current.rotation.y += delta * dir.y;
-        //obj.current.rotation.z += delta * dir.z;
+        obj.current.rotateX(delta * dir.x);//obj.current.rotation.x += delta * dir.x;
+        obj.current.rotateY(delta * dir.y);//obj.current.rotation.y += delta * dir.y;
+        obj.current.rotateZ(delta * dir.z);//obj.current.rotation.z += delta * dir.z;
+
     });
     return r('group', {ref:obj, children:children});
 }
@@ -255,10 +201,17 @@ export function uppercase(text){
     return text.toLowerCase().split(' ').map((s) => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
 }
 
-// For gltf items. Example: sketch__37 has type 'sketch' and id 37
-//export const is_type=(target, name)=> target.name.split('__')[0]==name;
-//export const id_of=(target)=> target.name.split('__')[1];
 
+import {createUploadLink} from './upload/upload.js';
+const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
+    'x-csrftoken': Cookie.get('csrftoken'),
+}}});
+const termination_link = createUploadLink({
+    uri: 'https://delimit.art/gql',
+    headers: {
+       'Apollo-Require-Preflight': 'true',
+    },
+});
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
         r(RouterProvider, {router:createBrowserRouter([
@@ -273,103 +226,32 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
         ])}),
     )
 )));
+//import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
+//"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
+//export const client = new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()});
+//const http_link = createHttpLink({uri:'https://delimit.art/gql'});
 
 
 
-// export function child(source, name){
+
+
+
+
+// export function child(source, name, func){ // use Array.find(test_func) see moz docs
+//     //var response = undefined;
 //     if(source){
-//         source.children.forEach(n => {
-//             if(n.name.slice(0,name.length) == name) {
-//                 console.log(n);
-//                 return n;
-//             }
-//         });
+//         const c = source.children.find(c=> c.name.slice(0,name.length)==name)
+//         if(c) return func(c);
+//         //source.children.forEach(child => {
+//         //    if(child.name.slice(0,name.length) == name) response = func(child);
+//         //});
 //     }
-//     return null;
+//     //return response;
 // }
 
-//export const empty_verts = new Float32Array([0,0,0,0,0,0]);
-
-
-// export function for_child(source, name, func){
-//     var child = null;
-//     if(source){
-//         source.children.forEach(c => {
-//             if(c.name.slice(0,name.length) == name){
-//                 func(c);
-//                 child = c;
-//             }
-//         });
-//     }
-//     return child;
+// export function use_effect(deps, func){
+//     useEffect(()=> {
+//         //console.log(deps);
+//         if(!deps.includes(undefined) && !deps.includes(null) && !deps.includes([])) func(); // only run func if all dependencies contain a value
+//     }, deps); 
 // }
-
-// export function use_server(query, args){
-//     const {loading, error, data} = useQuery(gql`query{ 
-//             ${query}
-//     }`, {fetchPolicy:'no-cache'}); // Add option for cache
-//     var alt = null;
-// 	if (loading) alt = Loading;
-//     if (error)   alt = Error_Page;
-//     return {data, alt};
-// }
-
-// Query($placeholder: String)
-
-
-
-
-// export const app = {
-//     logo:'/static/core/logo.svg',
-// };
-
-// const client = new ApolloClient({
-//     link: auth_link.concat(http_link),
-//     cache: new InMemoryCache(),
-// });
-
-
-// const router = createBrowserRouter([
-//     {path:'/', element:r(Nav_Bar), children:[
-//         {path:'', element:r('p',{},'At Home'), },
-//         {path:'catalog', element:r('p',{},'At Catalog'), },
-//         {path:'studio', element:r(Studio,{product_url:'https://delimit.art/media/product/default.glb'}), },
-//     ]},
-// ]);
-
-
-//const start = JSON.parse(document.getElementById('start').innerHTML); 
-//console.log(start);
-//var push_window_history = true;
-//export const page_var = makeVar(start.page);
-// function Page(){
-//     const page = useReactiveVar(page_var);
-//     useEffect(()=>{
-//         if(push_window_history) window.history.pushState({page:page},'',page);
-//         push_window_history = true;
-//     },[page]);
-//     if(page=='/')          return r('p',{},'At Home')
-//     if(page=='catalog')    return r('p',{},'At Catalog')
-//     if(page=='studio')     return r(Studio,{product_url:'https://delimit.art/media/product/default.glb'})
-// }
-
-
-
-
-//r(App));
-
-//window.onpopstate = function(e){
-//    if(e.state.page != undefined){
-//        push_window_history = false;
-//        page_var(e.state.page);
-//    }
-//}; 
-
-// client.query({query:gql`query{ 
-//     products {
-//         id
-//         name
-//         date
-//         file
-//     }
-// }`}).then((result) => console.log(result));

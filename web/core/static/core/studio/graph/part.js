@@ -1,6 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
-import {use_d, shallow} from '../../state/state.js';
-import {theme, static_url, Spinner, Fixed_Size_Group, uppercase} from '../../app.js';
+//import {use_d, shallow} from '../../state/state.js';
+import {useD, useDS, theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
 import {Text, Edges} from 'drei';
 import {Edge} from './edge.js';
 import * as THREE from 'three';
@@ -10,24 +10,24 @@ const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 
 export function Part({id}){ 
-    const d = use_d.getState();
     const obj = useRef();
     const [hover, set_hover] = useState(false);
-    const select = use_d(d=> d.select);
-    const selected = use_d(d=> d.selection.includes(id));
+    const select = useD(d=> d.select);
+    const selected = useD(d=> d.selection.includes(id));
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
-    const name = use_d(d=> d.name(id));
-    const tag = use_d(d=> d.tag(id));
-    const n = use_d(d=> Object.keys(d.n[id].n).map(t=>d.n[id].n[t].map(n=>t+'__'+n)).flat(1), shallow); // split into two use_d for tag and id of n
-    const pos = use_d(d=> d.n[id].vis.pos);
-    useEffect(() => use_d.subscribe(d=> ({    pos:d.n[id].vis.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
+    const name = useD(d=> d.name(id));
+    const tag = useD(d=> d.tag(id));
+    const edge_tags = useDS(d=> d.graph.edges(id).map(e=>e.t));
+    const edge_nodes = useDS(d=> d.graph.edges(id).map(e=>e.n));
+    const pos = useD(d=> d.n[id].vis.pos);
+    useEffect(() => useD.subscribe(d=> ({    pos:d.n[id].vis.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
     //console.log('render part');
     return(
         r('group', {name: 'part'}, 
-            ...n.map(e=> 
-                id != e.split('__')[1] && d.n[e.split('__')[1]] && r(Edge, {id1:id, tag:e.split('__')[0], id2:e.split('__')[1], key:e.split('__')[1]})
+            ...edge_nodes.map((n,i)=> 
+                r(Edge, {id1:id, tag:edge_tags[i], id2:n, key:n+edge_tags[i]}) // .split('__')  // id != e[1] && d.n[e[1]] && 
             ),
             r(Fixed_Size_Group, {
                 ref: obj,

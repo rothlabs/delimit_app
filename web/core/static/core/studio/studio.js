@@ -1,9 +1,8 @@
 import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from 'r3f';
 import {Toolbar} from './toolbar/toolbar.js';
-import {use_query, use_mutation} from '../app.js';
+import {useD, use_query, use_mutation} from '../app.js';
 import {Viewport} from './viewport.js';
-import {use_d} from '../state/state.js';
 
 //export const selection_rv = makeVar();
 //export const action_rv = makeVar({name:'none'}); // renamed to history action ?
@@ -15,9 +14,9 @@ const edges = ['p','b','i','f','s'].map(m=> m+'e{ t{v} n{id}} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v}r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
-    const d = use_d.getState();
-    const merge = use_d(d=> d.merge);
-    const search = use_d(d=> d.search);
+    const d = useD.getState();
+    const merge = useD(d=> d.merge);
+    const search = useD(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{ p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
@@ -25,19 +24,19 @@ export function Studio(){
         data = data.openPack;
         //console.log(data.pack) //.p[7].pp1.map(e1=> e1.n2.id).join(', ')
         if(data.pack) merge(data.pack); 
-        console.log(use_d.getState().n)
+        console.log(useD.getState().n)
     }}); 
     useEffect(()=>{
         if(Object.keys(d.n).length < 1) open_pack.mutate();
     },[]);
-    const mutations = use_d(d=> d.mutations);
+    const mutations = useD(d=> d.mutations);
     // const push_pack = use_mutation('PushPack', [ 
     //     ['pushPack pack{p{id t{v} '+edges+' pp2{t1{v} n1{id}}} '+atoms+ '}',
     //         ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     // ],{onCompleted:(data)=>{
     //     data = data.openPack;
     //     if(data.pack) merge(data.pack); 
-    //     //console.log(use_d.getState().n)
+    //     //console.log(useD.getState().n)
     // }}); 
     //console.log('render studio');
     return (
@@ -54,7 +53,7 @@ export function Studio(){
 }
 
 function Poll(){
-    const merge = use_d(d=> d.merge);
+    const merge = useD(d=> d.merge);
     const clear_poll = use_mutation('Clear_Poll', [  
         ['clearPoll reply'] 
     ]); 

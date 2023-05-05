@@ -105,8 +105,8 @@ class Open_Pack(graphene.Mutation):
     class Arguments:
         depth = graphene.Int()
         ids = graphene.List(graphene.ID)
-        include = graphene.List(graphene.List(graphene.String))
-        exclude = graphene.List(graphene.List(graphene.String))
+        include = graphene.List(graphene.List(graphene.String)) # must include nodes that use these atoms with these values 
+        exclude = graphene.List(graphene.List(graphene.String)) # must exclude nodes that use these atoms with these values
     pack = graphene.Field(Part_Type)
     reply = graphene.String(default_value = 'Failed to open pack.')
     @classmethod
@@ -118,13 +118,12 @@ class Open_Pack(graphene.Mutation):
             parts = None
             if ids: parts = Part.objects.filter(id__in = ids)
             # filter by public and viewable :
-            public = Q(r__t__v='public') | Q(t__v='public') #  Q(pb1__t2__v='public', pb1__n2__v=True)
-            if user.is_authenticated: viewable = Q(r__t__v='profile', r__u=user) | Q(t__v='profile', u=user)#   pp2__n1__u=user?   pp2__n1__pu1__n2   r__u    & Q(pp1__n2__pu1__n2=user) is_owner = Q(pu1__t2__v='owner', pu1__n2=user)
+            if user.is_authenticated: viewable = Q(r__t__v='profile', r__u=user) | Q(t__v='profile', u=user)
             else: viewable = Q(pk__in=[]) # always false
-            #viewable_by_team = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__n1__pp1__t2='member', pp2__n1__pp1__n2__u=user) # r__t__v='viewer'
-            if parts: parts = parts.filter(public | viewable).distinct()
-            else: parts = Part.objects.filter(public | viewable).distinct()
-            #print(parts.all())
+            permission = Q(r__t__v='public') | Q(t__v='public') | viewable
+            if parts: parts = parts.filter(permission).distinct()
+            else: parts = Part.objects.filter(permission).distinct()
+            print(parts.all())
             # filter by include and exclude props:
             if include:
                 for prop in include:
@@ -139,16 +138,12 @@ class Open_Pack(graphene.Mutation):
                     if prop[0]=='f': parts = parts.filter(~Q(fe__t__v=prop[1], n__v=float(prop[2]))).distinct()
                     if prop[0]=='s': parts = parts.filter(~Q(se__t__v=prop[1], n__v=prop[2])).distinct()
             # get dependencies filtered by public and viewable
-            if depth is None: depth = -1
-            current_parts = parts.all()
-            while depth > 0 or depth < 0:  # replace with Part.objects.raw(recursive sql)!!!!
-                next_parts = Part.objects.none()
-                for p in current_parts: 
-                    next_parts = next_parts.union(p.p.filter(public | viewable).distinct()) 
-                if len(next_parts.all()) > 0 and len(next_parts.difference(parts).all()) > 0:
-                    parts = parts.union(next_parts)
-                    current_parts = next_parts.all()
-                    depth -= 1
+            part_count = len(parts.all())
+            while depth is None or depth > 0:  # replace with Part.objects.raw(recursive sql)!!!!
+                parts = Part.objects.filter(Q(r__in=parts) | Q(id__in=parts.values_list('id', flat=True)), permission).distinct()
+                if(len(parts.all()) > part_count): 
+                   part_count = len(parts.all())
+                   depth -= 1
                 else: break
             # get atoms:
             bools   = Bool.objects.filter(p__in=parts)#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__n1__u=user)) 
@@ -340,39 +335,64 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
 
 
 
-def make_test_data():
-    t = {t: Tag.objects.get_or_create(v=t)[0] for t in [
-        'name', 'x', 'y', 'z', 'point', 'public', 'profile', 'user', 'asset', 'view',
-    ]}
-    user1 = User.objects.get(id=1)
-    String.objects.all().delete()
-    name1 = String.objects.create(v='Pink')
-    name2 = String.objects.create(v='Orange')
-    Float.objects.all().delete()
-    x1 = Float.objects.create(v=1.11)
-    y1 = Float.objects.create(v=2.22)
-    z1 = Float.objects.create(v=3.33)
-    x2 = Float.objects.create(v=4.44)
-    y2 = Float.objects.create(v=5.55)
-    z2 = Float.objects.create(v=6.66)
-    Part.objects.filter(t__v='point').delete()
-    point1 = Part.objects.create(t=t['point'])
-    point1.s.add(name1, through_defaults={'t':t['name']})
-    point1.f.add(x1, through_defaults={'t':t['x']})
-    point1.f.add(y1, through_defaults={'t':t['y']})
-    point1.f.add(z1, through_defaults={'t':t['z']})
-    point2 = Part.objects.create(t=t['point'])
-    point2.s.add(name2, through_defaults={'t':t['name']})
-    point2.f.add(x2, through_defaults={'t':t['x']})
-    point2.f.add(y2, through_defaults={'t':t['y']})
-    point2.f.add(z2, through_defaults={'t':t['z']})
-    Part.objects.filter(t__v='profile').delete()
-    profile1 = Part.objects.create(t=t['profile'])
-    profile1.u.add(user1, through_defaults={'t':t['user']})
-    profile1.p.add(point1, through_defaults={'t':t['asset']})
-    public = Part.objects.get_or_create(t=t['public'])[0]
-    public.p.add(point2, through_defaults={'t':t['view']})
-#make_test_data()
+def make_data():
+    try:
+        try:
+            Part.objects.get(t__v='profile')
+        except:
+            Tag.objects.all().delete()
+            Part.objects.all().delete()
+            Bool.objects.all().delete()
+            Int.objects.all().delete()
+            Float.objects.all().delete()
+            String.objects.all().delete()
+
+            system_tags = ['user', 'profile', 'open_pack', 'poll_pack']
+            tag = {t: Tag.objects.create(v=t, system=(t in system_tags)) for t in [
+                'user', 'open_pack', 'poll_pack', 'profile', 'public', 'view', 'asset', 
+                'name', 'x', 'y', 'z', 'point', 'line',
+            ]}
+
+            name1 = String.objects.create(v='Pink')
+            name2 = String.objects.create(v='Orange')
+            x1 = Float.objects.create(v=1.11)
+            y1 = Float.objects.create(v=2.22)
+            z1 = Float.objects.create(v=3.33)
+            x2 = Float.objects.create(v=4.44)
+            y2 = Float.objects.create(v=5.55)
+            z2 = Float.objects.create(v=6.66)
+
+            point1 = Part.objects.create(t=tag['point'])
+            point1.s.add(name1, through_defaults={'t':tag['name']})
+            point1.f.add(x1, through_defaults={'t':tag['x']})
+            point1.f.add(y1, through_defaults={'t':tag['y']})
+            point1.f.add(z1, through_defaults={'t':tag['z']})
+            point2 = Part.objects.create(t=tag['point'])
+            point2.s.add(name2, through_defaults={'t':tag['name']})
+            point2.f.add(x2, through_defaults={'t':tag['x']})
+            point2.f.add(y2, through_defaults={'t':tag['y']})
+            point2.f.add(z2, through_defaults={'t':tag['z']})
+
+            public = Part.objects.create(t=tag['public'])
+            public.p.add(point1, through_defaults={'t':tag['view']})
+
+            user1 = User.objects.get(id=1)
+            
+            poll_pack = Part.objects.create(t=tag['poll_pack'])
+            poll_pack.u.add(user1, through_defaults={'t':tag['user']})
+            open_pack = Part.objects.create(t=tag['open_pack'])
+            open_pack.u.add(user1, through_defaults={'t':tag['user']})
+            open_pack.p.add(poll_pack, through_defaults={'t':tag['poll_pack']})
+
+            name = String.objects.create(v=user1.first_name) 
+
+            profile1 = Part.objects.create(t=tag['profile'])
+            profile1.u.add(user1, through_defaults={'t':tag['user']})
+            profile1.s.add(name, through_defaults={'t':tag['name']})#profile1.i.add(user_id1, through_defaults={'t':tag['user_id']})
+            profile1.p.add(point2, through_defaults={'t':tag['asset']})
+    except Exception as e: print(e)
+    
+#make_data()
 
 
 
@@ -380,6 +400,18 @@ def make_test_data():
 
 
 
+
+# if depth is None: depth = -1
+#             current_parts = parts.all()
+#             while depth > 0 or depth < 0:  # replace with Part.objects.raw(recursive sql)!!!!
+#                 next_parts = Part.objects.none()
+#                 for p in current_parts: 
+#                     next_parts = next_parts.union(p.p.filter(public | viewable).distinct()) 
+#                 if len(next_parts.all()) > 0 and len(next_parts.difference(parts).all()) > 0:
+#                     parts = parts.union(next_parts)
+#                     current_parts = next_parts.all()
+#                     depth -= 1
+#                 else: break
 
 
 
