@@ -39,8 +39,8 @@ export function Inspection(){
                     c(Form.Control, {maxLength:64, value:name, onChange:(e)=>{
                         d.mutate(d=>{
                             ids.forEach(id => {
-                                if(d.n[id].m=='p' && d.n[id].e1.name) {
-                                    d.n[d.n[id].e1.name[0]].v = e.target.value;
+                                if(d.n[id].m=='p' && d.n[id].n.name) {
+                                    d.n[d.n[id].n.name[0]].v = e.target.value;
                                 }
                             });
                         });

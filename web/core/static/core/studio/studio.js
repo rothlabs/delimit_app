@@ -11,19 +11,19 @@ import {use_d} from '../state/state.js';
 //export const show_endpoints_rv = makeVar(true);
 //export const draw_mode_rv = makeVar('draw');
 
-const edges = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t2{v} m2{id}}').join(' ');
-const atoms = ['b','i','f','s'].map(m=> m+'{id v p'+m+'2{t1{v} m1{id}}}').join(' ');
+const edges = ['p','b','i','f','s'].map(m=> m+'e{ t{v} n{id}} ').join(' ');
+const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v}r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
     const d = use_d.getState();
     const merge = use_d(d=> d.merge);
     const search = use_d(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
-        ['openPack pack{p{id t{v} '+edges+' pp2{t1{v} m1{id}}} '+atoms+ '}',
+        ['openPack pack{ p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{
         data = data.openPack;
-        //console.log(data.pack) //.p[7].pp1.map(e1=> e1.m2.id).join(', ')
+        //console.log(data.pack) //.p[7].pp1.map(e1=> e1.n2.id).join(', ')
         if(data.pack) merge(data.pack); 
         console.log(use_d.getState().n)
     }}); 
@@ -32,7 +32,7 @@ export function Studio(){
     },[]);
     const mutations = use_d(d=> d.mutations);
     // const push_pack = use_mutation('PushPack', [ 
-    //     ['pushPack pack{p{id t{v} '+edges+' pp2{t1{v} m1{id}}} '+atoms+ '}',
+    //     ['pushPack pack{p{id t{v} '+edges+' pp2{t1{v} n1{id}}} '+atoms+ '}',
     //         ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     // ],{onCompleted:(data)=>{
     //     data = data.openPack;
@@ -59,9 +59,9 @@ function Poll(){
         ['clearPoll reply'] 
     ]); 
     use_query('PollPack', [ // rerenders this component on every poll
-        ['pollPack p{id t{v} '+edges+' pp2{t1{v} m1{id}}} '+atoms]
+        ['pollPack p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
-        merge(data.pollPack);
+        if(data.pollPack) merge(data.pollPack);
         clear_poll.mutate();
     }}); 
     return null;

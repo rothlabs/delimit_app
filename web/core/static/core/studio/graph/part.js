@@ -18,7 +18,7 @@ export function Part({id}){
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
     const name = use_d(d=> d.name(id));
     const tag = use_d(d=> d.tag(id));
-    const e1 = use_d(d=> Object.keys(d.n[id].e1).map(t=>d.n[id].e1[t].map(n=>t+'__'+n)).flat(1), shallow); // split into two use_d for tag and id of e1
+    const n = use_d(d=> Object.keys(d.n[id].n).map(t=>d.n[id].n[t].map(n=>t+'__'+n)).flat(1), shallow); // split into two use_d for tag and id of n
     const pos = use_d(d=> d.n[id].vis.pos);
     useEffect(() => use_d.subscribe(d=> ({    pos:d.n[id].vis.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
         obj.current.obj.position.copy(d.pos);
@@ -26,7 +26,7 @@ export function Part({id}){
     //console.log('render part');
     return(
         r('group', {name: 'part'}, 
-            ...e1.map(e=> 
+            ...n.map(e=> 
                 id != e.split('__')[1] && d.n[e.split('__')[1]] && r(Edge, {id1:id, tag:e.split('__')[0], id2:e.split('__')[1], key:e.split('__')[1]})
             ),
             r(Fixed_Size_Group, {
@@ -78,7 +78,7 @@ export function Part({id}){
 }
 
 
-// ...Object.entries(part.e1).map(([key, tag_group], i)=> 
+// ...Object.entries(part.n).map(([key, tag_group], i)=> 
                 //     tag_group.map((target, k)=>
                 //         r('mesh', {
                 //             key: i+'_'+k,

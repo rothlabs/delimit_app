@@ -3,6 +3,7 @@ from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
 from core.models import make_id, Part, Tag, Bool, Int, Float, String#, Time
 from core.models import Part_Part, Part_Bool, Part_Int, Part_Float, Part_String#, Part_Time
+from core.models import tag
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
@@ -66,15 +67,6 @@ class Part_String_Type(DjangoObjectType):
         model = Part_String
         fields = '__all__'
 
-#trash_tag = Tag.objects.get(v='trash') # users must never be allowed to add this tag to anything! Forbidden in mutations
-#trash_time_tag = Tag.objects.get(v='trash_time') # users must never be allowed to add this tag to anything! Forbidden in mutations
-editor_tag = Tag.objects.get(v='editor')
-editable_tag = Tag.objects.get(v='editable')
-open_pack_tag = Tag.objects.get(v='open_pack')
-poll_pack_tag = Tag.objects.get(v='poll_pack')
-#buffer_pack_tag = Tag.objects.get(v='buffer_pack')
-#user_tag = Tag.objects.get(v='user')
-
 def clear_part(part):
     part.p.clear()
     part.b.clear()
@@ -126,49 +118,51 @@ class Open_Pack(graphene.Mutation):
             parts = None
             if ids: parts = Part.objects.filter(id__in = ids)
             # filter by public and viewable :
-            is_public = Q(r__t__v='public') #  Q(pb1__t2__v='public', pb1__m2__v=True)
-            viewable_by_person = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), r__u=user)#   pp2__m1__u=user?   pp2__m1__pu1__m2   r__u    & Q(pp1__m2__pu1__m2=user) is_owner = Q(pu1__t2__v='owner', pu1__m2=user)
-            #viewable_by_team = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__m1__pp1__t2='member', pp2__m1__pp1__m2__u=user) # r__t__v='viewer'
-            if parts: parts = parts.filter(is_public | viewable_by_person).distinct()
-            else: parts = Part.objects.filter(is_public | viewable_by_person).distinct()
+            public = Q(r__t__v='public') | Q(t__v='public') #  Q(pb1__t2__v='public', pb1__n2__v=True)
+            if user.is_authenticated: viewable = Q(r__t__v='profile', r__u=user) | Q(t__v='profile', u=user)#   pp2__n1__u=user?   pp2__n1__pu1__n2   r__u    & Q(pp1__n2__pu1__n2=user) is_owner = Q(pu1__t2__v='owner', pu1__n2=user)
+            else: viewable = Q(pk__in=[]) # always false
+            #viewable_by_team = Q(Q(pp2__t1__v='viewer') | Q(pp2__t1__v='editor'), pp2__n1__pp1__t2='member', pp2__n1__pp1__n2__u=user) # r__t__v='viewer'
+            if parts: parts = parts.filter(public | viewable).distinct()
+            else: parts = Part.objects.filter(public | viewable).distinct()
+            #print(parts.all())
             # filter by include and exclude props:
             if include:
                 for prop in include:
-                    if prop[0]=='b': parts = parts.filter(pb1__t2__v=prop[1], pb1__m2__v=prop[2]=='true').distinct() # is it higher or lower case?
-                    if prop[0]=='i': parts = parts.filter(pi1__t2__v=prop[1], pi1__m2__v=int(prop[2])).distinct()
-                    if prop[0]=='f': parts = parts.filter(pf1__t2__v=prop[1], pf1__m2__v=float(prop[2])).distinct()
-                    if prop[0]=='s': parts = parts.filter(ps1__t2__v=prop[1], ps1__m2__v=prop[2]).distinct()
+                    if prop[0]=='b': parts = parts.filter(pe__t__v=prop[1], n__v=prop[2]=='true').distinct() # is it higher or lower case?
+                    if prop[0]=='i': parts = parts.filter(ie__t__v=prop[1], n__v=int(prop[2])).distinct()
+                    if prop[0]=='f': parts = parts.filter(fe__t__v=prop[1], n__v=float(prop[2])).distinct()
+                    if prop[0]=='s': parts = parts.filter(se__t__v=prop[1], n__v=prop[2]).distinct()
             if exclude:
                 for prop in exclude:
-                    if prop[0]=='b': parts = parts.filter(~Q(pb1__t2__v=prop[1], pb1__m2__v=prop[2]=='true')).distinct() # is it higher or lower case?
-                    if prop[0]=='i': parts = parts.filter(~Q(pi1__t2__v=prop[1], pi1__m2__v=int(prop[2]))).distinct()
-                    if prop[0]=='f': parts = parts.filter(~Q(pf1__t2__v=prop[1], pf1__m2__v=float(prop[2]))).distinct()
-                    if prop[0]=='s': parts = parts.filter(~Q(ps1__t2__v=prop[1], ps1__m2__v=prop[2])).distinct()
+                    if prop[0]=='b': parts = parts.filter(~Q(pe__t__v=prop[1], n__v=prop[2]=='true')).distinct() # is it higher or lower case?
+                    if prop[0]=='i': parts = parts.filter(~Q(ie__t__v=prop[1], n__v=int(prop[2]))).distinct()
+                    if prop[0]=='f': parts = parts.filter(~Q(fe__t__v=prop[1], n__v=float(prop[2]))).distinct()
+                    if prop[0]=='s': parts = parts.filter(~Q(se__t__v=prop[1], n__v=prop[2])).distinct()
             # get dependencies filtered by public and viewable
             if depth is None: depth = -1
             current_parts = parts.all()
             while depth > 0 or depth < 0:  # replace with Part.objects.raw(recursive sql)!!!!
                 next_parts = Part.objects.none()
                 for p in current_parts: 
-                    next_parts = next_parts.union(p.p.filter(is_public | viewable_by_person).distinct()) 
+                    next_parts = next_parts.union(p.p.filter(public | viewable).distinct()) 
                 if len(next_parts.all()) > 0 and len(next_parts.difference(parts).all()) > 0:
                     parts = parts.union(next_parts)
                     current_parts = next_parts.all()
                     depth -= 1
                 else: break
             # get atoms:
-            bools   = Bool.objects.filter(p__in=parts)#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__m1__u=user)) 
-            ints    = Int.objects.filter(p__in=parts)#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__m1__u=user))
-            floats  = Float.objects.filter(p__in=parts)#.filter(Q(pf2__t1__v='public') | Q(Q(pf2__t1__v='viewer') | Q(pf2__t1__v='editor'), pf2__m1__u=user))
-            strings = String.objects.filter(p__in=parts)#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__m1__u=user))
+            bools   = Bool.objects.filter(p__in=parts)#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__n1__u=user)) 
+            ints    = Int.objects.filter(p__in=parts)#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__n1__u=user))
+            floats  = Float.objects.filter(p__in=parts)#.filter(Q(pf2__t1__v='public') | Q(Q(pf2__t1__v='viewer') | Q(pf2__t1__v='editor'), pf2__n1__u=user))
+            strings = String.objects.filter(p__in=parts)#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__n1__u=user))
             # add to open_pack
             if user.is_authenticated: 
-                open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__m2=user
-                open_pack.p.add(*parts, through_defaults={'t1':open_pack_tag}) #.set(open_pack.p.union(parts), through_defaults={'t1':open_pack_tag})
-                open_pack.b.add(*bools, through_defaults={'t1':open_pack_tag})
-                open_pack.i.add(*ints, through_defaults={'t1':open_pack_tag})
-                open_pack.f.add(*floats, through_defaults={'t1':open_pack_tag})
-                open_pack.s.add(*strings, through_defaults={'t1':open_pack_tag})
+                open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__n2=user
+                open_pack.p.add(*parts, through_defaults={'t':tag['open_pack']}) #.set(open_pack.p.union(parts), through_defaults={'t1':open_pack_tag})
+                open_pack.b.add(*bools, through_defaults={'t':tag['open_pack']})
+                open_pack.i.add(*ints, through_defaults={'t':tag['open_pack']})
+                open_pack.f.add(*floats, through_defaults={'t':tag['open_pack']})
+                open_pack.s.add(*strings, through_defaults={'t':tag['open_pack']})
             # return pack:
             return Open_Pack(pack=Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
         except Exception as e: print(e)
@@ -184,7 +178,7 @@ class Close_Pack(graphene.Mutation):
             user = info.context.user
             if user.is_authenticated: 
                 parts = Part.objects.filter(id__in=ids)
-                open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__m2=user
+                open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__n2=user
                 open_pack.p.remove(parts.p) #(open_pack.p.difference(parts.p), through_defaults={'t1':open_pack_tag})
                 open_pack.b.remove(parts.b)
                 open_pack.i.remove(parts.i)
@@ -194,7 +188,7 @@ class Close_Pack(graphene.Mutation):
         except Exception as e: print(e)
         return Close_Pack()
 
-permission_tags = ['editor', 'editable', 'viewer', 'viewable', 'public'] # public, view, viewer, edit, editor,      asset instead of edit/editable? 
+permission_tags = ['public', 'asset', 'owner', 'view', 'viewer'] 
 class Push_Pack(graphene.Mutation):
     class Arguments:
         vids = graphene.List(graphene.List(graphene.ID)) # vids[m][id]
@@ -206,15 +200,15 @@ class Push_Pack(graphene.Mutation):
         t1 = graphene.List(graphene.List(graphene.List(graphene.String))) # t1[p][m][id] (first m containts part tag)
         t2 = graphene.List(graphene.List(graphene.List(graphene.String))) # t2[p][m][id] (first m containts tags for sub parts)
     reply = graphene.String(default_value = 'Failed to push pack.')
-    def get_or_create_atom(model_cls, m, id, user, temp_pack): # check if m is correct value?
+    def get_or_create_atom(model, m, id, user, temp_pack): # check if m is correct value?
         obj = None
-        try: obj = model_cls.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__m1__u':user}) #'p'+m+'2__m1__pu1__m2':user
+        try: obj = model.objects.get(**{'id':id, 'p'+m+'2__t1':tag['owner'], 'r__u':user}) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
         except Exception as e: print(e)
         if not obj:
             try: 
-                #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__m2=user
-                obj = model_cls.objects.create(id=id).object # obj.u.add(user, through_defaults={'t1':editable_tag, 't2':editor_tag})
-                #team[m].add(obj, through_defaults={'t1':editor_tag, 't2':editable_tag}) # getattr
+                person = Part.objects.get(u=user) 
+                obj = model.objects.create(id=id)
+                getattr(person,m).add(obj, through_defaults={'t1':tag['owner'], 't2':tag['asset']}) 
                 #temp_pack.p.append(team)
             except Exception as e: print(e)
         #if obj: temp_pack[m].append(obj)
@@ -224,9 +218,9 @@ class Push_Pack(graphene.Mutation):
             tag1 = Tag.objects.get(v=t1, system=False)
             tag2 = Tag.objects.get(v=t2, system=False)
             if tag1.v in permission_tags or tag2.v in permission_tags: 
-                obj = model_cls.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__m1__u':user}) #'p'+m+'2__m1__pu1__m2':user
+                obj = model_cls.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
             else: obj = model_cls.objects.get(id=id) 
-            part[m].add(obj, through_defaults={'n':index, 't1':tag1, 't2':tag2})
+            part[m].add(obj, through_defaults={'o':index, 't1':tag1, 't2':tag2})
             #temp_pack[m].append(obj)
         except Exception as e: print(e)
     @classmethod
@@ -257,7 +251,7 @@ class Push_Pack(graphene.Mutation):
                         if obj:
                             obj.v = s[idi]
                             obj.save()
-                editable = Q(pp2__t1__v='editor', pp2__m1__u=user) # pp2__m1__pu1__m2=user
+                editable = Q(pp2__t1__v='editor', pp2__n1__u=user) # pp2__n1__pu1__n2=user
                 if pids and len(pids) == len(t1) and len(pids) == len(t2):
                     # make parts if don't exist:
                     for p in range(len(pids)-1): # use this loop to build list of parts for next loop
@@ -266,9 +260,9 @@ class Push_Pack(graphene.Mutation):
                         except Exception as e: print(e)
                         if not part:
                             try: 
-                                team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__m2=user
+                                person = Part.objects.get(u=user) #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user
                                 part = Part.objects.create(id=pids[p][0][0]).object
-                                team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
+                                person.p.add(obj, through_defaults={'t2':editable_tag}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
                                 #temp_pack.p.append(team)
                             except Exception as e: print(e)
                     # mutate parts
@@ -286,7 +280,7 @@ class Push_Pack(graphene.Mutation):
                                     if tag1.v in permission_tags or tag2.v in permission_tags: 
                                         obj = Part.objects.get(editable, id = pids[p][1][idi])
                                     else: obj = Part.objects.get(id = pids[p][1][idi]) 
-                                    part.p.add(obj, through_defaults={'n':idi, 't1':tag1, 't2':tag2})
+                                    part.p.add(obj, through_defaults={'o':idi, 't1':tag1, 't2':tag2})
                                     #temp_pack.p.append(obj)
                                 except Exception as e: print(e)
                             for idi in range(len(pids[p][2])-1):
@@ -300,7 +294,7 @@ class Push_Pack(graphene.Mutation):
                         except Exception as e: print(e)
                 # add to poll packs:
                 #for p in temp_pack.p: # do this for b, i, f, s as well
-                #    poll_packs = Part.objects.filter(t__V='poll_pack', pp2__t1__v='open_pack', pp2__m1__p = p)
+                #    poll_packs = Part.objects.filter(t__V='poll_pack', pp2__t1__v='open_pack', pp2__n1__p = p)
                 #    for poll_pack in poll_packs: poll_pack.p.add(p, through_defaults={'t1':poll_pack_tag})
             return Push_Pack(reply='Pushed pack.')
         except Exception as e: print(e)
@@ -344,6 +338,54 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
 
 
 
+
+
+def make_test_data():
+    t = {t: Tag.objects.get_or_create(v=t)[0] for t in [
+        'name', 'x', 'y', 'z', 'point', 'public', 'profile', 'user', 'asset', 'view',
+    ]}
+    user1 = User.objects.get(id=1)
+    String.objects.all().delete()
+    name1 = String.objects.create(v='Pink')
+    name2 = String.objects.create(v='Orange')
+    Float.objects.all().delete()
+    x1 = Float.objects.create(v=1.11)
+    y1 = Float.objects.create(v=2.22)
+    z1 = Float.objects.create(v=3.33)
+    x2 = Float.objects.create(v=4.44)
+    y2 = Float.objects.create(v=5.55)
+    z2 = Float.objects.create(v=6.66)
+    Part.objects.filter(t__v='point').delete()
+    point1 = Part.objects.create(t=t['point'])
+    point1.s.add(name1, through_defaults={'t':t['name']})
+    point1.f.add(x1, through_defaults={'t':t['x']})
+    point1.f.add(y1, through_defaults={'t':t['y']})
+    point1.f.add(z1, through_defaults={'t':t['z']})
+    point2 = Part.objects.create(t=t['point'])
+    point2.s.add(name2, through_defaults={'t':t['name']})
+    point2.f.add(x2, through_defaults={'t':t['x']})
+    point2.f.add(y2, through_defaults={'t':t['y']})
+    point2.f.add(z2, through_defaults={'t':t['z']})
+    Part.objects.filter(t__v='profile').delete()
+    profile1 = Part.objects.create(t=t['profile'])
+    profile1.u.add(user1, through_defaults={'t':t['user']})
+    profile1.p.add(point1, through_defaults={'t':t['asset']})
+    public = Part.objects.get_or_create(t=t['public'])[0]
+    public.p.add(point2, through_defaults={'t':t['view']})
+#make_test_data()
+
+
+
+
+
+
+
+
+
+
+
+
+
 # bools   = list(itertools.chain(*[p.b.all() for p in parts])) #Bool.objects.none()
 #             ints    = list(itertools.chain(*[p.i.all() for p in parts])) #Int.objects.none()
 #             floats  = list(itertools.chain(*[p.f.all() for p in parts])) #Float.objects.none()
@@ -374,18 +416,18 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
 
 # if include:
 #                 for incl in include:
-#                     include_filter_parts = Part.objects.filter(**{'p'+incl[0]+'1__t2__v': incl[1], 'p'+incl[0]+'1__m2__v': incl[2]})
+#                     include_filter_parts = Part.objects.filter(**{'p'+incl[0]+'1__t2__v': incl[1], 'p'+incl[0]+'1__n2__v': incl[2]})
 #                 parts = parts.intersection(include_filter_parts)
 
 
         # get viewable parts
             # if user.is_authenticated: 
-            #     viewable_parts = Part.objects.filter(Q(pp1__t2__v='viewer') | Q(pp1__t2__v='editor'), pp1__m2__pu1__m2=user)  
+            #     viewable_parts = Part.objects.filter(Q(pp1__t2__v='viewer') | Q(pp1__t2__v='editor'), pp1__n2__pu1__n2=user)  
             #     parts = parts.union(viewable_parts)
 
 # included = Q()
 #             if include:
-#                 for incl in include: included &= Q(**{'p'+incl[0]+'1__t2__v': incl[1], 'p'+incl[0]+'1__m2__v': incl[2]})
+#                 for incl in include: included &= Q(**{'p'+incl[0]+'1__t2__v': incl[1], 'p'+incl[0]+'1__n2__v': incl[2]})
 
 # class Edit_Part(graphene.Mutation): 
 #     class Arguments:
@@ -464,8 +506,8 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
             #     next_parts = Part.objects.none()
             #     for p in current_parts: next_parts = next_parts.union(p.p.all()) 
 
-#q = Q(**{'p'+include[0][0]+'1__t2__v': include[0][1], 'p'+include[0][0]+'1__m2__v': include[0][2]})
-                #for incl in include[1:]: q |= Q(**{'p'+incl[0]+'1__t2__v': incl[1], 'p'+incl[0]+'1__m2__v': incl[2]})
+#q = Q(**{'p'+include[0][0]+'1__t2__v': include[0][1], 'p'+include[0][0]+'1__n2__v': include[0][2]})
+                #for incl in include[1:]: q |= Q(**{'p'+incl[0]+'1__t2__v': incl[1], 'p'+incl[0]+'1__n2__v': incl[2]})
 
 # class Pack_Type(graphene.ObjectType):
 #     #def __init__(self,roots): self.root = root # roots is one part that contains p, t, 
