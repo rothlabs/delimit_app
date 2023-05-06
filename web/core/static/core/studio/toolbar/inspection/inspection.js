@@ -12,7 +12,7 @@ export function Inspection(){
     const window_size = use_window_size();
     const ids = useD(d=> d.selection);
     const names = useDS(d=> ids.map(id=> d.name(id))); //.filter(String)
-    const name = names.find(name=> name != null);
+    const name = names.find(name=> name!=null);
     const tags = useDS(d=> ids.map(id=> d.tag(id)));
     useEffect(()=>{
         if(window_size.width>=576){
@@ -34,7 +34,7 @@ export function Inspection(){
                 ),
                 //c(Row, {},
                     //c(Col,{},
-                name && c(InputGroup, {className:'mb-3'}, 
+                name!=undefined && c(InputGroup, {className:'mb-3'}, 
                     c(InputGroup.Text, {}, 'Name'),
                     c(Form.Control, {maxLength:64, value:name, onChange:(e)=>{
                         d.mutate(d=>{

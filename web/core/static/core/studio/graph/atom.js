@@ -14,8 +14,8 @@ export function Atom({id}){
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
     const val = useD(d=> ''+d.n[id].v);
     const tag = useD(d=> d.tag(id));
-    const pos = useD(d=> d.n[id].vis.pos);
-    useEffect(()=>useD.subscribe(d=>({   pos:d.n[id].vis.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[id].num, 
+    const pos = useD(d=> d.n[id].graph.pos);
+    useEffect(()=>useD.subscribe(d=>({   pos:d.n[id].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[id].num, 
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}),[]); 
     //console.log('render atom');

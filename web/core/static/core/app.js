@@ -14,6 +14,9 @@ import {useGLTF} from 'drei';
 import * as THREE from 'three';
 import {useFrame, useThree} from 'r3f';
 
+import {enablePatches} from 'immer';
+enablePatches();
+
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zmiddle';
 import {shallow} from 'shallow';

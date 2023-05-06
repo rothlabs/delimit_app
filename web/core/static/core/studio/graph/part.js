@@ -17,10 +17,10 @@ export function Part({id}){
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
     const name = useD(d=> d.name(id));
     const tag = useD(d=> d.tag(id));
-    const edge_tags = useDS(d=> d.graph.edges(id).map(e=>e.t));
-    const edge_nodes = useDS(d=> d.graph.edges(id).map(e=>e.n));
-    const pos = useD(d=> d.n[id].vis.pos);
-    useEffect(() => useD.subscribe(d=> ({    pos:d.n[id].vis.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
+    const edge_tags = useDS(d=> d.graph.node_edges(id).map(e=>e.t));
+    const edge_nodes = useDS(d=> d.graph.node_edges(id).map(e=>e.n));
+    const pos = useD(d=> d.n[id].graph.pos);
+    useEffect(() => useD.subscribe(d=> ({    pos:d.n[id].graph.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
     //console.log('render part');

@@ -19,7 +19,7 @@ export function Edge({id1, tag, id2}){
     useFrame(()=>{
         meshline_material.current.lineWidth = 1.5 / camera.zoom;
     });
-    useEffect(()=>useD.subscribe(d=>({   pos1:d.n[id1].vis.pos, pos2:d.n[id2].vis.pos   }),d=>{  
+    useEffect(()=>useD.subscribe(d=>({   pos1:d.n[id1].graph.pos, pos2:d.n[id2].graph.pos   }),d=>{  
         text .current.obj.position.copy(d.pos2).add( tv.copy(d.pos1).sub(d.pos2).multiplyScalar(.35) );
         arrow.current.obj.position.copy(d.pos2).add( tv.copy(d.pos1).sub(d.pos2).multiplyScalar(.65) );
         arrow.current.obj.lookAt(d.pos1);

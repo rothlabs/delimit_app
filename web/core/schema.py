@@ -1,14 +1,13 @@
 import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
-from core.models import make_id, Part, Tag, Bool, Int, Float, String#, Time
-from core.models import Part_Part, Part_Bool, Part_Int, Part_Float, Part_String#, Part_Time
+from core.models import make_id, Part, Tag, Bool, Int, Float, String
+from core.models import Part_Part, Part_Bool, Part_Int, Part_Float, Part_String
 from core.models import tag
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
 import django.utils
-#from core.part import tagged, common#, c_list
 #import time#, sched
 #import itertools
 
@@ -377,7 +376,7 @@ def make_data():
             public.p.add(point1, through_defaults={'t':tag['view']})
 
             user1 = User.objects.get(id=1)
-            
+
             poll_pack = Part.objects.create(t=tag['poll_pack'])
             poll_pack.u.add(user1, through_defaults={'t':tag['user']})
             open_pack = Part.objects.create(t=tag['open_pack'])
