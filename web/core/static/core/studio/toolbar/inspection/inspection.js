@@ -6,14 +6,15 @@ import {useD, useDS, use_window_size} from '../../../app.js';
 //import {Atom} from './atom.js';
 
 
+// instead of useD for every single part, useD for entire node, have subscribers in store that replace the node when anything about it changes
 export function Inspection(){
     const d = useD.getState();//(d=> d.mutate);
     const [show, set_show] = useState(false);
     const window_size = use_window_size();
     const ids = useD(d=> d.selection);
-    const names = useDS(d=> ids.map(id=> d.name(id))); //.filter(String)
+    const names = useDS(d=> ids.map(id=> d.n[id].gen.name)); //.filter(String)
     const name = names.find(name=> name!=null);
-    const tags = useDS(d=> ids.map(id=> d.tag(id)));
+    const tags = useDS(d=> ids.map(id=> d.n[id].gen.tag));
     useEffect(()=>{
         if(window_size.width>=576){
             ids.length ? set_show(true) : set_show(false);
@@ -41,6 +42,7 @@ export function Inspection(){
                             ids.forEach(id => {
                                 if(d.n[id].m=='p' && d.n[id].n.name) {
                                     d.n[d.n[id].n.name[0]].v = e.target.value;
+                                    d.n[id].gen.name = e.target.value;
                                 }
                             });
                         });

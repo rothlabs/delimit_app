@@ -1,6 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
-import {useD, useDS, theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
+import {useD, useDS, subscribe, theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
 import {Text, Edges} from 'drei';
 import {Edge} from './edge.js';
 import * as THREE from 'three';
@@ -8,21 +8,24 @@ import * as THREE from 'three';
 export const circle_size = 1.25;
 const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
+//const tv = new THREE.Vector3();
 
 export function Part({id}){ 
+    const d = useD.getState();
+    const select = d.select;
+    const tag = d.n[id].gen.tag;
+    const pos = d.n[id].graph.pos; 
+    const name = useD(d=> d.n[id].gen.name);
+    const selected = useD(d=> d.n[id].gen.selected); 
     const obj = useRef();
     const [hover, set_hover] = useState(false);
-    const select = useD(d=> d.select);
-    const selected = useD(d=> d.selection.includes(id));
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
-    const name = useD(d=> d.name(id));
-    const tag = useD(d=> d.tag(id));
     const edge_tags = useDS(d=> d.graph.node_edges(id).map(e=>e.t));
     const edge_nodes = useDS(d=> d.graph.node_edges(id).map(e=>e.n));
-    const pos = useD(d=> d.n[id].graph.pos);
-    useEffect(() => useD.subscribe(d=> ({    pos:d.n[id].graph.pos    }), d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
-        obj.current.obj.position.copy(d.pos);
-    },{fireImmediately:true}), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
+    useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
+        obj.current.obj.position.set(pos[0], pos[1], pos[2]);
+        //console.log('update part pos');
+    }), []);
     //console.log('render part');
     return(
         r('group', {name: 'part'}, 
@@ -76,6 +79,14 @@ export function Part({id}){
         )
     )
 }
+
+
+//({x:d.n[id].graph.pos.x, y:d.n[id].graph.pos.y, z:d.n[id].graph.pos.z})
+
+// useEffect(() => useD.subscribe(d=> ({x:d.n[id].graph.pos.x, y:d.n[id].graph.pos.y, z:d.n[id].graph.pos.z}), pos=>{ // returns an unsubscribe func to useEffect as cleanup on unmount //({pos:d.n[id].pos, num:d.n[id].num})
+//     obj.current.obj.position.set(pos.x, pos.y, pos.z);
+//     console.log('update part pos: '+pos);
+// },{fireImmediately:true}), []); // { equalityFn: (old_pos,new_pos)=> old_pos.distanceTo(new_pos)<0.001}  ,{equalityFn:shallow}
 
 
 // ...Object.entries(part.n).map(([key, tag_group], i)=> 

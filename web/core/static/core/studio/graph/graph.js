@@ -15,9 +15,9 @@ const tv = new Vector3();
 
 export function Graph(){
     const d = useD.getState();
-    const nodes = useDS(d=> d.graph.nodes());  // Object.keys(d.n)
-    const edge_roots = useDS(d=> d.graph.edges().map(e=> e.r));
-    const edge_nodes = useDS(d=> d.graph.edges().map(e=> e.n));
+    const nodes = useDS(d=> d.graph.nodes);  // Object.keys(d.n)
+    const edge_roots = useDS(d=> d.graph.edge_roots); //const edge_roots = useDS(d=> d.graph.edges().map(e=> e.r));
+    const edge_nodes = useDS(d=> d.graph.edge_nodes); //const edge_nodes = useDS(d=> d.graph.edges().map(e=> e.n));
     //console.log(edge_roots);
     const [equilibrium, set_equilibrium] = useState(false); // put this in the store as a derivitive that gets switch true when when something changes?
     useEffect(()=>{

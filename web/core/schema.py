@@ -122,7 +122,6 @@ class Open_Pack(graphene.Mutation):
             permission = Q(r__t__v='public') | Q(t__v='public') | viewable
             if parts: parts = parts.filter(permission).distinct()
             else: parts = Part.objects.filter(permission).distinct()
-            print(parts.all())
             # filter by include and exclude props:
             if include:
                 for prop in include:
@@ -145,10 +144,15 @@ class Open_Pack(graphene.Mutation):
                    depth -= 1
                 else: break
             # get atoms:
-            bools   = Bool.objects.filter(p__in=parts)#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__n1__u=user)) 
-            ints    = Int.objects.filter(p__in=parts)#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__n1__u=user))
-            floats  = Float.objects.filter(p__in=parts)#.filter(Q(pf2__t1__v='public') | Q(Q(pf2__t1__v='viewer') | Q(pf2__t1__v='editor'), pf2__n1__u=user))
-            strings = String.objects.filter(p__in=parts)#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__n1__u=user))
+            if user.is_authenticated: 
+                profile = Part.objects.get(t__v='profile', u=user)
+                viewable = Q(Q(e__t__v='asset') | Q(e__t__v='view'), e__r=profile)
+            else: viewable = Q(pk__in=[])
+            permission = Q(e__r__t__v='public') | viewable
+            bools   = Bool.objects.filter(permission, p__in=parts).distinct()#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__n1__u=user)) 
+            ints    = Int.objects.filter(permission, p__in=parts).distinct()#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__n1__u=user))
+            floats  = Float.objects.filter(permission, p__in=parts).distinct() # might not need distinct
+            strings = String.objects.filter(permission, p__in=parts).distinct()#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__n1__u=user))
             # add to open_pack
             if user.is_authenticated: 
                 open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__n2=user
@@ -182,109 +186,86 @@ class Close_Pack(graphene.Mutation):
         except Exception as e: print(e)
         return Close_Pack()
 
-permission_tags = ['public', 'asset', 'owner', 'view', 'viewer'] 
+permission_tags = ['public', 'view', 'asset',] 
 class Push_Pack(graphene.Mutation):
     class Arguments:
-        vids = graphene.List(graphene.List(graphene.ID)) # vids[m][id]
+        nids = graphene.List(graphene.List(graphene.ID)) # vids[m][n]
         b = graphene.List(graphene.Boolean)
         i = graphene.List(graphene.Int)
         f = graphene.List(graphene.Float)
         s = graphene.List(graphene.String)
-        pids = graphene.List(graphene.List(graphene.List(graphene.ID))) # ids[p][m][id] (first m contains one id for the part)
-        t1 = graphene.List(graphene.List(graphene.List(graphene.String))) # t1[p][m][id] (first m containts part tag)
-        t2 = graphene.List(graphene.List(graphene.List(graphene.String))) # t2[p][m][id] (first m containts tags for sub parts)
+        pids = graphene.List(graphene.List(graphene.List(graphene.ID))) # ids[p][m][n] (first m contains  part id)
+        t = graphene.List(graphene.List(graphene.List(graphene.String))) # t1[p][m][n] (first m containts part tag)
     reply = graphene.String(default_value = 'Failed to push pack.')
-    def get_or_create_atom(model, m, id, user, temp_pack): # check if m is correct value?
-        obj = None
-        try: obj = model.objects.get(**{'id':id, 'p'+m+'2__t1':tag['owner'], 'r__u':user}) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
-        except Exception as e: print(e)
-        if not obj:
+    def mod_or_make_atom(profile, model, m, id, v): # check if m is correct value?
+        atom = None
+        try: atom = model.objects.get(id=id, e__t__v='asset', e__r=profile) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
+        except Exception as e: 
+            print(e)
             try: 
-                person = Part.objects.get(u=user) 
-                obj = model.objects.create(id=id)
-                getattr(person,m).add(obj, through_defaults={'t1':tag['owner'], 't2':tag['asset']}) 
-                #temp_pack.p.append(team)
+                atom = model.objects.create(id=id) # should throw error if exists already
+                getattr(profile, m).add(atom, through_defaults={'t':tag['asset']}) #temp_pack.p.append(team)
             except Exception as e: print(e)
-        #if obj: temp_pack[m].append(obj)
-        return obj
-    def add_atom(part, model_cls, m, id, index, t1, t2, temp_pack): # check if m is correct value?
+        if atom:
+            atom.v = v
+            atom.save() #if obj: temp_pack[m].append(obj)#return atom
+    def add_atom(is_asset, part, model, m, id, order, t): # check if m is correct value?
         try:
-            tag1 = Tag.objects.get(v=t1, system=False)
-            tag2 = Tag.objects.get(v=t2, system=False)
-            if tag1.v in permission_tags or tag2.v in permission_tags: 
-                obj = model_cls.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
-            else: obj = model_cls.objects.get(id=id) 
-            part[m].add(obj, through_defaults={'o':index, 't1':tag1, 't2':tag2})
-            #temp_pack[m].append(obj)
+            tag = Tag.objects.get(v=t, system=False)
+            if tag.v in permission_tags: atom = model.objects.get(is_asset, id=id) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
+            else: atom = model.objects.get(id=id) 
+            getattr(part, m).add(atom, through_defaults={'o':order, 't':tag}) #temp_pack[m].append(obj)
         except Exception as e: print(e)
     @classmethod
-    def mutate(cls, root, info, vids, b, i, f, s, pids, t1, t2): # should set default team in case client fails to assign team to part?
+    def mutate(cls, root, info, nids, b, i, f, s, pids, t): # should set default team in case client fails to assign team to part?
         try:
             user = info.context.user
             if user.is_authenticated: 
-                temp_pack = {p:[], b:[], i:[], f:[], s:[]}
-                if vids:
+                profile = Part.objects.get(t__v='profile', u=user)  #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
+                if nids:
                     # mutate atoms: 
-                    for idi in range(len(vids[0])-1):
-                        obj = get_or_create_atom(Bool, 'b', vids[0][idi], user, temp_pack)
-                        if obj:
-                            obj.v = b[idi]
-                            obj.save()
-                    for idi in range(len(vids[1])-1):
-                        obj = get_or_create_atom(Int, 'i', vids[1][idi], user, temp_pack)
-                        if obj:
-                            obj.v = i[idi]
-                            obj.save()
-                    for idi in range(len(vids[2])-1):
-                        obj = get_or_create_atom(Float, 'f', vids[2][idi], user, temp_pack)
-                        if obj:
-                            obj.v = f[idi]
-                            obj.save()
-                    for idi in range(len(vids[3])-1):
-                        obj = get_or_create_atom(String, 's', vids[3][idi], user, temp_pack)
-                        if obj:
-                            obj.v = s[idi]
-                            obj.save()
-                editable = Q(pp2__t1__v='editor', pp2__n1__u=user) # pp2__n1__pu1__n2=user
-                if pids and len(pids) == len(t1) and len(pids) == len(t2):
+                    for i in range(len(nids[0])-1):
+                        mod_or_make_atom(profile, Bool,   'b', nids[0][i], b[i])#, temp_pack)
+                    for i in range(len(nids[1])-1):
+                        mod_or_make_atom(profile, Int,    'i', nids[1][i], i[i])#, temp_pack)
+                    for i in range(len(nids[2])-1):
+                        mod_or_make_atom(profile, Float,  'f', nids[2][i], f[i])#, temp_pack)
+                    for i in range(len(nids[3])-1):
+                        mod_or_make_atom(profile, String, 's', nids[3][i], s[i])#, temp_pack)
+                if pids: # and len(pids) == len(t)
+                    is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user
                     # make parts if don't exist:
                     for p in range(len(pids)-1): # use this loop to build list of parts for next loop
-                        part = None
-                        try: part = Part.objects.get(editable, id=pids[p][0][0])
+                        #try: Part.objects.get(id=pids[p][0][0], is_asset)
+                        #except Exception as e: 
+                            #print(e)
+                        try: 
+                            part = Part.objects.create(id=pids[p][0][0])
+                            profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
+                            #temp_pack.p.append(team)
                         except Exception as e: print(e)
-                        if not part:
-                            try: 
-                                person = Part.objects.get(u=user) #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user
-                                part = Part.objects.create(id=pids[p][0][0]).object
-                                person.p.add(obj, through_defaults={'t2':editable_tag}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
-                                #temp_pack.p.append(team)
-                            except Exception as e: print(e)
                     # mutate parts
                     for p in range(len(pids)-1): # need to check if id is in correct format
                         try: # could remove this try wrap?
-                            part = Part.objects.get(editable, id=pids[p][0][0])
-                            part.t = Tag.objects.get(v=t1[p][0][0], system=False)
+                            part = Part.objects.get(is_asset, id=pids[p][0][0])
+                            part.t = Tag.objects.get(v=t[p][0][0], system=False)
                             part.save()
-                            clear_part(part)
-                            #temp_pack.p.append(part)
-                            for idi in range(len(pids[p][1])-1):
+                            clear_part(part) #temp_pack.p.append(part)
+                            for i in range(len(pids[p][1])-1):
                                 try:
-                                    tag1 = Tag.objects.get(v=t1[p][1][idi], system=False)
-                                    tag2 = Tag.objects.get(v=t2[p][1][idi], system=False)
-                                    if tag1.v in permission_tags or tag2.v in permission_tags: 
-                                        obj = Part.objects.get(editable, id = pids[p][1][idi])
-                                    else: obj = Part.objects.get(id = pids[p][1][idi]) 
-                                    part.p.add(obj, through_defaults={'o':idi, 't1':tag1, 't2':tag2})
-                                    #temp_pack.p.append(obj)
+                                    tag = Tag.objects.get(v=t[p][1][i], system=False)
+                                    if tag.v in permission_tags: obj = Part.objects.get(is_asset, id=pids[p][1][i])
+                                    else: obj = Part.objects.get(id = pids[p][1][i]) 
+                                    part.p.add(obj, through_defaults={'o':i, 't':tag})#temp_pack.p.append(obj)
                                 except Exception as e: print(e)
-                            for idi in range(len(pids[p][2])-1):
-                                add_atom(part, Bool, 'b', pids[p][2][idi], idi, t1[p][2][idi], t2[p][2][idi], temp_pack)
-                            for idi in range(len(pids[p][3])-1):
-                                add_atom(part, Int, 'i', pids[p][3][idi], idi, t1[p][3][idi], t2[p][3][idi], temp_pack)
-                            for idi in range(len(pids[p][4])-1):
-                                add_atom(part, Float, 'f', pids[p][4][idi], idi, t1[p][4][idi], t2[p][4][idi], temp_pack)
-                            for idi in range(len(pids[p][5])-1):
-                                add_atom(part, String, 's', pids[p][5][idi], idi, t1[p][5][idi], t2[p][5][idi], temp_pack)
+                            for i in range(len(pids[p][2])-1):
+                                add_atom(is_asset, part, Bool,   'b', pids[p][2][i], i, t[p][2][i])
+                            for i in range(len(pids[p][3])-1):
+                                add_atom(is_asset, part, Int,    'i', pids[p][3][i], i, t[p][3][i])
+                            for i in range(len(pids[p][4])-1):
+                                add_atom(is_asset, part, Float,  'f', pids[p][4][i], i, t[p][4][i])
+                            for i in range(len(pids[p][5])-1):
+                                add_atom(is_asset, part, String, 's', pids[p][5][i], i, t[p][5][i])
                         except Exception as e: print(e)
                 # add to poll packs:
                 #for p in temp_pack.p: # do this for b, i, f, s as well
@@ -374,6 +355,10 @@ def make_data():
 
             public = Part.objects.create(t=tag['public'])
             public.p.add(point1, through_defaults={'t':tag['view']})
+            public.s.add(name1, through_defaults={'t':tag['view']})
+            public.f.add(x1, through_defaults={'t':tag['view']})
+            public.f.add(y1, through_defaults={'t':tag['view']})
+            public.f.add(z1, through_defaults={'t':tag['view']})
 
             user1 = User.objects.get(id=1)
 
@@ -389,9 +374,13 @@ def make_data():
             profile1.u.add(user1, through_defaults={'t':tag['user']})
             profile1.s.add(name, through_defaults={'t':tag['name']})#profile1.i.add(user_id1, through_defaults={'t':tag['user_id']})
             profile1.p.add(point2, through_defaults={'t':tag['asset']})
+            profile1.s.add(name2, through_defaults={'t':tag['asset']})
+            profile1.f.add(x2, through_defaults={'t':tag['asset']})
+            profile1.f.add(y2, through_defaults={'t':tag['asset']})
+            profile1.f.add(z2, through_defaults={'t':tag['asset']})
     except Exception as e: print(e)
     
-#make_data()
+#make_data() 
 
 
 

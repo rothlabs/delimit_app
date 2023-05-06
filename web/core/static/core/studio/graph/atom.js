@@ -13,8 +13,8 @@ export function Atom({id}){
     const [hover, set_hover] = useState(false);
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
     const val = useD(d=> ''+d.n[id].v);
-    const tag = useD(d=> d.tag(id));
-    const pos = useD(d=> d.n[id].graph.pos);
+    const tag = useD(d=> d.n[id].gen.tag); //d.tag(id)
+    const pos = useD(d=> d.n[id].graph.pos); // can i remove?!!!
     useEffect(()=>useD.subscribe(d=>({   pos:d.n[id].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[id].num, 
         obj.current.obj.position.copy(d.pos);
     },{fireImmediately:true}),[]); 

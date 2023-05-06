@@ -1,11 +1,13 @@
 import {createElement as r, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast} from '../meshline.js';
 import {useThree, useFrame} from 'r3f';
-import {useD, theme, static_url, Fixed_Size_Group, uppercase} from '../../app.js';
+import {subscribe, theme, static_url, Fixed_Size_Group} from '../../app.js';
 import {Text} from 'drei';
 import {Vector3} from 'three';
 
 const tv = new Vector3();
+const pos1 = new Vector3();
+const pos2 = new Vector3();
 
 export function Edge({id1, tag, id2}){
     const meshline = useRef();
@@ -19,14 +21,17 @@ export function Edge({id1, tag, id2}){
     useFrame(()=>{
         meshline_material.current.lineWidth = 1.5 / camera.zoom;
     });
-    useEffect(()=>useD.subscribe(d=>({   pos1:d.n[id1].graph.pos, pos2:d.n[id2].graph.pos   }),d=>{  
-        text .current.obj.position.copy(d.pos2).add( tv.copy(d.pos1).sub(d.pos2).multiplyScalar(.35) );
-        arrow.current.obj.position.copy(d.pos2).add( tv.copy(d.pos1).sub(d.pos2).multiplyScalar(.65) );
-        arrow.current.obj.lookAt(d.pos1);
+    useEffect(()=> subscribe(d=> [...d.xyz(d.n[id1].graph.pos), ...d.xyz(d.n[id2].graph.pos)], pos=>{ 
+        pos1.set(pos[0],pos[1],pos[2]);
+        pos2.set(pos[3],pos[4],pos[5]);
+        text .current.obj.position.copy(pos2).add( tv.copy(pos1).sub(pos2).multiplyScalar(.35) );
+        arrow.current.obj.position.copy(pos2).add( tv.copy(pos1).sub(pos2).multiplyScalar(.65) );
+        arrow.current.obj.lookAt(pos1);
         arrow.current.obj.rotateX(1.5708);
-        arrow.current.obj.position.setZ(d.pos1.z-100);
-        meshline.current.setPoints([arrow.current.obj.position.x,arrow.current.obj.position.y,arrow.current.obj.position.z, d.pos2.x,d.pos2.y,d.pos2.z-100]);
-    },{fireImmediately:true}),[]); 
+        arrow.current.obj.position.setZ(pos1.z-100);
+        meshline.current.setPoints([arrow.current.obj.position.x,arrow.current.obj.position.y,arrow.current.obj.position.z, pos2.x,pos2.y,pos2.z-100]);
+        //console.log('update edge pos');
+    }),[]); 
     //console.log('render edge');
     return(
         r('group', {
@@ -55,7 +60,7 @@ export function Edge({id1, tag, id2}){
                     outlineColor: 'white',
                     fontSize: 14,
                 },
-                    uppercase(tag),
+                    tag,
                     r('meshBasicMaterial', {color: color, toneMapped:false}),
                 ),
             ),

@@ -29,15 +29,24 @@ export function Studio(){
     useEffect(()=>{
         if(Object.keys(d.n).length < 1) open_pack.mutate();
     },[]);
-    const mutations = useD(d=> d.mutations);
-    // const push_pack = use_mutation('PushPack', [ 
-    //     ['pushPack pack{p{id t{v} '+edges+' pp2{t1{v} n1{id}}} '+atoms+ '}',
-    //         ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
-    // ],{onCompleted:(data)=>{
-    //     data = data.openPack;
-    //     if(data.pack) merge(data.pack); 
-    //     //console.log(useD.getState().n)
-    // }}); 
+    const mutation = useD(d=> d.mutation);
+    const push_pack = use_mutation('PushPack', [['pushPack reply ',
+        ['[[ID]] nids',    mutation.nids], 
+        ['[Boolean] b',    mutation.b],
+        ['[Int] i',        mutation.i],
+        ['[Float] f',      mutation.f],
+        ['[String] s',     mutation.s],
+        ['[[[ID]]] pids',  mutation.pids],
+        ['[[[String]]] t', mutation.t],
+    ]],{onCompleted:(data)=>{
+        console.log(data.reply);
+        //data = data.openPack;
+        //if(data.pack) merge(data.pack); 
+        //console.log(useD.getState().n)
+    }}); 
+    useEffect(()=>{
+        push_pack.mutate();
+    },[mutation]);
     //console.log('render studio');
     return (
         r(Fragment,{}, 

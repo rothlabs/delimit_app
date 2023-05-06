@@ -29,6 +29,7 @@ export const useD = create(
     }))
 );
 export const useDS = (selector)=> useD(selector, shallow);
+export const subscribe = (selector, callback)=> useD.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
 
 export function use_window_size() {
     const [size, setSize] = useState([0, 0]);
@@ -200,8 +201,8 @@ export function Spinner({children}){
     return r('group', {ref:obj, children:children});
 }
 
-export function uppercase(text){
-    return text.toLowerCase().split(' ').map((s) => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+export function readable(text){
+    return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
 }
 
 
