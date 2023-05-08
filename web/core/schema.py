@@ -103,7 +103,7 @@ class Cycle_Poll(graphene.Mutation): # change so it clears and cycles order inst
             if user.is_authenticated: 
                 #clear_part(Part.objects.get(t__v='poll_pack', u=user))
                 #try:
-                Part.objects.filter(e__t__v='poll_pack', e__o__gt=2, u=user).delete()
+                Part.objects.filter(e__t__v='poll_pack', e__o__gt=2, u=user).delete() # number of poll_packs determines number of devices on same account that will recieve updates properly
                     # for pp in poll_packs: clear_part(pp)
                     # edges = Part_Part.objects.filter(n__t__v='poll_pack', o__gt=2, r__u=user)
                     # for edge in edges:
