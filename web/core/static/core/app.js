@@ -29,7 +29,8 @@ export const useD = create(
     }))
 );
 export const useDS = (selector)=> useD(selector, shallow);
-export const subscribe = (selector, callback)=> useD.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
+export const subD  = (selector, callback)=> useD.subscribe(selector, callback, {fireImmediately:true});
+export const subDS = (selector, callback)=> useD.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
 
 export function use_window_size() {
     const [size, setSize] = useState([0, 0]);

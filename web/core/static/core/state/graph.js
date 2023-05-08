@@ -8,24 +8,41 @@ import {produce, enablePatches} from 'immer';
 // in the merge function of base, update the derivitives when there is a change
 export const create_graph_slice = (set,get)=>({
     graph:{
-        node_tag_vis: {},//get().node_tag.map(t=> true),
+        // arrange: true,
         nodes: [],
-        edge:{
-            content: [],
-            add: id=>{
-                const i = d.selection.indexOf(id);
-                if(i<0) 
-            },
-            remove: id=>{
-                const i = d.selection.indexOf(id);
-            },
-        },
-        node_edges: id=>{const d = get();
-            var edges = Object.keys(d.n[id].n).map(t=>d.n[id].n[t].map(n=> ({t:t,n:n}) )).flat(1); // use entries?
-            return edges.filter(e=> id!=e.n && d.n[e.n]);// && d.graph.node_tag_vis[d.tag(e.n)]);
+        edges: [],
+        update: d=>{
+            d.graph.nodes = Object.keys(d.n);
+            d.graph.edges = [];
+            Object.entries(d.n).forEach(([rid,r],i)=> {
+                r.n && Object.entries(r.n).forEach(([tag,nodes],i)=>{
+                    nodes.forEach(nid=>{
+                        d.n[nid] && rid!=nid && d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
+                    });
+                });
+            });
+            //d.graph.edges = edges;
+            d.graph.arrange = true;
         },
     }
 });
+
+
+
+//node_tag_vis: {},//get().node_tag.map(t=> true),
+
+// node_edges: id=>{const d = get();
+//     var edges = Object.keys(d.n[id].n).map(t=>d.n[id].n[t].map(n=> ({t:t,n:n}) )).flat(1); // use entries?
+//     return edges.filter(e=> id!=e.n && d.n[e.n]);// && d.graph.node_tag_vis[d.tag(e.n)]);
+// },
+
+// add: id=>{
+//     const i = d.selection.indexOf(id);
+//     if(i<0) 
+// },
+// remove: id=>{
+//     const i = d.selection.indexOf(id);
+// },
 
 
 // nodes: ()=>{const d = get();

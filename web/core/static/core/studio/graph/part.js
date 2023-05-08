@@ -1,8 +1,8 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
-import {useD, useDS, subscribe, theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
+import {useD, useDS, subD, theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
 import {Text, Edges} from 'drei';
-import {Edge} from './edge.js';
+//import {Edge} from './edge.js';
 import * as THREE from 'three';
 
 export const circle_size = 1.25;
@@ -10,28 +10,28 @@ const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 //const tv = new THREE.Vector3();
 
-export function Part({id}){ 
+export function Part({n}){ 
     const d = useD.getState();
     const select = d.select;
-    const tag = d.n[id].gen.tag;
-    const pos = d.n[id].graph.pos; 
-    const name = useD(d=> d.n[id].gen.name);
-    const selected = useD(d=> d.n[id].gen.selected); 
+    const tag = d.n[n].tag;
+    const pos = d.n[n].graph.pos; 
+    const name = useD(d=> d.n[n].c.name);
+    const selected = useD(d=> d.n[n].selected); //const selected = useD(d=> d.n[id].gen.selected); 
     const obj = useRef();
     const [hover, set_hover] = useState(false);
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
-    const edge_tags = useDS(d=> d.graph.node_edges(id).map(e=>e.t));
-    const edge_nodes = useDS(d=> d.graph.node_edges(id).map(e=>e.n));
-    useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
-        obj.current.obj.position.set(pos[0], pos[1], pos[2]);
+    //const edge_tags = useDS(d=> d.graph.node_edges(id).map(e=>e.t));
+    //const edge_nodes = useDS(d=> d.graph.node_edges(id).map(e=>e.n));
+    useEffect(()=> subD(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
+        obj.current.obj.position.copy(d.pos);
         //console.log('update part pos');
     }), []);
     //console.log('render part');
     return(
         r('group', {name: 'part'}, 
-            ...edge_nodes.map((n,i)=> 
-                r(Edge, {id1:id, tag:edge_tags[i], id2:n, key:n+edge_tags[i]}) // .split('__')  // id != e[1] && d.n[e[1]] && 
-            ),
+            //...edge_nodes.map((n,i)=> 
+            //    r(Edge, {id1:id, tag:edge_tags[i], id2:n, key:n+edge_tags[i]}) // .split('__')  // id != e[1] && d.n[e[1]] && 
+            //),
             r(Fixed_Size_Group, {
                 ref: obj,
                 size: selected ? 35 : 25, // 1.5 : 1, adjust size of other items
@@ -70,8 +70,8 @@ export function Part({id}){
                     position:[0,0,-1], 
                     geometry: circle_geometry,
                     material: background_material, //raycast:()=>null,
-                    onClick: (e)=> {e.stopPropagation(); select(id, true);},
-                    onPointerMissed: (e)=> {if(e.which == 1) select(id, false);},
+                    onClick: (e)=> {e.stopPropagation(); select(n, true);},
+                    onPointerMissed: (e)=> {if(e.which == 1) select(n, false);},
                     onPointerOver: (e)=> {e.stopPropagation(); set_hover(true);},
                     onPointerOut: (e)=> {e.stopPropagation(); set_hover(false)},
                 }),

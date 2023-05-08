@@ -5,6 +5,7 @@ import {useFrame, useThree} from 'r3f';
 import {Part} from './part.js';
 import {Atom} from './atom.js';
 import {Vector3} from 'three';
+import {Edge} from './edge.js';
 
 export const graph_z = 300;
 
@@ -13,25 +14,31 @@ const inward_force = 10; // make dynamic based on how many objects
 const part_spring = 0.05;
 const tv = new Vector3();
 
+
 export function Graph(){
+    //console.log('render graph')
+    return(
+        r('group', {name:'graph'},
+            r(Nodes),
+            r(Edges),
+            r(Arrange),
+        )
+    )
+}
+
+function Arrange(){
+    const arrange = useD(d=> d.graph.arrange);  
     const d = useD.getState();
-    const nodes = useDS(d=> d.graph.nodes);  // Object.keys(d.n)
-    const edge_roots = useDS(d=> d.graph.edge_roots); //const edge_roots = useDS(d=> d.graph.edges().map(e=> e.r));
-    const edge_nodes = useDS(d=> d.graph.edge_nodes); //const edge_nodes = useDS(d=> d.graph.edges().map(e=> e.n));
-    //console.log(edge_roots);
-    const [equilibrium, set_equilibrium] = useState(false); // put this in the store as a derivitive that gets switch true when when something changes?
-    useEffect(()=>{
-        console.log('graph nodes changed');
-        set_equilibrium(false);
-    },[nodes, edge_roots, edge_nodes]);
+    const {nodes, edges} = d.graph;
     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
-        if(!equilibrium && nodes.length > 0){
-            var equilibrium_reached = true;
+        if(arrange && nodes.length > 0){
+            var moving = false;
             d.set(d=>{
                 nodes.forEach(id=>{const n1=d.n[id];//Object.values(d.n).forEach(n1=>{
                     n1.graph.dir.copy(n1.graph.pos).normalize().negate().multiplyScalar(inward_force).setZ(0);
                 });
-                edge_roots.forEach((id,i)=>{const n1=d.n[id]; const n2=d.n[edge_nodes[i]];
+                //edge_roots.forEach((id,i)=>{const n1=d.n[id]; const n2=d.n[edge_nodes[i]];
+                edges.forEach(edge=>{const n1=d.n[edge.r]; const n2=d.n[edge.n];
                     //if(nodes.includes(edge_nodes[i])){
                     var factor = 1;
                     n1.graph.dir.add( tv.copy(n2.graph.pos).sub(n1.graph.pos).normalize()
@@ -50,23 +57,54 @@ export function Graph(){
                 });
                 nodes.forEach(id=> {const n=d.n[id];//Object.values(d.n).forEach(n=>{
                     if(n.graph.dir.length() > 1){
-                        equilibrium_reached = false;
+                        moving = true;
                         n.graph = {pos: n.graph.pos.add(n.graph.dir).setZ(graph_z), dir:n.graph.dir};  // trigger events
                     }
                 });
+                d.graph.arrange = moving;
             });
-            set_equilibrium(equilibrium_reached); 
         }
     });
-    //console.log('render graph');
+    //console.log('render graph arrange: '+arrange);
+    return null; // does this need to be there?
+}
+
+function Nodes(){
+    const nodes = useD(d=> d.graph.nodes);  
+    const d = useD.getState();
+    //console.log('render graph nodes');
     return (
-        r('group', {name:'graph'}, // ref:graph, dispose:null
-			...nodes.map(id=> 
-				d.n[id].m=='p' ? r(Part,{id:id, key:id}) : r(Atom, {id:id, key:id}) 
+        r('group', {name:'nodes'}, // ref:graph, dispose:null
+			...nodes.map(n=> 
+				d.n[n].m=='p' ? r(Part,{n:n, key:n}) : r(Atom, {n:n, key:n}) 
             ),
 		)
     )
 }
+
+function Edges(){
+    const edges = useD(d=> d.graph.edges);  
+    //const d = useD.getState();
+    //console.log('render graph edges');
+    return (
+        r('group', {name:'edges'}, // ref:graph, dispose:null
+			...edges.map(e=> 
+				r(Edge, {r:e.r, tag:e.tag, n:e.n, key:e.r+e.tag+e.n})
+            ),
+		)
+    )
+}
+
+//const edge_roots = useDS(d=> d.graph.edge_roots); //const edge_roots = useDS(d=> d.graph.edges().map(e=> e.r));
+    //const edge_nodes = useDS(d=> d.graph.edge_nodes); //const edge_nodes = useDS(d=> d.graph.edges().map(e=> e.n));
+    //console.log(edge_roots);
+    //const [equilibrium, set_equilibrium] = useState(false); // put this in the store as a derivitive that gets switch true when when something changes?
+    //useEffect(()=>{
+    //    console.log('graph nodes changed');
+    //    set_equilibrium(false);
+    //},[nodes, edges]);
+
+
 
 
 

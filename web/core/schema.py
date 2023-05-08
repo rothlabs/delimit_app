@@ -333,6 +333,9 @@ def make_data():
                 'name', 'x', 'y', 'z', 'point', 'line',
             ]}
 
+            user1 = User.objects.get(id=1)
+
+            name0 = String.objects.create(v=user1.first_name) 
             name1 = String.objects.create(v='Pink')
             name2 = String.objects.create(v='Orange')
             x1 = Float.objects.create(v=1.11)
@@ -355,12 +358,11 @@ def make_data():
 
             public = Part.objects.create(t=tag['public'])
             public.p.add(point1, through_defaults={'t':tag['view']})
+            public.s.add(name0, through_defaults={'t':tag['view']})
             public.s.add(name1, through_defaults={'t':tag['view']})
             public.f.add(x1, through_defaults={'t':tag['view']})
             public.f.add(y1, through_defaults={'t':tag['view']})
             public.f.add(z1, through_defaults={'t':tag['view']})
-
-            user1 = User.objects.get(id=1)
 
             poll_pack = Part.objects.create(t=tag['poll_pack'])
             poll_pack.u.add(user1, through_defaults={'t':tag['user']})
@@ -368,16 +370,16 @@ def make_data():
             open_pack.u.add(user1, through_defaults={'t':tag['user']})
             open_pack.p.add(poll_pack, through_defaults={'t':tag['poll_pack']})
 
-            name = String.objects.create(v=user1.first_name) 
-
             profile1 = Part.objects.create(t=tag['profile'])
             profile1.u.add(user1, through_defaults={'t':tag['user']})
-            profile1.s.add(name, through_defaults={'t':tag['name']})#profile1.i.add(user_id1, through_defaults={'t':tag['user_id']})
             profile1.p.add(point2, through_defaults={'t':tag['asset']})
+            profile1.s.add(name0, through_defaults={'t':tag['name']})
             profile1.s.add(name2, through_defaults={'t':tag['asset']})
             profile1.f.add(x2, through_defaults={'t':tag['asset']})
             profile1.f.add(y2, through_defaults={'t':tag['asset']})
             profile1.f.add(z2, through_defaults={'t':tag['asset']})
+
+            public.p.add(profile1, through_defaults={'t':tag['view']})
     except Exception as e: print(e)
     
 #make_data() 

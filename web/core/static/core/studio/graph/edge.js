@@ -1,15 +1,15 @@
-import {createElement as r, useState, useEffect, useRef, useMemo} from 'react';
+import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast} from '../meshline.js';
 import {useThree, useFrame} from 'r3f';
-import {subscribe, theme, static_url, Fixed_Size_Group} from '../../app.js';
+import {subDS, theme, static_url, Fixed_Size_Group} from '../../app.js';
 import {Text} from 'drei';
 import {Vector3} from 'three';
 
 const tv = new Vector3();
-const pos1 = new Vector3();
-const pos2 = new Vector3();
+//const pos1 = new Vector3();
+//const pos2 = new Vector3();
 
-export function Edge({id1, tag, id2}){
+export function Edge({r, tag, n}){
     const meshline = useRef();
     const meshline_material = useRef();
     const text = useRef();
@@ -21,56 +21,54 @@ export function Edge({id1, tag, id2}){
     useFrame(()=>{
         meshline_material.current.lineWidth = 1.5 / camera.zoom;
     });
-    useEffect(()=> subscribe(d=> [...d.xyz(d.n[id1].graph.pos), ...d.xyz(d.n[id2].graph.pos)], pos=>{ 
-        pos1.set(pos[0],pos[1],pos[2]);
-        pos2.set(pos[3],pos[4],pos[5]);
-        text .current.obj.position.copy(pos2).add( tv.copy(pos1).sub(pos2).multiplyScalar(.35) );
-        arrow.current.obj.position.copy(pos2).add( tv.copy(pos1).sub(pos2).multiplyScalar(.65) );
-        arrow.current.obj.lookAt(pos1);
+    useEffect(()=> subDS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
+        text .current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.35) );
+        arrow.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.65) );
+        arrow.current.obj.lookAt(d[0].pos);
         arrow.current.obj.rotateX(1.5708);
-        arrow.current.obj.position.setZ(pos1.z-100);
-        meshline.current.setPoints([arrow.current.obj.position.x,arrow.current.obj.position.y,arrow.current.obj.position.z, pos2.x,pos2.y,pos2.z-100]);
+        arrow.current.obj.position.setZ(d[0].pos.z-100);
+        meshline.current.setPoints([arrow.current.obj.position.x,arrow.current.obj.position.y,arrow.current.obj.position.z, d[1].pos.x,d[1].pos.y,d[1].pos.z-100]);
         //console.log('update edge pos');
     }),[]); 
     //console.log('render edge');
     return(
-        r('group', {
+        c('group', {
             name: 'edge',
             onClick: (e)=> set_active(true),
             onPointerMissed: (e)=> {if(e.which == 1) set_active(false);},
             onPointerOver: (e)=> set_hover(true),
             onPointerOut: (e)=> set_hover(false),
         }, 
-            r('mesh', { 
+            c('mesh', { 
                 raycast: MeshLineRaycast,
             },
-                r('meshLine', {
+                c('meshLine', {
                     ref: meshline, 
                     attach: 'geometry', 
                 }), 
-                r('meshLineMaterial', {ref:meshline_material, color:active||hover? theme.primary_s : theme.secondary_s}),
+                c('meshLineMaterial', {ref:meshline_material, color:active||hover? theme.primary_s : theme.secondary_s}),
             ),
-            r(Fixed_Size_Group, {
+            c(Fixed_Size_Group, {
                 ref: text,
                 size: active ? 1.5 : 1,
             },
-                r(Text, {
+                c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     outlineWidth: '25%',
                     outlineColor: 'white',
                     fontSize: 14,
                 },
                     tag,
-                    r('meshBasicMaterial', {color: color, toneMapped:false}),
+                    c('meshBasicMaterial', {color: color, toneMapped:false}),
                 ),
             ),
-            r(Fixed_Size_Group, {
+            c(Fixed_Size_Group, {
                 ref: arrow,
                 size: active ? 1.5 : 1,
             },
-                r('mesh', {},
-                    r('coneGeometry', {args:[4,24,8]}),
-                    r('meshBasicMaterial', {color: color, toneMapped:false}),
+                c('mesh', {},
+                    c('coneGeometry', {args:[4,24,8]}),
+                    c('meshBasicMaterial', {color: color, toneMapped:false}),
                 ),
             ),
         )
