@@ -28,7 +28,6 @@ export function Studio(){
     useEffect(()=>{
         if(Object.keys(d.n).length < 1) open_pack.mutate();
     },[]);
-    //const mutation = useD(d=> d.mutation);
     const push_pack = use_mutation('PushPack', [['pushPack reply restricted',
         ['[[ID]] atoms',   null], 
         ['[Boolean] b',    null],
@@ -38,17 +37,10 @@ export function Studio(){
         ['[[[ID]]] parts', null],
         ['[[[String]]] t', null],
     ]],{onCompleted:(data)=>{data = data.pushPack;
-        console.log('Push Pack Reply: '+data.reply);
-        console.log('Push Pack Restricted: '+data.restricted);
-        //data = data.openPack;
-        //if(data.pack) merge(data.pack); 
-        //console.log(useD.getState().n)
+        //console.log('Push Pack Reply: '+data.reply);
+        //console.log('Push Pack Restricted: '+data.restricted);
     }});
     d.set(d=> {d.mutate = push_pack.mutate;});
-    //useEffect(()=>{
-        //push_pack.mutate();
-    //},[mutation]);
-    //console.log('render studio');
     return (
         r(Fragment,{}, 
             r(Poll), 
@@ -70,6 +62,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     use_query('PollPack', [ // rerenders this component on every poll
         ['pollPack p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
+        console.log(data.pollPack);
         if(data.pollPack) merge(data.pollPack);
         cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 

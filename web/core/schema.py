@@ -101,15 +101,7 @@ class Cycle_Poll(graphene.Mutation): # change so it clears and cycles order inst
         try:
             user = info.context.user
             if user.is_authenticated: 
-                #clear_part(Part.objects.get(t__v='poll_pack', u=user))
-                #try:
                 Part.objects.filter(e__t__v='poll_pack', e__o__gt=2, u=user).delete() # number of poll_packs determines number of devices on same account that will recieve updates properly
-                    # for pp in poll_packs: clear_part(pp)
-                    # edges = Part_Part.objects.filter(n__t__v='poll_pack', o__gt=2, r__u=user)
-                    # for edge in edges:
-                    #     edge.o = 0
-                    #     edge.save()
-                #except Exception as e: print(e)
                 edges = Part_Part.objects.filter(n__t__v='poll_pack', r__u=user)
                 for edge in edges:
                     edge.o += 1
@@ -389,7 +381,7 @@ def make_data():
             public.f.add(y1, through_defaults={'t':tag['view']})
             public.f.add(z1, through_defaults={'t':tag['view']})
 
-            poll_pack = Part.objects.create(t=tag['poll_pack'])
+            poll_pack = Part.objects.create(t=tag['poll_pack']) # don't need to create if cycling poll by create and delete
             poll_pack.u.add(user1, through_defaults={'t':tag['user']})
             open_pack = Part.objects.create(t=tag['open_pack'])
             open_pack.u.add(user1, through_defaults={'t':tag['user']})
@@ -412,6 +404,17 @@ def make_data():
 
 
 
+
+
+
+
+#clear_part(Part.objects.get(t__v='poll_pack', u=user))
+# for pp in poll_packs: clear_part(pp)
+                    # edges = Part_Part.objects.filter(n__t__v='poll_pack', o__gt=2, r__u=user)
+                    # for edge in edges:
+                    #     edge.o = 0
+                    #     edge.save()
+                #except Exception as e: print(e)
 
 
                         #try: Part.objects.get(id=parts[p][0][0], is_asset)

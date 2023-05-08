@@ -3,13 +3,14 @@ import {Vector3} from 'three';
 import {graph_z} from '../studio/graph/graph.js';
 import {random_vector, readable} from '../app.js';
 
-const atom_tags={'p':'Part', 'b':'Switch', 'i':'Integer', 'f':'Decimal', 's':'Text'}; 
+const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const root_tags={
     'view':  'viewer',
     'asset': 'owner',
 };
-const float_tags  = ['x', 'y', 'z'];
-const string_tags = ['name', 'story', 'text'];
+//const atom_tags = ['switch', 'integer', 'decimal', 'text'];
+const float_tags  = ['decimal', 'x', 'y', 'z'];
+const string_tags = ['text', 'name', 'story'];
 const val_tags = [...float_tags, ...string_tags];
 
 export const create_base_slice = (set,get)=>({
@@ -20,12 +21,21 @@ export const create_base_slice = (set,get)=>({
             get().edit(d=>{
                 d.inspect.c[t] = v;
                 if(float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?
-                d.selected.nodes.forEach(n => {
-                    if(d.n[n].m=='p' && d.n[n].n[t]) {
-                        d.n[d.n[n].n[t][0]].v = v;
-                        d.n[n].c[t] = v;
-                    }
-                });
+                if(Object.values(model_tags).includes(t)){
+                    d.selected.nodes.forEach(n => {
+                        if(model_tags[d.n[n].m] == t) {
+                            d.n[n].v = v;
+                            d.n[n].c[t] = v;
+                        }
+                    });
+                }else{
+                    d.selected.nodes.forEach(n => {
+                        if(d.n[n].m=='p' && d.n[n].n[t]) {
+                            d.n[d.n[n].n[t][0]].v = v;
+                            d.n[n].c[t] = v;
+                        }
+                    });
+                }
             });
         },
     }, 
@@ -36,8 +46,11 @@ export const create_base_slice = (set,get)=>({
         d.n[id].selected = selected;
         d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
         val_tags.forEach(t=>{
-            d.inspect.c[t] = d.selected.nodes.map(n=> d.n[n].c[t]).find(val=> val!=null);
+            d.inspect.c[t] = d.selected.nodes.map(n=> d.n[n].c[t]).find(v=> v!=null);
         })
+        Object.entries(model_tags).forEach(([m,model],i)=>{
+            d.inspect.c[model] = d.selected.nodes.filter(n=> d.n[n].m==m).map(n=> d.n[n].v).find(v=> v!=null);
+        });
     })),
 
     set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
@@ -78,7 +91,7 @@ export const create_base_slice = (set,get)=>({
                     d.n[n.id].t = n.t.v;
                     d.n[n.id].n = {};
                 }else{  
-                    d.n[n.id].tag = atom_tags[d.n[n.id].m];
+                    d.n[n.id].tag = model_tags[d.n[n.id].m];
                     d.n[n.id].v = n.v;  
                 }
             }); 
@@ -106,6 +119,9 @@ export const create_base_slice = (set,get)=>({
     })),
 
 });
+
+//if(atom_tags.includes(t)){  d.inspect.c[t] = d.selected.nodes.filter(n=> d.n[n].m==t).map(n=> d.n[n].v).find(v=> v!=null);  }
+            //else{  d.inspect.c[t] = d.selected.nodes.map(n=> d.n[n].c[t]).find(v=> v!=null);  }
 
 //delete d.inspect[t];
             //const vals = d.selected.nodes.map(n=> d.n[n].c[t]);
