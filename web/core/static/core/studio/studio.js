@@ -20,8 +20,7 @@ export function Studio(){
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{ p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
-    ],{onCompleted:(data)=>{
-        data = data.openPack;
+    ],{onCompleted:(data)=>{data = data.openPack;
         //console.log(data.pack) //.p[7].pp1.map(e1=> e1.n2.id).join(', ')
         if(data.pack) merge(data.pack); 
         console.log(useD.getState().n)
@@ -29,24 +28,26 @@ export function Studio(){
     useEffect(()=>{
         if(Object.keys(d.n).length < 1) open_pack.mutate();
     },[]);
-    const mutation = useD(d=> d.mutation);
-    const push_pack = use_mutation('PushPack', [['pushPack reply ',
-        ['[[ID]] nids',    mutation.nids], 
-        ['[Boolean] b',    mutation.b],
-        ['[Int] i',        mutation.i],
-        ['[Float] f',      mutation.f],
-        ['[String] s',     mutation.s],
-        ['[[[ID]]] pids',  mutation.pids],
-        ['[[[String]]] t', mutation.t],
-    ]],{onCompleted:(data)=>{
-        console.log(data.reply);
+    //const mutation = useD(d=> d.mutation);
+    const push_pack = use_mutation('PushPack', [['pushPack reply restricted',
+        ['[[ID]] atoms',   null], 
+        ['[Boolean] b',    null],
+        ['[Int] i',        null],
+        ['[Float] f',      null],
+        ['[String] s',     null],
+        ['[[[ID]]] parts', null],
+        ['[[[String]]] t', null],
+    ]],{onCompleted:(data)=>{data = data.pushPack;
+        console.log('Push Pack Reply: '+data.reply);
+        console.log('Push Pack Restricted: '+data.restricted);
         //data = data.openPack;
         //if(data.pack) merge(data.pack); 
         //console.log(useD.getState().n)
-    }}); 
-    useEffect(()=>{
-        push_pack.mutate();
-    },[mutation]);
+    }});
+    d.set(d=> {d.mutate = push_pack.mutate;});
+    //useEffect(()=>{
+        //push_pack.mutate();
+    //},[mutation]);
     //console.log('render studio');
     return (
         r(Fragment,{}, 
@@ -61,16 +62,16 @@ export function Studio(){
     )
 }
 
-function Poll(){
+function Poll(){ // appears to be a bug where the server doesn't always catch changes so doesn't deliver in poll pack?
     const merge = useD(d=> d.merge);
-    const clear_poll = use_mutation('Clear_Poll', [  
-        ['clearPoll reply'] 
+    const cycle_poll = use_mutation('Cycle_Poll', [  
+        ['cyclePoll reply'] 
     ]); 
     use_query('PollPack', [ // rerenders this component on every poll
         ['pollPack p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         if(data.pollPack) merge(data.pollPack);
-        clear_poll.mutate();
+        cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
     return null;
 }

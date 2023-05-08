@@ -83,7 +83,7 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
 ]}
 
 @receiver(post_save, sender=User)
-def create_user_system_packs(sender, instance, created, **kwargs):
+def create_user_system_packs(sender, instance, created, **kwargs): # not tested 
     if created:  
         name = String.objects.create(v=instance.first_name) # might be firstName!!!!
         profile = Part.objects.create(t=tag['profile'])
@@ -97,8 +97,11 @@ def create_user_system_packs(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Part)
 def add_part_to_poll_packs(sender, instance, **kwargs):
-    poll_packs = Part.objects.filter(t__v='poll_pack', r__t__v='open_pack', r__p = instance) # change so it also adds to poll and open if a user is open
-    for pack in poll_packs: pack.p.add(instance, through_defaults={'t':tag['poll_pack']})
+    try:
+        if(not instance.t.v in ['user','open_pack','pull_pack']):
+            poll_packs = Part.objects.filter(t__v='poll_pack', r__t__v='open_pack', r__p = instance) # change so it also adds to poll and open if a user is open
+            for pack in poll_packs: pack.p.add(instance, through_defaults={'t':tag['poll_pack']})
+    except Exception as e: print(e)
 @receiver(post_save, sender=Bool)
 def add_bool_to_poll_packs(sender, instance, **kwargs):
     poll_packs = Part.objects.filter(t__v='poll_pack', r__t__v='open_pack', r__b = instance)

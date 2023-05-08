@@ -17,9 +17,9 @@ export const create_base_slice = (set,get)=>({
     selected: {
         nodes: [],
         edit_val: (t,v)=>{ 
-            get().mutate(d=>{
+            get().edit(d=>{
                 d.inspect.c[t] = v;
-                if(float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   }
+                if(float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?
                 d.selected.nodes.forEach(n => {
                     if(d.n[n].m=='p' && d.n[n].n[t]) {
                         d.n[d.n[n].n[t][0]].v = v;
@@ -31,7 +31,7 @@ export const create_base_slice = (set,get)=>({
     }, 
     search: {depth:null, ids:null},
     inspect: {c:{}, float_tags:float_tags, string_tags:string_tags},
-    set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
+    
     select: (id, selected)=>set(produce(d=>{  // make hover action and hovering store so the same node is highlighted for different occurances
         d.n[id].selected = selected;
         d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
@@ -40,9 +40,22 @@ export const create_base_slice = (set,get)=>({
         })
     })),
 
-    mutation: {nids:null, b:null, i:null, f:null, s:null, pids:null, t:null},//{nids:[[]], b:[], i:[], f:[], s:[], pids:[[[]]], t:[[[]]]},
-    mutate: func=>set(d=>produce(d, d=>func(d), patches=> { // must use set function in here to set derivitives  ???
+    set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
+
+    //mutation: {nids:null, b:null, i:null, f:null, s:null, pids:null, t:null},//{nids:[[]], b:[], i:[], f:[], s:[], pids:[[[]]], t:[[[]]]},
+    edit: func=>set(d=>produce(d, d=>func(d), patches=> { // must use set function in here to set derivitives  ???
         console.log(patches); // auto merges patches into mutations state slice 
+        const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:null, t:null};
+        //const edits = {atoms:null, b:null, i:null, f:null, s:null, parts:null, t:null};
+        patches.forEach(patch=>{
+            if(patch.path[2]=='v'){ // atom has changed
+                const n = patch.path[1];
+                edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                edits[d.n[n].m].push(patch.value);
+            }
+        });
+        console.log(edits);
+        d.mutate({variables:edits});
     })),
 
     merge: data=>set(produce(d=>{ // must use set function in here to set derivitives ???

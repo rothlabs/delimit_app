@@ -83,22 +83,44 @@ class Query(graphene.ObjectType):
         try:
             user = info.context.user
             if user.is_authenticated:
-                return Part.objects.get(t__v='poll_pack', u=user)
+                poll_packs = Part.objects.filter(e__t__v='poll_pack', u=user)
+                parts   = Part.objects.filter(r__in=poll_packs)
+                bools   = Bool.objects.filter(p__in=poll_packs)
+                ints    = Int.objects.filter(p__in=poll_packs)
+                floats  = Float.objects.filter(p__in=poll_packs)
+                strings = String.objects.filter(p__in=poll_packs)
+                return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
             return None
         except Exception as e: print(e)
         return None
 
-class Clear_Poll(graphene.Mutation):
+class Cycle_Poll(graphene.Mutation): # change so it clears and cycles order instead of deleting and creating?
     reply = graphene.String(default_value = 'Failed to clear poll.')
     @classmethod
     def mutate(cls, root, info):
         try:
             user = info.context.user
             if user.is_authenticated: 
-                clear_part(Part.objects.get(t__v='poll_pack', u=user))
-            return Clear_Poll(reply='Cleared Poll.')
+                #clear_part(Part.objects.get(t__v='poll_pack', u=user))
+                #try:
+                Part.objects.filter(e__t__v='poll_pack', e__o__gt=2, u=user).delete()
+                    # for pp in poll_packs: clear_part(pp)
+                    # edges = Part_Part.objects.filter(n__t__v='poll_pack', o__gt=2, r__u=user)
+                    # for edge in edges:
+                    #     edge.o = 0
+                    #     edge.save()
+                #except Exception as e: print(e)
+                edges = Part_Part.objects.filter(n__t__v='poll_pack', r__u=user)
+                for edge in edges:
+                    edge.o += 1
+                    edge.save()
+                new_pp = Part.objects.create(t=tag['poll_pack'])
+                new_pp.u.add(user, through_defaults={'t':tag['user']})
+                op = Part.objects.get(t=tag['open_pack'], u=user)
+                op.p.add(new_pp, through_defaults={'t':tag['poll_pack']})
+            return Cycle_Poll(reply='Cleared Poll.')
         except Exception as e: print(e)
-        return Clear_Poll()
+        return Cycle_Poll()
 
 class Open_Pack(graphene.Mutation):
     class Arguments:
@@ -189,15 +211,16 @@ class Close_Pack(graphene.Mutation):
 permission_tags = ['public', 'view', 'asset',] 
 class Push_Pack(graphene.Mutation):
     class Arguments:
-        nids = graphene.List(graphene.List(graphene.ID)) # vids[m][n]
+        atoms = graphene.List(graphene.List(graphene.ID)) # vids[m][n]
         b = graphene.List(graphene.Boolean)
         i = graphene.List(graphene.Int)
         f = graphene.List(graphene.Float)
         s = graphene.List(graphene.String)
-        pids = graphene.List(graphene.List(graphene.List(graphene.ID))) # ids[p][m][n] (first m contains  part id)
+        parts = graphene.List(graphene.List(graphene.List(graphene.ID))) # ids[p][m][n] (first m contains  part id)
         t = graphene.List(graphene.List(graphene.List(graphene.String))) # t1[p][m][n] (first m containts part tag)
-    reply = graphene.String(default_value = 'Failed to push pack.')
-    def mod_or_make_atom(profile, model, m, id, v): # check if m is correct value?
+    reply = graphene.String(default_value = 'Failed to save.')
+    restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)
+    def mod_or_make_atom(profile, model, m, id, v, restricted): # check if m is correct value?
         atom = None
         try: atom = model.objects.get(id=id, e__t__v='asset', e__r=profile) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
         except Exception as e: 
@@ -209,69 +232,71 @@ class Push_Pack(graphene.Mutation):
         if atom:
             atom.v = v
             atom.save() #if obj: temp_pack[m].append(obj)#return atom
-    def add_atom(is_asset, part, model, m, id, order, t): # check if m is correct value?
+        else: restricted.append(id)
+    def add_atom(is_asset, part, model, m, id, order, t, restricted): # check if m is correct value?
         try:
             tag = Tag.objects.get(v=t, system=False)
             if tag.v in permission_tags: atom = model.objects.get(is_asset, id=id) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
             else: atom = model.objects.get(id=id) 
             getattr(part, m).add(atom, through_defaults={'o':order, 't':tag}) #temp_pack[m].append(obj)
-        except Exception as e: print(e)
+        except Exception as e: 
+            print(e)
+            restricted.append(id)
     @classmethod
-    def mutate(cls, root, info, nids, b, i, f, s, pids, t): # should set default team in case client fails to assign team to part?
+    def mutate(cls, root, info, atoms, b, i, f, s, parts, t): # should set default team in case client fails to assign team to part?
         try:
+            reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
+                restricted = []#{p:[], b:[], i:[], f:[], s:[]}
                 profile = Part.objects.get(t__v='profile', u=user)  #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
-                if nids:
+                if atoms:
                     # mutate atoms: 
-                    for i in range(len(nids[0])-1):
-                        mod_or_make_atom(profile, Bool,   'b', nids[0][i], b[i])#, temp_pack)
-                    for i in range(len(nids[1])-1):
-                        mod_or_make_atom(profile, Int,    'i', nids[1][i], i[i])#, temp_pack)
-                    for i in range(len(nids[2])-1):
-                        mod_or_make_atom(profile, Float,  'f', nids[2][i], f[i])#, temp_pack)
-                    for i in range(len(nids[3])-1):
-                        mod_or_make_atom(profile, String, 's', nids[3][i], s[i])#, temp_pack)
-                if pids: # and len(pids) == len(t)
+                    for i in range(len(atoms[0])):
+                        cls.mod_or_make_atom(profile, Bool,   'b', atoms[0][i], b[i], restricted)#, temp_pack)
+                    for i in range(len(atoms[1])):
+                        cls.mod_or_make_atom(profile, Int,    'i', atoms[1][i], i[i], restricted)#, temp_pack)
+                    for i in range(len(atoms[2])):
+                        cls.mod_or_make_atom(profile, Float,  'f', atoms[2][i], f[i], restricted)#, temp_pack)
+                    for i in range(len(atoms[3])):
+                        cls.mod_or_make_atom(profile, String, 's', atoms[3][i], s[i], restricted)#, temp_pack)
+                if parts: # and len(parts) == len(t)
                     is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user
                     # make parts if don't exist:
-                    for p in range(len(pids)-1): # use this loop to build list of parts for next loop
-                        #try: Part.objects.get(id=pids[p][0][0], is_asset)
-                        #except Exception as e: 
-                            #print(e)
+                    for p in range(len(parts)): # use this loop to build list of parts for next loop
                         try: 
-                            part = Part.objects.create(id=pids[p][0][0])
+                            part = Part.objects.create(id=parts[p][0][0])
                             profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
-                            #temp_pack.p.append(team)
                         except Exception as e: print(e)
                     # mutate parts
-                    for p in range(len(pids)-1): # need to check if id is in correct format
+                    for p in range(len(parts)): # need to check if id is in correct format
                         try: # could remove this try wrap?
-                            part = Part.objects.get(is_asset, id=pids[p][0][0])
+                            part = Part.objects.get(is_asset, id=parts[p][0][0])
                             part.t = Tag.objects.get(v=t[p][0][0], system=False)
                             part.save()
                             clear_part(part) #temp_pack.p.append(part)
-                            for i in range(len(pids[p][1])-1):
+                            for i in range(len(parts[p][1])):
                                 try:
                                     tag = Tag.objects.get(v=t[p][1][i], system=False)
-                                    if tag.v in permission_tags: obj = Part.objects.get(is_asset, id=pids[p][1][i])
-                                    else: obj = Part.objects.get(id = pids[p][1][i]) 
+                                    if tag.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][i])
+                                    else: obj = Part.objects.get(id = parts[p][1][i]) 
                                     part.p.add(obj, through_defaults={'o':i, 't':tag})#temp_pack.p.append(obj)
-                                except Exception as e: print(e)
-                            for i in range(len(pids[p][2])-1):
-                                add_atom(is_asset, part, Bool,   'b', pids[p][2][i], i, t[p][2][i])
-                            for i in range(len(pids[p][3])-1):
-                                add_atom(is_asset, part, Int,    'i', pids[p][3][i], i, t[p][3][i])
-                            for i in range(len(pids[p][4])-1):
-                                add_atom(is_asset, part, Float,  'f', pids[p][4][i], i, t[p][4][i])
-                            for i in range(len(pids[p][5])-1):
-                                add_atom(is_asset, part, String, 's', pids[p][5][i], i, t[p][5][i])
-                        except Exception as e: print(e)
-                # add to poll packs:
-                #for p in temp_pack.p: # do this for b, i, f, s as well
-                #    poll_packs = Part.objects.filter(t__V='poll_pack', pp2__t1__v='open_pack', pp2__n1__p = p)
-                #    for poll_pack in poll_packs: poll_pack.p.add(p, through_defaults={'t1':poll_pack_tag})
-            return Push_Pack(reply='Pushed pack.')
+                                except Exception as e: 
+                                    print(e)
+                                    restricted.append(parts[p][1][i])
+                            for i in range(len(parts[p][2])):
+                                cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][i], i, t[p][2][i], restricted)
+                            for i in range(len(parts[p][3])):
+                                cls.add_atom(is_asset, part, Int,    'i', parts[p][3][i], i, t[p][3][i], restricted)
+                            for i in range(len(parts[p][4])):
+                                cls.add_atom(is_asset, part, Float,  'f', parts[p][4][i], i, t[p][4][i], restricted)
+                            for i in range(len(parts[p][5])):
+                                cls.add_atom(is_asset, part, String, 's', parts[p][5][i], i, t[p][5][i], restricted)
+                        except Exception as e: 
+                            print(e)
+                            restricted.append(parts[p][0][0])
+            else: reply = 'Sign-in required.'
+            return Push_Pack(reply=reply, restricted=restricted) #restricted=Part_Type(p=r.p, b=r.b, i=r.i, f=r.f, s=r.s)
         except Exception as e: print(e)
         return Push_Pack()
 
@@ -307,7 +332,7 @@ class Mutation(graphene.ObjectType):
     openPack = Open_Pack.Field()
     pushPack = Push_Pack.Field()
     closePack = Close_Pack.Field()
-    clearPoll = Clear_Poll.Field()
+    cyclePoll = Cycle_Poll.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
 
@@ -389,6 +414,15 @@ def make_data():
 
 
 
+                        #try: Part.objects.get(id=parts[p][0][0], is_asset)
+                        #except Exception as e: 
+                            #print(e)
+
+# add to poll packs:
+                #for p in temp_pack.p: # do this for b, i, f, s as well
+                #    poll_packs = Part.objects.filter(t__V='poll_pack', pp2__t1__v='open_pack', pp2__n1__p = p)
+                #    for poll_pack in poll_packs: poll_pack.p.add(p, through_defaults={'t1':poll_pack_tag})
+
 
 
 # if depth is None: depth = -1
@@ -402,9 +436,6 @@ def make_data():
 #                     current_parts = next_parts.all()
 #                     depth -= 1
 #                 else: break
-
-
-
 
 
 
