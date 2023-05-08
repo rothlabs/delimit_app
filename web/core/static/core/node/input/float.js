@@ -9,17 +9,7 @@ export function Float({t}){
             c(InputGroup.Text, {}, readable(t)),
             c(Form.Control, {maxLength:64, value:val, onChange:(e)=>{
                 if(!isNaN(e.target.value) || e.target.value=='.'){
-                    var float_val = +e.target.value;
-                    if(isNaN(float_val)) float_val = 0;
-                    useD.getState().mutate(d=>{//d.selected.edit(d, 'name', e.target.value);
-                        d.inspect.c[t] = e.target.value;
-                        d.selected.nodes.forEach(n => {
-                            if(d.n[n].m=='p' && d.n[n].n[t]) {
-                                d.n[d.n[n].n[t][0]].v = float_val;
-                                d.n[n].c[t] = float_val;
-                            }
-                        });
-                    });
+                    useD.getState().selected.edit_val(t, e.target.value);
                 }
             }}),
         )

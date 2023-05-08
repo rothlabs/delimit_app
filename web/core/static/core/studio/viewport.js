@@ -6,19 +6,17 @@ import {Vector2} from 'three';
 import {CameraControls} from 'drei';
 import { Graph } from './graph/graph.js';
 
-//export const camera_zoom_rv = makeVar(1);
-
-const pointer_start = new Vector2();
-const pointer_vect = new Vector2();
-const draw_verts = [];
-var pointers_down = 0;
-const point=(e)=>  e.intersections[e.intersections.length-1].point;
-const name=(e)=>   e.intersections[0].object.name
-const select=(e)=> e.intersections[0];
+// const pointer_start = new Vector2();
+// const pointer_vect = new Vector2();
+// const draw_verts = [];
+// var pointers_down = 0;
+// const point=(e)=>  e.intersections[e.intersections.length-1].point;
+// const name=(e)=>   e.intersections[0].object.name
+// const select=(e)=> e.intersections[0];
 
 
 export function Viewport(){
-    const {camera, raycaster} = useThree(); 
+    //const {camera, raycaster} = useThree(); 
     //const camera_controls = useRef();
     //const [dragging, set_dragging] = useState();
     //const board = useRef();
@@ -30,9 +28,8 @@ export function Viewport(){
     //    camera_zoom_rv(camera.zoom);
     //});
     return (
-        r('group', {}, 
-            r(CameraControls, {
-                //ref: camera_controls,
+        r('group', {name:'viewport'}, 
+            r(CameraControls, { //ref: camera_controls,
                 makeDefault: true,
                 minDistance: 1000, 
                 maxDistance: 1000, 
@@ -40,6 +37,7 @@ export function Viewport(){
                 azimuthRotateSpeed: 0, 
                 draggingSmoothTime: 0,
             }), 
+            r(Graph),
             // r('ambientLight', {
             //     color: 'white',
             //     intensity: 0.5,
@@ -49,7 +47,6 @@ export function Viewport(){
             //     intensity: 0.5,
             //     position: [2,2,1],
             // }),
-            r(Graph),
             // r('mesh', { 
             //     name: 'board',
             //     onClick:(e)=>{ e.stopPropagation();
@@ -132,6 +129,8 @@ export function Viewport(){
     )
 }
 
+
+//export const camera_zoom_rv = makeVar(1);
 // const update_camera_zoom=()=> {console.log('camera changed!'); camera_zoom_rv(camera.zoom);}
 //     useEffect(() => {
 //         camera_controls.current.addEventListener('change', update_camera_zoom);

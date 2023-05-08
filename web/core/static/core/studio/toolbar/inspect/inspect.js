@@ -40,5 +40,3 @@ export function Inspect(){
         )
     )
 }
-
-//const tags = useDS(d=> nodes.map(id=> d.n[id].tag));
