@@ -57,7 +57,7 @@ export const create_base_slice = (set,get)=>({
 
     //mutation: {nids:null, b:null, i:null, f:null, s:null, pids:null, t:null},//{nids:[[]], b:[], i:[], f:[], s:[], pids:[[[]]], t:[[[]]]},
     edit: func=>set(d=>produce(d, d=>func(d), patches=> { // must use set function in here to set derivitives  ???
-        console.log(patches); // auto merges patches into mutations state slice 
+        //console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:null, t:null};
         //const edits = {atoms:null, b:null, i:null, f:null, s:null, parts:null, t:null};
         patches.forEach(patch=>{
@@ -67,7 +67,7 @@ export const create_base_slice = (set,get)=>({
                 edits[d.n[n].m].push(patch.value);
             }
         });
-        console.log(edits);
+        //console.log(edits);
         d.mutate({variables:edits});
     })),
 
@@ -115,7 +115,7 @@ export const create_base_slice = (set,get)=>({
                 });
             }); 
         }); 
-        d.graph.update(d);
+        d.graph.update(d); // check to make sure there are actual changes before running update
     })),
 
 });

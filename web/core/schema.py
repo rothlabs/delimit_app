@@ -4,12 +4,11 @@ from django.contrib.auth.models import User
 from core.models import make_id, Part, Tag, Bool, Int, Float, String
 from core.models import Part_Part, Part_Bool, Part_Int, Part_Float, Part_String
 from core.models import tag
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
 import django.utils
-#import time#, sched
-#import itertools
+import time
 
 class Authenticated_User_Type(DjangoObjectType):
     class Meta:
@@ -75,44 +74,51 @@ def clear_part(part):
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    pollPack = graphene.Field(Part_Type)
+    pollPack = graphene.Field(Part_Type, instance=graphene.String())
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
-    def resolve_pollPack(root, info): 
+    def resolve_pollPack(root, info, instance): 
         try:
             user = info.context.user
             if user.is_authenticated:
-                poll_packs = Part.objects.filter(e__t__v='poll_pack', u=user)
-                parts   = Part.objects.filter(r__in=poll_packs)
-                bools   = Bool.objects.filter(p__in=poll_packs)
-                ints    = Int.objects.filter(p__in=poll_packs)
-                floats  = Float.objects.filter(p__in=poll_packs)
-                strings = String.objects.filter(p__in=poll_packs)
+                Int.objects.filter(e__t__v='system_time', v__lt=int(time.time())-4).delete() # delete if 4 seconds old! make client pull everything if disconnects for more than 4 seconds
+                Part.objects.filter(~Q(ie__t__v='system_time'), t__v='poll_pack').delete()
+                String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
+                open_pack = Part.objects.get(t=tag['open_pack'], u=user)
+                poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
+                parts   = Part.objects.filter(r=open_pack).filter(r__in=poll_packs).distinct()
+                bools   = Bool.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
+                ints    = Int.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
+                floats  = Float.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
+                strings = String.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
+                #for pp in poll_packs:
+                #    client_instance = String.objects.get_or_create(v=instance)[0]
+                #    pp.s.add(client_instance, through_defaults={'t':tag['client_instance']})
                 return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
             return None
         except Exception as e: print(e)
         return None
 
-class Cycle_Poll(graphene.Mutation): # change so it clears and cycles order instead of deleting and creating?
-    reply = graphene.String(default_value = 'Failed to clear poll.')
-    @classmethod
-    def mutate(cls, root, info):
-        try:
-            user = info.context.user
-            if user.is_authenticated: 
-                Part.objects.filter(e__t__v='poll_pack', e__o__gt=2, u=user).delete() # number of poll_packs determines number of devices on same account that will recieve updates properly
-                edges = Part_Part.objects.filter(n__t__v='poll_pack', r__u=user)
-                for edge in edges:
-                    edge.o += 1
-                    edge.save()
-                new_pp = Part.objects.create(t=tag['poll_pack'])
-                new_pp.u.add(user, through_defaults={'t':tag['user']})
-                op = Part.objects.get(t=tag['open_pack'], u=user)
-                op.p.add(new_pp, through_defaults={'t':tag['poll_pack']})
-            return Cycle_Poll(reply='Cleared Poll.')
-        except Exception as e: print(e)
-        return Cycle_Poll()
+# class Cycle_Poll(graphene.Mutation): # change so it clears and cycles order instead of deleting and creating?
+#     reply = graphene.String(default_value = 'Failed to clear poll.')
+#     @classmethod
+#     def mutate(cls, root, info):
+#         try:
+#             user = info.context.user
+#             if user.is_authenticated: 
+#                 Part.objects.filter(e__t__v='poll_pack', e__o__gt=2, u=user).delete() # number of poll_packs determines number of devices on same account that will recieve updates properly
+#                 edges = Part_Part.objects.filter(n__t__v='poll_pack', r__u=user)
+#                 for edge in edges:
+#                     edge.o += 1
+#                     edge.save()
+#                 new_pp = Part.objects.create(t=tag['poll_pack'])
+#                 new_pp.u.add(user, through_defaults={'t':tag['user']})
+#                 op = Part.objects.get(t=tag['open_pack'], u=user)
+#                 op.p.add(new_pp, through_defaults={'t':tag['poll_pack']})
+#             return Cycle_Poll(reply='Cleared Poll.')
+#         except Exception as e: print(e)
+#         return Cycle_Poll()
 
 class Open_Pack(graphene.Mutation):
     class Arguments:
@@ -203,6 +209,7 @@ class Close_Pack(graphene.Mutation):
 permission_tags = ['public', 'view', 'asset',] 
 class Push_Pack(graphene.Mutation):
     class Arguments:
+        instance = graphene.String()
         atoms = graphene.List(graphene.List(graphene.ID)) # vids[m][n]
         b = graphene.List(graphene.Boolean)
         i = graphene.List(graphene.Int)
@@ -212,7 +219,7 @@ class Push_Pack(graphene.Mutation):
         t = graphene.List(graphene.List(graphene.List(graphene.String))) # t1[p][m][n] (first m containts part tag)
     reply = graphene.String(default_value = 'Failed to save.')
     restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)
-    def mod_or_make_atom(profile, model, m, id, v, restricted): # check if m is correct value?
+    def mod_or_make_atom(profile, model, m, id, v, restricted, poll_pack): # check if m is correct value?
         atom = None
         try: atom = model.objects.get(id=id, e__t__v='asset', e__r=profile) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
         except Exception as e: 
@@ -224,34 +231,43 @@ class Push_Pack(graphene.Mutation):
         if atom:
             atom.v = v
             atom.save() #if obj: temp_pack[m].append(obj)#return atom
+            getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']}) # change to 'atom' 
         else: restricted.append(id)
-    def add_atom(is_asset, part, model, m, id, order, t, restricted): # check if m is correct value?
+    def add_atom(is_asset, part, model, m, id, order, t, restricted, poll_pack): # check if m is correct value?
         try:
-            tag = Tag.objects.get(v=t, system=False)
-            if tag.v in permission_tags: atom = model.objects.get(is_asset, id=id) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
+            tag_obj = Tag.objects.get(v=t, system=False)
+            if tag_obj.v in permission_tags: atom = model.objects.get(is_asset, id=id) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
             else: atom = model.objects.get(id=id) 
-            getattr(part, m).add(atom, through_defaults={'o':order, 't':tag}) #temp_pack[m].append(obj)
+            getattr(part, m).add(atom, through_defaults={'o':order, 't':tag_obj}) #temp_pack[m].append(obj)
+            getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']})
         except Exception as e: 
             print(e)
             restricted.append(id)
     @classmethod
-    def mutate(cls, root, info, atoms, b, i, f, s, parts, t): # should set default team in case client fails to assign team to part?
+    def mutate(cls, root, info, instance, atoms, b, i, f, s, parts, t): # should set default team in case client fails to assign team to part?
         try:
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
+                poll_pack = Part.objects.create(t=tag['poll_pack']) 
+                system_time = Int.objects.create(v=int(time.time()))
+                poll_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
+                client_instance = String.objects.get_or_create(v=instance)[0]
+                poll_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+                #print('instance!!!')
+                #print(instance)
                 restricted = []#{p:[], b:[], i:[], f:[], s:[]}
                 profile = Part.objects.get(t__v='profile', u=user)  #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
                 if atoms:
                     # mutate atoms: 
                     for i in range(len(atoms[0])):
-                        cls.mod_or_make_atom(profile, Bool,   'b', atoms[0][i], b[i], restricted)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Bool,   'b', atoms[0][i], b[i], restricted, poll_pack)#, temp_pack)
                     for i in range(len(atoms[1])):
-                        cls.mod_or_make_atom(profile, Int,    'i', atoms[1][i], i[i], restricted)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Int,    'i', atoms[1][i], i[i], restricted, poll_pack)#, temp_pack)
                     for i in range(len(atoms[2])):
-                        cls.mod_or_make_atom(profile, Float,  'f', atoms[2][i], f[i], restricted)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Float,  'f', atoms[2][i], f[i], restricted, poll_pack)#, temp_pack)
                     for i in range(len(atoms[3])):
-                        cls.mod_or_make_atom(profile, String, 's', atoms[3][i], s[i], restricted)#, temp_pack)
+                        cls.mod_or_make_atom(profile, String, 's', atoms[3][i], s[i], restricted, poll_pack)#, temp_pack)
                 if parts: # and len(parts) == len(t)
                     is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user
                     # make parts if don't exist:
@@ -269,21 +285,22 @@ class Push_Pack(graphene.Mutation):
                             clear_part(part) #temp_pack.p.append(part)
                             for i in range(len(parts[p][1])):
                                 try:
-                                    tag = Tag.objects.get(v=t[p][1][i], system=False)
-                                    if tag.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][i])
+                                    tag_obj = Tag.objects.get(v=t[p][1][i], system=False)
+                                    if tag_obj.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][i])
                                     else: obj = Part.objects.get(id = parts[p][1][i]) 
-                                    part.p.add(obj, through_defaults={'o':i, 't':tag})#temp_pack.p.append(obj)
+                                    part.p.add(obj, through_defaults={'o':i, 't':tag_obj})#temp_pack.p.append(obj)
                                 except Exception as e: 
                                     print(e)
                                     restricted.append(parts[p][1][i])
                             for i in range(len(parts[p][2])):
-                                cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][i], i, t[p][2][i], restricted)
+                                cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][i], i, t[p][2][i], restricted, poll_pack)
                             for i in range(len(parts[p][3])):
-                                cls.add_atom(is_asset, part, Int,    'i', parts[p][3][i], i, t[p][3][i], restricted)
+                                cls.add_atom(is_asset, part, Int,    'i', parts[p][3][i], i, t[p][3][i], restricted, poll_pack)
                             for i in range(len(parts[p][4])):
-                                cls.add_atom(is_asset, part, Float,  'f', parts[p][4][i], i, t[p][4][i], restricted)
+                                cls.add_atom(is_asset, part, Float,  'f', parts[p][4][i], i, t[p][4][i], restricted, poll_pack)
                             for i in range(len(parts[p][5])):
-                                cls.add_atom(is_asset, part, String, 's', parts[p][5][i], i, t[p][5][i], restricted)
+                                cls.add_atom(is_asset, part, String, 's', parts[p][5][i], i, t[p][5][i], restricted, poll_pack)
+                            poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
                         except Exception as e: 
                             print(e)
                             restricted.append(parts[p][0][0])
@@ -324,7 +341,7 @@ class Mutation(graphene.ObjectType):
     openPack = Open_Pack.Field()
     pushPack = Push_Pack.Field()
     closePack = Close_Pack.Field()
-    cyclePoll = Cycle_Poll.Field()
+    #cyclePoll = Cycle_Poll.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
 
@@ -405,6 +422,12 @@ def make_data():
 
 
 
+# poll_packs = Part.objects.filter(e__t__v='poll_pack', u=user)
+#                 parts   = Part.objects.filter(r__in=poll_packs).distinct()
+#                 bools   = Bool.objects.filter(p__in=poll_packs).distinct()
+#                 ints    = Int.objects.filter(p__in=poll_packs).distinct()
+#                 floats  = Float.objects.filter(p__in=poll_packs).distinct()
+#                 strings = String.objects.filter(p__in=poll_packs).distinct()
 
 
 

@@ -14,14 +14,23 @@ import {useGLTF} from 'drei';
 import * as THREE from 'three';
 import {useFrame, useThree} from 'r3f';
 
-import {enablePatches} from 'immer';
-enablePatches();
-
+import {enablePatches} from 'immer'; enablePatches();
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zmiddle';
 import {shallow} from 'shallow';
 import {create_base_slice} from './state/base.js';
 import {create_graph_slice} from './state/graph.js';
+
+const new_id = length => {
+    let s = '';
+    Array.from({ length }).some(() => {
+      s += Math.random().toString(36).slice(2);
+      return s.length >= length;
+    });
+    return s.slice(0, length);
+};
+export const instance = new_id(16);
+
 export const useD = create(
     subscribeWithSelector((...a) => ({ 
         ...create_base_slice(...a),

@@ -1,7 +1,7 @@
 import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from 'r3f';
 import {Toolbar} from './toolbar/toolbar.js';
-import {useD, use_query, use_mutation} from '../app.js';
+import {useD, use_query, use_mutation, instance} from '../app.js';
 import {Viewport} from './viewport.js';
 
 //export const selection_rv = makeVar();
@@ -29,6 +29,7 @@ export function Studio(){
         if(Object.keys(d.n).length < 1) open_pack.mutate();
     },[]);
     const push_pack = use_mutation('PushPack', [['pushPack reply restricted',
+        ['String instance',   instance],
         ['[[ID]] atoms',   null], 
         ['[Boolean] b',    null],
         ['[Int] i',        null],
@@ -56,15 +57,15 @@ export function Studio(){
 
 function Poll(){ // appears to be a bug where the server doesn't always catch changes so doesn't deliver in poll pack?
     const merge = useD(d=> d.merge);
-    const cycle_poll = use_mutation('Cycle_Poll', [  
-        ['cyclePoll reply'] 
-    ]); 
+    // const cycle_poll = use_mutation('Cycle_Poll', [  
+    //     ['cyclePoll reply'] 
+    // ]); 
     use_query('PollPack', [ // rerenders this component on every poll
-        ['pollPack p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms]
+        ['pollPack p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms, ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
-        console.log(data.pollPack);
+        //console.log(data.pollPack);
         if(data.pollPack) merge(data.pollPack);
-        cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
+        //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
     return null;
 }
