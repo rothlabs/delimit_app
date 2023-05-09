@@ -70,7 +70,7 @@ function Arrange(){
 }
 
 function Nodes(){
-    const nodes = useD(d=> d.graph.nodes);  
+    const nodes = useDS(d=> d.graph.nodes);  
     const d = useD.getState();
     //console.log('render graph nodes');
     return (
@@ -83,7 +83,10 @@ function Nodes(){
 }
 
 function Edges(){
-    const edges = useD(d=> d.graph.edges);  
+    const edges = useD(d=> d.graph.edges);  // rerendering every time the client polls for update!! 
+    //const edges = useDS(d=> d.graph.edge_roots);
+    //const tags = useDS(d=> d.graph.edge_tags);
+    //const nodes = useDS(d=> d.graph.edge_nodes);
     //const d = useD.getState();
     //console.log('render graph edges');
     return (

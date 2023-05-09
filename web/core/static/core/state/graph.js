@@ -1,4 +1,4 @@
-import {produce, enablePatches} from 'immer';
+import {produce, current, enablePatches} from 'immer';
 
 //const node_tag_vis = {};
 
@@ -8,10 +8,10 @@ import {produce, enablePatches} from 'immer';
 // in the merge function of base, update the derivitives when there is a change
 export const create_graph_slice = (set,get)=>({
     graph:{
-        // arrange: true,
         nodes: [],
         edges: [],
-        update: d=>{
+        update: ()=>set(produce(d=>{
+            //console.log(current(d).n);
             d.graph.nodes = Object.keys(d.n);
             d.graph.edges = [];
             Object.entries(d.n).forEach(([rid,r],i)=> {
@@ -21,11 +21,25 @@ export const create_graph_slice = (set,get)=>({
                     });
                 });
             });
-            //d.graph.edges = edges;
             d.graph.arrange = true;
-        },
+        })),
     }
 });
+
+
+// update: d=>{
+//     d.graph.nodes = Object.keys(d.n);
+//     d.graph.edges = [];
+//     Object.entries(d.n).forEach(([rid,r],i)=> {
+//         r.n && Object.entries(r.n).forEach(([tag,nodes],i)=>{
+//             nodes.forEach(nid=>{
+//                 d.n[nid] && rid!=nid && d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
+//             });
+//         });
+//     });
+//     //d.graph.edges = edges;
+//     d.graph.arrange = true;
+// },
 
 
 
