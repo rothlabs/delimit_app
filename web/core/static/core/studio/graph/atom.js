@@ -2,15 +2,15 @@ import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 import {useD, subD, theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
 import {Text, Edges} from 'drei';
 import * as THREE from 'three';
+import { Selectable } from '../../node/basic.js';
 
 const circle_geometry = new THREE.CircleGeometry(1.8,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 
 export function Atom({n}){
     const obj = useRef();
-    const select = useD(d=> d.select);
     const selected = useD(d=> d.n[n].selected); //const selected = useD(d=> d.selection.includes(n));
-    const [hover, set_hover] = useState(false);
+    const hover = useD(d=> d.n[n].hover);
     const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
     const val = useD(d=> ''+d.n[n].v);
     const tag = useD(d=> d.n[n].tag); //d.tag(n)
@@ -55,15 +55,17 @@ export function Atom({n}){
                     tag,
                     r('meshBasicMaterial', {color: color, toneMapped:false}),
                 ),
-                r('mesh', {
-                    position: [0,0,-1],
-                    geometry: circle_geometry,
-                    material: background_material,
-                    onClick: (e)=> {e.stopPropagation(); select(n, true);},
-                    onPointerMissed: (e)=> {if(e.which == 1) select(n, false);},
-                    onPointerOver: (e)=> {e.stopPropagation(); set_hover(true);},
-                    onPointerOut: (e)=> {e.stopPropagation(); set_hover(false)},
-                }),
+                r(Selectable, {n:n},
+                    r('mesh', {
+                        position: [0,0,-1],
+                        geometry: circle_geometry,
+                        material: background_material,
+                        // onClick: (e)=> {e.stopPropagation(); select(n, true);},
+                        // onPointerMissed: (e)=> {if(e.which == 1) select(n, false);},
+                        // onPointerOver: (e)=> {e.stopPropagation(); set_hover(true);},
+                        // onPointerOut: (e)=> {e.stopPropagation(); set_hover(false)},
+                    }),
+                ),
             )
         )
     )

@@ -3,56 +3,21 @@ import {Vector3} from 'three';
 import {graph_z} from '../studio/graph/graph.js';
 import {random_vector, readable} from '../app.js';
 
-const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
+export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const root_tags={
     'view':  'viewer',
     'asset': 'owner',
 };
 //const atom_tags = ['switch', 'integer', 'decimal', 'text'];
-const float_tags  = ['decimal', 'x', 'y', 'z'];
-const string_tags = ['text', 'name', 'story'];
-const val_tags = [...float_tags, ...string_tags];
+export const float_tags  = ['decimal', 'x', 'y', 'z'];
+export const string_tags = ['text', 'name', 'story'];
+export const val_tags = [...float_tags, ...string_tags];
 
 export const create_base_slice = (set,get)=>({
+    user: 0,
     n: {},
-    selected: {
-        nodes: [],
-        edit_val: (t,v)=>{ 
-            get().edit(d=>{
-                d.inspect.c[t] = v;
-                if(float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?
-                if(Object.values(model_tags).includes(t)){
-                    d.selected.nodes.forEach(n => {
-                        if(model_tags[d.n[n].m] == t) {
-                            d.n[n].v = v;
-                            d.n[n].c[t] = v;
-                        }
-                    });
-                }else{
-                    d.selected.nodes.forEach(n => {
-                        if(d.n[n].m=='p' && d.n[n].n[t]) {
-                            d.n[d.n[n].n[t][0]].v = v;
-                            d.n[n].c[t] = v;
-                        }
-                    });
-                }
-            });
-        },
-    }, 
     search: {depth:null, ids:null},
-    inspect: {c:{}, asset:{}, float_tags:float_tags, string_tags:string_tags},
-    
-    select: (id, selected)=>set(produce(d=>{  // make hover action and hovering store so the same node is highlighted for different occurances
-        d.n[id].selected = selected;
-        d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
-        val_tags.forEach(t=>{
-            d.inspect.c[t] = d.selected.nodes.map(n=> d.n[n].c[t]).find((v,i)=> v!=null);
-            //d.inspect.asset[t] = 
-        })
-        Object.entries(model_tags).forEach(([m,model],i)=>{
-            d.inspect.c[model] = d.selected.nodes.filter(n=> d.n[n].m==m).map(n=> d.n[n].v).find(v=> v!=null);
-        });
-    })),
+    inspect: {content:{}, asset:{}, placeholder:{}, float_tags:float_tags, string_tags:string_tags},
 
     set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
 
@@ -93,6 +58,7 @@ export const create_base_slice = (set,get)=>({
                         d.n[n.id].tag = readable(n.t.v); 
                         d.n[n.id].t = n.t.v;
                         d.n[n.id].n = {};
+                        if(n.u.length>0 && n.u[0].id==d.user && n.t.v=='profile') d.n[n.id].profile = true;
                     }else{  
                         d.n[n.id].tag = model_tags[d.n[n.id].m];
                         d.n[n.id].v = n.v;  
@@ -108,6 +74,7 @@ export const create_base_slice = (set,get)=>({
                         if(!d.n[n.id].r[t]) d.n[n.id].r[t] = [];
                         d.n[n.id].r[t].push(e.r.id);  // <<<<<<<<< reverse relationship !!!!
                         if(val_tags.includes(e.t.v) && d.n[e.r.id]) d.n[e.r.id].c[e.t.v] = d.n[n.id].v;
+                        if(e.t.v=='asset' && d.n[e.r.id].profile) d.n[n.id].asset = true; //t=='profile' && d.n[e.r.id].u.id==user_id
                     });
                 });
                 data.p.forEach(n=>{ 
@@ -115,6 +82,7 @@ export const create_base_slice = (set,get)=>({
                         if(!d.n[n.id].n[e.t.v]) d.n[n.id].n[e.t.v] = []; 
                         d.n[n.id].n[e.t.v].push(e.n.id); // <<<<<<<<< forward relationship !!!!
                         if(val_tags.includes(e.t.v) && d.n[e.n.id]) d.n[n.id].c[e.t.v] = d.n[e.n.id].v;
+                        if(e.t.v=='asset' && d.n[n.id].profile && d.n[e.n.id]) d.n[e.n.id].asset = true;
                     });
                 }); 
             }); 

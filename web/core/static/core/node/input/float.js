@@ -3,12 +3,13 @@ import {Row, Col, Container, Form, InputGroup} from 'boot';
 import {useD, readable} from '../../app.js';
 
 export function Float({t}){
-    const val   = useD(d=> d.inspect.c[t]);
+    const content   = useD(d=> d.inspect.content[t]);
+    const placeholder = useD(d=> d.inspect.placeholder[t]);
     const asset = useD(d=> d.inspect.asset[t]);
     return (
-        val!=undefined && c(InputGroup, {className:'mb-3'}, 
+        content!=undefined && c(InputGroup, {className:'mb-3'}, 
             c(InputGroup.Text, {}, readable(t)),
-            c(Form.Control, {maxLength:64, value:val, disabled:!asset, onChange:(e)=>{
+            c(Form.Control, {maxLength:64, value:content, placeholder:placeholder, disabled:!asset, onChange:(e)=>{
                 if(!isNaN(e.target.value) || e.target.value=='.'){
                     useD.getState().selected.edit_val(t, e.target.value);
                 }

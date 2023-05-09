@@ -18,7 +18,7 @@ export function Studio(){
     const merge = useD(d=> d.merge);
     const search = useD(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
-        ['openPack pack{ p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms+ ' } ',
+        ['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{data = data.openPack;
         //console.log(data.pack) //.p[7].pp1.map(e1=> e1.n2.id).join(', ')
@@ -61,7 +61,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     //     ['cyclePoll reply'] 
     // ]); 
     use_query('PollPack', [ // rerenders this component on every poll
-        ['pollPack p{ id t{v} e{t{v}r{id}} '+edges+' } '+atoms, ['String instance', instance]]
+        ['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         //console.log(data.pollPack);
         if(data.pollPack) merge(data.pollPack);

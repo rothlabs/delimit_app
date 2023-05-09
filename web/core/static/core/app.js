@@ -20,6 +20,7 @@ import {subscribeWithSelector} from 'zmiddle';
 import {shallow} from 'shallow';
 import {create_base_slice} from './state/base.js';
 import {create_graph_slice} from './state/graph.js';
+import {create_select_slice} from './state/select.js';
 
 const new_id = length => {
     let s = '';
@@ -35,6 +36,7 @@ export const useD = create(
     subscribeWithSelector((...a) => ({ 
         ...create_base_slice(...a),
         ...create_graph_slice(...a),
+        ...create_select_slice(...a),
     }))
 );
 export const useDS = (selector)=> useD(selector, shallow);
@@ -206,7 +208,6 @@ export function Spinner({children}){
         obj.current.rotateX(delta * dir.x);//obj.current.rotation.x += delta * dir.x;
         obj.current.rotateY(delta * dir.y);//obj.current.rotation.y += delta * dir.y;
         obj.current.rotateZ(delta * dir.z);//obj.current.rotation.z += delta * dir.z;
-
     });
     return r('group', {ref:obj, children:children});
 }

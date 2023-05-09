@@ -1,7 +1,7 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {Row, Col, Container, Dropdown, Form, InputGroup} from 'boot';
 import {useD, useDS, use_window_size} from '../../../app.js';
-import {Badge} from '../../../node/badge.js'
+import {Badge} from '../../../node/basic.js'
 import {String} from '../../../node/input/string.js';
 import {Float} from '../../../node/input/float.js';
 

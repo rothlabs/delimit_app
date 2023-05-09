@@ -4,13 +4,18 @@ import {Outlet, Link} from 'rrd';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
-import {use_query} from './app.js';
+import {use_query, useD} from './app.js';
 
 
 export function Root(){
 	const {data, status} = use_query('GetUser', [
-		['user firstName'],
-	]); 
+		['user id firstName'],
+	],{onCompleted:(data)=>{
+		if(data.user){
+			console.log('User ID: '+data.user.id);
+			useD.getState().set(d=>{	 d.user = data.user.id; 	});
+		}
+	}}); 
 	return (
 		r(Fragment,{},
       		r(Navbar, {bg:'white', expand:'lg', collapseOnSelect:true},  
