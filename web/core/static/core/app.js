@@ -18,9 +18,9 @@ import {enablePatches} from 'immer'; enablePatches();
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zmiddle';
 import {shallow} from 'shallow';
-import {create_base_slice} from './state/base.js';
-import {create_graph_slice} from './state/graph.js';
-import {create_select_slice} from './state/select.js';
+import {create_basic_slice} from './store/basic.js';
+import {create_graph_slice} from './store/graph.js';
+import {create_select_slice} from './store/select.js';
 
 const new_id = length => {
     let s = '';
@@ -34,7 +34,7 @@ export const instance = new_id(16);
 
 export const useD = create(
     subscribeWithSelector((...a) => ({ 
-        ...create_base_slice(...a),
+        ...create_basic_slice(...a),
         ...create_graph_slice(...a),
         ...create_select_slice(...a),
     }))
@@ -68,7 +68,7 @@ export function random_vector({min, max, x, y ,z}){
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
-export const ctx = JSON.parse(document.getElementById('ctx').text);
+export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
 
 
 ColorManagement.enabled = true;

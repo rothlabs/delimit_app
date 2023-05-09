@@ -8,12 +8,11 @@ const root_tags={
     'view':  'viewer',
     'asset': 'owner',
 };
-//const atom_tags = ['switch', 'integer', 'decimal', 'text'];
 export const float_tags  = ['decimal', 'x', 'y', 'z'];
 export const string_tags = ['text', 'name', 'story'];
 export const val_tags = [...float_tags, ...string_tags];
 
-export const create_base_slice = (set,get)=>({
+export const create_basic_slice = (set,get)=>({
     user: 0,
     n: {},
     search: {depth:null, ids:null},

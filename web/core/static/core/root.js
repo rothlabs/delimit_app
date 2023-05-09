@@ -12,7 +12,7 @@ export function Root(){
 		['user id firstName'],
 	],{onCompleted:(data)=>{
 		if(data.user){
-			console.log('User ID: '+data.user.id);
+			//console.log('User ID: '+data.user.id);
 			useD.getState().set(d=>{	 d.user = data.user.id; 	});
 		}
 	}}); 

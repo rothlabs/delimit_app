@@ -1,5 +1,5 @@
 import {produce, produceWithPatches} from 'immer';
-import {model_tags, float_tags, val_tags} from './base.js';
+import {model_tags, float_tags, val_tags} from './basic.js';
 
 export const create_select_slice = (set,get)=>({
 
