@@ -17,8 +17,6 @@ export function Make(){
                         className: item.icon,
                         onClick:e=>useD.getState().set(d=>{
                             d.design.make(item.value);
-                                        //d.design.part = design_candidate;
-                                        //d.studio.mode = 'design'; 
                         }),
                     }, item.name)
                 ),

@@ -1,6 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
-import {useD, useDS, subD, theme, static_url, Spinner, Fixed_Size_Group} from '../../app.js';
+import {useD, useDS, subD, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text, Edges} from 'drei';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
@@ -13,9 +13,9 @@ const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMap
 
 export function Part({n}){ 
     const d = useD.getState();
-    const tag = d.n[n].tag;
     const pos = d.n[n].graph.pos; 
     const name = useD(d=> d.n[n].c.name);
+    const tag = useD(d=> d.n[n].t);
     const selected = useD(d=> d.n[n].selected); //const selected = useD(d=> d.n[id].gen.selected); 
     const obj = useRef();
     const hover = useD(d=> d.n[n].hover); //const [hover, set_hover] = useState(false);
@@ -58,7 +58,7 @@ export function Part({n}){
                     outlineWidth: '25%',
                     outlineColor: 'white',
                 },
-                    tag, // memoize it?
+                    readable(tag), // memoize it?
                     r('meshBasicMaterial', {color: color, toneMapped:false}),
                 ),
                 r(Selectable, {n:n},

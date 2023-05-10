@@ -29,14 +29,14 @@ export function Studio(){
         if(Object.keys(d.n).length < 1) open_pack.mutate();
     },[]);
     const push_pack = use_mutation('PushPack', [['pushPack reply restricted',
-        ['String instance',   instance],
-        ['[[ID]] atoms',   null], 
-        ['[Boolean] b',    null],
-        ['[Int] i',        null],
-        ['[Float] f',      null],
-        ['[String] s',     null],
-        ['[[[ID]]] parts', null],
-        ['[[[String]]] t', null],
+        ['String instance', instance],
+        ['[[ID]] atoms',    null], 
+        ['[Boolean] b',     null],
+        ['[Int] i',         null],
+        ['[Float] f',       null],
+        ['[String] s',      null],
+        ['[[[ID]]] parts',  null],
+        ['[[[String]]] t',  null],
     ]],{onCompleted:(data)=>{data = data.pushPack;
         //console.log('Push Pack Reply: '+data.reply);
         //console.log('Push Pack Restricted: '+data.restricted);

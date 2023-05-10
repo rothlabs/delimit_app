@@ -249,15 +249,17 @@ class Push_Pack(graphene.Mutation):
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
+                profile = Part.objects.get(t__v='profile', u=user)  #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
                 poll_pack = Part.objects.create(t=tag['poll_pack']) 
                 system_time = Int.objects.create(v=int(time.time()))
                 poll_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
-                client_instance = String.objects.get_or_create(v=instance)[0]
-                poll_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+                if instance:
+                    client_instance = String.objects.get_or_create(v=instance)[0]
+                    poll_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+                poll_pack.p.add(profile, through_defaults={'t':tag['poll_pack']}) # change so profile is only added if it actually gains or loses assets or something like that
                 #print('instance!!!')
                 #print(instance)
                 restricted = []#{p:[], b:[], i:[], f:[], s:[]}
-                profile = Part.objects.get(t__v='profile', u=user)  #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
                 if atoms:
                     # mutate atoms: 
                     for i in range(len(atoms[0])):
@@ -273,7 +275,7 @@ class Push_Pack(graphene.Mutation):
                     # make parts if don't exist:
                     for p in range(len(parts)): # use this loop to build list of parts for next loop
                         try: 
-                            part = Part.objects.create(id=parts[p][0][0])
+                            part = Part.objects.create(id=parts[p][0][0], t=tag[t[p][0][0]])
                             profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
                         except Exception as e: print(e)
                     # mutate parts

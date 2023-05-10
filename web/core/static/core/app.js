@@ -22,15 +22,15 @@ import {create_basic_slice} from './store/basic.js';
 import {create_graph_slice} from './store/graph.js';
 import {create_select_slice} from './store/select.js';
 
-const new_id = length => {
+export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
     Array.from({ length }).some(() => {
-      s += Math.random().toString(36).slice(2);
+      s += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
       return s.length >= length;
     });
     return s.slice(0, length);
 };
-export const instance = new_id(16);
+export const instance = make_id();
 
 export const useD = create(
     subscribeWithSelector((...a) => ({ 

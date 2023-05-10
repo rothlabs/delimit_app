@@ -80,6 +80,7 @@ class Part_User(Edge):
 system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'client_instance', 'system_time']
 tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [
     'user', 'open_pack', 'poll_pack', 'public', 'view', 'asset', 'profile', 'name', 'client_instance', 'system_time',
+    'part', 'point', 'line', 'x', 'y', 'z', 
 ]}
 
 @receiver(post_save, sender=User)

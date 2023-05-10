@@ -35,7 +35,7 @@ export const create_select_slice = (set,get)=>({
     })),
 
     set_select: n=>set(produce(d=>{
-        d.n.forEach(n=> n.selected=false);
+        Object.values(d.n).forEach(n=> n.selected=false);
         d.n[n].selected = true;
         d.post_select(d, n);
     })),
