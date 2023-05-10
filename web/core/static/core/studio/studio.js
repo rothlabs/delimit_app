@@ -41,7 +41,7 @@ export function Studio(){
         //console.log('Push Pack Reply: '+data.reply);
         //console.log('Push Pack Restricted: '+data.restricted);
     }});
-    d.set(d=> {d.mutate = push_pack.mutate;});
+    d.set(d=> {d.push_pack = push_pack.mutate;});
     return (
         r(Fragment,{}, 
             r(Poll), 

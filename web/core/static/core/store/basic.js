@@ -11,13 +11,16 @@ const root_tags={
 export const float_tags  = ['decimal', 'x', 'y', 'z'];
 export const string_tags = ['text', 'name', 'story'];
 export const val_tags = [...float_tags, ...string_tags];
+export const design_tags = ['part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
 
 export const create_basic_slice = (set,get)=>({
     n: {},
     user: 0,
     studio: {mode:'graph'},
     search: {depth:null, ids:null},
-    design: {part:null,},
+
+    design: {part:null, candidate:null, make:t=>console.log('make: '+t)},
+
     inspect: {
         content:{}, asset:{}, placeholder:{}, float_tags:float_tags, string_tags:string_tags, 
         update:d=>{//set(produce(d=>{
@@ -62,7 +65,7 @@ export const create_basic_slice = (set,get)=>({
             }
         });
         //console.log(edits);
-        d.mutate({variables:edits});
+        d.push_pack({variables:edits});
     })),
     merge: data=>{
         const [nextState, patches, inversePatches] = produceWithPatches(get(), d=>{ // must use set function in here to set derivitives ???

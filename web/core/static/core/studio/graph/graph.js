@@ -1,4 +1,4 @@
-import {createElement as r, useEffect, useState} from 'react';
+import {createElement as c, useEffect, useState} from 'react';
 import {useD, useDS} from '../../app.js';
 import {useFrame, useThree} from 'r3f';
 //import {use_d, shallow} from '../../state/state.js';
@@ -16,12 +16,13 @@ const tv = new Vector3();
 
 
 export function Graph(){
+    const mode = useD(d=> d.studio.mode);
     //console.log('render graph')
     return(
-        r('group', {name:'graph'},
-            r(Nodes),
-            r(Edges),
-            r(Arrange),
+        mode=='graph' && c('group', {name:'graph'},
+            c(Nodes),
+            c(Edges),
+            c(Arrange),
         )
     )
 }
@@ -74,9 +75,9 @@ function Nodes(){
     const d = useD.getState();
     //console.log('render graph nodes');
     return (
-        r('group', {name:'nodes'}, // ref:graph, dispose:null
+        c('group', {name:'nodes'}, // ref:graph, dispose:null
 			...nodes.map(n=> 
-				d.n[n].m=='p' ? r(Part,{n:n, key:n}) : r(Atom, {n:n, key:n}) 
+				d.n[n].m=='p' ? c(Part,{n:n, key:n}) : c(Atom, {n:n, key:n}) 
             ),
 		)
     )
@@ -90,9 +91,9 @@ function Edges(){
     //const d = useD.getState();
     //console.log('render graph edges');
     return (
-        r('group', {name:'edges'}, // ref:graph, dispose:null
+        c('group', {name:'edges'}, // ref:graph, dispose:null
 			...edges.map(e=> 
-				r(Edge, {r:e.r, tag:e.tag, n:e.n, key:e.r+e.tag+e.n})
+				c(Edge, {r:e.r, tag:e.tag, n:e.n, key:e.r+e.tag+e.n})
             ),
 		)
     )

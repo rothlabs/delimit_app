@@ -14,6 +14,47 @@ export function Inspect(){
     )
 }
 
+function Inspect_Design(){ 
+    const d = useD.getState();
+    const [show, set_show] = useState(false);
+    const part = useD(d=> d.design.part);
+    const string_tags = useD(d=> d.inspect.string_tags);
+    const float_tags = useD(d=> d.inspect.float_tags);
+    useEffect(()=>{
+        if(!part) set_show(false);
+    },[part]);
+    function toggled(s){
+        set_show(false);
+        if(s && part){
+            d.set_select(part);
+            set_show(true);
+        }
+    }
+    //console.log('render inspector');
+    return (
+        c(Dropdown, {show:show, onToggle:s=>toggled(s)}, //, id:'inspect_workspace_part'
+            c(Dropdown.Toggle, {
+                className:'bi-box me-1', 
+                variant:'outline-primary', size: 'lg', 
+                disabled: part==null,
+            }, ' '), //fs-4 font size to increase icon size but need to reduce padding too
+            c(Dropdown.Menu, {},
+                c(Row, {className:'row-cols-auto gap-2 mb-3'},
+                    c(Col,{}, // might need to add key to keep things straight 
+                        c(Badge, {n:part})
+                    ) 
+                ),
+                ...string_tags.map(t=>
+                    c(String, {t:t})
+                ),
+                ...float_tags.map(t=>
+                    c(Float, {t:t})
+                ),
+            )
+        )
+    )
+}
+
 function Inspect_Nodes(){ 
     const d = useD.getState();
     const [show, set_show] = useState(false);
@@ -37,47 +78,6 @@ function Inspect_Nodes(){
                             c(Badge, {n:n})
                         ) 
                     ),
-                ),
-                ...string_tags.map(t=>
-                    c(String, {t:t})
-                ),
-                ...float_tags.map(t=>
-                    c(Float, {t:t})
-                ),
-            )
-        )
-    )
-}
-
-function Inspect_Design(){ 
-    const d = useD.getState();
-    const [show, set_show] = useState(false);
-    const part = useD(d=> d.design.part);
-    const string_tags = useD(d=> d.inspect.string_tags);
-    const float_tags = useD(d=> d.inspect.float_tags);
-    useEffect(()=>{
-        if(!part) set_show(false);
-    },[part]);
-    function toggled(s){
-        set_show(false);
-        if(s && part){
-            d.set_select(part);
-            set_show(true);
-        }
-    }
-    //console.log('render inspector');
-    return (
-        c(Dropdown, {show:show, onToggle:s=>toggled(s)}, //, id:'inspect_workspace_part'
-            c(Dropdown.Toggle, {
-                className:'bi-box', 
-                variant:'outline-primary', size: 'lg', 
-                disabled: part==null,
-            }, ' '), //fs-4 font size to increase icon size but need to reduce padding too
-            c(Dropdown.Menu, {},
-                c(Row, {className:'row-cols-auto gap-2 mb-3'},
-                    c(Col,{}, // might need to add key to keep things straight 
-                        c(Badge, {n:part})
-                    ) 
                 ),
                 ...string_tags.map(t=>
                     c(String, {t:t})

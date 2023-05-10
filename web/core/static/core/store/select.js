@@ -1,5 +1,5 @@
 import {produce, produceWithPatches} from 'immer';
-import {model_tags, float_tags, val_tags} from './basic.js';
+import {model_tags, float_tags, design_tags} from './basic.js';
 
 export const create_select_slice = (set,get)=>({
 
@@ -37,14 +37,19 @@ export const create_select_slice = (set,get)=>({
     set_select: n=>set(produce(d=>{
         d.n.forEach(n=> n.selected=false);
         d.n[n].selected = true;
-        d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
-        d.inspect.update(d);
+        d.post_select(d, n);
     })),
 
     select: (n, selected)=>set(produce(d=>{  // make hover action and hovering store so the same node is highlighted for different occurances
         d.n[n].selected = selected;
-        d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
-        d.inspect.update(d);
+        d.post_select(d, n);
     })),
+
+    post_select: (d, n)=>{
+        d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
+        if(d.selected.nodes.length == 1 && design_tags.includes(d.n[n].t)){  d.design.candidate = n;  }
+        else{  d.design.candidate = null;}
+        d.inspect.update(d);
+    },
 
 });

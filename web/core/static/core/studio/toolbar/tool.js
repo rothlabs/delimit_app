@@ -1,16 +1,18 @@
 import {createElement as r} from 'react';
 import {ToggleButton, ButtonGroup} from 'boot';
+import {useD} from '../../app.js';
 //import {draw_mode_rv} from './studio.js';
 
 export function Tool(){
     //const draw_mode = useReactiveVar(draw_mode_rv);
+    const mode = useD(d=> d.studio.mode);
     const mode_buttons = [
         {name:'Draw',          icon:'bi-pencil',      value:'draw'},
         {name:'Add Points',    icon:'bi-plus-circle', value:'add'},
         {name:'Delete Points', icon:'bi-dash-circle', value:'delete'},
     ];
     return(
-        r(ButtonGroup, {}, 
+        mode=='design' && r(ButtonGroup, {}, 
             ...mode_buttons.map((button,i)=>
                 r(ToggleButton,{
                     id: 'draw_mode_'+i,
