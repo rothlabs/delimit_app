@@ -1,41 +1,44 @@
-import {createElement as c} from 'react';
+import {createElement as c, Fragment} from 'react';
 import {Row, Col, Container, ToggleButton, ButtonGroup} from 'boot';
-import {Inspect} from './inspect/inspect.js';
+import {Inspect} from './inspect.js';
 import {History} from './history.js';
-import {Instrument} from './instrument.js';
+import {Tool} from './tool.js';
 import {Visual} from './visual.js';
-import {useD} from '../../app.js';
+import {Select} from './select.js';
+import {useD, use_window_size} from '../../app.js';
 
 
 export function Toolbar(){
-    const tools = [Inspect, Visual, History, Multiselect, Instrument];
+    const window_size = use_window_size();
+    const mode = useD(d=> d.studio.mode);
+    const mode_buttons = [
+        {name:' Design',  icon:'bi-pencil-square',  value:'design'},
+        {name:' Graph',   icon:'bi-diagram-3',      value:'graph'},
+    ];
+    const tools = [Inspect, Visual, History, Select, Tool];
     return(
-        c(Container, {fluid:true, className:'bg-white pt-2 pb-2'}, // pb:5,
-            c(Row,{className:'row-cols-auto gap-2'},
-                ...tools.map(tool => 
-                    c(Col,{}, c(tool)),
+        c(Fragment,{},
+            c(ButtonGroup, {className:'position-absolute top-0 start-50 translate-middle-x mt-2', style:{zIndex: 1}}, 
+                    ...mode_buttons.map((button,i)=>
+                        c(ToggleButton,{
+                            id: 'studio_mode'+i,
+                            type: 'radio',
+                            variant: 'outline-primary', size: 'lg',
+                            value: button.value,
+                            checked: mode == button.value,
+                            onChange:e=> useD.getState().set(d=>{ d.studio.mode=e.currentTarget.value}),
+                            //className: button.icon,
+                        }, c('i',{className:button.icon, style:{fontSize:'24px'}}), window_size.width>576 ? button.name : '') //c('span',{className:'align-baseline'},button.name)
+                    ),
+            ),
+            c(Container, {fluid:true, className:'bg-white pt-2 pb-2'}, // pb:5,
+                c(Row,{className:'row-cols-auto gap-2'}, // use ButtonToolbar here instead?
+                    ...tools.map(tool => 
+                        c(Col,{}, c(tool)),
+                    )
                 )
             )
         )
     )
 }
 
-function Multiselect(){
-    const multiselect = useD(d=> d.multiselect);
-    return(
-        c(ButtonGroup, {}, 
-            c(ToggleButton,{
-                id: 'multiselect',
-                type: 'checkbox',
-                variant: 'outline-primary',
-                checked: multiselect,
-                value: '1',
-                onChange:(e)=> {
-                    console.log(e.currentTarget.value);
-                    useD.getState().set(d=>{  d.multiselect = !multiselect;  });
-                }, 
-                className: 'bi-cursor',
-            })
-        )
-    )
-}

@@ -12,7 +12,7 @@ export function History(p){
             ...mode_buttons.map(button=>
                 c(Button,{
                     //onClick:()=>action_rv({name:button.act}), 
-                    variant: 'outline-primary',
+                    variant: 'outline-primary', size: 'lg',
                     className: button.icon,
                 })
             )

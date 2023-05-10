@@ -13,18 +13,47 @@ export const string_tags = ['text', 'name', 'story'];
 export const val_tags = [...float_tags, ...string_tags];
 
 export const create_basic_slice = (set,get)=>({
-    user: 0,
     n: {},
+    user: 0,
+    studio: {mode:'graph'},
     search: {depth:null, ids:null},
-    inspect: {content:{}, asset:{}, placeholder:{}, float_tags:float_tags, string_tags:string_tags},
-
+    design: {part:null,},
+    inspect: {
+        content:{}, asset:{}, placeholder:{}, float_tags:float_tags, string_tags:string_tags, 
+        update:d=>{//set(produce(d=>{
+            const node_content = d.selected.nodes.map(n=> d.n[n]);
+            val_tags.forEach(t=>{
+                const nodes = node_content.filter(n=> n.c[t]!=null);
+                if(nodes.length){
+                    if(nodes.every((n,i,nodes)=> n.c[t]==nodes[0].c[t])){
+                        d.inspect.content[t] = nodes[0].c[t];
+                        d.inspect.placeholder[t] = '';
+                    }else{ 
+                        d.inspect.content[t] = '';
+                        d.inspect.placeholder[t] = 'Multi: ' + nodes.map(n=>n.c[t]).join(', ');
+                    }
+                    d.inspect.asset[t] = nodes.some(n=> n.asset);
+                }else{  d.inspect.content[t] = undefined;   }
+            })
+            Object.entries(model_tags).forEach(([m,t],i)=>{
+                const nodes = node_content.filter(n=> n.m==m && n.v!=null);
+                if(nodes.length){
+                    if(nodes.every((n,i,nodes)=> n.v==nodes[0].v)){
+                        d.inspect.content[t] = nodes[0].v;
+                        d.inspect.placeholder[t] = '';
+                    }else{ 
+                        d.inspect.content[t] = '';
+                        d.inspect.placeholder[t] = 'Multi: ' + nodes.map(n=>n.v).join(', ');
+                    }
+                    d.inspect.asset[t] = nodes.some(n=> n.asset);
+                }else{  d.inspect.content[t] = undefined;   }
+            });
+        },
+    },
     set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
-
-    //mutation: {nids:null, b:null, i:null, f:null, s:null, pids:null, t:null},//{nids:[[]], b:[], i:[], f:[], s:[], pids:[[[]]], t:[[[]]]},
     edit: func=>set(d=>produce(d, d=>func(d), patches=> { // must use set function in here to set derivitives  ???
         //console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:null, t:null};
-        //const edits = {atoms:null, b:null, i:null, f:null, s:null, parts:null, t:null};
         patches.forEach(patch=>{
             if(patch.path[2]=='v'){ // atom has changed
                 const n = patch.path[1];
@@ -35,9 +64,7 @@ export const create_basic_slice = (set,get)=>({
         //console.log(edits);
         d.mutate({variables:edits});
     })),
-
     merge: data=>{
-        //const d = get();
         const [nextState, patches, inversePatches] = produceWithPatches(get(), d=>{ // must use set function in here to set derivitives ???
             const window_size = (window.innerWidth+window.innerHeight)/4;
             ['p','b','i','f','s'].forEach(m=>{
@@ -85,12 +112,7 @@ export const create_basic_slice = (set,get)=>({
                     });
                 }); 
             }); 
-            //d.graph.update(d); // check to make sure there are actual changes before running update
-        });//,patches=>{
-        //    if(patches.length>0){       
-        //        get().graph.update();  
-        //    }
-        //});
+        });
         set(d=> nextState);
         if(patches.length>0){       
             get().graph.update();  

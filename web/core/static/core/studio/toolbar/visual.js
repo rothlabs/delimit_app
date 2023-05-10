@@ -8,7 +8,7 @@ export function Visual(){
     //const checked = node_tags.map(t=> !excluded_node_tags.includes(t));
     return(
         r(Dropdown, {},
-            r(Dropdown.Toggle, {className:'bi-eye', variant:'outline-primary'}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
+            r(Dropdown.Toggle, {className:'bi-eye', variant:'outline-primary', size: 'lg',}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
             r(Dropdown.Menu, {},
                 //...node_tags.map((tag, i)=>{
                 //    r(Form.Check, {

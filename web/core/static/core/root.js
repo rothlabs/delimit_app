@@ -1,5 +1,5 @@
-import {createElement as r, Fragment, useEffect} from 'react';
-import {Container, Nav, Navbar} from 'boot';
+import {createElement as c, Fragment, useEffect} from 'react';
+import {Container, Nav, Navbar, ToggleButton, ButtonGroup} from 'boot';
 import {Outlet, Link} from 'rrd';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
@@ -14,37 +14,37 @@ export function Root(){
 		if(data.user){
 			//console.log('User ID: '+data.user.id);
 			useD.getState().set(d=>{	 d.user = data.user.id; 	});
-		}
+		} 
 	}}); 
 	return (
-		r(Fragment,{},
-      		r(Navbar, {bg:'white', expand:'lg', collapseOnSelect:true},  
-        		r(Container,{fluid:true, className:'ps-4 pe-4'},
-          			r(Navbar.Brand, {style:{cursor:'pointer'}, as:Link, to:'/'}, 
-            			r(Logo, {height:40}),
+		c(Fragment,{},
+      		c(Navbar, {bg:'white', expand:'lg', collapseOnSelect:true},  
+        		c(Container,{fluid:true, className:'ps-4 pe-4'},
+          			c(Navbar.Brand, {style:{cursor:'pointer'}, as:Link, to:'/'}, 
+            			c(Logo, {height:40}),
           			),
-					r(Navbar.Toggle, {ariacontrols:"basic-navbar-nav"}),
-          			r(Navbar.Collapse, {id:"basic-navbar-nav"},
-            			r(Nav, {className:"me-auto"},
-              				r(Nav.Link, {as:Link, to:'catalog', eventKey:1}, 'Catalog'),
-              				r(Nav.Link, {as:Link, to:'studio', eventKey:2},  'Studio'),
+					c(Navbar.Toggle, {ariacontrols:"basic-navbar-nav"}),
+          			c(Navbar.Collapse, {id:"basic-navbar-nav"},
+            			c(Nav, {className:"me-auto"},
+              				c(Nav.Link, {as:Link, to:'catalog', eventKey:1, className:'ms-auto'}, 'Catalog'),
+              				c(Nav.Link, {as:Link, to:'studio', eventKey:2, className:'ms-auto'},  'Studio'),
             			),
-						r(Nav, {className:"me-2"},
-							!data ? status && r(status) :
-								data.user ? r(Fragment,{},
-									r(Nav.Link, {eventKey:3}, 'Account ('+data.user.firstName+')'),
-									r(Nav.Link, {onClick:()=>show_logout(true), eventKey:4}, r('i',{className:'bi-box-arrow-left'}), ' Sign Out'),
+						c(Nav, {className:"me-2"},
+							!data ? status && c(status) :
+								data.user ? c(Fragment,{},
+									c(Nav.Link, {eventKey:3, className:'ms-auto'}, 'Account ('+data.user.firstName+')'),
+									c(Nav.Link, {onClick:()=>show_logout(true), eventKey:4, className:'ms-auto'}, c('i',{className:'bi-box-arrow-left'}), ' Sign Out'),
 								): 
-									r(Nav.Link, {onClick:()=>show_login(true), eventKey:4}, r('i',{className:'bi-box-arrow-in-right'}), ' Sign In'),
+									c(Nav.Link, {onClick:()=>show_login(true), eventKey:5, className:'ms-auto'}, c('i',{className:'bi-box-arrow-in-right'}), ' Sign In'),
             			),
           			),
         		)
       		),
-			r(Login),
-			r(Logout),
-			//r(Copy_Project),
-			//r(Delete_Project),
-      		r(Outlet),
+			c(Login),
+			c(Logout),
+			//c(Copy_Project),
+			//c(Delete_Project),
+      		c(Outlet),
     	)
   	)
 } 

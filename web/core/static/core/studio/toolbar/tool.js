@@ -2,7 +2,7 @@ import {createElement as r} from 'react';
 import {ToggleButton, ButtonGroup} from 'boot';
 //import {draw_mode_rv} from './studio.js';
 
-export function Instrument(){
+export function Tool(){
     //const draw_mode = useReactiveVar(draw_mode_rv);
     const mode_buttons = [
         {name:'Draw',          icon:'bi-pencil',      value:'draw'},
@@ -15,7 +15,7 @@ export function Instrument(){
                 r(ToggleButton,{
                     id: 'draw_mode_'+i,
                     type: 'radio',
-                    variant: 'outline-primary',
+                    variant: 'outline-primary', size: 'lg',
                     //value: button.value,
                     //checked: draw_mode == button.value,
                     //onChange:(e)=> draw_mode_rv(e.currentTarget.value),

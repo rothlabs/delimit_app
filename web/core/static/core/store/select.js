@@ -30,40 +30,21 @@ export const create_select_slice = (set,get)=>({
         },
     }, 
 
-    hover: (id, hover)=>set(produce(d=>{
-        d.n[id].hover = hover;
+    hover: (n, hover)=>set(produce(d=>{
+        d.n[n].hover = hover;
     })),
 
-    select: (id, selected)=>set(produce(d=>{  // make hover action and hovering store so the same node is highlighted for different occurances
-        d.n[id].selected = selected;
+    set_select: n=>set(produce(d=>{
+        d.n.forEach(n=> n.selected=false);
+        d.n[n].selected = true;
         d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
-        const node_content = d.selected.nodes.map(n=> d.n[n]);
-        val_tags.forEach(t=>{
-            const nodes = node_content.filter(n=> n.c[t]!=null);
-            if(nodes.length){
-                if(nodes.every((n,i,nodes)=> n.c[t]==nodes[0].c[t])){
-                    d.inspect.content[t] = nodes[0].c[t];
-                    d.inspect.placeholder[t] = '';
-                }else{ 
-                    d.inspect.content[t] = '';
-                    d.inspect.placeholder[t] = 'Multi: ' + nodes.map(n=>n.c[t]).join(', ');
-                }
-                d.inspect.asset[t] = nodes.some(n=> n.asset);
-            }else{  d.inspect.content[t] = undefined;   }
-        })
-        Object.entries(model_tags).forEach(([m,t],i)=>{
-            const nodes = node_content.filter(n=> n.m==m && n.v!=null);
-            if(nodes.length){
-                if(nodes.every((n,i,nodes)=> n.v==nodes[0].v)){
-                    d.inspect.content[t] = nodes[0].v;
-                    d.inspect.placeholder[t] = '';
-                }else{ 
-                    d.inspect.content[t] = '';
-                    d.inspect.placeholder[t] = 'Multi: ' + nodes.map(n=>n.v).join(', ');
-                }
-                d.inspect.asset[t] = nodes.some(n=> n.asset);
-            }else{  d.inspect.content[t] = undefined;   }
-        });
+        d.inspect.update(d);
+    })),
+
+    select: (n, selected)=>set(produce(d=>{  // make hover action and hovering store so the same node is highlighted for different occurances
+        d.n[n].selected = selected;
+        d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
+        d.inspect.update(d);
     })),
 
 });
