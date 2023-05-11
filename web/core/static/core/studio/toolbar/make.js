@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {Dropdown, Button, Row} from 'boot';
-import {ssp, useD} from '../../app.js'
+import {ssp} from '../../app.js'
 
 export function Make(){
     const items = [

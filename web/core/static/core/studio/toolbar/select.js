@@ -1,9 +1,9 @@
 import {createElement as c} from 'react';
 import {ToggleButton, ButtonGroup} from 'boot';
-import {ss, useD} from '../../app.js';
+import {ss, useS} from '../../app.js';
 
 export function Select(){
-    const multiselect = useD(d=> d.pick.multiselect);
+    const multiselect = useS(d=> d.pick.multiselect);
     return(
         c(ButtonGroup, {}, 
             c(ToggleButton,{

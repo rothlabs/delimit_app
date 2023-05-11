@@ -1,7 +1,7 @@
 import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from 'r3f';
 import {Toolbar} from './toolbar/toolbar.js';
-import {useD, gs, ss, ssp, use_query, use_mutation, instance} from '../app.js';
+import {useS, gs, ss, ssp, use_query, use_mutation, instance} from '../app.js';
 import {Viewport} from './viewport.js';
 
 //export const selection_rv = makeVar();
@@ -14,7 +14,7 @@ const edges = ['p','b','i','f','s'].map(m=> m+'e{ t{v} n{id}} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v}r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
-    const search = useD(d=> d.search);
+    const search = useS(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
@@ -22,7 +22,7 @@ export function Studio(){
         console.log('open_pack');
         console.log(data);
         if(data.pack) ssp(d=> d.receive(d,data.pack) ); 
-        console.log(useD.getState().n);
+        console.log(useS.getState().n);
     }}); 
     ss(d=> d.open_pack = open_pack.mutate );//d.set(d=> {d.open_pack = open_pack.mutate;});
     useEffect(()=>{

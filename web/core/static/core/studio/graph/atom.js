@@ -1,5 +1,5 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
-import {useD, subD, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text, Edges} from 'drei';
 import * as THREE from 'three';
 import { Selectable } from '../../node/basic.js';
@@ -9,13 +9,13 @@ const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMap
 
 export function Atom({n}){
     const obj = useRef();
-    const picked = useD(d=> d.n[n].picked); //const picked = useD(d=> d.selection.includes(n));
-    const hover = useD(d=> d.n[n].hover);
+    const picked = useS(d=> d.n[n].picked); //const picked = useD(d=> d.selection.includes(n));
+    const hover = useS(d=> d.n[n].hover);
     const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
-    const val = useD(d=> ''+d.n[n].v);
-    const tag = useD(d=> d.n[n].t); //d.tag(n)
-    const pos = useD(d=> d.n[n].graph.pos); // can i remove?!!!
-    useEffect(()=>subD(d=> d.n[n].graph, d=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
+    const val = useS(d=> ''+d.n[n].v);
+    const tag = useS(d=> d.n[n].t); //d.tag(n)
+    const pos = useS(d=> d.n[n].graph.pos); // can i remove?!!!
+    useEffect(()=>subS(d=> d.n[n].graph, d=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
         obj.current.obj.position.copy(d.pos);
     }),[]); 
     //console.log('render atom');

@@ -1,5 +1,5 @@
 import {createElement as c, useEffect, useState} from 'react';
-import {ss, ssp, useD, useDS} from '../../app.js';
+import {ss, ssp, useS, useSS} from '../../app.js';
 import {useFrame, useThree} from 'r3f';
 //import {use_d, shallow} from '../../state/state.js';
 import {Part} from './part.js';
@@ -16,7 +16,7 @@ const tv = new Vector3();
 
 
 export function Graph(){
-    const mode = useD(d=> d.studio.mode);
+    const mode = useS(d=> d.studio.mode);
     //console.log('render graph')
     return(
         mode=='graph' && c('group', {name:'graph'},
@@ -28,9 +28,9 @@ export function Graph(){
 }
 
 function Arrange(){
-    const arrange = useD(d=> d.graph.arrange);  
-    const nodes = useD(d=> d.graph.nodes);
-    const edges = useD(d=> d.graph.edges);
+    const arrange = useS(d=> d.graph.arrange);  
+    const nodes = useS(d=> d.graph.nodes);
+    const edges = useS(d=> d.graph.edges);
     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
         if(arrange && nodes.length > 0){
             var moving = false;
@@ -71,8 +71,8 @@ function Arrange(){
 }
 
 function Nodes(){
-    const nodes = useDS(d=> d.graph.nodes);  
-    const d = useD.getState();
+    const nodes = useSS(d=> d.graph.nodes);  
+    const d = useS.getState();
     //console.log('render graph nodes');
     return (
         c('group', {name:'nodes'}, // ref:graph, dispose:null
@@ -84,7 +84,7 @@ function Nodes(){
 }
 
 function Edges(){
-    const edges = useD(d=> d.graph.edges);  // rerendering every time the client polls for update!! 
+    const edges = useS(d=> d.graph.edges);  // rerendering every time the client polls for update!! 
     //const edges = useDS(d=> d.graph.edge_roots);
     //const tags = useDS(d=> d.graph.edge_tags);
     //const nodes = useDS(d=> d.graph.edge_nodes);

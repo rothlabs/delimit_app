@@ -1,7 +1,7 @@
 import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast} from '../meshline.js';
 import {useThree, useFrame} from 'r3f';
-import {subDS, theme, static_url, Fixed_Size_Group} from '../../app.js';
+import {subSS, theme, static_url, Fixed_Size_Group} from '../../app.js';
 import {Text} from 'drei';
 import {Vector3} from 'three';
 
@@ -21,7 +21,7 @@ export function Edge({r, tag, n}){
     useFrame(()=>{
         meshline_material.current.lineWidth = 1.5 / camera.zoom;
     });
-    useEffect(()=> subDS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
+    useEffect(()=> subSS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
         text .current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.35) );
         arrow.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.65) );
         arrow.current.obj.lookAt(d[0].pos);

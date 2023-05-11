@@ -2,7 +2,7 @@ import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, Row, InputGroup} from 'boot';
 import {makeVar, useReactiveVar} from 'apollo';
 import {Logo} from './logo.js';
-import {gs, ssp, useD, use_mutation} from './app.js';
+import {gs, ssp, useS, use_mutation} from './app.js';
 import {useNavigate} from 'rrd';
 
 export const show_login = makeVar(false);

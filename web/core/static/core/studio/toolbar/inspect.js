@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {Row, Col, Container, Dropdown, Form, ButtonGroup} from 'boot';
-import {ss, useD, use_window_size} from '../../app.js';
+import {ss, useS, use_window_size} from '../../app.js';
 import {Badge} from '../../node/basic.js'
 import {String} from '../../node/input/string.js';
 import {Float} from '../../node/input/float.js';
@@ -15,13 +15,13 @@ export function Inspect(){
 }
 
 function Inspect_Design(){ 
-    const d = useD.getState();
+    const d = useS.getState();
     const [show, set_show] = useState(false);
     const window_size = use_window_size();
-    const part = useD(d=> d.design.part);
-    const nodes = useD(d=> d.pick.nodes); 
-    const string_tags = useD(d=> d.inspect.string_tags);
-    const float_tags = useD(d=> d.inspect.float_tags);
+    const part = useS(d=> d.design.part);
+    const nodes = useS(d=> d.pick.nodes); 
+    const string_tags = useS(d=> d.inspect.string_tags);
+    const float_tags = useS(d=> d.inspect.float_tags);
     //useEffect(()=>{
     //    set_show(false);
     //},[part]);
@@ -65,11 +65,11 @@ function Inspect_Design(){
 function Inspect_Nodes(){ 
     const [show, set_show] = useState(false);
     const window_size = use_window_size();
-    const design_part = useD(d=> d.design.part);
-    var nodes = useD(d=> d.pick.nodes); 
+    const design_part = useS(d=> d.design.part);
+    var nodes = useS(d=> d.pick.nodes); 
     if(nodes.length==1 && nodes[0]==design_part) nodes = [];
-    const string_tags = useD(d=> d.inspect.string_tags);
-    const float_tags = useD(d=> d.inspect.float_tags);
+    const string_tags = useS(d=> d.inspect.string_tags);
+    const float_tags = useS(d=> d.inspect.float_tags);
     useEffect(()=>{
         if(window_size.width>=576){
             nodes.length>0 ? set_show(true) : set_show(false);

@@ -1,6 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
-import {useD, useDS, subD, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, useSS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text, Edges} from 'drei';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
@@ -12,15 +12,15 @@ const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMap
 //const tv = new THREE.Vector3();
 
 export function Part({n}){ 
-    const d = useD.getState();
+    const d = useS.getState();
     const pos = d.n[n].graph.pos; 
-    const name = useD(d=> d.n[n].c.name);
-    const tag = useD(d=> d.n[n].t);
-    const picked = useD(d=> d.n[n].picked); //const picked = useD(d=> d.n[id].gen.picked); 
+    const name = useS(d=> d.n[n].c.name);
+    const tag = useS(d=> d.n[n].t);
+    const picked = useS(d=> d.n[n].picked); //const picked = useD(d=> d.n[id].gen.picked); 
     const obj = useRef();
-    const hover = useD(d=> d.n[n].hover); //const [hover, set_hover] = useState(false);
+    const hover = useS(d=> d.n[n].hover); //const [hover, set_hover] = useState(false);
     const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
-    useEffect(()=> subD(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
+    useEffect(()=> subS(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
         obj.current.obj.position.copy(d.pos);
         //console.log('update part pos');
     }), []);

@@ -1,11 +1,11 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Container, Form, InputGroup} from 'boot';
-import {ssp, useD, readable} from '../../app.js';
+import {ssp, useS, readable} from '../../app.js';
 
 export function Float({t}){
-    const content   = useD(d=> d.inspect.content[t]);
-    const placeholder = useD(d=> d.inspect.placeholder[t]);
-    const asset = useD(d=> d.inspect.asset[t]);
+    const content   = useS(d=> d.inspect.content[t]);
+    const placeholder = useS(d=> d.inspect.placeholder[t]);
+    const asset = useS(d=> d.inspect.asset[t]);
     return (
         content!=undefined && c(InputGroup, {className:'mb-3'}, 
             c(InputGroup.Text, {}, readable(t)),

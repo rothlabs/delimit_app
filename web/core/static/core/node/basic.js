@@ -1,10 +1,10 @@
 import {createElement as c} from 'react';
 import {Badge as Boot_Badge} from 'boot';
-import {useD, ss, readable} from '../app.js';
+import {useS, ss, readable} from '../app.js';
 
 export function Badge({n}){ // more than one reason to change but okay because it's so simple?
-    const tag = useD(d=> d.n[n].t);
-    const name = useD(d=> d.n[n].c.name);
+    const tag = useS(d=> d.n[n].t);
+    const name = useS(d=> d.n[n].c.name);
     //console.log('render node badge');
     return (
         c(Boot_Badge, {bg:'primary'}, (name?name:'') + ' ('+readable(tag)+')')
@@ -12,9 +12,9 @@ export function Badge({n}){ // more than one reason to change but okay because i
 }
 
 export function Selectable({n, children}){
-    const d = useD.getState();
-    const multiselect = useD(d=> d.pick.multiselect);
-    const picked = useD(d=> d.n[n].picked);
+    const d = useS.getState();
+    const multiselect = useS(d=> d.pick.multiselect);
+    const picked = useS(d=> d.n[n].picked);
     return c('group', {
         onClick: (e)=> {e.stopPropagation(); 
             if(multiselect){  ss(d=>d.pick.mod(d,n, !picked))  }else{   ss(d=>d.pick.mod(d,n,true));  }

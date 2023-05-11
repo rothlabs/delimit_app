@@ -6,14 +6,14 @@ import {Tool} from './tool.js';
 import {Visual} from './visual.js';
 import {Select} from './select.js';
 import {Make} from './make.js';
-import {useD, ss, use_window_size} from '../../app.js';
+import {useS, ss, use_window_size} from '../../app.js';
 
 
 export function Toolbar(){
     const window_size = use_window_size();
-    const mode = useD(d=> d.studio.mode);
-    const design_part = useD(d=> d.design.part);
-    const design_candidate = useD(d=> d.design.candidate);
+    const mode = useS(d=> d.studio.mode);
+    const design_part = useS(d=> d.design.part);
+    const design_candidate = useS(d=> d.design.candidate);
     const mode_buttons = [
         {name:' Design',  icon:'bi-pencil-square',  value:'design', disabled:design_part==null},
         {name:' Graph',   icon:'bi-diagram-3',      value:'graph',  disabled:false},

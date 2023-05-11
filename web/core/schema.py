@@ -85,9 +85,12 @@ class Query(graphene.ObjectType):
                 Int.objects.filter(e__t__v='system_time', v__lt=int(time.time())-4).delete() # delete if 4 seconds old! make client pull everything if disconnects for more than 4 seconds
                 Part.objects.filter(~Q(ie__t__v='system_time'), t__v='poll_pack').delete()
                 String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
-                open_pack = Part.objects.get(t=tag['open_pack'], u=user)
+                open_pack = Part.objects.get(t__v='open_pack', u=user)
                 poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
-                parts   = Part.objects.filter(r=open_pack).filter(r__in=poll_packs).distinct()
+                #open_root = Q(r__r)
+                
+
+                parts   = Part.objects.filter(r=open_pack).filter(r__in=poll_packs).distinct() # make this the behavior of shallow_pack
                 bools   = Bool.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
                 ints    = Int.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
                 floats  = Float.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
@@ -295,6 +298,7 @@ class Push_Pack(graphene.Mutation):
                         try: 
                             part = Part.objects.create(id=parts[p][0][0], t=tag[t[p][0][0]])
                             profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
+                            
                         except Exception as e: print(e)
                     # mutate parts
                     for p in range(len(parts)): # need to check if id is in correct format
@@ -324,6 +328,9 @@ class Push_Pack(graphene.Mutation):
                         except Exception as e: 
                             print(e)
                             restricted.append(parts[p][0][0])
+                #open_pack = Part.objects.get(t__v='open_pack', u=user)
+                #parts = poll_pack.p.filter(r=open_pack)
+                #open_pack.p.add(*parts, through_defaults={'t':tag['open_pack']})
             else: reply = 'Sign-in required.'
             return Push_Pack(reply=reply, restricted=restricted) #restricted=Part_Type(p=r.p, b=r.b, i=r.i, f=r.f, s=r.s)
         except Exception as e: print(e)
