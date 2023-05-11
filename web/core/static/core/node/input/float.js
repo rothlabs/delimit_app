@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Container, Form, InputGroup} from 'boot';
-import {useD, readable} from '../../app.js';
+import {ssp, useD, readable} from '../../app.js';
 
 export function Float({t}){
     const content   = useD(d=> d.inspect.content[t]);
@@ -11,7 +11,8 @@ export function Float({t}){
             c(InputGroup.Text, {}, readable(t)),
             c(Form.Control, {maxLength:64, value:content, placeholder:placeholder, disabled:!asset, onChange:(e)=>{
                 if(!isNaN(e.target.value) || e.target.value=='.'){
-                    useD.getState().selected.edit_val(t, e.target.value);
+                    //useD.getState().pick.edit_val(t, e.target.value);
+                    ssp(d=> d.pick.set_v(d, t, e.target.value));
                 }
             }}),
         )

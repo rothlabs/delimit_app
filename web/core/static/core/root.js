@@ -4,7 +4,7 @@ import {Outlet, Link} from 'rrd';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
-import {use_query, useD} from './app.js';
+import {ss, use_query} from './app.js';
 
 
 export function Root(){
@@ -13,7 +13,7 @@ export function Root(){
 	],{onCompleted:(data)=>{
 		if(data.user){
 			//console.log('User ID: '+data.user.id);
-			useD.getState().set(d=>{	 d.user = data.user.id; 	});
+			ss(d=> d.user = data.user.id );
 		} 
 	}}); 
 	return (

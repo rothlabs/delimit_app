@@ -16,10 +16,10 @@ export function Part({n}){
     const pos = d.n[n].graph.pos; 
     const name = useD(d=> d.n[n].c.name);
     const tag = useD(d=> d.n[n].t);
-    const selected = useD(d=> d.n[n].selected); //const selected = useD(d=> d.n[id].gen.selected); 
+    const picked = useD(d=> d.n[n].picked); //const picked = useD(d=> d.n[id].gen.picked); 
     const obj = useRef();
     const hover = useD(d=> d.n[n].hover); //const [hover, set_hover] = useState(false);
-    const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
+    const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
     useEffect(()=> subD(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
         obj.current.obj.position.copy(d.pos);
         //console.log('update part pos');
@@ -29,7 +29,7 @@ export function Part({n}){
         r('group', {name: 'part'}, 
             r(Fixed_Size_Group, {
                 ref: obj,
-                size: selected ? 35 : 25, // 1.5 : 1, adjust size of other items
+                size: picked ? 35 : 25, // 1.5 : 1, adjust size of other items
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }
@@ -47,8 +47,8 @@ export function Part({n}){
                 r(Spinner, {}, 
                     r('mesh', {},
                         r('icosahedronGeometry'),
-                        r('meshBasicMaterial', {color: selected||hover? theme.primary : 'white', toneMapped:false}),
-                        r(Edges, {scale:1.05, color:selected||hover? 'white' : theme.primary},),
+                        r('meshBasicMaterial', {color: picked||hover? theme.primary : 'white', toneMapped:false}),
+                        r(Edges, {scale:1.05, color:picked||hover? 'white' : theme.primary},),
                     )
                 ),
                 r(Text, {

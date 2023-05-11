@@ -2,6 +2,9 @@ import {produce, produceWithPatches} from 'immer';
 import {Vector3} from 'three';
 import {graph_z} from '../studio/graph/graph.js';
 import {random_vector, readable, make_id} from '../app.js';
+import {graph} from './graph.js';
+import {inspect} from './inspect.js';
+import {pick} from './pick.js';
 
 export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const root_tags={
@@ -13,11 +16,15 @@ export const string_tags = ['text', 'name', 'story'];
 export const val_tags = [...float_tags, ...string_tags];
 export const design_tags = ['part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
 
-export const create_basic_slice = (set,get)=>({
+export const create_base_slice = (set,get)=>({
     n: {},
     user: 0,
     studio: {mode:'graph'},
     search: {depth:null, ids:null},
+
+    graph:graph,
+    inspect:inspect,
+    pick:pick,
 
     design: {
         part:null, candidate:null, 
@@ -27,58 +34,25 @@ export const create_basic_slice = (set,get)=>({
                 d.studio.mode = 'graph';
             }
         },
-        make:t=>{
-            get().edit(d=>{
-                const window_size = (window.innerWidth+window.innerHeight)/4;
-                const n = make_id();
-                d.n[n] = {
-                    m: 'p',
-                    t: t,
-                    c: {}, // name: 'untitled'
-                    r: {},
-                    n: {},
-                    graph: { // put in d.graph.node.vectors
-                        pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
-                        dir: new Vector3(),
-                    },
-                };
-            });
+        make: (d, t)=>{
+            const window_size = (window.innerWidth+window.innerHeight)/4;
+            const n = make_id();
+            d.n[n] = {
+                m: 'p',
+                t: t,
+                c: {}, // name: 'untitled'
+                r: {},
+                n: {},
+                graph: { // put in d.graph.node.vectors
+                    pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
+                    dir: new Vector3(),
+                },
+            };
+            d.consume = d.send;
         }
     },
 
-    inspect: {
-        content:{}, asset:{}, placeholder:{}, float_tags:float_tags, string_tags:string_tags, 
-        update:d=>{//set(produce(d=>{
-            const node_content = d.selected.nodes.map(n=> d.n[n]);
-            val_tags.forEach(t=>{
-                const nodes = node_content.filter(n=> n.c[t]!=null);
-                if(nodes.length){
-                    if(nodes.every((n,i,nodes)=> n.c[t]==nodes[0].c[t])){
-                        d.inspect.content[t] = nodes[0].c[t];
-                        d.inspect.placeholder[t] = '';
-                    }else{ 
-                        d.inspect.content[t] = '';
-                        d.inspect.placeholder[t] = nodes.map(n=>n.c[t]).join(',  ');
-                    }
-                    d.inspect.asset[t] = nodes.some(n=> n.asset);
-                }else{  d.inspect.content[t] = undefined;   }
-            })
-            Object.entries(model_tags).forEach(([m,t],i)=>{
-                const nodes = node_content.filter(n=> n.m==m && n.v!=null);
-                if(nodes.length){
-                    if(nodes.every((n,i,nodes)=> n.v==nodes[0].v)){
-                        d.inspect.content[t] = nodes[0].v;
-                        d.inspect.placeholder[t] = '';
-                    }else{ 
-                        d.inspect.content[t] = '';
-                        d.inspect.placeholder[t] = nodes.map(n=>n.v).join(',  ');
-                    }
-                    d.inspect.asset[t] = nodes.some(n=> n.asset);
-                }else{  d.inspect.content[t] = undefined;   }
-            });
-        },
-    },
-    set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
+    //set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
     
     close: (d, nodes)=>{
         const close_pack = {p:[], b:[], i:[], f:[], s:[]};
@@ -94,18 +68,18 @@ export const create_basic_slice = (set,get)=>({
             if(d.n[n].m=='p'){  d.n[n].n = {};  }
             else{  d.n[n].v = null;  }
         });
-        d.post_select(d);
+        d.pick.update(d);
         d.design.update(d);
         d.graph.update(d);
         d.close_pack({variables:close_pack});
     },
 
     // use produceWithPatches so can get the new d
-    edit: func=>{//set(d=>produce(d, d=>func(d), patches=> { 
-        var d = get();
-        const [nextState, patches, inversePatches] = produceWithPatches(d, d=>func(d)); 
-        set(d=> nextState);
-        d = get();
+    send: (d, patches)=>{//set(d=>produce(d, d=>func(d), patches=> { 
+        //var d = get();
+        //const [dd, patches, inversePatches] = produceWithPatches(d, d=>func(d)); 
+        //set(nextState);//set(d=> nextState);
+        //d = nextState;//get();
         console.log('patches');
         console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[]};
@@ -128,9 +102,9 @@ export const create_basic_slice = (set,get)=>({
         console.log(edits);
         d.push_pack({variables:edits});
     },
-
-    merge: data=>{
-        const [nextState, patches, inversePatches] = produceWithPatches(get(), d=>{ // must use set function in here to set derivitives ???
+    
+    receive: (d, data)=>{
+        //const [next_state, patches, inversePatches] = produceWithPatches(d, d=>{ // must use set function in here to set derivitives ???
             const window_size = (window.innerWidth+window.innerHeight)/4;
             ['p','b','i','f','s'].forEach(m=>{
                 data[m].forEach(n=>{
@@ -178,11 +152,18 @@ export const create_basic_slice = (set,get)=>({
                     });
                 }); 
             }); 
-        });
-        set(d=> nextState);
-        if(patches.length>0){       
-            set(produce(d=>d.graph.update(d)));  
+        //});
+        d.consume=(d, patches)=>{
+            if(patches.length>0){       
+                d.graph.update(d); 
+            }
         }
+        //set(d);//set(d=> nextState);
+        //d = nextState;
+        //if(patches.length>0){       
+        //    set(produce(d=>d.graph.update(d)));  // change so merge is called from inside ss so no set(produce needed here 
+        //}
+        //return dd;
     },
 
 });

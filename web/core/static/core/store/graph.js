@@ -1,4 +1,4 @@
-import {produce, current, enablePatches} from 'immer';
+//import {produce, current, enablePatches} from 'immer';
 
 //const node_tag_vis = {};
 
@@ -6,27 +6,27 @@ import {produce, current, enablePatches} from 'immer';
 
 // instead of using these functions as selectors (expensive frequent op), keep them as derivitives
 // in the merge function of base, update the derivitives when there is a change
-export const create_graph_slice = (set,get)=>({
-    graph:{
-        nodes: [],
-        edges: [],
-        update: d=>{
-            //console.log(current(d).n);
-            d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open);
-            d.graph.edges = [];
-            //Object.entries(d.n).forEach(([rid,r],i)=> {
-            d.graph.nodes.forEach(rid=>{
-                //var r = d.n[rid];
-                d.n[rid].n && Object.entries(d.n[rid].n).forEach(([tag,nodes],i)=>{
-                    nodes.forEach(nid=>{
-                        d.n[nid] && d.n[nid].open && rid!=nid && d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
-                    });
+//export const create_graph_slice = (set,get)=>({
+export const graph = {
+    nodes: [],
+    edges: [],
+    update: d=>{
+        //console.log(current(d).n);
+        d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open);
+        d.graph.edges = [];
+        //Object.entries(d.n).forEach(([rid,r],i)=> {
+        d.graph.nodes.forEach(rid=>{
+            //var r = d.n[rid];
+            d.n[rid].n && Object.entries(d.n[rid].n).forEach(([tag,nodes],i)=>{
+                nodes.forEach(nid=>{
+                    d.n[nid] && d.n[nid].open && rid!=nid && d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
                 });
             });
-            d.graph.arrange = true;
-        },
-    }
-});
+        });
+        d.graph.arrange = true;
+    },
+}
+//});
 
 
 // update: d=>{

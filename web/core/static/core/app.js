@@ -14,13 +14,14 @@ import {useGLTF} from 'drei';
 import * as THREE from 'three';
 import {useFrame, useThree} from 'r3f';
 
-import {enablePatches} from 'immer'; enablePatches();
+import {produce, produceWithPatches, enablePatches} from 'immer'; enablePatches();
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zmiddle';
 import {shallow} from 'shallow';
-import {create_basic_slice} from './store/basic.js';
-import {create_graph_slice} from './store/graph.js';
-import {create_select_slice} from './store/select.js';
+import {create_base_slice} from './store/base.js';
+//import {create_graph_slice} from './store/graph.js';
+//import {create_select_slice} from './store/select.js';
+//import {create_inspect_slice} from './store/inspect.js';
 
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
@@ -34,14 +35,25 @@ export const instance = make_id();
 
 export const useD = create(
     subscribeWithSelector((...a) => ({ 
-        ...create_basic_slice(...a),
-        ...create_graph_slice(...a),
-        ...create_select_slice(...a),
+        ...create_base_slice(...a),
+        //...create_graph_slice(...a),
+        //...create_select_slice(...a),
+        //...create_inspect_slice(...a),
     }))
 );
+export const ss = func=> useD.setState(produce(d=>{func(d)}));
+export const ssp = func=> useD.setState(d=>{
+    const [dd, patches, inverse_patches] = produceWithPatches(d, d=>{func(d)});
+    return produce(dd,dd=>{ dd.consume(dd,patches) });
+});
+export const gs = ()=> useD.getState();
 export const useDS = (selector)=> useD(selector, shallow);
 export const subD  = (selector, callback)=> useD.subscribe(selector, callback, {fireImmediately:true});
 export const subDS = (selector, callback)=> useD.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
+// export const store = {
+//     set: func=> useD.setState(produce(d=> func(d))),
+//     get: ()=> useD.getState(),
+// }; 
 
 export function use_window_size() {
     const [size, setSize] = useState([0, 0]);

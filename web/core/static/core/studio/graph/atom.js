@@ -9,9 +9,9 @@ const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMap
 
 export function Atom({n}){
     const obj = useRef();
-    const selected = useD(d=> d.n[n].selected); //const selected = useD(d=> d.selection.includes(n));
+    const picked = useD(d=> d.n[n].picked); //const picked = useD(d=> d.selection.includes(n));
     const hover = useD(d=> d.n[n].hover);
-    const color = useMemo(()=> selected||hover? theme.primary : theme.secondary, [selected, hover]);
+    const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
     const val = useD(d=> ''+d.n[n].v);
     const tag = useD(d=> d.n[n].t); //d.tag(n)
     const pos = useD(d=> d.n[n].graph.pos); // can i remove?!!!
@@ -23,7 +23,7 @@ export function Atom({n}){
         r('group', {name: 'atom'}, 
             r(Fixed_Size_Group, {
                 ref: obj,
-                size: selected ? 25 : 18,
+                size: picked ? 25 : 18,
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }
@@ -41,8 +41,8 @@ export function Atom({n}){
                 r(Spinner, {}, 
                     r('mesh', {},
                         r('tetrahedronGeometry'),
-                        r('meshBasicMaterial', {color: selected||hover? theme.primary : 'white', toneMapped:false}),
-                        r(Edges, {scale:1.05, color:selected||hover? 'white' : theme.primary},),
+                        r('meshBasicMaterial', {color: picked||hover? theme.primary : 'white', toneMapped:false}),
+                        r(Edges, {scale:1.05, color:picked||hover? 'white' : theme.primary},),
                     )
                 ),
                 r(Text, {

@@ -6,7 +6,7 @@ import {Tool} from './tool.js';
 import {Visual} from './visual.js';
 import {Select} from './select.js';
 import {Make} from './make.js';
-import {useD, use_window_size} from '../../app.js';
+import {useD, ss, use_window_size} from '../../app.js';
 
 
 export function Toolbar(){
@@ -29,7 +29,7 @@ export function Toolbar(){
                         variant: 'outline-primary', size: 'lg',
                         value: button.value,
                         checked: mode == button.value,
-                        onChange:e=> useD.getState().set(d=>{ d.studio.mode=e.currentTarget.value}),
+                        onChange:e=> ss(d=> d.studio.mode=e.currentTarget.value),
                         disabled: button.disabled,
                         //className: button.icon,
                     }, c('i',{className:button.icon, style:{fontSize:'24px'}}), window_size.width>576 ? button.name : '') //c('span',{className:'align-baseline'},button.name)
@@ -45,11 +45,11 @@ export function Toolbar(){
             mode=='graph' && design_candidate && c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-2 d-grid gap-2 col-6 mx-auto'},
                 c(Button, {
                     size: 'lg', // variant: 'outline-primary',
-                    onClick:e=>useD.getState().set(d=>{  // select function does not work inside produce because it has it's own produce 
+                    onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
                         d.design.part = design_candidate;
                         d.studio.mode = 'design'; 
-                        d.n[d.design.part].selected = false; // need to make select function for inside set function?
-                        d.post_select(d);
+                        d.n[d.design.part].picked = false; // need to make select function for inside set function?
+                        d.pick.update(d);
                     }),
                 }, c('i',{className:'bi-pencil-square', style:{fontSize:'24px'}}), ' Edit'),
             )

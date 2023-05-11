@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {Badge as Boot_Badge} from 'boot';
-import {useD, readable} from '../app.js';
+import {useD, ss, readable} from '../app.js';
 
 export function Badge({n}){ // more than one reason to change but okay because it's so simple?
     const tag = useD(d=> d.n[n].t);
@@ -13,15 +13,15 @@ export function Badge({n}){ // more than one reason to change but okay because i
 
 export function Selectable({n, children}){
     const d = useD.getState();
-    const multiselect = useD(d=> d.multiselect);
-    const selected = useD(d=> d.n[n].selected);
+    const multiselect = useD(d=> d.pick.multiselect);
+    const picked = useD(d=> d.n[n].picked);
     return c('group', {
         onClick: (e)=> {e.stopPropagation(); 
-            if(multiselect){  d.select(n, !selected)  }else{   d.select(n, true);  }
+            if(multiselect){  ss(d=>d.pick.mod(d,n, !picked))  }else{   ss(d=>d.pick.mod(d,n,true));  }
         },
-        onPointerMissed: (e)=> {if(e.which == 1 && !multiselect) d.select(n, false);},
-        onPointerOver: (e)=> {e.stopPropagation(); d.hover(n, true);},
-        onPointerOut: (e)=> {e.stopPropagation(); d.hover(n, false)},
+        onPointerMissed: (e)=> {if(e.which == 1 && !multiselect) ss(d=>d.pick.mod(d,n,false));},
+        onPointerOver: (e)=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n, true));},
+        onPointerOut: (e)=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n, false));},
         children:children,
     });
 }

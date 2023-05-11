@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {Dropdown, Button, Row} from 'boot';
-import {useD} from '../../app.js'
+import {ssp, useD} from '../../app.js'
 
 export function Make(){
     const items = [
@@ -15,9 +15,7 @@ export function Make(){
                 ...items.map((item, i)=>
                     c(Dropdown.Item, {
                         className: item.icon,
-                        onClick:e=>useD.getState().set(d=>{
-                            d.design.make(item.value);
-                        }),
+                        onClick:e=> ssp(d=> d.design.make(d,item.value)),
                     }, item.name)
                 ),
             )

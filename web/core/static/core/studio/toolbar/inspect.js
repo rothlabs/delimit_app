@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {Row, Col, Container, Dropdown, Form, ButtonGroup} from 'boot';
-import {useD, useDS, use_window_size} from '../../app.js';
+import {ss, useD, use_window_size} from '../../app.js';
 import {Badge} from '../../node/basic.js'
 import {String} from '../../node/input/string.js';
 import {Float} from '../../node/input/float.js';
@@ -19,7 +19,7 @@ function Inspect_Design(){
     const [show, set_show] = useState(false);
     const window_size = use_window_size();
     const part = useD(d=> d.design.part);
-    const nodes = useD(d=> d.selected.nodes); 
+    const nodes = useD(d=> d.pick.nodes); 
     const string_tags = useD(d=> d.inspect.string_tags);
     const float_tags = useD(d=> d.inspect.float_tags);
     //useEffect(()=>{
@@ -33,7 +33,7 @@ function Inspect_Design(){
     function toggled(s){
         set_show(false);
         if(s && part){
-            d.set_select(part);
+            ss(d=> d.pick.one(d, part) );
             set_show(true);
         }
     }
@@ -63,11 +63,10 @@ function Inspect_Design(){
 }
 
 function Inspect_Nodes(){ 
-    const d = useD.getState();
     const [show, set_show] = useState(false);
     const window_size = use_window_size();
     const design_part = useD(d=> d.design.part);
-    var nodes = useD(d=> d.selected.nodes); 
+    var nodes = useD(d=> d.pick.nodes); 
     if(nodes.length==1 && nodes[0]==design_part) nodes = [];
     const string_tags = useD(d=> d.inspect.string_tags);
     const float_tags = useD(d=> d.inspect.float_tags);

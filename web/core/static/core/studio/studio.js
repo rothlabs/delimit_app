@@ -1,7 +1,7 @@
 import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from 'r3f';
 import {Toolbar} from './toolbar/toolbar.js';
-import {useD, use_query, use_mutation, instance} from '../app.js';
+import {useD, gs, ss, ssp, use_query, use_mutation, instance} from '../app.js';
 import {Viewport} from './viewport.js';
 
 //export const selection_rv = makeVar();
@@ -14,8 +14,6 @@ const edges = ['p','b','i','f','s'].map(m=> m+'e{ t{v} n{id}} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v}r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
-    const d = useD.getState();
-    const merge = useD(d=> d.merge);
     const search = useD(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
@@ -23,12 +21,12 @@ export function Studio(){
     ],{onCompleted:(data)=>{data = data.openPack;
         console.log('open_pack');
         console.log(data);
-        if(data.pack) merge(data.pack); 
+        if(data.pack) ssp(d=> d.receive(d,data.pack) ); 
         console.log(useD.getState().n);
     }}); 
-    d.set(d=> {d.open_pack = open_pack.mutate;});
+    ss(d=> d.open_pack = open_pack.mutate );//d.set(d=> {d.open_pack = open_pack.mutate;});
     useEffect(()=>{
-        if(Object.keys(d.n).length < 1) open_pack.mutate();
+        if(Object.keys(gs().n).length < 1) open_pack.mutate();
     },[]);
     const push_pack = use_mutation('PushPack', [['pushPack reply restricted',
         ['String instance', instance],
@@ -43,14 +41,14 @@ export function Studio(){
         //console.log('Push Pack Reply: '+data.reply);
         //console.log('Push Pack Restricted: '+data.restricted);
     }});
-    d.set(d=> {d.push_pack = push_pack.mutate;});
+    ss(d=> d.push_pack = push_pack.mutate );//d.set(d=> {d.push_pack = push_pack.mutate;});
 
     const close_pack = use_mutation('ClosePack', [['closePack reply', 
         ['[ID] p', null], ['[ID] b', null], ['[ID] i', null], ['[ID] f', null], ['[ID] s', null],
     ]  ],{onCompleted:data=>{ 
         console.log(data.closePack.reply);
     }}); 
-    d.set(d=> {d.close_pack = close_pack.mutate;});
+    ss(d=> d.close_pack = close_pack.mutate );//d.set(d=> {d.close_pack = close_pack.mutate;});
 
     return (
         r(Fragment,{}, 
@@ -66,7 +64,7 @@ export function Studio(){
 }
 
 function Poll(){ // appears to be a bug where the server doesn't always catch changes so doesn't deliver in poll pack?
-    const merge = useD(d=> d.merge);
+    //const merge = useD(d=> d.merge);
     // const cycle_poll = use_mutation('Cycle_Poll', [  
     //     ['cyclePoll reply'] 
     // ]); 
@@ -74,7 +72,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
         ['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         //console.log(data.pollPack);
-        if(data.pollPack) merge(data.pollPack);
+        if(data.pollPack) ssp(d=> d.receive(d, data.pollPack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
     return null;
