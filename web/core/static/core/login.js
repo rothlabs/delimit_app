@@ -2,7 +2,7 @@ import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, Row, InputGroup} from 'boot';
 import {makeVar, useReactiveVar} from 'apollo';
 import {Logo} from './logo.js';
-import {use_mutation} from './app.js';
+import {use_mutation, useD} from './app.js';
 import {useNavigate} from 'rrd';
 
 export const show_login = makeVar(false);
@@ -13,13 +13,17 @@ export function Login(){
     const [password, set_password] = useState('');
     const {mutate, data, status, reset} = use_mutation('Login',[
         ['login reply user{firstName}', ['String! username', username], ['String! password', password]],
-    ], {refetch:'GetUser GetProjects GetProject'});
+    ], {refetch:'GetUser', onCompleted:data=>{
+        const d = useD.getState();
+        if(d.open_pack) d.open_pack();
+        if(data.login.user) setTimeout(()=> show_login(false), 1500);
+    }});
     useEffect(()=>{
         set_username('');
         set_password('');
         if(show) reset(); else setTimeout(()=> reset(), 250);
     },[show]);
-    if(data && data.login.user) setTimeout(()=> show_login(false), 1500);
+    //if(data && data.login.user) setTimeout(()=> show_login(false), 1500);
     const key_press=(target)=> {if(target.charCode==13) mutate()}; //attempt_login(true);};
 	return (
 		r(Modal,{show:show, onHide:()=>show_login(false), autoFocus:false},
@@ -57,14 +61,27 @@ export const show_logout = makeVar(false);
 
 export function Logout(){
     const show = useReactiveVar(show_logout);
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     const {mutate, data, status, reset} = use_mutation('Logout',[
         ['logout reply user{firstName}'],
-    ], {refetch:'GetUser'});
-    if(data) setTimeout(()=> show_logout(false), 1500);
+    ], {refetch:'GetUser', onCompleted:data=>{
+        const d = useD.getState();
+        if(d.close_pack){
+            const nodes = [];
+            d.set(d=>{
+                Object.entries(d.n).forEach(([n,node],i)=> {
+                    if(node.asset) nodes.push(n);
+                });
+                console.log(nodes);
+                d.close(d, nodes);
+            }); 
+        }
+        setTimeout(()=> show_logout(false), 1500);
+    }});
+    //if(data) setTimeout(()=> show_logout(false), 1500);
     useEffect(()=> {if(show){
         mutate(); // sign out
-        navigate('/');
+        //navigate('/');
     }},[show]);
     return (
         r(Modal,{show:show, onHide:()=>show_logout(false)},

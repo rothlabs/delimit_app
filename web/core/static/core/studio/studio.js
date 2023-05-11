@@ -21,10 +21,12 @@ export function Studio(){
         ['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{data = data.openPack;
-        //console.log(data.pack) //.p[7].pp1.map(e1=> e1.n2.id).join(', ')
+        console.log('open_pack');
+        console.log(data);
         if(data.pack) merge(data.pack); 
-        console.log(useD.getState().n)
+        console.log(useD.getState().n);
     }}); 
+    d.set(d=> {d.open_pack = open_pack.mutate;});
     useEffect(()=>{
         if(Object.keys(d.n).length < 1) open_pack.mutate();
     },[]);
@@ -42,6 +44,14 @@ export function Studio(){
         //console.log('Push Pack Restricted: '+data.restricted);
     }});
     d.set(d=> {d.push_pack = push_pack.mutate;});
+
+    const close_pack = use_mutation('ClosePack', [['closePack reply', 
+        ['[ID] p', null], ['[ID] b', null], ['[ID] i', null], ['[ID] f', null], ['[ID] s', null],
+    ]  ],{onCompleted:data=>{ 
+        console.log(data.closePack.reply);
+    }}); 
+    d.set(d=> {d.close_pack = close_pack.mutate;});
+
     return (
         r(Fragment,{}, 
             r(Poll), 

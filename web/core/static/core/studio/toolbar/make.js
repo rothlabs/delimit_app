@@ -10,7 +10,7 @@ export function Make(){
     ];
     return(
         c(Dropdown, {},
-            c(Dropdown.Toggle, {className:'bi-file-earmark-plus', variant:'outline-primary', size: 'lg',}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
+            c(Dropdown.Toggle, {className:'bi-plus-lg', variant:'outline-primary', size: 'lg',}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
             c(Dropdown.Menu, {},
                 ...items.map((item, i)=>
                     c(Dropdown.Item, {

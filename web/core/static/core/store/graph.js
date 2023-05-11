@@ -10,19 +10,21 @@ export const create_graph_slice = (set,get)=>({
     graph:{
         nodes: [],
         edges: [],
-        update: ()=>set(produce(d=>{
+        update: d=>{
             //console.log(current(d).n);
-            d.graph.nodes = Object.keys(d.n);
+            d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open);
             d.graph.edges = [];
-            Object.entries(d.n).forEach(([rid,r],i)=> {
-                r.n && Object.entries(r.n).forEach(([tag,nodes],i)=>{
+            //Object.entries(d.n).forEach(([rid,r],i)=> {
+            d.graph.nodes.forEach(rid=>{
+                //var r = d.n[rid];
+                d.n[rid].n && Object.entries(d.n[rid].n).forEach(([tag,nodes],i)=>{
                     nodes.forEach(nid=>{
-                        d.n[nid] && rid!=nid && d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
+                        d.n[nid] && d.n[nid].open && rid!=nid && d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
                     });
                 });
             });
             d.graph.arrange = true;
-        })),
+        },
     }
 });
 

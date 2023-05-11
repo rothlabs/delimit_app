@@ -30,7 +30,9 @@ export function Graph(){
 function Arrange(){
     const arrange = useD(d=> d.graph.arrange);  
     const d = useD.getState();
-    const {nodes, edges} = d.graph;
+    //const {nodes, edges} = d.graph;
+    const nodes = useD(d=> d.graph.nodes);
+    const edges = useD(d=> d.graph.edges);
     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
         if(arrange && nodes.length > 0){
             var moving = false;

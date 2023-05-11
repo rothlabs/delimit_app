@@ -188,20 +188,38 @@ class Open_Pack(graphene.Mutation):
 
 class Close_Pack(graphene.Mutation):
     class Arguments:
-        ids = graphene.List(graphene.ID)
+        p = graphene.List(graphene.ID)
+        b = graphene.List(graphene.ID)
+        i = graphene.List(graphene.ID)
+        f = graphene.List(graphene.ID)
+        s = graphene.List(graphene.ID)
     reply = graphene.String(default_value = 'Failed to close pack.')
     @classmethod
-    def mutate(cls, root, info, ids):
+    def mutate(cls, root, info, p, b, i, f, s):
         try:
             user = info.context.user
             if user.is_authenticated: 
-                parts = Part.objects.filter(id__in=ids)
                 open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__n2=user
-                open_pack.p.remove(parts.p) #(open_pack.p.difference(parts.p), through_defaults={'t1':open_pack_tag})
-                open_pack.b.remove(parts.b)
-                open_pack.i.remove(parts.i)
-                open_pack.f.remove(parts.f)
-                open_pack.s.remove(parts.s)
+                if p:
+                    parts   = Part.objects.filter(id__in=p)
+                    open_pack.p.remove(*parts) 
+                if b:
+                    bools   = Bool.objects.filter(id__in=b)
+                    open_pack.b.remove(*bools)
+                if i:
+                    ints    = Int.objects.filter(id__in=i)
+                    open_pack.i.remove(*ints)
+                if f:
+                    floats  = Float.objects.filter(id__in=f)
+                    open_pack.f.remove(*floats)
+                if s:
+                    strings = String.objects.filter(id__in=s)
+                    open_pack.s.remove(*strings)
+                # print(open_pack.p.all())
+                # print(open_pack.b.all())
+                # print(open_pack.i.all())
+                # print(open_pack.f.all())
+                # print(open_pack.s.all())
             return Close_Pack(reply='Closed pack.')
         except Exception as e: print(e)
         return Close_Pack()

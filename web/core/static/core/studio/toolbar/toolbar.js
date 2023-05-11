@@ -12,10 +12,11 @@ import {useD, use_window_size} from '../../app.js';
 export function Toolbar(){
     const window_size = use_window_size();
     const mode = useD(d=> d.studio.mode);
+    const design_part = useD(d=> d.design.part);
     const design_candidate = useD(d=> d.design.candidate);
     const mode_buttons = [
-        {name:' Design',  icon:'bi-pencil-square',  value:'design'},
-        {name:' Graph',   icon:'bi-diagram-3',      value:'graph'},
+        {name:' Design',  icon:'bi-pencil-square',  value:'design', disabled:design_part==null},
+        {name:' Graph',   icon:'bi-diagram-3',      value:'graph',  disabled:false},
     ];
     const tools = [Make, Inspect, Visual, History, Select, Tool];
     return(
@@ -29,6 +30,7 @@ export function Toolbar(){
                         value: button.value,
                         checked: mode == button.value,
                         onChange:e=> useD.getState().set(d=>{ d.studio.mode=e.currentTarget.value}),
+                        disabled: button.disabled,
                         //className: button.icon,
                     }, c('i',{className:button.icon, style:{fontSize:'24px'}}), window_size.width>576 ? button.name : '') //c('span',{className:'align-baseline'},button.name)
                 ),
@@ -40,12 +42,14 @@ export function Toolbar(){
                     )
                 )
             ),
-            design_candidate && c('div', { className:'position-absolute bottom-0 start-50 translate-middle-x mb-2 d-grid gap-2 col-6 mx-auto bg-white'},
+            mode=='graph' && design_candidate && c('div', { className:'position-absolute bottom-0 start-50 translate-middle-x mb-2 d-grid gap-2 col-6 mx-auto bg-white'},
                 c(Button, {
-                    variant: 'outline-primary', size: 'lg',
-                    onClick:e=>useD.getState().set(d=>{ 
+                    size: 'lg', // variant: 'outline-primary',
+                    onClick:e=>useD.getState().set(d=>{  // select function does not work inside produce because it has it's own produce 
                         d.design.part = design_candidate;
                         d.studio.mode = 'design'; 
+                        d.n[d.design.part].selected = false; // need to make select function for inside set function?
+                        d.post_select(d);
                     }),
                 }, c('i',{className:'bi-pencil-square', style:{fontSize:'24px'}}), ' Edit'),
             )

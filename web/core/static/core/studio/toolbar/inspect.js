@@ -17,12 +17,19 @@ export function Inspect(){
 function Inspect_Design(){ 
     const d = useD.getState();
     const [show, set_show] = useState(false);
+    const window_size = use_window_size();
     const part = useD(d=> d.design.part);
+    const nodes = useD(d=> d.selected.nodes); 
     const string_tags = useD(d=> d.inspect.string_tags);
     const float_tags = useD(d=> d.inspect.float_tags);
+    //useEffect(()=>{
+    //    set_show(false);
+    //},[part]);
     useEffect(()=>{
-        if(!part) set_show(false);
-    },[part]);
+        if(window_size.width>=576){
+            part && nodes.length==1 && nodes[0]==part ? set_show(true) : set_show(false);
+        }
+    },[nodes]);
     function toggled(s){
         set_show(false);
         if(s && part){
@@ -32,14 +39,14 @@ function Inspect_Design(){
     }
     //console.log('render inspector');
     return (
-        c(Dropdown, {show:show, onToggle:s=>toggled(s)}, //, id:'inspect_workspace_part'
+        c(Dropdown, {show:show, onToggle:s=>toggled(s), autoClose:window_size.width<576, drop:'down-centered'}, //, id:'inspect_workspace_part'
             c(Dropdown.Toggle, {
                 className:'bi-box me-1', 
                 variant:'outline-primary', size: 'lg', 
                 disabled: part==null,
             }, ' '), //fs-4 font size to increase icon size but need to reduce padding too
             c(Dropdown.Menu, {},
-                c(Row, {className:'row-cols-auto gap-2 mb-3'},
+                part && c(Row, {className:'row-cols-auto gap-2 mb-3'},
                     c(Col,{}, // might need to add key to keep things straight 
                         c(Badge, {n:part})
                     ) 
@@ -59,12 +66,14 @@ function Inspect_Nodes(){
     const d = useD.getState();
     const [show, set_show] = useState(false);
     const window_size = use_window_size();
-    const nodes = useD(d=> d.selected.nodes); 
+    const design_part = useD(d=> d.design.part);
+    var nodes = useD(d=> d.selected.nodes); 
+    if(nodes.length==1 && nodes[0]==design_part) nodes = [];
     const string_tags = useD(d=> d.inspect.string_tags);
     const float_tags = useD(d=> d.inspect.float_tags);
     useEffect(()=>{
         if(window_size.width>=576){
-            nodes.length ? set_show(true) : set_show(false);
+            nodes.length>0 ? set_show(true) : set_show(false);
         }
     },[nodes]);
     //console.log('render inspector');

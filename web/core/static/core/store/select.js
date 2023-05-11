@@ -37,17 +37,24 @@ export const create_select_slice = (set,get)=>({
     set_select: n=>set(produce(d=>{
         Object.values(d.n).forEach(n=> n.selected=false);
         d.n[n].selected = true;
-        d.post_select(d, n);
+        d.post_select(d);
     })),
 
-    select: (n, selected)=>set(produce(d=>{  // make hover action and hovering store so the same node is highlighted for different occurances
+    select: (n, selected)=>set(produce(d=>{  // get rid of produce here 
         d.n[n].selected = selected;
-        d.post_select(d, n);
+        d.post_select(d);
     })),
 
-    post_select: (d, n)=>{
+    // clear_select: d=>{
+    //     Object.values(d.n).forEach(n => n.selected=false); 
+    //     d.post_select(d);
+    // },
+
+
+    post_select: d=>{ // rename as update
+        Object.values(d.n).forEach(n =>{ if(!n.open) n.selected=false;}); 
         d.selected.nodes = Object.keys(d.n).filter(n=> d.n[n].selected); 
-        if(d.selected.nodes.length == 1 && design_tags.includes(d.n[n].t)){  d.design.candidate = n;  }
+        if(d.selected.nodes.length == 1 && design_tags.includes(d.n[d.selected.nodes[0]].t)){  d.design.candidate = d.selected.nodes[0];  }
         else{  d.design.candidate = null;}
         d.inspect.update(d);
     },
