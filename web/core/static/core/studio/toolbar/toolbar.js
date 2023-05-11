@@ -42,7 +42,7 @@ export function Toolbar(){
                     )
                 )
             ),
-            mode=='graph' && design_candidate && c('div', { className:'position-absolute bottom-0 start-50 translate-middle-x mb-2 d-grid gap-2 col-6 mx-auto bg-white'},
+            mode=='graph' && design_candidate && c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-2 d-grid gap-2 col-6 mx-auto'},
                 c(Button, {
                     size: 'lg', // variant: 'outline-primary',
                     onClick:e=>useD.getState().set(d=>{  // select function does not work inside produce because it has it's own produce 

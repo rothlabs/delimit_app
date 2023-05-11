@@ -22,7 +22,7 @@ export const create_basic_slice = (set,get)=>({
     design: {
         part:null, candidate:null, 
         update: d=>{
-            if(!d.n[d.design.part].open){
+            if(d.design.part && !d.n[d.design.part].open){
                 d.design.part = null;
                 d.studio.mode = 'graph';
             }
