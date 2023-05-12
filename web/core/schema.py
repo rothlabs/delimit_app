@@ -88,13 +88,27 @@ class Query(graphene.ObjectType):
                 open_pack = Part.objects.get(t__v='open_pack', u=user)
                 poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
                 #open_root = Q(r__r)
-                
 
-                parts   = Part.objects.filter(r=open_pack).filter(r__in=poll_packs).distinct() # make this the behavior of shallow_pack
-                bools   = Bool.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
-                ints    = Int.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
-                floats  = Float.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
-                strings = String.objects.filter(p=open_pack).filter(p__in=poll_packs).distinct()
+                parts   = Part.objects.filter(r__in=poll_packs).distinct() # make this the behavior of shallow_pack
+                bools   = Bool.objects.filter(p__in=poll_packs).distinct()
+                ints    = Int.objects.filter(p__in=poll_packs).distinct()
+                floats  = Float.objects.filter(p__in=poll_packs).distinct()
+                strings = String.objects.filter(p__in=poll_packs).distinct()
+
+                open_pack.p.add(*parts.filter(r__r=open_pack), through_defaults={'t':tag['open_pack']}) # make shallow pack skip this
+                open_pack.b.add(*bools.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
+                open_pack.i.add(*ints.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
+                open_pack.f.add(*floats.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
+                open_pack.s.add(*strings.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
+
+                parts   = parts.filter(Q(r=open_pack) | Q(r__r=open_pack))
+                bools   = bools.filter(p=open_pack)
+                ints    = ints.filter(p=open_pack)
+                floats  = floats.filter(p=open_pack)
+                strings = strings.filter(p=open_pack)
+
+                #print('pollPack!!')
+                #print(parts.all())
                 #for pp in poll_packs:
                 #    client_instance = String.objects.get_or_create(v=instance)[0]
                 #    pp.s.add(client_instance, through_defaults={'t':tag['client_instance']})
@@ -297,8 +311,7 @@ class Push_Pack(graphene.Mutation):
                     for p in range(len(parts)): # use this loop to build list of parts for next loop
                         try: 
                             part = Part.objects.create(id=parts[p][0][0], t=tag[t[p][0][0]])
-                            profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})
-                            
+                            profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})       
                         except Exception as e: print(e)
                     # mutate parts
                     for p in range(len(parts)): # need to check if id is in correct format
@@ -307,12 +320,14 @@ class Push_Pack(graphene.Mutation):
                             part.t = Tag.objects.get(v=t[p][0][0], system=False)
                             part.save()
                             clear_part(part) #temp_pack.p.append(part)
+                            poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
                             for i in range(len(parts[p][1])):
                                 try:
                                     tag_obj = Tag.objects.get(v=t[p][1][i], system=False)
                                     if tag_obj.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][i])
                                     else: obj = Part.objects.get(id = parts[p][1][i]) 
                                     part.p.add(obj, through_defaults={'o':i, 't':tag_obj})#temp_pack.p.append(obj)
+                                    poll_pack.p.add(obj, through_defaults={'t':tag['poll_pack']})
                                 except Exception as e: 
                                     print(e)
                                     restricted.append(parts[p][1][i])

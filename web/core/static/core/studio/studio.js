@@ -22,7 +22,7 @@ export function Studio(){
         console.log('open_pack');
         console.log(data);
         if(data.pack) ssp(d=> d.receive(d,data.pack) ); 
-        console.log(useS.getState().n);
+        //console.log(useS.getState().n);
     }}); 
     ss(d=> d.open_pack = open_pack.mutate );//d.set(d=> {d.open_pack = open_pack.mutate;});
     useEffect(()=>{
@@ -38,8 +38,9 @@ export function Studio(){
         ['[[[ID]]] parts',  null],
         ['[[[String]]] t',  null],
     ]],{onCompleted:(data)=>{data = data.pushPack;
-        //console.log('Push Pack Reply: '+data.reply);
-        //console.log('Push Pack Restricted: '+data.restricted);
+        console.log('Push Pack Reply: '+data.reply);
+        console.log('Push Pack Restricted: '+data.restricted);
+        //console.log('Push Pack: '+data.reply);
     }});
     ss(d=> d.push_pack = push_pack.mutate );//d.set(d=> {d.push_pack = push_pack.mutate;});
 
@@ -71,6 +72,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     use_query('PollPack', [ // rerenders this component on every poll
         ['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
+        //console.log('pollPack');
         //console.log(data.pollPack);
         if(data.pollPack) ssp(d=> d.receive(d, data.pollPack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request

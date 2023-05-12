@@ -87,8 +87,8 @@ export const create_base_slice = (set,get)=>({
             const n = patch.path[1];
             const node = d.n[n];
             if(patch.op == 'add' && patch.path.length < 3){ // node created
-                const part = [[n],      [], [], [], []];
-                const tags = [[node.t], [], [], [], []];
+                const part = [[n],      [], [], [], [], []];
+                const tags = [[node.t], [], [], [], [], []];
                 // push ids and tags for root and nodes of part
                 edits.parts.push(part);
                 edits.t.push(tags);
