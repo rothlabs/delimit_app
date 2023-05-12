@@ -77,9 +77,9 @@ class Part_User(Edge):
     t = models.ForeignKey(Tag,  related_name='ue', on_delete=models.CASCADE)
     n = models.ForeignKey(User, related_name='e', on_delete=models.CASCADE)
 
-system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'client_instance', 'system_time']
+system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'client_instance', 'system_time', 'delete_pack']
 tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [
-    'user', 'open_pack', 'poll_pack', 'public', 'view', 'asset', 'profile', 'name', 'client_instance', 'system_time',
+    'user', 'open_pack', 'poll_pack', 'public', 'view', 'asset', 'profile', 'name', 'client_instance', 'system_time', 'delete_pack',
     'part', 'point', 'line', 'x', 'y', 'z', 
 ]}
 

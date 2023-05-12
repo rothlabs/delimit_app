@@ -6,12 +6,13 @@ import {Tool} from './tool.js';
 import {Visual} from './visual.js';
 import {Select} from './select.js';
 import {Make} from './make.js';
-import {useS, ss, use_window_size} from '../../app.js';
+import {useS, gs, ss, use_window_size} from '../../app.js';
 
 
 export function Toolbar(){
     const window_size = use_window_size();
     const mode = useS(d=> d.studio.mode);
+    //const nodes = useS(d=> d.pick.nodes); 
     const design_part = useS(d=> d.design.part);
     const design_candidate = useS(d=> d.design.candidate);
     const mode_buttons = [
@@ -48,11 +49,10 @@ export function Toolbar(){
                     onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
                         d.design.part = design_candidate;
                         d.studio.mode = 'design'; 
-                        d.n[d.design.part].picked = false; // need to make select function for inside set function?
-                        d.pick.update(d);
+                        d.pick.mod(d, d.design.part, false);
                     }),
                 }, c('i',{className:'bi-pencil-square', style:{fontSize:'24px'}}), ' Edit'),
-            )
+            ),
         )
     )
 }

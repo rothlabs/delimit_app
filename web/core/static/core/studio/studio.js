@@ -37,6 +37,11 @@ export function Studio(){
         ['[String] s',      null],
         ['[[[ID]]] parts',  null],
         ['[[[String]]] t',  null],
+        ['[ID] pdel',       null],
+        ['[ID] bdel',       null],
+        ['[ID] idel',       null],
+        ['[ID] fdel',       null],
+        ['[ID] sdel',       null],
     ]],{onCompleted:(data)=>{data = data.pushPack;
         console.log('Push Pack Reply: '+data.reply);
         console.log('Push Pack Restricted: '+data.restricted);
@@ -70,11 +75,11 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     //     ['cyclePoll reply'] 
     // ]); 
     use_query('PollPack', [ // rerenders this component on every poll
-        ['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]]
+        ['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]],
+        ['deletePack p{id} b{id} i{id} f{id} s{id}', ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
-        //console.log('pollPack');
-        //console.log(data.pollPack);
         if(data.pollPack) ssp(d=> d.receive(d, data.pollPack) ); 
+        if(data.deletePack) ssp(d=> d.deleted(d, data.deletePack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
     return null;

@@ -15,7 +15,7 @@ export function Make(){
                 ...items.map((item, i)=>
                     c(Dropdown.Item, {
                         className: item.icon,
-                        onClick:e=> ssp(d=> d.design.make(d,item.value)),
+                        onClick:e=> ssp(d=> d.studio.make(d,item.value)),
                     }, item.name)
                 ),
             )

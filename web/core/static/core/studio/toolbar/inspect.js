@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState} from 'react';
-import {Row, Col, Container, Dropdown, Form, ButtonGroup} from 'boot';
-import {ss, useS, use_window_size} from '../../app.js';
+import {Row, Col, Container, Dropdown, Form, ButtonGroup, Button} from 'boot';
+import {ss, ssp, gs, useS, use_window_size} from '../../app.js';
 import {Badge} from '../../node/basic.js'
 import {String} from '../../node/input/string.js';
 import {Float} from '../../node/input/float.js';
@@ -76,6 +76,7 @@ function Inspect_Nodes(){
         }
     },[nodes]);
     //console.log('render inspector');
+    const d = gs();
     return (
         c(Dropdown, {show:show, onToggle:s=>set_show(s), autoClose:window_size.width<576, drop:'down-centered'}, //, id:'inspect_nodes'
             c(Dropdown.Toggle, {className:'bi-boxes', variant:'outline-primary', size: 'lg', disabled:nodes.length<1}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
@@ -93,6 +94,14 @@ function Inspect_Nodes(){
                 ...float_tags.map(t=>
                     c(Float, {t:t})
                 ),
+                nodes.filter(n=>d.n[n].asset).length ? c('div', {className:''},
+                    c(Button, {
+                        variant: 'outline-secondary',
+                        onClick:e=>ssp(d=>{  // select function does not work inside produce because it has it's own produce 
+                            d.pick.delete(d);
+                        }),
+                    }, 'Delete'),
+                ) : null,
             )
         )
     )

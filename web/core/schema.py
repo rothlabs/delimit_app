@@ -74,7 +74,8 @@ def clear_part(part):
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    pollPack = graphene.Field(Part_Type, instance=graphene.String())
+    pollPack   = graphene.Field(Part_Type, instance=graphene.String())
+    deletePack = graphene.Field(Part_Type, instance=graphene.String())
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
@@ -87,31 +88,53 @@ class Query(graphene.ObjectType):
                 String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
                 open_pack = Part.objects.get(t__v='open_pack', u=user)
                 poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
-                #open_root = Q(r__r)
-
                 parts   = Part.objects.filter(r__in=poll_packs).distinct() # make this the behavior of shallow_pack
                 bools   = Bool.objects.filter(p__in=poll_packs).distinct()
                 ints    = Int.objects.filter(p__in=poll_packs).distinct()
                 floats  = Float.objects.filter(p__in=poll_packs).distinct()
                 strings = String.objects.filter(p__in=poll_packs).distinct()
-
                 open_pack.p.add(*parts.filter(r__r=open_pack), through_defaults={'t':tag['open_pack']}) # make shallow pack skip this
-                open_pack.b.add(*bools.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
+                open_pack.b.add(*bools.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']}) # this is a mutation inside query (bad)
                 open_pack.i.add(*ints.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
                 open_pack.f.add(*floats.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
                 open_pack.s.add(*strings.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
-
-                parts   = parts.filter(Q(r=open_pack) | Q(r__r=open_pack))
+                parts   = parts.filter(r=open_pack)#parts   = parts.filter(Q(r=open_pack) | Q(r__r=open_pack))
                 bools   = bools.filter(p=open_pack)
                 ints    = ints.filter(p=open_pack)
                 floats  = floats.filter(p=open_pack)
                 strings = strings.filter(p=open_pack)
-
                 #print('pollPack!!')
                 #print(parts.all())
                 #for pp in poll_packs:
                 #    client_instance = String.objects.get_or_create(v=instance)[0]
                 #    pp.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+                return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
+            return None
+        except Exception as e: print(e)
+        return None
+    def resolve_deletePack(root, info, instance): 
+        try:
+            user = info.context.user
+            if user.is_authenticated:
+                old_delete_packs = Part.objects.filter(~Q(ie__t__v='system_time'), t__v='delete_pack')
+                Part.objects.filter(r__in=old_delete_packs).delete()
+                Bool.objects.filter(p__in=old_delete_packs).delete()
+                Int.objects.filter(p__in=old_delete_packs).delete()
+                Float.objects.filter(p__in=old_delete_packs).delete()
+                String.objects.filter(p__in=old_delete_packs).delete()
+                old_delete_packs.delete()
+                open_pack = Part.objects.get(t__v='open_pack', u=user)
+                delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')
+                parts   = Part.objects.filter(r=open_pack).filter(r__in=delete_packs).distinct()
+                bools   = Bool.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
+                ints    = Int.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
+                floats  = Float.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
+                strings = String.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
+                open_pack.p.remove(*parts) # this is a mutation inside query (bad)
+                open_pack.b.remove(*bools)
+                open_pack.i.remove(*ints)
+                open_pack.f.remove(*floats)
+                open_pack.s.remove(*strings)
                 return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
             return None
         except Exception as e: print(e)
@@ -252,6 +275,11 @@ class Push_Pack(graphene.Mutation):
         s = graphene.List(graphene.String)
         parts = graphene.List(graphene.List(graphene.List(graphene.ID))) # ids[p][m][n] (first m contains  part id)
         t = graphene.List(graphene.List(graphene.List(graphene.String))) # t1[p][m][n] (first m containts part tag)
+        pdel = graphene.List(graphene.ID)
+        bdel = graphene.List(graphene.ID)
+        idel = graphene.List(graphene.ID)
+        fdel = graphene.List(graphene.ID)
+        sdel = graphene.List(graphene.ID)
     reply = graphene.String(default_value = 'Failed to save.')
     restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)
     def mod_or_make_atom(profile, model, m, id, v, restricted, poll_pack): # check if m is correct value?
@@ -279,12 +307,13 @@ class Push_Pack(graphene.Mutation):
             print(e)
             restricted.append(id)
     @classmethod
-    def mutate(cls, root, info, instance, atoms, b, i, f, s, parts, t): # should set default team in case client fails to assign team to part?
+    def mutate(cls, root, info, instance, atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
         try:
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
                 profile = Part.objects.get(t__v='profile', u=user)  #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
+                is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user
                 poll_pack = Part.objects.create(t=tag['poll_pack']) 
                 system_time = Int.objects.create(v=int(time.time()))
                 poll_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
@@ -306,7 +335,6 @@ class Push_Pack(graphene.Mutation):
                     for i in range(len(atoms[3])):
                         cls.mod_or_make_atom(profile, String, 's', atoms[3][i], s[i], restricted, poll_pack)#, temp_pack)
                 if parts: # and len(parts) == len(t)
-                    is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user
                     # make parts if don't exist:
                     for p in range(len(parts)): # use this loop to build list of parts for next loop
                         try: 
@@ -343,9 +371,34 @@ class Push_Pack(graphene.Mutation):
                         except Exception as e: 
                             print(e)
                             restricted.append(parts[p][0][0])
-                #open_pack = Part.objects.get(t__v='open_pack', u=user)
-                #parts = poll_pack.p.filter(r=open_pack)
-                #open_pack.p.add(*parts, through_defaults={'t':tag['open_pack']})
+                if pdel or bdel or idel or fdel or sdel:
+                    delete_pack = Part.objects.create(t=tag['delete_pack']) 
+                    delete_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
+                    if instance: delete_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+                    #if pdel:
+                        # try: 
+                        #     parts = Part.objects.filter(is_asset, id__in=pdel)
+                        #     deletes = list(parts.values_list("id", flat=True))
+                        #     parts.delete()
+                        #     for d in deletes:
+                        #         deleted = String.objects.get_or_create(v=d)[0]
+                        #         delete_pack.s.add(deleted, through_defaults={'t':tag['delete_pack']})
+                        # except Exception as e: print(e)
+                    if pdel:
+                        try: delete_pack.p.add(*Part.objects.filter(is_asset, id__in=pdel), through_defaults={'t':tag['delete_pack']})
+                        except Exception as e: print(e)
+                    if bdel:
+                        try: delete_pack.b.add(*Bool.objects.filter(is_asset, id__in=bdel), through_defaults={'t':tag['delete_pack']})
+                        except Exception as e: print(e)
+                    if idel:
+                        try: delete_pack.i.add(*Int.objects.filter(is_asset, id__in=idel), through_defaults={'t':tag['delete_pack']})
+                        except Exception as e: print(e)
+                    if fdel:
+                        try: delete_pack.f.add(*Float.objects.filter(is_asset, id__in=fdel), through_defaults={'t':tag['delete_pack']})
+                        except Exception as e: print(e)
+                    if sdel:
+                        try: delete_pack.s.add(*String.objects.filter(is_asset, id__in=sdel), through_defaults={'t':tag['delete_pack']})
+                        except Exception as e: print(e)
             else: reply = 'Sign-in required.'
             return Push_Pack(reply=reply, restricted=restricted) #restricted=Part_Type(p=r.p, b=r.b, i=r.i, f=r.f, s=r.s)
         except Exception as e: print(e)

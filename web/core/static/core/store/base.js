@@ -19,21 +19,14 @@ export const design_tags = ['part', 'line', 'sketch']; // part is just a three j
 export const create_base_slice = (set,get)=>({
     n: {},
     user: 0,
-    studio: {mode:'graph'},
     search: {depth:null, ids:null},
 
     graph:graph,
     inspect:inspect,
     pick:pick,
 
-    design: {
-        part:null, candidate:null, 
-        update: d=>{
-            if(d.design.part && !d.n[d.design.part].open){
-                d.design.part = null;
-                d.studio.mode = 'graph';
-            }
-        },
+    studio: {
+        mode:'graph',
         make: (d, t)=>{
             const window_size = (window.innerWidth+window.innerHeight)/4;
             const n = make_id();
@@ -50,6 +43,16 @@ export const create_base_slice = (set,get)=>({
             };
             d.consume = d.send;
         }
+    },
+
+    design: {
+        part:null, candidate:null, 
+        update: d=>{
+            if(d.design.part && !d.n[d.design.part].open){
+                d.design.part = null;
+                d.studio.mode = 'graph';
+            }
+        },
     },
 
     //set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
@@ -82,20 +85,22 @@ export const create_base_slice = (set,get)=>({
         //d = nextState;//get();
         console.log('patches');
         console.log(patches); // auto merges patches into mutations state slice 
-        const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[]};
+        const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
         patches.forEach(patch=>{
             const n = patch.path[1];
-            const node = d.n[n];
-            if(patch.op == 'add' && patch.path.length < 3){ // node created
-                const part = [[n],      [], [], [], [], []];
-                const tags = [[node.t], [], [], [], [], []];
-                // push ids and tags for root and nodes of part
-                edits.parts.push(part);
-                edits.t.push(tags);
-                edits.instance = ''; // setting blank so this client reads the returned poll_pack on this
+            if(patch.op == 'add'){ // node created
+                if(patch.path[0]=='n' && patch.path.length < 3){
+                    const part = [[n],        [], [], [], [], []];
+                    const tags = [[d.n[n].t], [], [], [], [], []];
+                    edits.parts.push(part);
+                    edits.t.push(tags);
+                    edits.instance = ''; // setting blank so this client reads the returned poll_pack on this
+                }else if(patch.path[2]=='delete'){
+                    edits[d.n[n].m+'del'].push(n);
+                }
             }else if(patch.op == 'replace' && patch.path[2]=='v'){ // atom has changed
-                edits.atoms[['b','i','f','s'].indexOf(node.m)].push(n); // atom id
-                edits[node.m].push(patch.value);
+                edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                edits[d.n[n].m].push(patch.value);
             }
         });
         console.log('edits');
@@ -164,6 +169,11 @@ export const create_base_slice = (set,get)=>({
         //    set(produce(d=>d.graph.update(d)));  // change so merge is called from inside ss so no set(produce needed here 
         //}
         //return dd;
+    },
+
+    deleted: (d, data)=>{
+        console.log('deleted');
+        console.log(data);
     },
 
 });
