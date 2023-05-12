@@ -308,7 +308,7 @@ class Push_Pack(graphene.Mutation):
             restricted.append(id)
     @classmethod
     def mutate(cls, root, info, instance, atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
-        try:
+        try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 

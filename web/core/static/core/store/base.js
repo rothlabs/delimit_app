@@ -38,11 +38,15 @@ export const create_base_slice = (set,get)=>({
                 r: {},
                 n: {},
                 open: true,
+                asset: true,
                 graph: { // put in d.graph.node.vectors
                     pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
                     dir: new Vector3(),
                 },
             };
+            if(!d.n[d.profile].n.asset) d.n[d.profile].n.asset = [];
+            d.n[d.profile].n.asset.push(n);
+            d.pick.one(d,n);
             d.consume = d.send;
         }
     },
@@ -133,7 +137,8 @@ export const create_base_slice = (set,get)=>({
                         //d.n[n.id].tag = readable(n.t.v); 
                         d.n[n.id].t = n.t.v;
                         d.n[n.id].n = {};
-                        if(n.u.length>0 && n.u[0].id==d.user && n.t.v=='profile') d.n[n.id].profile = true;
+                        //if(n.u.length>0 && n.u[0].id==d.user && n.t.v=='profile') d.n[n.id].profile = true;
+                        if(n.u.length>0 && n.u[0].id==d.user && n.t.v=='profile') d.profile = n.id;
                     }else{  
                         d.n[n.id].t = model_tags[d.n[n.id].m];
                         d.n[n.id].v = n.v;  
@@ -149,7 +154,8 @@ export const create_base_slice = (set,get)=>({
                         if(!d.n[n.id].r[t]) d.n[n.id].r[t] = [];
                         d.n[n.id].r[t].push(e.r.id);  // <<<<<<<<< reverse relationship !!!! (root)
                         if(val_tags.includes(e.t.v) && d.n[e.r.id]) d.n[e.r.id].c[e.t.v] = d.n[n.id].v;
-                        if(e.t.v=='asset' && d.n[e.r.id].profile) d.n[n.id].asset = true; //t=='profile' && d.n[e.r.id].u.id==user_id
+                        //if(e.t.v=='asset' && d.n[e.r.id].profile) d.n[n.id].asset = true; //t=='profile' && d.n[e.r.id].u.id==user_id
+                        if(e.t.v=='asset' && e.r.id==d.profile) d.n[n.id].asset = true;
                     });
                 });
                 data.p.forEach(n=>{ 
@@ -157,7 +163,8 @@ export const create_base_slice = (set,get)=>({
                         if(!d.n[n.id].n[e.t.v]) d.n[n.id].n[e.t.v] = []; 
                         d.n[n.id].n[e.t.v].push(e.n.id); // <<<<<<<<< forward relationship !!!! (nodes)
                         if(val_tags.includes(e.t.v) && d.n[e.n.id]) d.n[n.id].c[e.t.v] = d.n[e.n.id].v;
-                        if(e.t.v=='asset' && d.n[n.id].profile && d.n[e.n.id]) d.n[e.n.id].asset = true;
+                        //if(e.t.v=='asset' && d.n[n.id].profile && d.n[e.n.id]) d.n[e.n.id].asset = true;
+                        if(e.t.v=='asset' && n.id==d.profile && d.n[e.n.id]) d.n[e.n.id].asset = true;
                     });
                 }); 
             }); 
