@@ -375,15 +375,6 @@ class Push_Pack(graphene.Mutation):
                     delete_pack = Part.objects.create(t=tag['delete_pack']) 
                     delete_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
                     if instance: delete_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
-                    #if pdel:
-                        # try: 
-                        #     parts = Part.objects.filter(is_asset, id__in=pdel)
-                        #     deletes = list(parts.values_list("id", flat=True))
-                        #     parts.delete()
-                        #     for d in deletes:
-                        #         deleted = String.objects.get_or_create(v=d)[0]
-                        #         delete_pack.s.add(deleted, through_defaults={'t':tag['delete_pack']})
-                        # except Exception as e: print(e)
                     if pdel:
                         try: delete_pack.p.add(*Part.objects.filter(is_asset, id__in=pdel), through_defaults={'t':tag['delete_pack']})
                         except Exception as e: print(e)
@@ -436,7 +427,7 @@ class Mutation(graphene.ObjectType):
     openPack = Open_Pack.Field()
     pushPack = Push_Pack.Field()
     closePack = Close_Pack.Field()
-    #cyclePoll = Cycle_Poll.Field()
+    #deletePack = Delete_Pack.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
 
@@ -515,6 +506,62 @@ def make_data():
 
 
 
+
+
+# class Delete_Pack(graphene.Mutation):
+#     class Arguments:
+#         pdel = graphene.List(graphene.ID)
+#         bdel = graphene.List(graphene.ID)
+#         idel = graphene.List(graphene.ID)
+#         fdel = graphene.List(graphene.ID)
+#         sdel = graphene.List(graphene.ID)
+#     reply = graphene.String(default_value = 'Failed to delete.')
+#     @classmethod
+#     def mutate(cls, root, info, instance, pdel,bdel,idel,fdel,sdel): 
+#         try:
+#             reply='Deleted'
+#             user = info.context.user
+#             if user.is_authenticated: 
+#                 profile = Part.objects.get(t__v='profile', u=user)  
+#                 is_asset = Q(e__t__v='asset', e__r=profile) 
+#                 if pdel or bdel or idel or fdel or sdel:
+#                     delete_pack = Part.objects.create(t=tag['delete_pack']) 
+#                     system_time = Int.objects.create(v=int(time.time()))
+#                     delete_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
+#                     if instance:
+#                         client_instance = String.objects.get_or_create(v=instance)[0] 
+#                         delete_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+#                     if pdel:
+#                         try: delete_pack.p.add(*Part.objects.filter(is_asset, id__in=pdel), through_defaults={'t':tag['delete_pack']})
+#                         except Exception as e: print(e)
+#                     if bdel:
+#                         try: delete_pack.b.add(*Bool.objects.filter(is_asset, id__in=bdel), through_defaults={'t':tag['delete_pack']})
+#                         except Exception as e: print(e)
+#                     if idel:
+#                         try: delete_pack.i.add(*Int.objects.filter(is_asset, id__in=idel), through_defaults={'t':tag['delete_pack']})
+#                         except Exception as e: print(e)
+#                     if fdel:
+#                         try: delete_pack.f.add(*Float.objects.filter(is_asset, id__in=fdel), through_defaults={'t':tag['delete_pack']})
+#                         except Exception as e: print(e)
+#                     if sdel:
+#                         try: delete_pack.s.add(*String.objects.filter(is_asset, id__in=sdel), through_defaults={'t':tag['delete_pack']})
+#                         except Exception as e: print(e)
+#             else: reply = 'Sign-in required.'
+#             return Delete_Pack(reply=reply) 
+#         except Exception as e: print(e)
+#         return Delete_Pack()
+
+
+
+                    #if pdel:
+                        # try: 
+                        #     parts = Part.objects.filter(is_asset, id__in=pdel)
+                        #     deletes = list(parts.values_list("id", flat=True))
+                        #     parts.delete()
+                        #     for d in deletes:
+                        #         deleted = String.objects.get_or_create(v=d)[0]
+                        #         delete_pack.s.add(deleted, through_defaults={'t':tag['delete_pack']})
+                        # except Exception as e: print(e)
 
 
 # poll_packs = Part.objects.filter(e__t__v='poll_pack', u=user)

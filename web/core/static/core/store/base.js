@@ -19,6 +19,7 @@ export const design_tags = ['part', 'line', 'sketch']; // part is just a three j
 export const create_base_slice = (set,get)=>({
     n: {},
     user: 0,
+    profile: null,
     search: {depth:null, ids:null},
 
     graph:graph,
@@ -36,6 +37,7 @@ export const create_base_slice = (set,get)=>({
                 c: {}, // name: 'untitled'
                 r: {},
                 n: {},
+                open: true,
                 graph: { // put in d.graph.node.vectors
                     pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
                     dir: new Vector3(),
@@ -57,11 +59,10 @@ export const create_base_slice = (set,get)=>({
 
     //set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
     
+    //clear_node: (d, n)=>{},
+
     close: (d, nodes)=>{
         const close_pack = {p:[], b:[], i:[], f:[], s:[]};
-        
-        //d.graph.nodes = d.graph.nodes.filter(n=> !nodes.includes(n));
-        //d.graph.edges = d.graph.edges.filter(e=> !(nodes.includes(e.r) || nodes.includes(e.n)));
         nodes.forEach(n=>{
             close_pack[d.n[n].m].push(n);
             d.n[n].open=false;
@@ -105,6 +106,9 @@ export const create_base_slice = (set,get)=>({
         });
         console.log('edits');
         console.log(edits);
+        d.pick.update(d);
+        d.design.update(d);
+        d.graph.update(d); // only run graph if something was deleted or added? 
         d.push_pack({variables:edits});
     },
     
