@@ -6,15 +6,30 @@ export function Float({t}){
     const content   = useS(d=> d.inspect.content[t]);
     const placeholder = useS(d=> d.inspect.placeholder[t]);
     const asset = useS(d=> d.inspect.asset[t]);
+    const [input_value, set_input_value] = useState(content);
+    const [sync_input, set_sync_input] = useState(true);
+    useEffect(()=>{
+        if(sync_input) set_input_value(content);
+    },[content]);
     return (
         content!=undefined && c(InputGroup, {className:'mb-3'}, 
             c(InputGroup.Text, {}, readable(t)),
-            c(Form.Control, {maxLength:64, value:content, placeholder:placeholder, disabled:!asset, onChange:(e)=>{
-                if(!isNaN(e.target.value) || e.target.value=='.'){
-                    //useD.getState().pick.edit_val(t, e.target.value);
-                    ssp(d=> d.pick.set_v(d, t, e.target.value));
+            c(Form.Control, {
+                maxLength:64, 
+                value: input_value, 
+                placeholder:placeholder, 
+                disabled:!asset, 
+                onFocus:()=> set_sync_input(false),
+                onBlur:()=> set_sync_input(true),
+                onChange:(e)=>{
+                    if(!isNaN(e.target.value) || e.target.value=='.'){
+                        console.log('change float');
+                        //useD.getState().pick.edit_val(t, e.target.value);
+                        set_input_value(e.target.value);
+                        ssp(d=> d.pick.set_v(d, t, e.target.value));
+                    }
                 }
-            }}),
+            }),
         )
     )
 }

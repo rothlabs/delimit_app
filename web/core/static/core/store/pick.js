@@ -11,7 +11,8 @@ export const pick = {
         d.pick.nodes.forEach(n => {
             if(d.n[n].asset) {
                 d.n[n].open = false;
-                d.n[n].delete = true;
+                d.n[n].deleted = true;
+                //d.deleted.push(n);
             }
         });
         d.consume = d.send;

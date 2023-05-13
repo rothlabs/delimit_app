@@ -87,7 +87,11 @@ class Query(graphene.ObjectType):
                 Part.objects.filter(~Q(ie__t__v='system_time'), t__v='poll_pack').delete()
                 String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
                 open_pack = Part.objects.get(t__v='open_pack', u=user)
-                poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
+                # poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
+                # poll_packs = Part.objects.annotate(
+                # instances=Count('s',filter=Q(s__v=instance))).filter(~Q(instances__gt=1), t__v='poll_pack')
+                poll_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='poll_pack')
+                # delete_packs = Part.objects.filter(t__v='delete_pack')  .filter(~Q(r__in=delete_packs))
                 parts   = Part.objects.filter(r__in=poll_packs).distinct() # make this the behavior of shallow_pack
                 bools   = Bool.objects.filter(p__in=poll_packs).distinct()
                 ints    = Int.objects.filter(p__in=poll_packs).distinct()
@@ -105,9 +109,12 @@ class Query(graphene.ObjectType):
                 strings = strings.filter(p=open_pack)
                 #print('pollPack!!')
                 #print(parts.all())
-                #for pp in poll_packs:
-                #    client_instance = String.objects.get_or_create(v=instance)[0]
-                #    pp.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+                for pack in poll_packs:
+                    client_instance = String.objects.get_or_create(v=instance)[0]
+                    pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
+                    se = pack.se.get(n__v=instance)
+                    se.o += 1
+                    se.save()          
                 return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
             return None
         except Exception as e: print(e)
@@ -308,7 +315,7 @@ class Push_Pack(graphene.Mutation):
             restricted.append(id)
     @classmethod
     def mutate(cls, root, info, instance, atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
-        try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+        try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
@@ -319,7 +326,7 @@ class Push_Pack(graphene.Mutation):
                 poll_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
                 if instance:
                     client_instance = String.objects.get_or_create(v=instance)[0]
-                    poll_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+                    poll_pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']}) # o:2 so sender doesn't recieve
                 poll_pack.p.add(profile, through_defaults={'t':tag['poll_pack']}) # change so profile is only added if it actually gains or loses assets or something like that
                 #print('instance!!!')
                 #print(instance)
@@ -506,7 +513,9 @@ def make_data():
 
 
 
-
+# for pp in poll_packs:
+                #     client_instance = String.objects.get_or_create(v=instance)[0]
+                #     pp.s.add(client_instance, through_defaults={'t':tag['client_instance']})
 
 # class Delete_Pack(graphene.Mutation):
 #     class Arguments:

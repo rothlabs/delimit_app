@@ -22,24 +22,30 @@ function Inspect_Design(){
     const nodes = useS(d=> d.pick.nodes); 
     const string_tags = useS(d=> d.inspect.string_tags);
     const float_tags = useS(d=> d.inspect.float_tags);
-    //useEffect(()=>{
-    //    set_show(false);
-    //},[part]);
+    const menu = useS(d=> d.studio.menu);
     useEffect(()=>{
         if(window_size.width>=576){
-            part && nodes.length==1 && nodes[0]==part ? set_show(true) : set_show(false);
+            if(part && nodes.length==1 && nodes[0]==part){
+                set_show(true);
+                ss(d=> d.studio.menu = 'inspect_design');
+            }else{ set_show(false); }
         }
     },[nodes]);
     function toggled(s){
-        set_show(false);
         if(s && part){
-            ss(d=> d.pick.one(d, part) );
             set_show(true);
-        }
+            //menu = 'inspect_design';
+            ss(d=>{ d.pick.one(d, part); d.studio.menu = 'inspect_design'; });
+        }else{ set_show(false); }
     }
     //console.log('render inspector');
     return (
-        c(Dropdown, {show:show, onToggle:s=>toggled(s), autoClose:window_size.width<576, drop:'down-centered'}, //, id:'inspect_workspace_part'
+        c(Dropdown, {
+            show: show && menu=='inspect_design', 
+            onToggle:s=>toggled(s), 
+            autoClose:window_size.width<576, 
+            drop:'down-centered'
+        }, //, id:'inspect_workspace_part'
             c(Dropdown.Toggle, {
                 className:'bi-box me-1', 
                 variant:'outline-primary', size: 'lg', 
@@ -57,6 +63,14 @@ function Inspect_Design(){
                 ...float_tags.map(t=>
                     c(Float, {t:t})
                 ),
+                nodes.filter(n=>d.n[n].asset).length ? c('div', {className:''},
+                    c(Button, {
+                        variant: 'outline-secondary',
+                        onClick:e=>ssp(d=>{  // select function does not work inside produce because it has it's own produce 
+                            d.pick.delete(d);
+                        }),
+                    }, 'Delete'),
+                ) : null,
             )
         )
     )
@@ -70,15 +84,30 @@ function Inspect_Nodes(){
     if(nodes.length==1 && nodes[0]==design_part) nodes = [];
     const string_tags = useS(d=> d.inspect.string_tags);
     const float_tags = useS(d=> d.inspect.float_tags);
+    const menu = useS(d=> d.studio.menu);
     useEffect(()=>{
         if(window_size.width>=576){
-            nodes.length>0 ? set_show(true) : set_show(false);
+            if(nodes.length){
+                set_show(true);
+                ss(d=> d.studio.menu='inspect_nodes');
+            }else{ set_show(false); }
         }
     },[nodes]);
+    function toggled(s){
+        if(s){
+            set_show(true);
+            ss(d=> d.studio.menu='inspect_nodes');
+        }else{ set_show(false); }
+    }
     //console.log('render inspector');
     const d = gs();
     return (
-        c(Dropdown, {show:show, onToggle:s=>set_show(s), autoClose:window_size.width<576, drop:'down-centered'}, //, id:'inspect_nodes'
+        c(Dropdown, {
+            show: show && menu=='inspect_nodes', 
+            onToggle: s=>toggled(s),
+            autoClose:window_size.width<576, 
+            drop:'down-centered'
+        }, //, id:'inspect_nodes'
             c(Dropdown.Toggle, {className:'bi-boxes', variant:'outline-primary', size: 'lg', disabled:nodes.length<1}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
             c(Dropdown.Menu, {},
                 c(Row, {className:'row-cols-auto gap-2 mb-3'},

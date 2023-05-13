@@ -10,17 +10,20 @@ import {Viewport} from './viewport.js';
 //export const show_endpoints_rv = makeVar(true);
 //export const draw_mode_rv = makeVar('draw');
 
+
+
 const edges = ['p','b','i','f','s'].map(m=> m+'e{ t{v} n{id}} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v}r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
+    //console.log('instance: '+instance);
     const search = useS(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{data = data.openPack;
-        console.log('open_pack');
-        console.log(data);
+        //console.log('open_pack');
+        //console.log(data);
         if(data.pack) ssp(d=> d.receive(d,data.pack) ); 
         //console.log(useS.getState().n);
     }}); 
@@ -43,8 +46,8 @@ export function Studio(){
         ['[ID] fdel',       null],
         ['[ID] sdel',       null],
     ]],{onCompleted:(data)=>{data = data.pushPack;
-        console.log('Push Pack Reply: '+data.reply);
-        console.log('Push Pack Restricted: '+data.restricted);
+        //console.log('Push Pack Reply: '+data.reply);
+        //console.log('Push Pack Restricted: '+data.restricted);
         //console.log('Push Pack: '+data.reply);
     }});
     ss(d=> d.push_pack = push_pack.mutate );//d.set(d=> {d.push_pack = push_pack.mutate;});
@@ -78,8 +81,9 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
         ['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]],
         ['deletePack p{id} b{id} i{id} f{id} s{id}', ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
+        //if(data.pollPack) console.log(data.pollPack);
         if(data.pollPack) ssp(d=> d.receive(d, data.pollPack) ); 
-        if(data.deletePack) ssp(d=> d.deleted(d, data.deletePack) ); 
+        if(data.deletePack) ssp(d=> d.receive_deleted(d, data.deletePack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
     return null;

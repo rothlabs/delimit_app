@@ -42,15 +42,15 @@ export function Login(){
                     status && r(status),
                     r(InputGroup, {className:'mb-3'}, 
                         r(InputGroup.Text, {}, 'Username'),
-                        r(Form.Control, {type:'text', value:username, onChange:(e)=>set_username(e.target.value), onKeyPress:key_press, autoFocus:true}),
+                        r(Form.Control, {id:'username_field', type:'text', value:username, onChange:(e)=>set_username(e.target.value), onKeyPress:key_press, autoFocus:true}),
                     ),
                     r(InputGroup, {className:'mb-3'},
                         r(InputGroup.Text, {}, 'Password'),
-                        r(Form.Control, {type:'password', value:password, onChange:(e)=>set_password(e.target.value), onKeyPress:key_press}),
+                        r(Form.Control, {id:'password_field', type:'password', value:password, onChange:(e)=>set_password(e.target.value), onKeyPress:key_press}),
                     ),
                 ),
                 r(Modal.Footer, {},
-                    r(Button, {onClick:mutate}, 'Sign In'),
+                    r(Button, {id:'modal_login', onClick:mutate}, 'Sign In'),
                 )
             ),
     	)

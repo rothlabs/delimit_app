@@ -32,10 +32,10 @@ export function Root(){
 						c(Nav, {className:"me-2"},
 							!data ? status && c(status) :
 								data.user ? c(Fragment,{},
-									c(Nav.Link, {eventKey:3, className:'ms-auto'}, 'Account ('+data.user.firstName+')'),
-									c(Nav.Link, {onClick:()=>show_logout(true), eventKey:4, className:'ms-auto'}, c('i',{className:'bi-box-arrow-left'}), ' Sign Out'),
+									c(Nav.Link, {id:'root_account', eventKey:3, className:'ms-auto'}, 'Account ('+data.user.firstName+')'),
+									c(Nav.Link, {id:'root_logout', onClick:()=>show_logout(true), eventKey:4, className:'ms-auto bi-box-arrow-left'}, ' Sign Out'), //, c('i',{className:'bi-box-arrow-left'})
 								): 
-									c(Nav.Link, {onClick:()=>show_login(true), eventKey:5, className:'ms-auto'}, c('i',{className:'bi-box-arrow-in-right'}), ' Sign In'),
+									c(Nav.Link, {id:'root_login', onClick:()=>show_login(true), eventKey:5, className:'ms-auto bi-box-arrow-in-right'}, ' Sign In'), //c('i',{className:'bi-box-arrow-in-right'})
             			),
           			),
         		)
