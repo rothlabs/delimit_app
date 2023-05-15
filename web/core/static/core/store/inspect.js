@@ -1,4 +1,7 @@
-import {model_tags, float_tags, string_tags, val_tags} from './basic.js';
+import {model_tags, val_tags} from './base.js';
+
+export const float_tags  = ['decimal', 'x', 'y', 'z'];
+export const string_tags = ['text', 'name', 'story'];
 
 //export const create_inspect_slice = (set,get)=>({
 export const inspect = {

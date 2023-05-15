@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-import {ToggleButton, ButtonGroup} from 'boot';
+import {ToggleButton, ButtonGroup} from 'react-bootstrap';
 import {ss, useS} from '../../app.js';
 
 export function Select(){

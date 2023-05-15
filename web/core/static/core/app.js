@@ -1,23 +1,23 @@
-import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql} from 'apollo'; // gql  createHttpLink
-import {setContext} from 'aclc';
+import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql} from '@apollo/client'; // apollo // gql  createHttpLink
+import {setContext} from '@apollo/client/link/context';//'aclc';
 //import {createUploadLink} from 'auc';
-import Cookie from "cookie";
+import Cookie from "js-cookie";
 import {createElement as r, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
-import {createRoot} from 'rdc';
-import {createBrowserRouter, RouterProvider, Outlet} from 'rrd';
+import {createRoot} from 'react-dom/client';//'rdc';
+import {createBrowserRouter, RouterProvider, Outlet} from 'react-router-dom';//'rrd';
 import {Root} from './root.js';
 import {Studio} from './studio/studio.js';
 import {Router_Error, Query_Status} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
 //import set from 'lodash';
-import {useGLTF} from 'drei';
+import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
-import {useFrame, useThree} from 'r3f';
+import {useFrame, useThree} from '@react-three/fiber';//'r3f';
 
 import {produce, produceWithPatches, enablePatches} from 'immer'; enablePatches();
 import {create} from 'zustand';
-import {subscribeWithSelector} from 'zmiddle';
-import {shallow} from 'shallow';
+import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
+import {shallow} from 'zustand/shallow';//'shallow';
 import {create_base_slice} from './store/base.js';
 //import {create_graph_slice} from './store/graph.js';
 //import {create_select_slice} from './store/select.js';
@@ -239,11 +239,39 @@ const termination_link = createUploadLink({
        'Apollo-Require-Preflight': 'true',
     },
 });
+
+import {Dropdown, DropdownButton} from 'react-bootstrap';
+
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
         r(RouterProvider, {router:createBrowserRouter([
             {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
-                {path:'',        element:r('p',{},'At Home')},
+                {path:'',        element:r('p',{},
+
+                r(DropdownButton, {id:"dropdown-basic-button", title:"Dropdown button"},
+                    r(Dropdown.Item, {href:"#/action-1"}, 'action'),
+                    r(Dropdown.Item, {href:"#/action-2"}, 'action'),
+                    r(Dropdown.Item, {href:"#/action-3"}, 'action'),
+                )
+                // r(Dropdown, {show:true}, // show:true, onToggle:s=>toggled(s)
+                //     r(Dropdown.Toggle, {id:'visual_dropdown', className:'bi-eye', variant:'outline-primary', size: 'lg',}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
+                //     r(Dropdown.Menu, {},
+                //         r(Dropdown.Item, {href:"#/action-1"}, 'action'),
+                //         //...node_tags.map((tag, i)=>{
+                //         //    r(Form.Check, {
+                //         //        className:'mt-2 mb-2', 
+                //         //        label: tag, 
+                //                 //checked: checked[i], 
+                //                 //onChange:(e)=> {
+                //                 //    e.target.checked ?
+                //                 //         :
+                //                 //}, 
+                //         //    })
+                //         //}),
+                //     )
+                // )
+                
+                )},
                 {path:'catalog', element:r('p',{},'At Catalog')},
                 {path:'studio',  element:r(Studio), errorElement:r(Router_Error)},  // {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
                     //{path:'',       element:r(Studio_Browser)},

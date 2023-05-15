@@ -1,5 +1,5 @@
 import {createElement as r} from 'react';
-import {ToggleButton, ButtonGroup} from 'boot';
+import {ToggleButton, ButtonGroup} from 'react-bootstrap';
 import {useS} from '../../app.js';
 //import {draw_mode_rv} from './studio.js';
 

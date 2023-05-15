@@ -1,5 +1,6 @@
-import {createElement as c, useEffect, useState} from 'react';
-import {Row, Col, Container, Dropdown, Form, ButtonGroup, Button} from 'boot';
+import {createElement as c, useEffect, useState, Fragment} from 'react';
+import {Row, Col, Dropdown, Container, Form, ButtonGroup, Button} from 'react-bootstrap';
+//import {Dropdown} from 'react-bootstrap/Dropdown';
 import {ss, ssp, gs, useS, use_window_size} from '../../app.js';
 import {Badge} from '../../node/basic.js'
 import {String} from '../../node/input/string.js';
@@ -34,7 +35,6 @@ function Inspect_Design(){
     function toggled(s){
         if(s && part){
             set_show(true);
-            //menu = 'inspect_design';
             ss(d=>{ d.pick.one(d, part); d.studio.menu = 'inspect_design'; });
         }else{ set_show(false); }
     }
@@ -101,6 +101,7 @@ function Inspect_Nodes(){
     }
     //console.log('render inspector');
     const d = gs();
+    console.log(show, menu);
     return (
         c(Dropdown, {
             show: show && menu=='inspect_nodes', 

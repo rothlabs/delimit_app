@@ -1,6 +1,6 @@
 import {createElement as c, Fragment, useEffect} from 'react';
-import {Container, Nav, Navbar, ToggleButton, ButtonGroup} from 'boot';
-import {Outlet, Link} from 'rrd';
+import {Container, Nav, Navbar, ToggleButton, ButtonGroup} from 'react-bootstrap';//'boot';
+import {Outlet, Link} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';

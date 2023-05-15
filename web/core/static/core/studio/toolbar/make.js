@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-import {Dropdown, Button, Row} from 'boot';
+import {Dropdown, Button, Row} from 'react-bootstrap';
 import {useS, ss, ssp} from '../../app.js'
 
 export function Make(){

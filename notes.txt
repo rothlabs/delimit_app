@@ -1,3 +1,33 @@
+  [
+        "react",
+        "@apollo/client",
+        "js-cookie",
+        "react-dom",
+        "react-router-dom",
+        "three",
+        "@react-three/drei",
+        "@react-three/fiber",
+        "immer",
+        "zustand",
+        "react-bootstrap",
+        "tslib",
+        "graphql",
+        "ts-invariant",
+        "graphql-tag",
+        "@wry/equality",
+        "zen-observable-ts",
+        "symbol-observable",
+        "optimism",
+        "@wry/context",
+        "@wry/trie",
+        "scheduler",
+        "process",
+        "react-router",
+        "@remix-run/router",
+        "classnames",
+        "prop-types-extra"
+      ]
+  
   "aclh":      "https://esm.sh/@apollo/client/link/http?pin=v115&dev",
   
   "lodash":    "https://esm.sh/lodash/set?pin=v115&dev"

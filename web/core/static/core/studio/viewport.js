@@ -1,10 +1,10 @@
 import {createElement as r, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
-import {useThree, useFrame} from 'r3f';
+import {useThree, useFrame} from '@react-three/fiber';
 import {Vector2} from 'three';
 //import {Project} from './project.js';
 //import {Line} from './line.js';
-import {CameraControls} from 'drei';
-import { Graph } from './graph/graph.js';
+import {CameraControls} from '@react-three/drei/CameraControls';
+import {Graph} from './graph/graph.js';
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();

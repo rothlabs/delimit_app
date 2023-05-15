@@ -36,13 +36,12 @@ $btn-line-height: 1px;     $btn-font-size-lg:    $input-btn-font-size;   */
 /* finally, import Bootstrap */
 @import "bootstrap/scss/bootstrap";
 
+/*
 .modal{
-  word-wrap: break-word !important;  /* might not need !important */
+  word-wrap: break-word !important;  
   word-break: break-word !important;
 }
-/* .button{
-  padding: 2px !important;
-}*/
+
 .dropdown-menu {
 	min-width: 100vw;
   padding: 15px;
@@ -62,3 +61,8 @@ $btn-line-height: 1px;     $btn-font-size-lg:    $input-btn-font-size;   */
       min-width: 40vw;
   }
 }
+*/
+
+/* .button{
+  padding: 2px !important;
+}*/

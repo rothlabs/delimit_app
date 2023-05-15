@@ -3,7 +3,7 @@ import {Vector3} from 'three';
 import {graph_z} from '../studio/graph/graph.js';
 import {random_vector, readable, make_id} from '../app.js';
 import {graph} from './graph.js';
-import {inspect} from './inspect.js';
+import {inspect, float_tags, string_tags} from './inspect.js';
 import {pick} from './pick.js';
 
 export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
@@ -11,10 +11,10 @@ const root_tags={
     'view':  'viewer',
     'asset': 'owner',
 };
-export const float_tags  = ['decimal', 'x', 'y', 'z'];
-export const string_tags = ['text', 'name', 'story'];
+
 export const val_tags = [...float_tags, ...string_tags];
-export const design_tags = ['part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
+export const design_tags = ['point', 'part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
+
 
 export const create_base_slice = (set,get)=>({
     n: {},

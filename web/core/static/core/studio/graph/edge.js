@@ -1,8 +1,8 @@
 import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast} from '../meshline.js';
-import {useThree, useFrame} from 'r3f';
+import {useThree, useFrame} from '@react-three/fiber';
 import {subSS, theme, static_url, Fixed_Size_Group} from '../../app.js';
-import {Text} from 'drei';
+import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 
 const tv = new Vector3();
@@ -59,7 +59,7 @@ export function Edge({r, tag, n}){
                     fontSize: 14,
                 },
                     tag,
-                    c('meshBasicMaterial', {color: color, toneMapped:false}),
+                    c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
             ),
             c(Fixed_Size_Group, {

@@ -2,9 +2,12 @@
 Artistic footwear design web app. Includes computer-aided design and manufacturing (CAx) module. 
 
 
+## Bootstrap
+modified variables file under sass: primary color and contrast thrushold
+
 ## Extra things installed in web/env python environment on server
 pip install graphene-file-upload
-pip install django-ajax-selects
+pip install django-ajax-selects - can probably remove
 
 
 ## Getting Started

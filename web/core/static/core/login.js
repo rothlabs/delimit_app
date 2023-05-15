@@ -1,9 +1,9 @@
 import {createElement as r, useState, Fragment, useEffect} from 'react';
-import {Button, Modal, Form, Row, InputGroup} from 'boot';
-import {makeVar, useReactiveVar} from 'apollo';
+import {Button, Modal, Form, Row, InputGroup} from 'react-bootstrap';
+import {makeVar, useReactiveVar} from '@apollo/client';
 import {Logo} from './logo.js';
 import {gs, ssp, useS, use_mutation} from './app.js';
-import {useNavigate} from 'rrd';
+import {useNavigate} from 'react-router-dom';
 
 export const show_login = makeVar(false);
 

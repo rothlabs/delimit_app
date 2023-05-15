@@ -1,5 +1,5 @@
 import {createElement as r} from 'react';
-import {Dropdown, Form} from 'boot';
+import {Dropdown, DropdownButton, Form} from 'react-bootstrap';
 import {ss, useSS} from '../../app.js'
 
 export function Visual(){
@@ -10,9 +10,10 @@ export function Visual(){
         if(s) ss(d=> d.studio.menu='visual');
     }
     return(
-        r(Dropdown, {onToggle:s=>toggled(s)},
-            r(Dropdown.Toggle, {className:'bi-eye', variant:'outline-primary', size: 'lg',}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
+        r(Dropdown, {}, // show:true, onToggle:s=>toggled(s)
+            r(Dropdown.Toggle, {id:'visual_dropdown', className:'bi-eye', variant:'outline-primary', size: 'lg',}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
             r(Dropdown.Menu, {},
+                r(Dropdown.Item, {href:"#/action-1"}, 'action'),
                 //...node_tags.map((tag, i)=>{
                 //    r(Form.Check, {
                 //        className:'mt-2 mb-2', 
@@ -28,4 +29,11 @@ export function Visual(){
         )
     )
 }
+
+// ,
+//         r(DropdownButton, {id:"dropdown-basic-button", title:"Dropdown button"},
+//             r(Dropdown.Item, {href:"#/action-1"}, 'action'),
+//             r(Dropdown.Item, {href:"#/action-2"}, 'action'),
+//             r(Dropdown.Item, {href:"#/action-3"}, 'action'),
+//         )
 

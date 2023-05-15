@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {extend} from 'r3f';
+import {extend} from '@react-three/fiber';
 //;(function() {
 //    'use strict'
   

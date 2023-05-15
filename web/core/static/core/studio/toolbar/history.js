@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-import {Button, ButtonGroup} from 'boot';
+import {Button, ButtonGroup} from 'react-bootstrap';
 
 export function History(p){
     const mode_buttons = [

@@ -1,5 +1,5 @@
 import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
-import {Canvas} from 'r3f';
+import {Canvas} from '@react-three/fiber';
 import {Toolbar} from './toolbar/toolbar.js';
 import {useS, gs, ss, ssp, use_query, use_mutation, instance} from '../app.js';
 import {Viewport} from './viewport.js';

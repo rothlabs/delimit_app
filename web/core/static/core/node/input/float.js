@@ -1,5 +1,5 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
-import {Row, Col, Container, Form, InputGroup} from 'boot';
+import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
 import {ssp, useS, readable} from '../../app.js';
 
 export function Float({t}){

@@ -1,6 +1,7 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 import {useS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
-import {Text, Edges} from 'drei';
+import {Text} from '@react-three/drei/Text';
+import {Edges} from '@react-three/drei/Edges';
 import * as THREE from 'three';
 import { Selectable } from '../../node/basic.js';
 
@@ -36,7 +37,7 @@ export function Atom({n}){
                     outlineColor: 'white',
                 },
                     val,
-                    r('meshBasicMaterial', {color: color, toneMapped:false}),
+                    r('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
                 r(Spinner, {}, 
                     r('mesh', {},
@@ -53,7 +54,7 @@ export function Atom({n}){
                     outlineColor: 'white',
                 },
                     readable(tag),
-                    r('meshBasicMaterial', {color: color, toneMapped:false}),
+                    r('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
                 r(Selectable, {n:n},
                     r('mesh', {

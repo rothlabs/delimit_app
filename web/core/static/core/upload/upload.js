@@ -2,7 +2,7 @@
 
 // https://github.com/jaydenseric/apollo-upload-client
 
-import {ApolloLink, Observable} from 'apollo';
+import {ApolloLink, Observable} from '@apollo/client';//'apollo';
 import {
     createSignalIfSupported,
     fallbackHttpConfig,
@@ -11,7 +11,7 @@ import {
     selectHttpOptionsAndBody,
     selectURI,
     serializeFetchParameter,
-  } from 'aclh';
+  } from '@apollo/client/link/http';//'aclh';
 import {extractFiles} from './extractFiles.js';
 function formDataAppendFile(formData, fieldName, file) {
   formData.append(fieldName, file, file.name);

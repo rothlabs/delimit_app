@@ -1,5 +1,5 @@
 import {createElement as c, Fragment} from 'react';
-import {Row, Col, Container, ToggleButton, ButtonGroup, Button} from 'boot';
+import {Row, Col, Container, ToggleButton, ButtonGroup, Button} from 'react-bootstrap';
 import {Inspect} from './inspect.js';
 import {History} from './history.js';
 import {Tool} from './tool.js';

@@ -6,9 +6,11 @@ __pycache__
 /web/env
 /web/static
 /web/media
+/web/node_modules/
 /web/sass/bootstrap/
 /web/sass/dart-sass/
 /web/core/static/core/css/boot.css
+/web/core/static/core/node_modules/
 
 *.DS_Store
 *.FCStd1

@@ -1,7 +1,8 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
 import {useS, useSS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
-import {Text, Edges} from 'drei';
+import {Text} from '@react-three/drei/Text';
+import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
 import { Selectable } from '../../node/basic.js';
@@ -42,7 +43,7 @@ export function Part({n}){
                     outlineColor: 'white',
                 },
                     name,
-                    r('meshBasicMaterial', {color: color, toneMapped:false}),
+                    r('meshBasicMaterial', {color: color, toneMapped:false}), // causing unsupported texture colorspace: undefined
                 ),
                 r(Spinner, {}, 
                     r('mesh', {},
@@ -59,7 +60,7 @@ export function Part({n}){
                     outlineColor: 'white',
                 },
                     readable(tag), // memoize it?
-                    r('meshBasicMaterial', {color: color, toneMapped:false}),
+                    r('meshBasicMaterial', {color: color, toneMapped:false}), // causing unsupported texture colorspace: undefined
                 ),
                 r(Selectable, {n:n},
                     r('mesh', {
