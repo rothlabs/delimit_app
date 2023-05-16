@@ -182,7 +182,7 @@ export const create_base_slice = (set,get)=>({
         }); 
         d.consume=(d, patches)=>{
             if(patches.length>0 && !(patches.length==1 && patches[0].path[0]=='consume')){    
-                console.log('recieve patches: '+patches);     
+                //console.log('recieve patches: '+patches);     
                 d.graph.update(d); 
                 d.studio.ready = true;
             }

@@ -1,10 +1,9 @@
-import {createElement as r, useRef, useState, useEffect, Fragment} from 'react';
+import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {Toolbar} from './toolbar/toolbar.js';
 import {useS, gs, ss, ssp, use_query, use_mutation, instance} from '../app.js';
 import {Viewport} from './viewport.js';
 import {Panel} from './panel/panel.js';
-
 //export const selection_rv = makeVar();
 //export const action_rv = makeVar({name:'none'}); // renamed to history action ?
 //export const show_points_rv = makeVar(true);
@@ -61,13 +60,13 @@ export function Studio(){
     ss(d=> d.close_pack = close_pack.mutate );//d.set(d=> {d.close_pack = close_pack.mutate;});
 
     return (
-        r(Fragment,{}, 
-            r(Poll), 
-            r(Toolbar),
-            r(Panel),
-            r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                r(Canvas,{orthographic:true, camera:{position:[0, 0, 1000]}}, //, far:10000 zoom:1    //frameloop:'demand', 
-                    r(Viewport),
+        c(Fragment,{}, 
+            c(Poll), 
+            c(Toolbar),
+            c(Panel),
+            c('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
+                c(Canvas,{orthographic:true, camera:{position:[0, 0, 1000]}}, //, far:10000 zoom:1    //frameloop:'demand', 
+                    c(Viewport),
                 )
             )
         )

@@ -1,17 +1,13 @@
-import {createElement as c, useEffect, useState, Fragment} from 'react';
-import {Row, Col, Dropdown, Container, Form, ButtonGroup, Button, ToggleButton} from 'react-bootstrap';
-//import {Dropdown} from 'react-bootstrap/Dropdown';
-import {ss, ssp, gs, useS, use_window_size} from '../../app.js';
-import {Badge} from '../../node/basic.js'
-import {String} from '../../node/input/string.js';
-import {Float} from '../../node/input/float.js';
+import {createElement as c} from 'react';
+import {ButtonGroup, ToggleButton} from 'react-bootstrap';
+import {ss, gs, useS} from '../../app.js';
 
 export function Inspect(){ 
     const panel = useS(d=> d.studio.panel.name);
     const show = useS(d=> d.studio.panel.show);
     const part = useS(d=> d.design.part);
-    const d = gs();
-    console.log('render inspector');
+    const nodes = useS(d=> d.pick.nodes); 
+    //console.log('render inspector');
     return (
         c(ButtonGroup, {}, 
             c(ToggleButton,{
@@ -21,12 +17,12 @@ export function Inspect(){
                 checked: show && panel=='inspect_design',
                 value: '1',
                 onChange:(e)=> { 
-                    console.log(e.currentTarget.checked);
-                    if(e.currentTarget.checked){
+                    if(part && e.currentTarget.checked){ 
                         ss(d=> {d.studio.panel={name:'inspect_design', show:true}; d.pick.one(d, part);});
                     }else{ ss(d=> d.studio.panel.show=false); }
                 }, 
-                className: 'bi-box me-1',
+                className: 'bi-box',
+                disabled: part==null,
             }),
             c(ToggleButton,{
                 id: 'inspect_nodes',
@@ -35,12 +31,12 @@ export function Inspect(){
                 checked: show && panel=='inspect_nodes',
                 value: '2',
                 onChange:(e)=> { 
-                    console.log(e.currentTarget.checked);
-                    if(e.currentTarget.checked){
+                    if(nodes.length && e.currentTarget.checked){
                         ss(d=> d.studio.panel={name:'inspect_nodes', show:true});
                     }else{ ss(d=> d.studio.panel.show=false); }
                 }, 
-                className: 'bi-boxes me-1',
+                className: 'bi-boxes',
+                disabled: nodes.length<1 || (part && nodes.length==1 && nodes[0]==part),
             })
         )
     )

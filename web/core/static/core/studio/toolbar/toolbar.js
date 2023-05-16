@@ -7,6 +7,7 @@ import {Visual} from './visual.js';
 import {Select} from './select.js';
 import {Make} from './make.js';
 import {useS, gs, ss, use_window_size} from '../../app.js';
+//import {Panel} from '../panel/panel.js';
 
 
 export function Toolbar(){
@@ -41,7 +42,7 @@ export function Toolbar(){
                     ...tools.map(tool => 
                         c(Col,{}, c(tool)),
                     )
-                )
+                ),
             ),
             mode=='graph' && design_candidate && c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-2 d-grid gap-2 col-6 mx-auto'},
                 c(Button, {
