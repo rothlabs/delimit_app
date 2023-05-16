@@ -1,17 +1,17 @@
-import {produce, produceWithPatches} from 'immer';
 import {Vector3} from 'three';
 import {graph_z} from '../studio/graph/graph.js';
-import {random_vector, readable, make_id} from '../app.js';
-import {graph} from './graph.js';
-import {inspect, float_tags, string_tags} from './inspect.js';
-import {pick} from './pick.js';
+import {random_vector, make_id} from '../app.js';
+//import {graph} from './graph.js';
+//import {inspect, float_tags, string_tags} from './inspect.js';
+//import {pick} from './pick.js';
 
 export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const root_tags={
     'view':  'viewer',
     'asset': 'owner',
 };
-
+export const float_tags  = ['decimal', 'x', 'y', 'z'];
+export const string_tags = ['text', 'name', 'story'];
 export const val_tags = [...float_tags, ...string_tags];
 export const design_tags = ['point', 'part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
 
@@ -21,10 +21,6 @@ export const create_base_slice = (set,get)=>({
     user: 0,
     profile: null,
     search: {depth:null, ids:null},
-
-    graph:graph,
-    inspect:inspect,
-    pick:pick,
 
     studio: {
         ready:false,
@@ -42,7 +38,7 @@ export const create_base_slice = (set,get)=>({
                 open: true,
                 asset: true,
                 graph: { // put in d.graph.node.vectors
-                    pos: new Vector3(-window_size,-window_size,graph_z),//random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
+                    pos: new Vector3(-window_size,window_size,graph_z),//random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
                     dir: new Vector3(),
                 },
             };

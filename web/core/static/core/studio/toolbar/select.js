@@ -15,7 +15,7 @@ export function Select(){
                 onChange:(e)=> {
                     ss(d=> d.pick.multiselect = !multiselect );
                 }, 
-                className: 'bi-cursor',
+                className: 'bi-cursor border-white',
             })
         )
     )

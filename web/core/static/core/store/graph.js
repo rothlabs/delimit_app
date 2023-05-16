@@ -6,8 +6,7 @@
 
 // instead of using these functions as selectors (expensive frequent op), keep them as derivitives
 // in the merge function of base, update the derivitives when there is a change
-//export const create_graph_slice = (set,get)=>({
-export const graph = {
+export const create_graph_slice = (set,get)=>({graph:{
     nodes: [],
     edges: [],
     update: d=>{
@@ -25,8 +24,7 @@ export const graph = {
         });
         d.graph.arrange = true;
     },
-}
-//});
+}});
 
 
 // update: d=>{

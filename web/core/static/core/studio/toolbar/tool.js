@@ -21,7 +21,7 @@ export function Tool(){
                     //value: button.value,
                     //checked: draw_mode == button.value,
                     //onChange:(e)=> draw_mode_rv(e.currentTarget.value),
-                    className: button.icon,
+                    className: button.icon+ ' border-white',
                 })
             ),
         )

@@ -182,13 +182,16 @@ class Open_Pack(graphene.Mutation):
             user = info.context.user
             # filter by ids:
             parts = None
-            if ids: parts = Part.objects.filter(id__in = ids)
-            # filter by public and viewable :
+            if ids: parts = Part.objects.filter(id__in=ids)
+            # filter by public and viewable (excluding deleted):
             if user.is_authenticated: viewable = Q(r__t__v='profile', r__u=user) | Q(t__v='profile', u=user)
             else: viewable = Q(pk__in=[]) # always false
-            permission = Q(r__t__v='public') | Q(t__v='public') | viewable
+            permission =  (Q(r__t__v='public') | Q(t__v='public') | viewable)
             if parts: parts = parts.filter(permission).distinct()
             else: parts = Part.objects.filter(permission).distinct()
+            # filter out deleted
+            delete_packs = Part.objects.filter(t__v='delete_pack')
+            parts = parts.filter(~Q(r__in=delete_packs))
             # filter by include and exclude props:
             if include:
                 for prop in include:
@@ -205,10 +208,11 @@ class Open_Pack(graphene.Mutation):
             # get dependencies filtered by public and viewable
             part_count = len(parts.all())
             while depth is None or depth > 0:  # replace with Part.objects.raw(recursive sql)!!!!
-                parts = Part.objects.filter(Q(r__in=parts) | Q(id__in=parts.values_list('id', flat=True)), permission).distinct()
+                parts = Part.objects.filter(Q(r__in=parts) | Q(id__in=parts.values_list('id', flat=True)), permission)
+                parts = parts.filter(~Q(r__in=delete_packs)).distinct()
                 if(len(parts.all()) > part_count): 
                    part_count = len(parts.all())
-                   depth -= 1
+                   if depth: depth -= 1
                 else: break
             # get atoms:
             if user.is_authenticated: 

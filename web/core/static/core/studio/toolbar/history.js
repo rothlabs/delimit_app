@@ -13,7 +13,7 @@ export function History(p){
                 c(Button,{
                     //onClick:()=>action_rv({name:button.act}), 
                     variant: 'outline-primary', size: 'lg',
-                    className: button.icon,
+                    className: button.icon+ ' border-white',
                 })
             )
         )

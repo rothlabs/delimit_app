@@ -1,10 +1,6 @@
-//import {produce, produceWithPatches} from 'immer';
-import {model_tags, design_tags} from './base.js';
-import {float_tags} from './inspect.js';
+import {model_tags, float_tags, design_tags} from './base.js';
 
-//export const create_select_slice = (set,get)=>({
-
-export const pick = {
+export const create_pick_slice = (set,get)=>({pick:{
     nodes: [],
     multiselect: false, // rename to multi
 
@@ -63,5 +59,4 @@ export const pick = {
         d.inspect.update(d);
     },
 
-}
-//});
+}});

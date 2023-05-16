@@ -23,7 +23,7 @@ export function Toolbar(){
     const tools = [Make, Inspect, Visual, History, Select, Tool];
     return(
         c(Fragment,{},
-            c(ButtonGroup, {className:'position-absolute top-0 start-50 translate-middle-x mt-2', style:{zIndex: 1}}, 
+            c(ButtonGroup, {className:'position-absolute top-0 start-50 translate-middle-x mt-3', style:{zIndex: 1}}, 
                 ...mode_buttons.map((button,i)=>
                     c(ToggleButton,{
                         id: 'studio_mode'+i,
@@ -37,14 +37,14 @@ export function Toolbar(){
                     }, c('i',{className:button.icon, style:{fontSize:'24px'}}), window_size.width>576 ? button.name : '') //c('span',{className:'align-baseline'},button.name)
                 ),
             ),
-            c(Container, {fluid:true, className:'bg-white pt-2 pb-2'}, // pb:5,
-                c(Row,{className:'row-cols-auto gap-2'}, // use ButtonToolbar here instead?
+            c(Container, {fluid:true, className:'bg-white'}, // pb:5,
+                c(Row,{className:'row-cols-auto gap-2 p-2'}, // use ButtonToolbar here instead?
                     ...tools.map(tool => 
-                        c(Col,{}, c(tool)),
+                        c(Col,{className:'ps-1 pe-1'}, c(tool)),
                     )
                 ),
             ),
-            mode=='graph' && design_candidate && c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-2 d-grid gap-2 col-6 mx-auto'},
+            mode=='graph' && design_candidate && c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-3 d-grid gap-2 col-6 mx-auto'},
                 c(Button, {
                     size: 'lg', // variant: 'outline-primary',
                     onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 

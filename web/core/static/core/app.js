@@ -9,7 +9,6 @@ import {Root} from './root.js';
 import {Studio} from './studio/studio.js';
 import {Router_Error, Query_Status} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
-//import set from 'lodash';
 import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
 import {useFrame, useThree} from '@react-three/fiber';//'r3f';
@@ -19,9 +18,9 @@ import {create} from 'zustand';
 import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
 import {shallow} from 'zustand/shallow';//'shallow';
 import {create_base_slice} from './store/base.js';
-//import {create_graph_slice} from './store/graph.js';
-//import {create_select_slice} from './store/select.js';
-//import {create_inspect_slice} from './store/inspect.js';
+import {create_graph_slice} from './store/graph.js';
+import {create_pick_slice} from './store/pick.js';
+import {create_inspect_slice} from './store/inspect.js';
 
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
@@ -36,9 +35,9 @@ export const instance = make_id();
 export const useS = create(
     subscribeWithSelector((...a) => ({ 
         ...create_base_slice(...a),
-        //...create_graph_slice(...a),
-        //...create_select_slice(...a),
-        //...create_inspect_slice(...a),
+        ...create_graph_slice(...a),
+        ...create_pick_slice(...a),
+        ...create_inspect_slice(...a),
     }))
 );
 export const ss = func=> useS.setState(produce(d=>{func(d)}));
@@ -50,10 +49,6 @@ export const gs = ()=> useS.getState();
 export const useSS = selector=> useS(selector, shallow);
 export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
 export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
-// export const store = {
-//     set: func=> useD.setState(produce(d=> func(d))),
-//     get: ()=> useD.getState(),
-// }; 
 
 export function use_window_size() {
     const [size, setSize] = useState([0, 0]);
@@ -130,7 +125,6 @@ function compile_gql(name, gql_parts){
     header = name + header;
     return {header, body, variables}
 }
-
 function gql_status(loading, error, data, done){
     var result = null;// {message: 'Idle'};
 	if (loading) result=()=> r(Query_Status, {message: 'Working...'});
@@ -138,7 +132,6 @@ function gql_status(loading, error, data, done){
     if (data)    result=()=> r(Query_Status, {message: done()}); 
     return result;
 }
-
 export function use_query(name, gql_parts, arg){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
@@ -158,7 +151,6 @@ export function use_query(name, gql_parts, arg){ // 'cache-and-network'
     //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
     return {data:data, status:gql_status(loading,error,data,()=>'Done'), startPolling:startPolling};
 }
-
 export function use_mutation(name, gql_parts, arg){
     const {header, body, variables} = compile_gql(name, gql_parts);
     //console.log({header, body, variables});
@@ -240,39 +232,12 @@ const termination_link = createUploadLink({
     },
 });
 
-import {Dropdown, DropdownButton} from 'react-bootstrap';
-
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
         r(RouterProvider, {router:createBrowserRouter([
             {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
-                {path:'',        element:r('p',{},
-
-                r(DropdownButton, {show:true, id:"dropdown-basic-button", title:"Dropdown button"},
-                    r(Dropdown.Item, {href:"#/action-1"}, 'action'),
-                    r(Dropdown.Item, {href:"#/action-2"}, 'action'),
-                    r(Dropdown.Item, {href:"#/action-3"}, 'action'),
-                )
-                // r(Dropdown, {show:true}, // show:true, onToggle:s=>toggled(s)
-                //     r(Dropdown.Toggle, {id:'visual_dropdown', className:'bi-eye', variant:'outline-primary', size: 'lg',}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
-                //     r(Dropdown.Menu, {},
-                //         r(Dropdown.Item, {href:"#/action-1"}, 'action'),
-                //         //...node_tags.map((tag, i)=>{
-                //         //    r(Form.Check, {
-                //         //        className:'mt-2 mb-2', 
-                //         //        label: tag, 
-                //                 //checked: checked[i], 
-                //                 //onChange:(e)=> {
-                //                 //    e.target.checked ?
-                //                 //         :
-                //                 //}, 
-                //         //    })
-                //         //}),
-                //     )
-                // )
-                
-                )},
-                {path:'catalog', element:r('p',{},'At Catalog')},
+                {path:'',        element:r('p',{}, 'At Home')},
+                {path:'catalog', element:r('p',{}, 'At Catalog')},
                 {path:'studio',  element:r(Studio), errorElement:r(Router_Error)},  // {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
                     //{path:'',       element:r(Studio_Browser)},
                     //{path:':id',    element:r(Studio_Editor)},

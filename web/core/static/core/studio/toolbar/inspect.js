@@ -21,7 +21,7 @@ export function Inspect(){
                         ss(d=> {d.studio.panel={name:'inspect_design', show:true}; d.pick.one(d, part);});
                     }else{ ss(d=> d.studio.panel.show=false); }
                 }, 
-                className: 'bi-box',
+                className: 'bi-box border-white',
                 disabled: part==null,
             }),
             c(ToggleButton,{
@@ -35,7 +35,7 @@ export function Inspect(){
                         ss(d=> d.studio.panel={name:'inspect_nodes', show:true});
                     }else{ ss(d=> d.studio.panel.show=false); }
                 }, 
-                className: 'bi-boxes',
+                className: 'bi-boxes border-white',
                 disabled: nodes.length<1 || (part && nodes.length==1 && nodes[0]==part),
             })
         )

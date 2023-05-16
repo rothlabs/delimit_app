@@ -11,7 +11,11 @@ export function Visual(){
     }
     return(
         r(Dropdown, {}, // show:true, onToggle:s=>toggled(s)
-            r(Dropdown.Toggle, {id:'visual_dropdown', className:'bi-eye', variant:'outline-primary', size: 'lg',}, ' '), //fs-4 font size to increase icon size but need to reduce padding too
+            r(Dropdown.Toggle, {
+                id:'visual_dropdown', 
+                className:'bi-eye border-white', 
+                variant:'outline-primary', size: 'lg',
+            }, ' '), //fs-4 font size to increase icon size but need to reduce padding too
             r(Dropdown.Menu, {},
                 r(Dropdown.Item, {href:"#/action-1"}, 'action'),
                 //...node_tags.map((tag, i)=>{
