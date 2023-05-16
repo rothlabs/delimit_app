@@ -11,11 +11,11 @@ export function Inspect(){
     return (
         c(ButtonGroup, {}, 
             c(ToggleButton,{
-                id: 'inspect_design',
+                id: 'open_inspect_design_panel',
                 type: 'checkbox',
                 variant: 'outline-primary', size: 'lg',
                 checked: show && panel=='inspect_design',
-                value: '1',
+                //value: '1',
                 onChange:(e)=> { 
                     if(part && e.currentTarget.checked){ 
                         ss(d=> {d.studio.panel={name:'inspect_design', show:true}; d.pick.one(d, part);});
@@ -25,11 +25,11 @@ export function Inspect(){
                 disabled: part==null,
             }),
             c(ToggleButton,{
-                id: 'inspect_nodes',
+                id: 'open_inspect_nodes_panel',
                 type: 'checkbox',
                 variant: 'outline-primary', size: 'lg',
                 checked: show && panel=='inspect_nodes',
-                value: '2',
+                //value: '2',
                 onChange:(e)=> { 
                     if(nodes.length && e.currentTarget.checked){
                         ss(d=> d.studio.panel={name:'inspect_nodes', show:true});

@@ -2,6 +2,7 @@ import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Container, CloseButton} from 'react-bootstrap';
 import {ss, ssp, gs, useS, use_window_size} from '../../app.js';
 import { Inspect } from './inspect.js';
+import { Make } from './make.js';
 
 export function Panel(){ 
     const panel = useS(d=> d.studio.panel.name);
@@ -28,11 +29,12 @@ export function Panel(){
         if(window_size.width>576) set_width('30vw');
     },[window_size.width])
     return (
-        show && c(Container, {fluid:true, className:'position-absolute start-0 bg-white mt-2 pt-3 pb-3 border rounded', style:{maxWidth:width}}, 
+        show && c(Container, {fluid:true, className:'position-absolute start-0 bg-white mt-2 p-3 border rounded', style:{maxWidth:width}}, 
             c(CloseButton, {
                 className:'position-absolute top-0 end-0 m-2',
                 onClick:()=>{ss(d=>d.studio.panel.show=false)}
             }),
+            c(Make),
             c(Inspect),
         )
     )
