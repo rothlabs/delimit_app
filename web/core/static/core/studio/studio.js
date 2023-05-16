@@ -3,6 +3,7 @@ import {Canvas} from '@react-three/fiber';
 import {Toolbar} from './toolbar/toolbar.js';
 import {useS, gs, ss, ssp, use_query, use_mutation, instance} from '../app.js';
 import {Viewport} from './viewport.js';
+import {Panel} from './panel/panel.js';
 
 //export const selection_rv = makeVar();
 //export const action_rv = makeVar({name:'none'}); // renamed to history action ?
@@ -63,6 +64,7 @@ export function Studio(){
         r(Fragment,{}, 
             r(Poll), 
             r(Toolbar),
+            r(Panel),
             r('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
                 r(Canvas,{orthographic:true, camera:{position:[0, 0, 1000]}}, //, far:10000 zoom:1    //frameloop:'demand', 
                     r(Viewport),

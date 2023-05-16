@@ -248,7 +248,7 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
             {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
                 {path:'',        element:r('p',{},
 
-                r(DropdownButton, {id:"dropdown-basic-button", title:"Dropdown button"},
+                r(DropdownButton, {show:true, id:"dropdown-basic-button", title:"Dropdown button"},
                     r(Dropdown.Item, {href:"#/action-1"}, 'action'),
                     r(Dropdown.Item, {href:"#/action-2"}, 'action'),
                     r(Dropdown.Item, {href:"#/action-3"}, 'action'),

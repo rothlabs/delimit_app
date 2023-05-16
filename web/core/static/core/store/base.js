@@ -29,6 +29,7 @@ export const create_base_slice = (set,get)=>({
     studio: {
         ready:false,
         mode:'graph',
+        panel: {},
         make: (d, t)=>{
             const window_size = (window.innerWidth+window.innerHeight)/4;
             const n = make_id();
