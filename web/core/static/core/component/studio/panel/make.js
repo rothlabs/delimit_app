@@ -1,6 +1,6 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, Button} from 'react-bootstrap';
-import {useS, ss, ssp} from '../../app.js'
+import {useS, ss, ssp} from '../../../app.js'
 
 export function Make(){
     const show = useS(d=> d.studio.panel.show);

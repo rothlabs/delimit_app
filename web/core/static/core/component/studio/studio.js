@@ -1,7 +1,7 @@
 import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {Toolbar} from './toolbar/toolbar.js';
-import {useS, gs, ss, ssp, use_query, use_mutation, instance} from '../app.js';
+import {useS, gs, ss, ssp, use_query, use_mutation, instance} from '../../app.js';
 import {Viewport} from './viewport.js';
 import {Panel} from './panel/panel.js';
 //export const selection_rv = makeVar();

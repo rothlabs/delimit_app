@@ -1,5 +1,5 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
-import {useS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 import * as THREE from 'three';

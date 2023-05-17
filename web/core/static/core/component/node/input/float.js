@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
-import {ssp, useS, readable} from '../../app.js';
+import {ssp, useS, readable} from '../../../app.js';
 
 export function Float({t}){
     const content   = useS(d=> d.inspect.content[t]);

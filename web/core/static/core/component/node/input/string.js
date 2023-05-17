@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
-import {useS, ssp, readable} from '../../app.js';
+import {useS, ssp, readable} from '../../../app.js';
 
 const area_tags = ['story'];
 

@@ -6,7 +6,7 @@ import {Vector2} from 'three';
 import {CameraControls} from '@react-three/drei/CameraControls';
 import {Graph} from './graph/graph.js';
 import {Board} from './board.js';
-import {useS} from '../app.js';
+import {useS} from '../../app.js';
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();

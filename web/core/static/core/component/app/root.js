@@ -4,7 +4,7 @@ import {Outlet, Link} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
-import {ss, use_query} from './app.js';
+import {ss, use_query} from '../../app.js';
 
 
 export function Root(){

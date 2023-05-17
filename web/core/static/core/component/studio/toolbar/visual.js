@@ -1,6 +1,6 @@
 import {createElement as r} from 'react';
 import {Dropdown, DropdownButton, Form} from 'react-bootstrap';
-import {ss, useSS} from '../../app.js'
+import {ss, useSS} from '../../../app.js'
 
 export function Visual(){
     //const node_tags = useDS(d=> d.node_tags);

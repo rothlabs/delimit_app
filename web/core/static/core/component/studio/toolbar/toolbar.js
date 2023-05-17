@@ -6,7 +6,7 @@ import {Draw} from './draw.js';
 import {Visual} from './visual.js';
 import {Select} from './select.js';
 import {Make} from './make.js';
-import {useS, gs, ss, use_window_size} from '../../app.js';
+import {useS, gs, ss, use_window_size} from '../../../app.js';
 //import {Panel} from '../panel/panel.js';
 
 

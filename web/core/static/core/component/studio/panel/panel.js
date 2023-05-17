@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Container, CloseButton} from 'react-bootstrap';
-import {ss, ssp, gs, useS, use_window_size} from '../../app.js';
+import {ss, ssp, gs, useS, use_window_size} from '../../../app.js';
 import { Inspect } from './inspect.js';
 import { Make } from './make.js';
 

@@ -6,7 +6,7 @@ import {createElement as r, StrictMode, useEffect, useState, useRef, forwardRef,
 import {createRoot} from 'react-dom/client';//'rdc';
 import {createBrowserRouter, RouterProvider, Outlet} from 'react-router-dom';//'rrd';
 import {Root} from './root.js';
-import {Studio} from './studio/studio.js';
+import {Studio} from './component/studio/studio.js';
 import {Router_Error, Query_Status} from './feedback.js';
 import {Color, ColorManagement} from 'three'; 
 import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
@@ -225,7 +225,7 @@ export function readable(text){
 }
 
 
-import {createUploadLink} from './upload/upload.js';
+import {createUploadLink} from './apollo/upload.js';
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});

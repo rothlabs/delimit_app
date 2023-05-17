@@ -1,6 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
-import {useS, useSS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, useSS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';

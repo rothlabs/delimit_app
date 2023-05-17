@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {ToggleButton, ButtonGroup} from 'react-bootstrap';
-import {ss, useS} from '../../app.js';
+import {ss, useS} from '../../../app.js';
 
 export function Draw(){
     const studio_mode = useS(d=> d.studio.mode);

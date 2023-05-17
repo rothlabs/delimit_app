@@ -2,7 +2,7 @@ import {createElement as r, useEffect, useRef, useState, forwardRef, useImperati
 import {MeshLineRaycast } from '../meshline.js';
 import {useThree, useFrame, useLoader} from 'r3f';
 import {theme, use_effect, static_url, child} from '../../app.js';
-import {action_rv, show_points_rv, show_endpoints_rv, selection_rv} from '../studio.js';
+import {action_rv, show_points_rv, show_endpoints_rv, selection_rv} from '../studio/studio.js';
 import {useReactiveVar} from 'apollo';
 import * as vtx from '../vertex.js';
 import * as THREE from 'three';

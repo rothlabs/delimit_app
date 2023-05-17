@@ -35,8 +35,6 @@ ALLOWED_HOSTS = ['delimit.art','www.delimit.art','localhost']
 
 INSTALLED_APPS = [
     'core.apps.CoreConfig',
-    #'catalog.apps.CatalogConfig',
-    #'easel.apps.EaselConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'graphene_django',
-    'ajax_select',
+    'ajax_select', 
 ]
 
 MIDDLEWARE = [

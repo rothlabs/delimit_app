@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {ToggleButton, ButtonGroup} from 'react-bootstrap';
-import {ss, useS} from '../../app.js';
+import {ss, useS} from '../../../app.js';
 
 export function Select(){
     const multiselect = useS(d=> d.pick.multiselect);

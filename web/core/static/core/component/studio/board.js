@@ -1,7 +1,7 @@
 import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Vector2} from 'three';
-import {ss, ssp, useS} from '../app.js';
+import {ss, ssp, useS} from '../../app.js';
 
 //const pointer_start = new Vector2();
 //const pointer_vect = new Vector2();
