@@ -1,10 +1,10 @@
 import {createElement as r, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import {MeshLineRaycast } from './meshline.js';
+import {MeshLineRaycast } from '../meshline.js';
 import {useThree, useFrame, useLoader} from 'r3f';
-import {theme, use_effect, static_url, child} from '../app.js';
-import {action_rv, show_points_rv, show_endpoints_rv, selection_rv} from './studio.js';
+import {theme, use_effect, static_url, child} from '../../app.js';
+import {action_rv, show_points_rv, show_endpoints_rv, selection_rv} from '../studio.js';
 import {useReactiveVar} from 'apollo';
-import * as vtx from './vertex.js';
+import * as vtx from '../vertex.js';
 import * as THREE from 'three';
 
 const max_points = 100; // This is used for point colors. Alternative is to create a new BufferAttribute each update

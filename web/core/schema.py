@@ -362,26 +362,26 @@ class Push_Pack(graphene.Mutation):
                             part = Part.objects.get(is_asset, id=parts[p][0][0])
                             part.t = Tag.objects.get(v=t[p][0][0], system=False)
                             part.save()
-                            clear_part(part) # clear except for unknown nodes!!!! (parts[p][6]) UPDATE: There should never be unknown in push, make update_pack
+                            if parts[p][6][0]=='replace': clear_part(part) 
                             poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
-                            for i in range(len(parts[p][1])):
+                            for o in range(len(parts[p][1])):
                                 try:
-                                    tag_obj = Tag.objects.get(v=t[p][1][i], system=False)
-                                    if tag_obj.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][i])
-                                    else: obj = Part.objects.get(id = parts[p][1][i]) 
-                                    part.p.add(obj, through_defaults={'o':i, 't':tag_obj})#temp_pack.p.append(obj)
+                                    tag_obj = Tag.objects.get(v=t[p][1][o], system=False)
+                                    if tag_obj.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][o])
+                                    else: obj = Part.objects.get(id = parts[p][1][o]) 
+                                    part.p.add(obj, through_defaults={'o':o, 't':tag_obj})#temp_pack.p.append(obj)
                                     poll_pack.p.add(obj, through_defaults={'t':tag['poll_pack']})
                                 except Exception as e: 
                                     print(e)
-                                    restricted.append(parts[p][1][i])
-                            for i in range(len(parts[p][2])):
-                                cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][i], i, t[p][2][i], restricted, poll_pack)
-                            for i in range(len(parts[p][3])):
-                                cls.add_atom(is_asset, part, Int,    'i', parts[p][3][i], i, t[p][3][i], restricted, poll_pack)
-                            for i in range(len(parts[p][4])):
-                                cls.add_atom(is_asset, part, Float,  'f', parts[p][4][i], i, t[p][4][i], restricted, poll_pack)
-                            for i in range(len(parts[p][5])):
-                                cls.add_atom(is_asset, part, String, 's', parts[p][5][i], i, t[p][5][i], restricted, poll_pack)
+                                    restricted.append(parts[p][1][o])
+                            for o in range(len(parts[p][2])):
+                                cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][o], o, t[p][2][o], restricted, poll_pack)
+                            for o in range(len(parts[p][3])):
+                                cls.add_atom(is_asset, part, Int,    'i', parts[p][3][o], o, t[p][3][o], restricted, poll_pack)
+                            for o in range(len(parts[p][4])):
+                                cls.add_atom(is_asset, part, Float,  'f', parts[p][4][o], o, t[p][4][o], restricted, poll_pack)
+                            for o in range(len(parts[p][5])):
+                                cls.add_atom(is_asset, part, String, 's', parts[p][5][o], o, t[p][5][o], restricted, poll_pack)
                             #for i in range(len(parts[p][6])): # unknown nodes!!
                             #    pass 
                             poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})

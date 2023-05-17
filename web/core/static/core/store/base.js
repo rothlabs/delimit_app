@@ -61,21 +61,17 @@ export const create_base_slice = (set,get)=>({
         d.close_pack({variables:close_pack});
     },
 
-    // use produceWithPatches so can get the new d
-    send: (d, patches)=>{//set(d=>produce(d, d=>func(d), patches=> { 
-        //var d = get();
-        //const [dd, patches, inversePatches] = produceWithPatches(d, d=>func(d)); 
-        //set(nextState);//set(d=> nextState);
-        //d = nextState;//get();
+    send: (d, patches)=>{
         console.log('patches');
         console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
+        const appends = {};
         patches.forEach(patch=>{
             const n = patch.path[1];
-            if(patch.op == 'add'){ // node created
-                if(patch.path[0]=='n' && patch.path.length < 3){
+            if(patch.op == 'add'){ 
+                if(patch.path[0]=='n' && patch.path.length < 3){ // node created
                     if(d.n[n].m=='p'){
-                        const part = [[n],        [], [], [], [], []];
+                        const part = [[n],        [], [], [], [], [], ['replace']];
                         const tags = [[d.n[n].t], [], [], [], [], []];
                         Object.entries(d.n[n].n).forEach(([et,nodes],i)=>{ /// make common func to iterate sub/child nodes 
                             nodes.forEach(nid=>{
@@ -90,18 +86,19 @@ export const create_base_slice = (set,get)=>({
                         edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                         edits[d.n[n].m].push(patch.value.v);
                     }
-                    //edits.instance = ''; // setting blank so this client reads the returned poll_pack on this
-                // }else if(patch.path[2]=='n'){ // need to check if already modified this one (merge patches)
-                //     const part = [[n],        [], [], [], [], []];
-                //     const tags = [[d.n[n].t], [], [], [], [], []];
-                //     const et = patch.path[3];
-                //     const m = ['r','p','b','i','f','s'].indexOf(d.n[d.n[n].n[et][0]].m);
-                //     if(patch.path.length > 4){
-                //         part[m].push(d.n[n].n[et][patch.path[4]]);
-                //         tags[m].push(et);
-                //     }
-                //     edits.parts.push(part);
-                //     edits.t.push(tags);
+                }else if(patch.path[2]=='n'){ // need to check if already modified this one (merge patches)
+                    console.log('add to part: '+patch.path[3]);
+                    if(!appends[n]){ appends[n] = {
+                        part: [[n],        [], [], [], [], [], ['append']],
+                        tags: [[d.n[n].t], [], [], [], [], []]
+                    }}
+                    var nid = patch.value;
+                    console.log(nid);
+                    if(Array.isArray(nid)) nid = nid[0]; // could be a single element array if new edge tag
+                    console.log(nid);
+                    const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
+                    appends[n].part[mi].push(nid);
+                    appends[n].tags[mi].push(patch.path[3]);
                 }else if(patch.path[2]=='deleted'){
                     edits[d.n[n].m+'del'].push(n);
                 }
@@ -109,6 +106,10 @@ export const create_base_slice = (set,get)=>({
                 edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                 edits[d.n[n].m].push(patch.value);
             }
+        });
+        Object.values(appends).forEach(append=>{
+            edits.parts.push(append.part);
+            edits.t.push(append.tags);
         });
         //console.log('edits');
         //console.log(edits);
@@ -202,6 +203,18 @@ export const create_base_slice = (set,get)=>({
     },
 
 });
+
+
+                    //const part = [[n],        [], [], [], [], [], ['add']];
+                    //const tags = [[d.n[n].t], [], [], [], [], []];
+                //     const et = patch.path[3];
+                //     const m = ['r','p','b','i','f','s'].indexOf(d.n[d.n[n].n[et][0]].m);
+                //     if(patch.path.length > 4){
+                //         part[m].push(d.n[n].n[et][patch.path[4]]);
+                //         tags[m].push(et);
+                //     }
+                    //edits.parts.push(part);
+                    //edits.t.push(tags);
 
 
 //const mi = 6; // unknown model because this node is not loaded on client. Do not clear on server

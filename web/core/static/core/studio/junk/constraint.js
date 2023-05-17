@@ -1,4 +1,4 @@
-import * as vtx from './vertex.js'; 
+import * as vtx from '../vertex.js'; 
 import {Vector3} from 'three'; 
 
 //const clip = 12;

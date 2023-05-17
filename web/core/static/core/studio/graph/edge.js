@@ -6,8 +6,6 @@ import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 
 const tv = new Vector3();
-//const pos1 = new Vector3();
-//const pos2 = new Vector3();
 
 export function Edge({r, tag, n}){
     const meshline = useRef();

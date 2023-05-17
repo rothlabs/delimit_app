@@ -1,7 +1,7 @@
 import {createElement as r, useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import {id_of, child, use_effect} from '../app.js';
+import {id_of, child, use_effect} from '../../app.js';
 //import {useFrame} from 'r3f';
-import {editor_rv, action_rv, sketches_rv} from './studio.js';
+import {editor_rv, action_rv, sketches_rv} from '../studio.js';
 import {useReactiveVar} from 'apollo';
 //import {TextureLoader} from 'three';
 

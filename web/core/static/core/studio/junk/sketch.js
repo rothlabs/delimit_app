@@ -1,7 +1,7 @@
 import {createElement as r, useRef, forwardRef, useImperativeHandle} from 'react';
 import {Line} from './line.js';
 import {Mirror_X, Mirror_Endpoints_X, Coincident, Vertical_Alignment, Endpoints_To_Lines, Coincident_Endpoints} from './constraint.js';
-import {use_effect} from '../app.js';
+import {use_effect} from '../../app.js';
 
 export const Sketch = forwardRef(function Sketch(p, ref) {
 	const lines = useRef([]); // make custom use_ref hook that provides a set_line(i) function that returns rf=>lines.current[i]=rf

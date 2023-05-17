@@ -1,8 +1,8 @@
 import {createElement as r, useEffect, useState} from 'react';
 import {Container, Card, Button, Row, Col} from 'boot';
 import {Link} from 'rrd';
-import {use_query} from '../app.js';
-import {show_copy_project, show_delete_project} from './crud.js';
+import {use_query} from '../../app.js';
+import {show_copy_project, show_delete_project} from '../crud.js';
 
 const throughs = ['p','b','i','f','s'].map(m=> 'p'+m+'1{t1{v} t2{v} m2{id}}').join(' ');
 
