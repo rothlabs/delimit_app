@@ -1,6 +1,7 @@
+import {current} from 'immer';
 import {Vector3} from 'three';
-import {graph_z} from '../studio/graph/graph.js';
-import {random_vector, make_id} from '../app.js';
+//import {graph_z} from '../studio/graph/graph.js';
+import {random_vector} from '../app.js';
 //import {graph} from './graph.js';
 //import {inspect, float_tags, string_tags} from './inspect.js';
 //import {pick} from './pick.js';
@@ -13,7 +14,8 @@ const root_tags={
 export const float_tags  = ['decimal', 'x', 'y', 'z'];
 export const string_tags = ['text', 'name', 'story'];
 export const val_tags = [...float_tags, ...string_tags];
-export const design_tags = ['point', 'part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
+//export const part_tags = ['part', 'point', 'line', 'sketch'];
+export const design_tags = ['part', 'point', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
 
 
 export const create_base_slice = (set,get)=>({
@@ -27,27 +29,8 @@ export const create_base_slice = (set,get)=>({
         mode:'graph',
         panel: {},
         make: (d, t)=>{
-            const window_size = (window.innerWidth+window.innerHeight)/4;
-            const n = make_id();
-            d.n[n] = {
-                m: 'p',
-                t: t,
-                c: {}, // name: 'untitled'
-                r: {},
-                n: {},
-                open: true,
-                asset: true,
-                graph: { // put in d.graph.node.vectors
-                    pos: new Vector3(-window_size,window_size,graph_z),//random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
-                    dir: new Vector3(),
-                },
-            };
-            if(d.profile){
-                if(!d.n[d.profile].n.asset) d.n[d.profile].n.asset = [];
-                d.n[d.profile].n.asset.push(n);
-            }
-            d.pick.one(d,n);
-            d.consume = d.send;
+            const n = d.make.part(d, t);
+            d.pick.one(d, n);
         }
     },
 
@@ -60,11 +43,6 @@ export const create_base_slice = (set,get)=>({
             }
         },
     },
-
-    //set: func=>set(produce(d=>func(d))),  // used to update local state only (d.n[id].graph.pos for example)
-    
-    //clear_node: (d, n)=>{},
-    //deleted: [],
 
     close: (d, nodes)=>{
         const close_pack = {p:[], b:[], i:[], f:[], s:[]};
@@ -89,18 +67,41 @@ export const create_base_slice = (set,get)=>({
         //const [dd, patches, inversePatches] = produceWithPatches(d, d=>func(d)); 
         //set(nextState);//set(d=> nextState);
         //d = nextState;//get();
-        //console.log('patches');
-        //console.log(patches); // auto merges patches into mutations state slice 
+        console.log('patches');
+        console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
         patches.forEach(patch=>{
             const n = patch.path[1];
             if(patch.op == 'add'){ // node created
                 if(patch.path[0]=='n' && patch.path.length < 3){
-                    const part = [[n],        [], [], [], [], []];
-                    const tags = [[d.n[n].t], [], [], [], [], []];
-                    edits.parts.push(part);
-                    edits.t.push(tags);
+                    if(d.n[n].m=='p'){
+                        const part = [[n],        [], [], [], [], []];
+                        const tags = [[d.n[n].t], [], [], [], [], []];
+                        Object.entries(d.n[n].n).forEach(([et,nodes],i)=>{ /// make common func to iterate sub/child nodes 
+                            nodes.forEach(nid=>{
+                                const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
+                                part[mi].push(nid);
+                                tags[mi].push(et);
+                            });
+                        });
+                        edits.parts.push(part);
+                        edits.t.push(tags);
+                    }else{
+                        edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                        edits[d.n[n].m].push(patch.value.v);
+                    }
                     //edits.instance = ''; // setting blank so this client reads the returned poll_pack on this
+                // }else if(patch.path[2]=='n'){ // need to check if already modified this one (merge patches)
+                //     const part = [[n],        [], [], [], [], []];
+                //     const tags = [[d.n[n].t], [], [], [], [], []];
+                //     const et = patch.path[3];
+                //     const m = ['r','p','b','i','f','s'].indexOf(d.n[d.n[n].n[et][0]].m);
+                //     if(patch.path.length > 4){
+                //         part[m].push(d.n[n].n[et][patch.path[4]]);
+                //         tags[m].push(et);
+                //     }
+                //     edits.parts.push(part);
+                //     edits.t.push(tags);
                 }else if(patch.path[2]=='deleted'){
                     edits[d.n[n].m+'del'].push(n);
                 }
@@ -130,7 +131,7 @@ export const create_base_slice = (set,get)=>({
                     d.n[n.id] = {
                         m: m,
                         graph: { // put in d.graph.node.vectors
-                            pos: random_vector({min:window_size, max:window_size*1.5, z:graph_z}),
+                            pos: random_vector({min:window_size, max:window_size*1.5, z:0}),
                             dir: new Vector3(),
                         }
                     };
@@ -138,7 +139,7 @@ export const create_base_slice = (set,get)=>({
                 if(d.exists(d,n.id)){
                     d.n[n.id].open = true;
                     d.n[n.id].r = {};
-                    d.n[n.id].c = {}; // content generated by edges 
+                    d.n[n.id].c = {}; // content generated by edges (should be in atom only?!?!?!)
                     if(m=='p'){
                         console.log('got part: '+n.id+' ('+n.t.v+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                         d.n[n.id].t = n.t.v;
@@ -159,10 +160,9 @@ export const create_base_slice = (set,get)=>({
                     var t = 'unknown';
                     if(root_tags[e.t.v]){   t = root_tags[e.t.v];
                     }else{ if(d.exists(d,e.r.id))  t = d.n[e.r.id].t; }//}else{ if(d.n[e.r.id])  t = d.n[e.r.id].t; }
-                    if(!d.n[n.id].r[t]) d.n[n.id].r[t] = [];
-                    d.n[n.id].r[t].push(e.r.id);  // <<<<<<<<< reverse relationship !!!! (root)
+                    ///if(!d.n[n.id].r[t]) d.n[n.id].r[t] = [];
+                    ///d.n[n.id].r[t].push(e.r.id);  // <<<<<<<<< reverse relationship !!!! (root)
                     if(val_tags.includes(e.t.v) && d.exists(d,e.r.id)) d.n[e.r.id].c[e.t.v] = d.n[n.id].v;//if(val_tags.includes(e.t.v) && d.n[e.r.id]) d.n[e.r.id].c[e.t.v] = d.n[n.id].v;
-                    //if(e.t.v=='asset' && d.n[e.r.id].profile) d.n[n.id].asset = true; //t=='profile' && d.n[e.r.id].u.id==user_id
                     if(e.t.v=='asset' && e.r.id==d.profile) d.n[n.id].asset = true;
                 });
             }});
@@ -171,7 +171,6 @@ export const create_base_slice = (set,get)=>({
                     if(!d.n[n.id].n[e.t.v]) d.n[n.id].n[e.t.v] = []; 
                     d.n[n.id].n[e.t.v].push(e.n.id); // <<<<<<<<< forward relationship !!!! (nodes)
                     if(val_tags.includes(e.t.v) && d.exists(d,e.n.id)) d.n[n.id].c[e.t.v] = d.n[e.n.id].v; //if(val_tags.includes(e.t.v) && d.n[e.n.id]) d.n[n.id].c[e.t.v] = d.n[e.n.id].v;
-                    //if(e.t.v=='asset' && d.n[n.id].profile && d.n[e.n.id]) d.n[e.n.id].asset = true;
                     if(e.t.v=='asset' && n.id==d.profile && d.exists(d,e.n.id)) d.n[e.n.id].asset = true; //if(e.t.v=='asset' && n.id==d.profile && d.n[e.n.id]) d.n[e.n.id].asset = true;
                 });
             }}); 
@@ -203,6 +202,13 @@ export const create_base_slice = (set,get)=>({
     },
 
 });
+
+
+//const mi = 6; // unknown model because this node is not loaded on client. Do not clear on server
+                                //if(et!='unknown') mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
+
+//if(e.t.v=='asset' && d.n[e.r.id].profile) d.n[n.id].asset = true; //t=='profile' && d.n[e.r.id].u.id==user_id
+//if(e.t.v=='asset' && d.n[n.id].profile && d.n[e.n.id]) d.n[e.n.id].asset = true;
 
 //if(atom_tags.includes(t)){  d.inspect.c[t] = d.selected.nodes.filter(n=> d.n[n].m==t).map(n=> d.n[n].v).find(v=> v!=null);  }
             //else{  d.inspect.c[t] = d.selected.nodes.map(n=> d.n[n].c[t]).find(v=> v!=null);  }

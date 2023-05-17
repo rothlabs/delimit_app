@@ -18,11 +18,15 @@ export const create_graph_slice = (set,get)=>({graph:{
             //var r = d.n[rid];
             d.n[rid].n && Object.entries(d.n[rid].n).forEach(([tag,nodes],i)=>{
                 nodes.forEach(nid=>{
-                    d.n[nid] && d.n[nid].open && rid!=nid && d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
+                    if(d.n[nid] && d.n[nid].open && rid!=nid){
+                        d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
+                    }
                 });
             });
         });
         d.graph.arrange = true;
+        //console.log('display edges!');
+        //console.log(d.graph.edges);
     },
 }});
 

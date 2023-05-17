@@ -224,6 +224,10 @@ class Open_Pack(graphene.Mutation):
             ints    = Int.objects.filter(permission, p__in=parts).distinct()#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__n1__u=user))
             floats  = Float.objects.filter(permission, p__in=parts).distinct() # might not need distinct
             strings = String.objects.filter(permission, p__in=parts).distinct()#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__n1__u=user))
+            bools = bools.filter(~Q(p__in=delete_packs))
+            ints = ints.filter(~Q(p__in=delete_packs))
+            floats = floats.filter(~Q(p__in=delete_packs))
+            strings = strings.filter(~Q(p__in=delete_packs))
             # add to open_pack
             if user.is_authenticated: 
                 open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__n2=user
@@ -358,7 +362,7 @@ class Push_Pack(graphene.Mutation):
                             part = Part.objects.get(is_asset, id=parts[p][0][0])
                             part.t = Tag.objects.get(v=t[p][0][0], system=False)
                             part.save()
-                            clear_part(part) #temp_pack.p.append(part)
+                            clear_part(part) # clear except for unknown nodes!!!! (parts[p][6]) UPDATE: There should never be unknown in push, make update_pack
                             poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
                             for i in range(len(parts[p][1])):
                                 try:
@@ -378,6 +382,8 @@ class Push_Pack(graphene.Mutation):
                                 cls.add_atom(is_asset, part, Float,  'f', parts[p][4][i], i, t[p][4][i], restricted, poll_pack)
                             for i in range(len(parts[p][5])):
                                 cls.add_atom(is_asset, part, String, 's', parts[p][5][i], i, t[p][5][i], restricted, poll_pack)
+                            #for i in range(len(parts[p][6])): # unknown nodes!!
+                            #    pass 
                             poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
                         except Exception as e: 
                             print(e)

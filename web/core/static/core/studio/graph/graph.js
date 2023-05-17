@@ -7,19 +7,18 @@ import {Atom} from './atom.js';
 import {Vector3} from 'three';
 import {Edge} from './edge.js';
 
-export const graph_z = 300;
+//export const graph_z = 300;
 
 const repulsion = 100000;
-const inward_force = 10; // make dynamic based on how many objects
+const inward_force = 2; // make dynamic based on how many objects
 const part_spring = 0.05;
 const tv = new Vector3();
 
 
 export function Graph(){
-    const mode = useS(d=> d.studio.mode);
     //console.log('render graph')
     return(
-        mode=='graph' && c('group', {name:'graph'},
+        c('group', {name:'graph'},
             c(Nodes),
             c(Edges),
             c(Arrange),
@@ -59,7 +58,7 @@ function Arrange(){
                 nodes.forEach(id=> {const n=d.n[id];//Object.values(d.n).forEach(n=>{
                     if(n.graph.dir.length() > 1){
                         moving = true;
-                        n.graph = {pos: n.graph.pos.add(n.graph.dir).setZ(graph_z), dir:n.graph.dir};  // trigger events
+                        n.graph = {pos: n.graph.pos.add(n.graph.dir).setZ(0), dir:n.graph.dir};  // trigger events   .setZ(graph_z)
                     }
                 });
                 d.graph.arrange = moving;

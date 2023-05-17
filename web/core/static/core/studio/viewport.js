@@ -1,10 +1,12 @@
-import {createElement as r, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
+import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Vector2} from 'three';
 //import {Project} from './project.js';
 //import {Line} from './line.js';
 import {CameraControls} from '@react-three/drei/CameraControls';
 import {Graph} from './graph/graph.js';
+import {Board} from './board.js';
+import {useS} from '../app.js';
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();
@@ -27,9 +29,10 @@ export function Viewport(){
     //useFrame(()=>{
     //    camera_zoom_rv(camera.zoom);
     //});
+    const studio_mode = useS(d=> d.studio.mode);
     return (
-        r('group', {name:'viewport'}, 
-            r(CameraControls, { //ref: camera_controls,
+        c('group', {name:'viewport'}, 
+            c(CameraControls, { //ref: camera_controls,
                 makeDefault: true,
                 minDistance: 1000, 
                 maxDistance: 1000, 
@@ -37,7 +40,9 @@ export function Viewport(){
                 azimuthRotateSpeed: 0, 
                 draggingSmoothTime: 0,
             }), 
-            r(Graph),
+            studio_mode=='graph'  && c(Graph),
+            studio_mode=='design' && c(Board),
+
             // r('ambientLight', {
             //     color: 'white',
             //     intensity: 0.5,

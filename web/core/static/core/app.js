@@ -21,6 +21,8 @@ import {create_base_slice} from './store/base.js';
 import {create_graph_slice} from './store/graph.js';
 import {create_pick_slice} from './store/pick.js';
 import {create_inspect_slice} from './store/inspect.js';
+import {create_draw_slice} from './store/draw.js';
+import {create_make_slice} from './store/make.js';
 
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
@@ -38,6 +40,8 @@ export const useS = create(
         ...create_graph_slice(...a),
         ...create_pick_slice(...a),
         ...create_inspect_slice(...a),
+        ...create_draw_slice(...a),
+        ...create_make_slice(...a),
     }))
 );
 export const ss = func=> useS.setState(produce(d=>{func(d)}));
@@ -65,7 +69,7 @@ export function use_window_size() {
 
 
 export const random=(min, max)=> Math.random() * (max - min) + min;
-export function random_vector({min, max, x, y ,z}){
+export function random_vector({min, max, x, y, z}){
     const vect = new THREE.Vector3(x?0:random(-1,1),y?0:random(-1,1),z?0:random(-1,1)).normalize().multiplyScalar(random(min,max));
     x && vect.setX(x);
     y && vect.setY(y);

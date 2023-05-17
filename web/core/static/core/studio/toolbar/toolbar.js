@@ -2,7 +2,7 @@ import {createElement as c, Fragment} from 'react';
 import {Row, Col, Container, ToggleButton, ButtonGroup, Button} from 'react-bootstrap';
 import {Inspect} from './inspect.js';
 import {History} from './history.js';
-import {Tool} from './tool.js';
+import {Draw} from './draw.js';
 import {Visual} from './visual.js';
 import {Select} from './select.js';
 import {Make} from './make.js';
@@ -20,7 +20,7 @@ export function Toolbar(){
         {name:' Design',  icon:'bi-pencil-square',  value:'design', disabled:design_part==null},
         {name:' Graph',   icon:'bi-diagram-3',      value:'graph',  disabled:false},
     ];
-    const tools = [Make, Inspect, Visual, History, Select, Tool];
+    const tools = [Make, Inspect, Visual, History, Select, Draw];
     return(
         c(Fragment,{},
             c(ButtonGroup, {className:'position-absolute top-0 start-50 translate-middle-x mt-3', style:{zIndex: 1}}, 
