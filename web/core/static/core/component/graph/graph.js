@@ -70,7 +70,7 @@ function Arrange(){
 }
 
 function Nodes(){
-    const nodes = useSS(d=> d.graph.nodes);  
+    const nodes = useSS(d=> d.graph.nodes);   // doesn't need to be ss?
     const d = useS.getState();
     //console.log('render graph nodes');
     return (
@@ -92,7 +92,7 @@ function Edges(){
     return (
         c('group', {name:'edges'}, // ref:graph, dispose:null
 			...edges.map(e=> 
-				c(Edge, {r:e.r, tag:e.tag, n:e.n, key:e.r+e.tag+e.n})
+				c(Edge, {r:e.r, t:e.t, n:e.n, key:e.r+e.t+e.n})
             ),
 		)
     )

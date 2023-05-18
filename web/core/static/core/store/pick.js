@@ -1,3 +1,4 @@
+import {current} from 'immer';
 import {model_tags, float_tags, design_tags} from './base.js';
 
 export const create_pick_slice = (set,get)=>({pick:{
@@ -5,31 +6,26 @@ export const create_pick_slice = (set,get)=>({pick:{
     multiselect: false, // rename to multi
 
     delete: d=>{
-        d.pick.nodes.forEach(n => {
-            if(d.n[n].asset) {
-                d.n[n].open = false;
-                d.n[n].deleted = true;
-                //d.deleted.push(n);
-            }
-        });
-        d.consume = d.send;
+        d.pick.nodes.forEach(n => d.node.delete(d,n));
     },
 
     set_v: (d, t, v)=>{ 
         d.inspect.content[t] = v;
         if(float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?
-        if(Object.values(model_tags).includes(t)){
+        if(t!='part' && Object.values(model_tags).includes(t)){ 
             d.pick.nodes.forEach(n => {
                 if(model_tags[d.n[n].m] == t) {
                     d.n[n].v = v;
-                    d.n[n].c[t] = v;
+                    d.n[n].update(d);
+                    //d.n[n].c[t] = v;
                 }
             });
         }else{
             d.pick.nodes.forEach(n => {
                 if(d.n[n].m=='p' && d.n[n].n[t]) {
                     d.n[d.n[n].n[t][0]].v = v;
-                    d.n[n].c[t] = v;
+                    //d.n[n].c[t] = v;
+                    d.n[n].update(d);
                 }
             });
         }
@@ -49,13 +45,13 @@ export const create_pick_slice = (set,get)=>({pick:{
     mod: (d, n, picked)=>{
         d.n[n].picked = picked;
         d.pick.update(d);
+        if(d.n[n].picked) console.log(current(d).n[n]);
     },
 
     update: d=>{ // rename as update
         Object.values(d.n).forEach(n =>{ if(!n.open) n.picked=false;}); 
         d.pick.nodes = Object.keys(d.n).filter(n=> d.n[n].picked); 
-        if(d.pick.nodes.length == 1 && design_tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  }
-        else{  d.design.candidate = null;  }
+        d.design.update(d);
         d.inspect.update(d);
     },
 

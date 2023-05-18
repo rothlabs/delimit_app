@@ -13,15 +13,11 @@ export const create_graph_slice = (set,get)=>({graph:{
         //console.log(current(d).n);
         d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open);
         d.graph.edges = [];
-        //Object.entries(d.n).forEach(([rid,r],i)=> {
-        d.graph.nodes.forEach(rid=>{
-            //var r = d.n[rid];
-            d.n[rid].n && Object.entries(d.n[rid].n).forEach(([tag,nodes],i)=>{
-                nodes.forEach(nid=>{
-                    if(d.n[nid] && d.n[nid].open && rid!=nid){
-                        d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
-                    }
-                });
+        d.graph.nodes.forEach(r=>{
+            d.node.for_n(d, r, (n,t)=>{
+                if(d.node.be(d,n)){ //  && r!=n,  r==n should probably never be allowd in the first place
+                    d.graph.edges.push({r:r, t:t, n:n}); 
+                }
             });
         });
         d.graph.arrange = true;

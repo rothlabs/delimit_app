@@ -392,19 +392,19 @@ class Push_Pack(graphene.Mutation):
                     delete_pack = Part.objects.create(t=tag['delete_pack']) 
                     delete_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
                     if instance: delete_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
-                    if pdel:
+                    if pdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         try: delete_pack.p.add(*Part.objects.filter(is_asset, id__in=pdel), through_defaults={'t':tag['delete_pack']})
                         except Exception as e: print(e)
-                    if bdel:
+                    if bdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         try: delete_pack.b.add(*Bool.objects.filter(is_asset, id__in=bdel), through_defaults={'t':tag['delete_pack']})
                         except Exception as e: print(e)
-                    if idel:
+                    if idel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         try: delete_pack.i.add(*Int.objects.filter(is_asset, id__in=idel), through_defaults={'t':tag['delete_pack']})
                         except Exception as e: print(e)
-                    if fdel:
+                    if fdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         try: delete_pack.f.add(*Float.objects.filter(is_asset, id__in=fdel), through_defaults={'t':tag['delete_pack']})
                         except Exception as e: print(e)
-                    if sdel:
+                    if sdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         try: delete_pack.s.add(*String.objects.filter(is_asset, id__in=sdel), through_defaults={'t':tag['delete_pack']})
                         except Exception as e: print(e)
             else: reply = 'Sign-in required.'

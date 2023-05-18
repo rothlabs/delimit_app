@@ -23,6 +23,7 @@ import {create_pick_slice} from './store/pick.js';
 import {create_inspect_slice} from './store/inspect.js';
 import {create_draw_slice} from './store/draw.js';
 import {create_make_slice} from './store/make.js';
+import {create_node_slice} from './store/node.js';
 
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
@@ -42,6 +43,7 @@ export const useS = create(
         ...create_inspect_slice(...a),
         ...create_draw_slice(...a),
         ...create_make_slice(...a),
+        ...create_node_slice(...a),
     }))
 );
 export const ss = func=> useS.setState(produce(d=>{func(d)}));

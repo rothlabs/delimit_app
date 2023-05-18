@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'x=v8rfzhm&ty94f*bnqqzfd15b_cwol_7odzjkd+#vdvmc^@_*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['delimit.art','www.delimit.art','localhost']
 

@@ -7,7 +7,7 @@ import {Vector3} from 'three';
 
 const tv = new Vector3();
 
-export function Edge({r, tag, n}){
+export function Edge({r, t, n}){
     const meshline = useRef();
     const meshline_material = useRef();
     const text = useRef();
@@ -56,7 +56,7 @@ export function Edge({r, tag, n}){
                     outlineColor: 'white',
                     fontSize: 14,
                 },
-                    tag,
+                    t,
                     c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
             ),
