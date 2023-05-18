@@ -17,7 +17,7 @@ export function String({t}){
                 value:content, 
                 placeholder:placeholder, 
                 disabled:!asset, 
-                onChange:(e)=> ssp(d=> d.pick.set_v(d, t, e.target.value)),//useD.getState().pick.edit_val(t, e.target.value),
+                onChange:(e)=> ssp(d=> d.pick.sv(d, t, e.target.value)),//useD.getState().pick.edit_val(t, e.target.value),
             }),
         )
     )

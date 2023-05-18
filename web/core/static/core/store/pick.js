@@ -9,23 +9,21 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.pick.nodes.forEach(n => d.node.delete(d,n));
     },
 
-    set_v: (d, t, v)=>{ 
+    sv: (d, t, v)=>{ 
         d.inspect.content[t] = v;
         if(float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?
         if(t!='part' && Object.values(model_tags).includes(t)){ 
             d.pick.nodes.forEach(n => {
                 if(model_tags[d.n[n].m] == t) {
                     d.n[n].v = v;
-                    d.n[n].update(d);
-                    //d.n[n].c[t] = v;
+                    d.node.update(d,n); //d.n[n].c[t] = v;
                 }
             });
         }else{
             d.pick.nodes.forEach(n => {
                 if(d.n[n].m=='p' && d.n[n].n[t]) {
-                    d.n[d.n[n].n[t][0]].v = v;
-                    //d.n[n].c[t] = v;
-                    d.n[n].update(d);
+                    d.n[d.n[n].n[t][0]].v = v; //d.n[n].c[t] = v;
+                    d.node.update(d,n);
                 }
             });
         }

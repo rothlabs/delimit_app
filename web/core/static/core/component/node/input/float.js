@@ -26,7 +26,7 @@ export function Float({t}){
                         console.log('change float');
                         //useD.getState().pick.edit_val(t, e.target.value);
                         set_input_value(e.target.value);
-                        ssp(d=> d.pick.set_v(d, t, e.target.value));
+                        ssp(d=> d.pick.sv(d, t, e.target.value));
                     }
                 }
             }),

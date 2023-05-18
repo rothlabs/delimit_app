@@ -39,10 +39,11 @@ export const create_make_slice = (set,get)=>({make:{
         return n;
     },
     point: (d, point, index)=>{
-        const n = d.make.part(d, 'point', d.design.part); // part_tag, root_id, edge_tag
-        d.make.atom(d,'f', point.x, n, 'x'); // v, root_id, edge_tag
+        const n = d.make.part(d, 'point', d.design.part); // d, part_tag, root_id, edge_tag
+        d.make.atom(d,'f', point.x, n, 'x'); // d, v, root_id, edge_tag
         d.make.atom(d,'f', point.y, n, 'y'); 
         d.make.atom(d,'f', point.z, n, 'z'); 
+        d.node.update(d,n);
     },
 }});
 

@@ -6,9 +6,10 @@ function update(d, n){
 export const update_funcs = {
     'point':n=>(d=>{
         //console.log('update point!!! '+n);
-        //d.n[n].c.x = d.n[d.n[n].n.x[0]].v; // make func that returns undefined or deletes attribute it's trying to set
-        //d.n[n].c.y = d.n[d.n[n].n.y[0]].v;
-        //d.n[n].c.z = d.n[d.n[n].n.z[0]].v;
+        d.n[n].c.x = d.node.gv(d, n, 'x'); // make func that returns undefined or deletes attribute it's trying to set
+        d.n[n].c.y = d.node.gv(d, n, 'y');
+        d.n[n].c.z = d.node.gv(d, n, 'z');
+        //d.node.sc(d, n, d.node.gv(d, n, 'x'));
         update(d, n);
     }),
     'line':n=>(d=>{
