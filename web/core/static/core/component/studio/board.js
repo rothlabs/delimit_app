@@ -29,7 +29,7 @@ export function Board(){
             name: 'board',
             onClick:(e)=>{e.stopPropagation();
                 if(e.delta < 5){
-                    if(draw_mode == 'draw') ssp(d=> d.draw.make_point(d,point(e)));
+                    if(draw_mode=='draw') ssp(d=> d.draw.point(d, point(e)));
                     //if(name(e) == 'board') selection_rv(null);
                     //if(draw_mode == 'erase' && name(e) == 'points')
                         //project.current.mutate({selection:select(e), record:true});

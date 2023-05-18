@@ -1,11 +1,8 @@
 import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
-import {useThree, useFrame} from '@react-three/fiber';
-import {Vector2} from 'three';
-//import {Project} from './project.js';
-//import {Line} from './line.js';
 import {CameraControls} from '@react-three/drei/CameraControls';
-import {Graph} from './graph/graph.js';
+import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
+import {Part} from './part.js';
 import {useS} from '../../app.js';
 
 // const pointer_start = new Vector2();
@@ -42,7 +39,7 @@ export function Viewport(){
             }), 
             studio_mode=='graph'  && c(Graph),
             studio_mode=='design' && c(Board),
-
+            studio_mode=='design' && c(Part),
             // r('ambientLight', {
             //     color: 'white',
             //     intensity: 0.5,

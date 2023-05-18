@@ -10,8 +10,6 @@ import {Panel} from './panel/panel.js';
 //export const show_endpoints_rv = makeVar(true);
 //export const draw_mode_rv = makeVar('draw');
 
-
-
 const edges = ['p','b','i','f','s'].map(m=> m+'e{ t{v} n{id}} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v}r{id}}} ').join(' '); // can use r{id} instead
 

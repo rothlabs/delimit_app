@@ -4,7 +4,7 @@ import {Inspect} from './inspect.js';
 import {History} from './history.js';
 import {Draw} from './draw.js';
 import {Visual} from './visual.js';
-import {Select} from './select.js';
+import {Select} from './pick.js';
 import {Make} from './make.js';
 import {useS, gs, ss, use_window_size} from '../../../app.js';
 //import {Panel} from '../panel/panel.js';
