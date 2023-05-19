@@ -23,6 +23,7 @@ export const create_make_slice = (set,get)=>({make:{
             graph: { 
                 pos: random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
                 dir: new Vector3(),
+                vis: d.graph.tag_vis[t]!=undefined ? d.graph.tag_vis[t] : true,
             },
         };
         d.pick.color(d,n);

@@ -42,8 +42,8 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.pick.update(d);
     },
 
-    mod: (d, n, active)=>{
-        d.n[n].pick.picked = active;
+    mod: (d, n, picked)=>{
+        d.n[n].pick.picked = picked;
         d.pick.update(d);
         if(d.n[n].pick.picked) console.log(current(d).n[n]);
     },

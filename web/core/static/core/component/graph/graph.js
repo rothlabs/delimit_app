@@ -56,9 +56,10 @@ function Arrange(){
                     });
                 });
                 nodes.forEach(id=> {const n=d.n[id];//Object.values(d.n).forEach(n=>{
-                    if(n.graph.dir.length() > 1){
+                    if(n.graph.dir.length() > 2){
                         moving = true;
-                        n.graph = {pos: n.graph.pos.add(n.graph.dir).setZ(0), dir:n.graph.dir};  // trigger events   .setZ(graph_z)
+                        n.graph = {...n.graph, pos:n.graph.pos.add(n.graph.dir).setZ(0)};
+                        //n.graph = {pos: n.graph.pos.add(n.graph.dir).setZ(0), dir:n.graph.dir, vis:n.graph.vis};  // trigger events   .setZ(graph_z)
                     }
                 });
                 d.graph.arrange = moving;

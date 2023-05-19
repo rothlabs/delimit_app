@@ -18,10 +18,8 @@ export function Part({n}){
     const name = useS(d=> d.n[n].c.name);
     const tag = useS(d=> d.n[n].t);
     const color = useS(d=> d.n[n].pick.color);
-    const picked = useS(d=> d.n[n].pick.picked); //const picked = useD(d=> d.n[id].gen.picked); 
+    const picked = useS(d=> d.n[n].pick.picked); 
     const obj = useRef();
-    //const hover = useS(d=> d.n[n].hover); //const [hover, set_hover] = useState(false);
-    //const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
     useEffect(()=> subS(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
         obj.current.obj.position.copy(d.pos);
         //console.log('update part pos');

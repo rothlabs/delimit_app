@@ -1,7 +1,7 @@
 import { reckoners } from '../reckon/reckon.js';
 
 export const create_node_slice = (set,get)=>({node:{
-    be:(d, n)=>{
+    be:(d, n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
         if(d.n[n] && !d.n[n].deleted){
             if(d.n[n].open) return 'open';
             return 'here';

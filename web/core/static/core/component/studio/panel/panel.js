@@ -3,6 +3,7 @@ import {Container, CloseButton} from 'react-bootstrap';
 import {ss, ssp, gs, useS, use_window_size} from '../../../app.js';
 import { Inspect } from './inspect.js';
 import { Make } from './make.js';
+import { Visual } from './visual.js';
 
 export function Panel(){ 
     const panel = useS(d=> d.studio.panel.name);
@@ -36,6 +37,7 @@ export function Panel(){
             }),
             c(Make),
             c(Inspect),
+            c(Visual),
         )
     )
 }

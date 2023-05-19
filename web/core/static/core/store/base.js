@@ -7,12 +7,15 @@ export const root_tags={
     'view':  'viewer',
     'asset': 'owner',
 };
-export const float_tags  = ['decimal', 'x', 'y', 'z'];
-export const string_tags = ['text', 'name', 'story'];
+export const float_tags  = ['decimal', 'x', 'y', 'z']; //edge tags
+export const string_tags = ['text', 'name', 'story'];  //edge tags
 export const val_tags = [...float_tags, ...string_tags];
-//export const part_tags = ['part', 'point', 'line', 'sketch'];
-export const design_tags = ['part', 'point', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
-
+export const design_tags = ['part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
+export const node_tags = [
+    ...Object.values(model_tags),
+    'profile', 'public',
+    'point', 'line', 'sketch',
+];
 
 export const create_base_slice = (set,get)=>({
     n: {},
@@ -127,6 +130,7 @@ export const create_base_slice = (set,get)=>({
                         graph: { // put in d.graph.node.vectors
                             pos: random_vector({min:window_size, max:window_size*1.5, z:0}),
                             dir: new Vector3(),
+                            vis: true,
                         },
                     };
                     d.pick.color(d,n.id);
@@ -146,6 +150,7 @@ export const create_base_slice = (set,get)=>({
                         console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
                         d.n[n.id].v = n.v;  
                     }
+                    if(d.graph.tag_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.tag_vis[d.n[n.id].t];
                 }
             }); 
         });

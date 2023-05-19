@@ -1,21 +1,33 @@
+
 //import {produce, current, enablePatches} from 'immer';
 
 //const node_tag_vis = {};
-
-
 
 // instead of using these functions as selectors (expensive frequent op), keep them as derivitives
 // in the merge function of base, update the derivitives when there is a change
 export const create_graph_slice = (set,get)=>({graph:{
     nodes: [],
     edges: [],
+    tag_vis:{
+        decimal: true,
+        point: true,
+        line: true,
+    },
+    set_tag_vis:(d, t, vis)=>{
+        d.graph.tag_vis = {...d.graph.tag_vis}; // make new object so visual panel rerenders
+        d.graph.tag_vis[t] = vis;
+        Object.values(d.n).forEach(n=>{
+            if(d.graph.tag_vis[n.t]!=undefined) n.graph.vis = d.graph.tag_vis[n.t];
+        });
+        d.graph.update(d);
+    },
     update: d=>{
         //console.log(current(d).n);
-        d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open);
+        d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.edges = [];
         d.graph.nodes.forEach(r=>{
             d.node.for_n(d, r, (n,t)=>{
-                if(d.node.be(d,n)){ //  && r!=n,  r==n should probably never be allowd in the first place
+                if(d.node.be(d,n) && d.n[n].graph.vis){ //  && r!=n,  r==n should probably never be allowd in the first place
                     d.graph.edges.push({r:r, t:t, n:n}); 
                 }
             });
