@@ -177,6 +177,8 @@ class Open_Pack(graphene.Mutation):
     reply = graphene.String(default_value = 'Failed to open pack.')
     @classmethod
     def mutate(cls, root, info, depth, ids, include, exclude): # offset, limit for pages
+        print('got request for open pack!!!')
+        print(time.time())
         try:
             # get context
             user = info.context.user
@@ -237,6 +239,8 @@ class Open_Pack(graphene.Mutation):
                 open_pack.f.add(*floats, through_defaults={'t':tag['open_pack']})
                 open_pack.s.add(*strings, through_defaults={'t':tag['open_pack']})
             # return pack:
+            print('sending open pack!!!')
+            print(time.time())
             return Open_Pack(pack=Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
         except Exception as e: print(e)
         return Open_Pack()

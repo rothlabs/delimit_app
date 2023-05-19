@@ -17,7 +17,7 @@ export const reckoners = {
         console.log('update line!!! '+n);
         d.n[n].c.points = [];
         d.n[n].n.point && d.n[n].n.point.forEach(p=>{
-            d.n[n].c.points.push([d.n[p].c.x, d.n[p].c.y, d.n[p].c.z]);
+            if(d.node.be(d,p)) d.n[n].c.points.push([d.n[p].c.x, d.n[p].c.y, d.n[p].c.z]);
         }); 
         base_reckon(d, n);
     },

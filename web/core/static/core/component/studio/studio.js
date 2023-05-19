@@ -22,12 +22,18 @@ export function Studio(){
     ],{onCompleted:(data)=>{data = data.openPack;
         //console.log('open_pack');
         //console.log(data);
+        console.log('got open pack');
+        console.log(Date.now());
         if(data.pack) ssp(d=> d.receive(d,data.pack) ); 
         //console.log(useS.getState().n);
     }}); 
     ss(d=> d.open_pack = open_pack.mutate );//d.set(d=> {d.open_pack = open_pack.mutate;});
     useEffect(()=>{
-        if(Object.keys(gs().n).length < 1) open_pack.mutate();
+        if(Object.keys(gs().n).length < 1) {
+            console.log('request open pack');
+            console.log(Date.now());
+            open_pack.mutate();
+        }
     },[]);
     const push_pack = use_mutation('PushPack', [['pushPack reply restricted',
         ['String instance', instance],
