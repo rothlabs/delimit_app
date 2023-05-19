@@ -6,8 +6,9 @@ export const create_pick_slice = (set,get)=>({pick:{
     nodes: [],
     multi: false, // rename to multi
 
-    delete: d=>{
-        d.pick.nodes.forEach(n => d.node.delete(d,n));
+    delete: (d, shallow)=>{
+        d.pick.nodes.forEach(n => d.node.delete(d,n,shallow));
+        d.consume = d.send; // instead of setting consume here, make ssp_send and ssp_recieve?
     },
 
     sv: (d, t, v)=>{ 
@@ -36,16 +37,21 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.pick.color(d,n);
     },
 
-    one: (d, n)=>{
+    none:d=>{
         Object.values(d.n).forEach(n=> n.pick.picked=false);
+        d.pick.update(d);
+    },
+
+    one: (d, n)=>{
+        d.pick.none(d);
         d.n[n].pick.picked = true;
         d.pick.update(d);
+        if(d.n[n].pick.picked) console.log(current(d).n[n]);
     },
 
     mod: (d, n, picked)=>{
         d.n[n].pick.picked = picked;
         d.pick.update(d);
-        if(d.n[n].pick.picked) console.log(current(d).n[n]);
     },
 
     update: d=>{ // rename as update

@@ -1,6 +1,6 @@
 
 
-function reckon_roots(d, n){
+function base_reckon(d, n){
     //console.log('update node!!! '+n);
     d.node.for_r(d, n, r=> d.node.reckon(d,r)); // got to watch out for cycle!!! (could pass update id and stop if updated already made with that id)
 }
@@ -11,19 +11,19 @@ export const reckoners = {
         d.n[n].c.x = d.node.gv(d, n, 'x'); 
         d.n[n].c.y = d.node.gv(d, n, 'y');
         d.n[n].c.z = d.node.gv(d, n, 'z');
-        reckon_roots(d, n);
+        base_reckon(d, n);
     },
     line:(d,n)=>{
         console.log('update line!!! '+n);
         d.n[n].c.points = [];
-        d.n[n].n.point.forEach(p=>{
+        d.n[n].n.point && d.n[n].n.point.forEach(p=>{
             d.n[n].c.points.push([d.n[p].c.x, d.n[p].c.y, d.n[p].c.z]);
         }); 
-        reckon_roots(d, n);
+        base_reckon(d, n);
     },
     default:(d,n)=>{
         //console.log('update default!!! '+n);
-        reckon_roots(d, n);
+        base_reckon(d, n);
     },
 };
 

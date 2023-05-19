@@ -1,4 +1,4 @@
-
+import { node_tags } from './base.js';
 //import {produce, current, enablePatches} from 'immer';
 
 //const node_tag_vis = {};
@@ -9,9 +9,8 @@ export const create_graph_slice = (set,get)=>({graph:{
     nodes: [],
     edges: [],
     tag_vis:{
-        decimal: true,
-        point: true,
-        line: true,
+        ...Object.fromEntries(node_tags.map(t=> [t,true])),
+        decimal:false, text:false
     },
     set_tag_vis:(d, t, vis)=>{
         d.graph.tag_vis = {...d.graph.tag_vis}; // make new object so visual panel rerenders

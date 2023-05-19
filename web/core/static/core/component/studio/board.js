@@ -18,6 +18,7 @@ export function Board(){
     //const [dragging, set_dragging] = useState();
     //const board = useRef();
     //const draw_line = useRef();
+    const mode = useS(d=> d.studio.mode);
     const draw_mode = useS(d=> d.draw.mode);
     //const selection = useReactiveVar(selection_rv);
     ////////useFrame(()=>raycaster.params.Points.threshold = 10/camera.zoom); < ----- needed for point clicking!
@@ -27,10 +28,18 @@ export function Board(){
     return (
         c('mesh', { 
             name: 'board',
-            onClick:(e)=>{e.stopPropagation();
+            position:[0,0,-400],
+            onClick:e=>{e.stopPropagation();
                 if(e.delta < 5){
                     const p = point(e);
-                    if(draw_mode=='draw') ssp(d=> d.draw.point(d, {x:p.x, y:p.y, z:p.z+10}));
+                    if(mode=='design'){
+                        if(draw_mode=='draw'){
+                            ssp(d=> d.draw.point(d, {x:p.x, y:p.y, z:0}));
+                            return
+                        }
+                    }
+                    ss(d=> d.pick.none(d));
+                    //if(mode=='graph') 
                     //if(name(e) == 'board') selection_rv(null);
                     //if(draw_mode == 'erase' && name(e) == 'points')
                         //project.current.mutate({selection:select(e), record:true});
@@ -99,7 +108,7 @@ export function Board(){
             //     }
             // },
         },   
-            c('planeGeometry', {args:[10000, 10000]}),
+            c('planeGeometry', {args:[10000, 10000],}),
             c('meshBasicMaterial', {color:'white', toneMapped:false}),
         )
     )

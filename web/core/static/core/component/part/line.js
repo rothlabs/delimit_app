@@ -1,5 +1,5 @@
 import {createElement as c, useEffect, useState} from 'react';
-import {gs, ss, ssp, useS, useSS, theme} from '../../app.js';
+import {gs, ss, ssp, useS, theme} from '../../app.js';
 import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
 import {Points, Point} from '@react-three/drei/Points';
@@ -12,7 +12,7 @@ export function Line({n}){
     const color = useS(d=> d.n[n].pick.color); 
     //const hover = useS(d=> d.n[n].hover); 
     //const picked = useS(d=> d.n[n].picked);
-    console.log('render line')
+    //console.log('render line')
     return(
         c('group', {name:'line'},
             points && c(Points, {limit:1000, range:1000}, 

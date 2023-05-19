@@ -15,7 +15,7 @@ export const create_make_slice = (set,get)=>({make:{
             d.n[n].r[t].push(r); // reverse relationship 
         }
     },
-    node: (d, m, t, r, et)=>{
+    node: (d, m, t, r, et)=>{ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
         d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true,

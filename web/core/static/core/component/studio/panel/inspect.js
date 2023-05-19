@@ -30,12 +30,20 @@ export function Inspect(){
                 c(Float, {t:t})
             ),
             nodes.filter(n=>d.n[n].asset).length ? c('div', {className:''},
-                c(Button, {
-                    variant: 'outline-secondary',
-                    onClick:e=>ssp(d=>{  // select function does not work inside produce because it has it's own produce 
-                        d.pick.delete(d);
-                    }),
-                }, 'Delete'),
+                c(ButtonGroup, {},
+                    c(Button, {
+                        variant: 'outline-secondary',
+                        onClick:e=>ssp(d=>{  // select function does not work inside produce because it has it's own produce 
+                            d.pick.delete(d);
+                        }),
+                    }, 'Delete'),
+                    c(Button, {
+                        variant: 'outline-secondary',
+                        onClick:e=>ssp(d=>{  // select function does not work inside produce because it has it's own produce 
+                            d.pick.delete(d, true);
+                        }),
+                    }, 'Shallow Delete'),
+                )
             ) : null,
         )
     )

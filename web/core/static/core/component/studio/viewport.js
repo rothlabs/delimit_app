@@ -37,8 +37,8 @@ export function Viewport(){
                 azimuthRotateSpeed: 0, 
                 draggingSmoothTime: 0,
             }), 
+            c(Board),
             studio_mode=='graph'  && c(Graph),
-            studio_mode=='design' && c(Board),
             studio_mode=='design' && c(Part),
             // r('ambientLight', {
             //     color: 'white',
