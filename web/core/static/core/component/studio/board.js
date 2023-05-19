@@ -1,6 +1,6 @@
 import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {useThree, useFrame} from '@react-three/fiber';
-import {Vector2} from 'three';
+import {Vector3} from 'three';
 import {ss, ssp, useS} from '../../app.js';
 
 //const pointer_start = new Vector2();
@@ -29,7 +29,8 @@ export function Board(){
             name: 'board',
             onClick:(e)=>{e.stopPropagation();
                 if(e.delta < 5){
-                    if(draw_mode=='draw') ssp(d=> d.draw.point(d, point(e)));
+                    const p = point(e);
+                    if(draw_mode=='draw') ssp(d=> d.draw.point(d, {x:p.x, y:p.y, z:p.z+10}));
                     //if(name(e) == 'board') selection_rv(null);
                     //if(draw_mode == 'erase' && name(e) == 'points')
                         //project.current.mutate({selection:select(e), record:true});

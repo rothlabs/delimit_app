@@ -5,7 +5,7 @@ import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
-import { Selectable } from '../node/basic.js';
+import { Pickable } from '../node/base.js';
 
 export const circle_size = 1.25;
 const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
@@ -17,10 +17,11 @@ export function Part({n}){
     const pos = d.n[n].graph.pos; 
     const name = useS(d=> d.n[n].c.name);
     const tag = useS(d=> d.n[n].t);
-    const picked = useS(d=> d.n[n].picked); //const picked = useD(d=> d.n[id].gen.picked); 
+    const color = useS(d=> d.n[n].pick.color);
+    const picked = useS(d=> d.n[n].pick.picked); //const picked = useD(d=> d.n[id].gen.picked); 
     const obj = useRef();
-    const hover = useS(d=> d.n[n].hover); //const [hover, set_hover] = useState(false);
-    const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
+    //const hover = useS(d=> d.n[n].hover); //const [hover, set_hover] = useState(false);
+    //const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
     useEffect(()=> subS(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
         obj.current.obj.position.copy(d.pos);
         //console.log('update part pos');
@@ -43,13 +44,13 @@ export function Part({n}){
                     outlineColor: 'white',
                 },
                     name,
-                    r('meshBasicMaterial', {color: color, toneMapped:false}), // causing unsupported texture colorspace: undefined
+                    r('meshBasicMaterial', {color: color[0], toneMapped:false}), // causing unsupported texture colorspace: undefined
                 ),
                 r(Spinner, {}, 
                     r('mesh', {},
                         r('icosahedronGeometry'),
-                        r('meshBasicMaterial', {color: picked||hover? theme.primary : 'white', toneMapped:false}),
-                        r(Edges, {scale:1.05, color:picked||hover? 'white' : theme.primary},),
+                        r('meshBasicMaterial', {color: color[1], toneMapped:false}),
+                        r(Edges, {scale:1.05, color: color[2]}),
                     )
                 ),
                 r(Text, {
@@ -60,17 +61,13 @@ export function Part({n}){
                     outlineColor: 'white',
                 },
                     readable(tag), // memoize it?
-                    r('meshBasicMaterial', {color: color, toneMapped:false}), // causing unsupported texture colorspace: undefined
+                    r('meshBasicMaterial', {color: color[0], toneMapped:false}), // causing unsupported texture colorspace: undefined
                 ),
-                r(Selectable, {n:n},
+                r(Pickable, {n:n},
                     r('mesh', {
                         position:[0,0,-1], 
                         geometry: circle_geometry,
                         material: background_material, //raycast:()=>null,
-                        // onClick: (e)=> {e.stopPropagation(); select(n, true);},
-                        // onPointerMissed: (e)=> {if(e.which == 1) select(n, false);},
-                        // onPointerOver: (e)=> {e.stopPropagation(); set_hover(true);},
-                        // onPointerOut: (e)=> {e.stopPropagation(); set_hover(false)},
                     }),
                 )
             )

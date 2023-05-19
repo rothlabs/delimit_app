@@ -30,7 +30,7 @@ export function Edge({r, t, n}){
     }),[]); 
     //console.log('render edge');
     return(
-        c('group', {
+        c('group', { // not using Pickable because it is not a node. make another Pickable for none node objects
             name: 'edge',
             onClick: (e)=> set_active(true),
             onPointerMissed: (e)=> {if(e.which == 1) set_active(false);},

@@ -4,7 +4,7 @@ import {Inspect} from './inspect.js';
 import {History} from './history.js';
 import {Draw} from './draw.js';
 import {Visual} from './visual.js';
-import {Select} from './pick.js';
+import {Pick} from './pick.js';
 import {Make} from './make.js';
 import {useS, gs, ss, use_window_size} from '../../../app.js';
 //import {Panel} from '../panel/panel.js';
@@ -13,14 +13,13 @@ import {useS, gs, ss, use_window_size} from '../../../app.js';
 export function Toolbar(){
     const window_size = use_window_size();
     const mode = useS(d=> d.studio.mode);
-    //const nodes = useS(d=> d.pick.nodes); 
     const design_part = useS(d=> d.design.part);
     const design_candidate = useS(d=> d.design.candidate);
     const mode_buttons = [
         {name:' Design',  icon:'bi-pencil-square',  value:'design', disabled:design_part==null},
         {name:' Graph',   icon:'bi-diagram-3',      value:'graph',  disabled:false},
     ];
-    const tools = [Make, Inspect, Visual, History, Select, Draw];
+    const tools = [Make, Inspect, Visual, History, Pick, Draw];
     return(
         c(Fragment,{},
             c(ButtonGroup, {className:'position-absolute top-0 start-50 translate-middle-x mt-3', style:{zIndex: 1}}, 

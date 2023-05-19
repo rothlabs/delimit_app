@@ -1,11 +1,6 @@
 import {current} from 'immer';
 import {Vector3} from 'three';
-//import {graph_z} from '../studio/graph/graph.js';
-import {random_vector} from '../app.js';
-import {update_funcs} from '../util/node.js';
-//import {graph} from './graph.js';
-//import {inspect, float_tags, string_tags} from './inspect.js';
-//import {pick} from './pick.js';
+import {random_vector, theme} from '../app.js';
 
 export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 export const root_tags={
@@ -121,18 +116,20 @@ export const create_base_slice = (set,get)=>({
         ///////////d.push_pack({variables:edits});
     },
     
-    receive: (d, data)=>{// must check if this data has been processed already 
+    receive: (d, data)=>{// must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         const window_size = (window.innerWidth+window.innerHeight)/4;
         ['p','b','i','f','s'].forEach(m=>{
             data[m].forEach(n=>{
                 if(!d.n[n.id]){
                     d.n[n.id] = {
                         m: m,
+                        pick: {},
                         graph: { // put in d.graph.node.vectors
                             pos: random_vector({min:window_size, max:window_size*1.5, z:0}),
                             dir: new Vector3(),
-                        }
+                        },
                     };
+                    d.pick.color(d,n.id);
                 }
                 if(d.node.be(d,n.id)){
                     d.n[n.id].open = true;
@@ -148,11 +145,6 @@ export const create_base_slice = (set,get)=>({
                         d.n[n.id].t = model_tags[d.n[n.id].m];
                         console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
                         d.n[n.id].v = n.v;  
-                    }
-                    if(update_funcs[d.n[n.id].t]){
-                        d.n[n.id].update = update_funcs[d.n[n.id].t](n.id);
-                    }else{
-                        d.n[n.id].update = update_funcs['default'](n.id);
                     }
                 }
             }); 
@@ -205,6 +197,13 @@ export const create_base_slice = (set,get)=>({
     },
 
 });
+
+
+// if(update_funcs[d.n[n.id].t]){
+//     d.n[n.id].update = update_funcs[d.n[n.id].t](n.id);
+// }else{
+//     d.n[n.id].update = update_funcs['default'](n.id);
+// }
 
 
                     //const part = [[n],        [], [], [], [], [], ['add']];

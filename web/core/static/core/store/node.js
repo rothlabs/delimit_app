@@ -1,4 +1,4 @@
-import { LineCurve } from "three";
+import { reckoners } from '../reckon/reckon.js';
 
 export const create_node_slice = (set,get)=>({node:{
     be:(d, n)=>{
@@ -28,8 +28,9 @@ export const create_node_slice = (set,get)=>({node:{
             if(filter.includes(d.node.be(d,r))) func(r,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
         }));
     },
-    update:(d, n)=>{ // might need to check for node existence or track original update call
-        d.n[n].update(d);
+    reckon:(d, n)=>{ // might need to check for node existence or track original update call
+        if(reckoners[d.n[n].t]){   reckoners[d.n[n].t](d, n);   }
+        else{                      reckoners['default'](d, n);   }
     },
     delete:(d, n)=>{
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
@@ -47,7 +48,7 @@ export const create_node_slice = (set,get)=>({node:{
                     if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
                 });
             });
-            d.node.update(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
+            d.node.reckon(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
         }
         d.consume = d.send; // instead of setting consume here, make ssp_send and ssp_recieve?
     },

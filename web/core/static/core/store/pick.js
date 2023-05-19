@@ -1,9 +1,10 @@
 import {current} from 'immer';
 import {model_tags, float_tags, design_tags} from './base.js';
+import { theme } from '../app.js';
 
 export const create_pick_slice = (set,get)=>({pick:{
     nodes: [],
-    multiselect: false, // rename to multi
+    multi: false, // rename to multi
 
     delete: d=>{
         d.pick.nodes.forEach(n => d.node.delete(d,n));
@@ -16,14 +17,14 @@ export const create_pick_slice = (set,get)=>({pick:{
             d.pick.nodes.forEach(n => {
                 if(model_tags[d.n[n].m] == t) {
                     d.n[n].v = v;
-                    d.node.update(d,n); //d.n[n].c[t] = v;
+                    d.node.reckon(d,n); // make patch consumer decide what node to reckon    //d.n[n].c[t] = v;
                 }
             });
         }else{
             d.pick.nodes.forEach(n => {
                 if(d.n[n].m=='p' && d.n[n].n[t]) {
                     d.n[d.n[n].n[t][0]].v = v; //d.n[n].c[t] = v;
-                    d.node.update(d,n);
+                    d.node.reckon(d,n);
                 }
             });
         }
@@ -31,26 +32,38 @@ export const create_pick_slice = (set,get)=>({pick:{
     },
 
     hover: (d, n, hover)=>{
-        d.n[n].hover = hover;
+        d.n[n].pick.hover = hover;
+        d.pick.color(d,n);
     },
 
     one: (d, n)=>{
-        Object.values(d.n).forEach(n=> n.picked=false);
-        d.n[n].picked = true;
+        Object.values(d.n).forEach(n=> n.pick.picked=false);
+        d.n[n].pick.picked = true;
         d.pick.update(d);
     },
 
-    mod: (d, n, picked)=>{
-        d.n[n].picked = picked;
+    mod: (d, n, active)=>{
+        d.n[n].pick.picked = active;
         d.pick.update(d);
-        if(d.n[n].picked) console.log(current(d).n[n]);
+        if(d.n[n].pick.picked) console.log(current(d).n[n]);
     },
 
     update: d=>{ // rename as update
-        Object.values(d.n).forEach(n =>{ if(!n.open) n.picked=false;}); 
-        d.pick.nodes = Object.keys(d.n).filter(n=> d.n[n].picked); 
+        Object.keys(d.n).forEach(n =>{ // make this a common function (iterate all nodes with filter and func 
+            if(!d.n[n].open) d.n[n].pick.picked=false;
+            d.pick.color(d,n);
+        }); 
+        d.pick.nodes = Object.keys(d.n).filter(n=> d.n[n].pick.picked); // make this a common function (iterate all nodes with filter and func 
         d.design.update(d);
         d.inspect.update(d);
     },
 
+    color:(d,n)=>{
+        const selector = d.n[n].pick.picked || d.n[n].pick.hover;
+        d.n[n].pick.color = [
+            selector ? theme.primary : theme.secondary,
+            selector ? theme.primary : 'white',
+            selector ? 'white' : theme.primary,
+        ];
+    },
 }});

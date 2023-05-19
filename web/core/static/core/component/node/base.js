@@ -11,15 +11,15 @@ export function Badge({n}){ // more than one reason to change but okay because i
     )
 }
 
-export function Selectable({n, children}){
+export function Pickable({n, children}){
     const d = useS.getState();
-    const multiselect = useS(d=> d.pick.multiselect);
+    const multi = useS(d=> d.pick.multi);
     const picked = useS(d=> d.n[n].picked);
     return c('group', {
         onClick: (e)=> {e.stopPropagation(); 
-            if(multiselect){  ss(d=>d.pick.mod(d,n, !picked))  }else{   ss(d=>d.pick.mod(d,n,true));  }
+            if(multi){  ss(d=>d.pick.mod(d,n, !picked))  }else{   ss(d=>d.pick.mod(d,n,true));  }
         },
-        onPointerMissed: (e)=> {if(e.which == 1 && !multiselect) ss(d=>d.pick.mod(d,n,false));},
+        onPointerMissed: (e)=> {if(e.which == 1 && !multi) ss(d=>d.pick.mod(d,n,false));},
         onPointerOver: (e)=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n, true));},
         onPointerOut: (e)=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n, false));},
         children:children,

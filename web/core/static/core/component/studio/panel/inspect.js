@@ -1,7 +1,7 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Dropdown, Container, Form, ButtonGroup, Button, ToggleButton} from 'react-bootstrap';
 import {ss, ssp, gs, useS, use_window_size} from '../../../app.js';
-import {Badge} from '../../node/basic.js'
+import {Badge} from '../../node/base.js'
 import {String} from '../../node/input/string.js';
 import {Float} from '../../node/input/float.js';
 

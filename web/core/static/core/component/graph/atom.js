@@ -3,16 +3,17 @@ import {useS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 import * as THREE from 'three';
-import { Selectable } from '../node/basic.js';
+import { Pickable } from '../node/base.js';
 
 const circle_geometry = new THREE.CircleGeometry(1.8,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 
 export function Atom({n}){
     const obj = useRef();
-    const picked = useS(d=> d.n[n].picked); //const picked = useD(d=> d.selection.includes(n));
-    const hover = useS(d=> d.n[n].hover);
-    const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
+    const color = useS(d=> d.n[n].pick.color);
+    const picked = useS(d=> d.n[n].pick.picked); //const picked = useD(d=> d.selection.includes(n));
+    //const hover = useS(d=> d.n[n].hover);
+    //const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
     const val = useS(d=> ''+d.n[n].v);
     const tag = useS(d=> d.n[n].t); //d.tag(n)
     const pos = useS(d=> d.n[n].graph.pos); // can i remove?!!!
@@ -37,13 +38,13 @@ export function Atom({n}){
                     outlineColor: 'white',
                 },
                     val,
-                    r('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
+                    r('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
                 r(Spinner, {}, 
                     r('mesh', {},
                         r('tetrahedronGeometry'),
-                        r('meshBasicMaterial', {color: picked||hover? theme.primary : 'white', toneMapped:false}),
-                        r(Edges, {scale:1.05, color:picked||hover? 'white' : theme.primary},),
+                        r('meshBasicMaterial', {color: color[1], toneMapped:false}),
+                        r(Edges, {scale:1.05, color: color[2]},),
                     )
                 ),
                 r(Text, {
@@ -54,9 +55,9 @@ export function Atom({n}){
                     outlineColor: 'white',
                 },
                     readable(tag),
-                    r('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
+                    r('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
-                r(Selectable, {n:n},
+                r(Pickable, {n:n},
                     r('mesh', {
                         position: [0,0,-1],
                         geometry: circle_geometry,

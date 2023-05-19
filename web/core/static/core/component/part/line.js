@@ -3,22 +3,32 @@ import {gs, ss, ssp, useS, useSS, theme} from '../../app.js';
 import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
 import {Points, Point} from '@react-three/drei/Points';
-import {PointMaterial} from '@react-three/drei/PointMaterial';
+import {PointMaterial} from '@react-three/drei/PointMaterial'; 
+import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
+import { Pickable } from '../node/base.js';
 
 export function Line({n}){
-    //const points = useS(d=> d.n[n].n.point);
-    //const x = useSS(d=> d.n[n].n.point.map());
-    //const d = gs();
-    ////const points = useS(d=> d.n[n].c.points);
-    //console.log('render line')
+    const points = useS(d=> d.n[n].c.points);
+    const color = useS(d=> d.n[n].pick.color); 
+    //const hover = useS(d=> d.n[n].hover); 
+    //const picked = useS(d=> d.n[n].picked);
+    console.log('render line')
     return(
         c('group', {name:'line'},
-            // points && c(Points, {limit:1000, range:1000}, 
-            //     c(PointMaterial, {size:10, vertexColors:true}),
-            //     ...points.map(p=> 
-            //         c(Point, {position:[p.x, p.y, p.z], color:theme.secondary})
-            //     ),
-            // )
+            points && c(Points, {limit:1000, range:1000}, 
+                c(PointMaterial, {size:10, vertexColors:true, toneMapped:false}),
+                ...points.map(p=> 
+                    c(Point, {position:p, color:theme.secondary}) 
+                ),
+            ),
+            points && points.length>1 && c(Pickable, {n:n},
+                c(CatmullRomLine, {
+                    points: points,
+                    lineWidth: 3,
+                    color: color[0],
+                    segments: 100, // need to make this adjustable or dependent on zoom or line length 
+                }),
+            ),
         )
     )
 }
