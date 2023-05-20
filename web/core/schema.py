@@ -65,6 +65,11 @@ class Part_String_Type(DjangoObjectType):
         model = Part_String
         fields = '__all__'
 
+
+#class Pack_Type(graphene.ObjectType):
+    
+
+
 def clear_part(part):
     part.p.clear()
     part.b.clear()
