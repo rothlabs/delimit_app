@@ -74,10 +74,10 @@ export function use_window_size() {
 
 export const random=(min, max)=> Math.random() * (max - min) + min;
 export function random_vector({min, max, x, y, z}){
-    const vect = new THREE.Vector3(x?0:random(-1,1),y?0:random(-1,1),z?0:random(-1,1)).normalize().multiplyScalar(random(min,max));
-    x && vect.setX(x);
-    y && vect.setY(y);
-    z && vect.setZ(z);
+    const vect = new THREE.Vector3(random(-1,1),random(-1,1),random(-1,1)).normalize().multiplyScalar(random(min,max));
+    x!=undefined && vect.setX(x);
+    y!=undefined && vect.setY(y);
+    z!=undefined && vect.setZ(z);
     return vect;
 }
 

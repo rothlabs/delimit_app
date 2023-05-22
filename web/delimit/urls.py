@@ -27,3 +27,5 @@ urlpatterns = [
     #url(r'^ajax_select/', include(ajax_select_urls)),
     #url(r'^admin/', include(admin.site.urls)),
 ]# + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) # FOR LOCAL TESTING ONLY: https://docs.djangoproject.com/en/4.1/howto/static-files/#serving-files-uploaded-by-a-user-during-development
+
+urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

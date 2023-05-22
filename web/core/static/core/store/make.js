@@ -4,7 +4,7 @@ import {Vector3} from 'three';
 import {current} from 'immer';
 
 export const create_make_slice = (set,get)=>({make:{
-    edge: (d, r, n, t)=>{
+    edge: (d, r, n, t)=>{ // need o index
         if(!t) t = d.n[n].t;
         if(r){
             if(!d.n[r].n[t]) d.n[r].n[t] = [];
@@ -12,6 +12,7 @@ export const create_make_slice = (set,get)=>({make:{
             if(root_tags[t]){  t=root_tags[t];  }
             else{  t=d.n[r].t;  }
             if(!d.n[n].r[t]) d.n[n].r[t] = [];
+            //if(t=='point') d.n[n].r[t] = []; // if order matters for this tag, rebuild list 
             d.n[n].r[t].push(r); // reverse relationship 
         }
     },

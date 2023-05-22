@@ -32,7 +32,7 @@ export const create_node_slice =(set,get)=>({node:{
         if(reckoners[d.n[n].t]){   reckoners[d.n[n].t] (d, n);   }
         else{                      reckoners['default'](d, n);   }
     },
-    delete:(d, n, shallow)=>{
+    delete:(d, n, shallow)=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
             d.n[n].open = false;
             d.n[n].deleted = true;

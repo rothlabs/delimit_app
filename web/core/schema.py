@@ -2,7 +2,7 @@ import graphene
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
 from core.models import make_id, Part, Tag, Bool, Int, Float, String
-from core.models import Part_Part, Part_Bool, Part_Int, Part_Float, Part_String
+from core.models import Part_Part, Part_Bool, Part_Int, Part_Float, Part_String, Part_User
 from core.models import tag
 from django.db.models import Q, Count
 from django.contrib.auth import authenticate, login, logout
@@ -19,10 +19,32 @@ class User_Type(DjangoObjectType):
         model = User
         fields = ('id', 'first_name',)
 
+
+#print(list(pack.p.values_list('id', flat=True)))
 class Part_Type(DjangoObjectType):
     class Meta:
         model = Part
         fields = '__all__'
+    #####def resolve_fe(root, info):
+        ######return info.context.pf_by_r_loader.load(root.id)
+    #p = graphene.List(lambda: Part_Type)
+    #def resolve_p(root, info):
+    #    print(list(root.p.values_list('id', flat=True)))
+    #    return root.p
+    #####def resolve_e(root, info): # , **kwargs
+        ######return info.context.pp_by_n_loader.load(root.id)
+        #print(root.e.all())
+    # def resolve_p(root, info): # , **kwargs
+    #          #print(list(root.p.values_list('id', flat=True)))
+    #     if root.id: 
+    #         print('root id!!!')
+    #         return info.context.parts_by_parts_loader.load(root.id)
+    #     return root.p.all()
+        #try:
+        #parts = await info.context.parts_by_parts_loader.load_many(list(root.p.values_list('id', flat=True)))
+        #return info.context.parts_by_parts_loader.load(root.id)#load_many(list(root.p.values_list('id', flat=True)))
+        #except:
+        #    return root.p
 class Tag_Type(DjangoObjectType):
     class Meta:
         model = Tag
@@ -39,6 +61,11 @@ class Float_Type(DjangoObjectType):
     class Meta:
         model = Float
         fields = '__all__'
+    #edge = graphene.List(Float_Edge_Type)
+    #def resolve_edge(root, info):
+    #    return [Float_Edge_Type()]
+    #def resolve_e(root, info): # , **kwargs
+        #return info.context.float_e_loader.load(root.id)
 class String_Type(DjangoObjectType):
     class Meta:
         model = String
@@ -60,13 +87,102 @@ class Part_Float_Type(DjangoObjectType):
     class Meta:
         model = Part_Float
         fields = '__all__'
+    #rid = graphene.String()
+    #def resolve_rid(root, info):
+    #    return Part.objects.filter(fe=root).id
 class Part_String_Type(DjangoObjectType):
     class Meta:
         model = Part_String
         fields = '__all__'
 
 
-#class Pack_Type(graphene.ObjectType):
+class Part_Min_Type(graphene.ObjectType): 
+    id = graphene.ID()
+    t = graphene.ID()
+    def __init__(self, id, t):
+        self.id=id
+        self.t=t
+    def resolve_id(self, info): return self.id
+    def resolve_t(self, info): return self.t
+
+class Edge_Type(graphene.ObjectType): 
+    o = graphene.Int()
+    r = graphene.ID()
+    t = graphene.ID()
+    n = graphene.ID()
+    def __init__(self, o, r, t, n):
+        self.o=o
+        self.r=r
+        self.t=t
+        self.n=n
+    def resolve_o(self, info): return self.o
+    def resolve_r(self, info): return self.r
+    def resolve_t(self, info): return self.t
+    def resolve_n(self, info): return self.n
+
+def list_edges(edges):
+    return [Edge_Type(o=e['o'], r=e['r_id'], t=e['t_id'], n=e['n_id']) for e in edges]
+
+class Pack_Type(graphene.ObjectType): 
+    t = graphene.List(Tag_Type)
+    p = graphene.List(Part_Min_Type)
+    b = graphene.List(Bool_Type)
+    i = graphene.List(Int_Type)
+    f = graphene.List(Float_Type)
+    s = graphene.List(String_Type)
+    pe = graphene.List(Edge_Type)
+    be = graphene.List(Edge_Type)
+    ie = graphene.List(Edge_Type)
+    fe = graphene.List(Edge_Type)
+    se = graphene.List(Edge_Type)
+    ue = graphene.List(Edge_Type)
+    def __init__(self, p, b, i, f, s):
+        self.p=p
+        self.b=b
+        self.i=i
+        self.f=f
+        self.s=s
+    def resolve_t(self, info): return Tag.objects.all()
+    def resolve_p(self, info): return [Part_Min_Type(id=p['id'], t=p['t_id']) for p in self.p.values()]
+    def resolve_b(self, info): return self.b.all()
+    def resolve_i(self, info): return self.i.all()
+    def resolve_f(self, info): return self.f.all()
+    def resolve_s(self, info): return self.s.all()
+    def resolve_pe(self, info):
+        edges = Part_Part.objects.filter(Q(r__id__in=self.p) | Q(n__id__in=self.p)).values()
+        return list_edges(edges)
+    def resolve_be(self, info):
+        edges = Part_Bool.objects.filter(n__id__in=self.b).values() # could it be n__id for all of these?
+        return list_edges(edges)
+    def resolve_ie(self, info):
+        edges = Part_Int.objects.filter(n__id__in=self.i).values()
+        return list_edges(edges)
+    def resolve_fe(self, info):
+        edges = Part_Float.objects.filter(n__id__in=self.f).values()
+        return list_edges(edges)
+    def resolve_se(self, info):
+        edges = Part_String.objects.filter(n__id__in=self.s).values()
+        return list_edges(edges)
+    def resolve_ue(self, info):
+        edges = Part_User.objects.filter(r__id__in=self.p).values()
+        return list_edges(edges)
+
+# class Floatb_Type()
+#     fe = graphene.List(Float_Edge_Type)
+#     def __init__(self, pfs):
+#         self.pfs=pfs
+#     def resolve_fe(self, info):
+#         #pfs = Part_Float.objects.filter(n__id__in=self.f).values()
+#         return [Float_Edge_Type(rr=e['r_id'], tt=e['t_id'], nn=e['n_id']) for e in self.pfs]
+
+# class Packb_Type(graphene.ObjectType): 
+#     fe = graphene.List(Float_Edge_Type)
+#     def __init__(self, f):
+#         self.f=f
+#     def resolve_fe(self, info):
+#         pfs = Part_Float.objects.filter(n__id__in=self.f).values()
+#         return [Float_Edge_Type(rr=e['r_id'], tt=e['t_id'], nn=e['n_id']) for e in pfs]
+    
     
 
 
@@ -79,8 +195,8 @@ def clear_part(part):
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    pollPack   = graphene.Field(Part_Type, instance=graphene.String())
-    deletePack = graphene.Field(Part_Type, instance=graphene.String())
+    pollPack   = graphene.Field(Pack_Type, instance=graphene.String())
+    deletePack = graphene.Field(Pack_Type, instance=graphene.String())
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
@@ -120,11 +236,11 @@ class Query(graphene.ObjectType):
                     se = pack.se.get(n__v=instance)
                     se.o += 1
                     se.save()          
-                return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
+                return Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
             return None
         except Exception as e: print(e)
         return None
-    def resolve_deletePack(root, info, instance): 
+    def resolve_deletePack(root, info, instance):  
         try:
             user = info.context.user
             if user.is_authenticated:
@@ -135,19 +251,25 @@ class Query(graphene.ObjectType):
                 Float.objects.filter(p__in=old_delete_packs).delete()
                 String.objects.filter(p__in=old_delete_packs).delete()
                 old_delete_packs.delete()
-                open_pack = Part.objects.get(t__v='open_pack', u=user)
-                delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')
+                open_pack = Part.objects.get(t__v='open_pack', u=user) 
+                delete_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='delete_pack')#delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')
                 parts   = Part.objects.filter(r=open_pack).filter(r__in=delete_packs).distinct()
                 bools   = Bool.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
                 ints    = Int.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
                 floats  = Float.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
                 strings = String.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
-                open_pack.p.remove(*parts) # this is a mutation inside query (bad)
-                open_pack.b.remove(*bools)
-                open_pack.i.remove(*ints)
-                open_pack.f.remove(*floats)
-                open_pack.s.remove(*strings)
-                return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
+                for pack in delete_packs:
+                    client_instance = String.objects.get_or_create(v=instance)[0]
+                    pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
+                    se = pack.se.get(n__v=instance)
+                    se.o += 1
+                    se.save()    
+                # open_pack.p.remove(*parts) # this is a mutation inside query (bad)
+                # open_pack.b.remove(*bools)
+                # open_pack.i.remove(*ints)
+                # open_pack.f.remove(*floats)
+                # open_pack.s.remove(*strings)
+                return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings) # switch to pack type?
             return None
         except Exception as e: print(e)
         return None
@@ -172,18 +294,19 @@ class Query(graphene.ObjectType):
 #         except Exception as e: print(e)
 #         return Cycle_Poll()
 
+# maybe less queries if read tag id instead of tag value?
 class Open_Pack(graphene.Mutation):
     class Arguments:
         depth = graphene.Int()
         ids = graphene.List(graphene.ID)
         include = graphene.List(graphene.List(graphene.String)) # must include nodes that use these atoms with these values 
         exclude = graphene.List(graphene.List(graphene.String)) # must exclude nodes that use these atoms with these values
-    pack = graphene.Field(Part_Type)
+    pack = graphene.Field(Pack_Type)
     reply = graphene.String(default_value = 'Failed to open pack.')
     @classmethod
     def mutate(cls, root, info, depth, ids, include, exclude): # offset, limit for pages
-        print('got request for open pack!!!')
-        print(time.time())
+        #print('got request for open pack!!!')
+        #print(time.time())
         try:
             # get context
             user = info.context.user
@@ -244,9 +367,9 @@ class Open_Pack(graphene.Mutation):
                 open_pack.f.add(*floats, through_defaults={'t':tag['open_pack']})
                 open_pack.s.add(*strings, through_defaults={'t':tag['open_pack']})
             # return pack:
-            print('sending open pack!!!')
-            print(time.time())
-            return Open_Pack(pack=Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
+            #print('sending open pack!!!')
+            #print(time.time())
+            return Open_Pack(pack=Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
         except Exception as e: print(e)
         return Open_Pack()
 
@@ -343,7 +466,7 @@ class Push_Pack(graphene.Mutation):
                 poll_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
                 if instance:
                     client_instance = String.objects.get_or_create(v=instance)[0]
-                    poll_pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']}) # o:2 so sender doesn't recieve
+                    poll_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']}) # o:2 so sender doesn't recieve
                 poll_pack.p.add(profile, through_defaults={'t':tag['poll_pack']}) # change so profile is only added if it actually gains or loses assets or something like that
                 #print('instance!!!')
                 #print(instance)

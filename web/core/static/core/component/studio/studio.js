@@ -10,20 +10,19 @@ import {Panel} from './panel/panel.js';
 //export const show_endpoints_rv = makeVar(true);
 //export const draw_mode_rv = makeVar('draw');
 
-const edges = ['p','b','i','f','s'].map(m=> m+'e{ t{v} n{id}} ').join(' ');
-const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v}r{id}}} ').join(' '); // can use r{id} instead
+const edges = ['p','b','i','f','s','u'].map(m=> m+'e{o r t n} ').join(' ');
+const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
     //console.log('instance: '+instance);
     const search = useS(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
-        ['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
+        ['openPack pack{ t{id v} p{id t} '+edges+' '+atoms+' } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{data = data.openPack;
-        //console.log('open_pack');
-        //console.log(data);
         console.log('got open pack');
         console.log(Date.now());
+        console.log(data);
         if(data.pack) ssp(d=> d.receive(d,data.pack) ); 
         //console.log(useS.getState().n);
     }}); 
@@ -83,7 +82,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     //     ['cyclePoll reply'] 
     // ]); 
     use_query('PollPack', [ // rerenders this component on every poll
-        ['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]],
+        ['pollPack p{id t} '+edges+' '+atoms, ['String instance', instance]], //['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]],
         ['deletePack p{id} b{id} i{id} f{id} s{id}', ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         //if(data.pollPack) console.log(data.pollPack);
