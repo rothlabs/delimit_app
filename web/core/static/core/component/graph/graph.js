@@ -21,7 +21,7 @@ export function Graph(){
         c('group', {name:'graph'},
             c(Nodes),
             c(Edges),
-            c(Arrange),
+            //c(Arrange),
         )
     )
 }

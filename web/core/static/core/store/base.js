@@ -14,7 +14,7 @@ export const design_tags = ['part', 'line', 'sketch']; // part is just a three j
 export const node_tags = [
     ...Object.values(model_tags),
     'profile', 'public',
-    'point', 'line', 'sketch',
+    'point', 'line', 'sketch', 'part',
 ];
 
 export const create_base_slice = (set,get)=>({
@@ -137,9 +137,10 @@ export const create_base_slice = (set,get)=>({
                         m: m,
                         pick: {},
                         graph: { // put in d.graph.node.vectors
-                            pos: random_vector({min:window_size, max:window_size*1.5, z:0}),
-                            dir: new Vector3(),
+                            pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),
+                            //dir: new Vector3(),
                             vis: true,
+                            lvl: 0,
                         },
                     };
                     d.pick.color(d,n.id);

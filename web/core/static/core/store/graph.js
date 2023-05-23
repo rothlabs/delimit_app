@@ -8,6 +8,8 @@ import { node_tags } from './base.js';
 export const create_graph_slice = (set,get)=>({graph:{
     nodes: [],
     edges: [],
+    //levels: [],
+    //edge_groups: [],
     tag_vis:{
         ...Object.fromEntries(node_tags.map(t=> [t,true])),
         decimal:false, text:false
@@ -21,7 +23,6 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.update(d);
     },
     update: d=>{
-        //console.log(current(d).n);
         d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.edges = [];
         d.graph.nodes.forEach(r=>{
@@ -31,9 +32,65 @@ export const create_graph_slice = (set,get)=>({graph:{
                 }
             });
         });
-        d.graph.arrange = true;
-        //console.log('display edges!');
-        //console.log(d.graph.edges);
+        //d.graph.arrange = true;
+
+        d.graph.nodes.forEach(n=>{   d.n[n].graph.lvl = 0;   });
+        
+        var highest_lvl = 0;
+        var setting_lvl = true; 
+        while(setting_lvl){
+            setting_lvl = false;
+            d.graph.nodes.forEach(n=>{
+                var lvl = 0;
+                d.node.for_r(d, n, r=>{
+                    if(d.graph.nodes.includes(r)){
+                        if(d.n[r].graph.lvl > lvl) lvl = d.n[r].graph.lvl;
+                    }
+                });
+                if(d.n[n].graph.lvl != lvl+1){
+                    d.n[n].graph.lvl = lvl+1;
+                    highest_lvl = lvl+1;
+                    setting_lvl = true;
+                }
+            });
+        }
+
+        const level = [];
+        for(var i=0; i<=highest_lvl+1; i++){  level.push({});  }
+        d.graph.nodes.forEach(n=>{
+            const lvl = d.n[n].graph.lvl;
+            const grp = d.n[n].t+'__'+JSON.stringify(d.n[n].r).split('').sort().join('');
+            console.log(lvl, d.n[n].t);
+            if(level[lvl][grp] == undefined) level[lvl][grp] = [];
+            level[lvl][grp].push(n);
+        });
+        console.log(level);
+
+        var lx=0;
+        var ly=0;
+        var max_y = 0;
+        level.forEach(l=>{
+            var gx = lx;
+            var max_x = 0;
+            Object.values(l).forEach(g=>{
+                const size = Math.round(Math.sqrt(g.length));
+                var x = gx;
+                var y = ly;
+                g.forEach(n=>{
+                    if(x > max_x) max_x = x;
+                    if(y > max_y) max_y = y;
+                    d.n[n].graph.pos.set(x*10, y*10, 0);
+                    x++;
+                    if(x >= gx+size){
+                        x=gx;  
+                        y++;
+                    }
+                });
+                gx = max_x + 2;
+            });
+            ly = max_y + 2;
+        });
+
     },
 }});
 
