@@ -20,31 +20,10 @@ class User_Type(DjangoObjectType):
         fields = ('id', 'first_name',)
 
 
-#print(list(pack.p.values_list('id', flat=True)))
 class Part_Type(DjangoObjectType):
     class Meta:
         model = Part
         fields = '__all__'
-    #####def resolve_fe(root, info):
-        ######return info.context.pf_by_r_loader.load(root.id)
-    #p = graphene.List(lambda: Part_Type)
-    #def resolve_p(root, info):
-    #    print(list(root.p.values_list('id', flat=True)))
-    #    return root.p
-    #####def resolve_e(root, info): # , **kwargs
-        ######return info.context.pp_by_n_loader.load(root.id)
-        #print(root.e.all())
-    # def resolve_p(root, info): # , **kwargs
-    #          #print(list(root.p.values_list('id', flat=True)))
-    #     if root.id: 
-    #         print('root id!!!')
-    #         return info.context.parts_by_parts_loader.load(root.id)
-    #     return root.p.all()
-        #try:
-        #parts = await info.context.parts_by_parts_loader.load_many(list(root.p.values_list('id', flat=True)))
-        #return info.context.parts_by_parts_loader.load(root.id)#load_many(list(root.p.values_list('id', flat=True)))
-        #except:
-        #    return root.p
 class Tag_Type(DjangoObjectType):
     class Meta:
         model = Tag
@@ -61,11 +40,6 @@ class Float_Type(DjangoObjectType):
     class Meta:
         model = Float
         fields = '__all__'
-    #edge = graphene.List(Float_Edge_Type)
-    #def resolve_edge(root, info):
-    #    return [Float_Edge_Type()]
-    #def resolve_e(root, info): # , **kwargs
-        #return info.context.float_e_loader.load(root.id)
 class String_Type(DjangoObjectType):
     class Meta:
         model = String
@@ -87,9 +61,6 @@ class Part_Float_Type(DjangoObjectType):
     class Meta:
         model = Part_Float
         fields = '__all__'
-    #rid = graphene.String()
-    #def resolve_rid(root, info):
-    #    return Part.objects.filter(fe=root).id
 class Part_String_Type(DjangoObjectType):
     class Meta:
         model = Part_String
@@ -106,22 +77,22 @@ class Part_Min_Type(graphene.ObjectType):
     def resolve_t(self, info): return self.t
 
 class Edge_Type(graphene.ObjectType): 
-    o = graphene.Int()
+    #o = graphene.Int()
     r = graphene.ID()
     t = graphene.ID()
     n = graphene.ID()
-    def __init__(self, o, r, t, n):
-        self.o=o
+    def __init__(self, r, t, n):
+        #self.o=o
         self.r=r
         self.t=t
         self.n=n
-    def resolve_o(self, info): return self.o
+    #def resolve_o(self, info): return self.o
     def resolve_r(self, info): return self.r
     def resolve_t(self, info): return self.t
     def resolve_n(self, info): return self.n
 
 def list_edges(edges):
-    return [Edge_Type(o=e['o'], r=e['r_id'], t=e['t_id'], n=e['n_id']) for e in edges]
+    return [Edge_Type(r=e['r_id'], t=e['t_id'], n=e['n_id']) for e in edges]
 
 class Pack_Type(graphene.ObjectType): 
     t = graphene.List(Tag_Type)
@@ -166,25 +137,6 @@ class Pack_Type(graphene.ObjectType):
     def resolve_ue(self, info):
         edges = Part_User.objects.filter(r__id__in=self.p).values()
         return list_edges(edges)
-
-# class Floatb_Type()
-#     fe = graphene.List(Float_Edge_Type)
-#     def __init__(self, pfs):
-#         self.pfs=pfs
-#     def resolve_fe(self, info):
-#         #pfs = Part_Float.objects.filter(n__id__in=self.f).values()
-#         return [Float_Edge_Type(rr=e['r_id'], tt=e['t_id'], nn=e['n_id']) for e in self.pfs]
-
-# class Packb_Type(graphene.ObjectType): 
-#     fe = graphene.List(Float_Edge_Type)
-#     def __init__(self, f):
-#         self.f=f
-#     def resolve_fe(self, info):
-#         pfs = Part_Float.objects.filter(n__id__in=self.f).values()
-#         return [Float_Edge_Type(rr=e['r_id'], tt=e['t_id'], nn=e['n_id']) for e in pfs]
-    
-    
-
 
 def clear_part(part):
     part.p.clear()
@@ -235,10 +187,15 @@ class Query(graphene.ObjectType):
                     pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
                     se = pack.se.get(n__v=instance)
                     se.o += 1
-                    se.save()          
-                return Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
+                    se.save()  
+                pack = Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
+                #print('poll pack') 
+                #print(pack)        
+                return pack
             return None
-        except Exception as e: print(e)
+        except Exception as e: 
+            print('poll_pack error') 
+            print(e)
         return None
     def resolve_deletePack(root, info, instance):  
         try:
@@ -491,7 +448,7 @@ class Push_Pack(graphene.Mutation):
                     # mutate parts
                     for p in range(len(parts)): # need to check if id is in correct format
                         try: # could remove this try wrap?
-                            part = Part.objects.get(is_asset, id=parts[p][0][0])
+                            part = Part.objects.get(is_asset, id=parts[p][0][0]) # is_asset OR this user's profile
                             part.t = Tag.objects.get(v=t[p][0][0], system=False)
                             part.save()
                             if parts[p][6][0]=='replace': clear_part(part) 
@@ -502,9 +459,11 @@ class Push_Pack(graphene.Mutation):
                                     if tag_obj.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][o])
                                     else: obj = Part.objects.get(id = parts[p][1][o]) 
                                     part.p.add(obj, through_defaults={'o':o, 't':tag_obj})#temp_pack.p.append(obj)
-                                    poll_pack.p.add(obj, through_defaults={'t':tag['poll_pack']})
-                                except Exception as e: 
+                                    ##########################poll_pack.p.add(obj, through_defaults={'t':tag['poll_pack']})
+                                except Exception as e:
+                                    #print('push_pack error: part node block') 
                                     print(e)
+                                    #print(parts[p][1][o])
                                     restricted.append(parts[p][1][o])
                             for o in range(len(parts[p][2])):
                                 cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][o], o, t[p][2][o], restricted, poll_pack)
@@ -518,7 +477,9 @@ class Push_Pack(graphene.Mutation):
                             #    pass 
                             poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
                         except Exception as e: 
+                            #print('push_pack error: p in parts block') 
                             print(e)
+                            #print(p)
                             restricted.append(parts[p][0][0])
                 if pdel or bdel or idel or fdel or sdel:
                     delete_pack = Part.objects.create(t=tag['delete_pack']) 
@@ -652,6 +613,33 @@ def make_data():
     except Exception as e: print(e)
     
 #make_data() 
+
+
+
+
+
+
+
+#####def resolve_fe(root, info):
+        ######return info.context.pf_by_r_loader.load(root.id)
+    #p = graphene.List(lambda: Part_Type)
+    #def resolve_p(root, info):
+    #    print(list(root.p.values_list('id', flat=True)))
+    #    return root.p
+    #####def resolve_e(root, info): # , **kwargs
+        ######return info.context.pp_by_n_loader.load(root.id)
+        #print(root.e.all())
+    # def resolve_p(root, info): # , **kwargs
+    #          #print(list(root.p.values_list('id', flat=True)))
+    #     if root.id: 
+    #         print('root id!!!')
+    #         return info.context.parts_by_parts_loader.load(root.id)
+    #     return root.p.all()
+        #try:
+        #parts = await info.context.parts_by_parts_loader.load_many(list(root.p.values_list('id', flat=True)))
+        #return info.context.parts_by_parts_loader.load(root.id)#load_many(list(root.p.values_list('id', flat=True)))
+        #except:
+        #    return root.p
 
 
 

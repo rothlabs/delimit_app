@@ -64,37 +64,40 @@ export const create_base_slice = (set,get)=>({
     // },
 
     send: (d, patches)=>{
-        //console.log('patches');
-        //console.log(patches); // auto merges patches into mutations state slice 
+        console.log('patches');
+        console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
         const appends = {};
+        function set_part(n){ // don't set part if profile?
+            console.log('set entire part: '+d.n[n].t);
+            const part = [[n],        [], [], [], [], [], ['replace']];
+            const tags = [[d.n[n].t], [], [], [], [], []];
+            d.node.for_n(d, n, (nn,t)=>{
+                const mi = ['r','p','b','i','f','s'].indexOf(d.n[nn].m);
+                part[mi].push(nn);
+                tags[mi].push(t);
+            });
+            edits.parts.push(part);
+            edits.t.push(tags);
+        }
         patches.forEach(patch=>{
             const n = patch.path[1];
             if(patch.op == 'add'){ 
                 if(patch.path[0]=='n' && patch.path.length < 3){ // node created
                     if(d.n[n].m=='p'){
-                        const part = [[n],        [], [], [], [], [], ['replace']];
-                        const tags = [[d.n[n].t], [], [], [], [], []];
-                        d.node.for_n(d, n, (nn,t)=>{
-                            const mi = ['r','p','b','i','f','s'].indexOf(d.n[nn].m);
-                            part[mi].push(nn);
-                            tags[mi].push(t);
-                        });
-                        edits.parts.push(part);
-                        edits.t.push(tags);
+                        set_part(n);
                     }else{
                         edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                         edits[d.n[n].m].push(patch.value.v);
                     }
                 }else if(patch.path[2]=='n'){ // need to check if already modified this one (merge patches)
-                    console.log('add to part: '+patch.path[3]);
+                    console.log('add '+patch.path[3]+' to '+d.n[n].t);
                     if(!appends[n]){ appends[n] = {
                         part: [[n],        [], [], [], [], [], ['append']],
                         tags: [[d.n[n].t], [], [], [], [], []]
                     }}
                     var nid = patch.value;
                     if(Array.isArray(nid)) nid = nid[0]; // could be a single element array if new edge tag
-                    console.log(patch.path[3]);
                     console.log(nid);
                     const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
                     appends[n].part[mi].push(nid);
@@ -102,17 +105,21 @@ export const create_base_slice = (set,get)=>({
                 }else if(patch.path[2]=='deleted'){
                     edits[d.n[n].m+'del'].push(n);
                 }
-            }else if(patch.op == 'replace' && patch.path[2]=='v'){ // atom has changed
-                edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
-                edits[d.n[n].m].push(patch.value);
+            }else if(patch.op == 'replace'){ // atom has changed
+                if(patch.path[2]=='n'){
+                    set_part(n); 
+                }else if(patch.path[2]=='v'){
+                    edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                    edits[d.n[n].m].push(patch.value);
+                }
             }
         });
         Object.values(appends).forEach(append=>{
             edits.parts.push(append.part);
             edits.t.push(append.tags);
         });
-        //console.log('edits');
-        //console.log(edits);
+        console.log('edits');
+        console.log(edits);
         d.pick.update(d);
         d.design.update(d);
         d.graph.update(d); // only run graph if something was deleted or added? 
@@ -194,7 +201,7 @@ export const create_base_slice = (set,get)=>({
         });
         d.consume=(d, patches)=>{
             if(patches.length>0 && !(patches.length==1 && patches[0].path[0]=='consume')){
-                console.log('recieve_deleted patches: '+patches);       
+                //console.log('recieve_deleted patches: '+patches);       
                 d.pick.update(d);
                 d.design.update(d);
                 d.graph.update(d);

@@ -10,7 +10,7 @@ import {Panel} from './panel/panel.js';
 //export const show_endpoints_rv = makeVar(true);
 //export const draw_mode_rv = makeVar('draw');
 
-const edges = ['p','b','i','f','s','u'].map(m=> m+'e{o r t n} ').join(' ');
+const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
@@ -86,7 +86,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
         ['deletePack p{id} b{id} i{id} f{id} s{id}', ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         //if(data.pollPack) console.log(data.pollPack);
-        if(data.pollPack) ssp(d=> d.receive(d, data.pollPack) ); 
+        if(data.pollPack) ssp(d=> d.receive(d, data.pollPack) ); // do not read anything older than when loader!!!!!!!
         if(data.deletePack) ssp(d=> d.receive_deleted(d, data.deletePack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
