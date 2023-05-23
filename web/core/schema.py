@@ -135,7 +135,7 @@ class Pack_Type(graphene.ObjectType):
         edges = Part_String.objects.filter(Q(r__in=self.p) | Q(n__in=self.s)).values()
         return list_edges(edges)
     def resolve_ue(self, info):
-        edges = Part_User.objects.filter(Q(r__in=self.p) | Q(r__in=self.p)).values()
+        edges = Part_User.objects.filter(r__in=self.p).values()
         return list_edges(edges)
 
 def clear_part(part):
@@ -274,29 +274,29 @@ class Open_Pack(graphene.Mutation):
             if user.is_authenticated: viewable = Q(r__t__v='profile', r__u=user) | Q(t__v='profile', u=user)
             else: viewable = Q(pk__in=[]) # always false
             permission =  (Q(r__t__v='public') | Q(t__v='public') | viewable)
-            if parts: parts = parts.filter(permission).distinct()
-            else: parts = Part.objects.filter(permission).distinct()
+            if parts: parts = parts.filter(permission)#.distinct()
+            else: parts = Part.objects.filter(permission)#.distinct()
             # filter out deleted
             delete_packs = Part.objects.filter(t__v='delete_pack')
             parts = parts.filter(~Q(r__in=delete_packs))
             # filter by include and exclude props:
             if include:
                 for prop in include:
-                    if prop[0]=='b': parts = parts.filter(pe__t__v=prop[1], n__v=prop[2]=='true').distinct() # is it higher or lower case?
-                    if prop[0]=='i': parts = parts.filter(ie__t__v=prop[1], n__v=int(prop[2])).distinct()
-                    if prop[0]=='f': parts = parts.filter(fe__t__v=prop[1], n__v=float(prop[2])).distinct()
-                    if prop[0]=='s': parts = parts.filter(se__t__v=prop[1], n__v=prop[2]).distinct()
+                    if prop[0]=='b': parts = parts.filter(pe__t__v=prop[1], n__v=prop[2]=='true')#.distinct() # is it higher or lower case?
+                    if prop[0]=='i': parts = parts.filter(ie__t__v=prop[1], n__v=int(prop[2]))#.distinct()
+                    if prop[0]=='f': parts = parts.filter(fe__t__v=prop[1], n__v=float(prop[2]))#.distinct()
+                    if prop[0]=='s': parts = parts.filter(se__t__v=prop[1], n__v=prop[2])#.distinct()
             if exclude:
                 for prop in exclude:
-                    if prop[0]=='b': parts = parts.filter(~Q(pe__t__v=prop[1], n__v=prop[2]=='true')).distinct() # is it higher or lower case?
-                    if prop[0]=='i': parts = parts.filter(~Q(ie__t__v=prop[1], n__v=int(prop[2]))).distinct()
-                    if prop[0]=='f': parts = parts.filter(~Q(fe__t__v=prop[1], n__v=float(prop[2]))).distinct()
-                    if prop[0]=='s': parts = parts.filter(~Q(se__t__v=prop[1], n__v=prop[2])).distinct()
+                    if prop[0]=='b': parts = parts.filter(~Q(pe__t__v=prop[1], n__v=prop[2]=='true'))#.distinct() # is it higher or lower case?
+                    if prop[0]=='i': parts = parts.filter(~Q(ie__t__v=prop[1], n__v=int(prop[2])))#.distinct()
+                    if prop[0]=='f': parts = parts.filter(~Q(fe__t__v=prop[1], n__v=float(prop[2])))#.distinct()
+                    if prop[0]=='s': parts = parts.filter(~Q(se__t__v=prop[1], n__v=prop[2]))#.distinct()
             # get dependencies filtered by public and viewable
             part_count = len(parts.all())
             while depth is None or depth > 0:  # replace with Part.objects.raw(recursive sql)!!!!
                 parts = Part.objects.filter(Q(r__in=parts) | Q(id__in=parts.values_list('id', flat=True)), permission)
-                parts = parts.filter(~Q(r__in=delete_packs)).distinct()
+                parts = parts.filter(~Q(r__in=delete_packs))#.distinct()
                 if(len(parts.all()) > part_count): 
                    part_count = len(parts.all())
                    if depth: depth -= 1
@@ -307,10 +307,10 @@ class Open_Pack(graphene.Mutation):
                 viewable = Q(Q(e__t__v='asset') | Q(e__t__v='view'), e__r=profile)
             else: viewable = Q(pk__in=[])
             permission = Q(e__r__t__v='public') | viewable
-            bools   = Bool.objects.filter(permission, p__in=parts).distinct()#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__n1__u=user)) 
-            ints    = Int.objects.filter(permission, p__in=parts).distinct()#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__n1__u=user))
-            floats  = Float.objects.filter(permission, p__in=parts).distinct() # might not need distinct
-            strings = String.objects.filter(permission, p__in=parts).distinct()#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__n1__u=user))
+            bools   = Bool.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__n1__u=user)) 
+            ints    = Int.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__n1__u=user))
+            floats  = Float.objects.filter(permission, p__in=parts)#.distinct() # might not need distinct
+            strings = String.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__n1__u=user))
             bools = bools.filter(~Q(p__in=delete_packs))
             ints = ints.filter(~Q(p__in=delete_packs))
             floats = floats.filter(~Q(p__in=delete_packs))
@@ -326,7 +326,7 @@ class Open_Pack(graphene.Mutation):
             # return pack:
             #print('sending open pack!!!')
             #print(time.time())
-            return Open_Pack(pack=Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
+            return Open_Pack(pack=Pack_Type(p=parts.distinct(), b=bools.distinct(), i=ints.distinct(), f=floats.distinct(), s=strings.distinct()), reply='Parts opened.')
         except Exception as e: print(e)
         return Open_Pack()
 

@@ -14,6 +14,7 @@ const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
+    const ready = useS(d=> d.studio.ready);
     //console.log('instance: '+instance);
     const search = useS(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
@@ -64,7 +65,7 @@ export function Studio(){
 
     return (
         c(Fragment,{}, 
-            c(Poll), 
+            ready && c(Poll), 
             c(Toolbar),
             c(Panel),
             c('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
