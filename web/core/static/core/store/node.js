@@ -8,11 +8,20 @@ export const create_node_slice =(set,get)=>({node:{
         }
         return null;
     },
-    gv:(d, n, t, o)=>{
+    reckon_v:(d, n, t, o)=>{
         if(!o) o=0;
-        if(d.n[n].n[t] && o < d.n[n].n[t].length) return d.n[d.n[n].n[t][o]].v;
-        return null;
+        if(d.n[n].n && d.n[n].n[t] && o < d.n[n].n[t].length && d.node.be(d,d.n[n].n[t][o])){
+            d.n[n].c[t] = d.n[d.n[n].n[t][o]].v;
+        }else{
+            d.n[n].c[t] = null;
+        }
+        //return null;
     },
+    // gv:(d, n, t, o)=>{
+    //     if(!o) o=0;
+    //     if(d.n[n].n[t] && o < d.n[n].n[t].length) return d.n[d.n[n].n[t][o]].v;
+    //     return null;
+    // },
     // sv:(d, n, t, o)=>{
     //     if(!o) o=0;
     // },

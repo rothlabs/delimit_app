@@ -172,6 +172,7 @@ export const create_base_slice = (set,get)=>({
             if(root_exists){ // change be to ex? (ex for exists)
                 if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = []; 
                 d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
+                d.n[e.r].n[d.t[e.t]] = [...new Set(d.n[e.r].n[d.t[e.t]])]; // do this later in patches to be more effecient
             }
             if(d.node.be(d, e.n)){
                 if(e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
@@ -180,6 +181,7 @@ export const create_base_slice = (set,get)=>({
                 else{if(root_exists)      rt = d.n[e.r].t;           }
                 if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = [];
                 d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
+                d.n[e.n].r[rt] = [... new Set(d.n[e.n].r[rt])]; // do this later in patches to be more effecient
             }
         }));
         data.p.forEach(n=>{

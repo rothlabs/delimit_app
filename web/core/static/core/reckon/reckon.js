@@ -3,15 +3,20 @@
 function base_reckon(d, n){
     //console.log('update node!!! '+n);
     //d.n[d.profile].
+    //if(d.n[n].n && d.n[n].n.name && d.node.be(d, d.n[n].n.name[0])) d.n[n].c.name = d.n[d.n[n].n.name[0]];
+    d.node.reckon_v(d, n, 'name'); 
     d.node.for_r(d, n, r=> d.node.reckon(d,r)); // got to watch out for cycle!!! (could pass update id and stop if updated already made with that id)
 }
 
 export const reckoners = {
     point:(d,n)=>{
         //console.log('update point!!! '+n);
-        d.n[n].c.x = d.node.gv(d, n, 'x'); 
-        d.n[n].c.y = d.node.gv(d, n, 'y');
-        d.n[n].c.z = d.node.gv(d, n, 'z');
+        //d.n[n].c.x = d.node.gv(d, n, 'x'); 
+        //d.n[n].c.y = d.node.gv(d, n, 'y');
+        //d.n[n].c.z = d.node.gv(d, n, 'z');
+        d.node.reckon_v(d, n, 'x');  
+        d.node.reckon_v(d, n, 'y'); 
+        d.node.reckon_v(d, n, 'z'); 
         base_reckon(d, n);
     },
     line:(d,n)=>{

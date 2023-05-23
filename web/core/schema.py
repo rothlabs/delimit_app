@@ -120,22 +120,22 @@ class Pack_Type(graphene.ObjectType):
     def resolve_f(self, info): return self.f.all()
     def resolve_s(self, info): return self.s.all()
     def resolve_pe(self, info):
-        edges = Part_Part.objects.filter(Q(r__id__in=self.p) | Q(n__id__in=self.p)).values()
+        edges = Part_Part.objects.filter(Q(r__in=self.p) | Q(n__in=self.p)).values()
         return list_edges(edges)
     def resolve_be(self, info):
-        edges = Part_Bool.objects.filter(n__id__in=self.b).values() # could it be n__id for all of these?
+        edges = Part_Bool.objects.filter(Q(r__in=self.p) | Q(n__in=self.b)).values() # could it be n__id for all of these?
         return list_edges(edges)
     def resolve_ie(self, info):
-        edges = Part_Int.objects.filter(n__id__in=self.i).values()
+        edges = Part_Int.objects.filter(Q(r__in=self.p) | Q(n__in=self.i)).values()
         return list_edges(edges)
     def resolve_fe(self, info):
-        edges = Part_Float.objects.filter(n__id__in=self.f).values()
+        edges = Part_Float.objects.filter(Q(r__in=self.p) | Q(n__in=self.f)).values()
         return list_edges(edges)
     def resolve_se(self, info):
-        edges = Part_String.objects.filter(n__id__in=self.s).values()
+        edges = Part_String.objects.filter(Q(r__in=self.p) | Q(n__in=self.s)).values()
         return list_edges(edges)
     def resolve_ue(self, info):
-        edges = Part_User.objects.filter(r__id__in=self.p).values()
+        edges = Part_User.objects.filter(Q(r__in=self.p) | Q(r__in=self.p)).values()
         return list_edges(edges)
 
 def clear_part(part):

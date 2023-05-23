@@ -14,6 +14,10 @@ export const create_graph_slice = (set,get)=>({graph:{
         ...Object.fromEntries(node_tags.map(t=> [t,true])),
         decimal:false, text:false
     },
+    edge_vis:{
+        view:false, asset:false,
+        name:true, point:true, x:true, y:true, z:true,
+    },
     set_tag_vis:(d, t, vis)=>{
         d.graph.tag_vis = {...d.graph.tag_vis}; // make new object so visual panel rerenders
         d.graph.tag_vis[t] = vis;
@@ -22,12 +26,17 @@ export const create_graph_slice = (set,get)=>({graph:{
         });
         d.graph.update(d);
     },
+    set_edge_vis:(d, t, vis)=>{
+        d.graph.edge_vis = {...d.graph.edge_vis}; // make new object so visual panel rerenders
+        d.graph.edge_vis[t] = vis;
+        d.graph.update(d);
+    },
     update: d=>{
         d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.edges = [];
         d.graph.nodes.forEach(r=>{
             d.node.for_n(d, r, (n,t)=>{
-                if(d.node.be(d,n) && d.n[n].graph.vis){ //  && r!=n,  r==n should probably never be allowd in the first place
+                if(d.node.be(d,n) && d.n[n].graph.vis && d.graph.edge_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
                     d.graph.edges.push({r:r, t:t, n:n}); 
                 }
             });
@@ -59,12 +68,12 @@ export const create_graph_slice = (set,get)=>({graph:{
         for(var i=0; i<=highest_lvl+1; i++){  level.push({});  }
         d.graph.nodes.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
-            const grp = d.n[n].t+'__'+JSON.stringify(d.n[n].r).split('').sort().join('');
-            console.log(lvl, d.n[n].t);
+            var rt = [];
+            d.node.for_r(d, n, r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
+            const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
             if(level[lvl][grp] == undefined) level[lvl][grp] = [];
             level[lvl][grp].push(n);
         });
-        console.log(level);
 
         var lx=0;
         var ly=0;
@@ -80,10 +89,10 @@ export const create_graph_slice = (set,get)=>({graph:{
                     if(x > max_x) max_x = x;
                     if(y > max_y) max_y = y;
                     d.n[n].graph.pos.set(x*10, y*10, 0);
-                    x++;
-                    if(x >= gx+size){
-                        x=gx;  
-                        y++;
+                    y++;
+                    if(y >= ly+size){
+                        y=ly;  
+                        x++;
                     }
                 });
                 gx = max_x + 2;
