@@ -1,9 +1,7 @@
 import {make_id, random_vector, theme} from '../app.js';
-import {model_tags, root_tags} from './base.js';
+import {model_tags, root_tags, ordered_tags} from './base.js';
 import {Vector3} from 'three';
 import {current} from 'immer';
-
-const ordered_tags = ['point'];
 
 export const create_make_slice = (set,get)=>({make:{
     edge: (d, r, n, a)=>{ // need o index

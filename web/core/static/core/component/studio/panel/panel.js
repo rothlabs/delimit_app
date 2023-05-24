@@ -22,7 +22,7 @@ export function Panel(){
                 }
             }
         }else{
-            ss(d=> d.studio.panel.show=false);
+            if((panel=='inspect_design' || panel=='inspect_nodes')) ss(d=> d.studio.panel.show=false);
         }
     },[nodes]);
     useEffect(()=>{

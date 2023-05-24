@@ -156,14 +156,17 @@ class Query(graphene.ObjectType):
         try:
             user = info.context.user
             if user.is_authenticated:
-                Int.objects.filter(e__t__v='system_time', v__lt=int(time.time())-4).delete() # delete if 4 seconds old! make client pull everything if disconnects for more than 4 seconds
+                Int.objects.filter(e__t__v='system_time', v__lt=int(time.time())-6).delete() # delete if 4 seconds old! make client pull everything if disconnects for more than 4 seconds
                 Part.objects.filter(~Q(ie__t__v='system_time'), t__v='poll_pack').delete()
                 String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
                 open_pack = Part.objects.get(t__v='open_pack', u=user)
                 # poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
                 # poll_packs = Part.objects.annotate(
                 # instances=Count('s',filter=Q(s__v=instance))).filter(~Q(instances__gt=1), t__v='poll_pack')
-                poll_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='poll_pack')
+                #poll_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='poll_pack')
+                poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
+                #author_instance = String.objects.
+                #poll_packs = Part.objects.filter(t__v='poll_pack')#.filter(se__o__lt=2)
                 # delete_packs = Part.objects.filter(t__v='delete_pack')  .filter(~Q(r__in=delete_packs))
                 parts   = Part.objects.filter(r__in=poll_packs).distinct() # make this the behavior of shallow_pack
                 bools   = Bool.objects.filter(p__in=poll_packs).distinct()
@@ -182,12 +185,14 @@ class Query(graphene.ObjectType):
                 strings = strings.filter(p=open_pack)
                 #print('pollPack!!')
                 #print(parts.all())
-                for pack in poll_packs:
-                    client_instance = String.objects.get_or_create(v=instance)[0]
-                    pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
-                    se = pack.se.get(n__v=instance)
-                    se.o += 1
-                    se.save()  
+
+                # for pack in poll_packs:
+                #     client_instance = String.objects.get_or_create(v=instance)[0]
+                #     pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
+                #     se = pack.se.get(n__v=instance)
+                #     se.o += 1
+                #     se.save()  
+
                 pack = Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
                 #print('poll pack') 
                 #print(pack)        
@@ -209,24 +214,20 @@ class Query(graphene.ObjectType):
                 String.objects.filter(p__in=old_delete_packs).delete()
                 old_delete_packs.delete()
                 open_pack = Part.objects.get(t__v='open_pack', u=user) 
-                delete_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='delete_pack')#delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')
+                #delete_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='delete_pack') #delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')
+                delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack') 
                 parts   = Part.objects.filter(r=open_pack).filter(r__in=delete_packs).distinct()
                 bools   = Bool.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
                 ints    = Int.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
                 floats  = Float.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
                 strings = String.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
-                for pack in delete_packs:
-                    client_instance = String.objects.get_or_create(v=instance)[0]
-                    pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
-                    se = pack.se.get(n__v=instance)
-                    se.o += 1
-                    se.save()    
-                # open_pack.p.remove(*parts) # this is a mutation inside query (bad)
-                # open_pack.b.remove(*bools)
-                # open_pack.i.remove(*ints)
-                # open_pack.f.remove(*floats)
-                # open_pack.s.remove(*strings)
-                return Part_Type(p=parts, b=bools, i=ints, f=floats, s=strings) # switch to pack type?
+                # for pack in delete_packs:
+                #     client_instance = String.objects.get_or_create(v=instance)[0]
+                #     pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
+                #     se = pack.se.get(n__v=instance)
+                #     se.o += 1
+                #     se.save()    
+                return Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings) # must switch to pack type
             return None
         except Exception as e: print(e)
         return None
@@ -359,11 +360,6 @@ class Close_Pack(graphene.Mutation):
                 if s:
                     strings = String.objects.filter(id__in=s)
                     open_pack.s.remove(*strings)
-                # print(open_pack.p.all())
-                # print(open_pack.b.all())
-                # print(open_pack.i.all())
-                # print(open_pack.f.all())
-                # print(open_pack.s.all())
             return Close_Pack(reply='Closed pack.')
         except Exception as e: print(e)
         return Close_Pack()

@@ -31,6 +31,9 @@ DEBUG = False
 ALLOWED_HOSTS = ['delimit.art','www.delimit.art','localhost']
 
 
+SILKY_AUTHENTICATION = True
+SILKY_AUTHORISATION = True
+
 # Application definition
 
 INSTALLED_APPS = [

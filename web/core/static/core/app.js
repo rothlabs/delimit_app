@@ -48,15 +48,39 @@ export const useS = create(
         //...create_visual_slice(...a),
     }))
 );
-export const ss = func=> useS.setState(produce(d=>{func(d)}));
-export const ssp = func=> useS.setState(d=>{
-    const [dd, patches, inverse_patches] = produceWithPatches(d, d=>{func(d)});
-    return produce(dd,dd=>{ dd.consume(dd,patches) });
-});
+//const produce_stack = []; 
+//var produce_number = 0;
+//useS.subscribe(d=>{
+    //if(produce_stack.length > 0){
+export const ss = func=> useS.setState(produce(d=>{func(d)}));//{ // need different store for instant user input
+    //produce_number++;
+    //produce_stack.push(()=>   useS.setState(produce(d=>{func(d);d.produce_number++;}))   );
+//};
+export const ssp = func=>{
+    //produce_number++;
+    //produce_stack.push(()=>{
+        useS.setState(d=>{
+            const [dd, patches, inverse_patches] = produceWithPatches(d, d=>{func(d)});
+            return produce(dd,dd=>{ dd.consume(dd,patches);dd.produce_number++; }); //;dd.produce_number++;
+        })
+    //});
+};
 export const gs = ()=> useS.getState();
 export const useSS = selector=> useS(selector, shallow);
 export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
 export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
+// function check_stack(){
+//     //console.log(produce_stack.length, produce_number, gs().produce_number);
+//     if(produce_number == gs().produce_number){
+//         const produce_func = produce_stack.shift();
+//         if(produce_func){
+//             produce_func();
+//             produce_number++;
+//         }
+//     }
+//     setTimeout(check_stack,20);
+// }
+// check_stack();
 
 export function use_window_size() {
     const [size, setSize] = useState([0, 0]);

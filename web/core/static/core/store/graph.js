@@ -43,7 +43,8 @@ export const create_graph_slice = (set,get)=>({graph:{
         });
         //d.graph.arrange = true;
 
-        d.graph.nodes.forEach(n=>{   d.n[n].graph.lvl = 0;   });
+        //d.graph.nodes.forEach(n=>{   d.n[n].graph.lvl = 0;   });
+        Object.values(d.n).forEach(n=> n.graph.lvl=0);
         
         var highest_lvl = 0;
         var setting_lvl = true; 
@@ -65,7 +66,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         }
 
         const level = [];
-        for(var i=0; i<=highest_lvl+1; i++){  level.push({});  }
+        for(var i=0; i<=highest_lvl+2; i++){  level.push({});  }
         d.graph.nodes.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];

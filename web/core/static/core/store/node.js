@@ -1,4 +1,5 @@
 import { reckoners } from '../reckon/reckon.js';
+import {ordered_tags} from './base.js';
 
 export const create_node_slice =(set,get)=>({node:{
     be:(d, n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
@@ -45,10 +46,12 @@ export const create_node_slice =(set,get)=>({node:{
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
             d.n[n].open = false;
             d.n[n].deleted = true;
+            var reset_root_edges = false;
+            if(ordered_tags.includes(d.n[n].t)) reset_root_edges=true;  
             d.node.for_r(d, n, r=>{
                 const dead_edges = [];
                 d.node.for_n(d, r, (nn,t,o)=>{
-                    console.log(nn, t, o);
+                    //console.log(nn, t, o);
                     if(n==nn) dead_edges.push({t:t,o:o});
                 }, [null]);
                 //console.log(dead_edges);
@@ -56,6 +59,7 @@ export const create_node_slice =(set,get)=>({node:{
                     d.n[r].n[edge.t].splice(edge.o, 1);
                     if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
                 });
+                if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // this way the patches function will send entire list 
             });
             if(!shallow){
                 d.node.for_n(d, n, n=> d.node.delete(d, n, shallow)); // must check if no roots except profile, public, etc

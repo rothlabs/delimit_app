@@ -13,7 +13,7 @@ export function Root(){
 	],{onCompleted:(data)=>{
 		if(data.user){
 			//console.log('User ID: '+data.user.id);
-			ss(d=> d.user = data.user.id );
+			ss(d=> d.user = data.user.id); // should still use recieve patches method (don't use ss anymore, just ssi and sso)
 		} 
 	}}); 
 	return (

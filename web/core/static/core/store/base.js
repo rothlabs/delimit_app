@@ -16,8 +16,10 @@ export const node_tags = [
     'profile', 'public',
     'point', 'line', 'sketch', 'part',
 ];
+export const ordered_tags = ['point'];
 
 export const create_base_slice = (set,get)=>({
+    produce_number: 0,
     n: {},
     t: {},
     user: 0,
@@ -46,22 +48,22 @@ export const create_base_slice = (set,get)=>({
         },
     },
 
-    // close: (d, nodes)=>{
-    //     const close_pack = {p:[], b:[], i:[], f:[], s:[]};
-    //     nodes.forEach(n=>{
-    //         close_pack[d.n[n].m].push(n);
-    //         d.n[n].open=false;
-    //         d.n[n].r = {};
-    //         d.n[n].c = {};
-    //         d.n[n].t = '';
-    //         if(d.n[n].m=='p'){  d.n[n].n = {};  }
-    //         else{  d.n[n].v = null;  }
-    //     });
-    //     d.pick.update(d);
-    //     d.design.update(d);
-    //     d.graph.update(d);
-    //     d.close_pack({variables:close_pack});
-    // },
+    close: (d, nodes)=>{
+        const close_pack = {p:[], b:[], i:[], f:[], s:[]};
+        nodes.forEach(n=>{
+            close_pack[d.n[n].m].push(n);
+            d.n[n].open=false;
+            d.n[n].r = {};
+            d.n[n].c = {};
+            d.n[n].t = '';
+            if(d.n[n].m=='p'){  d.n[n].n = {};  }
+            else{  d.n[n].v = null;  }
+        });
+        d.pick.update(d);
+        d.design.update(d);
+        d.graph.update(d);
+        d.close_pack({variables:close_pack});
+    },
 
     send: (d, patches)=>{
         console.log('patches');
@@ -105,10 +107,10 @@ export const create_base_slice = (set,get)=>({
                 }else if(patch.path[2]=='deleted'){
                     edits[d.n[n].m+'del'].push(n);
                 }
-            }else if(patch.op == 'replace'){ // atom has changed
+            }else if(patch.op == 'replace'){ 
                 if(patch.path[2]=='n'){
                     set_part(n); 
-                }else if(patch.path[2]=='v'){
+                }else if(patch.path[2]=='v'){ // atom has changed
                     edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                     edits[d.n[n].m].push(patch.value);
                 }
@@ -171,17 +173,17 @@ export const create_base_slice = (set,get)=>({
             const root_exists = d.node.be(d, e.r);
             if(root_exists){ // change be to ex? (ex for exists)
                 if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = []; 
-                d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
-                d.n[e.r].n[d.t[e.t]] = [...new Set(d.n[e.r].n[d.t[e.t]])]; // do this later in patches to be more effecient
+                if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
+                //d.n[e.r].n[d.t[e.t]] = [...new Set(d.n[e.r].n[d.t[e.t]])]; // do this later in patches to be more effecient
             }
             if(d.node.be(d, e.n)){
-                if(e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
+                if(root_exists && e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
                 var rt = 'unknown';
                 if(root_tags[d.t[e.t]]){  rt = root_tags[d.t[e.t]];  } 
                 else{if(root_exists)      rt = d.n[e.r].t;           }
                 if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = [];
-                d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
-                d.n[e.n].r[rt] = [... new Set(d.n[e.n].r[rt])]; // do this later in patches to be more effecient
+                if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
+                //d.n[e.n].r[rt] = [... new Set(d.n[e.n].r[rt])]; // do this later in patches to be more effecient
             }
         }));
         data.p.forEach(n=>{

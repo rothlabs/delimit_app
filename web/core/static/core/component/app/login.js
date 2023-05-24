@@ -71,7 +71,6 @@ export function Logout(){
                 Object.entries(d.n).forEach(([n,node],i)=> {
                     if(node.asset) nodes.push(n);
                 });
-                console.log(nodes);
                 d.close(d, nodes);
             }); 
         }
