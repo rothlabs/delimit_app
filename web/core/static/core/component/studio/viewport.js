@@ -4,6 +4,7 @@ import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Part} from './part.js';
 import {useS, Fixed_Size_Group} from '../../app.js';
+import {useThree, useFrame} from '@react-three/fiber';
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();
@@ -15,14 +16,14 @@ import {useS, Fixed_Size_Group} from '../../app.js';
 
 
 export function Viewport(){
-    //const {camera, raycaster} = useThree(); 
+    const {camera, raycaster} = useThree(); 
+    useFrame(()=>raycaster.params.Points.threshold = 10/camera.zoom); //< ----- needed for point clicking!
     //const camera_controls = useRef();
     //const [dragging, set_dragging] = useState();
     //const board = useRef();
     //const draw_line = useRef();
     //const draw_mode = useReactiveVar(draw_mode_rv);
     //const selection = useReactiveVar(selection_rv);
-    ////////useFrame(()=>raycaster.params.Points.threshold = 10/camera.zoom); < ----- needed for point clicking!
     //useFrame(()=>{
     //    camera_zoom_rv(camera.zoom);
     //});

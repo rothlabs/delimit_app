@@ -13,10 +13,10 @@ export const reckoners = {
         base_reckon(d, n);
     },
     line:(d,n)=>{
-        //console.log('update line!!! '+n);
+        console.log('update line!!! '+n);
         d.n[n].c.points = [];
         d.n[n].n.point && d.n[n].n.point.forEach(p=>{
-            if(d.node.be(d,p)) d.n[n].c.points.push([d.n[p].c.x, d.n[p].c.y, d.n[p].c.z]);
+            if(d.node.be(d,p)) d.n[n].c.points.push({n:p, x:d.n[p].c.x, y:d.n[p].c.y, z:d.n[p].c.z, color:d.n[p].pick.color[0]});
         }); 
         base_reckon(d, n);
     },

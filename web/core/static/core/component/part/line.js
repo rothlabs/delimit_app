@@ -16,14 +16,14 @@ export function Line({n}){
     return(
         c('group', {name:'line'},
             points && c(Points, {limit:1000, range:1000}, 
-                c(PointMaterial, {size:10, vertexColors:true, toneMapped:false}),
-                ...points.map(p=> 
-                    c(Point, {position:p, color:theme.secondary}) 
-                ),
+                c(PointMaterial, {size:14, vertexColors:true, toneMapped:false}),
+                ...points.map(p=> c(Pickable, {n:p.n},
+                    c(Point, {position: [p.x, p.y, p.z+50], color:p.color}) //onClick:e=>{console.log('click point')}
+                )),
             ),
             points && points.length>1 && c(Pickable, {n:n},
                 c(CatmullRomLine, {
-                    points: points,
+                    points: points.map(p=> [p.x, p.y, p.z]),
                     lineWidth: 3,
                     color: color[0],
                     segments: 100, // need to make this adjustable or dependent on zoom or line length 

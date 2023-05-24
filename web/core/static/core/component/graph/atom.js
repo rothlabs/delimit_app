@@ -25,7 +25,7 @@ export function Atom({n}){
         c('group', {name: 'atom'}, 
             c(Fixed_Size_Group, {
                 ref: obj,
-                size: picked ? 25 : 18,
+                size: picked ? 30 : 20,
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }

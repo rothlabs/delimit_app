@@ -2,6 +2,8 @@ import {current} from 'immer';
 import {model_tags, float_tags, design_tags} from './base.js';
 import { theme } from '../app.js';
 
+const pick_reckon_tags = ['point'];
+
 export const create_pick_slice = (set,get)=>({pick:{
     nodes: [],
     multi: false, // rename to multi
@@ -35,6 +37,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     hover: (d, n, hover)=>{
         d.n[n].pick.hover = hover;
         d.pick.color(d,n);
+        if(pick_reckon_tags.includes(d.n[n].t)) d.node.reckon(d,n);
     },
 
     none:d=>{
@@ -60,6 +63,9 @@ export const create_pick_slice = (set,get)=>({pick:{
             d.pick.color(d,n);
         }); 
         d.pick.nodes = Object.keys(d.n).filter(n=> d.n[n].pick.picked); // make this a common function (iterate all nodes with filter and func 
+        d.pick.nodes.forEach(n=>{
+            if(pick_reckon_tags.includes(d.n[n].t)) d.node.reckon(d,n);
+        });
         d.design.update(d);
         d.inspect.update(d);
     },
