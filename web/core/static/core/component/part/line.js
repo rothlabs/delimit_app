@@ -16,7 +16,7 @@ export function Line({n}){
     return(
         c('group', {name:'line'},
             points && c(Points, {limit:1000, range:1000}, 
-                c(PointMaterial, {size:14, vertexColors:true, toneMapped:false}),
+                c(PointMaterial, {size:14, vertexColors:true, toneMapped:false, transparent:true}),
                 ...points.map(p=> c(Pickable, {n:p.n},
                     c(Point, {position: [p.x, p.y, p.z+50], color:p.color}) //onClick:e=>{console.log('click point')}
                 )),
