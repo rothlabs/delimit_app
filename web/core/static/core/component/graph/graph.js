@@ -6,6 +6,7 @@ import {Part} from './part.js';
 import {Atom} from './atom.js';
 import {Vector3} from 'three';
 import {Edge} from './edge.js';
+//import {Bounds} from '@react-three/drei/Bounds';
 
 //export const graph_z = 300;
 
@@ -16,13 +17,27 @@ const tv = new Vector3();
 
 
 export function Graph(){
+    //const ready = useS(d=> d.graph.ready);
     //console.log('render graph')
+    // use_effect([nodes, controls],()=>{ // appears to always run once but first time loading the editor the project bounds aren't there yet
+	// 	//console.log(project.current);
+	// 	bounds.setFromObject( project.current );
+	// 	const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
+	// 	const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
+	// 	if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);
+	// 	if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);
+	// 	camera.updateProjectionMatrix();
+	// 	action_rv({name:'record', init:true}); 
+	// 	sketches_rv({get:id=> sketches.current.find(sketch=> {if(sketch) return sketch.id==id})});
+	// });
     return(
+        //ready && c(Bounds, {fit:true, clip:true, observe:true, damping:6, margin:1.2},
         c('group', {name:'graph'},
             c(Nodes),
             c(Edges),
             //c(Arrange),
         )
+        //)
     )
 }
 

@@ -1,4 +1,4 @@
-import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
+import {createElement as c, useState, useRef, useMemo, useEffect} from 'react';
 import {useS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
@@ -22,15 +22,15 @@ export function Atom({n}){
     }),[]); 
     //console.log('render atom');
     return(
-        r('group', {name: 'atom'}, 
-            r(Fixed_Size_Group, {
+        c('group', {name: 'atom'}, 
+            c(Fixed_Size_Group, {
                 ref: obj,
                 size: picked ? 25 : 18,
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }
             },
-                r(Text, {
+                c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
                     position: [0, 1.35, 2],
@@ -38,16 +38,16 @@ export function Atom({n}){
                     outlineColor: 'white',
                 },
                     val,
-                    r('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
+                    c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
-                r(Spinner, {}, 
-                    r('mesh', {},
-                        r('tetrahedronGeometry'),
-                        r('meshBasicMaterial', {color: color[1], toneMapped:false}),
-                        r(Edges, {scale:1.05, color: color[2]},),
+                c(Spinner, {}, 
+                    c('mesh', {},
+                        c('tetrahedronGeometry'),
+                        c('meshBasicMaterial', {color: color[1], toneMapped:false}),
+                        c(Edges, {scale:1.05, color: color[2]},),
                     )
                 ),
-                r(Text, {
+                c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
                     position: [0, -1.35, 2],
@@ -55,17 +55,17 @@ export function Atom({n}){
                     outlineColor: 'white',
                 },
                     readable(tag),
-                    r('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
+                    c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
-                r(Pickable, {n:n},
-                    r('mesh', {
+                c(Pickable, {n:n},
+                    c('mesh', {
                         position: [0,0,-1],
                         geometry: circle_geometry,
                         material: background_material,
                         // onClick: (e)=> {e.stopPropagation(); select(n, true);},
                         // onPointerMissed: (e)=> {if(e.which == 1) select(n, false);},
-                        // onPointerOver: (e)=> {e.stopPropagation(); set_hover(true);},
-                        // onPointerOut: (e)=> {e.stopPropagation(); set_hover(false)},
+                        // onPointerOver: (e)=> {e.stopPropagation(); set_hovec(true);},
+                        // onPointerOut: (e)=> {e.stopPropagation(); set_hovec(false)},
                     }),
                 ),
             )
@@ -73,7 +73,7 @@ export function Atom({n}){
     )
 }
 
-                    // r('mesh', {},
-                    //     r('tetrahedronGeometry'),
-                    //     r('meshStandardMaterial', {color: color}),
+                    // c('mesh', {},
+                    //     c('tetrahedronGeometry'),
+                    //     c('meshStandardMaterial', {color: color}),
                     // )

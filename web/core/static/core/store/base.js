@@ -66,12 +66,12 @@ export const create_base_slice = (set,get)=>({
     },
 
     send: (d, patches)=>{
-        console.log('patches');
-        console.log(patches); // auto merges patches into mutations state slice 
+        //console.log('patches');
+        //console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
         const appends = {};
         function set_part(n){ // don't set part if profile?
-            console.log('set entire part: '+d.n[n].t);
+            //console.log('set entire part: '+d.n[n].t);
             const part = [[n],        [], [], [], [], [], ['replace']];
             const tags = [[d.n[n].t], [], [], [], [], []];
             d.node.for_n(d, n, (nn,t)=>{
@@ -120,8 +120,8 @@ export const create_base_slice = (set,get)=>({
             edits.parts.push(append.part);
             edits.t.push(append.tags);
         });
-        console.log('edits');
-        console.log(edits);
+        //console.log('edits');
+        //console.log(edits);
         d.pick.update(d);
         d.design.update(d);
         d.graph.update(d); // only run graph if something was deleted or added? 
@@ -130,7 +130,7 @@ export const create_base_slice = (set,get)=>({
     },
     
     receive: (d, data)=>{// must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        const window_size = (window.innerWidth+window.innerHeight)/4;
+        //const window_size = (window.innerWidth+window.innerHeight)/4;
         if(data.t) d.t = Object.fromEntries(data.t.map(t=> [t.id, t.v]));
         ['p','b','i','f','s'].forEach(m=>{
             data[m].forEach(n=>{

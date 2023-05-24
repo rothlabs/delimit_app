@@ -7,7 +7,13 @@ import {ss, ssp, useS} from '../../app.js';
 //const pointer_vect = new Vector2();
 // const draw_verts = [];
 //var pointers_down = 0;
-const point=(e)=>  e.intersections[e.intersections.length-1].point; // could just be e.intersections[0].point?
+
+const tv = new Vector3();
+
+const point=e=> {
+    const p = e.intersections[e.intersections.length-1].point;
+    return tv.set(Math.round(p.x),Math.round(p.y),0); 
+}// could just be e.intersections[0].point?
 //const name=(e)=>   e.intersections[0].object.name
 //const select=(e)=> e.intersections[0];
 

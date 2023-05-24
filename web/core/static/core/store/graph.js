@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 import { node_tags } from './base.js';
 //import {produce, current, enablePatches} from 'immer';
 
@@ -6,6 +7,8 @@ import { node_tags } from './base.js';
 // instead of using these functions as selectors (expensive frequent op), keep them as derivitives
 // in the merge function of base, update the derivitives when there is a change
 export const create_graph_slice = (set,get)=>({graph:{
+    //frame_size: window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight,
+    scale: 1,
     nodes: [],
     edges: [],
     //levels: [],
@@ -43,8 +46,8 @@ export const create_graph_slice = (set,get)=>({graph:{
         });
         //d.graph.arrange = true;
 
-        //d.graph.nodes.forEach(n=>{   d.n[n].graph.lvl = 0;   });
-        Object.values(d.n).forEach(n=> n.graph.lvl=0);
+        d.graph.nodes.forEach(n=>{   d.n[n].graph.lvl = 0;   });
+        //Object.values(d.n).forEach(n=> n.graph.lvl=0);
         
         var highest_lvl = 0;
         var setting_lvl = true; 
@@ -78,28 +81,43 @@ export const create_graph_slice = (set,get)=>({graph:{
 
         var lx=0;
         var ly=0;
+        var max_x = 0;
         var max_y = 0;
         level.forEach(l=>{
             var gx = lx;
-            var max_x = 0;
+            var lvl_max_x = 0;
             Object.values(l).forEach(g=>{
                 const size = Math.round(Math.sqrt(g.length));
                 var x = gx;
                 var y = ly;
                 g.forEach(n=>{
-                    if(x > max_x) max_x = x;
+                    if(x > lvl_max_x) lvl_max_x = x;
                     if(y > max_y) max_y = y;
-                    d.n[n].graph.pos.set(x*10, y*10, 0);
+                    d.n[n].graph.pos.set(x, y, 0);
                     y++;
                     if(y >= ly+size){
                         y=ly;  
                         x++;
                     }
                 });
-                gx = max_x + 2;
+                gx = lvl_max_x + 2;
             });
+            if(lvl_max_x > max_x) max_x = lvl_max_x;
             ly = max_y + 2;
         });
+
+        if(d.graph.scale == 1){
+            const window_size = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight
+            const graph_size = max_x > max_y ? max_x : max_y;
+            d.graph.scale = window_size / graph_size / 2;
+        }
+        d.graph.nodes.forEach(n=>{   
+            d.n[n].graph = {...d.n[n].graph, 
+                pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(-max_x*d.graph.scale/2,-(max_y+2)*d.graph.scale/2,0))
+            };
+        });
+
+        //d.graph.ready = true;
 
     },
 }});

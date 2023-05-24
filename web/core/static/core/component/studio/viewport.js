@@ -3,7 +3,7 @@ import {CameraControls} from '@react-three/drei/CameraControls';
 import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Part} from './part.js';
-import {useS} from '../../app.js';
+import {useS, Fixed_Size_Group} from '../../app.js';
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();
@@ -40,6 +40,12 @@ export function Viewport(){
             c(Board),
             studio_mode=='graph'  && c(Graph),
             studio_mode=='design' && c(Part),
+            c(Fixed_Size_Group, {size:6},
+                c('mesh', {},
+                    c('boxGeometry'),
+                    c('meshBasicMaterial', {color:'grey', toneMapped:false}),
+                )
+            )
             // r('ambientLight', {
             //     color: 'white',
             //     intensity: 0.5,
