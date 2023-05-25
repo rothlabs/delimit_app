@@ -19,7 +19,7 @@ export const create_node_slice =(set,get)=>({node:{
 
     set_v:(d, n, v)=>{
         d.n[n].v = v;
-        d.next.add(d, 'reckon.node', n); 
+        d.reckon.node(d, n);//d.next('reckon.node', n); 
     },
 
     for_n:(d, n, func, filter)=>{
@@ -37,7 +37,7 @@ export const create_node_slice =(set,get)=>({node:{
 
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
-        d.next.add(d, 'graph.update');
+        d.next('graph.update');
     },
     
     delete:(d, n, shallow)=>{ // allow delete if not asset when it is another user deleting 

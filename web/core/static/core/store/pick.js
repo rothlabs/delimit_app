@@ -12,9 +12,9 @@ export const create_pick_slice = (set,get)=>({pick:{
         if(v){ d.add(d.pick.nodes, n)}
         else{  d.pop(d.pick.nodes, n)}
         d.pick.color(d,n);
-        if(d.pick.reckon_tags.includes(d.n[n].t)) d.next.add(d, 'reckon.node', n); 
-        d.next.add(d, 'design.update');
-        d.next.add(d, 'inspect.update');
+        if(d.pick.reckon_tags.includes(d.n[n].t)) d.reckon.node(d, n);//d.next('reckon.node', n); 
+        d.next('design.update');
+        d.next('inspect.update');
     },
 
     delete: (d, shallow)=>{
@@ -38,7 +38,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     hover: (d, n, hover)=>{
         d.n[n].pick.hover = hover;
         d.pick.color(d,n);
-        if(d.pick.reckon_tags.includes(d.n[n].t)) d.next.add(d, 'reckon.node', n); 
+        if(d.pick.reckon_tags.includes(d.n[n].t)) d.reckon.node(d, n);//d.next('reckon.node', n); 
     },
 
     none:d=>{

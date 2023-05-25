@@ -25,7 +25,7 @@ import {create_draw_slice} from './store/draw.js';
 import {create_make_slice} from './store/make.js';
 import {create_node_slice} from './store/node.js';
 import {create_reckon_slice} from './store/reckon.js';
-import {create_next_slice} from './store/next.js';
+//import {create_next_slice} from './store/next.js';
 //import {create_visual_slice} from './store/visual.js';
 
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
@@ -48,7 +48,7 @@ export const useS = create(
         ...create_make_slice(...a),
         ...create_node_slice(...a),
         ...create_reckon_slice(...a),
-        ...create_next_slice(...a),
+        //...create_next_slice(...a),
         //...create_visual_slice(...a),
     }))
 );
@@ -66,7 +66,7 @@ function set_state(func, send){
         var result = produceWithPatches(d, d=>{ func(d) }); //[d, patches, inverse_patches] 
         while(result[1].length > 0){
            all_patches = [...all_patches, ...result[1]];
-           result = produceWithPatches(result[0], d=>{ d.next.run(d) }); // make this a loop until patches do not signal changes
+           result = produceWithPatches(result[0], d=>{ d.run_next(d) }); // make this a loop until patches do not signal changes
         }
         if(send) result[0].send(result[0], all_patches);
         return result[0];//produce(d2, d2=>{ d2.final(d2,patches2) });

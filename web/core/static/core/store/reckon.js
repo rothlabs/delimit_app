@@ -5,8 +5,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n){
         d.reckon.v(d, n, 'name'); 
-        //d.node.for_r(d, n, r=> d.next.add(d, 'reckon.node', r));
-        d.node.for_r(d, n, r=> d.reckon.node(d,r)); // d.next.add(d, 'reckon.node', r) instead?,  got to watch out for cycle!!! (could pass update id and stop if updated already made with that id)
+        d.node.for_r(d, n, r=> d.next('reckon.node', r));
+        //d.node.for_r(d, n, r=> d.reckon.node(d,r)); // d.next('reckon.node', r) instead?,  got to watch out for cycle!!! (could pass update id and stop if updated already made with that id)
     },
     v:(d, n, t, o)=>{
         if(!o) o=0;
@@ -21,7 +21,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.reckon.v(d, n, 'x');  
         d.reckon.v(d, n, 'y'); 
         d.reckon.v(d, n, 'z'); 
-        d.reckon.base(d, n);
+        d.reckon.base(d, n); // d.next('reckon.base', n); //
     },
     line:(d,n)=>{
         //console.log('update line!!! '+n);

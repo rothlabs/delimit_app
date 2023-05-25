@@ -1,6 +1,7 @@
 import {current} from 'immer';
 import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
+import lodash from 'lodash';
 
 export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 export const root_tags={
@@ -18,19 +19,42 @@ export const node_tags = [
 ];
 export const ordered_tags = ['point'];
 
+const empty_list = [];
+var next_funcs = [];
+var next_ids = [];
+
 export const create_base_slice = (set,get)=>({
-    empty_list: [],
-    add:(array,item)=>{
+    add:(array,item)=>{ // static
         if(array.indexOf(item) === -1){
             array.push(item);
             return true;
         }
         return false;
     },
-    pop:(array, item)=>{
+    pop:(array, item)=>{ // static
         const index = array.indexOf(item);
         if(index !== -1) array.splice(index, 1);
     },
+    //empty_list: [],
+
+    //next_funcs: [],
+    //next_funcs_ids: [],
+    next:(...a)=>{ // static
+        const id = a.map(a=> String(a)).join('_');
+        if(get().add(next_ids, id)){ //JSON.stringify(a).split('').sort().join()
+            //console.log(id);
+            next_funcs.push(a);
+        }
+    },
+    run_next:(d)=>{
+        const funcs = [...next_funcs];
+        next_funcs = [];
+        next_ids = [];
+        //console.log(funcs);
+        funcs.forEach(a=>    lodash.get(d, a[0])(d, ...a.slice(1))   );
+    },
+
+
     //produce_number: 0,
     n: {},
     t: {},
@@ -189,7 +213,7 @@ export const create_base_slice = (set,get)=>({
             if(d.node.be(d,n.id)) d.reckon.node(d, n.id); // need to track if reckon was already called due to branch (so not running same calc)
         });
         d.studio.ready = true;
-        d.next.add(d, 'graph.update');
+        d.next('graph.update');
     },
 
     receive_deleted: (d, data)=>{

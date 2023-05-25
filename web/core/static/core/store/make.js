@@ -14,7 +14,7 @@ export const create_make_slice = (set,get)=>({make:{
         else{  t=d.n[r].t;  }
         if(!d.n[n].r[t]) d.n[n].r[t] = [];
         d.n[n].r[t].push(r); // reverse relationship 
-        d.next.add(d, 'graph.update');
+        d.next('graph.update');
     },
     node:(d, m, t, a)=>{ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         const window_size = (window.innerWidth+window.innerHeight)/4;
@@ -33,7 +33,7 @@ export const create_make_slice = (set,get)=>({make:{
         d.make.edge(d, d.profile, n, {t:'asset'});
         if(a) d.make.edge(d, a.r, n, a);
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
-        d.next.add(d, 'graph.update'); // check if in graph_tags 
+        d.next('graph.update'); // check if in graph_tags 
         return n;
     },
     part: (d, t, a)=>{
