@@ -65,10 +65,9 @@ function set_state(func, send){
         var all_patches = [];
         var result = produceWithPatches(d, d=>{ func(d) }); //[d, patches, inverse_patches] 
         while(result[1].length > 0){
-            all_patches = [...all_patches, ...result[1]];
-            result = produceWithPatches(result[0], d=>{ d.next.state(d,result[1]) }); // make this a loop until patches do not signal changes
+           all_patches = [...all_patches, ...result[1]];
+           result = produceWithPatches(result[0], d=>{ d.next.state(d,result[1]) }); // make this a loop until patches do not signal changes
         }
-        //console.log([...patches1, ...patches2]);
         if(send) result[0].send(result[0], all_patches);
         return result[0];//produce(d2, d2=>{ d2.final(d2,patches2) });
         //return produce(dd,dd=>{ dd.consume(dd,patches);dd.produce_number++; }); //;dd.produce_number++;
@@ -78,7 +77,7 @@ export const rs = func=> set_state(func, false);
 export const ss = func=>{
     //produce_number++;
     //produce_stack.push(()=>{
-        set_state(func, false);
+        set_state(func, true);
     //});
 };
 export const gs = ()=> useS.getState();

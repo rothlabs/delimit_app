@@ -6,7 +6,7 @@ export const create_next_slice =(set,get)=>({next:{
     add:(d, ...a)=>{
         const id = a.map(a=> String(a)).join('_');
         if(d.add(d.next.post_ids, id)){ //JSON.stringify(a).split('').sort().join()
-            console.log(id);
+            //console.log(id);
             d.next.posts.push(a);
         }
     },
@@ -15,27 +15,18 @@ export const create_next_slice =(set,get)=>({next:{
             if(patch.path.length > 1){
                 if(patch.path[0]=='n'){
                     const n = patch.path[1];
-                    patch.path.splice(1,1);
-                    const func_name = patch.op+'_'+patch.path.join('_');
+                    const func_name = patch.op+'_n_'+patch.path.slice(2).join('_');
                     if(d.next[func_name]) d.next[func_name](d,n,patch.value);
                 }
             }
         });
-        d.next.posts.forEach(a=>{
-            lodash.get(d, a[0])(d, ...a.slice(1));
-        });
+        d.next.posts.forEach(a=>    lodash.get(d, a[0])(d, ...a.slice(1))  );
         d.next.posts    = d.empty_list;
         d.next.post_ids = d.empty_list;
-        d.studio.ready = true;
     },
 
-    add_n(d, n, v){
+    add_n_(d, n, v){
         d.next.add(d, 'graph.update');
-        //d.next.update.graph = true;
-    },
-    add_n_deleted(d, n, v){
-        d.next.add(d, 'graph.update');
-        //d.next.update.graph = true;
     },
     replace_n_pick_picked(d, n, v){
         if(v){ d.add(d.pick.nodes, n)}
@@ -49,7 +40,14 @@ export const create_next_slice =(set,get)=>({next:{
         if(d.pick.reckon_tags.includes(d.n[n].t)) d.next.add(d, 'reckon.node', n); 
     },
     replace_n_open(d, n, v){
-        if(!v) d.n[n].pick.picked = false; 
+        //if(!v) d.n[n].pick.picked = false; 
+        d.next.add(d, 'graph.update');
     },
-
+    replace_n_v(d, n, v){
+        d.next.add(d, 'reckon.node', n); 
+    },
 }});
+
+//add_n_deleted(d, n, v){
+//    d.next.add(d, 'graph.update');
+//},

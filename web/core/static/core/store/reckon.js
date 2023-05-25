@@ -1,11 +1,12 @@
 export const create_reckon_slice =(set,get)=>({reckon:{
-    base(d, n){
-        d.reckon.v(d, n, 'name'); 
-        d.node.for_r(d, n, r=> d.reckon.node(d,r)); // got to watch out for cycle!!! (could pass update id and stop if updated already made with that id)
-    },
     node:(d, n)=>{ // might need to check for node existence or track original reckon call
         if(d.reckon[d.n[n].t]){   d.reckon[d.n[n].t](d, n);   }
-        else{                     d.reckon.base(d, n);     }
+        else{                     d.reckon.base(d, n);     } // could delete this?
+    },
+    base(d, n){
+        d.reckon.v(d, n, 'name'); 
+        //d.node.for_r(d, n, r=> d.next.add(d, 'reckon.node', r));
+        d.node.for_r(d, n, r=> d.reckon.node(d,r)); // d.next.add(d, 'reckon.node', r) instead?,  got to watch out for cycle!!! (could pass update id and stop if updated already made with that id)
     },
     v:(d, n, t, o)=>{
         if(!o) o=0;

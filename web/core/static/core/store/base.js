@@ -62,8 +62,8 @@ export const create_base_slice = (set,get)=>({
     },
 
     send: (d, patches)=>{ // change to send patches directly to server (filtering for patches that matter)
-        console.log('patches');
-        console.log(patches); // auto merges patches into mutations state slice 
+        //console.log('patches');
+        //console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
         const no_edits = JSON.stringify(edits).split('').sort().join();
         const appends = {};
@@ -82,6 +82,7 @@ export const create_base_slice = (set,get)=>({
         patches.forEach(patch=>{
             const n = patch.path[1];
             if(patch.op == 'add'){ 
+                console.log(n, patch);
                 if(patch.path[0]=='n' && patch.path.length < 3){ // node created
                     if(d.n[n].m=='p'){
                         set_part(n);
@@ -187,15 +188,7 @@ export const create_base_slice = (set,get)=>({
         data.p.forEach(n=>{
             if(d.node.be(d,n.id)) d.reckon.node(d, n.id); // need to track if reckon was already called due to branch (so not running same calc)
         });
-        //d.graph.mod++; // check for actual graph changes in next function
-        //d.send = false;
-        // d.consume=(d, patches)=>{
-        //     if(patches.length>0 && !(patches.length==1 && patches[0].path[0]=='consume')){    
-        //         //console.log('recieve patches: '+patches);     
-        //         d.graph.update(d); 
-        //         d.studio.ready = true;
-        //     }
-        // }
+        d.studio.ready = true;
     },
 
     receive_deleted: (d, data)=>{
@@ -204,16 +197,6 @@ export const create_base_slice = (set,get)=>({
                 d.node.delete(d, n.id, true); // shallow delete
             });
         });
-        d.node.deleted++;
-        //d.send = false;
-        // d.consume=(d, patches)=>{
-        //     if(patches.length>0 && !(patches.length==1 && patches[0].path[0]=='consume')){
-        //         //console.log('recieve_deleted patches: '+patches);       
-        //         d.pick.update(d);
-        //         d.design.update(d);
-        //         d.graph.update(d);
-        //     }
-        // }
     },
 
     close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)

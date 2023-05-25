@@ -22,9 +22,7 @@ export function Float({t}){
                 onFocus:()=> set_sync_input(false),
                 onBlur:()=> set_sync_input(true),
                 onChange:(e)=>{
-                    if(!isNaN(e.target.value) || e.target.value=='.'){
-                        console.log('change float');
-                        //useD.getState().pick.edit_val(t, e.target.value);
+                    if(!isNaN(e.target.value) || e.target.value=='.' || e.target.value=='-' || e.target.value=='-.'){
                         set_input_value(e.target.value);
                         ss(d=> d.pick.sv(d, t, e.target.value));
                     }

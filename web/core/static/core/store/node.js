@@ -1,8 +1,6 @@
 import {ordered_tags} from './base.js';
 
 export const create_node_slice =(set,get)=>({node:{
-    deleted: 0,
-
     be:(d, n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
         if(d.n[n] && !d.n[n].deleted){
             if(d.n[n].open) return 'open';
@@ -34,6 +32,7 @@ export const create_node_slice =(set,get)=>({node:{
     delete:(d, n, shallow)=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
             d.n[n].open = false;
+            d.n[n].pick.picked = false;
             d.n[n].deleted = true;
             var reset_root_edges = false;
             if(ordered_tags.includes(d.n[n].t)) reset_root_edges=true;  
