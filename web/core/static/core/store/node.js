@@ -16,6 +16,12 @@ export const create_node_slice =(set,get)=>({node:{
     // sv:(d, n, t, o)=>{
     //     if(!o) o=0;
     // },
+
+    set_v:(d, n, v)=>{
+        d.n[n].v = v;
+        d.next.add(d, 'reckon.node', n); 
+    },
+
     for_n:(d, n, func, filter)=>{
         if(!filter) filter = ['open']; 
         if(d.n[n].n) Object.entries(d.n[n].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
@@ -28,11 +34,17 @@ export const create_node_slice =(set,get)=>({node:{
             if(filter.includes(d.node.be(d,r))) func(r,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
         }));
     },
+
+    close:(d, n)=>{
+        d.n[n].open = false; // rename to closed?
+        d.next.add(d, 'graph.update');
+    },
     
     delete:(d, n, shallow)=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
-            d.n[n].open = false;
-            d.n[n].pick.picked = false;
+            //d.n[n].open = false;
+            d.node.close(d, n);
+            d.pick.set(d, n, false);
             d.n[n].deleted = true;
             var reset_root_edges = false;
             if(ordered_tags.includes(d.n[n].t)) reset_root_edges=true;  
@@ -53,6 +65,7 @@ export const create_node_slice =(set,get)=>({node:{
                 d.node.for_n(d, n, n=> d.node.delete(d, n, shallow)); // must check if no roots except profile, public, etc
             }
             d.reckon.node(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
+            
         }
         
     },

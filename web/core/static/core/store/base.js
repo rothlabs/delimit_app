@@ -189,6 +189,7 @@ export const create_base_slice = (set,get)=>({
             if(d.node.be(d,n.id)) d.reckon.node(d, n.id); // need to track if reckon was already called due to branch (so not running same calc)
         });
         d.studio.ready = true;
+        d.next.add(d, 'graph.update');
     },
 
     receive_deleted: (d, data)=>{
@@ -202,17 +203,18 @@ export const create_base_slice = (set,get)=>({
     close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)
         const close_pack = {p:[], b:[], i:[], f:[], s:[]};
         nodes.forEach(n=>{
+            d.node.close(d, n);
             close_pack[d.n[n].m].push(n);
-            d.n[n].open=false;
-            d.n[n].r = {};
-            d.n[n].c = {};
-            d.n[n].t = '';
-            if(d.n[n].m=='p'){  d.n[n].n = {};  }
-            else{  d.n[n].v = null;  }
+            // d.n[n].open=false;
+            // d.n[n].r = {};
+            // d.n[n].c = {};
+            // d.n[n].t = '';
+            // if(d.n[n].m=='p'){  d.n[n].n = {};  }
+            // else{  d.n[n].v = null;  }
         });
-        d.pick.update(d);
-        d.design.update(d);
-        d.graph.update(d);
+        //d.pick.update(d);
+        //d.design.update(d);
+        //d.graph.update(d);
         d.close_pack({variables:close_pack});
     },
 
