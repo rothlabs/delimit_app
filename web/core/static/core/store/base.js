@@ -3,7 +3,7 @@ import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
 
-export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
+export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; // make seperate atoms tag list?
 export const root_tags={
     'view':  'viewer',
     'asset': 'owner',
@@ -24,6 +24,7 @@ var next_funcs = [];
 var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
+    atom_tags: ['switch','integer','decimal','text'],
     add:(array,item)=>{ // static
         if(array.indexOf(item) === -1){
             array.push(item);

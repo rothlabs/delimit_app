@@ -77,7 +77,7 @@ export const rs = func=> set_state(func, false);
 export const ss = func=>{
     //produce_number++;
     //produce_stack.push(()=>{
-        set_state(func, false);
+        set_state(func, true);
     //});
 };
 export const gs = ()=> useS.getState();
