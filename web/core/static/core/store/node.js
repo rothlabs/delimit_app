@@ -1,22 +1,14 @@
-import { reckoners } from '../reckon/reckon.js';
 import {ordered_tags} from './base.js';
 
 export const create_node_slice =(set,get)=>({node:{
+    deleted: 0,
+
     be:(d, n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
         if(d.n[n] && !d.n[n].deleted){
             if(d.n[n].open) return 'open';
             return 'here';
         }
         return null;
-    },
-    reckon_v:(d, n, t, o)=>{
-        if(!o) o=0;
-        if(d.n[n].n && d.n[n].n[t] && o < d.n[n].n[t].length && d.node.be(d,d.n[n].n[t][o])){
-            d.n[n].c[t] = d.n[d.n[n].n[t][o]].v;
-        }else{
-            d.n[n].c[t] = null;
-        }
-        //return null;
     },
     // gv:(d, n, t, o)=>{
     //     if(!o) o=0;
@@ -38,10 +30,7 @@ export const create_node_slice =(set,get)=>({node:{
             if(filter.includes(d.node.be(d,r))) func(r,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
         }));
     },
-    reckon:(d, n)=>{ // might need to check for node existence or track original reckon call
-        if(reckoners[d.n[n].t]){   reckoners[d.n[n].t] (d, n);   }
-        else{                      reckoners['default'](d, n);   }
-    },
+    
     delete:(d, n, shallow)=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
             d.n[n].open = false;
@@ -64,7 +53,7 @@ export const create_node_slice =(set,get)=>({node:{
             if(!shallow){
                 d.node.for_n(d, n, n=> d.node.delete(d, n, shallow)); // must check if no roots except profile, public, etc
             }
-            d.node.reckon(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
+            d.reckon.node(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
         }
         
     },

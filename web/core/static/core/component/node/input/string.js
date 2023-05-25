@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
-import {useS, ssp, readable} from '../../../app.js';
+import {useS, ss, readable} from '../../../app.js';
 
 const area_tags = ['story'];
 
@@ -17,7 +17,7 @@ export function String({t}){
                 value:content, 
                 placeholder:placeholder, 
                 disabled:!asset, 
-                onChange:(e)=> ssp(d=> d.pick.sv(d, t, e.target.value)),//useD.getState().pick.edit_val(t, e.target.value),
+                onChange:(e)=> ss(d=> d.pick.sv(d, t, e.target.value)),//useD.getState().pick.edit_val(t, e.target.value),
             }),
         )
     )

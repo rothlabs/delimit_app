@@ -47,9 +47,9 @@ export function Toolbar(){
                 c(Button, {
                     size: 'lg', // variant: 'outline-primary',
                     onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
-                        d.design.part = design_candidate;
-                        d.studio.mode = 'design'; 
-                        d.pick.mod(d, d.design.part, false);
+                        d.studio.mode = 'design';
+                        d.design.part = design_candidate; 
+                        d.pick.none(d);
                     }),
                 }, c('i',{className:'bi-pencil-square', style:{fontSize:'24px'}}), ' Edit'),
             ),

@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Dropdown, Container, Form, ButtonGroup, Button, ToggleButton} from 'react-bootstrap';
-import {ss, ssp, gs, useS, use_window_size} from '../../../app.js';
+import {ss, gs, useS, use_window_size} from '../../../app.js';
 import {Badge} from '../../node/base.js'
 import {String} from '../../node/input/string.js';
 import {Float} from '../../node/input/float.js';
@@ -33,13 +33,13 @@ export function Inspect(){
                 c(ButtonGroup, {},
                     c(Button, {
                         variant: 'outline-secondary',
-                        onClick:e=>ssp(d=>{  // select function does not work inside produce because it has it's own produce 
+                        onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
                             d.pick.delete(d);
                         }),
                     }, 'Delete'),
                     c(Button, {
                         variant: 'outline-secondary',
-                        onClick:e=>ssp(d=>{  // select function does not work inside produce because it has it's own produce 
+                        onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
                             d.pick.delete(d, true);
                         }),
                     }, 'Shallow Delete'),

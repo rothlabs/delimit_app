@@ -2,7 +2,7 @@ import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, Row, InputGroup} from 'react-bootstrap';
 import {makeVar, useReactiveVar} from '@apollo/client';
 import {Logo} from './logo.js';
-import {gs, ssp, useS, use_mutation} from '../../app.js';
+import {gs, ss, useS, use_mutation} from '../../app.js';
 import {useNavigate} from 'react-router-dom';
 
 export const show_login = makeVar(false);
@@ -67,7 +67,7 @@ export function Logout(){
     ], {refetch:'GetUser', onCompleted:data=>{
         if(gs().close_pack){
             const nodes = [];
-            ssp(d=>{
+            ss(d=>{
                 Object.entries(d.n).forEach(([n,node],i)=> {
                     if(node.asset) nodes.push(n);
                 });

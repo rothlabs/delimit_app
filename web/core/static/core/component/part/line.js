@@ -1,5 +1,5 @@
 import {createElement as c, useEffect, useState} from 'react';
-import {gs, ss, ssp, useS, theme} from '../../app.js';
+import {gs, ss, useS, theme} from '../../app.js';
 import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
 import {Points, Point} from '@react-three/drei/Points';

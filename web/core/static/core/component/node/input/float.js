@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
-import {ssp, useS, readable} from '../../../app.js';
+import {ss, useS, readable} from '../../../app.js';
 
 export function Float({t}){
     const content   = useS(d=> d.inspect.content[t]);
@@ -26,7 +26,7 @@ export function Float({t}){
                         console.log('change float');
                         //useD.getState().pick.edit_val(t, e.target.value);
                         set_input_value(e.target.value);
-                        ssp(d=> d.pick.sv(d, t, e.target.value));
+                        ss(d=> d.pick.sv(d, t, e.target.value));
                     }
                 }
             }),

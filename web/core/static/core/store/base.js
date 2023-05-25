@@ -19,12 +19,25 @@ export const node_tags = [
 export const ordered_tags = ['point'];
 
 export const create_base_slice = (set,get)=>({
-    produce_number: 0,
+    empty_list: [],
+    add:(array,item)=>{
+        if(array.indexOf(item) === -1){
+            array.push(item);
+            return true;
+        }
+        return false;
+    },
+    pop:(array, item)=>{
+        const index = array.indexOf(item);
+        if(index !== -1) array.splice(index, 1);
+    },
+    //produce_number: 0,
     n: {},
     t: {},
     user: 0,
     profile: null,
     search: {depth:null, ids:null},
+    send: true,
 
     studio: {
         ready:false,
@@ -48,27 +61,11 @@ export const create_base_slice = (set,get)=>({
         },
     },
 
-    close: (d, nodes)=>{
-        const close_pack = {p:[], b:[], i:[], f:[], s:[]};
-        nodes.forEach(n=>{
-            close_pack[d.n[n].m].push(n);
-            d.n[n].open=false;
-            d.n[n].r = {};
-            d.n[n].c = {};
-            d.n[n].t = '';
-            if(d.n[n].m=='p'){  d.n[n].n = {};  }
-            else{  d.n[n].v = null;  }
-        });
-        d.pick.update(d);
-        d.design.update(d);
-        d.graph.update(d);
-        d.close_pack({variables:close_pack});
-    },
-
-    send: (d, patches)=>{
-        //console.log('patches');
-        //console.log(patches); // auto merges patches into mutations state slice 
+    send: (d, patches)=>{ // change to send patches directly to server (filtering for patches that matter)
+        console.log('patches');
+        console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
+        const no_edits = JSON.stringify(edits).split('').sort().join();
         const appends = {};
         function set_part(n){ // don't set part if profile?
             //console.log('set entire part: '+d.n[n].t);
@@ -122,14 +119,17 @@ export const create_base_slice = (set,get)=>({
         });
         //console.log('edits');
         //console.log(edits);
-        d.pick.update(d);
-        d.design.update(d);
-        d.graph.update(d); // only run graph if something was deleted or added? 
+        //d.pick.update(d);
+        //d.design.update(d);
+        //d.graph.update(d); // only run graph if something was deleted or added? 
         //d.inspect.update(d); // might not need this
-        d.push_pack({variables:edits});
+        if(JSON.stringify(edits).split('').sort().join() != no_edits){
+            console.log('push_pack');
+            d.push_pack({variables:edits});
+        }
     },
     
-    receive: (d, data)=>{// must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
+    receive: (d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         //const window_size = (window.innerWidth+window.innerHeight)/4;
         if(data.t) d.t = Object.fromEntries(data.t.map(t=> [t.id, t.v]));
         ['p','b','i','f','s'].forEach(m=>{
@@ -137,7 +137,7 @@ export const create_base_slice = (set,get)=>({
                 if(!d.n[n.id]){
                     d.n[n.id] = {
                         m: m,
-                        pick: {},
+                        pick: {picked:false, hover:false},
                         graph: { // put in d.graph.node.vectors
                             pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),
                             //dir: new Vector3(),
@@ -174,7 +174,6 @@ export const create_base_slice = (set,get)=>({
             if(root_exists){ // change be to ex? (ex for exists)
                 if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = []; 
                 if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
-                //d.n[e.r].n[d.t[e.t]] = [...new Set(d.n[e.r].n[d.t[e.t]])]; // do this later in patches to be more effecient
             }
             if(d.node.be(d, e.n)){
                 if(root_exists && e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
@@ -183,19 +182,20 @@ export const create_base_slice = (set,get)=>({
                 else{if(root_exists)      rt = d.n[e.r].t;           }
                 if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = [];
                 if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
-                //d.n[e.n].r[rt] = [... new Set(d.n[e.n].r[rt])]; // do this later in patches to be more effecient
             }
         }));
         data.p.forEach(n=>{
-            if(d.node.be(d,n.id)) d.node.reckon(d, n.id); // need to track if reckon was already called due to branch (so not running same calc)
+            if(d.node.be(d,n.id)) d.reckon.node(d, n.id); // need to track if reckon was already called due to branch (so not running same calc)
         });
-        d.consume=(d, patches)=>{
-            if(patches.length>0 && !(patches.length==1 && patches[0].path[0]=='consume')){    
-                //console.log('recieve patches: '+patches);     
-                d.graph.update(d); 
-                d.studio.ready = true;
-            }
-        }
+        //d.graph.mod++; // check for actual graph changes in next function
+        //d.send = false;
+        // d.consume=(d, patches)=>{
+        //     if(patches.length>0 && !(patches.length==1 && patches[0].path[0]=='consume')){    
+        //         //console.log('recieve patches: '+patches);     
+        //         d.graph.update(d); 
+        //         d.studio.ready = true;
+        //     }
+        // }
     },
 
     receive_deleted: (d, data)=>{
@@ -204,14 +204,33 @@ export const create_base_slice = (set,get)=>({
                 d.node.delete(d, n.id, true); // shallow delete
             });
         });
-        d.consume=(d, patches)=>{
-            if(patches.length>0 && !(patches.length==1 && patches[0].path[0]=='consume')){
-                //console.log('recieve_deleted patches: '+patches);       
-                d.pick.update(d);
-                d.design.update(d);
-                d.graph.update(d);
-            }
-        }
+        d.node.deleted++;
+        //d.send = false;
+        // d.consume=(d, patches)=>{
+        //     if(patches.length>0 && !(patches.length==1 && patches[0].path[0]=='consume')){
+        //         //console.log('recieve_deleted patches: '+patches);       
+        //         d.pick.update(d);
+        //         d.design.update(d);
+        //         d.graph.update(d);
+        //     }
+        // }
+    },
+
+    close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)
+        const close_pack = {p:[], b:[], i:[], f:[], s:[]};
+        nodes.forEach(n=>{
+            close_pack[d.n[n].m].push(n);
+            d.n[n].open=false;
+            d.n[n].r = {};
+            d.n[n].c = {};
+            d.n[n].t = '';
+            if(d.n[n].m=='p'){  d.n[n].n = {};  }
+            else{  d.n[n].v = null;  }
+        });
+        d.pick.update(d);
+        d.design.update(d);
+        d.graph.update(d);
+        d.close_pack({variables:close_pack});
     },
 
 });

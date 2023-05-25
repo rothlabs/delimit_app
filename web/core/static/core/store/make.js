@@ -19,7 +19,7 @@ export const create_make_slice = (set,get)=>({make:{
         const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
         d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true,
-            pick: {},
+            pick: {picked:false, hover:false},
             graph: { 
                 pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
                 //dir: new Vector3(),
@@ -31,7 +31,7 @@ export const create_make_slice = (set,get)=>({make:{
         if(m=='p'){ d.n[n].n={}; }
         d.make.edge(d, d.profile, n, {t:'asset'});
         if(a) d.make.edge(d, a.r, n, a);
-        d.consume = d.send; // make add to a consume list? so async ops work? idk
+        //d.consume = d.send; // make add to a consume list? so async ops work? idk
         return n;
     },
     part: (d, t, a)=>{
@@ -47,7 +47,7 @@ export const create_make_slice = (set,get)=>({make:{
         d.make.atom(d, 'f', point.x, n, 'x'); // d, v, root_id, edge_tag
         d.make.atom(d, 'f', point.y, n, 'y'); 
         d.make.atom(d, 'f', point.z, n, 'z'); 
-        d.node.reckon(d,n);
+        d.reckon.node(d,n);
     },
 }});
 

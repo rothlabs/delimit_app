@@ -5,9 +5,9 @@ import Cookie from "js-cookie";
 import {createElement as r, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
 import {createRoot} from 'react-dom/client';//'rdc';
 import {createBrowserRouter, RouterProvider, Outlet} from 'react-router-dom';//'rrd';
-import {Root} from './root.js';
+import {Root} from './component/app/root.js';
 import {Studio} from './component/studio/studio.js';
-import {Router_Error, Query_Status} from './feedback.js';
+import {Router_Error, Query_Status} from './component/app/feedback.js';
 import {Color, ColorManagement} from 'three'; 
 import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
@@ -24,6 +24,8 @@ import {create_inspect_slice} from './store/inspect.js';
 import {create_draw_slice} from './store/draw.js';
 import {create_make_slice} from './store/make.js';
 import {create_node_slice} from './store/node.js';
+import {create_reckon_slice} from './store/reckon.js';
+import {create_next_slice} from './store/next.js';
 //import {create_visual_slice} from './store/visual.js';
 
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
@@ -45,6 +47,8 @@ export const useS = create(
         ...create_draw_slice(...a),
         ...create_make_slice(...a),
         ...create_node_slice(...a),
+        ...create_reckon_slice(...a),
+        ...create_next_slice(...a),
         //...create_visual_slice(...a),
     }))
 );
@@ -52,17 +56,29 @@ export const useS = create(
 //var produce_number = 0;
 //useS.subscribe(d=>{
     //if(produce_stack.length > 0){
-export const ss = func=> useS.setState(produce(d=>{func(d)}));//{ // need different store for instant user input
+//export const ss = func=> useS.setState(produce(d=>{func(d)}));//{ // need different store for instant user input
     //produce_number++;
     //produce_stack.push(()=>   useS.setState(produce(d=>{func(d);d.produce_number++;}))   );
 //};
-export const ssp = func=>{
+function set_state(func, send){
+    useS.setState(d=>{
+        var all_patches = [];
+        var result = produceWithPatches(d, d=>{ func(d) }); //[d, patches, inverse_patches] 
+        while(result[1].length > 0){
+            all_patches = [...all_patches, ...result[1]];
+            result = produceWithPatches(result[0], d=>{ d.next.state(d,result[1]) }); // make this a loop until patches do not signal changes
+        }
+        //console.log([...patches1, ...patches2]);
+        if(send) result[0].send(result[0], all_patches);
+        return result[0];//produce(d2, d2=>{ d2.final(d2,patches2) });
+        //return produce(dd,dd=>{ dd.consume(dd,patches);dd.produce_number++; }); //;dd.produce_number++;
+    })
+}
+export const rs = func=> set_state(func, false);
+export const ss = func=>{
     //produce_number++;
     //produce_stack.push(()=>{
-        useS.setState(d=>{
-            const [dd, patches, inverse_patches] = produceWithPatches(d, d=>{func(d)});
-            return produce(dd,dd=>{ dd.consume(dd,patches);dd.produce_number++; }); //;dd.produce_number++;
-        })
+        set_state(func, false);
     //});
 };
 export const gs = ()=> useS.getState();
@@ -81,6 +97,11 @@ export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {
 //     setTimeout(check_stack,20);
 // }
 // check_stack();
+
+// export function remove(array, item){
+//     const index = array.indexOf(item);
+//     if(index !== -1) array.splice(index, 1);
+// }
 
 export function use_window_size() {
     const [size, setSize] = useState([0, 0]);

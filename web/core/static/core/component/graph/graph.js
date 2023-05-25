@@ -1,5 +1,5 @@
 import {createElement as c, useEffect, useState} from 'react';
-import {ss, ssp, useS, useSS} from '../../app.js';
+import {ss, useS, useSS} from '../../app.js';
 import {useFrame, useThree} from '@react-three/fiber';
 //import {use_d, shallow} from '../../state/state.js';
 import {Part} from './part.js';

@@ -7,7 +7,6 @@ export const create_visual_slice = (set,get)=>({visual:{
         {name:' Line',    value:'line',    on:true, icon:'bi-bezier2',},
     ],
     update: d=>{
-
         d.graph.update(d);
     },
 }});

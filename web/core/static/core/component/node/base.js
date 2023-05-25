@@ -17,7 +17,7 @@ export function Pickable({n, children}){
     return c('group', {
         name: 'pickable',
         onClick:e=> {e.stopPropagation(); 
-            if(multi){  ss(d=>d.pick.mod(d,n,!picked));  }else{   ss(d=>d.pick.one(d,n));  }
+            if(multi){  ss(d=>d.n[n].pick.picked=!picked);  }else{   ss(d=>d.pick.one(d,n));  } //ss(d=>d.pick.mod(d,n,!picked)); 
         },
         onPointerOver:e=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n, true ));},
         onPointerOut:e=>  {e.stopPropagation(); ss(d=>d.pick.hover(d,n, false));},

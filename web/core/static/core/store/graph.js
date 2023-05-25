@@ -7,7 +7,6 @@ import { node_tags } from './base.js';
 // instead of using these functions as selectors (expensive frequent op), keep them as derivitives
 // in the merge function of base, update the derivitives when there is a change
 export const create_graph_slice = (set,get)=>({graph:{
-    //frame_size: window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight,
     scale: 1,
     nodes: [],
     edges: [],

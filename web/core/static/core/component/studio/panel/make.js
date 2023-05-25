@@ -1,6 +1,6 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, Button} from 'react-bootstrap';
-import {useS, ss, ssp} from '../../../app.js'
+import {useS, ss} from '../../../app.js'
 
 export function Make(){
     const show = useS(d=> d.studio.panel.show);
@@ -19,7 +19,7 @@ export function Make(){
                             id:'make_'+item.value,
                             className: 'border-white text-start '+item.icon,
                             variant:'outline-primary', size:'lg',
-                            onClick:e=> ssp(d=> d.studio.make(d, item.value)),
+                            onClick:e=> ss(d=> d.studio.make(d, item.value)),
                         }, item.name)
                     )
                 ),

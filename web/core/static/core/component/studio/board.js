@@ -1,7 +1,7 @@
 import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Vector3} from 'three';
-import {ss, ssp, useS} from '../../app.js';
+import {ss, useS} from '../../app.js';
 
 //const pointer_start = new Vector2();
 //const pointer_vect = new Vector2();
@@ -40,7 +40,7 @@ export function Board(){
                     const p = point(e);
                     if(mode=='design'){
                         if(draw_mode=='draw'){
-                            ssp(d=> d.draw.point(d, {x:p.x, y:p.y, z:0}));
+                            ss(d=> d.draw.point(d, {x:p.x, y:p.y, z:0}));
                             return
                         }
                     }
