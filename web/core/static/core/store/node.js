@@ -16,25 +16,23 @@ export const create_node_slice =(set,get)=>({node:{
     //     if(d.n[n].n[t] && o < d.n[n].n[t].length) return d.n[n].n[t][o];
     //     return null;
     // },
-    pin(d, n){  // should go in transform slice?    
+    //get_v(d, n){
+    //    if(d.node.be(d,n)) return d.n[n].v;
+    //},
+    get(d, n, t){
+        const result = {};
+        t.split(' ').forEach(t=>{
+            if(d.n[n].n && d.n[n].n[t] && d.node.be(d,d.n[n].n[t][0])) result[t] = d.n[d.n[n].n[t][0]].v;
+        });
+        return result;
+    },
+    pin_pos(d, n){  // should go in transform slice?    
         if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();
-        // const c = d.node.get(d, n, 'x y z') 
-        // if(c) c.x
-        d.n[n].pin.pos.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z);
-        //d.n[n].pin = {...d.n[n].c} // should be copying values 
-        //if(d.node.be(d,n)){ // could just use d.n[n] in this situation?
-        //    d.n[n].pin = d.n[n].v;
-        //}
+        const pos = d.node.get(d, n, 'x y z');
+        d.n[n].pin.pos.set(pos.x, pos.y, pos.z);//d.n[n].pin.pos.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z);
     },
     set_pos(d, n, pos){ // should go in transform slice?
-        //tv.set(d.n[n].pin.x, d.n[n].pin.y, d.n[n].pin.z).add(delta)
-        //tv.copy(d.n[n].pin.pos).add(delta);
-        //d.node.set(d, n, {x:tv.x, y:tv.y, z:tv.z});
         d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
-        //if(d.node.be(d,n)){ // could just use d.n[n] in this situation?
-        //    d.n[n].v = d.n[n].pin + v;
-        //    d.reckon.node(d, n);
-        //}
     },
     set(d, n, a){
         Object.entries(a).forEach(([t,v],i)=>{
@@ -42,7 +40,7 @@ export const create_node_slice =(set,get)=>({node:{
         });
     },
     sv:(d, n, v)=>{
-        d.n[n].v = v; 
+        d.n[n].v = v; // check if has v?
         d.reckon.node(d, n);//d.next('reckon.node', n); 
         d.next('inspect.update'); 
     },

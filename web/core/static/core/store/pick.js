@@ -4,9 +4,6 @@ import { theme } from '../app.js';
 import { Vector3, Matrix4 } from 'three';
 
 const tv = new Vector3();
-const pos = new Vector3();
-
-const tm = new Matrix4();
 
 export const create_pick_slice = (set,get)=>({pick:{
     reckon_tags: ['point'],
@@ -14,58 +11,17 @@ export const create_pick_slice = (set,get)=>({pick:{
     mode: 'one', 
     matrix: new Matrix4(),
     start_matrix: new Matrix4(),
-    //pin: {matrix: new Matrix4()},
-    //drag_info: {},
-    //pin: new Vector3(),
-    //drag_mode: '',
-
 
     start_drag(d,e){ // make drag slice?
         d.pick.start_matrix.copy(d.pick.matrix).invert();
-        //d.pick.drag_info = e;
-        //drag_mode = 
-        //d.pick.pin = e.origin;
-        //console.log(d.pick.drag_info.directions);
-        d.pick.nodes.forEach(n => {
-            d.node.pin(d, n);
-            //d.node.reckon(d,n);
-            //d.node.pin(d, d.node.get(d,n,'x'));
-            //d.node.pin(d, d.node.get(d,n,'y'));
-            //d.node.pin(d, d.node.get(d,n,'z'));
-        });
+        d.pick.nodes.forEach(n => d.node.pin_pos(d, n));
     },
-
-    //end_drag(d){
-    //    d.pick.old_matrix.copy(d.pick.matrix);
-    //},
-
     drag(d, matrix){
         d.pick.matrix = matrix;
-        //console.log(current(d.node.get(d,n,'x')));
-        //tv.set(0,0,0).applyMatrix4(matrix);
-        //if(d.pick.drag_info.component == 'Slider' || d.pick.drag_info.component == 'Arrow'){
-            
-            d.pick.nodes.forEach(n=>{ // must check if point or position contents!!!!
-                //applyMatrix4(tm.makeBasis(...d.pick.drag_info.directions).invert())
-                pos.copy(d.n[n].pin.pos).applyMatrix4(d.pick.start_matrix).applyMatrix4(matrix);//.sub(d.pick.drag_info.origin);
-                d.node.set_pos(d, n, pos);
-                //d.node.delta(d, d.node.get(d,n,'x'), delta.x);
-                //d.node.delta(d, d.node.get(d,n,'y'), delta.y);
-                //d.node.delta(d, d.node.get(d,n,'z'), delta.z);
-            });
-        //d.pick.pin = {matrix: d.pick.pin.matrix.copy(matrix)};
-        // }else if(d.pick.drag_info.component == 'Rotator'){
-        //     d.pick.nodes.forEach(n=>{
-        //         if(d.n[n].pin.pos){
-        //             pos.copy(d.n[n].pin.pos).applyMatrix4(matrix).sub(d.pick.drag_info.origin);
-
-        //             d.node.set_pos(d, n, pos);
-        //             //d.node.delta(d, d.node.get(d,n,'x'), delta.x);
-        //             //d.node.delta(d, d.node.get(d,n,'y'), delta.y);
-        //             //d.node.delta(d, d.node.get(d,n,'z'), delta.z);
-        //         }
-        //     });
-        // }
+        d.pick.nodes.forEach(n=>{ // must check if point or position contents!!!!
+            tv.copy(d.n[n].pin.pos).applyMatrix4(d.pick.start_matrix).applyMatrix4(matrix);
+            d.node.set_pos(d, n, tv);
+        });
     },
 
     set(d, n, v){
