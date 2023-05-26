@@ -170,6 +170,7 @@ export const create_base_slice = (set,get)=>({
                             vis: true,
                             lvl: 0,
                         },
+                        pin: {},
                     };
                     d.pick.color(d,n.id);
                 }

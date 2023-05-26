@@ -27,6 +27,7 @@ export const create_make_slice = (set,get)=>({make:{
                 vis: d.graph.tag_vis[t]!=undefined ? d.graph.tag_vis[t] : true,
                 lvl: 0,
             },
+            pin: {},
         };
         d.pick.color(d,n);
         if(m=='p'){ d.n[n].n={}; }

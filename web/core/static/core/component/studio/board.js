@@ -55,35 +55,36 @@ export function Board(){
                     //    selection_rv(select(e));
                 }
             },
-            onPointerDown:e=>{
-                if([0,1].includes(e.which)){
-                    ssl(d=>{
-                        d.board.pin_pos = new Vector3().copy(pos(e));
-                        d.board.pointers++;}
-                    );
-                }
-            },
-            onPointerUp:e=>{
-                if([0,1].includes(e.which)){
-                    ssl(d=>{ 
-                        d.board.pointers--;
-                        if(d.board.pointers < 0) d.board.pointers = 0;
-                    });
-                }
-            },
-            onPointerMove:e=>{
-                ssl(d=>{ 
-                    d.board.drag(d, pos(e));
-                });
-            },
-            onPointerLeave:e=> { 
-                if(e.intersections.length < 1) {
-                    ss(d=>{
-                        d.board.pointers = 0;
-                        d.board.stop_dragging(d);
-                    });
-                }
-            },
+            // onPointerDown:e=>{
+            //     if([0,1].includes(e.which)){
+            //         ssl(d=>{
+            //             d.board.pin_pos = new Vector3().copy(pos(e));
+            //             d.board.pointers++;}
+            //         );
+            //     }
+            // },
+            // onPointerUp:e=>{
+            //     if([0,1].includes(e.which)){
+            //         ssl(d=>{ 
+            //             d.board.pointers--;
+            //             if(d.board.pointers < 0) d.board.pointers = 0;
+            //         });
+            //     }
+            // },
+            // onPointerMove:e=>{
+            //     ssl(d=>{ 
+            //         d.board.drag(d, pos(e));
+            //     });
+            // },
+            // onPointerLeave:e=> { 
+            //     if(e.intersections.length < 1) {
+            //         ss(d=>{
+            //             d.board.pointers = 0;
+            //             d.board.stop_dragging(d);
+            //         });
+            //     }
+            // },
+
             // onPointerLeave:(e)=> { 
             //     if(e.intersections.length < 1) {
             //         pointers_down = 0;//{zero_pointers_down_on_enter = true;  console.log('zero_pointers_down_on_enter');}

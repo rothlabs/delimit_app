@@ -1,4 +1,7 @@
 import {ordered_tags} from './base.js';
+import { Vector3 } from 'three';
+
+const tv = new Vector3();
 
 export const create_node_slice =(set,get)=>({node:{
     be:(d, n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
@@ -8,26 +11,40 @@ export const create_node_slice =(set,get)=>({node:{
         }
         return null;
     },
-    get:(d, n, t, o)=>{
-        if(!o) o=0;
-        if(d.n[n].n[t] && o < d.n[n].n[t].length) return d.n[n].n[t][o];
-        return null;
+    // get:(d, n, t, o)=>{
+    //     if(!o) o=0;
+    //     if(d.n[n].n[t] && o < d.n[n].n[t].length) return d.n[n].n[t][o];
+    //     return null;
+    // },
+    pin(d, n){  // should go in transform slice?    
+        if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();
+        // const c = d.node.get(d, n, 'x y z') 
+        // if(c) c.x
+        d.n[n].pin.pos.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z);
+        //d.n[n].pin = {...d.n[n].c} // should be copying values 
+        //if(d.node.be(d,n)){ // could just use d.n[n] in this situation?
+        //    d.n[n].pin = d.n[n].v;
+        //}
     },
-    pin:(d, n)=>{
-        if(d.node.be(d,n)){ // could just use d.n[n] in this situation?
-            d.n[n].pin = d.n[n].v;
-        }
+    set_pos(d, n, pos){ // should go in transform slice?
+        //tv.set(d.n[n].pin.x, d.n[n].pin.y, d.n[n].pin.z).add(delta)
+        //tv.copy(d.n[n].pin.pos).add(delta);
+        //d.node.set(d, n, {x:tv.x, y:tv.y, z:tv.z});
+        d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
+        //if(d.node.be(d,n)){ // could just use d.n[n] in this situation?
+        //    d.n[n].v = d.n[n].pin + v;
+        //    d.reckon.node(d, n);
+        //}
     },
-    delta:(d, n, v)=>{
-        if(d.node.be(d,n)){ // could just use d.n[n] in this situation?
-            d.n[n].v = d.n[n].pin + v;
-            d.reckon.node(d, n);
-        }
+    set(d, n, a){
+        Object.entries(a).forEach(([t,v],i)=>{
+            if(d.n[n].n[t]) d.node.sv(d, d.n[n].n[t][0], v);//d.n[n].n[t][0].v = v;
+        });
     },
-    set_v:(d, n, v)=>{
+    sv:(d, n, v)=>{
         d.n[n].v = v; 
-        //d.n[n].pin = v;
         d.reckon.node(d, n);//d.next('reckon.node', n); 
+        d.next('inspect.update'); 
     },
     for_n:(d, n, func, filter)=>{
         if(!filter) filter = ['open']; 
