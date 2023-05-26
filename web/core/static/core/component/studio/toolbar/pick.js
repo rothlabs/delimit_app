@@ -3,7 +3,7 @@ import {ToggleButton, ButtonGroup} from 'react-bootstrap';
 import {ss, useS} from '../../../app.js';
 
 export function Pick(){
-    const multi = useS(d=> d.pick.multi);
+    const mode = useS(d=> d.pick.mode);
     const buttons = [
         {name:'One',   icon:'bi-cursor',      value:'one'},
         {name:'Multi', icon:'bi-cursor-fill', value:'multi'},
@@ -12,15 +12,19 @@ export function Pick(){
         c(ButtonGroup, {}, 
             ...buttons.map((button,i)=>
                 c(ToggleButton,{
-                    id: 'pick_multi',
+                    id: 'pick_mode_'+i,
                     type: 'radio',
                     variant: 'outline-primary', size: 'lg',
-                    checked: multi,
-                    value: '1',
-                    onChange:(e)=> {
-                        ss(d=> d.pick.multi = !multi );
+                    //checked: multi,
+                    //value: '1',
+
+                    value: button.value,
+                    checked: mode == button.value,
+                    className: button.icon + ' border-white',
+
+                    onChange:e=> {
+                        ss(d=> d.pick.mode = e.currentTarget.value);
                     }, 
-                    className: 'bi-cursor border-white',
                 })
             ),
         )

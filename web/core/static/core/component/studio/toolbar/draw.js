@@ -19,7 +19,7 @@ export function Draw(){
                     value: button.value,
                     checked: draw_mode == button.value,
                     className: button.icon+ ' border-white',
-                    onChange:(e)=>{
+                    onChange:e=>{
                         ss(d=> d.draw.mode=e.currentTarget.value);
                     },
                 })
