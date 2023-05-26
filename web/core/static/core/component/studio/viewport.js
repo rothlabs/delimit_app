@@ -3,6 +3,7 @@ import {CameraControls} from '@react-three/drei/CameraControls';
 import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Part} from './part.js';
+import {Handle} from './handle.js';
 import {useS, Fixed_Size_Group} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
 
@@ -17,7 +18,7 @@ import {useThree, useFrame} from '@react-three/fiber';
 
 export function Viewport(){
     const {camera, raycaster} = useThree(); 
-    useFrame(()=>raycaster.params.Points.threshold = 10/camera.zoom); //< ----- needed for point clicking!
+    useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom); //< ----- needed for point clicking!
     //const camera_controls = useRef();
     //const [dragging, set_dragging] = useState();
     //const board = useRef();
@@ -41,6 +42,7 @@ export function Viewport(){
             c(Board),
             studio_mode=='graph'  && c(Graph),
             studio_mode=='design' && c(Part),
+            c(Handle),
             c(Fixed_Size_Group, {size:6},
                 c('mesh', {},
                     c('boxGeometry'),

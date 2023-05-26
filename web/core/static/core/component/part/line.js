@@ -6,6 +6,7 @@ import {Points, Point} from '@react-three/drei/Points';
 import {PointMaterial} from '@react-three/drei/PointMaterial'; 
 import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import { Pickable } from '../node/base.js';
+import {PivotControls} from '@react-three/drei/PivotControls';
 
 export function Line({n}){
     const points = useS(d=> d.n[n].c.points);
@@ -17,9 +18,25 @@ export function Line({n}){
         c('group', {name:'line'},
             points && c(Points, {limit:1000, range:1000}, 
                 c(PointMaterial, {size:14, vertexColors:true, toneMapped:false, transparent:true}),
-                ...points.map(p=> c(Pickable, {n:p.n},
-                    c(Point, {position: [p.x, p.y, p.z+50], color:p.color}) //onClick:e=>{console.log('click point')}
-                )),
+                c(PivotControls, {
+                    rotation:[0, 0, 0], //[0, -Math.PI / 2, 0]
+                    anchor:[0, 0, 0],
+                    scale:100,
+                    depthTest:false,
+                    fixed:true,
+                    lineWidth:2,
+                },
+                    ...points.map(p=> c(Pickable, {n:p.n},
+                        c(Point, {position: [p.x, p.y, p.z+50], color:p.color}) //onClick:e=>{console.log('click point')}
+                    )),
+                    c('mesh', {},
+                        c('boxGeometry'),
+                        c('meshBasicMaterial', {color:'grey', toneMapped:false}),
+                    )
+                ),
+                // ...points.map(p=> c(Pickable, {n:p.n},
+                //     c(Point, {position: [p.x, p.y, p.z+50], color:p.color}) //onClick:e=>{console.log('click point')}
+                // )),
             ),
             points && points.length>1 && c(Pickable, {n:n},
                 c(CatmullRomLine, {

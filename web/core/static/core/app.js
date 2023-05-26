@@ -21,7 +21,7 @@ import {create_base_slice} from './store/base.js';
 import {create_graph_slice} from './store/graph.js';
 import {create_pick_slice} from './store/pick.js';
 import {create_inspect_slice} from './store/inspect.js';
-import {create_draw_slice} from './store/draw.js';
+import {create_board_slice} from './store/board.js';
 import {create_make_slice} from './store/make.js';
 import {create_node_slice} from './store/node.js';
 import {create_reckon_slice} from './store/reckon.js';
@@ -44,7 +44,7 @@ export const useS = create(
         ...create_graph_slice(...a),
         ...create_pick_slice(...a),
         ...create_inspect_slice(...a),
-        ...create_draw_slice(...a),
+        ...create_board_slice(...a),
         ...create_make_slice(...a),
         ...create_node_slice(...a),
         ...create_reckon_slice(...a),
@@ -73,7 +73,7 @@ function set_state(func, send){
         //return produce(dd,dd=>{ dd.consume(dd,patches);dd.produce_number++; }); //;dd.produce_number++;
     })
 }
-export const rs = func=> set_state(func, false);
+export const ssl = func=> set_state(func, false);
 export const ss = func=>{
     //produce_number++;
     //produce_stack.push(()=>{

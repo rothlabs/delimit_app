@@ -42,6 +42,7 @@ export const create_make_slice = (set,get)=>({make:{
     atom: (d, m, v, r, t)=>{
         const n = d.make.node(d, m, model_tags[m], {r:r, t:t});
         d.n[n].v = v;
+        //d.n[n].pin = v;
         return n;
     },
     point: (d, point, o)=>{

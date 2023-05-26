@@ -189,6 +189,7 @@ export const create_base_slice = (set,get)=>({
                     }else{  
                         d.n[n.id].t = model_tags[d.n[n.id].m];
                         d.n[n.id].v = n.v;  
+                        //d.n[n.id].pin = n.v; 
                         //console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
                     }
                     if(d.graph.tag_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.tag_vis[d.n[n.id].t];

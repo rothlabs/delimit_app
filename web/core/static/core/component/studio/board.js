@@ -1,16 +1,17 @@
 import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Vector3} from 'three';
-import {ss, useS} from '../../app.js';
+import {ss, ssl, useS} from '../../app.js';
 
 //const pointer_start = new Vector2();
 //const pointer_vect = new Vector2();
 // const draw_verts = [];
 //var pointers_down = 0;
+//var dragging = false;
 
 const tv = new Vector3();
 
-const point=e=> {
+const pos=e=> {
     const p = e.intersections[e.intersections.length-1].point;
     return tv.set(Math.round(p.x),Math.round(p.y),0); 
 }// could just be e.intersections[0].point?
@@ -25,7 +26,8 @@ export function Board(){
     //const board = useRef();
     //const draw_line = useRef();
     const mode = useS(d=> d.studio.mode);
-    const draw_mode = useS(d=> d.draw.mode);
+    const board_mode = useS(d=> d.board.mode);
+    //const pointers = useS(d=> d.board.pointers);
     //const selection = useReactiveVar(selection_rv);
     ////////useFrame(()=>raycaster.params.Points.threshold = 10/camera.zoom); < ----- needed for point clicking!
     //useFrame(()=>{
@@ -37,10 +39,10 @@ export function Board(){
             position:[0,0,-400],
             onClick:e=>{e.stopPropagation();
                 if(e.delta < 5){
-                    const p = point(e);
+                    //const p = point(e);
                     if(mode=='design'){
-                        if(draw_mode=='draw'){
-                            ss(d=> d.draw.point(d, {x:p.x, y:p.y, z:0}));
+                        if(board_mode=='draw'){
+                            ss(d=> d.board.make_point(d, pos(e)));  //{x:p.x, y:p.y, z:0}
                             return
                         }
                     }
@@ -51,6 +53,35 @@ export function Board(){
                         //project.current.mutate({selection:select(e), record:true});
                     //if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
                     //    selection_rv(select(e));
+                }
+            },
+            onPointerDown:e=>{
+                if([0,1].includes(e.which)){
+                    ssl(d=>{
+                        d.board.pin_pos = new Vector3().copy(pos(e));
+                        d.board.pointers++;}
+                    );
+                }
+            },
+            onPointerUp:e=>{
+                if([0,1].includes(e.which)){
+                    ssl(d=>{ 
+                        d.board.pointers--;
+                        if(d.board.pointers < 0) d.board.pointers = 0;
+                    });
+                }
+            },
+            onPointerMove:e=>{
+                ssl(d=>{ 
+                    d.board.drag(d, pos(e));
+                });
+            },
+            onPointerLeave:e=> { 
+                if(e.intersections.length < 1) {
+                    ss(d=>{
+                        d.board.pointers = 0;
+                        d.board.stop_dragging(d);
+                    });
                 }
             },
             // onPointerLeave:(e)=> { 

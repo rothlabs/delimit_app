@@ -1,7 +1,7 @@
 import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {Toolbar} from './toolbar/toolbar.js';
-import {useS, gs, ss, rs, use_query, use_mutation, instance} from '../../app.js';
+import {useS, gs, ss, ssl, use_query, use_mutation, instance} from '../../app.js';
 import {Viewport} from './viewport.js';
 import {Panel} from './panel/panel.js';
 //export const selection_rv = makeVar();
@@ -24,7 +24,7 @@ export function Studio(){
         console.log('got open pack');
         console.log(Date.now());
         console.log(data);
-        if(data.pack) rs(d=> d.receive(d,data.pack) ); 
+        if(data.pack) ssl(d=> d.receive(d,data.pack) ); 
         //console.log(useS.getState().n);
     }}); 
     ss(d=> d.open_pack = open_pack.mutate );//d.set(d=> {d.open_pack = open_pack.mutate;});
@@ -90,9 +90,9 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
         //if(data.pollPack) console.log(data.pollPack);
         if(data.pollPack) {
             //console.log(data.pollPack.s.find(s=> s.v==instance));
-            rs(d=> d.receive(d, data.pollPack) ); // do not read anything older than when loader!!!!!!!
+            ssl(d=> d.receive(d, data.pollPack) ); // do not read anything older than when loader!!!!!!!
         }
-        if(data.deletePack) rs(d=> d.receive_deleted(d, data.deletePack) ); 
+        if(data.deletePack) ssl(d=> d.receive_deleted(d, data.deletePack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
     return null;

@@ -8,20 +8,27 @@ export const create_node_slice =(set,get)=>({node:{
         }
         return null;
     },
-    // gv:(d, n, t, o)=>{
-    //     if(!o) o=0;
-    //     if(d.n[n].n[t] && o < d.n[n].n[t].length) return d.n[d.n[n].n[t][o]].v;
-    //     return null;
-    // },
-    // sv:(d, n, t, o)=>{
-    //     if(!o) o=0;
-    // },
-
+    get:(d, n, t, o)=>{
+        if(!o) o=0;
+        if(d.n[n].n[t] && o < d.n[n].n[t].length) return d.n[n].n[t][o];
+        return null;
+    },
+    pin:(d, n)=>{
+        if(d.node.be(d,n)){ // could just use d.n[n] in this situation?
+            d.n[n].pin = d.n[n].v;
+        }
+    },
+    delta:(d, n, v)=>{
+        if(d.node.be(d,n)){ // could just use d.n[n] in this situation?
+            d.n[n].v = d.n[n].pin + v;
+            d.reckon.node(d, n);
+        }
+    },
     set_v:(d, n, v)=>{
-        d.n[n].v = v;
+        d.n[n].v = v; 
+        //d.n[n].pin = v;
         d.reckon.node(d, n);//d.next('reckon.node', n); 
     },
-
     for_n:(d, n, func, filter)=>{
         if(!filter) filter = ['open']; 
         if(d.n[n].n) Object.entries(d.n[n].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
@@ -34,12 +41,10 @@ export const create_node_slice =(set,get)=>({node:{
             if(filter.includes(d.node.be(d,r))) func(r,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
         }));
     },
-
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
         d.next('graph.update');
     },
-    
     delete:(d, n, shallow)=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
             //d.n[n].open = false;

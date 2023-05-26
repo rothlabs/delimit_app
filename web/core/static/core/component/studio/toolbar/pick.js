@@ -15,16 +15,13 @@ export function Pick(){
                     id: 'pick_mode_'+i,
                     type: 'radio',
                     variant: 'outline-primary', size: 'lg',
-                    //checked: multi,
-                    //value: '1',
-
                     value: button.value,
                     checked: mode == button.value,
                     className: button.icon + ' border-white',
-
-                    onChange:e=> {
-                        ss(d=> d.pick.mode = e.currentTarget.value);
-                    }, 
+                    onChange:e=> ss(d=>{ 
+                        d.pick.mode = e.currentTarget.value
+                        d.board.mode = '';
+                    }), 
                 })
             ),
         )
