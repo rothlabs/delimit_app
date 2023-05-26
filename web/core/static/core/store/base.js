@@ -107,7 +107,7 @@ export const create_base_slice = (set,get)=>({
         patches.forEach(patch=>{
             const n = patch.path[1];
             if(patch.op == 'add'){ 
-                console.log(n, patch);
+                //console.log(n, patch);
                 if(patch.path[0]=='n' && patch.path.length < 3){ // node created
                     if(d.n[n].m=='p'){
                         set_part(n);
@@ -116,14 +116,14 @@ export const create_base_slice = (set,get)=>({
                         edits[d.n[n].m].push(patch.value.v);
                     }
                 }else if(patch.path[2]=='n'){ // need to check if already modified this one (merge patches)
-                    console.log('add '+patch.path[3]+' to '+d.n[n].t);
+                    //console.log('add '+patch.path[3]+' to '+d.n[n].t);
                     if(!appends[n]){ appends[n] = {
                         part: [[n],        [], [], [], [], [], ['append']],
                         tags: [[d.n[n].t], [], [], [], [], []]
                     }}
                     var nid = patch.value;
                     if(Array.isArray(nid)) nid = nid[0]; // could be a single element array if new edge tag
-                    console.log(nid);
+                    //console.log(nid);
                     const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
                     appends[n].part[mi].push(nid);
                     appends[n].tags[mi].push(patch.path[3]);
