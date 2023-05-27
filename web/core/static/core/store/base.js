@@ -20,8 +20,8 @@ export const node_tags = [
 export const ordered_tags = ['point'];
 
 //const empty_list = [];
-//var next_funcs = [];
-//var next_ids = [];
+var next_funcs = [];
+var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
     atom_tags: ['switch','integer','decimal','text'],
@@ -38,23 +38,27 @@ export const create_base_slice = (set,get)=>({
     },
     //empty_list: [],
 
-    next_funcs: [],
-    next_ids: [],
-    empty_list: [],
-    next:(d, ...a)=>{ // static
+    //next_funcs: [],
+    //next_ids: [],
+    next:(...a)=>{ // static
+        
         const id = a.map(a=> String(a)).join('_');
         
-        if(d.add(d.next_ids, id)){ //JSON.stringify(a).split('').sort().join()
+        if(get().add(next_ids, id)){ //JSON.stringify(a).split('').sort().join()
             //console.log(id);
-            d.next_funcs.push(a);
+            next_funcs.push(a);
         }
     },
     run_next:(d)=>{
-        const funcs = [...d.next_funcs];
-        d.next_funcs = d.empty_list;
-        d.next_ids = d.empty_list;
-        //console.log(funcs);
-        funcs.forEach(a=>    lodash.get(d, a[0])(d, ...a.slice(1))   );
+        //console.log(current(d).next_funcs);
+        const funcs = [...next_funcs];
+        next_funcs = [];//d.empty_list;
+        next_ids = [];//d.empty_list;
+        //console.log(current(d).empty_list);
+        funcs.forEach(a=>{
+            //console.log(current(a));
+            lodash.get(d, a[0])(d, ...a.slice(1));
+        });// 0   1
     },
 
 

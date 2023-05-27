@@ -39,7 +39,8 @@ export const create_node_slice =(set,get)=>({node:{
     sv:(d, n, v)=>{
         console.log('set v!!!');
         d.n[n].v = v; // check if has v?
-        d.reckon.node(d, n);//d.next('reckon.node', n); 
+        //d.reckon.node(d, n);//d.next('reckon.node', n); 
+        d.next('reckon.node', n);
         d.next('inspect.update'); 
     },
     for_n:(d, n, func, filter)=>{

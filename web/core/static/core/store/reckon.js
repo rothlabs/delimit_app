@@ -1,6 +1,7 @@
 //import {model_tags} from './base.js';
 
 import { Vector3 } from "three";
+import {current} from 'immer';
 
 export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
@@ -12,10 +13,12 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     base(d, n){
         d.reckon.count++;
         //d.reckon.v(d, n, 'name'); 
-        console.log('try to reckon.node', n);
+        //console.log('try to reckon.node', n);
+        //console.log(current(d).n[n].r);
         d.node.for_r(d, n, r=> {
-            console.log('reckon.node', n, r);
+            //console.log('reckon.node', n, r);
             d.next('reckon.node', r);
+            //d.reckon.node(d,r);
         });
         //d.node.for_r(d, n, r=> d.reckon.node(d,r)); // got to watch out for cycle!!! (could pass update id and stop if updated already made with that id)
     },
@@ -29,9 +32,10 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //return null;
     },
     atom(d, n){
-        //console.log('reckon atom');
         d.reckon.count++;
+        //console.log('reckon atom');
         d.reckon.base(d, n);
+        //d.next('reckon.node', n);
     },
     point(d,n){
         d.reckon.count++;
@@ -55,6 +59,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.reckon.base(d, n);
     },
     default(d,n){
+        d.reckon.count++;
         d.reckon.v(d, n, 'name');
     },
 }});

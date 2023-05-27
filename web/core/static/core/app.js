@@ -63,8 +63,8 @@ export const useS = create(
 function set_state(func, send){
     useS.setState(d=>{
         var all_patches = [];
-        var result = produceWithPatches(d, d=>{ func(d) }); //[d, patches, inverse_patches] 
-        while(result[1].length > 0){
+        var result = produceWithPatches(d, d=>{ d.next_funcs=[]; d.next_ids=[]; func(d); }); //[d, patches, inverse_patches] 
+        while(result[1].length > 2){
             //console.log(result[1]);
             all_patches = [...all_patches, ...result[1]];
             result = produceWithPatches(result[0], d=>{ d.run_next(d) }); // make this a loop until patches do not signal changes
