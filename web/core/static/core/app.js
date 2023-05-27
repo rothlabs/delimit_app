@@ -65,8 +65,9 @@ function set_state(func, send){
         var all_patches = [];
         var result = produceWithPatches(d, d=>{ func(d) }); //[d, patches, inverse_patches] 
         while(result[1].length > 0){
-           all_patches = [...all_patches, ...result[1]];
-           result = produceWithPatches(result[0], d=>{ d.run_next(d) }); // make this a loop until patches do not signal changes
+            //console.log(result[1]);
+            all_patches = [...all_patches, ...result[1]];
+            result = produceWithPatches(result[0], d=>{ d.run_next(d) }); // make this a loop until patches do not signal changes
         }
         if(send) result[0].send(result[0], all_patches);
         return result[0];//produce(d2, d2=>{ d2.final(d2,patches2) });

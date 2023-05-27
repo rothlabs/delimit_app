@@ -65,7 +65,7 @@ export function Studio(){
 
     return (
         c(Fragment,{}, 
-            //ready && c(Poll), 
+            ready && c(Poll), 
             c(Toolbar),
             c(Panel),
             c('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
@@ -89,6 +89,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         //if(data.pollPack) console.log(data.pollPack);
         if(data.pollPack) {
+            //console.log(data.pollPack);
             //console.log(data.pollPack.s.find(s=> s.v==instance));
             ssl(d=> d.receive(d, data.pollPack) ); // do not read anything older than when loader!!!!!!!
         }

@@ -16,7 +16,7 @@ export function Handle(){
             lineWidth:2,
             onDragStart:e=> ssl(d=> d.pick.start_drag(d,e)),
             onDrag:e=> ssl(d=> d.pick.drag(d,e)),
-            onDragEnd:()=> { },
+            onDragEnd:()=> ss(d=> d.pick.end_drag(d)),
         },
             c('mesh', {},
                 c('boxGeometry'),

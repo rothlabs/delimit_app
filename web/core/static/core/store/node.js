@@ -16,9 +16,6 @@ export const create_node_slice =(set,get)=>({node:{
     //     if(d.n[n].n[t] && o < d.n[n].n[t].length) return d.n[n].n[t][o];
     //     return null;
     // },
-    //get_v(d, n){
-    //    if(d.node.be(d,n)) return d.n[n].v;
-    //},
     get(d, n, t){
         const result = {};
         t.split(' ').forEach(t=>{
@@ -40,6 +37,7 @@ export const create_node_slice =(set,get)=>({node:{
         });
     },
     sv:(d, n, v)=>{
+        console.log('set v!!!');
         d.n[n].v = v; // check if has v?
         d.reckon.node(d, n);//d.next('reckon.node', n); 
         d.next('inspect.update'); 

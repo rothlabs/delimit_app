@@ -19,9 +19,9 @@ export const node_tags = [
 ];
 export const ordered_tags = ['point'];
 
-const empty_list = [];
-var next_funcs = [];
-var next_ids = [];
+//const empty_list = [];
+//var next_funcs = [];
+//var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
     atom_tags: ['switch','integer','decimal','text'],
@@ -38,19 +38,21 @@ export const create_base_slice = (set,get)=>({
     },
     //empty_list: [],
 
-    //next_funcs: [],
-    //next_funcs_ids: [],
-    next:(...a)=>{ // static
+    next_funcs: [],
+    next_ids: [],
+    empty_list: [],
+    next:(d, ...a)=>{ // static
         const id = a.map(a=> String(a)).join('_');
-        if(get().add(next_ids, id)){ //JSON.stringify(a).split('').sort().join()
+        
+        if(d.add(d.next_ids, id)){ //JSON.stringify(a).split('').sort().join()
             //console.log(id);
-            next_funcs.push(a);
+            d.next_funcs.push(a);
         }
     },
     run_next:(d)=>{
-        const funcs = [...next_funcs];
-        next_funcs = [];
-        next_ids = [];
+        const funcs = [...d.next_funcs];
+        d.next_funcs = d.empty_list;
+        d.next_ids = d.empty_list;
         //console.log(funcs);
         funcs.forEach(a=>    lodash.get(d, a[0])(d, ...a.slice(1))   );
     },
@@ -189,7 +191,7 @@ export const create_base_slice = (set,get)=>({
                         //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                     }else{  
                         d.n[n.id].t = model_tags[d.n[n.id].m];
-                        d.n[n.id].v = n.v;  
+                        d.node.sv(d, n.id, n.v);//d.n[n.id].v = n.v;  
                         //d.n[n.id].pin = n.v; 
                         //console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
                     }
