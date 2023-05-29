@@ -21,7 +21,7 @@ import {create_base_slice} from './store/base.js';
 import {create_graph_slice} from './store/graph.js';
 import {create_pick_slice} from './store/pick.js';
 import {create_inspect_slice} from './store/inspect.js';
-import {create_board_slice} from './store/board.js';
+import {create_design_slice} from './store/design.js';
 import {create_make_slice} from './store/make.js';
 import {create_node_slice} from './store/node.js';
 import {create_reckon_slice} from './store/reckon.js';
@@ -44,7 +44,7 @@ export const useS = create(
         ...create_graph_slice(...a),
         ...create_pick_slice(...a),
         ...create_inspect_slice(...a),
-        ...create_board_slice(...a),
+        ...create_design_slice(...a),
         ...create_make_slice(...a),
         ...create_node_slice(...a),
         ...create_reckon_slice(...a),
@@ -64,7 +64,7 @@ function set_state(func, send){
     useS.setState(d=>{
         var all_patches = [];
         var result = produceWithPatches(d, d=>{ d.next_funcs=[]; d.next_ids=[]; func(d); }); //[d, patches, inverse_patches] 
-        while(result[1].length > 2){
+        while(result[1].length > 0){
             //console.log(result[1]);
             all_patches = [...all_patches, ...result[1]];
             result = produceWithPatches(result[0], d=>{ d.run_next(d) }); // make this a loop until patches do not signal changes

@@ -20,7 +20,7 @@ export function Pick(){
                     className: button.icon + ' border-white',
                     onChange:e=> ss(d=>{ 
                         d.pick.mode = e.currentTarget.value
-                        d.board.mode = '';
+                        if(['draw','erase'].includes(d.design.mode)) d.design.mode = '';
                     }), 
                 })
             ),

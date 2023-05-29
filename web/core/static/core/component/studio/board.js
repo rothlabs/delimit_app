@@ -13,7 +13,7 @@ const tv = new Vector3();
 
 const pos=e=> {
     const p = e.intersections[e.intersections.length-1].point;
-    return tv.set(Math.round(p.x),Math.round(p.y),0); 
+    return tv.set(p.x, p.y, 0); //tv.set(Math.round(p.x),Math.round(p.y),0); 
 }// could just be e.intersections[0].point?
 //const name=(e)=>   e.intersections[0].object.name
 //const select=(e)=> e.intersections[0];
@@ -25,8 +25,8 @@ export function Board(){
     //const [dragging, set_dragging] = useState();
     //const board = useRef();
     //const draw_line = useRef();
-    const mode = useS(d=> d.studio.mode);
-    const board_mode = useS(d=> d.board.mode);
+    const studio_mode = useS(d=> d.studio.mode);
+    const design_mode = useS(d=> d.design.mode);
     //const pointers = useS(d=> d.board.pointers);
     //const selection = useReactiveVar(selection_rv);
     ////////useFrame(()=>raycaster.params.Points.threshold = 10/camera.zoom); < ----- needed for point clicking!
@@ -40,9 +40,9 @@ export function Board(){
             onClick:e=>{e.stopPropagation();
                 if(e.delta < 5){
                     //const p = point(e);
-                    if(mode=='design'){
-                        if(board_mode=='draw'){
-                            ss(d=> d.board.make_point(d, pos(e)));  //{x:p.x, y:p.y, z:0}
+                    if(studio_mode=='design'){
+                        if(design_mode=='draw'){
+                            ss(d=> d.design.make_point(d, pos(e)));  //{x:p.x, y:p.y, z:0}
                             return
                         }
                     }

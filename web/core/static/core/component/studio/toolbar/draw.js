@@ -4,24 +4,25 @@ import {ss, useS} from '../../../app.js';
 
 export function Draw(){
     const studio_mode = useS(d=> d.studio.mode);
-    const board_mode = useS(d=> d.board.mode);
+    const design_mode = useS(d=> d.design.mode);
     const buttons = [
         {name:'Draw',  icon:'bi-pencil', value:'draw'},
         {name:'Erase', icon:'bi-eraser', value:'erase'},
+        {name:'Move', icon:'bi-arrows-move', value:'move'},
     ];
     return(
         studio_mode=='design' && c(ButtonGroup, {}, 
             ...buttons.map((button,i)=>
                 c(ToggleButton,{
-                    id: 'board_mode_'+i,
+                    id: 'design_mode_'+i,
                     type: 'radio',
                     variant: 'outline-primary', size: 'lg',
                     value: button.value,
-                    checked: board_mode == button.value,
+                    checked: design_mode == button.value,
                     className: button.icon+ ' border-white',
                     onChange:e=> ss(d=>{
-                        d.board.mode = e.currentTarget.value;
-                        d.pick.mode = '';
+                        d.design.mode = e.currentTarget.value;
+                        if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';
                     }),
                 })
             ),

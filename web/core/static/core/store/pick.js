@@ -1,35 +1,13 @@
 import {current} from 'immer';
-import {model_tags, float_tags, design_tags} from './base.js';
+import {model_tags, float_tags} from './base.js';
 import { theme } from '../app.js';
-import { Vector3, Matrix4 } from 'three';
 
-const tv = new Vector3();
-const offset = new Vector3(0.0001,0.0001,0);
+//const tv = new Vector3();
 
 export const create_pick_slice = (set,get)=>({pick:{
     reckon_tags: ['point'],
     nodes: [],
     mode: 'one', 
-    matrix: new Matrix4(),
-    start_matrix: new Matrix4(),
-
-    start_drag(d,e){ // make drag slice?
-        d.pick.start_matrix.copy(d.pick.matrix).invert();
-        d.pick.nodes.forEach(n => d.node.pin_pos(d, n));
-    },
-    drag(d, matrix, offset){
-        d.pick.matrix = matrix;
-        d.pick.nodes.forEach(n=>{ // must check if point or position contents!!!!
-            tv.copy(d.n[n].pin.pos).applyMatrix4(d.pick.start_matrix).applyMatrix4(matrix);
-            if(offset) tv.add(offset);
-            d.node.set_pos(d, n, tv);
-        });
-    },
-    end_drag(d){
-        d.pick.drag(d, d.pick.matrix, offset);
-        //d.pick.nodes.forEach(n => d.node.set(d, n, {x}));
-    },
-
     set(d, n, v){
         d.n[n].pick.picked = v;
         if(v){ d.add(d.pick.nodes, n)}

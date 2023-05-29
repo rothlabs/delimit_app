@@ -4,14 +4,15 @@ import { Vector3 } from "three";
 import {current} from 'immer';
 
 export const create_reckon_slice =(set,get)=>({reckon:{
-    count: 0,
+    //count: 0,
     node(d, n){ // might need to check for node existence or track original reckon call
         if(d.reckon[d.n[n].t]){                  d.reckon[d.n[n].t](d, n);   }
         else if(d.atom_tags.includes(d.n[n].t)){ d.reckon.atom(d, n);    }
         else{                                    d.reckon.default(d, n);     } // could delete this?
     },
     base(d, n){
-        d.reckon.count++;
+        //console.log('reckon base', n);
+        //d.reckon.count++;
         //d.reckon.v(d, n, 'name'); 
         //console.log('try to reckon.node', n);
         //console.log(current(d).n[n].r);
@@ -32,23 +33,29 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //return null;
     },
     atom(d, n){
-        d.reckon.count++;
+        //d.reckon.count++;
         //console.log('reckon atom');
         d.reckon.base(d, n);
         //d.next('reckon.node', n);
     },
     point(d,n){
-        d.reckon.count++;
+        //d.reckon.count++;
         //console.log('reckon point');
-        d.reckon.v(d, n, 'x');  // make so you can provide list of tags in one call
+        d.reckon.v(d, n, 'x');  // or don't even use these?!?!?!?!        make so you can provide list of tags in one call
         d.reckon.v(d, n, 'y'); 
         d.reckon.v(d, n, 'z'); 
+
+        if(!d.n[n].c.pos) d.n[n].c.pos = new Vector3();
+        const pos = d.node.get(d, n, 'x y z'); // make get and reckon v same function so it reckons and returns values?!?!?!
+        d.n[n].c.pos.set(pos.x, pos.y, pos.z);
+
         //if(!d.n[n].c.vector3)d.n[n].c.vector3 = new Vector3();
         //d.n[n].c.vector3.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z); // make sure each val is not undefined?
         d.reckon.base(d, n); // d.next('reckon.base', n); //
     },
     line(d,n){
-        d.reckon.count++;
+        //d.reckon.count++;
+        //console.log('reckon line');
         //console.log('update line!!! '+n);
         d.n[n].c.points = [];
         d.n[n].n.point && d.n[n].n.point.forEach(p=>{
@@ -59,7 +66,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.reckon.base(d, n);
     },
     default(d,n){
-        d.reckon.count++;
+        //d.reckon.count++;
         d.reckon.v(d, n, 'name');
     },
 }});

@@ -11,7 +11,7 @@ export const root_tags={
 export const float_tags  = ['decimal', 'x', 'y', 'z']; //edge tags
 export const string_tags = ['text', 'name', 'story'];  //edge tags
 export const val_tags = [...float_tags, ...string_tags];
-export const design_tags = ['part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
+//export const design_tags = ['part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
 export const node_tags = [
     ...Object.values(model_tags),
     'profile', 'public',
@@ -25,6 +25,7 @@ var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
     atom_tags: ['switch','integer','decimal','text'],
+
     add:(array,item)=>{ // static
         if(array.indexOf(item) === -1){
             array.push(item);
@@ -40,21 +41,20 @@ export const create_base_slice = (set,get)=>({
 
     //next_funcs: [],
     //next_ids: [],
-    next:(...a)=>{ // static
-        
+    next(...a){ // static
         const id = a.map(a=> String(a)).join('_');
-        
-        if(get().add(next_ids, id)){ //JSON.stringify(a).split('').sort().join()
+        if(get().add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
             //console.log(id);
             next_funcs.push(a);
         }
     },
-    run_next:(d)=>{
+    run_next(d){
         //console.log(current(d).next_funcs);
         const funcs = [...next_funcs];
         next_funcs = [];//d.empty_list;
         next_ids = [];//d.empty_list;
         //console.log(current(d).empty_list);
+        //console.log(funcs);
         funcs.forEach(a=>{
             //console.log(current(a));
             lodash.get(d, a[0])(d, ...a.slice(1));
@@ -80,17 +80,17 @@ export const create_base_slice = (set,get)=>({
         }
     },
 
-    design: {
-        part:null, candidate:null, 
-        update: d=>{
-            if(d.pick.nodes.length == 1 && design_tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
-            else{  d.design.candidate = null;  }
-            if(d.design.part && !d.n[d.design.part].open){ // use exists/available function here?
-                d.design.part = null;
-                d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
-            }
-        },
-    },
+    // design: {
+    //     part:null, candidate:null, 
+    //     update: d=>{
+    //         if(d.pick.nodes.length == 1 && design_tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
+    //         else{  d.design.candidate = null;  }
+    //         if(d.design.part && !d.n[d.design.part].open){ // use exists/available function here?
+    //             d.design.part = null;
+    //             d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
+    //         }
+    //     },
+    // },
 
     send: (d, patches)=>{ // change to send patches directly to server (filtering for patches that matter)
         //console.log('patches');

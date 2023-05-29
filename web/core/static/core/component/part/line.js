@@ -1,22 +1,21 @@
-import {createElement as c, useEffect, useState} from 'react';
-import {gs, ss, useS, theme} from '../../app.js';
-import {useFrame, useThree} from '@react-three/fiber';
-import {Vector3} from 'three';
+import {createElement as c} from 'react';
+import {useS} from '../../app.js';
 import {Points, Point} from '@react-three/drei/Points';
 import {PointMaterial} from '@react-three/drei/PointMaterial'; 
 import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import { Pickable } from '../node/base.js';
-import {PivotControls} from '@react-three/drei/PivotControls';
 
-export function Line({n}){
+// renders every frame while dragging which is bad for performance
+// fix by subscribing to state in useEffect
+export function Line({n}){ 
     const points = useS(d=> d.n[n].c.points);
     const color = useS(d=> d.n[n].pick.color); 
     return(
         c('group', {name:'line'},
             points && c(Points, {limit:1000, range:1000}, 
                 c(PointMaterial, {size:14, vertexColors:true, toneMapped:false, transparent:true}),
-                ...points.map(p=> c(Pickable, {n:p.n}, //filter(p=> !d.n[p.n].pick.picked)
-                    c(Point, {position: [p.x, p.y, p.z+50], color:p.color}) //onClick:e=>{console.log('click point')}
+                ...points.map(p=> c(Pickable, {n:p.n}, 
+                    c(Point, {position: [p.x, p.y, p.z+50], color:p.color}) 
                 )),
             ),
             points && points.length>1 && c(Pickable, {n:n},
@@ -30,14 +29,3 @@ export function Line({n}){
         )
     )
 }
-
-// function Dots(){
-//     //const nodes = useSS(d=> d.graph.nodes);  
-//     console.log('render line dots');
-//     return (
-//         c(Points, {limit:1000, range:1000}, 
-//             c('pointsMaterial', {size:15, vertexColors:[[.5,.5,.5],]}),
-//             c(Point, {position:[0,0,10], color:'red'}),
-// 		)
-//     )
-// }

@@ -3,7 +3,7 @@ import {CameraControls} from '@react-three/drei/CameraControls';
 import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Part} from './part.js';
-import {Handle} from './handle.js';
+import {Mover} from './mover.js';
 import {useS, Fixed_Size_Group} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
 
@@ -42,7 +42,7 @@ export function Viewport(){
             c(Board),
             studio_mode=='graph'  && c(Graph),
             studio_mode=='design' && c(Part),
-            c(Handle),
+            c(Mover),
             c(Fixed_Size_Group, {size:6},
                 c('mesh', {},
                     c('boxGeometry'),

@@ -14,11 +14,12 @@ export function Badge({n}){ // more than one reason to change but okay because i
 export function Pickable({n, children}){
     const pick_mode = useS(d=> d.pick.mode);
     const picked = useS(d=> d.n[n].pick.picked);
-    const board_mode = useS(d=> d.board.mode);
+    const studio_mode = useS(d=> d.studio.mode);
+    const design_mode = useS(d=> d.design.mode);
     return c('group', {
         name: 'pickable',
         onClick:e=>{ e.stopPropagation(); 
-            if(board_mode == 'erase'){
+            if(studio_mode=='design' && design_mode == 'erase'){
                 ss(d=> d.node.delete(d, n));
             }else{
                 if(pick_mode=='multi'){  
@@ -28,8 +29,8 @@ export function Pickable({n, children}){
                 }  
             }
         },
-        onPointerOver:e=> { ss(d=>d.pick.hover(d,n, true ));},
-        onPointerOut:e=>  { ss(d=>d.pick.hover(d,n, false));},
+        onPointerOver:e=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n, true ));},
+        onPointerOut:e=>  {e.stopPropagation(); ss(d=>d.pick.hover(d,n, false));},
         children:children,
     });
 }
