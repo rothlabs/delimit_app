@@ -169,7 +169,7 @@ export const create_base_slice = (set,get)=>({
                 if(!d.n[n.id]){
                     d.n[n.id] = {
                         m: m,
-                        pick: {picked:false, hover:false},
+                        pick: {pick:false, hover:false},
                         graph: { // put in d.graph.node.vectors
                             pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),
                             //dir: new Vector3(),

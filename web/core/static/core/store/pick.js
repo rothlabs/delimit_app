@@ -9,7 +9,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     nodes: [],
     mode: 'one', 
     set(d, n, v){
-        d.n[n].pick.picked = v;
+        d.n[n].pick.pick = v;
         if(v){ d.add(d.pick.nodes, n)}
         else{  d.pop(d.pick.nodes, n)}
         d.pick.color(d,n);
@@ -40,15 +40,15 @@ export const create_pick_slice = (set,get)=>({pick:{
     },
     none(d){
         const nodes = [...d.pick.nodes];
-        nodes.forEach(n=> d.pick.set(d, n, false)); //d.n[n].pick.picked=false   Object.values(d.n).forEach(n=> n.pick.picked=false);
+        nodes.forEach(n=> d.pick.set(d, n, false)); //d.n[n].pick.pick=false   Object.values(d.n).forEach(n=> n.pick.pick=false);
     },
     one(d, n){
         d.pick.none(d);
         d.pick.set(d, n, true)
-        if(d.n[n].pick.picked) console.log(n, current(d).n[n]);
+        if(d.n[n].pick.pick) console.log(n, current(d).n[n]);
     },
     color(d,n){
-        const selector = d.n[n].pick.picked || d.n[n].pick.hover;
+        const selector = d.n[n].pick.pick || d.n[n].pick.hover;
         d.n[n].pick.color = [
             selector ? theme.primary : theme.secondary,
             selector ? theme.primary : 'white',
@@ -57,17 +57,17 @@ export const create_pick_slice = (set,get)=>({pick:{
     },
 }});
 
-//mod: (d, n, picked)=>{
-    //    d.n[n].pick.picked = picked;
+//mod: (d, n, pick)=>{
+    //    d.n[n].pick.pick = pick;
         //d.pick.update(d);
     //},
 
     // update: d=>{ // rename as update
     //     Object.keys(d.n).forEach(n =>{ // make this a common function (iterate all nodes with filter and func 
-    //         if(!d.n[n].open) d.n[n].pick.picked=false;
+    //         if(!d.n[n].open) d.n[n].pick.pick=false;
     //         d.pick.color(d,n);
     //     }); 
-    //     d.pick.nodes = Object.keys(d.n).filter(n=> d.n[n].pick.picked); // make this a common function (iterate all nodes with filter and func 
+    //     d.pick.nodes = Object.keys(d.n).filter(n=> d.n[n].pick.pick); // make this a common function (iterate all nodes with filter and func 
     //     d.pick.nodes.forEach(n=>{
     //         if(pick_reckon_tags.includes(d.n[n].t)) d.reckon.node(d,n);
     //     });

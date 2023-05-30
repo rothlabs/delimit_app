@@ -13,7 +13,7 @@ export function Badge({n}){ // more than one reason to change but okay because i
 
 export function Pickable({n, children}){
     const pick_mode = useS(d=> d.pick.mode);
-    const picked = useS(d=> d.n[n].pick.picked);
+    const pick = useS(d=> d.n[n].pick.pick);
     const studio_mode = useS(d=> d.studio.mode);
     const design_mode = useS(d=> d.design.mode);
     return c('group', {
@@ -23,14 +23,14 @@ export function Pickable({n, children}){
                 ss(d=> d.node.delete(d, n));
             }else{
                 if(pick_mode=='multi'){  
-                    ss(d=>d.pick.set(d, n, !picked));
+                    ss(d=>d.pick.set(d, n, !pick));
                 }else{   
                     ss(d=>d.pick.one(d,n));
                 }  
             }
         },
-        onPointerOver:e=> {e.stopPropagation(); rs(d=>d.pick.hover(d,n, true ));}, // should be something different from recieve state but should not commit state here
-        onPointerOut:e=>  {e.stopPropagation(); rs(d=>d.pick.hover(d,n, false));},
+        onPointerOver:e=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n, true ));}, // should be something different from recieve state but should not commit state here
+        onPointerOut:e=>  {e.stopPropagation(); ss(d=>d.pick.hover(d,n, false));},
         children:children,
     });
 }

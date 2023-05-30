@@ -2,8 +2,6 @@ import {current} from 'immer';
 import { Vector3, Matrix4 } from 'three';
 
 const tv = new Vector3();
-const tv2 = new Vector3();
-
 const tm = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
@@ -20,7 +18,6 @@ export const create_design_slice = (set,get)=>({design:{
         d.pick.nodes.forEach(n => d.node.pin_pos(d, n));
     },
     move(d, matrix){ //offset
-        //console.log(matrix.elements.join(' '));
         d.design.matrix = matrix;
         d.pick.nodes.forEach(n=>{ // must check if point or position contents!!!!
             if(d.n[n].pin.pos){ //if(d.n[n].pin.pos){

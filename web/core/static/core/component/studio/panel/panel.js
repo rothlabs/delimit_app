@@ -6,25 +6,9 @@ import { Make } from './make.js';
 import { Visual } from './visual.js';
 
 export function Panel(){ 
-    const panel = useS(d=> d.studio.panel.name);
     const show = useS(d=> d.studio.panel.show);
-    const part = useS(d=> d.design.part);
-    const nodes = useS(d=> d.pick.nodes); 
     const window_size = use_window_size();
     const [width, set_width] = useState('100vw');
-    useEffect(()=>{
-        if(nodes.length){
-            if(window_size.width>=576 || (show && (panel=='inspect_design' || panel=='inspect_nodes'))){
-                if(part && nodes.length==1 && nodes[0]==part){
-                    ss(d=> d.studio.panel={name:'inspect_design', show:true});
-                }else{
-                    ss(d=> d.studio.panel={name:'inspect_nodes', show:true});
-                }
-            }
-        }else{
-            if((panel=='inspect_design' || panel=='inspect_nodes')) ss(d=> d.studio.panel.show=false);
-        }
-    },[nodes]);
     useEffect(()=>{
         if(window_size.width<=576) set_width('100vw');
         if(window_size.width>576) set_width('30vw');
@@ -41,3 +25,24 @@ export function Panel(){
         )
     )
 }
+
+
+
+//const panel = useS(d=> d.studio.panel.name);
+
+//const part = useS(d=> d.design.part);
+    //const nodes = useS(d=> d.pick.nodes); 
+
+// useEffect(()=>{
+    //     if(nodes.length){
+    //         if(window_size.width>=576 || (show && (panel=='inspect_design' || panel=='inspect_nodes'))){
+    //             if(part && nodes.length==1 && nodes[0]==part){
+    //                 ss(d=> d.studio.panel={name:'inspect_design', show:true});
+    //             }else{
+    //                 ss(d=> d.studio.panel={name:'inspect_nodes', show:true});
+    //             }
+    //         }
+    //     }else{
+    //         if((panel=='inspect_design' || panel=='inspect_nodes')) ss(d=> d.studio.panel.show=false);
+    //     }
+    // },[nodes]);

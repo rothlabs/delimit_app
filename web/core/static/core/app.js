@@ -57,48 +57,61 @@ export const useSS = selector=> useS(selector, shallow);
 export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
 export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
 
-var patch_index = 0;
-const patches = [];
-const inverse_patches = [];
-var fork = null;
+var patch = 0;
+var patches = [];
+var inverse = [];
+var fork = null; // for dragging and stuff like that 
 
-function next_state(state, func, arg){
-    //useS.setState(d=>{
-    //const d = gs();
+function next_state(state, func){
     var all_patches = [];
-    var all_inverse_patches = [];
+    var all_inverse = [];
     var result = produceWithPatches(state, d=>{ func(d) }); //[d, patches, inverse_patches] d.next_funcs=[]; d.next_ids=[]; 
-    //if(!(arg && arg.bla)){
-        while(result[1].length > 0){
-            //console.log(result[1]);
-            all_patches = [...all_patches, ...result[1]];
-            all_inverse_patches = [...all_inverse_patches, ...result[2]];
-            result = produceWithPatches(result[0], d=>{ d.run_next(d) }); 
-        }
-    //}
+    while(result[1].length > 0){
+        all_patches = [...all_patches, ...result[1]];
+        all_inverse = [...result[2], ...all_inverse];
+        result = produceWithPatches(result[0], d=>{ d.run_next(d) }); 
+    }
     useS.setState(result[0]); 
-    // need to apply patches to fork if fork present?!?!!?
-    return {state:result[0], patches:all_patches, inverse_patches:all_inverse_patches}; // rename state to d
+    return {state:result[0], patches:all_patches, inverse:all_inverse}; // rename state to d
+}
+function patch_test(p){
+    const path = p.path.join('.');
+    if(path == 'studio.panel') return false;
+    if(path == 'studio.panel.show') return false;
+    if(path == 'studio.panel.name') return false;
+    return true;
 }
 function commit_state(arg){
-    console.log('patches');
-    console.log(arg.patches);
-    if(patches.length > patch_index){
-        //console.log('splice action?');
-        inverse_patches.splice(patch_index, inverse_patches.length-patch_index);
-        patches.splice(patch_index, patches.length-patch_index);
-    }
-    patches.push(arg.patches);
-    inverse_patches.push(arg.inverse_patches);
-    patch_index = patches.length;
     arg.state.send(arg.state, arg.patches);
-    //console.log(patch_index);
-    //console.log('patches');
-    //console.log(patches[patches.length-1]);
+    arg.patches = arg.patches.filter(p=> patch_test(p));
+    arg.inverse = arg.inverse.filter(p=> patch_test(p));
+    var save_patches = true;
+    arg.patches.forEach(p=>{
+        const path = p.path.join('.');
+        if(p.path.includes('pick')) save_patches = false;
+        if(path == 'design.mode') save_patches = false;
+        if(path == 'studio.mode') save_patches = false;
+    });
+    if(save_patches){
+        //console.log('save patches');
+        //console.log(arg.patches);
+        if(patches.length > patch){
+            patches.splice(patch, patches.length-patch);
+            inverse.splice(patch, inverse.length-patch);
+        }
+        patches.push(arg.patches);
+        inverse.push(arg.inverse);
+        if(patches.length > 10){
+            patches = patches.slice(patches.length-10);
+            inverse = inverse.slice(inverse.length-10);
+        }
+        patch = patches.length;
+    }
 }
 export const rs = func=> {
     //console.log('recieve state');
-    next_state(gs(), func); 
+    const result = next_state(gs(), func); 
+    if(fork) fork = applyPatches(fork, result.patches);
 } // recieve state
 export const ss = func=> {
     console.log('set state');
@@ -115,28 +128,29 @@ export const sf = func=>{
 }; // set fork
 export const mf = func=>{
     commit_state(next_state(fork, func));
+    fork = null;
 }; // merge fork
 
 export function undo(){
-    if(patch_index > 0){
-        patch_index--;
-        //console.log(patch_index);
-        //console.log(inverse_patches.length);
-        const inverse = inverse_patches[patch_index];
-        console.log('run inverse');
-        console.log(inverse);
-        //const d = next_state(gs(), d=>applyPatches(d, inverse)).state;
-        //d.send(d, inverse);
+    if(patch > 0){
+        patch--;
+        console.log(inverse[patch]);
         useS.setState(d=>{
-            var d = applyPatches(d, inverse);
-            d.send(d, inverse);
+            var d = applyPatches(d, inverse[patch]);
+            d.send(d, inverse[patch]);
             return d;
         });
     }
-    console.log('undo');
 }
 export function redo(){
-    console.log('redo');
+    if(patch < patches.length){
+        useS.setState(d=>{
+            var d = applyPatches(d, patches[patch]);
+            d.send(d, patches[patch]);
+            return d;
+        });
+        patch++;
+    }
 }
 
 

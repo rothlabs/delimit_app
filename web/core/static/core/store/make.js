@@ -20,7 +20,7 @@ export const create_make_slice = (set,get)=>({make:{
         const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
         d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true,
-            pick: {picked:false, hover:false},
+            pick: {pick:false, hover:false},
             graph: { 
                 pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
                 //dir: new Vector3(),

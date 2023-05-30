@@ -18,7 +18,7 @@ export function Part({n}){
     const name = useS(d=> d.n[n].c.name);
     const tag = useS(d=> d.n[n].t);
     const color = useS(d=> d.n[n].pick.color);
-    const picked = useS(d=> d.n[n].pick.picked); 
+    const pick = useS(d=> d.n[n].pick.pick); 
     const obj = useRef();
     useEffect(()=> subS(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
         obj.current.obj.position.copy(d.pos);
@@ -29,7 +29,7 @@ export function Part({n}){
         r('group', {name: 'part'}, 
             r(Fixed_Size_Group, {
                 ref: obj,
-                size: picked ? 30 : 20, // 1.5 : 1, adjust size of other items
+                size: pick ? 30 : 20, // 1.5 : 1, adjust size of other items
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }

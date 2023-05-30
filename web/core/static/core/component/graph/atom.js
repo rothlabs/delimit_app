@@ -11,9 +11,9 @@ const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMap
 export function Atom({n}){
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color);
-    const picked = useS(d=> d.n[n].pick.picked); //const picked = useD(d=> d.selection.includes(n));
+    const pick = useS(d=> d.n[n].pick.pick); //const pick = useD(d=> d.selection.includes(n));
     //const hover = useS(d=> d.n[n].hover);
-    //const color = useMemo(()=> picked||hover? theme.primary : theme.secondary, [picked, hover]);
+    //const color = useMemo(()=> pick||hover? theme.primary : theme.secondary, [pick, hover]);
     const val = useS(d=> ''+d.n[n].v);
     const tag = useS(d=> d.n[n].t); //d.tag(n)
     const pos = useS(d=> d.n[n].graph.pos); // can i remove?!!!
@@ -25,7 +25,7 @@ export function Atom({n}){
         c('group', {name: 'atom'}, 
             c(Fixed_Size_Group, {
                 ref: obj,
-                size: picked ? 30 : 20,
+                size: pick ? 30 : 20,
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }
