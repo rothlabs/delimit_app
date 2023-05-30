@@ -69,7 +69,7 @@ export function Studio(){
 
     return (
         c(Fragment,{}, 
-            //ready && c(Poll), 
+            ready && c(Poll), 
             c(Toolbar),
             c(Panel),
             c('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},

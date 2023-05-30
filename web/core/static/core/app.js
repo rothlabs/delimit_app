@@ -97,7 +97,7 @@ function commit_state(arg){
     //console.log(patches[patches.length-1]);
 }
 export const rs = func=> {
-    console.log('recieve state');
+    //console.log('recieve state');
     next_state(gs(), func); 
 } // recieve state
 export const ss = func=> {
