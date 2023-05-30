@@ -19,7 +19,7 @@ export function Mover(){
             depthTest:false,
             fixed:true,
             lineWidth:3,
-            onDragStart:e=> ssl(d=> d.design.pin_move(d,e)),
+            onDragStart:e=> ssl(d=> d.design.pin_move(d,e)), // save starting state and then rebase to that and ss(d=> set_final_pos);
             onDrag:e=> ssl(d=> d.design.move(d,e)),
             onDragEnd:()=> ss(d=> d.design.end_move(d)),
         })

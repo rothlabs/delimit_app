@@ -13,7 +13,7 @@ import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
 import {useFrame, useThree} from '@react-three/fiber';//'r3f';
 
-import {produce, produceWithPatches, enablePatches} from 'immer'; enablePatches();
+import {produce, applyPatches, produceWithPatches, enablePatches} from 'immer'; enablePatches();
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
 import {shallow} from 'zustand/shallow';//'shallow';
@@ -60,22 +60,66 @@ export const useS = create(
     //produce_number++;
     //produce_stack.push(()=>   useS.setState(produce(d=>{func(d);d.produce_number++;}))   );
 //};
-function set_state(func, send){
+
+var patch_index = 0;
+const patches = [];
+const inverse_patches = [];
+
+export function undo(){
+    if(patch_index > 0){
+        patch_index--;
+        //console.log(patch_index);
+        //console.log(inverse_patches.length);
+        const reply = inverse_patches[patch_index];
+        console.log('run inverse');
+        console.log(reply);
+        useS.setState(d=>{
+            var state = applyPatches(d, reply);
+            //d.send(d, );
+            return state;
+        });
+    }
+    console.log('undo');
+}
+export function redo(){
+    console.log('redo');
+}
+
+function set_state(func, commit){
     useS.setState(d=>{
         var all_patches = [];
+        var all_inverse_patches = [];
         var result = produceWithPatches(d, d=>{ d.next_funcs=[]; d.next_ids=[]; func(d); }); //[d, patches, inverse_patches] 
         while(result[1].length > 0){
             //console.log(result[1]);
             all_patches = [...all_patches, ...result[1]];
+            all_inverse_patches = [...all_inverse_patches, ...result[2]];
+            //all_inverse_patches.push(result[2]);
             result = produceWithPatches(result[0], d=>{ d.run_next(d) }); // make this a loop until patches do not signal changes
+            console.log(result);
         }
-        if(send) result[0].send(result[0], all_patches);
+        if(commit){
+            if(patches.length > patch_index){
+                console.log('splice action?');
+                inverse_patches.splice(patch_index, inverse_patches.length-patch_index);
+                patches.splice(patch_index, patches.length-patch_index);
+            }
+            patches.push(all_patches);
+            inverse_patches.push(all_inverse_patches);
+            patch_index = patches.length;
+            console.log(patch_index);
+            //console.log('patches');
+            //console.log(patches[patches.length-1]);
+            //console.log('inverse');
+            //console.log(inverse_patches[inverse_patches.length-1]);
+            //result[0].send(result[0], all_patches);
+        }
         return result[0];//produce(d2, d2=>{ d2.final(d2,patches2) });
         //return produce(dd,dd=>{ dd.consume(dd,patches);dd.produce_number++; }); //;dd.produce_number++;
     })
 }
-export const ssl = func=> set_state(func, false);
-export const ss = func=>{
+export const ssl = func=> set_state(func, false); // rename to set state without commit (ssw) (set state weak)
+export const ss = func=>{ 
     //produce_number++;
     //produce_stack.push(()=>{
         set_state(func, true);
