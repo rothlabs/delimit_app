@@ -52,31 +52,85 @@ export const useS = create(
         //...create_visual_slice(...a),
     }))
 );
-//const produce_stack = []; 
-//var produce_number = 0;
-//useS.subscribe(d=>{
-    //if(produce_stack.length > 0){
-//export const ss = func=> useS.setState(produce(d=>{func(d)}));//{ // need different store for instant user input
-    //produce_number++;
-    //produce_stack.push(()=>   useS.setState(produce(d=>{func(d);d.produce_number++;}))   );
-//};
+export const gs = ()=> useS.getState();
+export const useSS = selector=> useS(selector, shallow);
+export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
+export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
 
 var patch_index = 0;
 const patches = [];
 const inverse_patches = [];
+var fork = null;
+
+function next_state(state, func, arg){
+    //useS.setState(d=>{
+    //const d = gs();
+    var all_patches = [];
+    var all_inverse_patches = [];
+    var result = produceWithPatches(state, d=>{ func(d) }); //[d, patches, inverse_patches] d.next_funcs=[]; d.next_ids=[]; 
+    //if(!(arg && arg.bla)){
+        while(result[1].length > 0){
+            //console.log(result[1]);
+            all_patches = [...all_patches, ...result[1]];
+            all_inverse_patches = [...all_inverse_patches, ...result[2]];
+            result = produceWithPatches(result[0], d=>{ d.run_next(d) }); 
+        }
+    //}
+    useS.setState(result[0]); 
+    // need to apply patches to fork if fork present?!?!!?
+    return {state:result[0], patches:all_patches, inverse_patches:all_inverse_patches}; // rename state to d
+}
+function commit_state(arg){
+    console.log('patches');
+    console.log(arg.patches);
+    if(patches.length > patch_index){
+        //console.log('splice action?');
+        inverse_patches.splice(patch_index, inverse_patches.length-patch_index);
+        patches.splice(patch_index, patches.length-patch_index);
+    }
+    patches.push(arg.patches);
+    inverse_patches.push(arg.inverse_patches);
+    patch_index = patches.length;
+    arg.state.send(arg.state, arg.patches);
+    //console.log(patch_index);
+    //console.log('patches');
+    //console.log(patches[patches.length-1]);
+}
+export const rs = func=> {
+    console.log('recieve state');
+    next_state(gs(), func); 
+} // recieve state
+export const ss = func=> {
+    console.log('set state');
+    //console.trace();
+    commit_state(next_state(gs(), func)); 
+}// rename to commit state?
+export const fs = func=>{ 
+    //console.log('fork state');
+    fork=next_state(gs(), func).state;
+}; // fork state
+export const sf = func=>{
+    //console.log('set fork');
+    next_state(fork, func);
+}; // set fork
+export const mf = func=>{
+    commit_state(next_state(fork, func));
+}; // merge fork
 
 export function undo(){
     if(patch_index > 0){
         patch_index--;
         //console.log(patch_index);
         //console.log(inverse_patches.length);
-        const reply = inverse_patches[patch_index];
+        const inverse = inverse_patches[patch_index];
         console.log('run inverse');
-        console.log(reply);
+        console.log(inverse);
+        //const d = next_state(gs(), d=>applyPatches(d, inverse)).state;
+        //d.send(d, inverse);
         useS.setState(d=>{
-            var state = applyPatches(d, reply);
-            //d.send(d, );
-            return state;
+            var d = applyPatches(d, inverse);
+            d.send(d, inverse);
+            return d;
         });
     }
     console.log('undo');
@@ -85,67 +139,6 @@ export function redo(){
     console.log('redo');
 }
 
-function set_state(func, commit){
-    useS.setState(d=>{
-        var all_patches = [];
-        var all_inverse_patches = [];
-        var result = produceWithPatches(d, d=>{ d.next_funcs=[]; d.next_ids=[]; func(d); }); //[d, patches, inverse_patches] 
-        while(result[1].length > 0){
-            //console.log(result[1]);
-            all_patches = [...all_patches, ...result[1]];
-            all_inverse_patches = [...all_inverse_patches, ...result[2]];
-            //all_inverse_patches.push(result[2]);
-            result = produceWithPatches(result[0], d=>{ d.run_next(d) }); // make this a loop until patches do not signal changes
-            console.log(result);
-        }
-        if(commit){
-            if(patches.length > patch_index){
-                console.log('splice action?');
-                inverse_patches.splice(patch_index, inverse_patches.length-patch_index);
-                patches.splice(patch_index, patches.length-patch_index);
-            }
-            patches.push(all_patches);
-            inverse_patches.push(all_inverse_patches);
-            patch_index = patches.length;
-            console.log(patch_index);
-            //console.log('patches');
-            //console.log(patches[patches.length-1]);
-            //console.log('inverse');
-            //console.log(inverse_patches[inverse_patches.length-1]);
-            //result[0].send(result[0], all_patches);
-        }
-        return result[0];//produce(d2, d2=>{ d2.final(d2,patches2) });
-        //return produce(dd,dd=>{ dd.consume(dd,patches);dd.produce_number++; }); //;dd.produce_number++;
-    })
-}
-export const ssl = func=> set_state(func, false); // rename to set state without commit (ssw) (set state weak)
-export const ss = func=>{ 
-    //produce_number++;
-    //produce_stack.push(()=>{
-        set_state(func, true);
-    //});
-};
-export const gs = ()=> useS.getState();
-export const useSS = selector=> useS(selector, shallow);
-export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
-export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
-// function check_stack(){
-//     //console.log(produce_stack.length, produce_number, gs().produce_number);
-//     if(produce_number == gs().produce_number){
-//         const produce_func = produce_stack.shift();
-//         if(produce_func){
-//             produce_func();
-//             produce_number++;
-//         }
-//     }
-//     setTimeout(check_stack,20);
-// }
-// check_stack();
-
-// export function remove(array, item){
-//     const index = array.indexOf(item);
-//     if(index !== -1) array.splice(index, 1);
-// }
 
 export function use_window_size() {
     const [size, setSize] = useState([0, 0]);
@@ -159,7 +152,6 @@ export function use_window_size() {
     }, []);
     return {width:size[0], height:size[1]};
 }
-
 
 export const random=(min, max)=> Math.random() * (max - min) + min;
 export function random_vector({min, max, x, y, z}){
@@ -351,8 +343,37 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
 
 
 
+//const produce_stack = []; 
+//var produce_number = 0;
+//useS.subscribe(d=>{
+    //if(produce_stack.length > 0){
+//export const ss = func=> useS.setState(produce(d=>{func(d)}));//{ // need different store for instant user input
+    //produce_number++;
+    //produce_stack.push(()=>   useS.setState(produce(d=>{func(d);d.produce_number++;}))   );
+//};
 
+// export const ss = func=>{ 
+//     //produce_number++;
+//     //produce_stack.push(()=>{
+//         set_state(func, true);
+//     //});
+// };
+// // function check_stack(){
+// //     //console.log(produce_stack.length, produce_number, gs().produce_number);
+// //     if(produce_number == gs().produce_number){
+// //         const produce_func = produce_stack.shift();
+// //         if(produce_func){
+// //             produce_func();
+// //             produce_number++;
+// //         }
+// //     }
+// //     setTimeout(check_stack,20);
+// // }
+// // check_stack();
 
+//return result[0];//produce(d2, d2=>{ d2.final(d2,patches2) });
+        //return produce(dd,dd=>{ dd.consume(dd,patches);dd.produce_number++; }); //;dd.produce_number++;
+    //})
 
 // export function child(source, name, func){ // use Array.find(test_func) see moz docs
 //     //var response = undefined;

@@ -14,23 +14,26 @@ export const create_design_slice = (set,get)=>({design:{
     matrix: new Matrix4(),
     pin_matrix: new Matrix4(),
     mover: {pos: new Vector3()}, //, rot: new Vector3()
-    pin_move(d,e){ // make drag slice?
-       d.design.pin_matrix.copy(d.design.matrix).invert();
-       d.pick.nodes.forEach(n => d.node.pin_pos(d, n));
+    pin_move(d){ // make drag slice?
+        console.log('start drag');
+        d.design.pin_matrix.copy(d.design.matrix).invert();
+        d.pick.nodes.forEach(n => d.node.pin_pos(d, n));
     },
-    move(d, matrix, offset){
+    move(d, matrix){ //offset
+        //console.log(matrix.elements.join(' '));
         d.design.matrix = matrix;
         d.pick.nodes.forEach(n=>{ // must check if point or position contents!!!!
-            if(d.n[n].pin.pos){
-                tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix); // tv.copy(d.n[n].c.pos).applyMatrix4(matrix);//
-                if(offset) tv.add(offset);
+            if(d.n[n].pin.pos){ //if(d.n[n].pin.pos){
+                tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix); // tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix); 
+                //if(offset) tv.add(offset);
                 d.node.set_pos(d, n, tv);
             }
         });
     },
-    end_move(d){
-        d.design.move(d, d.design.matrix, tv2.set(.01, .01, 0));// must set some send-flag instead of doing offset workaround  //d.pick.nodes.forEach(n => d.node.set(d, n, {x}));
-    },
+    //end_move(d){
+    //    console.log('end drag');
+    //    d.design.move(d, d.design.matrix, tv2.set(.01, .01, 0));// must set some send-flag instead of doing offset workaround  //d.pick.nodes.forEach(n => d.node.set(d, n, {x}));
+    //},
     make_point: (d, pos)=>{
         d.make.point(d, pos, -1); // must have insertion index. For now, using -1 for last
     },

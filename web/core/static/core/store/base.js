@@ -44,7 +44,7 @@ export const create_base_slice = (set,get)=>({
     next(...a){ // static
         const id = a.map(a=> String(a)).join('_');
         if(get().add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
-            //console.log(id);
+            //console.log(id, get().n[a[1]] ? get().n[a[1]].t : 'unknown');
             next_funcs.push(a);
         }
     },

@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {Badge as Boot_Badge} from 'react-bootstrap';
-import {useS, ss, ssl, readable} from '../../app.js';
+import {useS, ss, rs, readable} from '../../app.js';
 
 export function Badge({n}){ // more than one reason to change but okay because it's so simple?
     const tag = useS(d=> d.n[n].t);
@@ -29,8 +29,8 @@ export function Pickable({n, children}){
                 }  
             }
         },
-        onPointerOver:e=> {e.stopPropagation(); ssl(d=>d.pick.hover(d,n, true ));},
-        onPointerOut:e=>  {e.stopPropagation(); ssl(d=>d.pick.hover(d,n, false));},
+        onPointerOver:e=> {e.stopPropagation(); rs(d=>d.pick.hover(d,n, true ));}, // should be something different from recieve state but should not commit state here
+        onPointerOut:e=>  {e.stopPropagation(); rs(d=>d.pick.hover(d,n, false));},
         children:children,
     });
 }

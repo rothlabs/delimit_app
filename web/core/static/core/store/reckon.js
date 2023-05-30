@@ -4,7 +4,7 @@ import { Vector3 } from "three";
 import {current} from 'immer';
 
 export const create_reckon_slice =(set,get)=>({reckon:{
-    //count: 0,
+    count: 0,
     node(d, n){ // might need to check for node existence or track original reckon call
         if(d.reckon[d.n[n].t]){                  d.reckon[d.n[n].t](d, n);   }
         else if(d.atom_tags.includes(d.n[n].t)){ d.reckon.atom(d, n);    }
@@ -12,7 +12,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n){
         //console.log('reckon base', n);
-        //d.reckon.count++;
+        d.reckon.count++;
         //d.reckon.v(d, n, 'name'); 
         //console.log('try to reckon.node', n);
         //console.log(current(d).n[n].r);

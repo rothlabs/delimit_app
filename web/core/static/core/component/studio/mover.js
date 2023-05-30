@@ -1,14 +1,17 @@
-import {createElement as c, useRef, useEffect} from 'react';
+import {createElement as c, useRef, useState, useEffect} from 'react';
 import {PivotControls} from '@react-three/drei/PivotControls';
-import {useS, ss, ssl} from '../../app.js';
+import {useS, ss, fs, sf, mf} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
 import * as THREE from 'three';
+
+// save starting state and then rebase to that and ss(d=> set_final_pos);
 
 export function Mover(){
     const studio_mode = useS(d=> d.studio.mode);
     const design_mode = useS(d=> d.design.mode);
     const pick_count = useS(d=> d.pick.nodes.length);
     const mover = useS(d=> d.design.mover);
+    const [matrix, set_matrix] = useState(new THREE.Matrix4());
     //console.log('render mover');
     return (
         pick_count>0 && c(PivotControls, {
@@ -19,9 +22,12 @@ export function Mover(){
             depthTest:false,
             fixed:true,
             lineWidth:3,
-            onDragStart:e=> ssl(d=> d.design.pin_move(d,e)), // save starting state and then rebase to that and ss(d=> set_final_pos);
-            onDrag:e=> ssl(d=> d.design.move(d,e)),
-            onDragEnd:()=> ss(d=> d.design.end_move(d)),
+            onDragStart:e=> fs(d=> d.design.pin_move(d)),
+            onDrag:e=> {
+                set_matrix(e);
+                sf(d=> d.design.move(d,e));
+            },
+            onDragEnd:()=> mf(d=> d.design.move(d, matrix)),
         })
     )
 }
