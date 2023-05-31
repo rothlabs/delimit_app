@@ -110,38 +110,55 @@ export const create_base_slice = (set,get)=>({
             edits.parts.push(part);
             edits.t.push(tags);
         }
-        patches.forEach(patch=>{
-            const n = patch.path[1];
-            if(patch.op == 'add'){ 
-                //console.log(n, patch);
-                if(patch.path[0]=='n' && patch.path.length < 3){ // node created
-                    if(d.n[n].m=='p'){
-                        set_part(n);
-                    }else{
-                        edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
-                        edits[d.n[n].m].push(patch.value.v);
+        patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
+            if(patch.path[0]=='n'){
+                const n = patch.path[1];
+                if(patch.op == 'add'){ 
+                    //console.log(n, patch);
+                    if(patch.path.length == 2){ // node created  if(patch.path[0]=='n' && patch.path.length < 3){
+                        if(d.n[n].m=='p'){
+                            set_part(n);
+                        }else{
+                            console.log('push atom');
+                            console.log(patch.value.v);
+                            edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                            edits[d.n[n].m].push(patch.value.v); 
+                        }
+                    }else if(patch.path[2] == 'n'){ // need to check if already modified this one (merge patches)
+                        //console.log('add '+patch.path[3]+' to '+d.n[n].t);
+                        if(!appends[n]){ appends[n] = {
+                            part: [[n],        [], [], [], [], [], ['append']],
+                            tags: [[d.n[n].t], [], [], [], [], []]
+                        }}
+                        var nid = patch.value;
+                        if(Array.isArray(nid)) nid = nid[0]; // could be a single element array if new edge tag
+                        const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
+                        appends[n].part[mi].push(nid);
+                        appends[n].tags[mi].push(patch.path[3]);
+                    //}else if(patch.path[2]=='deleted'){
+                        //edits[d.n[n].m+'del'].push(n);
                     }
-                }else if(patch.path[2]=='n'){ // need to check if already modified this one (merge patches)
-                    //console.log('add '+patch.path[3]+' to '+d.n[n].t);
-                    if(!appends[n]){ appends[n] = {
-                        part: [[n],        [], [], [], [], [], ['append']],
-                        tags: [[d.n[n].t], [], [], [], [], []]
-                    }}
-                    var nid = patch.value;
-                    if(Array.isArray(nid)) nid = nid[0]; // could be a single element array if new edge tag
-                    //console.log(nid);
-                    const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
-                    appends[n].part[mi].push(nid);
-                    appends[n].tags[mi].push(patch.path[3]);
-                }else if(patch.path[2]=='deleted'){
-                    edits[d.n[n].m+'del'].push(n);
-                }
-            }else if(patch.op == 'replace'){ 
-                if(patch.path[2]=='n'){
-                    set_part(n); 
-                }else if(patch.path[2]=='v'){ // atom has changed
-                    edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
-                    edits[d.n[n].m].push(patch.value);
+                }else if(patch.op == 'replace'){ 
+                    if(patch.path[2]=='n'){
+                        set_part(n); 
+                    }else if(patch.path[2]=='v'){ // atom has changed
+                        edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                        edits[d.n[n].m].push(patch.value);
+                    }else if(patch.path[2]=='deleted'){
+                        if(patch.value==true){
+                            edits[d.n[n].m+'del'].push(n);
+                        }else{
+                            if(d.n[n].m=='p'){
+                                set_part(n);
+                            }else{
+                                edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                                edits[d.n[n].m].push(d.n[n].v);
+                            }
+                        }
+                    }
+                //}else if(patch.op == 'remove'){ 
+                    //if(patch.path[0]=='n' && patch.path.length==2) edits[d.n[n].m+'del'].push(n);
+                    //if(patch.path[0]=='n' && patch.path.length==3 && patch.path[2]=='deleted') set_part(n);
                 }
             }
         });
@@ -149,6 +166,13 @@ export const create_base_slice = (set,get)=>({
             edits.parts.push(append.part);
             edits.t.push(append.tags);
         });
+        //const to_del = edits.parts.filter(p=> edits.pdel.includes(p[0][0]));
+        //console.log('to_del');
+        //console.log(to_del);
+        //edits.parts.forEach(p=>{
+
+        //});
+
         //console.log('edits');
         //console.log(edits);
         //d.pick.update(d);
@@ -182,6 +206,7 @@ export const create_base_slice = (set,get)=>({
                 }
                 if(d.node.be(d,n.id)){
                     d.n[n.id].open = true;
+                    d.n[n.id].deleted = false;
                     d.n[n.id].r = {};
                     d.n[n.id].c = {}; // content generated by reckon
                     if(m=='p'){

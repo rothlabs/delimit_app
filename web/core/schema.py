@@ -382,7 +382,7 @@ class Push_Pack(graphene.Mutation):
         sdel = graphene.List(graphene.ID)
     reply = graphene.String(default_value = 'Failed to save.')
     restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)
-    def mod_or_make_atom(profile, model, m, id, v, restricted, poll_pack): # check if m is correct value?
+    def mod_or_make_atom(profile, model, part_model, m, id, v, restricted, poll_pack): # check if m is correct value?
         atom = None
         try: atom = model.objects.get(id=id, e__t__v='asset', e__r=profile) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
         except Exception as e: 
@@ -395,6 +395,7 @@ class Push_Pack(graphene.Mutation):
             atom.v = v
             atom.save() #if obj: temp_pack[m].append(obj)#return atom
             getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']}) # change to 'atom' 
+            part_model.objects.filter(r__t__v='delete_pack', n=atom).delete()
         else: restricted.append(id)
     def add_atom(is_asset, part, model, m, id, order, t, restricted, poll_pack): # check if m is correct value?
         try:
@@ -427,13 +428,13 @@ class Push_Pack(graphene.Mutation):
                 if atoms:
                     # mutate atoms: 
                     for i in range(len(atoms[0])):
-                        cls.mod_or_make_atom(profile, Bool,   'b', atoms[0][i], b[i], restricted, poll_pack)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Bool,   Part_Bool,   'b', atoms[0][i], b[i], restricted, poll_pack)#, temp_pack)
                     for i in range(len(atoms[1])):
-                        cls.mod_or_make_atom(profile, Int,    'i', atoms[1][i], i[i], restricted, poll_pack)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Int,    Part_Int,    'i', atoms[1][i], i[i], restricted, poll_pack)#, temp_pack)
                     for i in range(len(atoms[2])):
-                        cls.mod_or_make_atom(profile, Float,  'f', atoms[2][i], f[i], restricted, poll_pack)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Float,  Part_Float,  'f', atoms[2][i], f[i], restricted, poll_pack)#, temp_pack)
                     for i in range(len(atoms[3])):
-                        cls.mod_or_make_atom(profile, String, 's', atoms[3][i], s[i], restricted, poll_pack)#, temp_pack)
+                        cls.mod_or_make_atom(profile, String, Part_String, 's', atoms[3][i], s[i], restricted, poll_pack)#, temp_pack)
                 if parts: # and len(parts) == len(t)
                     # make parts if don't exist:
                     for p in range(len(parts)): # use this loop to build list of parts for next loop
@@ -449,6 +450,7 @@ class Push_Pack(graphene.Mutation):
                             part.save()
                             if parts[p][6][0]=='replace': clear_part(part) 
                             poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
+                            Part_Part.objects.filter(r__t__v='delete_pack', n=part).delete() # remove part from delete pack  # ~Q(n__id__in=pdel), 
                             for o in range(len(parts[p][1])):
                                 try:
                                     tag_obj = Tag.objects.get(v=t[p][1][o], system=False)

@@ -81,6 +81,7 @@ function patch_test(p){
     if(path == 'studio.panel.name') return false;
     return true;
 }
+
 function commit_state(arg){
     arg.state.send(arg.state, arg.patches);
     arg.patches = arg.patches.filter(p=> patch_test(p));
@@ -92,6 +93,11 @@ function commit_state(arg){
         if(path == 'design.mode') save_patches = false;
         if(path == 'studio.mode') save_patches = false;
     });
+    arg.patches.forEach(p=>{
+        if(p.op=='replace' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
+        //if(p.op=='remove' && p.path.length==2 && p.path[0]=='n') save_patches = true;
+        //if(p.op=='add' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
+    });
     if(save_patches){
         //console.log('save patches');
         //console.log(arg.patches);
@@ -99,8 +105,44 @@ function commit_state(arg){
             patches.splice(patch, patches.length-patch);
             inverse.splice(patch, inverse.length-patch);
         }
-        patches.push(arg.patches);
-        inverse.push(arg.inverse);
+        const patches_extras = [];
+        const new_patches = arg.patches.map(p=>{ // replace add with deleted=false
+            var result = p;
+            if(p.op=='add' && p.path.length==2 && p.path[0]=='n'){
+                console.log('replace add with replace n.id.deleted=false');
+                result = {
+                    op:'replace',
+                    path: [...p.path, 'deleted'],
+                    value:false,
+                };
+                patches_extras.push({
+                    op:'replace',
+                    path: [...p.path, 'open'],
+                    value:true,
+                });
+            }
+            return result;
+        });
+        const inverse_extras = [];
+        const new_inverse = arg.inverse.map(p=>{ // replace remove with deleted=true
+            var result = p;
+            if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){
+                console.log('replace remove with replace n.id.deleted=true');
+                result = {
+                    op:'replace',
+                    path: [...p.path, 'deleted'],
+                    value:true,
+                };
+                inverse_extras.push({
+                    op:'replace',
+                    path: [...p.path, 'open'],
+                    value:false,
+                });
+            }
+            return result;
+        });
+        patches.push([...new_patches, ...patches_extras]);
+        inverse.push([...new_inverse, ...inverse_extras]);
         if(patches.length > 10){
             patches = patches.slice(patches.length-10);
             inverse = inverse.slice(inverse.length-10);
@@ -114,7 +156,7 @@ export const rs = func=> {
     if(fork) fork = applyPatches(fork, result.patches);
 } // recieve state
 export const ss = func=> {
-    console.log('set state');
+    //console.log('set state');
     //console.trace();
     commit_state(next_state(gs(), func)); 
 }// rename to commit state?
@@ -131,9 +173,10 @@ export const mf = func=>{
     fork = null;
 }; // merge fork
 
-export function undo(){
+export function undo(){ 
     if(patch > 0){
         patch--;
+        console.log('undo');
         console.log(inverse[patch]);
         useS.setState(d=>{
             var d = applyPatches(d, inverse[patch]);
@@ -144,7 +187,21 @@ export function undo(){
 }
 export function redo(){
     if(patch < patches.length){
+        //console.log('redo');
+        //console.log(patches[patch]);
+        
         useS.setState(d=>{
+
+            // var result = produceWithPatches(d, d=>{ 
+            //     inverse[patch].forEach(p=>{
+            //         if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){
+            //             d.node.delete(d, p.path[1]);//dead_nodes.push(p.path[0]);
+            //         }
+            //     });
+            //     //dead_nodes.forEach(n=> d.node.delete(d, n));
+            // });
+            // d.send(d, [...inverse[patch], ...result[1]]);
+
             var d = applyPatches(d, patches[patch]);
             d.send(d, patches[patch]);
             return d;
@@ -353,6 +410,22 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
 //"auc":       "https://esm.sh/apollo-upload-client?pin=v106",
 //export const client = new ApolloClient({link:auth_link.concat(http_link), cache:new InMemoryCache()});
 //const http_link = createHttpLink({uri:'https://delimit.art/gql'});
+
+
+
+
+
+
+            // var result = produceWithPatches(d, d=>{ 
+            //     inverse[patch].forEach(p=>{
+            //         if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){
+            //             d.node.delete(d, p.path[1]);//dead_nodes.push(p.path[0]);
+            //         }
+            //     });
+            //     //dead_nodes.forEach(n=> d.node.delete(d, n));
+            // });
+            // d.send(d, [...inverse[patch], ...result[1]]);
+
 
 
 

@@ -19,7 +19,7 @@ export const create_make_slice = (set,get)=>({make:{
     node:(d, m, t, a)=>{ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
-        d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true,
+        d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true, deleted:false,
             pick: {pick:false, hover:false},
             graph: { 
                 pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
@@ -31,7 +31,7 @@ export const create_make_slice = (set,get)=>({make:{
         };
         d.pick.color(d,n);
         if(m=='p'){ d.n[n].n={}; }
-        d.make.edge(d, d.profile, n, {t:'asset'});
+        d.make.edge(d, d.profile, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
         if(a) d.make.edge(d, a.r, n, a);
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
         d.next('graph.update'); // check if in graph_tags 
