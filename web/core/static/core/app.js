@@ -80,6 +80,7 @@ function patch_test(p){
     if(path == 'studio.panel') return false;
     if(path == 'studio.panel.show') return false;
     if(path == 'studio.panel.name') return false;
+    if(path == 'design.matrix') return false;
     return true;
 }
 
@@ -177,17 +178,16 @@ export const mf = func=>{
 export function undo(){ 
     if(patch > 0){
         patch--;
-        console.log('Undo');
-        console.log(inverse[patch]);
+        //console.log('Undo');
+        //console.log(inverse[patch]);
         useS.setState(d=>{
-            //d.design.reset_mover(d);
             var d = applyPatches(d, inverse[patch]);
             d.send(d, inverse[patch]);
-            d = produce(d, d=>{//d.design.reset_mover(d);
+            d = produce(d, d=>{
                 d.design.update(d);
                 d.inspect.update(d);
+                d.graph.update(d);
             });
-            //d = produce(d, d=>{d.design.reset_mover(d)});
             return d;
         });
     }
@@ -197,14 +197,13 @@ export function redo(){
         //console.log('Redo');
         //console.log(patches[patch]);
         useS.setState(d=>{
-            //d.design.reset_mover(d);
             var d = applyPatches(d, patches[patch]);
             d.send(d, patches[patch]);
-            d = produce(d, d=>{//d.design.reset_mover(d);
+            d = produce(d, d=>{
                 d.design.update(d);
                 d.inspect.update(d);
+                d.graph.update(d);
             });
-            //d = produce(d, d=>{d.design.reset_mover(d)});
             return d;
         });
         patch++;

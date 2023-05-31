@@ -9,8 +9,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         else{                                    d.reckon.default(d, n);     } // could delete this?
     },
     base(d, n){
-        //console.log('reckon base', n);
         d.reckon.count++;
+        //console.log('reckon base', n);
         //d.reckon.v(d, n, 'name'); 
         //console.log('try to reckon.node', n);
         //console.log(current(d).n[n].r);
@@ -45,13 +45,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.reckon.v(d, n, 'x');  // or don't even use these?!?!?!?!        make so you can provide list of tags in one call
         d.reckon.v(d, n, 'y'); 
         d.reckon.v(d, n, 'z'); 
-
-        if(!d.n[n].c.pos) d.n[n].c.pos = new Vector3();
         const pos = d.node.get(d, n, 'x y z'); // make get and reckon v same function so it reckons and returns values?!?!?!
-        d.n[n].c.pos.set(pos.x, pos.y, pos.z);
-
-        //if(!d.n[n].c.vector3)d.n[n].c.vector3 = new Vector3();
-        //d.n[n].c.vector3.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z); // make sure each val is not undefined?
+        d.n[n].c.pos = new Vector3(pos.x, pos.y, pos.z);
         d.reckon.base(d, n); // d.next('reckon.base', n); //
     },
     line(d,n){
@@ -71,3 +66,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.reckon.v(d, n, 'name');
     },
 }});
+
+
+
+//if(!d.n[n].c.point) d.n[n].c.point = {pos:new Vector3()};
+//d.n[n].c.point = {pos: d.n[n].c.point.pos.set(pos.x, pos.y, pos.z)};
+        //d.n[n].c.point = {pos: new Vector3(pos.x, pos.y, pos.z)};
+        //if(!d.n[n].c.vector3)d.n[n].c.vector3 = new Vector3();
+        //d.n[n].c.vector3.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z); // make sure each val is not undefined?

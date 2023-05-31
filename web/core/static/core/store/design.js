@@ -9,7 +9,7 @@ export const create_design_slice = (set,get)=>({design:{
     mode: '',
     part:null, 
     candidate:null, 
-    matrix: new Matrix4(),
+    matrix: new Matrix4(), // not following wrapper rule!!!
     pin_matrix: new Matrix4(),
     mover: {pos: new Vector3()}, //, rot: new Vector3()
     //mover_reset: 0,
@@ -41,6 +41,8 @@ export const create_design_slice = (set,get)=>({design:{
         var count = 0;
         d.pick.nodes.forEach(n=>{
             if(d.n[n].c.pos){
+                //const pos = d.node.get(d, n, 'x y z');
+                //d.design.mover.pos.add(tv.set(pos.x, pos.y, pos.z));
                 d.design.mover.pos.add(d.n[n].c.pos);
                 count++;
             }
