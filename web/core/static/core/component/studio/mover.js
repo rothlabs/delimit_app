@@ -11,10 +11,21 @@ export function Mover(){
     const design_mode = useS(d=> d.design.mode);
     const pick_count = useS(d=> d.pick.nodes.length);
     const mover = useS(d=> d.design.mover);
+    //const reset = useS(d=> d.design.mover_reset);
     const [matrix, set_matrix] = useState(new THREE.Matrix4());
-    //console.log('render mover');
+    //const [show, set_show] = useState(true);
+    //useEffect(()=>{
+    //    if(reset) set_show(false);
+        //set_show(false);
+    //},[reset]);
+    //useEffect(()=>{
+    //    if(!show) set_show(true);
+    //},[show]);
+    //set_show(true);
+    //console.log('render mover ', mover);
     return (
-        pick_count>0 && c(PivotControls, {
+        pick_count>0 && c(PivotControls, { //&& Date.now()-reset>50
+            //autoTransform: false,
             offset:[mover.pos.x, mover.pos.y, mover.pos.z], 
             visible: studio_mode=='design' && design_mode=='move',
             activeAxes:[true, true, false],
@@ -22,6 +33,7 @@ export function Mover(){
             depthTest:false,
             fixed:true,
             lineWidth:3,
+            //matrix:matrix,
             onDragStart:e=> fs(d=> d.design.pin_move(d)),
             onDrag:e=> {
                 set_matrix(e);

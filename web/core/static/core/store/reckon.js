@@ -1,5 +1,3 @@
-//import {model_tags} from './base.js';
-
 import { Vector3 } from "three";
 import {current} from 'immer';
 
@@ -21,9 +19,12 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.next('reckon.node', r);
             //d.reckon.node(d,r);
         });
+        d.next('design.update'); 
+        d.next('inspect.update'); 
         //d.node.for_r(d, n, r=> d.reckon.node(d,r)); // got to watch out for cycle!!! (could pass update id and stop if updated already made with that id)
     },
     v(d, n, t, o){
+        //d.reckon.count++;
         if(!o) o=0;
         if(d.n[n].n[t] && o < d.n[n].n[t].length && d.node.be(d,d.n[n].n[t][o])){ // d.n[n].n && 
             d.n[n].c[t] = d.n[d.n[n].n[t][o]].v;

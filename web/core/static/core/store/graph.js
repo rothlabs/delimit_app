@@ -1,24 +1,18 @@
 import { Vector3 } from 'three';
-import { node_tags } from './base.js';
-//import {produce, current, enablePatches} from 'immer';
 
-//const node_tag_vis = {};
-
-// instead of using these functions as selectors (expensive frequent op), keep them as derivitives
-// in the merge function of base, update the derivitives when there is a change
 export const create_graph_slice = (set,get)=>({graph:{
     scale: 1,
     nodes: [],
     edges: [],
-    //levels: [],
-    //edge_groups: [],
-    tag_vis:{
-        ...Object.fromEntries(node_tags.map(t=> [t,true])),
-        decimal:false, text:false
-    },
     edge_vis:{
         view:false, asset:false,
         name:true, point:true, x:true, y:true, z:true,
+    },
+    init(d){
+        d.graph.tag_vis = {
+            ...Object.fromEntries(d.node_tags.map(t=> [t,true])),
+            decimal:false, text:false
+        };
     },
     set_tag_vis:(d, t, vis)=>{
         d.graph.tag_vis = {...d.graph.tag_vis}; // make new object so visual panel rerenders

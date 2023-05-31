@@ -3,9 +3,9 @@ import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
 import {ss, useS, readable} from '../../../app.js';
 
 export function Float({t}){
-    const content   = useS(d=> d.inspect.content[t]);
+    const content     = useS(d=> d.inspect.content[t]);
     const placeholder = useS(d=> d.inspect.placeholder[t]);
-    const asset = useS(d=> d.inspect.asset[t]);
+    const asset       = useS(d=> d.inspect.asset[t]);
     const [input_value, set_input_value] = useState(content);
     const [sync_input, set_sync_input] = useState(true);
     useEffect(()=>{

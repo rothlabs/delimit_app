@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import {model_tags, float_tags} from './base.js';
+//import {model_tags, float_tags} from './base.js';
 import { theme } from '../app.js';
 
 //const tv = new Vector3();
@@ -22,10 +22,10 @@ export const create_pick_slice = (set,get)=>({pick:{
     },
     sv(d, t, v){ // change to set_v
         d.inspect.content[t] = v;
-        if(float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?
-        if(t!='part' && Object.values(model_tags).includes(t)){ // is atom?
+        if(d.float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?
+        if(t!='part' && Object.values(d.model_tags).includes(t)){ // is atom?
             d.pick.nodes.forEach(n => {
-                if(model_tags[d.n[n].m] == t) d.node.sv(d, n, v);//d.n[n].v = v;
+                if(d.model_tags[d.n[n].m] == t) d.node.sv(d, n, v);//d.n[n].v = v;
             });
         }else{
             d.pick.nodes.forEach(n => {

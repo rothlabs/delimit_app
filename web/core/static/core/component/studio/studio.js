@@ -4,11 +4,6 @@ import {Toolbar} from './toolbar/toolbar.js';
 import {useS, gs, ss, rs, use_query, use_mutation, instance} from '../../app.js';
 import {Viewport} from './viewport.js';
 import {Panel} from './panel/panel.js';
-//export const selection_rv = makeVar();
-//export const action_rv = makeVar({name:'none'}); // renamed to history action ?
-//export const show_points_rv = makeVar(true);
-//export const show_endpoints_rv = makeVar(true);
-//export const draw_mode_rv = makeVar('draw');
 
 const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
@@ -21,16 +16,16 @@ export function Studio(){
         ['openPack pack{ t{id v} p{id t} '+edges+' '+atoms+' } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{data = data.openPack;
-        console.log('got open pack');
-        console.log(Date.now());
-        console.log(data);
+        console.log('Open Pack - complete');
+        console.log(Date.now()/1000 - 1685555000);
         if(data.pack) rs(d=> d.receive(d,data.pack) ); 
+        //console.log(data);
         //console.log(useS.getState().n);
     }}); 
     useEffect(()=>{
         if(Object.keys(gs().n).length < 1) {
-            console.log('request open pack');
-            console.log(Date.now());
+            console.log('Open Pack - mutate');
+            console.log(Date.now()/1000 - 1685555000);
             open_pack.mutate();
         }
     },[]);
@@ -49,19 +44,21 @@ export function Studio(){
         ['[ID] fdel',       null],
         ['[ID] sdel',       null],
     ]],{onCompleted:(data)=>{data = data.pushPack;
+        console.log('Push Pack - complete');
         //console.log('Push Pack Reply: '+data.reply);
         //console.log('Push Pack Restricted: '+data.restricted);
         //console.log('Push Pack: '+data.reply);
     }});
 
+    // merge with push_pack ?!?! Or make delete_pack and keep all types of ops seperate?
     const close_pack = use_mutation('ClosePack', [['closePack reply', 
         ['[ID] p', null], ['[ID] b', null], ['[ID] i', null], ['[ID] f', null], ['[ID] s', null],
-    ]  ],{onCompleted:data=>{ 
-        console.log(data.closePack.reply);
+    ]],{onCompleted:data=>{ 
+        console.log('Close Pack - complete');
+        //console.log(data.closePack.reply);
     }}); 
 
     useEffect(()=>{
-        console.log('!!! set mutation handles !!!');
         ss(d=> d.open_pack = open_pack.mutate );//d.set(d=> {d.open_pack = open_pack.mutate;});
         ss(d=> d.push_pack = push_pack.mutate );//d.set(d=> {d.push_pack = push_pack.mutate;});
         ss(d=> d.close_pack = close_pack.mutate );//d.set(d=> {d.close_pack = close_pack.mutate;});

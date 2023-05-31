@@ -3,44 +3,52 @@ import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
 
-export const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; // make seperate atoms tag list?
-export const root_tags={
-    'view':  'viewer',
-    'asset': 'owner',
-};
-export const float_tags  = ['decimal', 'x', 'y', 'z']; //edge tags
-export const string_tags = ['text', 'name', 'story'];  //edge tags
-export const val_tags = [...float_tags, ...string_tags];
-//export const design_tags = ['part', 'line', 'sketch']; // part is just a three js group that attempts to render child parts, points, lines, meshes, etc
-export const node_tags = [
-    ...Object.values(model_tags),
-    'profile', 'public',
-    'point', 'line', 'sketch', 'part',
-];
-export const ordered_tags = ['point'];
-
-//const empty_list = [];
+const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; // make seperate atoms tag list?
+const float_tags  = ['decimal', 'x', 'y', 'z']; //edge tags
+const string_tags = ['text', 'name', 'story'];  //edge tags
 var next_funcs = [];
 var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
-    atom_tags: ['switch','integer','decimal','text'],
+    model_tags: model_tags,
+    root_tags: {'view':'viewer', 'asset':'owner',},
+    float_tags: float_tags,
+    string_tags: string_tags,
+    value_tags: [...float_tags, ...string_tags],
+    order_tags: ['point'],
+    atom_tags: Object.values(model_tags).slice(1),
+    node_tags: [...Object.values(model_tags), 'public', 'profile', 'point', 'line', 'sketch'],
 
-    add:(array,item)=>{ // static
+    n: {},
+    t: {},
+    user: 0,
+    profile: null,
+    search: {depth:null, ids:null},
+
+    studio: {
+        ready:false,
+        mode:'graph',
+        panel: {},
+        make: (d, t)=>{
+            const n = d.make.part(d, t);
+            d.pick.one(d, n);
+        }
+    },
+
+    init(d){
+        d.graph.init(d);
+    },
+    add(array,item){ // static
         if(array.indexOf(item) === -1){
             array.push(item);
             return true;
         }
         return false;
     },
-    pop:(array, item)=>{ // static
+    pop(array, item){ // static
         const index = array.indexOf(item);
         if(index !== -1) array.splice(index, 1);
     },
-    //empty_list: [],
-
-    //next_funcs: [],
-    //next_ids: [],
     next(...a){ // static
         const id = a.map(a=> String(a)).join('_');
         if(get().add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
@@ -48,7 +56,7 @@ export const create_base_slice = (set,get)=>({
             next_funcs.push(a);
         }
     },
-    run_next(d){
+    continue(d){
         //console.log(current(d).next_funcs);
         const funcs = [...next_funcs];
         next_funcs = [];//d.empty_list;
@@ -62,37 +70,7 @@ export const create_base_slice = (set,get)=>({
     },
 
 
-    //produce_number: 0,
-    n: {},
-    t: {},
-    user: 0,
-    profile: null,
-    search: {depth:null, ids:null},
-    send: true,
-
-    studio: {
-        ready:false,
-        mode:'graph',
-        panel: {},
-        make: (d, t)=>{
-            const n = d.make.part(d, t);
-            d.pick.one(d, n);
-        }
-    },
-
-    // design: {
-    //     part:null, candidate:null, 
-    //     update: d=>{
-    //         if(d.pick.nodes.length == 1 && design_tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
-    //         else{  d.design.candidate = null;  }
-    //         if(d.design.part && !d.n[d.design.part].open){ // use exists/available function here?
-    //             d.design.part = null;
-    //             d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
-    //         }
-    //     },
-    // },
-
-    send: (d, patches)=>{ // change to send patches directly to server (filtering for patches that matter)
+    send(d, patches){ // change to send patches directly to server (filtering for patches that matter)
         //console.log('patches');
         //console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
@@ -180,7 +158,7 @@ export const create_base_slice = (set,get)=>({
         //d.graph.update(d); // only run graph if something was deleted or added? 
         //d.inspect.update(d); // might not need this
         if(JSON.stringify(edits).split('').sort().join() != no_edits){
-            console.log('push_pack');
+            console.log('Push Pack - mutate');
             d.push_pack({variables:edits});
         }
     },
@@ -219,7 +197,7 @@ export const create_base_slice = (set,get)=>({
                         }
                         //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                     }else{  
-                        d.n[n.id].t = model_tags[d.n[n.id].m];
+                        d.n[n.id].t = d.model_tags[d.n[n.id].m];
                         d.node.sv(d, n.id, n.v);//d.n[n.id].v = n.v;  
                         //d.n[n.id].pin = n.v; 
                         //console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
@@ -237,7 +215,7 @@ export const create_base_slice = (set,get)=>({
             if(d.node.be(d, e.n)){
                 if(root_exists && e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
                 var rt = 'unknown';
-                if(root_tags[d.t[e.t]]){  rt = root_tags[d.t[e.t]];  } 
+                if(d.root_tags[d.t[e.t]]){  rt = d.root_tags[d.t[e.t]];  } 
                 else{if(root_exists)      rt = d.n[e.r].t;           }
                 if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = [];
                 if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
@@ -250,7 +228,7 @@ export const create_base_slice = (set,get)=>({
         d.next('graph.update');
     },
 
-    receive_deleted: (d, data)=>{
+    receive_deleted: (d, data)=>{ 
         ['p','b','i','f','s'].forEach(m=>{
             data[m].forEach(n=>{
                 d.node.delete(d, n.id, true); // shallow delete
@@ -278,6 +256,20 @@ export const create_base_slice = (set,get)=>({
 
 });
 
+
+
+
+// design: {
+    //     part:null, candidate:null, 
+    //     update: d=>{
+    //         if(d.pick.nodes.length == 1 && design_tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
+    //         else{  d.design.candidate = null;  }
+    //         if(d.design.part && !d.n[d.design.part].open){ // use exists/available function here?
+    //             d.design.part = null;
+    //             d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
+    //         }
+    //     },
+    // },
 
 // if(update_funcs[d.n[n.id].t]){
 //     d.n[n.id].update = update_funcs[d.n[n.id].t](n.id);

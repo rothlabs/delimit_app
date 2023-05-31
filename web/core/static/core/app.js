@@ -52,6 +52,7 @@ export const useS = create(
         //...create_visual_slice(...a),
     }))
 );
+useS.setState(d=>{  d.init(d); return d;  });
 export const gs = ()=> useS.getState();
 export const useSS = selector=> useS(selector, shallow);
 export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
@@ -69,7 +70,7 @@ function next_state(state, func){
     while(result[1].length > 0){
         all_patches = [...all_patches, ...result[1]];
         all_inverse = [...result[2], ...all_inverse];
-        result = produceWithPatches(result[0], d=>{ d.run_next(d) }); 
+        result = produceWithPatches(result[0], d=>{ d.continue(d) }); 
     }
     useS.setState(result[0]); 
     return {state:result[0], patches:all_patches, inverse:all_inverse}; // rename state to d
@@ -176,34 +177,34 @@ export const mf = func=>{
 export function undo(){ 
     if(patch > 0){
         patch--;
-        console.log('undo');
+        console.log('Undo');
         console.log(inverse[patch]);
         useS.setState(d=>{
+            //d.design.reset_mover(d);
             var d = applyPatches(d, inverse[patch]);
             d.send(d, inverse[patch]);
+            d = produce(d, d=>{//d.design.reset_mover(d);
+                d.design.update(d);
+                d.inspect.update(d);
+            });
+            //d = produce(d, d=>{d.design.reset_mover(d)});
             return d;
         });
     }
 }
 export function redo(){
     if(patch < patches.length){
-        //console.log('redo');
+        //console.log('Redo');
         //console.log(patches[patch]);
-        
         useS.setState(d=>{
-
-            // var result = produceWithPatches(d, d=>{ 
-            //     inverse[patch].forEach(p=>{
-            //         if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){
-            //             d.node.delete(d, p.path[1]);//dead_nodes.push(p.path[0]);
-            //         }
-            //     });
-            //     //dead_nodes.forEach(n=> d.node.delete(d, n));
-            // });
-            // d.send(d, [...inverse[patch], ...result[1]]);
-
+            //d.design.reset_mover(d);
             var d = applyPatches(d, patches[patch]);
             d.send(d, patches[patch]);
+            d = produce(d, d=>{//d.design.reset_mover(d);
+                d.design.update(d);
+                d.inspect.update(d);
+            });
+            //d = produce(d, d=>{d.design.reset_mover(d)});
             return d;
         });
         patch++;

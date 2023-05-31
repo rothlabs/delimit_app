@@ -1,4 +1,3 @@
-import { node_tags } from './base.js';
 
 export const create_visual_slice = (set,get)=>({visual:{
     graph_tags:[

@@ -1,5 +1,4 @@
 import {make_id, random_vector, theme} from '../app.js';
-import {model_tags, root_tags, ordered_tags} from './base.js';
 import {Vector3} from 'three';
 import {current} from 'immer';
 
@@ -8,9 +7,9 @@ export const create_make_slice = (set,get)=>({make:{
         var t = d.n[n].t;
         if(a && a.t!=undefined) t = a.t;
         if(!d.n[r].n[t]) d.n[r].n[t] = [];
-        if(ordered_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
+        if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
         d.n[r].n[t].push(n); // forward relationship   /// use splice with a.o
-        if(root_tags[t]){  t=root_tags[t];  }
+        if(d.root_tags[t]){  t=d.root_tags[t];  }
         else{  t=d.n[r].t;  }
         if(!d.n[n].r[t]) d.n[n].r[t] = [];
         d.n[n].r[t].push(r); // reverse relationship 
@@ -41,7 +40,7 @@ export const create_make_slice = (set,get)=>({make:{
         return d.make.node(d, 'p', t, a);
     },
     atom: (d, m, v, r, t)=>{
-        const n = d.make.node(d, m, model_tags[m], {r:r, t:t});
+        const n = d.make.node(d, m, d.model_tags[m], {r:r, t:t});
         d.n[n].v = v;
         //d.n[n].pin = v;
         return n;
