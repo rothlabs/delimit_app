@@ -12,8 +12,6 @@ export const create_design_slice = (set,get)=>({design:{
     matrix: new Matrix4(), // not following wrapper rule!!!
     pin_matrix: new Matrix4(),
     mover: {pos: new Vector3()}, //, rot: new Vector3()
-    //mover_reset: 0,
-    //reset_mover:d=> d.design.mover_reset = Date.now(),
     pin_move(d){ // make drag slice?
         d.design.pin_matrix.copy(d.design.matrix).invert();
         d.pick.nodes.forEach(n => d.node.pin_pos(d, n));
@@ -41,8 +39,6 @@ export const create_design_slice = (set,get)=>({design:{
         var count = 0;
         d.pick.nodes.forEach(n=>{
             if(d.n[n].c.pos){
-                //const pos = d.node.get(d, n, 'x y z');
-                //d.design.mover.pos.add(tv.set(pos.x, pos.y, pos.z));
                 d.design.mover.pos.add(d.n[n].c.pos);
                 count++;
             }

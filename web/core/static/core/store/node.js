@@ -19,7 +19,7 @@ export const create_node_slice =(set,get)=>({node:{
     },
     pin_pos(d, n){  // should go in transform slice?    
         if(d.node.be(d,n) && d.n[n].c.pos){
-            if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3(); // Not following wrapper object rule but maybe okay here!?!?!?!   //const pos = d.node.get(d, n, 'x y z');
+            if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.node.get(d, n, 'x y z');
             d.n[n].pin.pos.copy(d.n[n].c.pos);//.set(pos.x, pos.y, pos.z);//d.n[n].pin.pos.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z);
         }
     },
