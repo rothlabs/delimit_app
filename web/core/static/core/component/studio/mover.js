@@ -8,7 +8,7 @@ import * as THREE from 'three';
 
 export function Mover(){
     const studio_mode = useS(d=> d.studio.mode);
-    const design_mode = useS(d=> d.design.mode);
+    const move_mode = useS(d=> d.design.move_mode);
     const pick_count = useS(d=> d.pick.nodes.length);
     const mover = useS(d=> d.design.mover);
     //const reset = useS(d=> d.design.mover_reset);
@@ -27,7 +27,7 @@ export function Mover(){
         pick_count>0 && c(PivotControls, { //&& Date.now()-reset>50
             //autoTransform: false,
             offset:[mover.pos.x, mover.pos.y, mover.pos.z], 
-            visible: studio_mode=='design' && design_mode=='move',
+            visible: studio_mode=='design' && move_mode=='move',
             activeAxes:[true, true, false],
             scale:120,
             depthTest:false,

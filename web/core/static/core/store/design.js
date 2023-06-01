@@ -6,12 +6,13 @@ const tm = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
     tags: ['line', 'sketch'],
-    mode: '',
+    mode: '', // make this draw mode and make seperate delete mode (erase)
     part: null, 
-    line: null,
     candidate: null, 
+    target: null,
     matrix: new Matrix4(), // not following wrapper rule!!!
     pin_matrix: new Matrix4(),
+    move_mode: '',
     mover: {pos: new Vector3()}, //, rot: new Vector3()
     pin_move(d){ // make drag slice?
         d.design.pin_matrix.copy(d.design.matrix).invert();
@@ -36,7 +37,7 @@ export const create_design_slice = (set,get)=>({design:{
             }
         }
         var o = undefined;
-        if(d.n[r].c.point && d.n[r].c.point.length > 1){
+        if(d.n[r].c.point && d.n[r].c.point.length > 1){ // upgrade to sample curve to find true closest creation and pick control points on either side of it
             const sorted = d.n[r].c.point.map((p,i)=>({i:i, d:tv.copy(p.pos).distanceTo(pos)})).sort((a,b)=>(a.d>=b.d?1:-1));
             var ad1 = sorted[0], ad2 = sorted[0];
             if(sorted[0].i-1 >= 0)            ad1 = {i:sorted[0].i-1, d:tv.copy(d.n[r].c.point[sorted[0].i-1].pos).distanceTo(pos)};

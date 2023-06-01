@@ -4,7 +4,7 @@ import {ss, useS} from '../../../app.js';
 
 export function Move(){
     const studio_mode = useS(d=> d.studio.mode);
-    const design_mode = useS(d=> d.design.mode);
+    const move_mode = useS(d=> d.design.move_mode);
     const buttons = [
         {name:'Move', icon:'bi-arrows-move', value:'move'},
     ];
@@ -12,15 +12,19 @@ export function Move(){
         studio_mode=='design' && c(ButtonGroup, {}, 
             ...buttons.map((button,i)=>
                 c(ToggleButton,{
-                    id: 'design_mode_'+i,
-                    type: 'radio',
+                    id: 'move_mode_'+i,
+                    type: 'checkbox',
                     variant: 'outline-primary', size: 'lg',
                     value: button.value,
-                    checked: design_mode == button.value,
+                    checked: move_mode == button.value,
                     className: button.icon+ ' border-white',
                     onChange:e=> ss(d=>{
-                        d.design.mode = e.currentTarget.value;
-                        if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';
+                        if(d.design.move_mode == button.value){
+                            d.design.move_mode = '';
+                        }else{
+                            d.design.move_mode = button.value;
+                        }
+                        //if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';
                     }),
                 })
             ),

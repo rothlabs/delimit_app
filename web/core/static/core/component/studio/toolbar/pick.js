@@ -13,14 +13,19 @@ export function Pick(){
             ...buttons.map((button,i)=>
                 c(ToggleButton,{
                     id: 'pick_mode_'+i,
-                    type: 'radio',
+                    type: 'checkbox',
                     variant: 'outline-primary', size: 'lg',
                     value: button.value,
                     checked: mode == button.value,
                     className: button.icon + ' border-white',
                     onChange:e=> ss(d=>{ 
-                        d.pick.mode = e.currentTarget.value
-                        if(['draw','erase'].includes(d.design.mode)) d.design.mode = '';
+                        if(d.pick.mode == e.currentTarget.value){
+                            d.pick.mode = '';
+                        }else{
+                            d.pick.mode = e.currentTarget.value;
+                        }
+                        if(d.design.mode == 'erase') d.design.mode = '';
+                        //if(['draw','erase'].includes(d.design.mode)) d.design.mode = '';
                     }), 
                 })
             ),

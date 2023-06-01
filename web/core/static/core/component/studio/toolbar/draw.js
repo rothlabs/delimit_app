@@ -8,21 +8,27 @@ export function Draw(){
     const buttons = [
         {name:'Draw',  icon:'bi-pencil', value:'draw'},
         {name:'Erase', icon:'bi-eraser', value:'erase'},
-        {name:'Move', icon:'bi-arrows-move', value:'move'},
+        //{name:'Move', icon:'bi-arrows-move', value:'move'},
     ];
     return(
         studio_mode=='design' && c(ButtonGroup, {}, 
             ...buttons.map((button,i)=>
                 c(ToggleButton,{
                     id: 'design_mode_'+i,
-                    type: 'radio',
+                    type: 'checkbox',
                     variant: 'outline-primary', size: 'lg',
                     value: button.value,
                     checked: design_mode == button.value,
-                    className: button.icon+ ' border-white',
+                    className: button.icon + ' border-white',
                     onChange:e=> ss(d=>{
-                        d.design.mode = e.currentTarget.value;
-                        if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';
+                        //console.log(e.currentTarget.value, e.currentTarget.checked);
+                        if(d.design.mode == e.currentTarget.value){
+                            d.design.mode = '';
+                        }else{
+                            d.design.mode = e.currentTarget.value;
+                        }
+                        if(d.design.mode=='erase') d.pick.mode = '';
+                        //if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';
                     }),
                 })
             ),

@@ -12,7 +12,7 @@ export function Inspect(){
         c(ButtonGroup, {}, 
             c(ToggleButton,{
                 id: 'open_inspect_design_panel',
-                type: 'checkbox',
+                type: 'checkbox', // change to radio?
                 variant: 'outline-primary', size: 'lg',
                 checked: show && panel=='inspect_design',
                 //value: '1',
