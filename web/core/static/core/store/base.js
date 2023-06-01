@@ -97,8 +97,8 @@ export const create_base_slice = (set,get)=>({
                         if(d.n[n].m=='p'){
                             set_part(n);
                         }else{
-                            console.log('push atom');
-                            console.log(patch.value.v);
+                            //console.log('push atom');
+                            //console.log(patch.value.v);
                             edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                             edits[d.n[n].m].push(patch.value.v); 
                         }
@@ -134,9 +134,6 @@ export const create_base_slice = (set,get)=>({
                             }
                         }
                     }
-                //}else if(patch.op == 'remove'){ 
-                    //if(patch.path[0]=='n' && patch.path.length==2) edits[d.n[n].m+'del'].push(n);
-                    //if(patch.path[0]=='n' && patch.path.length==3 && patch.path[2]=='deleted') set_part(n);
                 }
             }
         });
@@ -182,7 +179,7 @@ export const create_base_slice = (set,get)=>({
                     };
                     d.pick.color(d,n.id);
                 }
-                if(d.node.be(d,n.id)){
+                if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
                     d.n[n.id].open = true;
                     d.n[n.id].deleted = false;
                     d.n[n.id].r = {};
@@ -248,9 +245,6 @@ export const create_base_slice = (set,get)=>({
             // if(d.n[n].m=='p'){  d.n[n].n = {};  }
             // else{  d.n[n].v = null;  }
         });
-        //d.pick.update(d);
-        //d.design.update(d);
-        //d.graph.update(d);
         d.close_pack({variables:close_pack});
     },
 

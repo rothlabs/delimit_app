@@ -6,7 +6,7 @@ import { theme } from '../app.js';
 
 export const create_pick_slice = (set,get)=>({pick:{
     reckon_tags: ['point'],
-    nodes: [],
+    nodes: [], // rename to n ?
     mode: 'one', 
     set(d, n, v){
         d.n[n].pick.pick = v;
@@ -17,8 +17,13 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.next('design.update');
         d.next('inspect.update');
     },
+    get(d,t){
+        if(d.pick.nodes.length == 1 && d.n[d.pick.nodes[0]].t == t) return d.pick.nodes[0];
+        return false;
+    },
     delete(d, shallow){
-        d.pick.nodes.forEach(n=> d.node.delete(d,n,shallow));
+        const nodes = [...d.pick.nodes];
+        nodes.forEach(n=> d.node.delete(d,n,shallow));
     },
     sv(d, t, v){ // change to set_v
         d.inspect.content[t] = v;

@@ -8,7 +8,9 @@ export const create_make_slice = (set,get)=>({make:{
         if(a && a.t!=undefined) t = a.t;
         if(!d.n[r].n[t]) d.n[r].n[t] = [];
         if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
-        d.n[r].n[t].push(n); // forward relationship   /// use splice with a.o
+        if(a && a.o!=undefined){ // forward relationship 
+            d.n[r].n[t].splice(a.o, 0, n);
+        }else{  d.n[r].n[t].push(n); }
         if(d.root_tags[t]){  t=d.root_tags[t];  }
         else{  t=d.n[r].t;  }
         if(!d.n[n].r[t]) d.n[n].r[t] = [];
@@ -31,7 +33,7 @@ export const create_make_slice = (set,get)=>({make:{
         d.pick.color(d,n);
         if(m=='p'){ d.n[n].n={}; }
         d.make.edge(d, d.profile, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
-        if(a) d.make.edge(d, a.r, n, a);
+        if(a && a.r) d.make.edge(d, a.r, n, a);
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
         d.next('graph.update'); // check if in graph_tags 
         return n;
@@ -41,16 +43,15 @@ export const create_make_slice = (set,get)=>({make:{
     },
     atom: (d, m, v, r, t)=>{
         const n = d.make.node(d, m, d.model_tags[m], {r:r, t:t});
-        d.n[n].v = v;
-        //d.n[n].pin = v;
+        d.n[n].v = v; //d.n[n].pin = v;
         return n;
     },
-    point: (d, point, o)=>{
-        const n = d.make.part(d, 'point', {o:o, r:d.design.part}); // d, part_tag, root_id, edge_tag
-        d.make.atom(d, 'f', point.x, n, 'x'); // d, v, root_id, edge_tag
-        d.make.atom(d, 'f', point.y, n, 'y'); 
-        d.make.atom(d, 'f', point.z, n, 'z'); 
-        d.reckon.node(d,n);
+    point: (d, pos, r, o)=>{
+        const n = d.make.part(d, 'point', {r:r, o:o}); // d, part_tag, root_id, edge_tag
+        d.make.atom(d, 'f', pos.x, n, 'x'); // d, v, root_id, edge_tag
+        d.make.atom(d, 'f', pos.y, n, 'y'); 
+        d.make.atom(d, 'f', pos.z, n, 'z'); 
+        d.reckon.node(d,n); // should this be d.next() ?!?!?!
     },
 }});
 

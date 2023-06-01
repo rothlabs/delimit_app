@@ -1,7 +1,7 @@
 import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast} from '../../three/meshline.js';
 import {useThree, useFrame} from '@react-three/fiber';
-import {useS, gs, subSS, theme, static_url, Fixed_Size_Group} from '../../app.js';
+import {useS, gs, subSS, theme, static_url, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 import {Line} from '@react-three/drei/Line';
@@ -12,7 +12,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     //const meshline = useRef();
     //const meshline_material = useRef();
     const text = useRef();
-    const arrow = useRef();
+    //const arrow = useRef();
     const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
     const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
@@ -21,17 +21,18 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     //    meshline_material.current.lineWidth = 1.5 / camera.zoom;
     //});
     useEffect(()=> subSS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
-        text .current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.35) );
-        arrow.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.75) );
-        arrow.current.obj.lookAt(d[0].pos);
-        arrow.current.obj.rotateX(1.5708);
-        arrow.current.obj.position.setZ(d[0].pos.z-100);
+        text.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.5) );
+        //arrow.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.75) );
+        //arrow.current.obj.lookAt(d[0].pos);
+        //arrow.current.obj.rotateX(1.5708);
+        //arrow.current.obj.position.setZ(d[0].pos.z-100);
         //meshline.current.setPoints([arrow.current.obj.position.x,arrow.current.obj.position.y,arrow.current.obj.position.z, d[1].pos.x,d[1].pos.y,d[1].pos.z-100]);
         //console.log('update edge pos');
     }),[]); 
     //console.log('render edge');
     const rg = useS(d=> d.n[r].graph);
     const ng = useS(d=> d.n[n].graph);
+    const d = gs();
     return(
         c('group', { // not using Pickable because it is not a node. make another Pickable for none node objects
             name: 'edge',
@@ -43,7 +44,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
             c(Line, {
                 points:[[rg.pos.x, rg.pos.y, rg.pos.z-100], [ng.pos.x, ng.pos.y, ng.pos.z-100]],       // Array of points, Array<Vector3 | Vector2 | [number, number, number] | [number, number] | number>
                 color:color,                   // Default
-                lineWidth:1.5,                   // In pixels (default)
+                lineWidth:1,                   // In pixels (default)
                 segments:false,                 // If true, renders a THREE.LineSegments2. Otherwise, renders a THREE.Line2
                 dashed:false,                   // Default
                 //vertexColors:true,              // Optional array of RGB values for each point
@@ -63,25 +64,25 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
                 ref: text,
                 size: active ? 1.5 : 1,
             },
-                c(Text, {
+                d.n[n].t!=t && c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     outlineWidth: '25%',
                     outlineColor: 'white',
                     fontSize: 14,
                 },
-                    t,
+                    readable(t),
                     c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
             ),
-            c(Fixed_Size_Group, {
-                ref: arrow,
-                size: active ? 1.5 : 1,
-            },
-                c('mesh', {},
-                    c('coneGeometry', {args:[4,24,8]}),
-                    c('meshBasicMaterial', {color: color, toneMapped:false}),
-                ),
-            ),
+            // c(Fixed_Size_Group, {
+            //     ref: arrow,
+            //     size: active ? 1.5 : 1,
+            // },
+            //     c('mesh', {},
+            //         c('coneGeometry', {args:[4,24,8]}),
+            //         c('meshBasicMaterial', {color: color, toneMapped:false}),
+            //     ),
+            // ),
         )
     )
 }

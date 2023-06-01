@@ -3,19 +3,12 @@ import { Vector3 } from 'three';
 const tv = new Vector3();
 
 export const create_node_slice =(set,get)=>({node:{
-    be:(d, n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
+    be:(d,n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
         if(d.n[n] && !d.n[n].deleted){
             if(d.n[n].open) return 'open';
             return 'here';
         }
         return null;
-    },
-    get(d, n, t){
-        const result = {};
-        t.split(' ').forEach(t=>{
-            if(d.n[n].n && d.n[n].n[t] && d.node.be(d,d.n[n].n[t][0])) result[t] = d.n[d.n[n].n[t][0]].v;
-        });
-        return result;
     },
     pin_pos(d, n){  // should go in transform slice?    
         if(d.node.be(d,n) && d.n[n].c.pos){
@@ -80,6 +73,15 @@ export const create_node_slice =(set,get)=>({node:{
     },
 }});
 
+
+
+// get(d, n, t){
+//     const result = {};
+//     t.split(' ').forEach(t=>{
+//         if(d.n[n].n && d.n[n].n[t] && d.node.be(d,d.n[n].n[t][0])) result[t] = d.n[d.n[n].n[t][0]].v;
+//     });
+//     return result;
+// },
 
 // get:(d, n, t, o)=>{
     //     if(!o) o=0;

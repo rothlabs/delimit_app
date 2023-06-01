@@ -6,7 +6,7 @@ export const create_graph_slice = (set,get)=>({graph:{
     edges: [],
     edge_vis:{
         view:false, asset:false,
-        name:true, point:true, x:true, y:true, z:true,
+        name:true, x:true, y:true, z:true, point:true, line:true,
     },
     init(d){
         d.graph.tag_vis = {
@@ -62,14 +62,14 @@ export const create_graph_slice = (set,get)=>({graph:{
         }
 
         const level = [];
-        for(var i=0; i<=highest_lvl+2; i++){  level.push({});  }
+        for(var i=0; i<=highest_lvl+2; i++){  level.push({max_x:0, group:{}});  }
         d.graph.nodes.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];
             d.node.for_r(d, n, r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
-            if(level[lvl][grp] == undefined) level[lvl][grp] = [];
-            level[lvl][grp].push(n);
+            if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = [];
+            level[lvl].group[grp].push(n);
         });
 
         var lx=0;
@@ -78,24 +78,23 @@ export const create_graph_slice = (set,get)=>({graph:{
         var max_y = 0;
         level.forEach(l=>{
             var gx = lx;
-            var lvl_max_x = 0;
-            Object.values(l).forEach(g=>{
+            Object.values(l.group).forEach(g=>{
                 const size = Math.round(Math.sqrt(g.length));
                 var x = gx;
                 var y = ly;
                 g.forEach(n=>{
-                    if(x > lvl_max_x) lvl_max_x = x;
+                    if(x > l.max_x) l.max_x = x;
                     if(y > max_y) max_y = y;
-                    d.n[n].graph.pos.set(x, y, 0);
+                    d.n[n].graph.pos.set(x, -y, 0);
                     y++;
                     if(y >= ly+size){
                         y=ly;  
                         x++;
                     }
                 });
-                gx = lvl_max_x + 2;
+                gx = l.max_x + 2;
             });
-            if(lvl_max_x > max_x) max_x = lvl_max_x;
+            if(l.max_x > max_x) max_x = l.max_x;
             ly = max_y + 2;
         });
 
@@ -105,15 +104,77 @@ export const create_graph_slice = (set,get)=>({graph:{
             d.graph.scale = window_size / graph_size / 2;
         }
         d.graph.nodes.forEach(n=>{   
-            d.n[n].graph = {...d.n[n].graph, 
-                pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(-max_x*d.graph.scale/2,-(max_y+2)*d.graph.scale/2,0))
-            };
+            d.n[n].graph = {...d.n[n].graph, pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(
+                    -level[d.n[n].graph.lvl].max_x*d.graph.scale/2, // -max_x*d.graph.scale/2
+                    (max_y+2)*d.graph.scale/2,
+                    0
+            ))};
         });
 
         //d.graph.ready = true;
 
     },
 }});
+
+
+
+
+
+
+
+
+// const level = [];
+//         for(var i=0; i<=highest_lvl+2; i++){  level.push({});  }
+//         d.graph.nodes.forEach(n=>{
+//             const lvl = d.n[n].graph.lvl;
+//             var rt = [];
+//             d.node.for_r(d, n, r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
+//             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
+//             if(level[lvl][grp] == undefined) level[lvl][grp] = [];
+//             level[lvl][grp].push(n);
+//         });
+
+//         var lx=0;
+//         var ly=0;
+//         var max_x = 0;
+//         var max_y = 0;
+//         level.forEach(l=>{
+//             var gx = lx;
+//             var l.max_x = 0;
+//             Object.values(l).forEach(g=>{
+//                 const size = Math.round(Math.sqrt(g.length));
+//                 var x = gx;
+//                 var y = ly;
+//                 g.forEach(n=>{
+//                     if(x > l.max_x) l.max_x = x;
+//                     if(y > max_y) max_y = y;
+//                     d.n[n].graph.pos.set(x, y, 0);
+//                     y++;
+//                     if(y >= ly+size){
+//                         y=ly;  
+//                         x++;
+//                     }
+//                 });
+//                 gx = l.max_x + 2;
+//             });
+//             if(l.max_x > max_x) max_x = l.max_x;
+//             ly = max_y + 2;
+//         });
+
+//         if(d.graph.scale == 1){
+//             const window_size = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight
+//             const graph_size = max_x > max_y ? max_x : max_y;
+//             d.graph.scale = window_size / graph_size / 2;
+//         }
+//         d.graph.nodes.forEach(n=>{   
+//             d.n[n].graph = {...d.n[n].graph, 
+//                 pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(-max_x*d.graph.scale/2,-(max_y+2)*d.graph.scale/2,0))
+//             };
+//         });
+
+
+
+
 
 
 // update: d=>{

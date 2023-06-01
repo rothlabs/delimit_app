@@ -97,8 +97,6 @@ function commit_state(arg){
     });
     arg.patches.forEach(p=>{
         if(p.op=='replace' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
-        //if(p.op=='remove' && p.path.length==2 && p.path[0]=='n') save_patches = true;
-        //if(p.op=='add' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
     });
     if(save_patches){
         //console.log('save patches');
@@ -110,8 +108,7 @@ function commit_state(arg){
         const patches_extras = [];
         const new_patches = arg.patches.map(p=>{ // replace add with deleted=false
             var result = p;
-            if(p.op=='add' && p.path.length==2 && p.path[0]=='n'){
-                console.log('replace add with replace n.id.deleted=false');
+            if(p.op=='add' && p.path.length==2 && p.path[0]=='n'){//console.log('replace add with replace n.id.deleted=false');
                 result = {
                     op:'replace',
                     path: [...p.path, 'deleted'],
@@ -128,8 +125,7 @@ function commit_state(arg){
         const inverse_extras = [];
         const new_inverse = arg.inverse.map(p=>{ // replace remove with deleted=true
             var result = p;
-            if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){
-                console.log('replace remove with replace n.id.deleted=true');
+            if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){//console.log('replace remove with replace n.id.deleted=true');
                 result = {
                     op:'replace',
                     path: [...p.path, 'deleted'],
@@ -170,7 +166,7 @@ export const sf = func=>{
     //console.log('set fork');
     next_state(fork, func);
 }; // set fork
-export const mf = func=>{
+export const mf = func=>{ // watch out for no-change resulting in undefined d!?!?!
     commit_state(next_state(fork, func));
     fork = null;
 }; // merge fork
@@ -414,6 +410,8 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
 
 
 
+//if(p.op=='remove' && p.path.length==2 && p.path[0]=='n') save_patches = true;
+        //if(p.op=='add' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
 
 
             // var result = produceWithPatches(d, d=>{ 

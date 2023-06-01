@@ -5,10 +5,11 @@ const tv = new Vector3();
 const tm = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
-    tags: ['part', 'line', 'sketch'],
+    tags: ['line', 'sketch'],
     mode: '',
-    part:null, 
-    candidate:null, 
+    part: null, 
+    line: null,
+    candidate: null, 
     matrix: new Matrix4(), // not following wrapper rule!!!
     pin_matrix: new Matrix4(),
     mover: {pos: new Vector3()}, //, rot: new Vector3()
@@ -26,7 +27,24 @@ export const create_design_slice = (set,get)=>({design:{
         });
     },
     make_point: (d, pos)=>{
-        d.make.point(d, pos, -1); // must have insertion index. For now, using -1 for last
+        var r = d.design.part;
+        if(d.n[r].t != 'line'){
+            r = d.pick.get(d, 'line');
+            if(!r){
+                r = d.make.part(d, 'line', {r:d.design.part});
+                d.pick.one(d, r);
+            }
+        }
+        var o = undefined;
+        if(d.n[r].c.point && d.n[r].c.point.length > 1){
+            const sorted = d.n[r].c.point.map((p,i)=>({i:i, d:tv.copy(p.pos).distanceTo(pos)})).sort((a,b)=>(a.d>=b.d?1:-1));
+            var ad1 = sorted[0], ad2 = sorted[0];
+            if(sorted[0].i-1 >= 0)            ad1 = {i:sorted[0].i-1, d:tv.copy(d.n[r].c.point[sorted[0].i-1].pos).distanceTo(pos)};
+            if(sorted[0].i+1 < sorted.length) ad2 = {i:sorted[0].i+1, d:tv.copy(d.n[r].c.point[sorted[0].i+1].pos).distanceTo(pos)};
+            o = Math.ceil((sorted[0].i + (ad1.d<ad2.d?ad1.i:ad2.i)) / 2); // ceil
+            if(sorted[0].i == sorted.length-1) o+=2;
+        }
+        d.make.point(d, pos, r, o); // must have insertion index. For now, using -1 for last
     },
     update: d=>{
         if(d.pick.nodes.length == 1 && d.design.tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
@@ -49,6 +67,18 @@ export const create_design_slice = (set,get)=>({design:{
         if(d.pick.nodes.length===0) d.design.matrix.identity();
     },
 }});
+
+
+
+
+//const mdi = sorted[0].i;
+            //sorted.sort((a,b)=>(Math.abs(a.i-mdi)>Math.abs(a.i-mdi)));
+
+// var md1={i:-1, d:Infinity}, md2={i:-1, d:Infinity};
+            // d.n[r].n.point.forEach((n,i)=>{
+            //     const dist = tv.copy(d.n[n].c.pos).distanceTo(pos);
+            //     if(dist < md1.d){  md2.i=md1.i; md2.d=md1.d;  md1.i=i; md1.d=dist;   }
+            // });
 
 
 //end_move(d){
