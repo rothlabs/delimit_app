@@ -18,6 +18,7 @@ export const create_base_slice = (set,get)=>({
     order_tags: ['point'],
     atom_tags: Object.values(model_tags).slice(1),
     node_tags: [...Object.values(model_tags), 'public', 'profile', 'point', 'line', 'sketch'],
+    //single_tags: ['name', ...float_tags],
 
     n: {},
     t: {},
@@ -229,9 +230,10 @@ export const create_base_slice = (set,get)=>({
 
     receive_deleted: (d, data)=>{ 
         ['p','b','i','f','s'].forEach(m=>{
-            data[m].forEach(n=>{
-                d.node.delete(d, n.id, true); // shallow delete
-            });
+            d.node.delete(d, data[m], true);
+            //data[m].forEach(n=>{
+            //    d.node.delete(d, [n.id], true); // shallow delete
+            //});
         });
     },
 
