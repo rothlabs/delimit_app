@@ -52,6 +52,7 @@ export const create_make_slice = (set,get)=>({make:{
         d.make.atom(d, 'f', pos.y, n, 'y'); 
         d.make.atom(d, 'f', pos.z, n, 'z'); 
         d.reckon.node(d,n); // should this be d.next() ?!?!?!
+        return n;
     },
 }});
 

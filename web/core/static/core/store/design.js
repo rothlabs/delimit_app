@@ -9,7 +9,6 @@ export const create_design_slice = (set,get)=>({design:{
     mode: '', // make this draw mode and make seperate delete mode (erase)
     part: null, 
     candidate: null, 
-    target: null,
     matrix: new Matrix4(), // not following wrapper rule!!!
     pin_matrix: new Matrix4(),
     move_mode: '',
@@ -30,7 +29,7 @@ export const create_design_slice = (set,get)=>({design:{
     make_point: (d, pos)=>{
         var r = d.design.part;
         if(d.n[r].t != 'line'){
-            r = d.pick.get(d, 'line');
+            r = d.pick.get_if_one(d, ['line']); //, {one_tag:true}
             if(!r){
                 r = d.make.part(d, 'line', {r:d.design.part});
                 d.pick.one(d, r);
@@ -45,12 +44,12 @@ export const create_design_slice = (set,get)=>({design:{
             o = Math.ceil((sorted[0].i + (ad1.d<ad2.d?ad1.i:ad2.i)) / 2); // ceil
             if(sorted[0].i == sorted.length-1) o+=2;
         }
-        d.make.point(d, pos, r, o); // must have insertion index. For now, using -1 for last
+        const n = d.make.point(d, pos, r, o); // must have insertion index. For now, using -1 for last
+        d.pick.one(d, n, true);
     },
     update: d=>{
-        if(d.pick.nodes.length == 1 && d.design.tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
-        else{  d.design.candidate = null;  }
-        if(d.design.part && !d.n[d.design.part].open){ // use exists/available function here?
+        d.design.candidate = d.pick.get_if_one(d, d.design.tags);
+        if(!d.node.be(d, d.design.part)){ // use exists/available function here?  d.design.part && !d.n[d.design.part].open
             d.design.part = null;
             d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
         }
@@ -68,6 +67,10 @@ export const create_design_slice = (set,get)=>({design:{
         if(d.pick.nodes.length===0) d.design.matrix.identity();
     },
 }});
+
+
+//if(d.pick.nodes.length == 1 && d.design.tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
+        //else{  d.design.candidate = null;  }
 
 
 

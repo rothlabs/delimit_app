@@ -6,20 +6,29 @@ import { theme } from '../app.js';
 
 export const create_pick_slice = (set,get)=>({pick:{
     reckon_tags: ['point'],
-    nodes: [], // rename to n ?
+    nodes: [], // rename to n ? // make null if empty?
     mode: 'one', 
+    same: null,
     set(d, n, v){
         d.n[n].pick.pick = v;
         if(v){ d.add(d.pick.nodes, n)}
         else{  d.pop(d.pick.nodes, n)}
         d.pick.color(d,n);
-        if(d.pick.reckon_tags.includes(d.n[n].t)) d.reckon.node(d, n);//d.next('reckon.node', n); 
+        if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); //d.reckon.node(d, n);
+        d.pick.same = null;
+        if(d.pick.nodes.length>1 && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t)) d.pick.same = d.pick.nodes;
         d.next('design.update');
         d.next('inspect.update');
     },
-    get(d,t){
-        if(d.pick.nodes.length == 1 && d.n[d.pick.nodes[0]].t == t) return d.pick.nodes[0];
-        return false;
+    // get_if_same(d){
+    //     if(d.pick.nodes.length>1 && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t)) return d.pick.nodes;
+    //     return null;
+    // },
+    get_if_one(d, t){ // add option to also check absolute length==1 before filtering?
+        var nodes = d.pick.nodes;
+        if(t!=undefined) nodes = d.pick.nodes.filter(n=> t.includes(d.n[n].t));
+        if(nodes.length == 1) return nodes[0];
+        return null;
     },
     delete(d, shallow){
         const nodes = [...d.pick.nodes];
@@ -41,14 +50,15 @@ export const create_pick_slice = (set,get)=>({pick:{
     hover(d, n, hover){
         d.n[n].pick.hover = hover;
         d.pick.color(d,n);
-        if(d.pick.reckon_tags.includes(d.n[n].t)) d.reckon.node(d, n);//d.next('reckon.node', n); 
+        if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); //d.reckon.node(d, n);//
     },
-    none(d){
-        const nodes = [...d.pick.nodes];
+    none(d, t){
+        var nodes = [...d.pick.nodes];
+        if(t) nodes = nodes.filter(n=> d.n[n].t==t);
         nodes.forEach(n=> d.pick.set(d, n, false)); //d.n[n].pick.pick=false   Object.values(d.n).forEach(n=> n.pick.pick=false);
     },
-    one(d, n){
-        d.pick.none(d);
+    one(d, n, of_tag){
+        d.pick.none(d, of_tag ? d.n[n].t : null);
         d.pick.set(d, n, true)
         if(d.n[n].pick.pick) console.log(n, current(d).n[n]);
     },

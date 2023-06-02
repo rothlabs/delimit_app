@@ -33,7 +33,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
         });
         if(d.pick.nodes.length > 0){
             if(window.innerWidth>=576 || (d.studio.panel.show && (d.studio.panel.name=='inspect_design' || d.studio.panel.name=='inspect_nodes'))){
-                if(d.design.part && d.pick.nodes.length==1 && d.pick.nodes[0]==d.design.part){
+                if(d.design.part && d.design.part==d.pick.get_if_one(d)){ //d.pick.nodes.length==1 && d.pick.nodes[0]==d.design.part
                     d.studio.panel={name:'inspect_design', show:true};
                 }else{
                     d.studio.panel={name:'inspect_nodes', show:true};

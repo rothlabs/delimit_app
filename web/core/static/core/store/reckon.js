@@ -1,6 +1,8 @@
 import { Vector3 } from "three";
 import {current} from 'immer';
 
+const zero_vector = new Vector3();
+
 export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
     node(d, n){ // might need to check for node existence or track original reckon call
@@ -10,7 +12,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n){
         d.reckon.count++;
-        d.node.for_r(d, n, r=> d.next('reckon.node', r)); // got to watch out for cycle
+        d.node.for_r(d, [n], r=> d.next('reckon.node', r)); // got to watch out for cycle
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -42,8 +44,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.n[n].c.pos = new Vector3(pos.x, pos.y, pos.z); // for convenience in calculations elsewhere
     },
     line(d,n){
-        d.reckon.list(d, n, 'point', n=>({   pos:d.n[n].c.pos   })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,
-    },
+        d.reckon.list(d, n, 'point', n=>({   pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
+    }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
     sketch(d,n){
         //d.reckon.list(d, n, 'line', n=>({}));
     },

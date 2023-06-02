@@ -25,6 +25,7 @@ import {create_design_slice} from './store/design.js';
 import {create_make_slice} from './store/make.js';
 import {create_node_slice} from './store/node.js';
 import {create_reckon_slice} from './store/reckon.js';
+import {create_remake_slice} from './store/remake.js';
 //import {create_next_slice} from './store/next.js';
 //import {create_visual_slice} from './store/visual.js';
 
@@ -48,6 +49,7 @@ export const useS = create(
         ...create_make_slice(...a),
         ...create_node_slice(...a),
         ...create_reckon_slice(...a),
+        ...create_remake_slice(...a),
         //...create_next_slice(...a),
         //...create_visual_slice(...a),
     }))
@@ -75,7 +77,7 @@ function next_state(state, func){
     useS.setState(result[0]); 
     return {state:result[0], patches:all_patches, inverse:all_inverse}; // rename state to d
 }
-function patch_test(p){
+function ignore_patch(p){
     const path = p.path.join('.');
     if(path == 'studio.panel') return false;
     if(path == 'studio.panel.show') return false;
@@ -84,22 +86,37 @@ function patch_test(p){
     return true;
 }
 
+const ignored_node_props = ['pick', 'graph', 'pin', 'c'];
+
 function commit_state(arg){
-    arg.state.send(arg.state, arg.patches);
-    arg.patches = arg.patches.filter(p=> patch_test(p));
-    arg.inverse = arg.inverse.filter(p=> patch_test(p));
-    var save_patches = true;
+    arg.state.send(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
+    arg.patches = arg.patches.filter(p=> ignore_patch(p));
+    arg.inverse = arg.inverse.filter(p=> ignore_patch(p));
+    var save_patches = false;
+    //console.log(patches);
     arg.patches.forEach(p=>{
-        const path = p.path.join('.');
-        if(p.path.includes('pick')) save_patches = false;
-        if(path == 'design.mode') save_patches = false;
-        if(path == 'studio.mode') save_patches = false;
+        if(p.path[0]=='n'){
+            if(p.path.length > 2){
+                if(!ignored_node_props.includes(p.path[2])) save_patches = true;
+            }else{
+                save_patches = true;
+            }
+        }
     });
-    arg.patches.forEach(p=>{
-        if(p.op=='replace' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
-    });
+    // arg.patches.forEach(p=>{
+    //     if(p.op=='replace' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
+    // });
+    // arg.patches.forEach(p=>{
+    //     const path = p.path.join('.');
+    //     if(p.path.includes('pick')) save_patches = false;
+    //     if(path == 'design.mode') save_patches = false;
+    //     if(path == 'studio.mode') save_patches = false;
+    // });
+    // arg.patches.forEach(p=>{
+    //     if(p.op=='replace' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
+    // });
     if(save_patches){
-        //console.log('save patches');
+        console.log('Commit Patches');
         //console.log(arg.patches);
         if(patches.length > patch){
             patches.splice(patch, patches.length-patch);

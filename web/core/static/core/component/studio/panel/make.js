@@ -20,7 +20,7 @@ export function Make(){
                             className: 'border-white text-start '+item.icon,
                             variant:'outline-primary', size:'lg',
                             onClick:e=> ss(d=> d.studio.make(d, item.value)),
-                        }, item.name)
+                        }, c('span',{style:{fontSize:'18px'}}, item.name))
                     )
                 ),
             ),

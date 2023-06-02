@@ -1,6 +1,8 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
-import {Row, Col, Dropdown, Container, Form, ButtonGroup, Button, ToggleButton} from 'react-bootstrap';
+import {Row, Col, Dropdown, Container, Form, ButtonGroup, ButtonToolbar, Button, ToggleButton} from 'react-bootstrap';
 import {ss, gs, useS, use_window_size} from '../../../app.js';
+import {Remake} from '../toolbar/remake.js';
+import {Delete} from '../toolbar/delete.js';
 import {Badge} from '../../node/base.js'
 import {String} from '../../node/input/string.js';
 import {Float} from '../../node/input/float.js';
@@ -29,24 +31,38 @@ export function Inspect(){
             ...float_tags.map(t=>
                 c(Float, {t:t})
             ),
-            nodes.filter(n=>d.n[n].asset).length ? c('div', {className:''},
-                c(ButtonGroup, {},
-                    c(Button, {
-                        variant: 'outline-secondary',
-                        onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
-                            d.pick.delete(d);
-                        }),
-                    }, 'Delete'),
-                    c(Button, {
-                        variant: 'outline-secondary',
-                        onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
-                            d.pick.delete(d, true);
-                        }),
-                    }, 'Shallow Delete'),
-                )
+            nodes.filter(n=>d.n[n].asset).length ? c(ButtonToolbar, {className:'gap-2'},
+                c(Delete),
+                c(Remake),
             ) : null,
         )
     )
 }
+
+
+// c(ButtonToolbar, {},
+//     c(Button, {
+//         variant: 'outline-secondary', size: 'lg',
+//         className: 'border-white bi-trash2',
+//         onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
+//             d.pick.delete(d, true);
+//         }),
+//     }),
+//     c(Button, {
+//         variant: 'outline-secondary', size: 'lg',
+//         className: 'border-white bi-trash2-fill',
+//         onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
+//             d.pick.delete(d);
+//         }),
+//     }),
+// ),
+
+                // c(Button, {
+                //     variant: 'outline-secondary', size: 'lg',
+                //     className: 'border-white bi-arrows-angle-contract',  //bi-sign-merge-left
+                //     onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
+                //         console.log('merge!!!');
+                //     }),
+                // }),
 
 

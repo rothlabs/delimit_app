@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-import {ToggleButton, ButtonGroup} from 'react-bootstrap';
+import {ToggleButton, ButtonToolbar} from 'react-bootstrap';
 import {ss, useS} from '../../../app.js';
 
 export function Pick(){
@@ -9,7 +9,7 @@ export function Pick(){
         {name:'Multi', icon:'bi-cursor-fill', value:'multi'},
     ];
     return(
-        c(ButtonGroup, {}, 
+        c(ButtonToolbar, {}, 
             ...buttons.map((button,i)=>
                 c(ToggleButton,{
                     id: 'pick_mode_'+i,

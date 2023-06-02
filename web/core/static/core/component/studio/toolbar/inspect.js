@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-import {ButtonGroup, ToggleButton} from 'react-bootstrap';
+import {ButtonToolbar, ToggleButton} from 'react-bootstrap';
 import {ss, gs, useS} from '../../../app.js';
 
 export function Inspect(){ 
@@ -9,7 +9,7 @@ export function Inspect(){
     const nodes = useS(d=> d.pick.nodes); 
     //console.log('render inspector');
     return (
-        c(ButtonGroup, {}, 
+        c(ButtonToolbar, {}, 
             c(ToggleButton,{
                 id: 'open_inspect_design_panel',
                 type: 'checkbox', // change to radio?

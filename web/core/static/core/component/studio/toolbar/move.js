@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-import {ToggleButton, ButtonGroup} from 'react-bootstrap';
+import {ToggleButton, ButtonToolbar} from 'react-bootstrap';
 import {ss, useS} from '../../../app.js';
 
 export function Move(){
@@ -9,7 +9,7 @@ export function Move(){
         {name:'Move', icon:'bi-arrows-move', value:'move'},
     ];
     return(
-        studio_mode=='design' && c(ButtonGroup, {}, 
+        studio_mode=='design' && c(ButtonToolbar, {}, 
             ...buttons.map((button,i)=>
                 c(ToggleButton,{
                     id: 'move_mode_'+i,

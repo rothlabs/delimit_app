@@ -1,5 +1,5 @@
 import {createElement as c, Fragment} from 'react';
-import {Row, Col, Container, ToggleButton, ButtonGroup, Button} from 'react-bootstrap';
+import {Row, Col, Container, ToggleButton, ButtonGroup, ButtonToolbar, Button} from 'react-bootstrap';
 import {Inspect} from './inspect.js';
 import {History} from './history.js';
 import {Draw} from './draw.js';
@@ -33,15 +33,13 @@ export function Toolbar(){
                         checked: mode == button.value,
                         onChange:e=> ss(d=> d.studio.mode=e.currentTarget.value),
                         disabled: button.disabled,
-                        //className: button.icon,
-                    }, c('i',{className:button.icon, style:{fontSize:'24px'}}), window_size.width>576 ? button.name : '') //c('span',{className:'align-baseline'},button.name)
+                        className: button.icon,
+                    }, c('span',{style:{fontSize:'18px'}}, window_size.width>576 ? button.name : '')) //c('span',{className:'align-baseline'},button.name)
                 ),
             ),
-            c(Container, {fluid:true, className:'bg-white'}, // pb:5,
-                c(Row,{className:'row-cols-auto gap-2 p-2'}, // use ButtonToolbar here instead?
-                    ...tools.map(tool => 
-                        c(Col,{className:'ps-1 pe-1'}, c(tool)),
-                    )
+            c(Container, {fluid:true, className:'bg-white'}, // pb:5, ButtonToolbar
+                c(ButtonToolbar,{className:'gap-3 p-2'}, // use ButtonToolbar here instead?
+                    ...tools.map(tool => c(tool))
                 ),
             ),
             mode=='graph' && design_candidate && c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-3 d-grid gap-2 col-6 mx-auto'},
@@ -58,5 +56,13 @@ export function Toolbar(){
     )
 }
 
+//}, c('i',{className:button.icon, style:{fontSize:'24px'}}), window_size.width>576 ? button.name : '')
+
 //className:'position-absolute bottom-0 start-50 translate-middle-x mb-2',
 
+
+// c(Row,{className:'row-cols-auto gap-2 p-2'}, // use ButtonToolbar here instead?
+                //     ...tools.map(tool => 
+                //         c(Col,{className:'ps-1 pe-1'}, c(tool)),
+                //     )
+                // ),

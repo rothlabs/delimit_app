@@ -28,27 +28,26 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.update(d);
     },
     update: d=>{
+        //console.log('update graph');
         d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.edges = [];
-        d.graph.nodes.forEach(r=>{
-            d.node.for_n(d, r, (n,t)=>{
+        //d.graph.nodes.forEach(r=>{
+            d.node.for_n(d, d.graph.nodes, (r,n,t)=>{
                 if(d.node.be(d,n) && d.n[n].graph.vis && d.graph.edge_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
                     d.graph.edges.push({r:r, t:t, n:n}); 
                 }
             });
-        });
-        //d.graph.arrange = true;
+       // });
 
-        d.graph.nodes.forEach(n=>{   d.n[n].graph.lvl = 0;   });
-        //Object.values(d.n).forEach(n=> n.graph.lvl=0);
+        d.graph.nodes.forEach(n=>{   d.n[n].graph.lvl = 0;   }); //Object.values(d.n).forEach(n=> n.graph.lvl=0);
         
         var highest_lvl = 0;
         var setting_lvl = true; 
         while(setting_lvl){
             setting_lvl = false;
-            d.graph.nodes.forEach(n=>{
+            d.graph.nodes.forEach(n=>{ 
                 var lvl = 0;
-                d.node.for_r(d, n, r=>{
+                d.node.for_r(d, [n], r=>{
                     if(d.graph.nodes.includes(r)){
                         if(d.n[r].graph.lvl > lvl) lvl = d.n[r].graph.lvl;
                     }
@@ -66,7 +65,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.nodes.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];
-            d.node.for_r(d, n, r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
+            d.node.for_r(d, [n], r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
             if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = [];
             level[lvl].group[grp].push(n);
@@ -110,9 +109,6 @@ export const create_graph_slice = (set,get)=>({graph:{
                     0
             ))};
         });
-
-        //d.graph.ready = true;
-
     },
 }});
 

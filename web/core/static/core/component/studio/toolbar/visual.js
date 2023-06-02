@@ -7,17 +7,17 @@ export function Visual(){
     const show = useS(d=> d.studio.panel.show);
     return(
         //c(ButtonGroup, {},
-            c(ToggleButton, {
-                id:'open_visual_panel',
-                type: 'checkbox',
-                className:'bi-eye border-white',
-                variant:'outline-primary', size: 'lg',
-                checked: show && panel=='visual',
-                onChange:(e)=> { 
-                    if(e.currentTarget.checked){  ss(d=> d.studio.panel={name:'visual', show:true});   }
-                    else{                         ss(d=> d.studio.panel.show=false);                   }
-                }
-            })
+        c(ToggleButton, {
+            id:'open_visual_panel',
+            type: 'checkbox',
+            className:'bi-eye border-white',
+            variant:'outline-primary', size: 'lg',
+            checked: show && panel=='visual',
+            onChange:(e)=> { 
+                if(e.currentTarget.checked){  ss(d=> d.studio.panel={name:'visual', show:true});   }
+                else{                         ss(d=> d.studio.panel.show=false);                   }
+            }
+        })
         //)
     )
 }

@@ -80,9 +80,9 @@ export const create_base_slice = (set,get)=>({
             //console.log('set entire part: '+d.n[n].t);
             const part = [[n],        [], [], [], [], [], ['replace']];
             const tags = [[d.n[n].t], [], [], [], [], []];
-            d.node.for_n(d, n, (nn,t)=>{
-                const mi = ['r','p','b','i','f','s'].indexOf(d.n[nn].m);
-                part[mi].push(nn);
+            d.node.for_n(d, [n], (r,n,t)=>{
+                const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
+                part[mi].push(n);
                 tags[mi].push(t);
             });
             edits.parts.push(part);
@@ -162,6 +162,7 @@ export const create_base_slice = (set,get)=>({
     
     receive: (d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         //const window_size = (window.innerWidth+window.innerHeight)/4;
+        var set_update_graph = false;
         if(data.t) d.t = Object.fromEntries(data.t.map(t=> [t.id, t.v]));
         ['p','b','i','f','s'].forEach(m=>{
             data[m].forEach(n=>{
@@ -180,6 +181,7 @@ export const create_base_slice = (set,get)=>({
                     d.pick.color(d,n.id);
                 }
                 if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
+                    set_update_graph = true;
                     d.n[n.id].open = true;
                     d.n[n.id].deleted = false;
                     d.n[n.id].r = {};
@@ -222,7 +224,7 @@ export const create_base_slice = (set,get)=>({
             if(d.node.be(d,n.id)) d.reckon.node(d, n.id); // need to track if reckon was already called due to branch (so not running same calc)
         });
         d.studio.ready = true;
-        d.next('graph.update');
+        if(set_update_graph) d.next('graph.update'); // only if add/remove or d.n[n].n/d.n[n].r changes
     },
 
     receive_deleted: (d, data)=>{ 

@@ -29,32 +29,36 @@ export const create_node_slice =(set,get)=>({node:{
         d.n[n].v = v; // check if has v?
         d.next('reckon.node', n);
     },
-    for_n(d, n, func, filter){
+    for_n(d, roots, func, filter){
         if(!filter) filter = ['open']; 
-        if(d.n[n].n) Object.entries(d.n[n].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
-            if(filter.includes(d.node.be(d,n))) func(n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);
-        }));
+        roots.forEach(r=>{
+            if(d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
+                if(filter.includes(d.node.be(d,n))) func(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);
+            }));
+        });
     },
-    for_r:(d, n, func, filter)=>{
+    for_r:(d, nodes, func, filter)=>{//if(!Array.isArray(nodes)) nodes = [nodes];
         if(!filter) filter = ['open']; 
-        Object.entries(d.n[n].r).forEach(([t,nodes],i)=> nodes.forEach((r,o)=> {
-            if(filter.includes(d.node.be(d,r))) func(r,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
-        }));
+        nodes.forEach(n=>{
+            Object.entries(d.n[n].r).forEach(([t,roots],i)=> roots.forEach((r,o)=> {
+                if(filter.includes(d.node.be(d,r))) func(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
+            }));
+        });
     },
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
         d.next('graph.update');
     },
-    delete:(d, n, shallow)=>{ // allow delete if not asset when it is another user deleting 
+    delete:(d, n, deep)=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
             d.node.close(d, n);
             d.pick.set(d, n, false);
             d.n[n].deleted = true;
             var reset_root_edges = false;
             if(d.order_tags.includes(d.n[n].t)) reset_root_edges=true;  
-            d.node.for_r(d, n, r=>{
+            d.node.for_r(d, [n], r=>{ // rewrite to use one loop: d.node.for_n(d, d.n[n].r, (r,n,t,o)=>{
                 const dead_edges = [];
-                d.node.for_n(d, r, (nn,t,o)=>{
+                d.node.for_n(d, [r], (rr,nn,t,o)=>{
                     //console.log(nn, t, o);
                     if(n==nn) dead_edges.push({t:t,o:o});
                 }, [null]);
@@ -65,10 +69,10 @@ export const create_node_slice =(set,get)=>({node:{
                 });
                 if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // this way the patches function will send entire list 
             });
-            if(!shallow){
-                d.node.for_n(d, n, n=> d.node.delete(d, n, shallow)); // must check if no roots except profile, public, etc
+            if(deep){
+                d.node.for_n(d, [n], (r,n)=> d.node.delete(d, n, deep)); // must check if no roots except profile, public, etc
             }
-            d.reckon.node(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
+            d.next('reckon.node',n);//d.reckon.node(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
         }
     },
 }});
