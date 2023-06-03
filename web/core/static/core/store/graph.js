@@ -46,8 +46,9 @@ export const create_graph_slice = (set,get)=>({graph:{
         while(setting_lvl){
             setting_lvl = false;
             d.graph.nodes.forEach(n=>{ 
+                //d.n[n].graph.order = {x:0, count:0}; 
                 var lvl = 0;
-                d.node.for_r(d, [n], r=>{
+                d.node.for_r(d, n, r=>{
                     if(d.graph.nodes.includes(r)){
                         if(d.n[r].graph.lvl > lvl) lvl = d.n[r].graph.lvl;
                     }
@@ -65,10 +66,11 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.nodes.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];
-            d.node.for_r(d, [n], r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
+            d.node.for_r(d, n, r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
             if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = [];
             level[lvl].group[grp].push(n);
+            //d.n[n].graph.grp = grp; 
         });
 
         var lx=0;
@@ -77,7 +79,9 @@ export const create_graph_slice = (set,get)=>({graph:{
         var max_y = 0;
         level.forEach(l=>{
             var gx = lx;
-            Object.values(l.group).forEach(g=>{
+            Object.values(l.group).sort((a,b)=>{
+
+            }).forEach(g=>{
                 const size = Math.round(Math.sqrt(g.length));
                 var x = gx;
                 var y = ly;
@@ -85,6 +89,7 @@ export const create_graph_slice = (set,get)=>({graph:{
                     if(x > l.max_x) l.max_x = x;
                     if(y > max_y) max_y = y;
                     d.n[n].graph.pos.set(x, -y, 0);
+                    //d.node.for_n(d, n, (r,n)=>{d.n[n].graph.order.count+=1; d.n[n].graph.order.x+=x;});
                     y++;
                     if(y >= ly+size){
                         y=ly;  

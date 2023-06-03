@@ -30,11 +30,6 @@ export const create_pick_slice = (set,get)=>({pick:{
         if(nodes.length == 1) return nodes[0];
         return null;
     },
-    delete(d, deep){
-        d.node.delete(d, [...d.pick.nodes], deep);
-        //const nodes = [...d.pick.nodes];
-        //nodes.forEach(n=> d.node.delete(d,n,deep));
-    },
     sv(d, t, v){ // change to set_v
         d.inspect.content[t] = v;
         if(d.float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?

@@ -14,11 +14,10 @@ export const create_base_slice = (set,get)=>({
     root_tags: {'view':'viewer', 'asset':'owner',},
     float_tags: float_tags,
     string_tags: string_tags,
-    value_tags: [...float_tags, ...string_tags],
+    value_tags: [...float_tags, ...string_tags], // single_tags
     order_tags: ['point'],
     atom_tags: Object.values(model_tags).slice(1),
     node_tags: [...Object.values(model_tags), 'public', 'profile', 'point', 'line', 'sketch'],
-    //single_tags: ['name', ...float_tags],
 
     n: {},
     t: {},
@@ -81,7 +80,7 @@ export const create_base_slice = (set,get)=>({
             //console.log('set entire part: '+d.n[n].t);
             const part = [[n],        [], [], [], [], [], ['replace']];
             const tags = [[d.n[n].t], [], [], [], [], []];
-            d.node.for_n(d, [n], (r,n,t)=>{
+            d.node.for_n(d, n, (r,n,t)=>{
                 const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
                 part[mi].push(n);
                 tags[mi].push(t);
@@ -210,7 +209,11 @@ export const create_base_slice = (set,get)=>({
             const root_exists = d.node.be(d, e.r);
             if(root_exists){ // change be to ex? (ex for exists)
                 if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = []; 
-                if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
+                if(d.order_tags.includes(d.t[e.t])){
+                    d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes) 
+                }else{
+                    if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
+                }
             }
             if(d.node.be(d, e.n)){
                 if(root_exists && e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
@@ -218,7 +221,11 @@ export const create_base_slice = (set,get)=>({
                 if(d.root_tags[d.t[e.t]]){  rt = d.root_tags[d.t[e.t]];  } 
                 else{if(root_exists)      rt = d.n[e.r].t;           }
                 if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = [];
-                if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
+                if(d.order_tags.includes(d.t[e.t])){
+                    d.n[e.n].r[rt].push(e.r); 
+                }else{
+                    if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
+                }
             }
         }));
         data.p.forEach(n=>{
@@ -230,10 +237,10 @@ export const create_base_slice = (set,get)=>({
 
     receive_deleted: (d, data)=>{ 
         ['p','b','i','f','s'].forEach(m=>{
-            d.node.delete(d, data[m], true);
-            //data[m].forEach(n=>{
-            //    d.node.delete(d, [n.id], true); // shallow delete
-            //});
+            //d.node.delete(d, data[m].map(n=>n.id), true);
+            data[m].forEach(n=>{
+                d.node.delete(d, n.id, true); // shallow delete
+            });
         });
     },
 

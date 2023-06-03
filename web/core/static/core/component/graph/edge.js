@@ -36,7 +36,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     return(
         c('group', { // not using Pickable because it is not a node. make another Pickable for none node objects
             name: 'edge',
-            onClick: (e)=> set_active(true),
+            onClick: e=> set_active(true),
             onPointerMissed: e=> {if(e.which == 1) set_active(false);},
             onPointerOver: e=> set_hover(true),
             onPointerOut: e=> set_hover(false),

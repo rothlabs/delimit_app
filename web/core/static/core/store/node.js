@@ -27,9 +27,10 @@ export const create_node_slice =(set,get)=>({node:{
     sv(d, n, v){
         if(d.n[n].t=='decimal') v = Math.round((v + Number.EPSILON) * 100) / 100;//parseFloat(v.toFixed(2));// Math.round(v*100)*0.01; // need to set flag that says 'is_atom' or 'is_float'
         d.n[n].v = v; // check if has v?
-        d.next('reckon.node', n);
+        d.next('reckon.node', n); // d.reckon.node(d, n);
     },
     for_n(d, roots, func, filter){
+        if(!Array.isArray(roots)) roots = [roots];
         if(!filter) filter = ['open']; 
         roots.forEach(r=>{
             if(d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
@@ -37,7 +38,8 @@ export const create_node_slice =(set,get)=>({node:{
             }));
         });
     },
-    for_r:(d, nodes, func, filter)=>{//if(!Array.isArray(nodes)) nodes = [nodes];
+    for_r:(d, nodes, func, filter)=>{
+        if(!Array.isArray(nodes)) nodes = [nodes];
         if(!filter) filter = ['open']; 
         nodes.forEach(n=>{
             Object.entries(d.n[n].r).forEach(([t,roots],i)=> roots.forEach((r,o)=> {
@@ -49,34 +51,32 @@ export const create_node_slice =(set,get)=>({node:{
         d.n[n].open = false; // rename to closed?
         d.next('graph.update');
     },
-    delete:(d, nodes, deep)=>{ // allow delete if not asset when it is another user deleting 
-        nodes.forEach(n=>{
-            if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
-                d.node.close(d, n);
-                d.pick.set(d, n, false);
-                d.n[n].deleted = true;
-                var reset_root_edges = false;
-                if(d.order_tags.includes(d.n[n].t)) reset_root_edges=true;  
-                d.node.for_r(d, [n], r=>{ // rewrite to use one loop: d.node.for_n(d, d.n[n].r, (r,n,t,o)=>{
-                    const dead_edges = [];
-                    d.node.for_n(d, [r], (rr,nn,t,o)=>{
-                        //console.log(nn, t, o);
-                        if(n==nn) dead_edges.push({t:t,o:o});
-                    }, [null]);
-                    //console.log(dead_edges);
-                    dead_edges.reverse().forEach(edge=>{ 
-                        d.n[r].n[edge.t].splice(edge.o, 1);
-                        if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
-                    });
-                    if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // this way the patches function will send entire list 
+    delete:(d, n, deep)=>{ // allow delete if not asset when it is another user deleting 
+        if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
+            d.node.close(d, n);
+            d.pick.set(d, n, false);
+            d.n[n].deleted = true;
+            var reset_root_edges = false;
+            if(d.order_tags.includes(d.n[n].t)) reset_root_edges=true;  
+            d.node.for_r(d, n, r=>{ // rewrite to use one loop: d.node.for_n(d, d.n[n].r, (r,n,t,o)=>{
+                const dead_edges = [];
+                d.node.for_n(d, r, (rr,nn,t,o)=>{
+                    //console.log(nn, t, o);
+                    if(n==nn) dead_edges.push({t:t,o:o});
+                }, [null]);
+                //console.log(dead_edges);
+                dead_edges.reverse().forEach(edge=>{ 
+                    d.n[r].n[edge.t].splice(edge.o, 1);
+                    if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
                 });
-                if(deep){
-                    //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
-                    d.node.for_n(d, [n], (r,n)=> d.node.delete(d, [n], deep)); // must check if no roots except profile, public, etc
-                }
-                d.next('reckon.node',n);//d.reckon.node(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
+                if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // this way the patches function will send entire list 
+            });
+            if(deep){
+                //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
+                d.node.for_n(d, n, (r,n)=> d.node.delete(d, n, deep)); // must check if no roots except profile, public, etc
             }
-        });
+            d.next('reckon.node',n);//d.reckon.node(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
+        }
     },
 }});
 

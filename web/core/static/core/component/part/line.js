@@ -7,9 +7,13 @@ import { Pickable } from '../node/base.js';
 
 // renders every frame while dragging which is bad for performance
 // fix by subscribing to state in useEffect
+
+
+
 export function Line({n}){ 
     const points = useS(d=> d.n[n].c.point);
     const color = useS(d=> d.n[n].pick.color); 
+    //console.log('render line');
     return(
         c('group', {name:'line'},
             points && c(Points, {limit:1000, range:1000}, 

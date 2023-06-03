@@ -11,9 +11,13 @@ import {ss, rs, useS} from '../../app.js';
 
 const tv = new Vector3();
 
+function round(v){
+    return Math.round((v + Number.EPSILON) * 100)/100
+}
+
 const pos=e=> {
     const p = e.intersections[e.intersections.length-1].point;
-    return tv.set(p.x, p.y, 0); //tv.set(Math.round(p.x),Math.round(p.y),0); 
+    return tv.set(round(p.x), round(p.y), 0); //tv.set(p.x, p.y, 0); //tv.set(Math.round(p.x),Math.round(p.y),0); 
 }// could just be e.intersections[0].point?
 //const name=(e)=>   e.intersections[0].object.name
 //const select=(e)=> e.intersections[0];

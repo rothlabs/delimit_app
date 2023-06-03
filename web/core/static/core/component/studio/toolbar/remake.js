@@ -7,10 +7,10 @@ export function Remake(){ //Transmute Recast
     //const node  = useS(d=> d.pick.get_if_one(d));
     const buttons = [
         {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!same_nodes, func(d){ // put button definitions like this in store
-            d.remake.merge(d);
+            d.remake.merge(d, d.pick.same.slice(1), d.pick.same[0]);//d.pick.merge(d);
         }},
         {name:'Split',  icon:'bi-arrows-angle-expand', disabled:false, func(d){
-            d.remake.split(d);
+            d.remake.split(d, d.pick.nodes);
         }},
     ];
     return(

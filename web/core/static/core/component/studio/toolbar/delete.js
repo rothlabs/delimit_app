@@ -13,7 +13,8 @@ export function Delete(){
                 variant: 'outline-secondary', size: 'lg',
                 className: 'border-white ' + button.icon, 
                 onClick:e=>ss(d=>{  
-                    d.pick.delete(d, button.action=='deep_delete');
+                    const nodes = [...d.pick.nodes];
+                    nodes.forEach(n=> d.node.delete(d, n, button.action=='deep_delete'));
                 }),
             }),
         ))

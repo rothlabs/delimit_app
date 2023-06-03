@@ -12,7 +12,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n){
         d.reckon.count++;
-        d.node.for_r(d, [n], r=> d.next('reckon.node', r)); // got to watch out for cycle
+        d.node.for_r(d, n, r=> d.next('reckon.node', r)); // got to watch out for cycle
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
