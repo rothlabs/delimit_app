@@ -32,7 +32,7 @@ export function Part({n}){
         r('group', {name: 'part'}, 
             r(Fixed_Size_Group, {
                 ref: obj,
-                size: pick ? 30 : 20, // 1.5 : 1, adjust size of other items
+                size: pick ? 25 : 20, // 1.5 : 1, adjust size of other items
                 props:{
                     position: [pos.x, pos.y, pos.z],
                 }

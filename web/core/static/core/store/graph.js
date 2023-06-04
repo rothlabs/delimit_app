@@ -39,7 +39,10 @@ export const create_graph_slice = (set,get)=>({graph:{
             });
        // });
 
-        d.graph.nodes.forEach(n=>{   d.n[n].graph.lvl = 0;   }); //Object.values(d.n).forEach(n=> n.graph.lvl=0);
+        d.graph.nodes.forEach(n=>{   
+            d.n[n].graph.lvl = 0; 
+            d.n[n].graph.grp = null;  
+        }); //Object.values(d.n).forEach(n=> n.graph.lvl=0);
         
         var highest_lvl = 0;
         var setting_lvl = true; 
@@ -79,8 +82,8 @@ export const create_graph_slice = (set,get)=>({graph:{
         var max_y = 0;
         level.forEach((l,i)=>{
             var gx = lx;
+            if(i > 0) Object.values(l.group).forEach(g=> g.x /= g.c);
             Object.values(l.group).sort((a,b)=>{
-                a.x /= a.c;     b.x /= b.c;
                 if(a.x < b.x) return -1;    if(a.x > b.x) return  1;    return 0;
             }).forEach(g=>{
                 const size = Math.round(Math.sqrt(g.n.length));
@@ -92,9 +95,9 @@ export const create_graph_slice = (set,get)=>({graph:{
                     d.n[n].graph.pos.set(x, -y, 0);
                     if(i+1 < level.length){
                         d.node.for_n(d, n, (r,n)=>{if(level[i+1].group[d.n[n].graph.grp]){
-                                level[i+1].group[d.n[n].graph.grp].x += x;
-                                level[i+1].group[d.n[n].graph.grp].c++;
-                         }});
+                            level[i+1].group[d.n[n].graph.grp].x += x;
+                            level[i+1].group[d.n[n].graph.grp].c++;
+                        }});
                     }
                     y++;
                     if(y >= ly+size){
@@ -115,9 +118,9 @@ export const create_graph_slice = (set,get)=>({graph:{
         }
         d.graph.nodes.forEach(n=>{   
             d.n[n].graph = {...d.n[n].graph, pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(
-                    -level[d.n[n].graph.lvl].max_x*d.graph.scale/2, // -max_x*d.graph.scale/2
-                    (max_y+2)*d.graph.scale/2,
-                    0
+                -level[d.n[n].graph.lvl].max_x*d.graph.scale/2, // -max_x*d.graph.scale/2
+                (max_y+2)*d.graph.scale/2,
+                0
             ))};
         });
     },

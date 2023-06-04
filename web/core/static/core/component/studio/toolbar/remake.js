@@ -9,7 +9,7 @@ export function Remake(){ //Transmute Recast
         {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!same_nodes, func(d){ // put button definitions like this in store
             d.remake.merge(d, d.pick.same.slice(1), d.pick.same[0]);//d.pick.merge(d);
         }},
-        {name:'Split',  icon:'bi-arrows-angle-expand', disabled:false, func(d){
+        {name:'Split',  icon:'bi-arrows-angle-expand', disabled:true, func(d){
             d.remake.split(d, d.pick.nodes);
         }},
     ];

@@ -1,3 +1,4 @@
+import {make_id, random_vector, theme} from '../app.js';
 
 // need line merge that looks for closest points so it doesn't just put the line on the end of the target (same as special drawing tool in legacy system)
 // this kind of merge could transform one line to fit to the points of the other line
@@ -6,6 +7,11 @@
 // make list of nodes to never have more than one: name, x, y, z, etc (singular non-list nodes) - use value_tags!!!! (maybe rename to single_tags)
 
 export const create_remake_slice = (set,get)=>({remake:{
+    copy(d, n, deep){ // maybe place in d.node (only run for part
+        n.forEach(n=>{
+            const cpy = d.make.part(d, d.n[n].t, );
+        });
+    },
     merge(d, nodes, target){ 
         if(d.remake.merge_funcs[d.n[d.pick.same[0]].t]){  
             d.remake.merge_funcs[d.n[d.pick.same[0]].t](d, nodes, target); 
@@ -40,7 +46,11 @@ export const create_remake_slice = (set,get)=>({remake:{
         },
     },
     split(d, nodes){
-        
+        //nodes.forEach(n=>{
+        //d.node.for_r(d, nodes, (r,n)=>{
+            
+        //});
+        //});
     },
 }});
 

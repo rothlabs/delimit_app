@@ -18,23 +18,23 @@ export function Inspect(){
     //console.log('render inspector');
     return (
         show && (panel=='inspect_design' || panel=='inspect_nodes') && c(Fragment, {},
-            c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
+            c(Row, {className:'row-cols-auto gap-2 mb-2 ms-1 me-4'}, //className:'ms-1 me-1'
                 ...nodes.map(n=>
                     c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
                         c(Badge, {n:n})
                     ) 
                 ),
             ),
+            nodes.filter(n=>d.n[n].asset).length ? c(ButtonToolbar, {className:'gap-2 mb-2'},
+                c(Delete),
+                c(Remake),
+            ) : null,
             ...string_tags.map(t=>
                 c(String, {t:t})
             ),
             ...float_tags.map(t=>
                 c(Float, {t:t})
             ),
-            nodes.filter(n=>d.n[n].asset).length ? c(ButtonToolbar, {className:'gap-2'},
-                c(Delete),
-                c(Remake),
-            ) : null,
         )
     )
 }

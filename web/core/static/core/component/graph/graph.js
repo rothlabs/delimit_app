@@ -41,50 +41,6 @@ export function Graph(){
     )
 }
 
-function Arrange(){
-    const arrange = useS(d=> d.graph.arrange);  
-    const nodes = useS(d=> d.graph.nodes);
-    const edges = useS(d=> d.graph.edges);
-    useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
-        if(arrange && nodes.length > 0){
-            var moving = false;
-            ss(d=>{
-                nodes.forEach(id=>{const n1=d.n[id];//Object.values(d.n).forEach(n1=>{
-                    n1.graph.dir.copy(n1.graph.pos).normalize().negate().multiplyScalar(inward_force).setZ(0);
-                });
-                //edge_roots.forEach((id,i)=>{const n1=d.n[id]; const n2=d.n[edge_nodes[i]];
-                edges.forEach(edge=>{const n1=d.n[edge.r]; const n2=d.n[edge.n];
-                    //if(nodes.includes(edge_nodes[i])){
-                    var factor = 1;
-                    n1.graph.dir.add( tv.copy(n2.graph.pos).sub(n1.graph.pos).normalize()
-                        .multiplyScalar(part_spring * n1.graph.pos.distanceTo(n2.graph.pos) * factor) );
-                    n2.graph.dir.add( tv.copy(n1.graph.pos).sub(n2.graph.pos).normalize()
-                        .multiplyScalar(part_spring * n2.graph.pos.distanceTo(n1.graph.pos) * factor) );
-                    //}
-                });
-                nodes.forEach(id=> {const n1=d.n[id];//Object.values(d.n).forEach(n1=>{
-                    nodes.forEach(id=> {const n2=d.n[id];//Object.values(d.n).forEach(n2=>{
-                        if(n1 != n2){
-                            n1.graph.dir.add( tv.copy(n1.graph.pos).sub(n2.graph.pos).normalize()
-                                .multiplyScalar( repulsion / Math.pow(n1.graph.pos.distanceTo(n2.graph.pos),2) ) );
-                        }
-                    });
-                });
-                nodes.forEach(id=> {const n=d.n[id];//Object.values(d.n).forEach(n=>{
-                    if(n.graph.dir.length() > 0.5){
-                        moving = true;
-                        n.graph = {...n.graph, pos:n.graph.pos.add(n.graph.dir).setZ(0)};
-                        //n.graph = {pos: n.graph.pos.add(n.graph.dir).setZ(0), dir:n.graph.dir, vis:n.graph.vis};  // trigger events   .setZ(graph_z)
-                    }
-                });
-                d.graph.arrange = moving;
-            });
-        }
-    });
-    //console.log('render graph arrange: '+arrange);
-    return null; // does this need to be there?
-}
-
 function Nodes(){
     const nodes = useSS(d=> d.graph.nodes);   // doesn't need to be ss?
     const d = useS.getState();
@@ -108,11 +64,60 @@ function Edges(){
     return (
         c('group', {name:'edges'}, // ref:graph, dispose:null
 			...edges.map(e=> 
-				c(Edge, {r:e.r, t:e.t, n:e.n, key:e.r+e.t+e.n})
+				c(Edge, {r:e.r, t:e.t, n:e.n}) // , key:e.r+e.t+e.n
             ),
 		)
     )
 }
+
+
+
+// function Arrange(){
+//     const arrange = useS(d=> d.graph.arrange);  
+//     const nodes = useS(d=> d.graph.nodes);
+//     const edges = useS(d=> d.graph.edges);
+//     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
+//         if(arrange && nodes.length > 0){
+//             var moving = false;
+//             ss(d=>{
+//                 nodes.forEach(id=>{const n1=d.n[id];//Object.values(d.n).forEach(n1=>{
+//                     n1.graph.dir.copy(n1.graph.pos).normalize().negate().multiplyScalar(inward_force).setZ(0);
+//                 });
+//                 //edge_roots.forEach((id,i)=>{const n1=d.n[id]; const n2=d.n[edge_nodes[i]];
+//                 edges.forEach(edge=>{const n1=d.n[edge.r]; const n2=d.n[edge.n];
+//                     //if(nodes.includes(edge_nodes[i])){
+//                     var factor = 1;
+//                     n1.graph.dir.add( tv.copy(n2.graph.pos).sub(n1.graph.pos).normalize()
+//                         .multiplyScalar(part_spring * n1.graph.pos.distanceTo(n2.graph.pos) * factor) );
+//                     n2.graph.dir.add( tv.copy(n1.graph.pos).sub(n2.graph.pos).normalize()
+//                         .multiplyScalar(part_spring * n2.graph.pos.distanceTo(n1.graph.pos) * factor) );
+//                     //}
+//                 });
+//                 nodes.forEach(id=> {const n1=d.n[id];//Object.values(d.n).forEach(n1=>{
+//                     nodes.forEach(id=> {const n2=d.n[id];//Object.values(d.n).forEach(n2=>{
+//                         if(n1 != n2){
+//                             n1.graph.dir.add( tv.copy(n1.graph.pos).sub(n2.graph.pos).normalize()
+//                                 .multiplyScalar( repulsion / Math.pow(n1.graph.pos.distanceTo(n2.graph.pos),2) ) );
+//                         }
+//                     });
+//                 });
+//                 nodes.forEach(id=> {const n=d.n[id];//Object.values(d.n).forEach(n=>{
+//                     if(n.graph.dir.length() > 0.5){
+//                         moving = true;
+//                         n.graph = {...n.graph, pos:n.graph.pos.add(n.graph.dir).setZ(0)};
+//                         //n.graph = {pos: n.graph.pos.add(n.graph.dir).setZ(0), dir:n.graph.dir, vis:n.graph.vis};  // trigger events   .setZ(graph_z)
+//                     }
+//                 });
+//                 d.graph.arrange = moving;
+//             });
+//         }
+//     });
+//     //console.log('render graph arrange: '+arrange);
+//     return null; // does this need to be there?
+// }
+
+
+
 
 //const edge_roots = useDS(d=> d.graph.edge_roots); //const edge_roots = useDS(d=> d.graph.edges().map(e=> e.r));
     //const edge_nodes = useDS(d=> d.graph.edge_nodes); //const edge_nodes = useDS(d=> d.graph.edges().map(e=> e.n));

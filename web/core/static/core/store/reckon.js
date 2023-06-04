@@ -12,6 +12,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n){
         d.reckon.count++;
+        d.reckon.v(d, n, 'name');
         d.node.for_r(d, n, r=> d.next('reckon.node', r)); // got to watch out for cycle
         d.next('design.update'); 
         d.next('inspect.update'); 
@@ -30,7 +31,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.reckon.base(d, n);
     },
     default(d,n){
-        d.reckon.v(d, n, 'name');
+        //d.reckon.v(d, n, 'name');
         d.reckon.base(d, n);
     },
     list(d, n, t, func){ // build in n:n and color:color
@@ -39,7 +40,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, color:d.n[nn].pick.color[0], ...func(nn)});
         });
     },
-    point(d,n){
+    point(d,n){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         const pos = d.reckon.v(d, n, 'x y z');
         d.n[n].c.pos = new Vector3(pos.x, pos.y, pos.z); // for convenience in calculations elsewhere
     },

@@ -2,6 +2,7 @@ import {current} from 'immer';
 import { Vector3, Matrix4 } from 'three';
 
 const tv = new Vector3();
+const off_screen = new Vector3(10000,10000,0);
 const tm = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
@@ -61,9 +62,11 @@ export const create_design_slice = (set,get)=>({design:{
                 count++;
             }
         });
-        d.design.mover = {
-            pos: d.design.mover.pos.divideScalar(count+.00001).applyMatrix4(tm.copy(d.design.matrix).invert()),
-        };
+        if(count > 0){
+            d.design.mover = {
+                pos: d.design.mover.pos.divideScalar(count).applyMatrix4(tm.copy(d.design.matrix).invert()),
+            };
+        }else{  d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};  }
         if(d.pick.nodes.length===0) d.design.matrix.identity();
     },
 }});

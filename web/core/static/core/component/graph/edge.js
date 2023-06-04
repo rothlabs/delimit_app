@@ -62,7 +62,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
             // ),
             c(Fixed_Size_Group, {
                 ref: text,
-                size: active ? 1.5 : 1,
+                size: active ? 1.25 : 1,
             },
                 d.n[n].t!=t && c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 

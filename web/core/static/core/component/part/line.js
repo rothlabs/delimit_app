@@ -19,7 +19,7 @@ export function Line({n}){
             points && c(Points, {limit:1000, range:1000}, 
                 c(PointMaterial, {size:14, vertexColors:true, toneMapped:false, transparent:true}),
                 ...points.map(p=> c(Pickable, {n:p.n}, 
-                    c(Point, {position: [p.pos.x, p.pos.y, p.pos.z+50], color:p.color}) 
+                    c(Point, {position: [p.pos.x, p.pos.y, p.pos.z+100], color:p.color}) 
                 )),
             ),
             points && points.length>1 && c(Pickable, {n:n},

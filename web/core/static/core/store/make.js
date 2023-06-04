@@ -3,7 +3,7 @@ import {Vector3} from 'three';
 import {current} from 'immer';
 
 export const create_make_slice = (set,get)=>({make:{
-    edge: (d, r, n, a)=>{ // need o index
+    edge(d, r, n, a){ // need o index
         var t = d.n[n].t;
         if(a && a.t!=undefined) t = a.t;
         if(!d.n[r].n[t]) d.n[r].n[t] = [];
@@ -17,7 +17,7 @@ export const create_make_slice = (set,get)=>({make:{
         d.n[n].r[t].push(r); // reverse relationship 
         d.next('graph.update');
     },
-    node:(d, m, t, a)=>{ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
+    node(d, m, t, a){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
         d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true, deleted:false,
@@ -38,15 +38,15 @@ export const create_make_slice = (set,get)=>({make:{
         d.next('graph.update'); // check if in graph_tags 
         return n;
     },
-    part: (d, t, a)=>{
+    part(d, t, a){
         return d.make.node(d, 'p', t, a);
     },
-    atom: (d, m, v, r, t)=>{
+    atom(d, m, v, r, t){
         const n = d.make.node(d, m, d.model_tags[m], {r:r, t:t});
         d.n[n].v = v; //d.n[n].pin = v;
         return n;
     },
-    point: (d, pos, r, o)=>{
+    point(d, pos, r, o){
         const n = d.make.part(d, 'point', {r:r, o:o}); // d, part_tag, root_id, edge_tag
         d.make.atom(d, 'f', pos.x, n, 'x'); // d, v, root_id, edge_tag
         d.make.atom(d, 'f', pos.y, n, 'y'); 
