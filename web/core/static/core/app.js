@@ -24,10 +24,14 @@ import {create_inspect_slice} from './store/inspect.js';
 import {create_design_slice} from './store/design.js';
 import {create_make_slice} from './store/make.js';
 import {create_node_slice} from './store/node.js';
-import {create_reckon_slice} from './store/reckon.js';
+import {create_reckon_slice} from './store/reckon.js'; 
 import {create_remake_slice} from './store/remake.js';
 //import {create_next_slice} from './store/next.js';
 //import {create_visual_slice} from './store/visual.js';
+
+export const media_url = document.body.getAttribute('data-media-url');
+export const static_url = document.body.getAttribute('data-static-url')+'core/';
+export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
 
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
@@ -245,10 +249,6 @@ export function random_vector({min, max, x, y, z}){
     z!=undefined && vect.setZ(z);
     return vect;
 }
-
-export const media_url = document.body.getAttribute('data-media-url');
-export const static_url = document.body.getAttribute('data-static-url')+'core/';
-export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
 
 
 ColorManagement.enabled = true;

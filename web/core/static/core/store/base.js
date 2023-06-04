@@ -36,6 +36,7 @@ export const create_base_slice = (set,get)=>({
     },
 
     init(d){
+        //d.node.init(d);
         d.graph.init(d);
     },
     add(array,item){ // static

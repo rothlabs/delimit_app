@@ -1,8 +1,17 @@
 import { Vector3 } from 'three';
+import { static_url } from '../app.js';
 
 const tv = new Vector3();
 
 export const create_node_slice =(set,get)=>({node:{
+    icons:Object.fromEntries([
+        'line','sketch'
+    ].map(i=> [i, static_url+'svg/node/'+i+'.svg'])),//{},
+    //init(d){
+    //    d.node.icons = Object.fromEntries([
+    //        'line','sketch'
+    //    ].map(i=> [i, static_url+'/node/'+i+'.svg']));
+    //},
     be:(d,n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
         if(d.n[n] && !d.n[n].deleted){
             if(d.n[n].open) return 'open';

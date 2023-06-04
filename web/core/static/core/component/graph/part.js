@@ -6,6 +6,7 @@ import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
 import { Pickable } from '../node/base.js';
+import {Svg} from '@react-three/drei/Svg';
 
 export const circle_size = 1.25;
 const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
@@ -16,7 +17,7 @@ export function Part({n}){
     const d = useS.getState();
     const pos = d.n[n].graph.pos; 
     const name = useS(d=> d.n[n].c.name);
-    const tag = useS(d=> d.n[n].t);
+    const t = useS(d=> d.n[n].t);
     const color = useS(d=> d.n[n].pick.color);
     const pick = useS(d=> d.n[n].pick.pick); 
     const obj = useRef();
@@ -25,6 +26,8 @@ export function Part({n}){
         //console.log('update part pos');
     }), []);
     //console.log('render part');
+    const icon = d.node.icons[t];
+    const material = {color: color[0], toneMapped:false};
     return(
         r('group', {name: 'part'}, 
             r(Fixed_Size_Group, {
@@ -42,15 +45,23 @@ export function Part({n}){
                     outlineColor: 'white',
                 },
                     name,
-                    r('meshBasicMaterial', {color: color[0], toneMapped:false}), // causing unsupported texture colorspace: undefined
+                    r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
-                r(Spinner, {}, 
-                    r('mesh', {},
-                        r('icosahedronGeometry'),
-                        r('meshBasicMaterial', {color: color[1], toneMapped:false}),
-                        r(Edges, {scale:1.05, color: color[2]}),
-                    )
-                ),
+                icon ? 
+                    r(Svg, {
+                        src: icon,
+                        scale: 0.1,
+                        position: [-0.8, 0.8, 0],
+                        fillMaterial: material,
+                        strokeMaterial: material,
+                    }) :
+                    r(Spinner, {}, 
+                        r('mesh', {},
+                            r('icosahedronGeometry'),
+                            r('meshBasicMaterial', {color: color[1], toneMapped:false}),
+                            r(Edges, {scale:1.05, color: color[2]}),
+                        )
+                    ),
                 r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
@@ -58,8 +69,8 @@ export function Part({n}){
                     outlineWidth: '25%',
                     outlineColor: 'white',
                 },
-                    readable(tag), // memoize it?
-                    r('meshBasicMaterial', {color: color[0], toneMapped:false}), // causing unsupported texture colorspace: undefined
+                    readable(t), // memoize it?
+                    r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Pickable, {n:n},
                     r('mesh', {
@@ -72,6 +83,15 @@ export function Part({n}){
         )
     )
 }
+
+
+// r(Spinner, {}, 
+                //     r('mesh', {},
+                //         r('icosahedronGeometry'),
+                //         r('meshBasicMaterial', {color: color[1], toneMapped:false}),
+                //         r(Edges, {scale:1.05, color: color[2]}),
+                //     )
+                // ),
 
 
 //const edge_tags = useDS(d=> d.graph.node_edges(id).map(e=>e.t));

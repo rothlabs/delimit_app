@@ -27,7 +27,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.edge_vis[t] = vis;
         d.graph.update(d);
     },
-    update: d=>{
+    update:d=>{
         //console.log('update graph');
         d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.edges = [];
@@ -68,28 +68,34 @@ export const create_graph_slice = (set,get)=>({graph:{
             var rt = [];
             d.node.for_r(d, n, r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
-            if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = [];
-            level[lvl].group[grp].push(n);
-            //d.n[n].graph.grp = grp; 
+            if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = {n:[], x:0, c:0};
+            level[lvl].group[grp].n.push(n);
+            d.n[n].graph.grp = grp; 
         });
 
         var lx=0;
         var ly=0;
         var max_x = 0;
         var max_y = 0;
-        level.forEach(l=>{
+        level.forEach((l,i)=>{
             var gx = lx;
             Object.values(l.group).sort((a,b)=>{
-
+                a.x /= a.c;     b.x /= b.c;
+                if(a.x < b.x) return -1;    if(a.x > b.x) return  1;    return 0;
             }).forEach(g=>{
-                const size = Math.round(Math.sqrt(g.length));
+                const size = Math.round(Math.sqrt(g.n.length));
                 var x = gx;
                 var y = ly;
-                g.forEach(n=>{
+                g.n.forEach(n=>{
                     if(x > l.max_x) l.max_x = x;
                     if(y > max_y) max_y = y;
                     d.n[n].graph.pos.set(x, -y, 0);
-                    //d.node.for_n(d, n, (r,n)=>{d.n[n].graph.order.count+=1; d.n[n].graph.order.x+=x;});
+                    if(i+1 < level.length){
+                        d.node.for_n(d, n, (r,n)=>{if(level[i+1].group[d.n[n].graph.grp]){
+                                level[i+1].group[d.n[n].graph.grp].x += x;
+                                level[i+1].group[d.n[n].graph.grp].c++;
+                         }});
+                    }
                     y++;
                     if(y >= ly+size){
                         y=ly;  
