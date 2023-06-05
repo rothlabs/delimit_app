@@ -76,7 +76,7 @@ export const create_base_slice = (set,get)=>({
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
         const no_edits = JSON.stringify(edits).split('').sort().join();
         const appends = {};
-        function set_part(n){ // don't set part if profile?
+        function set_part(n){ // don't set if already set!   don't set part if profile?
             //console.log('set entire part: '+d.n[n].t);
             const part = [[n],        [], [], [], [], [], ['replace']];
             const tags = [[d.n[n].t], [], [], [], [], []];
@@ -102,7 +102,8 @@ export const create_base_slice = (set,get)=>({
                             edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                             edits[d.n[n].m].push(patch.value.v); 
                         }
-                    }else if(patch.path[2] == 'n'){ // need to check if already modified this one (merge patches)
+
+                    }else if(patch.path[2] == 'n'){ // this should be removed, always just set the part if it has changed   need to check if already modified this one (merge patches)
                         //console.log('add '+patch.path[3]+' to '+d.n[n].t);
                         if(!appends[n]){ appends[n] = {
                             part: [[n],        [], [], [], [], [], ['append']],
@@ -113,6 +114,7 @@ export const create_base_slice = (set,get)=>({
                         const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
                         appends[n].part[mi].push(nid);
                         appends[n].tags[mi].push(patch.path[3]);
+
                     //}else if(patch.path[2]=='deleted'){
                         //edits[d.n[n].m+'del'].push(n);
                     }
@@ -134,6 +136,10 @@ export const create_base_slice = (set,get)=>({
                             }
                         }
                     }
+                // }else if(patch.op == 'remove'){
+                //     if(patch.path[2]=='n'){
+                //         console.log('send remove edge');
+                //     }
                 }
             }
         });
@@ -145,9 +151,7 @@ export const create_base_slice = (set,get)=>({
         //console.log('to_del');
         //console.log(to_del);
         //edits.parts.forEach(p=>{
-
         //});
-
         //console.log('edits');
         //console.log(edits);
         //d.pick.update(d);
@@ -180,7 +184,7 @@ export const create_base_slice = (set,get)=>({
                     };
                     d.pick.color(d,n.id);
                 }
-                if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
+                //if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
                     set_update_graph = true;
                     d.n[n.id].open = true;
                     d.n[n.id].deleted = false;
@@ -202,7 +206,7 @@ export const create_base_slice = (set,get)=>({
                         //console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
                     }
                     if(d.graph.tag_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.tag_vis[d.n[n.id].t];
-                }
+                //}
             }); 
         });
         ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{    

@@ -5,8 +5,8 @@ import {ss, useS} from '../../../app.js';
 export function Pick(){
     const mode = useS(d=> d.pick.mode);
     const buttons = [
-        {name:'One',   icon:'bi-cursor',      value:'one'},
         {name:'Multi', icon:'bi-cursor-fill', value:'multi'},
+        {name:'One',   icon:'bi-cursor',      value:'one'},
     ];
     return(
         c(ButtonToolbar, {}, 

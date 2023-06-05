@@ -7,7 +7,7 @@ import { theme } from '../app.js';
 export const create_pick_slice = (set,get)=>({pick:{
     reckon_tags: ['point'],
     nodes: [], // rename to n ? // make null if empty?
-    mode: 'one', 
+    mode: '', 
     same: null,
     set(d, n, v){
         d.n[n].pick.pick = v;

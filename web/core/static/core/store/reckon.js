@@ -47,9 +47,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     line(d,n){
         d.reckon.list(d, n, 'point', n=>({   pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
-    sketch(d,n){
+    //sketch(d,n){
         //d.reckon.list(d, n, 'line', n=>({}));
-    },
+    //},
 }});
 
         // d.n[n].c.points = [];

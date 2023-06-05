@@ -1,5 +1,5 @@
 import {createElement as c, useEffect, useState} from 'react';
-import {ss, useS, useSS} from '../../app.js';
+import {ss, useS, useSS, make_id} from '../../app.js';
 import {useFrame, useThree} from '@react-three/fiber';
 //import {use_d, shallow} from '../../state/state.js';
 import {Part} from './part.js';
@@ -42,13 +42,13 @@ export function Graph(){
 }
 
 function Nodes(){
-    const nodes = useSS(d=> d.graph.nodes);   // doesn't need to be ss?
+    const nodes = useS(d=> d.graph.nodes);   // doesn't need to be ss?
     const d = useS.getState();
     //console.log('render graph nodes');
     return (
         c('group', {name:'nodes'}, // ref:graph, dispose:null
 			...nodes.map(n=> 
-				d.n[n].m=='p' ? c(Part,{n:n, key:n}) : c(Atom, {n:n, key:n}) 
+				d.n[n].m=='p' ? c(Part,{n:n, key:n}) : c(Atom, {n:n, key:n})  // is key screwing things up? , key:n
             ),
 		)
     )
@@ -64,7 +64,7 @@ function Edges(){
     return (
         c('group', {name:'edges'}, // ref:graph, dispose:null
 			...edges.map(e=> 
-				c(Edge, {r:e.r, t:e.t, n:e.n}) // , key:e.r+e.t+e.n
+				c(Edge, {r:e.r, t:e.t, n:e.n, key:make_id()}) // , key:e.r+e.t+e.n
             ),
 		)
     )

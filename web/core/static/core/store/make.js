@@ -7,7 +7,8 @@ export const create_make_slice = (set,get)=>({make:{
         var t = d.n[n].t;
         if(a && a.t!=undefined) t = a.t;
         if(!d.n[r].n[t]) d.n[r].n[t] = [];
-        if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
+        d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
+        //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
         if(a && a.o!=undefined){ // forward relationship 
             d.n[r].n[t].splice(a.o, 0, n);
         }else{  d.n[r].n[t].push(n); }
@@ -33,7 +34,10 @@ export const create_make_slice = (set,get)=>({make:{
         d.pick.color(d,n);
         if(m=='p'){ d.n[n].n={}; }
         d.make.edge(d, d.profile, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
-        if(a && a.r) d.make.edge(d, a.r, n, a);
+        if(a && a.r) d.make.edge(d, a.r, n, a);//{
+        //    if(Array.isArray(a.r)){   a.r.forEach(r=> d.make.edge(d, r, n, a))   }
+        //    else{   d.make.edge(d, a.r, n, a);  }
+        //}
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
         d.next('graph.update'); // check if in graph_tags 
         return n;

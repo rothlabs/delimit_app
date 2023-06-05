@@ -7,10 +7,25 @@ import {make_id, random_vector, theme} from '../app.js';
 // make list of nodes to never have more than one: name, x, y, z, etc (singular non-list nodes) - use value_tags!!!! (maybe rename to single_tags)
 
 export const create_remake_slice = (set,get)=>({remake:{
-    copy(d, n, deep){ // maybe place in d.node (only run for part
-        n.forEach(n=>{
-            const cpy = d.make.part(d, d.n[n].t, );
+    copy(d, src, deep, exclude_r){ // maybe place in d.node (only run for part
+        const cpy = d.make.node(d, d.n[src].m, d.n[src].t);
+        if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
+        d.node.for_r(d, src, r=>{ // make for_rn that just has these nested loops
+            if(!(exclude_r && exclude_r == r)){
+                d.node.for_n(d, r, (r,n,t,o)=>{
+                    if(src == n) d.make.edge(d, r, cpy, {t:t, o:o});
+                });
+            }
         });
+        d.node.for_n(d, src, (r,n,t,o)=>{
+            if(deep) {
+                d.make.edge(d, cpy, d.remake.copy(d,n,true,r), {t:t, o:o});
+            }else{
+                d.make.edge(d, cpy, n, {t:t, o:o});
+            }
+        });
+        d.next('reckon.node', cpy); // maybe this should go in node creation
+        return cpy;
     },
     merge(d, nodes, target){ 
         if(d.remake.merge_funcs[d.n[d.pick.same[0]].t]){  
@@ -30,7 +45,7 @@ export const create_remake_slice = (set,get)=>({remake:{
                 });
             });
             nodes.forEach(n=> d.node.delete(d, n)); // only deep delete things that don't get merged over!!!!
-            d.next('reckon.node', target);
+            d.next('reckon.node', target); // maybe this should go in edge creation
         },
         //point(d, nodes, target){
 
@@ -45,7 +60,7 @@ export const create_remake_slice = (set,get)=>({remake:{
             });
         },
     },
-    split(d, nodes){
+    split(d, nodes){ // make unique copy for everything but asset and transform?
         //nodes.forEach(n=>{
         //d.node.for_r(d, nodes, (r,n)=>{
             
