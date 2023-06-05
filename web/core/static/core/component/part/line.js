@@ -1,9 +1,10 @@
 import {createElement as c} from 'react';
-import {useS} from '../../app.js';
+import {useS, theme} from '../../app.js';
 import {Points, Point} from '@react-three/drei/Points';
 import {PointMaterial} from '@react-three/drei/PointMaterial'; 
 import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import { Pickable } from '../node/base.js';
+//import {Color} from '@react-three/fiber';
 
 // renders every frame while dragging which is bad for performance
 // fix by subscribing to state in useEffect

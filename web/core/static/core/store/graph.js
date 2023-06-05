@@ -69,7 +69,12 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.nodes.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];
-            d.node.for_r(d, n, r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
+            d.node.for_r(d, n, (r,n,t)=>{
+                if(t != 'unknown' && d.graph.nodes.includes(r)){
+                    console.log(t);
+                    rt.push(r);       
+                }
+            });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
             if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = {n:[], x:0, c:0};
             level[lvl].group[grp].n.push(n);

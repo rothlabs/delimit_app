@@ -34,10 +34,10 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //d.reckon.v(d, n, 'name');
         d.reckon.base(d, n);
     },
-    list(d, n, t, func){ // build in n:n and color:color
+    list(d, n, t, pick_color, func){ // build in n:n and color:color
         d.n[n].c[t] = [];
         d.n[n].n[t] && d.n[n].n[t].forEach(nn=>{
-            if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, color:d.n[nn].pick.color[0], ...func(nn)});
+            if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, color:d.n[nn].pick.color[pick_color], ...func(nn)});
         });
     },
     point(d,n){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
@@ -45,7 +45,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.n[n].c.pos = new Vector3(pos.x, pos.y, pos.z); // for convenience in calculations elsewhere
     },
     line(d,n){
-        d.reckon.list(d, n, 'point', n=>({   pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
+        d.reckon.list(d, n, 'point', 3, n=>({   pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
     //sketch(d,n){
         //d.reckon.list(d, n, 'line', n=>({}));

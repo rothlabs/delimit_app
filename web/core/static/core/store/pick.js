@@ -64,6 +64,7 @@ export const create_pick_slice = (set,get)=>({pick:{
             selector ? theme.primary : theme.secondary,
             selector ? theme.primary : 'white',
             selector ? 'white' : theme.primary,
+            selector ? theme.primary_l : theme.secondary_l,
         ];
     },
 }});

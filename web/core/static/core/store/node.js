@@ -55,7 +55,7 @@ export const create_node_slice =(set,get)=>({node:{
         d.n[n].open = false; // rename to closed?
         d.next('graph.update');
     },
-    delete:(d, n, deep)=>{ // allow delete if not asset when it is another user deleting 
+    delete:(d, n, a)=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
             d.node.close(d, n);
             d.pick.set(d, n, false);
@@ -66,21 +66,30 @@ export const create_node_slice =(set,get)=>({node:{
                 const dead_edges = [];
                 d.node.for_n(d, r, (rr,nn,t,o)=>{
                     //console.log(nn, t, o);
-                    if(n==nn) dead_edges.push({t:t,o:o});
+                    if(n==nn) dead_edges.push({r:r, t:t, o:o});
                 }, [null]);
                 //console.log(dead_edges);
-                dead_edges.reverse().forEach(edge=>{ 
-                    d.n[r].n[edge.t].splice(edge.o, 1);
-                    if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
-                });
-                if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // this way the patches function will send entire list 
+                d.node.delete_edges(d, dead_edges);
+                //dead_edges.reverse().forEach(edge=>{ 
+                    
+                    //d.n[r].n[edge.t].splice(edge.o, 1);
+                    //if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
+               // });
+                if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // should this go in delete_edges?! this way the patches function will send entire list 
             });
-            if(deep){
+            if(a&&a.deep){
                 //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
-                d.node.for_n(d, n, (r,n)=> d.node.delete(d, n, deep)); // must check if no roots except profile, public, etc
+                d.node.for_n(d, n, (r,n)=> d.node.delete(d, n, a)); // must check if no roots except profile, public, etc
             }
             d.next('reckon.node',n);//d.reckon.node(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
         }
+    },
+    delete_edges(d, edges){
+        edges.reverse().forEach(e=>{ 
+            d.n[e.r].n[e.t].splice(e.o, 1);
+            if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
+            // reckon node?
+        });
     },
 }});
 

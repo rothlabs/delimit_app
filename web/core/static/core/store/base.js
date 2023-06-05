@@ -243,7 +243,7 @@ export const create_base_slice = (set,get)=>({
         ['p','b','i','f','s'].forEach(m=>{
             //d.node.delete(d, data[m].map(n=>n.id), true);
             data[m].forEach(n=>{
-                d.node.delete(d, n.id, true); // shallow delete
+                d.node.delete(d, n.id); // shallow delete
             });
         });
     },

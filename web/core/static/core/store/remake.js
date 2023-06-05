@@ -7,19 +7,19 @@ import {make_id, random_vector, theme} from '../app.js';
 // make list of nodes to never have more than one: name, x, y, z, etc (singular non-list nodes) - use value_tags!!!! (maybe rename to single_tags)
 
 export const create_remake_slice = (set,get)=>({remake:{
-    copy(d, src, deep, exclude_r){ // maybe place in d.node (only run for part
+    copy(d, src, a){ // maybe place in d.node (only run for part
         const cpy = d.make.node(d, d.n[src].m, d.n[src].t);
         if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
         d.node.for_r(d, src, r=>{ // make for_rn that just has these nested loops
-            if(!(exclude_r && exclude_r == r)){
+            if(!(a&&a.exclude_r && a.exclude_r == r) && !(a&&a.r_t && !a.r_t.includes(d.n[r].t))){
                 d.node.for_n(d, r, (r,n,t,o)=>{
-                    if(src == n) d.make.edge(d, r, cpy, {t:t, o:o});
+                    if(src == n) d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
                 });
             }
         });
         d.node.for_n(d, src, (r,n,t,o)=>{
-            if(deep) {
-                d.make.edge(d, cpy, d.remake.copy(d,n,true,r), {t:t, o:o});
+            if(a&&a.deep) {
+                d.make.edge(d, cpy, d.remake.copy(d,n, {deep:true, exclude_r:r}), {t:t, o:o});
             }else{
                 d.make.edge(d, cpy, n, {t:t, o:o});
             }
@@ -41,10 +41,10 @@ export const create_remake_slice = (set,get)=>({remake:{
         base(d, nodes, target){
             d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
                 d.node.for_n(d, r, (r,n,t,o)=>{
-                    if(nodes.includes(n)) d.make.edge(d, r, target, {t:t, o:o});
+                    if(nodes.includes(n)) d.make.edge(d, r, target, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
                 });
             });
-            nodes.forEach(n=> d.node.delete(d, n)); // only deep delete things that don't get merged over!!!!
+            nodes.forEach(n=> d.node.delete(d, n)); 
             d.next('reckon.node', target); // maybe this should go in edge creation
         },
         //point(d, nodes, target){
@@ -53,19 +53,23 @@ export const create_remake_slice = (set,get)=>({remake:{
         default(d, nodes, target){
             d.node.for_n(d, nodes, (r,n,t)=>{
                 if(d.value_tags.includes(t)){
-                    d.node.delete(d, n, true);
+                    d.node.delete(d, n, {deep:true});
                 }else{
-                    d.make.edge(d, target, n, {t:t});
+                    d.make.edge(d, target, n, {t:t}); // should order be included?
                 }
             });
         },
     },
-    split(d, nodes){ // make unique copy for everything but asset and transform?
-        //nodes.forEach(n=>{
-        //d.node.for_r(d, nodes, (r,n)=>{
-            
-        //});
-        //});
+    split(d, roots, target){ // make unique copy for everything but asset and transform?
+        const dead_edges = [];
+        d.node.for_n(d, roots, (r,n,t,o)=>{
+            if(n == target){
+                const cpy = d.remake.copy(d, n, {deep:true, r_t:['asset']}); // should include matrix node?
+                d.make.edge(d, r, cpy, {t:t, o:o});
+                dead_edges.push({r:r, t:t, o:o+1}); // +1 because new edge is inersted just in front of old edge 
+            }
+        });
+        d.node.delete_edges(d, dead_edges);
     },
 }});
 
