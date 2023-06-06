@@ -78,6 +78,8 @@ export const create_base_slice = (set,get)=>({
         const no_edits = JSON.stringify(edits).split('').sort().join();
         //const appends = {};
         const parts = [];
+        const atoms = [];
+        const deleted_nodes = [];
         patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
             if(patch.path[0]=='n'){
                 const n = patch.path[1];
@@ -115,6 +117,7 @@ export const create_base_slice = (set,get)=>({
                     }else if(patch.path[2]=='deleted'){
                         if(patch.value==true){
                             edits[d.n[n].m+'del'].push(n);
+                            deleted_nodes.push(n);
                         }else{
                             if(d.n[n].m=='p'){
                                 d.add(parts,n);

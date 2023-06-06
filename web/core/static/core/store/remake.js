@@ -14,7 +14,9 @@ export const create_remake_slice = (set,get)=>({remake:{
             d.node.for_r(d, src, r=>{ // make for_rn that just has these nested loops
                 if(!(a&&a.exclude_r && a.exclude_r == r) && !(a&&a.rt && !a.rt.includes(d.n[r].t))){
                     d.node.for_n(d, r, (r,n,t,o)=>{
-                        if(src == n) d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
+                        if(src == n && !(r==d.profile && t=='asset')){
+                            d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
+                        }
                     });
                 }
             });

@@ -156,9 +156,9 @@ class Query(graphene.ObjectType):
         try:
             user = info.context.user
             if user.is_authenticated:
+                #String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
                 Int.objects.filter(e__t__v='system_time', v__lt=int(time.time())-6).delete() # delete if 4 seconds old! make client pull everything if disconnects for more than 4 seconds
                 Part.objects.filter(~Q(ie__t__v='system_time'), t__v='poll_pack').delete()
-                String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
                 open_pack = Part.objects.get(t__v='open_pack', u=user)
                 # poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
                 # poll_packs = Part.objects.annotate(

@@ -65,14 +65,10 @@ export const create_node_slice =(set,get)=>({node:{
         function inner_delete(d, n, a){
             if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
                 dead_nodes.push(n);
-                
-                
                 if(a&&a.deep){
                     //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
                     d.node.for_n(d, n, (r,n)=> inner_delete(d, n, a), ['open', 'here', null]); // must check if no roots except profile, public, etc
                 }
-                
-                
             }
         }
         inner_delete(d, n, a);
@@ -93,7 +89,6 @@ export const create_node_slice =(set,get)=>({node:{
                 //if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // should this go in delete_edges?! this way the patches function will send entire list 
             });
             d.node.delete_edges(d, root_edges);
-
             const node_edges = [];
             d.node.for_n(d, n, (r,n,t,o)=>{
                 d.node.for_r(d, n, rr=>{
@@ -101,21 +96,14 @@ export const create_node_slice =(set,get)=>({node:{
                 }); // don't have to set to null if set deleted after?
             });
             d.node.delete_edges(d, node_edges);
-            //d.next('node.delete_edges', node_edges);
-
             d.pick.set(d, n, false);
             d.pick.hover(d, n, false);
             d.node.close(d, n);
             d.n[n].deleted = true;
+            console.log('delete', n);
         });
     },
     delete_edges(d, edges){
-        // const edges2 = edges.sort((a,b)=>{
-        //     if(a.o < b.o) return -1;
-        //     if(a.o > b.o) return 1;
-        //     return 0;
-        // });
-        // console.log(edges2);
         edges.reverse().forEach(e=>{ 
             var re = null;
             d.node.for_r(d, e.n, (r,n,t,o)=>{
@@ -125,15 +113,20 @@ export const create_node_slice =(set,get)=>({node:{
                 d.n[e.n].r[re.t].splice(re.o, 1);
                 if(d.n[e.n].r[re.t].length==0) delete d.n[e.n].r[re.t];
             }
-            //if(d.n[e.r].n[e.t]){ // && d.n[e.r].n[e.t].length > e.o
-                d.n[e.r].n[e.t].splice(e.o, 1);
-                if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
-            //}
+            d.n[e.r].n[e.t].splice(e.o, 1);
+            if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
             d.next('reckon.node',e.r);
         });
     },
 }});
 
+
+// const edges2 = edges.sort((a,b)=>{
+        //     if(a.o < b.o) return -1;
+        //     if(a.o > b.o) return 1;
+        //     return 0;
+        // });
+        // console.log(edges2);
 
 //init(d){
     //    d.node.icons = Object.fromEntries([
