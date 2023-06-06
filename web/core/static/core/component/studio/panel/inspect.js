@@ -2,6 +2,7 @@ import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Dropdown, Container, Form, ButtonGroup, ButtonToolbar, Button, ToggleButton} from 'react-bootstrap';
 import {ss, gs, useS, use_window_size} from '../../../app.js';
 import {Remake} from '../toolbar/remake.js';
+import {Edge} from '../toolbar/edge.js';
 import {Delete} from '../toolbar/delete.js';
 import {Badge} from '../../node/base.js'
 import {String} from '../../node/input/string.js';
@@ -28,8 +29,10 @@ export function Inspect(){
             ),
             limited ? null : c(ButtonToolbar, {className:'gap-2 mb-3'},
                 c(Remake),
+                c(Edge),
                 c(Delete),
             ),
+
             ...string_tags.map(t=>
                 c(String, {t:t})
             ),

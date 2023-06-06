@@ -14,6 +14,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.reckon.count++;
         d.reckon.v(d, n, 'name');
         d.node.for_r(d, n, r=> d.next('reckon.node', r)); // got to watch out for cycle
+        d.n[n].public = false;
+        if(d.n[n].r['viewer'] && d.n[n].r['viewer'].includes(d.public)) d.n[n].public = true;
         d.next('design.update'); 
         d.next('inspect.update'); 
     },

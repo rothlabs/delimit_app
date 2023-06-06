@@ -69,6 +69,7 @@ export const create_remake_slice = (set,get)=>({remake:{
         },
     },
     split(d, roots, target){ // make unique copy for everything but asset and transform?
+        roots = roots.filter(r=> d.n[r].asset);
         if(!d.node.limited(d, [...roots, target])){
             const dead_edges = [];
             d.node.for_n(d, roots, (r,n,t,o)=>{

@@ -120,7 +120,7 @@ class Pack_Type(graphene.ObjectType):
     def resolve_f(self, info): return self.f.all()
     def resolve_s(self, info): return self.s.all()
     def resolve_pe(self, info):
-        edges = Part_Part.objects.filter(Q(r__in=self.p) | Q(n__in=self.p)).values()
+        edges = Part_Part.objects.filter(Q(r__in=self.p) | Q(n__in=self.p)).values() # sending reverse and forward relationships!
         return list_edges(edges)
     def resolve_be(self, info):
         edges = Part_Bool.objects.filter(Q(r__in=self.p) | Q(n__in=self.b)).values() # could it be n__id for all of these?
@@ -211,7 +211,7 @@ class Query(graphene.ObjectType):
                 Bool.objects.filter(p__in=old_delete_packs).delete()
                 Int.objects.filter(p__in=old_delete_packs).delete()
                 Float.objects.filter(p__in=old_delete_packs).delete()
-                String.objects.filter(p__in=old_delete_packs).delete()
+                #String.objects.filter(p__in=old_delete_packs).delete() #  temp disable so client instance string does not get deleted!!!!
                 old_delete_packs.delete()
                 open_pack = Part.objects.get(t__v='open_pack', u=user) 
                 #delete_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='delete_pack') #delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')

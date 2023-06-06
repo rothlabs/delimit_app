@@ -56,6 +56,14 @@ export const create_node_slice =(set,get)=>({node:{
             }));
         });
     },
+    for_rn(d, nodes, func){
+        if(!Array.isArray(nodes)) nodes = [nodes];
+        d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
+            d.node.for_n(d, r, (r,n,t,o)=>{
+                if(nodes.includes(n)) func(r,n,t,o);
+            });
+        });
+    },
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
         d.next('graph.update');
@@ -91,9 +99,10 @@ export const create_node_slice =(set,get)=>({node:{
             d.node.delete_edges(d, root_edges);
             const node_edges = [];
             d.node.for_n(d, n, (r,n,t,o)=>{
-                d.node.for_r(d, n, rr=>{
-                    if(r==rr) node_edges.push({r:r, n:n, t:t, o:o});
-                }); // don't have to set to null if set deleted after?
+                node_edges.push({r:r, n:n, t:t, o:o});
+                //d.node.for_r(d, n, rr=>{
+                //    if(r==rr) node_edges.push({r:r, n:n, t:t, o:o});
+                //}); // don't have to set to null if set deleted after?
             });
             d.node.delete_edges(d, node_edges);
             d.pick.set(d, n, false);
