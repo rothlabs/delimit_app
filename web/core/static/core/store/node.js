@@ -59,9 +59,7 @@ export const create_node_slice =(set,get)=>({node:{
     for_rn(d, nodes, func){
         if(!Array.isArray(nodes)) nodes = [nodes];
         d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
-            d.node.for_n(d, r, (r,n,t,o)=>{
-                if(nodes.includes(n)) func(r,n,t,o);
-            });
+            d.node.for_n(d, r, (r,n,t,o)=>{     if(nodes.includes(n)) func(r,n,t,o);        });
         });
     },
     close:(d, n)=>{
@@ -70,39 +68,25 @@ export const create_node_slice =(set,get)=>({node:{
     },
     delete:(d, n, a)=>{ // allow delete if not asset when it is another user deleting 
         const dead_nodes = [];
-        function inner_delete(d, n, a){
+        function push_node(d, n, a){
             if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
                 dead_nodes.push(n);
                 if(a&&a.deep){
                     //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
-                    d.node.for_n(d, n, (r,n)=> inner_delete(d, n, a), ['open', 'here', null]); // must check if no roots except profile, public, etc
+                    d.node.for_n(d, n, (r,n)=> push_node(d, n, a), ['open', 'here', null]); // must check if no roots except profile, public, etc
                 }
             }
         }
-        inner_delete(d, n, a);
+        push_node(d, n, a);
         dead_nodes.forEach(n=>{
-            //var reset_root_edges = false;
-            //if(d.order_tags.includes(d.n[n].t)) reset_root_edges=true;  
             const root_edges = [];
-            d.node.for_r(d, n, r=>{ // rewrite to use one loop: d.node.for_n(d, d.n[n].r, (r,n,t,o)=>{
-                d.node.for_n(d, r, (rr,nn,t,o)=>{
-                    //console.log(nn, t, o);
-                    if(n==nn) root_edges.push({r:r, n:n, t:t, o:o});
-                }); // don't have to set to null if set deleted after?
-                //console.log(dead_edges);
-                //dead_edges.reverse().forEach(edge=>{ 
-                    //d.n[r].n[edge.t].splice(edge.o, 1);
-                    //if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
-            // });
-                //if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // should this go in delete_edges?! this way the patches function will send entire list 
+            d.node.for_rn(d, n, (r,n,t,o)=>{ 
+                root_edges.push({r:r, n:n, t:t, o:o});
             });
             d.node.delete_edges(d, root_edges);
             const node_edges = [];
             d.node.for_n(d, n, (r,n,t,o)=>{
                 node_edges.push({r:r, n:n, t:t, o:o});
-                //d.node.for_r(d, n, rr=>{
-                //    if(r==rr) node_edges.push({r:r, n:n, t:t, o:o});
-                //}); // don't have to set to null if set deleted after?
             });
             d.node.delete_edges(d, node_edges);
             d.pick.set(d, n, false);
@@ -128,6 +112,29 @@ export const create_node_slice =(set,get)=>({node:{
         });
     },
 }});
+
+
+
+
+//d.node.for_r(d, n, rr=>{
+                //    if(r==rr) node_edges.push({r:r, n:n, t:t, o:o});
+                //}); // don't have to set to null if set deleted after?
+
+// //var reset_root_edges = false;
+//             //if(d.order_tags.includes(d.n[n].t)) reset_root_edges=true;  
+//             const root_edges = [];
+//             d.node.for_r(d, n, r=>{ // rewrite to use one loop: d.node.for_n(d, d.n[n].r, (r,n,t,o)=>{
+//                 d.node.for_n(d, r, (rr,nn,t,o)=>{
+//                     //console.log(nn, t, o);
+//                     if(n==nn) root_edges.push({r:r, n:n, t:t, o:o});
+//                 }); // don't have to set to null if set deleted after?
+//                 //console.log(dead_edges);
+//                 //dead_edges.reverse().forEach(edge=>{ 
+//                     //d.n[r].n[edge.t].splice(edge.o, 1);
+//                     //if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
+//             // });
+//                 //if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // should this go in delete_edges?! this way the patches function will send entire list 
+//             });
 
 
 // const edges2 = edges.sort((a,b)=>{

@@ -11,13 +11,14 @@ export const create_remake_slice = (set,get)=>({remake:{
         if(!d.node.limited(d, [src])){
             const cpy = d.make.node(d, d.n[src].m, d.n[src].t);
             if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
-            d.node.for_r(d, src, r=>{ // make for_rn that just has these nested loops
+            //d.node.for_r(d, src, r=>{ // could use for_rn here, 
+            d.node.for_rn(d, src, (r,n,t,o)=>{
                 if(!(a&&a.exclude_r && a.exclude_r == r) && !(a&&a.rt && !a.rt.includes(d.n[r].t))){
-                    d.node.for_n(d, r, (r,n,t,o)=>{
-                        if(src == n && !(r==d.profile && t=='asset')){
+                    //d.node.for_n(d, r, (r,n,t,o)=>{
+                        if(!(r==d.profile && t=='asset')){ //src == n && 
                             d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
                         }
-                    });
+                    //});
                 }
             });
             d.node.for_n(d, src, (r,n,t,o)=>{
@@ -45,17 +46,19 @@ export const create_remake_slice = (set,get)=>({remake:{
     },
     merging:{
         base(d, nodes, target){
-            d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
-                d.node.for_n(d, r, (r,n,t,o)=>{
-                    if(nodes.includes(n) && !(d.n[r].n[t] && d.n[r].n[t].includes(target))){
+            //d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
+            //    d.node.for_n(d, r, (r,n,t,o)=>{
+                    //if(nodes.includes(n) && !(d.n[r].n[t] && d.n[r].n[t].includes(target))){
+                d.node.for_rn(d, nodes, (r,n,t,o)=>{
+                    if(!(d.n[r].n[t] && d.n[r].n[t].includes(target))){
                         d.make.edge(d, r, target, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
                     }
                 });
-            });
+            //});
             nodes.forEach(n=> d.node.delete(d, n)); 
             d.next('reckon.node', target); // maybe this should go in edge creation
         },
-        //point(d, nodes, target){
+        //point(d, nodes, target){ // move target pos to midpoint
 
         //},
         default(d, nodes, target){

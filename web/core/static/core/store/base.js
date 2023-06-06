@@ -190,12 +190,10 @@ export const create_base_slice = (set,get)=>({
                     d.pick.color(d,n.id);
                 }
                 //if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
-                if(d.n[n.id].r){ // don't know if this is needed ?!?!?!?!
-                    const edges = [];
-                    d.node.for_r(d, n.id, r=>{
-                        d.node.for_n(d, r, (rr,nn,t,o)=>{
-                            if(n.id==nn) edges.push({r:r, n:n.id, t:t, o:o}); // this will cause reverse edges to be deleted on forward node
-                        });
+                if(d.n[n.id].r){
+                    const edges = []; 
+                    d.node.for_rn(d, n.id, (r,n,t,o)=>{ 
+                        edges.push({r:r, n:n, t:t, o:o}); // // don't know if this is needed ?!?!?!?!,  this will cause reverse edges to be deleted on forward node
                     });
                     d.node.delete_edges(d, edges);
                 }
