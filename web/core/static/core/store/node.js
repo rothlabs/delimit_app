@@ -14,6 +14,11 @@ export const create_node_slice =(set,get)=>({node:{
         }
         return null;
     },
+    limited(d, n){
+        return n.some(n=>{
+            if(d.limited_tags.includes(d.n[n].t)) return true;
+        });
+    },
     pin_pos(d, n){  // should go in transform slice?    
         if(d.node.be(d,n) && d.n[n].c.pos){
             if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.node.get(d, n, 'x y z');
@@ -42,7 +47,7 @@ export const create_node_slice =(set,get)=>({node:{
             }));
         });
     },
-    for_r:(d, nodes, func, filter)=>{
+    for_r:(d, nodes, func, filter)=>{ // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
         if(!Array.isArray(nodes)) nodes = [nodes];
         if(!filter) filter = ['open']; 
         nodes.forEach(n=>{
@@ -61,21 +66,20 @@ export const create_node_slice =(set,get)=>({node:{
             d.pick.set(d, n, false);
             d.n[n].deleted = true;
             var reset_root_edges = false;
-            if(d.order_tags.includes(d.n[n].t)) reset_root_edges=true;  
+            //if(d.order_tags.includes(d.n[n].t)) reset_root_edges=true;  
             d.node.for_r(d, n, r=>{ // rewrite to use one loop: d.node.for_n(d, d.n[n].r, (r,n,t,o)=>{
                 const dead_edges = [];
                 d.node.for_n(d, r, (rr,nn,t,o)=>{
                     //console.log(nn, t, o);
-                    if(n==nn) dead_edges.push({r:r, t:t, o:o});
+                    if(n==nn) dead_edges.push({r:r, n:n, t:t, o:o});
                 }, [null]);
                 //console.log(dead_edges);
                 d.node.delete_edges(d, dead_edges);
                 //dead_edges.reverse().forEach(edge=>{ 
-                    
                     //d.n[r].n[edge.t].splice(edge.o, 1);
                     //if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
                // });
-                if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // should this go in delete_edges?! this way the patches function will send entire list 
+                //if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // should this go in delete_edges?! this way the patches function will send entire list 
             });
             if(a&&a.deep){
                 //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
@@ -86,6 +90,14 @@ export const create_node_slice =(set,get)=>({node:{
     },
     delete_edges(d, edges){
         edges.reverse().forEach(e=>{ 
+            var re = null;
+            d.node.for_r(d, e.n, (r,n,t,o)=>{
+                if(r == e.r) re = {t:t, o:o};
+            });
+            if(re){
+                d.n[e.n].r[re.t].splice(re.o, 1);
+                if(d.n[e.n].r[re.t].length==0) delete d.n[e.n].r[re.t];
+            }
             d.n[e.r].n[e.t].splice(e.o, 1);
             if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
             // reckon node?

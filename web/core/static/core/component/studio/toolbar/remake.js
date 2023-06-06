@@ -4,6 +4,7 @@ import {ss, useS} from '../../../app.js';
 
 export function Remake(){ //Transmute Recast
     const same_nodes = useS(d=> d.pick.same);
+    const splittable = useS(d=> d.pick.splittable);
     //const node  = useS(d=> d.pick.get_if_one(d));
     const buttons = [
         {name:'Deep Copy',   icon:'bi-file-earmark-fill', func(d){
@@ -15,10 +16,11 @@ export function Remake(){ //Transmute Recast
         {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!same_nodes, func(d){ // put button definitions like this in store
             d.remake.merge(d, d.pick.same.slice(0,-1),  d.pick.same.at(-1));//d.pick.merge(d);
         }},
-        {name:'Split',  icon:'bi-arrows-angle-expand', func(d){ // disabled: if nodes don't have any splittable r 
+        {name:'Split',  icon:'bi-arrows-angle-expand', disabled:!splittable, func(d){ // disabled: if nodes don't have any splittable r 
             d.remake.split(d, d.pick.nodes.slice(0,-1), d.pick.nodes.at(-1));
         }},
     ];
+    //nodes.filter(n=>d.n[n].asset).length && 
     return(
         c(ButtonToolbar, {}, ...buttons.map((button,i)=>
             c(Button, {

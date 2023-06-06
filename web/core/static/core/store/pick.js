@@ -9,6 +9,8 @@ export const create_pick_slice = (set,get)=>({pick:{
     nodes: [], // rename to n ? // make null if empty?
     mode: '', 
     same: null,
+    splittable: false,
+    limited: false,
     set(d, n, v){
         d.n[n].pick.pick = v;
         if(v){ d.add(d.pick.nodes, n)}
@@ -17,6 +19,11 @@ export const create_pick_slice = (set,get)=>({pick:{
         if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); //d.reckon.node(d, n);
         d.pick.same = null;
         if(d.pick.nodes.length>1 && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t)) d.pick.same = d.pick.nodes;
+        d.pick.splittable = false;
+        d.node.for_n(d, d.pick.nodes, (r,n)=>{
+            if(n == d.pick.nodes.at(-1)) d.pick.splittable = true;
+        });
+        d.pick.limited = d.node.limited(d, d.pick.nodes);
         d.next('design.update');
         d.next('inspect.update');
     },

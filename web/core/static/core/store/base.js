@@ -15,9 +15,10 @@ export const create_base_slice = (set,get)=>({
     float_tags: float_tags,
     string_tags: string_tags,
     value_tags: [...float_tags, ...string_tags], // single_tags
-    order_tags: ['point'],
+    //order_tags: ['point'],
     atom_tags: Object.values(model_tags).slice(1),
     node_tags: [...Object.values(model_tags), 'public', 'profile', 'point', 'line', 'sketch'],
+    limited_tags: ['public', 'profile'],
 
     n: {},
     t: {},
@@ -75,19 +76,8 @@ export const create_base_slice = (set,get)=>({
         //console.log(patches); // auto merges patches into mutations state slice 
         const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
         const no_edits = JSON.stringify(edits).split('').sort().join();
-        const appends = {};
-        function set_part(n){ // don't set if already set!   don't set part if profile?
-            //console.log('set entire part: '+d.n[n].t);
-            const part = [[n],        [], [], [], [], [], ['replace']];
-            const tags = [[d.n[n].t], [], [], [], [], []];
-            d.node.for_n(d, n, (r,n,t)=>{
-                const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
-                part[mi].push(n);
-                tags[mi].push(t);
-            });
-            edits.parts.push(part);
-            edits.t.push(tags);
-        }
+        //const appends = {};
+        const parts = [];
         patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
             if(patch.path[0]=='n'){
                 const n = patch.path[1];
@@ -95,7 +85,7 @@ export const create_base_slice = (set,get)=>({
                     //console.log(n, patch);
                     if(patch.path.length == 2){ // node created  if(patch.path[0]=='n' && patch.path.length < 3){
                         if(d.n[n].m=='p'){
-                            set_part(n);
+                            d.add(parts,n);
                         }else{
                             //console.log('push atom');
                             //console.log(patch.value.v);
@@ -104,23 +94,21 @@ export const create_base_slice = (set,get)=>({
                         }
 
                     }else if(patch.path[2] == 'n'){ // this should be removed, always just set the part if it has changed   need to check if already modified this one (merge patches)
-                        //console.log('add '+patch.path[3]+' to '+d.n[n].t);
-                        if(!appends[n]){ appends[n] = {
-                            part: [[n],        [], [], [], [], [], ['append']],
-                            tags: [[d.n[n].t], [], [], [], [], []]
-                        }}
-                        var nid = patch.value;
-                        if(Array.isArray(nid)) nid = nid[0]; // could be a single element array if new edge tag
-                        const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
-                        appends[n].part[mi].push(nid);
-                        appends[n].tags[mi].push(patch.path[3]);
-
-                    //}else if(patch.path[2]=='deleted'){
-                        //edits[d.n[n].m+'del'].push(n);
+                        d.add(parts,n);
+                        // //console.log('add '+patch.path[3]+' to '+d.n[n].t);
+                        // if(!appends[n]){ appends[n] = {
+                        //     part: [[n],        [], [], [], [], [], ['append']],
+                        //     tags: [[d.n[n].t], [], [], [], [], []]
+                        // }}
+                        // var nid = patch.value;
+                        // if(Array.isArray(nid)) nid = nid[0]; // could be a single element array if new edge tag
+                        // const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
+                        // appends[n].part[mi].push(nid);
+                        // appends[n].tags[mi].push(patch.path[3]);
                     }
                 }else if(patch.op == 'replace'){ 
                     if(patch.path[2]=='n'){
-                        set_part(n); 
+                        d.add(parts,n);
                     }else if(patch.path[2]=='v'){ // atom has changed
                         edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                         edits[d.n[n].m].push(patch.value);
@@ -129,35 +117,39 @@ export const create_base_slice = (set,get)=>({
                             edits[d.n[n].m+'del'].push(n);
                         }else{
                             if(d.n[n].m=='p'){
-                                set_part(n);
+                                d.add(parts,n);
                             }else{
                                 edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                                 edits[d.n[n].m].push(d.n[n].v);
                             }
                         }
                     }
-                // }else if(patch.op == 'remove'){
-                //     if(patch.path[2]=='n'){
-                //         console.log('send remove edge');
-                //     }
+                }else if(patch.op == 'remove'){
+                    if(patch.path[2]=='n'){
+                        d.add(parts,n);
+                    }
                 }
             }
         });
-        Object.values(appends).forEach(append=>{
-            edits.parts.push(append.part);
-            edits.t.push(append.tags);
+        //function include_part(n){ // don't set if already set!   don't set part if profile?
+        parts.forEach(n=>{ // try excluding profile because server takes care of that (need to test with two profiles working on same asset
+            if(d.n[n].t != 'profile'){
+                console.log('send part', n, d.n[n].t);
+                const part = [[n],        [], [], [], [], []]; //, ['replace']
+                const tags = [[d.n[n].t], [], [], [], [], []];
+                d.node.for_n(d, n, (r,n,t)=>{
+                    const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
+                    part[mi].push(n);
+                    tags[mi].push(t);
+                });
+                edits.parts.push(part);
+                edits.t.push(tags);
+            }
         });
-        //const to_del = edits.parts.filter(p=> edits.pdel.includes(p[0][0]));
-        //console.log('to_del');
-        //console.log(to_del);
-        //edits.parts.forEach(p=>{
-        //});
-        //console.log('edits');
-        //console.log(edits);
-        //d.pick.update(d);
-        //d.design.update(d);
-        //d.graph.update(d); // only run graph if something was deleted or added? 
-        //d.inspect.update(d); // might not need this
+        // Object.values(appends).forEach(append=>{ // need add and remove for d.n[n].n for BIG parts like profiles
+        //     edits.parts.push(append.part);
+        //     edits.t.push(append.tags);
+        // });
         if(JSON.stringify(edits).split('').sort().join() != no_edits){
             console.log('Push Pack - mutate');
             d.push_pack({variables:edits});
@@ -188,11 +180,11 @@ export const create_base_slice = (set,get)=>({
                     set_update_graph = true;
                     d.n[n.id].open = true;
                     d.n[n.id].deleted = false;
-                    d.n[n.id].r = {};
+                    d.n[n.id].r = {}; // should not clear this!!!
                     d.n[n.id].c = {}; // content generated by reckon
                     if(m=='p'){
                         d.n[n.id].t = d.t[n.t];
-                        d.n[n.id].n = {};
+                        d.n[n.id].n = {}; // should respective r of other nodes 
                         if(d.n[n.id].t=='profile'){
                             data.ue.forEach(e=>{
                                 if(e.r==n.id && e.n==d.user) d.profile = n.id;
@@ -212,24 +204,24 @@ export const create_base_slice = (set,get)=>({
         ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{    
             const root_exists = d.node.be(d, e.r);
             if(root_exists){ // change be to ex? (ex for exists)
-                if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = []; 
-                if(d.order_tags.includes(d.t[e.t])){
+                if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = [];  
+                //if(d.order_tags.includes(d.t[e.t])){
                     d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes) 
-                }else{
-                    if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
-                }
+                //}else{
+                //    if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
+                //}
             }
             if(d.node.be(d, e.n)){
                 if(root_exists && e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
                 var rt = 'unknown';
                 if(d.root_tags[d.t[e.t]]){  rt = d.root_tags[d.t[e.t]];  } 
                 else{if(root_exists)      rt = d.n[e.r].t;           }
-                if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = [];
-                if(d.order_tags.includes(d.t[e.t])){
+                if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = []; 
+                //if(d.order_tags.includes(d.t[e.t])){
                     d.n[e.n].r[rt].push(e.r); 
-                }else{
-                    if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
-                }
+                //}else{
+                //    if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
+                //}
             }
         }));
         data.p.forEach(n=>{
@@ -266,7 +258,17 @@ export const create_base_slice = (set,get)=>({
 });
 
 
-
+//const to_del = edits.parts.filter(p=> edits.pdel.includes(p[0][0]));
+        //console.log('to_del');
+        //console.log(to_del);
+        //edits.parts.forEach(p=>{
+        //});
+        //console.log('edits');
+        //console.log(edits);
+        //d.pick.update(d);
+        //d.design.update(d);
+        //d.graph.update(d); // only run graph if something was deleted or added? 
+        //d.inspect.update(d); // might not need this
 
 // design: {
     //     part:null, candidate:null, 

@@ -448,7 +448,7 @@ class Push_Pack(graphene.Mutation):
                             part = Part.objects.get(is_asset, id=parts[p][0][0]) # is_asset OR this user's profile
                             part.t = Tag.objects.get(v=t[p][0][0], system=False)
                             part.save()
-                            if parts[p][6][0]=='replace': clear_part(part) 
+                            clear_part(part) #if parts[p][6][0]=='replace': clear_part(part) 
                             poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
                             Part_Part.objects.filter(r__t__v='delete_pack', n=part).delete() # remove part from delete pack  # ~Q(n__id__in=pdel), 
                             for o in range(len(parts[p][1])):

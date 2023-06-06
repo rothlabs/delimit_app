@@ -14,7 +14,8 @@ export function Inspect(){
     const string_tags = useS(d=> d.string_tags);
     const float_tags = useS(d=> d.float_tags);
     const nodes = useS(d=> d.pick.nodes); 
-    const d = gs();
+    const limited = useS(d=> d.pick.limited); 
+    //const d = gs();
     //console.log('render inspector');
     return (
         show && (panel=='inspect_design' || panel=='inspect_nodes') && c(Fragment, {},
@@ -25,10 +26,10 @@ export function Inspect(){
                     ) 
                 ),
             ),
-            nodes.filter(n=>d.n[n].asset).length ? c(ButtonToolbar, {className:'gap-2 mb-3'},
-                c(Delete),
+            limited ? null : c(ButtonToolbar, {className:'gap-2 mb-3'},
                 c(Remake),
-            ) : null,
+                c(Delete),
+            ),
             ...string_tags.map(t=>
                 c(String, {t:t})
             ),
