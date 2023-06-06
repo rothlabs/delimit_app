@@ -61,34 +61,61 @@ export const create_node_slice =(set,get)=>({node:{
         d.next('graph.update');
     },
     delete:(d, n, a)=>{ // allow delete if not asset when it is another user deleting 
-        if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
-            d.node.close(d, n);
-            d.pick.set(d, n, false);
-            d.n[n].deleted = true;
-            var reset_root_edges = false;
+        const dead_nodes = [];
+        function inner_delete(d, n, a){
+            if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
+                dead_nodes.push(n);
+                
+                
+                if(a&&a.deep){
+                    //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
+                    d.node.for_n(d, n, (r,n)=> inner_delete(d, n, a), ['open', 'here', null]); // must check if no roots except profile, public, etc
+                }
+                
+                
+            }
+        }
+        inner_delete(d, n, a);
+        dead_nodes.forEach(n=>{
+            //var reset_root_edges = false;
             //if(d.order_tags.includes(d.n[n].t)) reset_root_edges=true;  
+            const root_edges = [];
             d.node.for_r(d, n, r=>{ // rewrite to use one loop: d.node.for_n(d, d.n[n].r, (r,n,t,o)=>{
-                const dead_edges = [];
                 d.node.for_n(d, r, (rr,nn,t,o)=>{
                     //console.log(nn, t, o);
-                    if(n==nn) dead_edges.push({r:r, n:n, t:t, o:o});
-                }, [null]);
+                    if(n==nn) root_edges.push({r:r, n:n, t:t, o:o});
+                }); // don't have to set to null if set deleted after?
                 //console.log(dead_edges);
-                d.node.delete_edges(d, dead_edges);
                 //dead_edges.reverse().forEach(edge=>{ 
                     //d.n[r].n[edge.t].splice(edge.o, 1);
                     //if(d.n[r].n[edge.t].length==0) delete d.n[r].n[edge.t];
-               // });
+            // });
                 //if(reset_root_edges && d.n[r].n[d.n[n].t]) d.n[r].n[d.n[n].t] = [...d.n[r].n[d.n[n].t]]; // should this go in delete_edges?! this way the patches function will send entire list 
             });
-            if(a&&a.deep){
-                //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
-                d.node.for_n(d, n, (r,n)=> d.node.delete(d, n, a)); // must check if no roots except profile, public, etc
-            }
-            d.next('reckon.node',n);//d.reckon.node(d,n); // maybe instead of manually updating, allow patch consume function to figure out what updates to call
-        }
+            d.node.delete_edges(d, root_edges);
+
+            const node_edges = [];
+            d.node.for_n(d, n, (r,n,t,o)=>{
+                d.node.for_r(d, n, rr=>{
+                    if(r==rr) node_edges.push({r:r, n:n, t:t, o:o});
+                }); // don't have to set to null if set deleted after?
+            });
+            d.node.delete_edges(d, node_edges);
+            //d.next('node.delete_edges', node_edges);
+
+            d.pick.set(d, n, false);
+            d.pick.hover(d, n, false);
+            d.node.close(d, n);
+            d.n[n].deleted = true;
+        });
     },
     delete_edges(d, edges){
+        // const edges2 = edges.sort((a,b)=>{
+        //     if(a.o < b.o) return -1;
+        //     if(a.o > b.o) return 1;
+        //     return 0;
+        // });
+        // console.log(edges2);
         edges.reverse().forEach(e=>{ 
             var re = null;
             d.node.for_r(d, e.n, (r,n,t,o)=>{
@@ -98,9 +125,11 @@ export const create_node_slice =(set,get)=>({node:{
                 d.n[e.n].r[re.t].splice(re.o, 1);
                 if(d.n[e.n].r[re.t].length==0) delete d.n[e.n].r[re.t];
             }
-            d.n[e.r].n[e.t].splice(e.o, 1);
-            if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
-            // reckon node?
+            //if(d.n[e.r].n[e.t]){ // && d.n[e.r].n[e.t].length > e.o
+                d.n[e.r].n[e.t].splice(e.o, 1);
+                if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
+            //}
+            d.next('reckon.node',e.r);
         });
     },
 }});

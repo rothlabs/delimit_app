@@ -31,21 +31,23 @@ export const create_remake_slice = (set,get)=>({remake:{
     },
     merge(d, nodes, target){ 
         if(!d.node.limited(d, [...nodes, target])){
-            if(d.remake.merge_funcs[d.n[d.pick.same[0]].t]){  
-                d.remake.merge_funcs[d.n[d.pick.same[0]].t](d, nodes, target); 
-                d.remake.merge_funcs.base(d, nodes, target);  
+            if(d.remake.merging[d.n[d.pick.same[0]].t]){  
+                d.remake.merging[d.n[d.pick.same[0]].t](d, nodes, target); 
+                d.remake.merging.base(d, nodes, target);  
             }
             else{  
-                d.remake.merge_funcs.default(d, nodes, target);  
-                d.remake.merge_funcs.base(d, nodes, target);
+                d.remake.merging.default(d, nodes, target);  
+                d.remake.merging.base(d, nodes, target);
             }
         }
     },
-    merge_funcs:{
+    merging:{
         base(d, nodes, target){
             d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
                 d.node.for_n(d, r, (r,n,t,o)=>{
-                    if(nodes.includes(n)) d.make.edge(d, r, target, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
+                    if(nodes.includes(n) && !(d.n[r].n[t] && d.n[r].n[t].includes(target))){
+                        d.make.edge(d, r, target, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
+                    }
                 });
             });
             nodes.forEach(n=> d.node.delete(d, n)); 

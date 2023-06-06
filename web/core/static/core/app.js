@@ -87,13 +87,14 @@ function ignore_patch(p){
     if(path == 'studio.panel.show') return false;
     if(path == 'studio.panel.name') return false;
     if(path == 'design.matrix') return false;
+    if(p.path.includes('pick')) return false;
     return true;
 }
 
 const ignored_node_props = ['pick', 'graph', 'pin', 'c'];
 
 function commit_state(arg){
-    arg.state.send(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
+    
     arg.patches = arg.patches.filter(p=> ignore_patch(p));
     arg.inverse = arg.inverse.filter(p=> ignore_patch(p));
     var save_patches = false;
@@ -121,6 +122,7 @@ function commit_state(arg){
     // });
     if(save_patches){
         console.log('Commit Patches');
+        arg.state.send(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
         //console.log(arg.patches);
         if(patches.length > patch){
             patches.splice(patch, patches.length-patch);
@@ -209,7 +211,7 @@ export function undo(){
         });
     }
 }
-export function redo(){
+export function redo(){ 
     if(patch < patches.length){
         //console.log('Redo');
         //console.log(patches[patch]);
