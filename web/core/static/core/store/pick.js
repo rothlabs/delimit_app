@@ -7,28 +7,35 @@ import { theme } from '../app.js';
 export const create_pick_slice = (set,get)=>({pick:{
     reckon_tags: ['point'],
     nodes: [], // rename to n ? // make null if empty?
+    group: null,
+    target: null,
     mode: '', 
-    same: null,
-    all_asset: false,
-    limited: false, // rename to remakable
-    splittable: false,
+    limited: false, // rename to remakeable
     addable: false,
     removable: false,
+    mergable: false,
+    splittable: false,
+    deletable: false,
     set(d, n, v){
         d.n[n].pick.pick = v;
         if(v){ d.add(d.pick.nodes, n)}
         else{  d.pop(d.pick.nodes, n)}
         d.pick.color(d,n);
         if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); //d.reckon.node(d, n);
-        d.pick.same = null;
-        if(d.pick.nodes.length>1 && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t)) d.pick.same = d.pick.nodes;
-        d.pick.all_asset = d.pick.nodes.every(n=> d.n[n].asset);
+        d.pick.group = d.pick.nodes.slice(0,-1);
+        d.pick.target = d.pick.nodes.at(-1);
         d.pick.limited = d.node.limited(d, d.pick.nodes);
+        d.pick.addable = false;
+        d.pick.removable = false;
+        d.pick.mergable = false;
         d.pick.splittable = false;
-        d.node.for_n(d, d.pick.nodes, (r,n)=>{
-            if(d.n[n].asset && n == d.pick.nodes.at(-1)) d.pick.splittable = true;
-        });
-        
+        d.pick.deletable = d.pick.nodes.some(n=> d.n[n].asset);
+        if(d.pick.nodes.length > 1){
+            d.pick.addable = d.n[d.pick.target].asset && !d.node.n(d,d.pick.group,{deep:true}).includes(d.pick.target); //d.pick.addable = d.pick.nodes.slice(0,-1).every(n=> !d.node.n(d,n,{deep:true}).includes(d.pick.nodes.at(-1))); 
+            //d.pick.removable = d.n[d.pick.target].asset && 
+            d.pick.mergable = d.n[d.pick.target].asset && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
+            d.pick.splittable = d.pick.group.every(n=> (d.n[n].asset && d.node.n(d,n).includes(d.pick.target))); 
+        }
         d.next('design.update');
         d.next('inspect.update');
     },
@@ -80,6 +87,16 @@ export const create_pick_slice = (set,get)=>({pick:{
         ];
     },
 }});
+
+
+//d.pick.same = d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
+
+// d.node.for_n(d, d.pick.nodes, (r,n)=>{
+        //     if(d.n[n].asset && n == d.pick.nodes.at(-1)) d.pick.splittable = true;
+        // });
+
+//if(d.pick.nodes.length>1 && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t)) d.pick.same = d.pick.nodes;
+        //d.pick.all_asset = d.pick.nodes.every(n=> d.n[n].asset);
 
 //mod: (d, n, pick)=>{
     //    d.n[n].pick.pick = pick;

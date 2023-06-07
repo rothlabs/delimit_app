@@ -15,15 +15,15 @@ export const create_remake_slice = (set,get)=>({remake:{
             d.node.for_rn(d, src, (r,n,t,o)=>{
                 if(!(a&&a.exclude_r && a.exclude_r == r) && !(a&&a.rt && !a.rt.includes(d.n[r].t))){
                     //d.node.for_n(d, r, (r,n,t,o)=>{
-                        if(!(r==d.profile && t=='asset')){ //src == n && 
+                        //if(!(r==d.profile && t=='asset')){ //src == n && 
                             d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
-                        }
+                        //}
                     //});
                 }
             });
             d.node.for_n(d, src, (r,n,t,o)=>{
                 if(a&&a.deep) {
-                    d.make.edge(d, cpy, d.remake.copy(d,n, {deep:true, exclude_r:r}), {t:t, o:o});
+                    d.make.edge(d, cpy, d.remake.copy(d,n, {...a, exclude_r:r}), {t:t, o:o});
                 }else{
                     d.make.edge(d, cpy, n, {t:t, o:o});
                 }
@@ -34,8 +34,8 @@ export const create_remake_slice = (set,get)=>({remake:{
     },
     merge(d, nodes, target){ 
         if(!d.node.limited(d, [...nodes, target])){
-            if(d.remake.merging[d.n[d.pick.same[0]].t]){  
-                d.remake.merging[d.n[d.pick.same[0]].t](d, nodes, target); 
+            if(d.remake.merging[d.n[d.pick.nodes[0]].t]){  
+                d.remake.merging[d.n[d.pick.nodes[0]].t](d, nodes, target); 
                 d.remake.merging.base(d, nodes, target);  
             }
             else{  
@@ -64,7 +64,7 @@ export const create_remake_slice = (set,get)=>({remake:{
         default(d, nodes, target){
             d.node.for_n(d, nodes, (r,n,t)=>{
                 if(d.value_tags.includes(t)){
-                    d.node.delete(d, n, {deep:true});
+                    d.node.delete(d, n, {deep:true}); 
                 }else{
                     d.make.edge(d, target, n, {t:t}); // should order be included?
                 }
@@ -73,11 +73,16 @@ export const create_remake_slice = (set,get)=>({remake:{
     },
     split(d, roots, target){ // make unique copy for everything but asset and transform?
         roots = roots.filter(r=> d.n[r].asset);
-        if(!d.node.limited(d, [...roots, target])){
+        if(!d.node.limited(d, [...roots, target])){ 
             const dead_edges = [];
-            d.node.for_n(d, roots, (r,n,t,o)=>{
+            //console.log(roots);
+            //console.log(target);
+            //roots = d.node.edges(d,n);
+            d.node.ne(d,roots).forEach(([r,n,t,o])=>{//d.node.for_n(d, roots, (r,n,t,o)=>{
+                console.log(r, n);
                 if(n == target){
-                    const cpy = d.remake.copy(d, n, {deep:true, rt:['asset', 'view']}); // should include matrix node?
+                    //console.log('copy');
+                    const cpy = d.remake.copy(d, n, {deep:true, rt:['asset', 'view']}); // get rid of view for children as well
                     d.make.edge(d, r, cpy, {t:t, o:o});
                     dead_edges.push({r:r, n:n, t:t, o:o+1}); // +1 because new edge is inersted just in front of old edge 
                 }

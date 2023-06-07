@@ -38,12 +38,15 @@ export const create_node_slice =(set,get)=>({node:{
         d.n[n].v = v; // check if has v?
         d.next('reckon.node', n); // d.reckon.node(d, n);
     },
-    for_n(d, roots, func, filter){
+    for_n(d, roots, func, a){
         if(!Array.isArray(roots)) roots = [roots];
-        if(!filter) filter = ['open']; 
+        //if(!filter) filter = ['open']; 
         roots.forEach(r=>{
             if(d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
-                if(filter.includes(d.node.be(d,n))) func(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);
+                if(d.node.be(d,n) == 'open'){
+                    func(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
+                    if(a&&a.deep) d.node.for_n(d,n,func,{deep:true});
+                }
             }));
         });
     },
@@ -62,23 +65,24 @@ export const create_node_slice =(set,get)=>({node:{
             d.node.for_n(d, r, (r,n,t,o)=>{     if(nodes.includes(n)) func(r,n,t,o);        });
         });
     },
+    n(d, roots, a){ 
+        const nodes = [];
+        d.node.for_n(d, roots, (r,n)=> nodes.push(n), a);
+        return nodes;
+    },
+    ne(d, roots, a){ 
+        const nodes = [];
+        d.node.for_n(d, roots, (r,n,t,o)=> nodes.push([r,n,t,o]), a);
+        return nodes;
+    },
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
         d.next('graph.update');
     },
     delete:(d, n, a)=>{ // allow delete if not asset when it is another user deleting 
-        const dead_nodes = [];
-        function push_node(d, n, a){
-            if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
-                dead_nodes.push(n);
-                if(a&&a.deep){
-                    //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
-                    d.node.for_n(d, n, (r,n)=> push_node(d, n, a), ['open', 'here', null]); // must check if no roots except profile, public, etc
-                }
-            }
-        }
-        push_node(d, n, a);
-        dead_nodes.forEach(n=>{
+        var nodes = [n];
+        if(a&&a.deep) nodes = nodes.concat(d.node.n(d, n, a));
+        nodes.filter(n=> d.n[n].asset).forEach(n=>{
             const root_edges = [];
             d.node.for_rn(d, n, (r,n,t,o)=>{ 
                 root_edges.push({r:r, n:n, t:t, o:o});
@@ -93,7 +97,7 @@ export const create_node_slice =(set,get)=>({node:{
             d.pick.hover(d, n, false);
             d.node.close(d, n);
             d.n[n].deleted = true;
-            console.log('delete', n);
+            //console.log('delete', n);
         });
     },
     delete_edges(d, edges){
@@ -114,6 +118,20 @@ export const create_node_slice =(set,get)=>({node:{
 }});
 
 
+//if(a&&a.deep) d.node.for_n(d, n, (r,n)=> nodes.push(n), {deep:true}); // must check if no roots except profile, public, etc
+
+
+// const dead_nodes = [];
+//         function push_node(d, n, a){
+//             if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
+//                 dead_nodes.push(n);
+//                 if(a&&a.deep){
+//                     //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
+//                     d.node.for_n(d, n, (r,n)=> push_node(d, n, a)); // must check if no roots except profile, public, etc
+//                 }
+//             }
+//         }
+//         push_node(d, n, a);
 
 
 //d.node.for_r(d, n, rr=>{

@@ -3,9 +3,10 @@ import {Button, ButtonToolbar} from 'react-bootstrap';
 import {ss, useS} from '../../../app.js';
 
 export function Remake(){ //Transmute Recast
-    const same_nodes = useS(d=> d.pick.same);
+    const addable = useS(d=> d.pick.addable);
+    const removable = useS(d=> d.pick.removable);
+    const mergable = useS(d=> d.pick.mergable);
     const splittable = useS(d=> d.pick.splittable);
-    const all_asset = useS(d=> d.pick.all_asset);
     var buttons = [
         {name:'Deep Copy',   icon:'bi-file-earmark-fill', func(d){
             d.pick.nodes.forEach(n=> d.remake.copy(d, n, {deep:true}));
@@ -13,17 +14,22 @@ export function Remake(){ //Transmute Recast
         {name:'Shallow Copy',  icon:'bi-file-earmark', func(d){
             d.pick.nodes.forEach(n=> d.remake.copy(d, n));
         }},
+        {name:'Add',  icon:'bi-box-arrow-in-up-right', disabled:!addable, func(d){ // put button definitions like this in store ?
+            d.pick.group.forEach(n=>{ 
+                if(!d.node.n(d, n, {deep:true}).includes(d.pick.target)) d.make.edge(d, d.pick.target, n); // automatically figure out what it is mostly being used as and set tag from that. Could provide options to user as well
+            }); 
+        }},
+        {name:'Remove',  icon:'bi-box-arrow-up-right', disabled:!removable, func(d){ 
+            const edges = [];
+            d.node.delete_edges(d, edges);// d.edge.delete();
+        }},
+        {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!mergable, func(d){ // put button definitions like this in store
+            d.remake.merge(d, d.pick.group,  d.pick.target);//d.pick.merge(d);
+        }},
         {name:'Split',  icon:'bi-arrows-angle-expand', disabled:!splittable, func(d){ // disabled: if nodes don't have any splittable r 
-            d.remake.split(d, d.pick.nodes.slice(0,-1), d.pick.nodes.at(-1));
+            d.remake.split(d, d.pick.group, d.pick.target);
         }},
     ];
-    if(all_asset){
-        buttons.push(
-            {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!same_nodes, func(d){ // put button definitions like this in store
-                d.remake.merge(d, d.pick.same.slice(0,-1),  d.pick.same.at(-1));//d.pick.merge(d);
-            }},
-        );
-    }
     return(
         c(ButtonToolbar, {}, ...buttons.map((button,i)=>
             c(Button, {
@@ -37,3 +43,11 @@ export function Remake(){ //Transmute Recast
 }
 
 //bi-sign-merge-left
+
+// if(all_asset){
+    //     buttons.push(
+    //         {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!same, func(d){ // put button definitions like this in store
+    //             d.remake.merge(d, d.pick.group,  d.pick.target);//d.pick.merge(d);
+    //         }},
+    //     );
+    // }

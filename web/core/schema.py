@@ -456,8 +456,8 @@ class Push_Pack(graphene.Mutation):
                                     tag_obj = Tag.objects.get(v=t[p][1][o], system=False)
                                     if tag_obj.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][o])
                                     else: obj = Part.objects.get(id = parts[p][1][o]) 
-                                    Part_Part.objects.create(r=part, t=tag_obj, n=obj, o=o) # manually create though item so duplicates are allowed (should always add with different o)
-                                    #part.p.add(obj, through_defaults={'o':o, 't':tag_obj})#temp_pack.p.append(obj)
+                                    #Part_Part.objects.create(r=part, t=tag_obj, n=obj, o=o) # manually create though item so duplicates are allowed (should always add with different o)
+                                    part.p.add(obj, through_defaults={'o':o, 't':tag_obj})#temp_pack.p.append(obj)
                                     ##########################poll_pack.p.add(obj, through_defaults={'t':tag['poll_pack']})
                                 except Exception as e:
                                     #print('push_pack error: part node block') 

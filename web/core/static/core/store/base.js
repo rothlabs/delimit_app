@@ -229,14 +229,14 @@ export const create_base_slice = (set,get)=>({
                 //}
             }); 
         });
-        ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{    
+        ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{  // use d.make.edge here?  
             const root_exists = d.node.be(d, e.r);
             if(root_exists){ // change be to ex? (ex for exists)
                 if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = [];  
                 //if(d.order_tags.includes(d.t[e.t])){
-                    d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes) 
+                  //  d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes) 
                 //}else{
-                //    if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
+                    if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
                 //}
             }
             if(d.node.be(d, e.n)){
@@ -246,9 +246,9 @@ export const create_base_slice = (set,get)=>({
                 else{if(root_exists)      rt = d.n[e.r].t;           }
                 if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = []; 
                 //if(d.order_tags.includes(d.t[e.t])){
-                    d.n[e.n].r[rt].push(e.r); 
+                    //d.n[e.n].r[rt].push(e.r); 
                 //}else{
-                    //if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
+                    if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
                 //}
             }
         }));
