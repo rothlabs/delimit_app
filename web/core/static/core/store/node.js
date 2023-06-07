@@ -38,42 +38,44 @@ export const create_node_slice =(set,get)=>({node:{
         d.n[n].v = v; // check if has v?
         d.next('reckon.node', n); // d.reckon.node(d, n);
     },
-    for_n(d, roots, func, a){
-        if(!Array.isArray(roots)) roots = [roots];
-        //if(!filter) filter = ['open']; 
+    n(d, roots, a){ 
+        if(!Array.isArray(roots)) roots = [roots]; //if(!filter) filter = ['open']; 
+        const nodes = [];
+        var add_node = (r,n,t,o)=>nodes.push(n);
+        if(a&&a.edge) add_node = (r,n,t,o)=>nodes.push([r,n,t,o]);
         roots.forEach(r=>{
             if(d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
                 if(d.node.be(d,n) == 'open'){
-                    func(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
-                    if(a&&a.deep) d.node.for_n(d,n,func,{deep:true});
+                    add_node(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
+                    if(a&&a.deep) nodes = nodes.concat(d.node.n(d,n,a));
                 }
             }));
         });
+        return nodes;
     },
-    for_r:(d, nodes, func, filter)=>{ // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
+    ne:(d, roots, a)=> d.node.n(d, roots, {edge:true, ...a}),
+    r(d, nodes, a){
         if(!Array.isArray(nodes)) nodes = [nodes];
-        if(!filter) filter = ['open']; 
+        const roots = [];
+        var add_root = (r,n,t,o)=>roots.push(n);
+        if(a&&a.edge) add_root = (r,n,t,o)=>roots.push([r,n,t,o]);
         nodes.forEach(n=>{
             Object.entries(d.n[n].r).forEach(([t,roots],i)=> roots.forEach((r,o)=> {
-                if(filter.includes(d.node.be(d,r))) func(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
+                if(d.node.be(d,r) == 'open'){
+                    add_root(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
+                    if(a&&a.deep) roots = roots.concat(d.node.r(d,r,a));
+                }
             }));
         });
+        return roots;
     },
-    for_rn(d, nodes, func){
-        if(!Array.isArray(nodes)) nodes = [nodes];
-        d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
-            d.node.for_n(d, r, (r,n,t,o)=>{     if(nodes.includes(n)) func(r,n,t,o);        });
-        });
-    },
-    n(d, roots, a){ 
-        const nodes = [];
-        d.node.for_n(d, roots, (r,n)=> nodes.push(n), a);
-        return nodes;
-    },
-    ne(d, roots, a){ 
-        const nodes = [];
-        d.node.for_n(d, roots, (r,n,t,o)=> nodes.push([r,n,t,o]), a);
-        return nodes;
+    re:(d, nodes, a)=> d.node.r(d, nodes, {edge:true, ...a}),
+    for_n:(d, roots, func, a)=> d.node.ne(d,roots,a).forEach(edge=> func(...edge)), // rename to for_ne
+    for_r:(d, nodes, func, a)=> d.node.re(d,nodes,a).forEach(edge=> func(...edge)), 
+    for_rn(d, nodes, func){ // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
+        d.node.for_r(d, nodes, r=> 
+            d.node.for_n(d, r, (r,n,t,o)=>{  if(nodes.includes(n)) func(r,n,t,o);   })
+        );
     },
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?

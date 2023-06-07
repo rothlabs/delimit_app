@@ -159,6 +159,9 @@ class Query(graphene.ObjectType):
                 #String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
                 Int.objects.filter(e__t__v='system_time', v__lt=int(time.time())-6).delete() # delete if 4 seconds old! make client pull everything if disconnects for more than 4 seconds
                 Part.objects.filter(~Q(ie__t__v='system_time'), t__v='poll_pack').delete()
+                #String.objects.filter(~Q(e__t__v='client_instance'), p__in=old_poll_packs).delete() 
+                #old_poll_packs.delete()
+
                 open_pack = Part.objects.get(t__v='open_pack', u=user)
                 # poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
                 # poll_packs = Part.objects.annotate(
@@ -211,7 +214,7 @@ class Query(graphene.ObjectType):
                 Bool.objects.filter(p__in=old_delete_packs).delete()
                 Int.objects.filter(p__in=old_delete_packs).delete()
                 Float.objects.filter(p__in=old_delete_packs).delete()
-                #String.objects.filter(p__in=old_delete_packs).delete() #  temp disable so client instance string does not get deleted!!!!
+                String.objects.filter(~Q(e__t__v='client_instance'), p__in=old_delete_packs).delete() #  temp disable so client instance string does not get deleted!!!!
                 old_delete_packs.delete()
                 open_pack = Part.objects.get(t__v='open_pack', u=user) 
                 #delete_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='delete_pack') #delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')

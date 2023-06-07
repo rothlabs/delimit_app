@@ -78,7 +78,8 @@ export const create_remake_slice = (set,get)=>({remake:{
             //console.log(roots);
             //console.log(target);
             //roots = d.node.edges(d,n);
-            d.node.ne(d,roots).forEach(([r,n,t,o])=>{//d.node.for_n(d, roots, (r,n,t,o)=>{
+            //d.node.ne(d,roots).forEach(([r,n,t,o])=>{//d.node.for_n(d, roots, (r,n,t,o)=>{
+            d.node.for_n(d, roots, (r,n,t,o)=>{
                 console.log(r, n);
                 if(n == target){
                     //console.log('copy');
