@@ -21,6 +21,10 @@ export const create_pick_slice = (set,get)=>({pick:{
         if(v){ d.add(d.pick.nodes, n)}
         else{  d.pop(d.pick.nodes, n)}
         if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); //d.reckon.node(d, n);
+        d.pick.color(d,n);
+        d.pick.update(d);
+    },
+    update(d){
         d.pick.group = d.pick.nodes.slice(0,-1);
         d.pick.target = d.pick.nodes.at(-1);
         d.pick.limited = d.node.limited(d, d.pick.nodes);
@@ -30,20 +34,18 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.pick.splittable = false;
         d.pick.deletable = d.pick.nodes.some(n=> d.n[n].asset);
         if(d.pick.nodes.length > 1){
-            d.pick.addable = d.n[d.pick.target].asset && !d.node.n(d,d.pick.group,{deep:true}).includes(d.pick.target); //d.pick.addable = d.pick.nodes.slice(0,-1).every(n=> !d.node.n(d,n,{deep:true}).includes(d.pick.nodes.at(-1))); 
-            //d.pick.removable = d.n[d.pick.target].asset && 
+            const target_nodes = d.node.n(d,d.pick.target);
+            d.pick.addable = d.n[d.pick.target].asset 
+                && !d.node.n(d,d.pick.group,{deep:true}).includes(d.pick.target) 
+                && d.pick.group.some(n=> !target_nodes.includes(n));
+            d.pick.removable = d.n[d.pick.target].asset && d.pick.group.some(n=> target_nodes.includes(n));//d.node.n(d,d.pick.target).some(n=> d.pick.group.includes(n));
             d.pick.mergable = d.n[d.pick.target].asset && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
             d.pick.splittable = d.pick.group.every(n=> (d.n[n].asset && d.node.n(d,n).includes(d.pick.target))); 
         }
-        d.pick.color(d,n);
         d.pick.nodes.forEach(n=> d.pick.color(d,n));
         d.next('design.update');
         d.next('inspect.update');
     },
-    // get_if_same(d){
-    //     if(d.pick.nodes.length>1 && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t)) return d.pick.nodes;
-    //     return null;
-    // },
     get_if_one(d, t){ // add option to also check absolute length==1 before filtering?
         var nodes = d.pick.nodes;
         if(t!=undefined) nodes = d.pick.nodes.filter(n=> t.includes(d.n[n].t));
@@ -91,6 +93,10 @@ export const create_pick_slice = (set,get)=>({pick:{
     },
 }});
 
+// get_if_same(d){
+    //     if(d.pick.nodes.length>1 && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t)) return d.pick.nodes;
+    //     return null;
+    // },
 
 //d.pick.same = d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
 

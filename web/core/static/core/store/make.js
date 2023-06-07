@@ -18,6 +18,7 @@ export const create_make_slice = (set,get)=>({make:{
                 if(!d.n[n].r[t]) d.n[n].r[t] = [];
                 d.n[n].r[t].push(r); // reverse relationship 
                 d.next('graph.update');
+                d.next('pick.update');
             }
         }
     },

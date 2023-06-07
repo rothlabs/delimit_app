@@ -40,7 +40,7 @@ export const create_node_slice =(set,get)=>({node:{
     },
     n(d, roots, a){ 
         if(!Array.isArray(roots)) roots = [roots]; //if(!filter) filter = ['open']; 
-        const nodes = [];
+        const nodes = [];//const nodes = (a&&a.rt ? [...roots] : []); // might not need this ?!?!?!
         var add_node = (r,n,t,o)=>nodes.push(n);
         if(a&&a.edge) add_node = (r,n,t,o)=>nodes.push([r,n,t,o]);
         roots.forEach(r=>{
@@ -56,7 +56,7 @@ export const create_node_slice =(set,get)=>({node:{
     ne:(d, roots, a)=> d.node.n(d, roots, {edge:true, ...a}),
     r(d, nodes, a){
         if(!Array.isArray(nodes)) nodes = [nodes];
-        const roots = [];
+        const roots = [];//const roots = (a&&a.rt ? [...nodes] : []); // might not need this ?!?!?!
         var add_root = (r,n,t,o)=>roots.push(n);
         if(a&&a.edge) add_root = (r,n,t,o)=>roots.push([r,n,t,o]);
         nodes.forEach(n=>{
@@ -116,6 +116,8 @@ export const create_node_slice =(set,get)=>({node:{
             if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
             d.next('reckon.node',e.r);
         });
+        d.next('graph.update');
+        d.next('pick.update');
     },
 }});
 
