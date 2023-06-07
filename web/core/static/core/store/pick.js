@@ -20,7 +20,6 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.n[n].pick.pick = v;
         if(v){ d.add(d.pick.nodes, n)}
         else{  d.pop(d.pick.nodes, n)}
-        d.pick.color(d,n);
         if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); //d.reckon.node(d, n);
         d.pick.group = d.pick.nodes.slice(0,-1);
         d.pick.target = d.pick.nodes.at(-1);
@@ -36,6 +35,8 @@ export const create_pick_slice = (set,get)=>({pick:{
             d.pick.mergable = d.n[d.pick.target].asset && d.pick.nodes.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
             d.pick.splittable = d.pick.group.every(n=> (d.n[n].asset && d.node.n(d,n).includes(d.pick.target))); 
         }
+        d.pick.color(d,n);
+        d.pick.nodes.forEach(n=> d.pick.color(d,n));
         d.next('design.update');
         d.next('inspect.update');
     },
@@ -74,16 +75,18 @@ export const create_pick_slice = (set,get)=>({pick:{
     },
     one(d, n, of_tag){
         d.pick.none(d, of_tag ? d.n[n].t : null);
-        d.pick.set(d, n, true)
+        d.pick.set(d, n, true);
         if(d.n[n].pick.pick) console.log(n, current(d).n[n]);
     },
+    colors: [[theme.primary, theme.primary_l], [theme.info, theme.info_l]],
     color(d,n){
         const selector = d.n[n].pick.pick || d.n[n].pick.hover;
+        const target = (n == d.pick.target ? 1 : 0);
         d.n[n].pick.color = [
-            selector ? theme.primary : theme.secondary,
-            selector ? theme.primary : 'white',
+            selector ? d.pick.colors[target][0] : theme.secondary,
+            selector ? d.pick.colors[target][0] : 'white',
             selector ? 'white' : theme.primary,
-            selector ? theme.primary_l : theme.secondary_l,
+            selector ? d.pick.colors[target][1] : theme.secondary_l,
         ];
     },
 }});

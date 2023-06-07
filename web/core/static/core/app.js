@@ -33,6 +33,35 @@ export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
 export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
 
+ColorManagement.enabled = true;
+const style = getComputedStyle(document.body);
+export const theme = {
+    primary: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)),
+    primary_s: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertLinearToSRGB(),
+    primary_l: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertSRGBToLinear(),
+    secondary: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)),
+    secondary_s: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertLinearToSRGB(),
+    secondary_l: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertSRGBToLinear(),
+    success: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)), 
+    success_s: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertLinearToSRGB(), 
+    success_l: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertSRGBToLinear(), 
+    info: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)),
+    info_s: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertLinearToSRGB(),
+    info_l: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertSRGBToLinear(),
+    warning: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)),
+    warning_s: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertLinearToSRGB(),
+    warning_l: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertSRGBToLinear(),
+    danger: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)),
+    danger_s: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertLinearToSRGB(),
+    danger_l: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertSRGBToLinear(),
+    light: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)),
+    light_s: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertLinearToSRGB(),
+    light_l: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertSRGBToLinear(),
+    dark: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)),
+    dark_s: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertLinearToSRGB(),
+    dark_l: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertSRGBToLinear(),
+};
+
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
     Array.from({ length }).some(() => {
@@ -252,29 +281,6 @@ export function random_vector({min, max, x, y, z}){
     return vect;
 }
 
-
-ColorManagement.enabled = true;
-const style = getComputedStyle(document.body);
-export const theme = {//.convertSRGBToLinear(),
-    primary: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)),
-    primary_s: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertLinearToSRGB(),
-    primary_l: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertSRGBToLinear(),
-    secondary: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)),
-    secondary_s: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertLinearToSRGB(),
-    secondary_l: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertSRGBToLinear(),
-    success: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)), 
-    success_s: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertLinearToSRGB(), 
-    info: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)),
-    info_s: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertLinearToSRGB(),
-    warning: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)),
-    warning_s: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertLinearToSRGB(),
-    danger: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)),
-    danger_s: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertLinearToSRGB(),
-    light: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)),
-    light_s: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertLinearToSRGB(),
-    dark: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)),
-    dark_s: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertLinearToSRGB(),
-};
 
 
 function compile_gql(name, gql_parts){
