@@ -21,7 +21,7 @@ export function Pickable({n, children}){
         name: 'pickable',
         onClick:e=>{ e.stopPropagation(); 
             if(studio_mode=='design' && design_mode == 'erase'){
-                ss(d=> d.node.delete(d, n, {deep:true}));
+                ss(d=> d.delete.node(d, n, {deep:true}));
             }else{
                 if(pick_mode=='multi'){  
                     ss(d=>d.pick.set(d, n, !pick));

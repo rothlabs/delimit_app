@@ -86,33 +86,19 @@ export const create_node_slice =(set,get)=>({node:{
         d.pick.hover(d, n, false);
         d.next('graph.update');
     },
-    delete:(d, n, a)=>{ // allow delete if not asset when it is another user deleting 
-        var nodes = [n];
-        if(a&&a.deep) nodes = nodes.concat(d.node.n(d, n, a));
-        nodes.filter(n=> d.n[n].asset).forEach(n=>{
-            d.node.delete_edges(d, d.node.rne(d,n));
-            d.node.delete_edges(d, d.node.ne(d,n));
-            d.node.close(d, n);
-            d.n[n].deleted = true;
-        });
-    },
-    delete_edges(d, edges){ // can be delete_edge, not taking array  
-        edges.reverse().forEach(e=>{ 
-            const re = d.node.re(d, e.n).find(re=> re.r==e.r);
-            if(re){
-                d.pop(d.n[e.n].r[re.t], re.r); //d.n[e.n].r[re.t].splice(re.o, 1);
-                if(d.n[e.n].r[re.t].length==0) delete d.n[e.n].r[re.t];
-            }
-            d.pop(d.n[e.r].n[e.t], e.n); //d.n[e.r].n[e.t].splice(e.o, 1);
-            if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
-            d.next('reckon.node',e.r);
-        });
-        d.next('graph.update');
-        d.next('pick.update');
-    },
 }});
 
 
+// delete:(d, n, a)=>{ // allow delete if not asset when it is another user deleting 
+    //     var nodes = [n];
+    //     if(a&&a.deep) nodes = nodes.concat(d.node.n(d, n, a));
+    //     nodes.filter(n=> d.n[n].asset).forEach(n=>{
+    //         d.node.for_rn(d, n, e=> d.edge.delete(d,e));//d.edge.delete(d, d.node.rne(d,n));
+    //         d.node.for_n(d, n, e=>  d.edge.delete(d,e));//d.edge.delete(d, d.node.ne(d,n));
+    //         d.node.close(d, n);
+    //         d.n[n].deleted = true;
+    //     });
+    // },
 
 // for_rn(d, nodes, func){ // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
     //     d.node.for_r(d, nodes, r=> 
@@ -145,7 +131,7 @@ export const create_node_slice =(set,get)=>({node:{
 //             if(d.n[n].asset) { // must check if every root is an asset too!!! (except public, profile, etc)
 //                 dead_nodes.push(n);
 //                 if(a&&a.deep){
-//                     //d.node.delete(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
+//                     //d.delete.node(d, d.n[n].get_n, deep); // make get_n that does what for_n does but just provides list
 //                     d.node.for_n(d, n, (r,n)=> push_node(d, n, a)); // must check if no roots except profile, public, etc
 //                 }
 //             }

@@ -26,8 +26,7 @@ import {create_make_slice} from './store/make.js';
 import {create_node_slice} from './store/node.js';
 import {create_reckon_slice} from './store/reckon.js'; 
 import {create_remake_slice} from './store/remake.js';
-//import {create_next_slice} from './store/next.js';
-//import {create_visual_slice} from './store/visual.js';
+import {create_delete_slice} from './store/delete.js';
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
@@ -83,8 +82,7 @@ export const useS = create(
         ...create_node_slice(...a),
         ...create_reckon_slice(...a),
         ...create_remake_slice(...a),
-        //...create_next_slice(...a),
-        //...create_visual_slice(...a),
+        ...create_delete_slice(...a),
     }))
 );
 useS.setState(d=>{  d.init(d); return d;  });
@@ -446,10 +444,10 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
             // var result = produceWithPatches(d, d=>{ 
             //     inverse[patch].forEach(p=>{
             //         if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){
-            //             d.node.delete(d, p.path[1]);//dead_nodes.push(p.path[0]);
+            //             d.delete.node(d, p.path[1]);//dead_nodes.push(p.path[0]);
             //         }
             //     });
-            //     //dead_nodes.forEach(n=> d.node.delete(d, n));
+            //     //dead_nodes.forEach(n=> d.delete.node(d, n));
             // });
             // d.send(d, [...inverse[patch], ...result[1]]);
 

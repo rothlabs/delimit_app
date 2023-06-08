@@ -22,11 +22,11 @@ export function Remake(){ //Transmute Recast
             }); 
         }},
         {name:'Remove',  icon:'bi-box-arrow-up-right', disabled:!removable, func(d){ 
-            const edges = [];
-            d.node.for_n(d, d.pick.target, (r,n,t,o)=>{
-                if(d.pick.group.includes(n)) edges.push({r:r,n:n,t:t}); //,o:o
+            //const edges = [];
+            d.node.for_n(d, d.pick.target, (r,n,t)=>{
+                if(d.pick.group.includes(n)) d.delete.edge(d,r,n,t);//edges.push({r:r,n:n,t:t}); //,o:o
             })
-            d.node.delete_edges(d, edges);// d.edge.delete();
+            //d.node.delete_edges(d, edges);// d.edge.delete();
         }},
         {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!mergable, func(d){ // put button definitions like this in store
             d.remake.merge(d, d.pick.group,  d.pick.target);//d.pick.merge(d);

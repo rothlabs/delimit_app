@@ -64,7 +64,7 @@ function Edges(){
     return (
         c('group', {name:'edges'}, // ref:graph, dispose:null
 			...edges.map(e=> 
-				c(Edge, {r:e.r, t:e.t, n:e.n, key:make_id()}) // , key:e.r+e.t+e.n
+				c(Edge, {r:e.r, t:e.t, n:e.n, key:e.r+e.n+e.t}) // , key:e.r+e.t+e.n  //make_id()
             ),
 		)
     )

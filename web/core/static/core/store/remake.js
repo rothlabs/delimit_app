@@ -24,6 +24,21 @@ export const create_remake_slice = (set,get)=>({remake:{
             return cpy;
         }
     },
+    split(d, nodes, target){ // make unique copy for everything but asset and transform?
+        if(!d.node.limited(d, [...nodes, target])){ 
+            //const dead_edges = [];
+            d.node.for_n(d, target, (r,n,t,o)=>{
+                if(nodes.includes(n)){
+                    const cpy = d.remake.copy(d, n, {deep:true}); // get rid of view for children as well //, rt:['asset', 'view']
+                    d.make.edge(d, r, cpy, {t:t, o:o});
+                    d.delete.edge(d, r, n, t);
+                    //dead_edges.push({r:r, n:n, t:t}); // , o:o+1 +1 because new edge is inersted just in front of old edge 
+                }
+            });
+            //d.node.delete_edges(d, dead_edges);
+            
+        }
+    },
     merge(d, nodes, target){ 
         if(!d.node.limited(d, [...nodes, target])){ // d.n[target].asset && 
             if(d.remake.merging[d.n[d.pick.n[0]].t]){  
@@ -38,48 +53,33 @@ export const create_remake_slice = (set,get)=>({remake:{
     },
     merging:{
         base(d, nodes, target){
-            //d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
-            //    d.node.for_n(d, r, (r,n,t,o)=>{
-                    //if(nodes.includes(n) && !(d.n[r].n[t] && d.n[r].n[t].includes(target))){
                 d.node.for_rn(d, nodes, (r,n,t,o)=>{
                     if(!(d.n[r].n[t] && d.n[r].n[t].includes(target))){
                         d.make.edge(d, r, target, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
                     }
                 });
-            //});
-            nodes.forEach(n=> d.node.delete(d, n)); 
+            nodes.forEach(n=> d.delete.node(d, n)); 
             d.next('reckon.node', target); // maybe this should go in edge creation
         },
-        //point(d, nodes, target){ // move target pos to midpoint
-
-        //},
         default(d, nodes, target){
             d.node.for_n(d, nodes, (r,n,t)=>{
                 if(d.value_tags.includes(t)){
-                    d.node.delete(d, n, {deep:true}); 
+                    d.delete.node(d, n, {deep:true}); 
                 }else{
                     d.make.edge(d, target, n, {t:t}); // should order be included?
                 }
             });
         },
-    },
-    split(d, nodes, target){ // make unique copy for everything but asset and transform?
-        if(!d.node.limited(d, [...nodes, target])){ 
-            const dead_edges = [];
-            d.node.for_n(d, target, (r,n,t,o)=>{
-                if(nodes.includes(n)){
-                    const cpy = d.remake.copy(d, n, {deep:true}); // get rid of view for children as well //, rt:['asset', 'view']
-                    d.make.edge(d, r, cpy, {t:t, o:o});
-                    dead_edges.push({r:r, n:n, t:t}); // , o:o+1 +1 because new edge is inersted just in front of old edge 
-                }
-            });
-            d.node.delete_edges(d, dead_edges);
-            
-        }
+        //point(d, nodes, target){ // move target pos to midpoint
+
+        //},
     },
 }});
 
 
+//d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
+            //    d.node.for_n(d, r, (r,n,t,o)=>{
+                    //if(nodes.includes(n) && !(d.n[r].n[t] && d.n[r].n[t].includes(target))){
 
 //console.log(roots);
             //console.log(target);
@@ -101,7 +101,6 @@ export const create_remake_slice = (set,get)=>({remake:{
             //     const rne = d.node.rne(d, src).find(e=> e.r == a.root);
             //     if(rne) d.make.edge(d, rne.r, cpy, {t:rne.t, o:rne.o});
             // }
-
 
 // split(d, roots, target){ // make unique copy for everything but asset and transform?
 //     roots = roots.filter(r=> d.n[r].asset);
