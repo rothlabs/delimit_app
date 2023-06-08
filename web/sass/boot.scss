@@ -1,7 +1,13 @@
 /* import the necessary Bootstrap files */
-@import "bootstrap/scss/functions";
-@import "bootstrap/scss/variables";
 
+
+@import "bootstrap/scss/functions";
+
+$min-contrast-ratio:   3;
+$primary: tint-color(#d63384, 25%);
+$info:    shade-color(#20c9b2, 10%);
+
+@import "bootstrap/scss/variables";
 
 
 /* $theme-colors: (
@@ -39,7 +45,7 @@ $btn-line-height: 1px;     $btn-font-size-lg:    $input-btn-font-size;   */
 
 
 .modal{
-  word-wrap: break-word !important;  
+  word-wrap: break-word !important;  // maybe this doesn't need !important and should go before bootstrap import 
   word-break: break-word !important;
 }
 

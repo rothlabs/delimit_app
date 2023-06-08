@@ -40,43 +40,46 @@ export const create_node_slice =(set,get)=>({node:{
     },
     n(d, roots, a){ 
         if(!Array.isArray(roots)) roots = [roots]; //if(!filter) filter = ['open']; 
-        const nodes = [];//const nodes = (a&&a.rt ? [...roots] : []); // might not need this ?!?!?!
-        var add_node = (r,n,t,o)=>nodes.push(n);
-        if(a&&a.edge) add_node = (r,n,t,o)=>nodes.push([r,n,t,o]);
+        var result = [];//const result = (a&&a.rt ? [...roots] : []); // might not need this ?!?!?!
+        var add_node = (r,n,t,o)=>result.push(n);
+        if(a&&a.edge) add_node = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
         roots.forEach(r=>{
             if(d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
                 if(d.node.be(d,n) == 'open'){
                     add_node(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
-                    if(a&&a.deep) nodes = nodes.concat(d.node.n(d,n,a));
+                    if(a&&a.deep) result = result.concat(d.node.n(d,n,a));
                 }
             }));
         });
-        return nodes;
+        return result;
     },
     ne:(d, roots, a)=> d.node.n(d, roots, {edge:true, ...a}),
     r(d, nodes, a){
         if(!Array.isArray(nodes)) nodes = [nodes];
-        const roots = [];//const roots = (a&&a.rt ? [...nodes] : []); // might not need this ?!?!?!
-        var add_root = (r,n,t,o)=>roots.push(n);
-        if(a&&a.edge) add_root = (r,n,t,o)=>roots.push([r,n,t,o]);
+        var result = [];//const result = (a&&a.rt ? [...nodes] : []); // might not need this ?!?!?!
+        var add_root = (r,n,t,o)=>result.push(n);
+        if(a&&a.edge) add_root = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
         nodes.forEach(n=>{
             Object.entries(d.n[n].r).forEach(([t,roots],i)=> roots.forEach((r,o)=> {
                 if(d.node.be(d,r) == 'open'){
                     add_root(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
-                    if(a&&a.deep) roots = roots.concat(d.node.r(d,r,a));
+                    if(a&&a.deep) result = result.concat(d.node.r(d,r,a));
                 }
             }));
         });
-        return roots;
+        return result;
     },
     re:(d, nodes, a)=> d.node.r(d, nodes, {edge:true, ...a}),
-    for_n:(d, roots, func, a)=> d.node.ne(d,roots,a).forEach(edge=> func(...edge)), // rename to for_ne
-    for_r:(d, nodes, func, a)=> d.node.re(d,nodes,a).forEach(edge=> func(...edge)), 
-    for_rn(d, nodes, func){ // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
-        d.node.for_r(d, nodes, r=> 
-            d.node.for_n(d, r, (r,n,t,o)=>{  if(nodes.includes(n)) func(r,n,t,o);   })
-        );
+    rne(d, nodes){
+        const result = [];
+        d.node.for_r(d, nodes, r=>{
+            result.push(d.node.ne(d,r).find(e=> nodes.includes(e.n)));//d.node.for_n(d, r, (r,n,t,o)=>{  if(nodes.includes(n)) result.push({r:r,n:n,t:t,o:o});   })
+        });
+        return result;
     },
+    for_n:(d, roots, func, a)=> d.node.ne(d,roots,a).forEach(e=> func(...Object.values(e))), // rename to for_ne
+    for_r:(d, nodes, func, a)=> d.node.re(d,nodes,a).forEach(e=> func(...Object.values(e))), 
+    for_rn:(d, nodes, func)=> d.node.rne(d, nodes).forEach(e=> func(...Object.values(e))), // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
         d.next('graph.update');
@@ -85,29 +88,17 @@ export const create_node_slice =(set,get)=>({node:{
         var nodes = [n];
         if(a&&a.deep) nodes = nodes.concat(d.node.n(d, n, a));
         nodes.filter(n=> d.n[n].asset).forEach(n=>{
-            const root_edges = [];
-            d.node.for_rn(d, n, (r,n,t,o)=>{ 
-                root_edges.push({r:r, n:n, t:t, o:o});
-            });
-            d.node.delete_edges(d, root_edges);
-            const node_edges = [];
-            d.node.for_n(d, n, (r,n,t,o)=>{
-                node_edges.push({r:r, n:n, t:t, o:o});
-            });
-            d.node.delete_edges(d, node_edges);
+            d.node.delete_edges(d, d.node.rne(d,n));
+            d.node.delete_edges(d, d.node.ne(d,n));
             d.pick.set(d, n, false);
             d.pick.hover(d, n, false);
             d.node.close(d, n);
             d.n[n].deleted = true;
-            //console.log('delete', n);
         });
     },
     delete_edges(d, edges){
         edges.reverse().forEach(e=>{ 
-            var re = null;
-            d.node.for_r(d, e.n, (r,n,t,o)=>{
-                if(r == e.r) re = {t:t, o:o};
-            });
+            const re = d.node.re(d, e.n).find(re=> re.r==e.r);
             if(re){
                 d.n[e.n].r[re.t].splice(re.o, 1);
                 if(d.n[e.n].r[re.t].length==0) delete d.n[e.n].r[re.t];
@@ -121,6 +112,30 @@ export const create_node_slice =(set,get)=>({node:{
     },
 }});
 
+
+
+// for_rn(d, nodes, func){ // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
+    //     d.node.for_r(d, nodes, r=> 
+    //         d.node.for_n(d, r, (r,n,t,o)=>{  if(nodes.includes(n)) func(r,n,t,o);   })
+    //     );
+    // },
+
+// const root_edges = [];
+            // d.node.for_rn(d, n, (r,n,t,o)=>{ 
+            //     root_edges.push({r:r, n:n, t:t, o:o});
+            // });
+            // d.node.delete_edges(d, root_edges);
+
+// var re = null;
+            // d.node.for_r(d, e.n, (r,n,t,o)=>{
+            //     if(r == e.r) re = {t:t, o:o};
+            // });
+
+// const node_edges = [];
+            // d.node.for_n(d, n, (r,n,t,o)=>{
+            //     node_edges.push({r:r, n:n, t:t, o:o});
+            // });
+            // d.node.delete_edges(d, node_edges);
 
 //if(a&&a.deep) d.node.for_n(d, n, (r,n)=> nodes.push(n), {deep:true}); // must check if no roots except profile, public, etc
 

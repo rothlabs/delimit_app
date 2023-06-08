@@ -20,7 +20,6 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.n[n].pick.pick = v;
         if(v){ d.add(d.pick.nodes, n)}
         else{  d.pop(d.pick.nodes, n)}
-        if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); //d.reckon.node(d, n);
         d.pick.color(d,n);
         d.pick.update(d);
     },
@@ -80,7 +79,7 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.pick.set(d, n, true);
         if(d.n[n].pick.pick) console.log(n, current(d).n[n]);
     },
-    colors: [[theme.primary, theme.primary_l], [theme.info, theme.info_l]],
+    colors: [[theme.primary, theme.primary_l, 'primary'], [theme.info, theme.info_l, 'info']],
     color(d,n){
         const selector = d.n[n].pick.pick || d.n[n].pick.hover;
         const target = (n == d.pick.target ? 1 : 0);
@@ -89,7 +88,9 @@ export const create_pick_slice = (set,get)=>({pick:{
             selector ? d.pick.colors[target][0] : 'white',
             selector ? 'white' : theme.primary,
             selector ? d.pick.colors[target][1] : theme.secondary_l,
+            selector ? d.pick.colors[target][2] : 'secondary',
         ];
+        if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); // only call if color changes !?!?!?!?
     },
 }});
 
