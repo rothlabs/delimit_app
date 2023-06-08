@@ -6,7 +6,7 @@ export function Inspect(){
     const panel = useS(d=> d.studio.panel.name);
     const show = useS(d=> d.studio.panel.show);
     const part = useS(d=> d.design.part);
-    const nodes = useS(d=> d.pick.nodes); 
+    const nodes = useS(d=> d.pick.n); 
     //console.log('render inspector');
     return (
         c(ButtonToolbar, {}, 
@@ -21,7 +21,7 @@ export function Inspect(){
                         ss(d=> {d.studio.panel={name:'inspect_design', show:true}; d.pick.one(d, part);});
                     }else{ ss(d=> d.studio.panel.show=false); }
                 }, 
-                className: 'bi-box border-white',
+                className: 'bi bi-box border-white',
                 disabled: part==null,
             }),
             c(ToggleButton,{
@@ -35,7 +35,7 @@ export function Inspect(){
                         ss(d=> d.studio.panel={name:'inspect_nodes', show:true});
                     }else{ ss(d=> d.studio.panel.show=false); }
                 }, 
-                className: 'bi-boxes border-white',
+                className: 'bi bi-boxes border-white',
                 disabled: nodes.length<1 || (part && nodes.length==1 && nodes[0]==part),
             })
         )
@@ -47,7 +47,7 @@ export function Inspect(){
 //     const [show, set_show] = useState(false);
 //     const window_size = use_window_size();
 //     const part = useS(d=> d.design.part);
-//     const nodes = useS(d=> d.pick.nodes); 
+//     const nodes = useS(d=> d.pick.n); 
 //     const string_tags = useS(d=> d.inspect.string_tags);
 //     const float_tags = useS(d=> d.inspect.float_tags);
 //     const menu = useS(d=> d.studio.menu);

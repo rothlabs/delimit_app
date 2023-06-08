@@ -9,7 +9,7 @@ import * as THREE from 'three';
 export function Mover(){
     const studio_mode = useS(d=> d.studio.mode);
     const move_mode = useS(d=> d.design.move_mode);
-    const pick_count = useS(d=> d.pick.nodes.length);
+    const pick_count = useS(d=> d.pick.n.length);
     const mover = useS(d=> d.design.mover);
     //const reset = useS(d=> d.design.mover_reset);
     const [matrix, set_matrix] = useState(new THREE.Matrix4());

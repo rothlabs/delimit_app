@@ -10,7 +10,7 @@ export function Visual(){
         c(ToggleButton, {
             id:'open_visual_panel',
             type: 'checkbox',
-            className:'bi-eye border-white',
+            className:'bi bi-eye border-white',
             variant:'outline-primary', size: 'lg',
             checked: show && panel=='visual',
             onChange:(e)=> { 

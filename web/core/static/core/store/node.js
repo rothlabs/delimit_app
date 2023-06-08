@@ -82,6 +82,8 @@ export const create_node_slice =(set,get)=>({node:{
     for_rn:(d, nodes, func)=> d.node.rne(d, nodes).forEach(e=> func(...Object.values(e))), // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
+        d.pick.set(d, n, false);
+        d.pick.hover(d, n, false);
         d.next('graph.update');
     },
     delete:(d, n, a)=>{ // allow delete if not asset when it is another user deleting 
@@ -90,20 +92,18 @@ export const create_node_slice =(set,get)=>({node:{
         nodes.filter(n=> d.n[n].asset).forEach(n=>{
             d.node.delete_edges(d, d.node.rne(d,n));
             d.node.delete_edges(d, d.node.ne(d,n));
-            d.pick.set(d, n, false);
-            d.pick.hover(d, n, false);
             d.node.close(d, n);
             d.n[n].deleted = true;
         });
     },
-    delete_edges(d, edges){
+    delete_edges(d, edges){ // can be delete_edge, not taking array  
         edges.reverse().forEach(e=>{ 
             const re = d.node.re(d, e.n).find(re=> re.r==e.r);
             if(re){
-                d.n[e.n].r[re.t].splice(re.o, 1);
+                d.pop(d.n[e.n].r[re.t], re.r); //d.n[e.n].r[re.t].splice(re.o, 1);
                 if(d.n[e.n].r[re.t].length==0) delete d.n[e.n].r[re.t];
             }
-            d.n[e.r].n[e.t].splice(e.o, 1);
+            d.pop(d.n[e.r].n[e.t], e.n); //d.n[e.r].n[e.t].splice(e.o, 1);
             if(d.n[e.r].n[e.t].length==0) delete d.n[e.r].n[e.t];
             d.next('reckon.node',e.r);
         });

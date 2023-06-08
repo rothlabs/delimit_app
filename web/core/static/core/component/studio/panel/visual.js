@@ -9,9 +9,9 @@ export function Visual(){
     const graph_edge_vis = useS(d=> d.graph.edge_vis);
     return(
         show && panel=='visual' && c(Fragment, {},
-            c(Row, {className:'mt-3'},
+            c(Row, {className:'mt-3 mb-3'},
                 c(Col, {}, 
-                    c('h5', {}, 'Nodes'),
+                    c('h5', {className:'mb-3'}, 'Nodes'),
                     ...Object.entries(graph_tag_vis).map(([t,vis], i)=>
                         c(Form.Check, {
                             className:'mt-2', 
@@ -22,7 +22,7 @@ export function Visual(){
                     ),
                 ),
                 c(Col, {}, 
-                    c('h5', {}, 'Edges'),
+                    c('h5', {className:'mb-3'}, 'Edges'),
                     ...Object.entries(graph_edge_vis).map(([t,vis], i)=>
                         c(Form.Check, {
                             className:'mt-2', 

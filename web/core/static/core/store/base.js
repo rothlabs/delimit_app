@@ -193,7 +193,7 @@ export const create_base_slice = (set,get)=>({
                 if(d.n[n.id].r){
                     const edges = []; 
                     d.node.for_rn(d, n.id, (r,n,t,o)=>{ 
-                        edges.push({r:r, n:n, t:t, o:o}); // // don't know if this is needed ?!?!?!?!,  this will cause reverse edges to be deleted on forward node
+                        edges.push({r:r, n:n, t:t}); // // , o:o don't know if this is needed ?!?!?!?!,  this will cause reverse edges to be deleted on forward node
                     });
                     d.node.delete_edges(d, edges);
                 }
@@ -204,7 +204,7 @@ export const create_base_slice = (set,get)=>({
                     if(d.n[n.id].n){
                         const edges = [];
                         d.node.for_n(d, n.id, (r,n,t,o)=>{
-                            edges.push({r:r, n:n, t:t, o:o}); // this will cause reverse edges to be deleted on forward node
+                            edges.push({r:r, n:n, t:t}); // , o:o this will cause reverse edges to be deleted on forward node
                         });
                         d.node.delete_edges(d, edges);
                     }
@@ -306,7 +306,7 @@ export const create_base_slice = (set,get)=>({
 // design: {
     //     part:null, candidate:null, 
     //     update: d=>{
-    //         if(d.pick.nodes.length == 1 && design_tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
+    //         if(d.pick.n.length == 1 && design_tags.includes(d.n[d.pick.n[0]].t)){  d.design.candidate = d.pick.n[0];  } 
     //         else{  d.design.candidate = null;  }
     //         if(d.design.part && !d.n[d.design.part].open){ // use exists/available function here?
     //             d.design.part = null;

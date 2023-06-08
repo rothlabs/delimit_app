@@ -12,7 +12,7 @@ export function Make(){
             c(ToggleButton, {
                 id:'open_make_panel',
                 type: 'checkbox',
-                className:'bi-plus-lg border-white',
+                className:'bi bi-plus-lg border-white',
                 variant:'outline-primary', size: 'lg',
                 disabled:!ready,
                 checked: show && panel=='make',

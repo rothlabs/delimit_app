@@ -12,14 +12,17 @@ export function Make(){
     ];
     return(
         show && panel=='make' && c(Fragment, {},
-            c(Col, {className:'mt-4 ms-2 me-2'},
+            c(Col, {className:'mt-4 mb-3 ms-2 me-2'},
                 ...items.map((item, i)=>
                     c(Row, {className: 'mt-1 text-left'},
                         c(Button, {
                             id:'make_'+item.value,
                             className: 'border-white text-start '+item.icon,
                             variant:'outline-primary', size:'lg',
-                            onClick:e=> ss(d=> d.studio.make(d, item.value)),
+                            onClick:e=> ss(d=>{ 
+                                d.studio.make(d, item.value);
+                                d.studio.panel.show = false;
+                            }),
                         }, c('span',{style:{fontSize:'18px'}}, item.name))
                     )
                 ),

@@ -4,7 +4,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
     placeholder:{}, 
     update(d){
         //console.log('update inspect');
-        const node_content = d.pick.nodes.map(n=> d.n[n]);
+        const node_content = d.pick.n.map(n=> d.n[n]);
         d.value_tags.forEach(t=>{
             const nodes = node_content.filter(n=> n.c[t]!=null);
             if(nodes.length){
@@ -31,9 +31,9 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                 d.inspect.asset[t] = nodes.some(n=> n.asset);
             }else{  d.inspect.content[t] = undefined;   }
         });
-        if(d.pick.nodes.length > 0){
+        if(d.pick.n.length > 0){
             if(window.innerWidth>=576 || (d.studio.panel.show && (d.studio.panel.name=='inspect_design' || d.studio.panel.name=='inspect_nodes'))){
-                if(d.design.part && d.design.part==d.pick.get_if_one(d)){ //d.pick.nodes.length==1 && d.pick.nodes[0]==d.design.part
+                if(d.design.part && d.design.part==d.pick.get_if_one(d)){ //d.pick.n.length==1 && d.pick.n[0]==d.design.part
                     d.studio.panel={name:'inspect_design', show:true};
                 }else{
                     d.studio.panel={name:'inspect_nodes', show:true};

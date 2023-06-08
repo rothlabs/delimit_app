@@ -42,7 +42,7 @@ export function Graph(){
 }
 
 function Nodes(){
-    const nodes = useS(d=> d.graph.nodes);   // doesn't need to be ss?
+    const nodes = useS(d=> d.graph.n);   // doesn't need to be ss?
     const d = useS.getState();
     //console.log('render graph nodes');
     return (
@@ -74,7 +74,7 @@ function Edges(){
 
 // function Arrange(){
 //     const arrange = useS(d=> d.graph.arrange);  
-//     const nodes = useS(d=> d.graph.nodes);
+//     const nodes = useS(d=> d.graph.n);
 //     const edges = useS(d=> d.graph.edges);
 //     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
 //         if(arrange && nodes.length > 0){

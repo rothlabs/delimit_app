@@ -9,10 +9,12 @@ export function Remake(){ //Transmute Recast
     const splittable = useS(d=> d.pick.splittable);
     var buttons = [
         {name:'Deep Copy',   icon:'bi-file-earmark-fill', func(d){
-            d.pick.nodes.forEach(n=> d.remake.copy(d, n, {deep:true}));
+            const root = (d.studio.mode == 'design' ? d.design.part : d.pick.target);
+            d.pick.group.forEach(n=> d.remake.copy(d, n, {root:root, deep:true}));
         }},
         {name:'Shallow Copy',  icon:'bi-file-earmark', func(d){
-            d.pick.nodes.forEach(n=> d.remake.copy(d, n));
+            const root = (d.studio.mode == 'design' ? d.design.part : d.pick.target);
+            d.pick.group.forEach(n=> d.remake.copy(d, n, {root:root}));
         }},
         {name:'Add',  icon:'bi-box-arrow-in-up-right', disabled:!addable, func(d){ // put button definitions like this in store ?
             d.pick.group.forEach(n=>{ 
@@ -22,7 +24,7 @@ export function Remake(){ //Transmute Recast
         {name:'Remove',  icon:'bi-box-arrow-up-right', disabled:!removable, func(d){ 
             const edges = [];
             d.node.for_n(d, d.pick.target, (r,n,t,o)=>{
-                if(d.pick.group.includes(n)) edges.push({r:r,n:n,t:t,o:o});
+                if(d.pick.group.includes(n)) edges.push({r:r,n:n,t:t}); //,o:o
             })
             d.node.delete_edges(d, edges);// d.edge.delete();
         }},

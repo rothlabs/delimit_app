@@ -4,8 +4,8 @@ import {undo, redo} from '../../../app.js';
 
 export function History(){
     const mode_buttons = [
-        {name:'Undo',   icon:'bi-arrow-left',  func:undo},
-        {name:'Redo',   icon:'bi-arrow-right', func:redo},
+        {name:'Undo',   icon:'bi bi-arrow-left',  func:undo},
+        {name:'Redo',   icon:'bi bi-arrow-right', func:redo},
         //{name:'Revert', icon:'bi-arrow-clockwise', act:'revert'},
     ];
     return(

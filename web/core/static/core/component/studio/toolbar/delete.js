@@ -15,7 +15,7 @@ export function Delete(){
                 variant: 'outline-secondary', size: 'lg',
                 className: 'border-white ' + button.icon, 
                 onClick:e=>ss(d=>{  
-                    const nodes = [...d.pick.nodes];
+                    const nodes = [...d.pick.n];
                     nodes.forEach(n=> d.node.delete(d, n, {deep:button.action=='deep_delete'}));
                 }),
             }),

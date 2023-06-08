@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 
 export const create_graph_slice = (set,get)=>({graph:{
     scale: 1,
-    nodes: [],
+    n: [],
     edges: [],
     edge_vis:{
         view:false, asset:false,
@@ -29,17 +29,17 @@ export const create_graph_slice = (set,get)=>({graph:{
     },
     update:d=>{
         //console.log('update graph');
-        d.graph.nodes = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
+        d.graph.n = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.edges = [];
-        //d.graph.nodes.forEach(r=>{
-            d.node.for_n(d, d.graph.nodes, (r,n,t)=>{
+        //d.graph.n.forEach(r=>{
+            d.node.for_n(d, d.graph.n, (r,n,t)=>{
                 if(d.node.be(d,n) && d.n[n].graph.vis && d.graph.edge_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
                     d.graph.edges.push({r:r, t:t, n:n}); 
                 }
             });
        // });
 
-        d.graph.nodes.forEach(n=>{   
+        d.graph.n.forEach(n=>{   
             d.n[n].graph.lvl = 0; 
             d.n[n].graph.grp = null;  
         }); //Object.values(d.n).forEach(n=> n.graph.lvl=0);
@@ -48,11 +48,11 @@ export const create_graph_slice = (set,get)=>({graph:{
         var setting_lvl = true; 
         while(setting_lvl){
             setting_lvl = false;
-            d.graph.nodes.forEach(n=>{ 
+            d.graph.n.forEach(n=>{ 
                 //d.n[n].graph.order = {x:0, count:0}; 
                 var lvl = 0;
                 d.node.for_r(d, n, r=>{
-                    if(d.graph.nodes.includes(r)){
+                    if(d.graph.n.includes(r)){
                         if(d.n[r].graph.lvl > lvl) lvl = d.n[r].graph.lvl;
                     }
                 });
@@ -66,11 +66,11 @@ export const create_graph_slice = (set,get)=>({graph:{
 
         const level = [];
         for(var i=0; i<=highest_lvl+10; i++){  level.push({max_x:0, group:{}});  }
-        d.graph.nodes.forEach(n=>{
+        d.graph.n.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];
             d.node.for_r(d, n, (r,n,t)=>{
-                if(t != 'unknown' && d.graph.nodes.includes(r)) rt.push(r);       
+                if(t != 'unknown' && d.graph.n.includes(r)) rt.push(r);       
             });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
             if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = {n:[], x:0, c:0};
@@ -118,7 +118,7 @@ export const create_graph_slice = (set,get)=>({graph:{
             const graph_size = max_x > max_y ? max_x : max_y;
             d.graph.scale = window_size / graph_size / 2;
         }
-        d.graph.nodes.forEach(n=>{   
+        d.graph.n.forEach(n=>{   
             d.n[n].graph = {...d.n[n].graph, pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(
                 -level[d.n[n].graph.lvl].max_x*d.graph.scale/2, // -max_x*d.graph.scale/2
                 (max_y+2)*d.graph.scale/2,
@@ -137,10 +137,10 @@ export const create_graph_slice = (set,get)=>({graph:{
 
 // const level = [];
 //         for(var i=0; i<=highest_lvl+2; i++){  level.push({});  }
-//         d.graph.nodes.forEach(n=>{
+//         d.graph.n.forEach(n=>{
 //             const lvl = d.n[n].graph.lvl;
 //             var rt = [];
-//             d.node.for_r(d, n, r=>{     if(d.graph.nodes.includes(r)) rt.push(r);       });
+//             d.node.for_r(d, n, r=>{     if(d.graph.n.includes(r)) rt.push(r);       });
 //             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
 //             if(level[lvl][grp] == undefined) level[lvl][grp] = [];
 //             level[lvl][grp].push(n);
@@ -178,7 +178,7 @@ export const create_graph_slice = (set,get)=>({graph:{
 //             const graph_size = max_x > max_y ? max_x : max_y;
 //             d.graph.scale = window_size / graph_size / 2;
 //         }
-//         d.graph.nodes.forEach(n=>{   
+//         d.graph.n.forEach(n=>{   
 //             d.n[n].graph = {...d.n[n].graph, 
 //                 pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(-max_x*d.graph.scale/2,-(max_y+2)*d.graph.scale/2,0))
 //             };
@@ -190,7 +190,7 @@ export const create_graph_slice = (set,get)=>({graph:{
 
 
 // update: d=>{
-//     d.graph.nodes = Object.keys(d.n);
+//     d.graph.n = Object.keys(d.n);
 //     d.graph.edges = [];
 //     Object.entries(d.n).forEach(([rid,r],i)=> {
 //         r.n && Object.entries(r.n).forEach(([tag,nodes],i)=>{

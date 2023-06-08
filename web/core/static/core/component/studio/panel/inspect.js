@@ -13,7 +13,7 @@ export function Inspect(){
     const show = useS(d=> d.studio.panel.show);
     const string_tags = useS(d=> d.string_tags);
     const float_tags = useS(d=> d.float_tags);
-    const nodes = useS(d=> d.pick.nodes); 
+    const nodes = useS(d=> d.pick.n); 
     const limited = useS(d=> d.pick.limited); 
     //const d = gs();
     //console.log('render inspector');

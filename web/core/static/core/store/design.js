@@ -16,11 +16,11 @@ export const create_design_slice = (set,get)=>({design:{
     mover: {pos: new Vector3()}, //, rot: new Vector3()
     pin_move(d){ // make drag slice?
         d.design.pin_matrix.copy(d.design.matrix).invert();
-        d.pick.nodes.forEach(n => d.node.pin_pos(d, n));
+        d.pick.n.forEach(n => d.node.pin_pos(d, n));
     },
     move(d, matrix){ //offset
         d.design.matrix = matrix;
-        d.pick.nodes.forEach(n=>{ // must check if point or position contents!!!!
+        d.pick.n.forEach(n=>{ // must check if point or position contents!!!!
             if(d.n[n].pin.pos){ //if(d.n[n].pin.pos){
                 tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix); // tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix); 
                 d.node.set_pos(d, n, tv);
@@ -56,7 +56,7 @@ export const create_design_slice = (set,get)=>({design:{
         }
         d.design.mover.pos.set(0,0,0);
         var count = 0;
-        d.pick.nodes.forEach(n=>{
+        d.pick.n.forEach(n=>{
             if(d.n[n].c.pos){
                 d.design.mover.pos.add(d.n[n].c.pos);
                 count++;
@@ -67,12 +67,12 @@ export const create_design_slice = (set,get)=>({design:{
                 pos: d.design.mover.pos.divideScalar(count).applyMatrix4(tm.copy(d.design.matrix).invert()),
             };
         }else{  d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};  }
-        if(d.pick.nodes.length===0) d.design.matrix.identity();
+        if(d.pick.n.length===0) d.design.matrix.identity();
     },
 }});
 
 
-//if(d.pick.nodes.length == 1 && d.design.tags.includes(d.n[d.pick.nodes[0]].t)){  d.design.candidate = d.pick.nodes[0];  } 
+//if(d.pick.n.length == 1 && d.design.tags.includes(d.n[d.pick.n[0]].t)){  d.design.candidate = d.pick.n[0];  } 
         //else{  d.design.candidate = null;  }
 
 
@@ -90,7 +90,7 @@ export const create_design_slice = (set,get)=>({design:{
 
 //end_move(d){
     //    console.log('end drag');
-    //    d.design.move(d, d.design.matrix, tv2.set(.01, .01, 0));// must set some send-flag instead of doing offset workaround  //d.pick.nodes.forEach(n => d.node.set(d, n, {x}));
+    //    d.design.move(d, d.design.matrix, tv2.set(.01, .01, 0));// must set some send-flag instead of doing offset workaround  //d.pick.n.forEach(n => d.node.set(d, n, {x}));
     //},
 
 
@@ -101,7 +101,7 @@ export const create_design_slice = (set,get)=>({design:{
 // stop_dragging:(d)=>{
     //     if(d.board.dragging){
     //         d.board.dragging = false;
-    //         //d.pick.nodes.forEach(n=>{
+    //         //d.pick.n.forEach(n=>{
     //         //    d.node.delta(d, d.node.get(d,n,'x'), 0.0001); // change to send flag
     //         //    d.node.delta(d, d.node.get(d,n,'y'), 0.0001);
     //         //    d.node.delta(d, d.node.get(d,n,'z'), 0.0001);
@@ -113,7 +113,7 @@ export const create_design_slice = (set,get)=>({design:{
     //     if(d.board.pointers == 1){ 
     //         if(!d.board.dragging && delta.length() > 4){
     //             d.board.dragging = true;
-    //             d.pick.nodes.forEach(n => {
+    //             d.pick.n.forEach(n => {
     //                 d.node.pin(d, d.node.get(d,n,'x'));
     //                 d.node.pin(d, d.node.get(d,n,'y'));
     //                 d.node.pin(d, d.node.get(d,n,'z'));
@@ -124,7 +124,7 @@ export const create_design_slice = (set,get)=>({design:{
     //     }
     //     if(d.board.dragging){
     //         //console.log('drag', d.board.pointers, tv);
-    //         d.pick.nodes.forEach(n=>{
+    //         d.pick.n.forEach(n=>{
     //             //console.log(current(d.node.get(d,n,'x')));
     //             d.node.delta(d, d.node.get(d,n,'x'), delta.x);
     //             d.node.delta(d, d.node.get(d,n,'y'), delta.y);

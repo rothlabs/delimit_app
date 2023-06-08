@@ -4,7 +4,7 @@ import {current} from 'immer';
 
 export const create_make_slice = (set,get)=>({make:{
     edge(d, r, n, a){ 
-        if(d.n[r].asset || (r==d.profile && a&&a.t=='asset')){
+        if(d.n[r].asset || (r==d.profile && a&&a.t=='asset') || (r==d.public && a&&a.t=='view')){
             var t = d.n[n].t;
             if(a && a.t!=undefined) t = a.t;
             if(!d.n[r].n[t]) d.n[r].n[t] = [];

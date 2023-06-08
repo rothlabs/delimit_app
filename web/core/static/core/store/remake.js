@@ -8,22 +8,14 @@ import {make_id, random_vector, theme} from '../app.js';
 
 export const create_remake_slice = (set,get)=>({remake:{
     copy(d, src, a){ // maybe place in d.node (only run for part
-        if(!d.node.limited(d, [src])){
+        if(!d.node.limited(d, (a&&a.root ? [src,a.root] : [src]))){ // if a&&a.root then check if it is limited
             const cpy = d.make.node(d, d.n[src].m, d.n[src].t);
             if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
-            //d.node.for_r(d, src, r=>{ // could use for_rn here, 
-            d.node.for_rn(d, src, (r,n,t,o)=>{
-                if(!(a&&a.exclude_r && a.exclude_r == r) && !(a&&a.rt && !a.rt.includes(d.n[r].t))){
-                    //d.node.for_n(d, r, (r,n,t,o)=>{
-                        //if(!(r==d.profile && t=='asset')){ //src == n && 
-                            d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
-                        //}
-                    //});
-                }
-            });
+            if(a&&a.root) d.make.edge(d, a.root, cpy);
             d.node.for_n(d, src, (r,n,t,o)=>{
                 if(a&&a.deep) {
-                    d.make.edge(d, cpy, d.remake.copy(d,n, {...a, exclude_r:r}), {t:t, o:o});
+                    delete a.root;
+                    d.make.edge(d, cpy, d.remake.copy(d,n,a), {t:t, o:o}); //{...a, exclude_r:r}
                 }else{
                     d.make.edge(d, cpy, n, {t:t, o:o});
                 }
@@ -33,9 +25,9 @@ export const create_remake_slice = (set,get)=>({remake:{
         }
     },
     merge(d, nodes, target){ 
-        if(!d.node.limited(d, [...nodes, target])){
-            if(d.remake.merging[d.n[d.pick.nodes[0]].t]){  
-                d.remake.merging[d.n[d.pick.nodes[0]].t](d, nodes, target); 
+        if(!d.node.limited(d, [...nodes, target])){ // d.n[target].asset && 
+            if(d.remake.merging[d.n[d.pick.n[0]].t]){  
+                d.remake.merging[d.n[d.pick.n[0]].t](d, nodes, target); 
                 d.remake.merging.base(d, nodes, target);  
             }
             else{  
@@ -71,27 +63,66 @@ export const create_remake_slice = (set,get)=>({remake:{
             });
         },
     },
-    split(d, roots, target){ // make unique copy for everything but asset and transform?
-        roots = roots.filter(r=> d.n[r].asset);
-        if(!d.node.limited(d, [...roots, target])){ 
+    split(d, nodes, target){ // make unique copy for everything but asset and transform?
+        if(!d.node.limited(d, [...nodes, target])){ 
             const dead_edges = [];
-            //console.log(roots);
-            //console.log(target);
-            //roots = d.node.edges(d,n);
-            //d.node.ne(d,roots).forEach(([r,n,t,o])=>{//d.node.for_n(d, roots, (r,n,t,o)=>{
-            d.node.for_n(d, roots, (r,n,t,o)=>{
-                console.log(r, n);
-                if(n == target){
-                    //console.log('copy');
-                    const cpy = d.remake.copy(d, n, {deep:true, rt:['asset', 'view']}); // get rid of view for children as well
+            d.node.for_n(d, target, (r,n,t,o)=>{
+                if(nodes.includes(n)){
+                    const cpy = d.remake.copy(d, n, {deep:true}); // get rid of view for children as well //, rt:['asset', 'view']
                     d.make.edge(d, r, cpy, {t:t, o:o});
-                    dead_edges.push({r:r, n:n, t:t, o:o+1}); // +1 because new edge is inersted just in front of old edge 
+                    dead_edges.push({r:r, n:n, t:t}); // , o:o+1 +1 because new edge is inersted just in front of old edge 
                 }
             });
             d.node.delete_edges(d, dead_edges);
+            
         }
     },
 }});
+
+
+
+//console.log(roots);
+            //console.log(target);
+            //roots = d.node.edges(d,n);
+            //d.node.ne(d,roots).forEach(([r,n,t,o])=>{//d.node.for_n(d, roots, (r,n,t,o)=>{
+
+//d.node.for_r(d, src, r=>{ // could use for_rn here, 
+            // d.node.for_rn(d, src, (r,n,t,o)=>{
+            //     if(!(a&&a.exclude_r && a.exclude_r == r)){  // && !(a&&a.rt && !a.rt.includes(d.n[r].t))
+            //         //d.node.for_n(d, r, (r,n,t,o)=>{
+            //             //if(!(r==d.profile && t=='asset')){ //src == n && 
+            //                 d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
+            //             //}
+            //         //});
+            //     }
+            // });
+
+            // if(a&&a.root){
+            //     const rne = d.node.rne(d, src).find(e=> e.r == a.root);
+            //     if(rne) d.make.edge(d, rne.r, cpy, {t:rne.t, o:rne.o});
+            // }
+
+
+// split(d, roots, target){ // make unique copy for everything but asset and transform?
+//     roots = roots.filter(r=> d.n[r].asset);
+//     if(!d.node.limited(d, [...roots, target])){ 
+//         const dead_edges = [];
+//         //console.log(roots);
+//         //console.log(target);
+//         //roots = d.node.edges(d,n);
+//         //d.node.ne(d,roots).forEach(([r,n,t,o])=>{//d.node.for_n(d, roots, (r,n,t,o)=>{
+//         d.node.for_n(d, roots, (r,n,t,o)=>{
+//             console.log(r, n);
+//             if(n == target){
+//                 //console.log('copy');
+//                 const cpy = d.remake.copy(d, n, {deep:true, rt:['asset', 'view']}); // get rid of view for children as well
+//                 d.make.edge(d, r, cpy, {t:t, o:o});
+//                 dead_edges.push({r:r, n:n, t:t, o:o+1}); // +1 because new edge is inersted just in front of old edge 
+//             }
+//         });
+//         d.node.delete_edges(d, dead_edges);
+//     }
+// },
 
 //d.node.for_r(d, nodes, (r,n,t)=>{
             //    d.make.edge(d, target, n, {t:t});

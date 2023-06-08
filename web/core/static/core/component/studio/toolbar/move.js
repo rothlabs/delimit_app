@@ -6,7 +6,7 @@ export function Move(){
     const studio_mode = useS(d=> d.studio.mode);
     const move_mode = useS(d=> d.design.move_mode);
     const buttons = [
-        {name:'Move', icon:'bi-arrows-move', value:'move'},
+        {name:'Move', icon:'bi bi-arrows-move', value:'move'},
     ];
     return(
         studio_mode=='design' && c(ButtonToolbar, {}, 
