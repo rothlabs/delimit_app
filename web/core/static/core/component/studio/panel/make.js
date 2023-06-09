@@ -11,7 +11,7 @@ export function Make(){
     if(nodes.length){
         items = items.concat([
             {name:' Name',    icon:'bi-triangle',  func(d){
-                return {n:d.make.atom(d, 's', ' '), t:'name'};
+                return {n:d.make.atom(d, 's', ''), t:'name'};
             }},
         ]);
     }
@@ -26,13 +26,13 @@ export function Make(){
     const d = gs();
     return(
         show && panel=='make' && c(Fragment, {},
-            nodes.length ? c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
-                ...nodes.map(n=>
+            c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
+                nodes.length ? nodes.map(n=>
                     c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
                         c(Badge, {n:n})
                     ) 
-                ),
-            ) : c(Badge, {n:d.profile}),
+                ) : c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.profile})),
+            ),
             c(Col, {className:'mb-3 ms-2 me-2'},
                 ...items.map((item, i)=>
                     c(Row, {className: 'mt-1 text-left'},

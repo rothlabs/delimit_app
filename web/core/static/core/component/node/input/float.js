@@ -1,6 +1,7 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
 import {ss, useS, readable} from '../../../app.js';
+import {Buttons} from './buttons.js';
 
 export function Float({t}){
     const content     = useS(d=> d.inspect.content[t]);
@@ -28,6 +29,7 @@ export function Float({t}){
                     }
                 }
             }),
+            c(Buttons, {t:t}),
         )
     )
 }

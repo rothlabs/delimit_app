@@ -28,6 +28,11 @@ export const create_node_slice =(set,get)=>({node:{
     set_pos(d, n, pos){ // should go in transform slice?
         d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
     },
+    get(d, r, t, o){
+        if(!o) o=0;
+        if(d.n[r].n && d.n[r].n[t] && o < d.n[r].n[t].length) return d.n[r].n[t][o];
+        return null;
+    },
     set(d, n, a){
         Object.entries(a).forEach(([t,v],i)=>{
             if(d.n[n].n && d.n[n].n[t]) d.node.sv(d, d.n[n].n[t][0], v);//d.n[n].n[t][0].v = v;
@@ -40,35 +45,39 @@ export const create_node_slice =(set,get)=>({node:{
     },
     n(d, roots, a){ 
         if(!Array.isArray(roots)) roots = [roots]; //if(!filter) filter = ['open']; 
-        var result = [];//const result = (a&&a.rt ? [...roots] : []); // might not need this ?!?!?!
-        var add_node = (r,n,t,o)=>result.push(n);
-        if(a&&a.edge) add_node = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
+        var result = []; // should be key value pair for faster checking?  //const result = (a&&a.rt ? [...roots] : []); // might not need this ?!?!?!
+        var add_n = (r,n,t,o)=>result.push(n);
+        if(a&&a.edge) add_n = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
         roots.forEach(r=>{
-            if(d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
-                if(d.node.be(d,n) == 'open'){
-                    add_node(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
+            if(d.node.be(d,r) && d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
+                if(d.node.be(d,n) == 'open' && !(a&&a.unique && d.node.cr(d,n).some(r=> !result.includes(r)))){
+                    add_n(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
                     if(a&&a.deep) result = result.concat(d.node.n(d,n,a));
                 }
             }));
         });
         return result;
     },
+    un:(d, roots, a)=> d.node.n(d, roots, {unique:true, ...a}),
     ne:(d, roots, a)=> d.node.n(d, roots, {edge:true, ...a}),
     r(d, nodes, a){
         if(!Array.isArray(nodes)) nodes = [nodes];
         var result = [];//const result = (a&&a.rt ? [...nodes] : []); // might not need this ?!?!?!
-        var add_root = (r,n,t,o)=>result.push(n);
-        if(a&&a.edge) add_root = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
+        var add_r = (r,n,t,o)=>result.push(n);
+        if(a&&a.edge) add_r = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
         nodes.forEach(n=>{
-            Object.entries(d.n[n].r).forEach(([t,roots],i)=> roots.forEach((r,o)=> {
-                if(d.node.be(d,r) == 'open'){
-                    add_root(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
-                    if(a&&a.deep) result = result.concat(d.node.r(d,r,a));
-                }
-            }));
+            if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
+                if(!(a&&a.content && ['owner','viewer'].includes(t))) roots.forEach((r,o)=> {
+                    if(d.node.be(d,r) == 'open'){
+                        add_r(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
+                        if(a&&a.deep) result = result.concat(d.node.r(d,r,a));
+                    }
+                });
+            });
         });
         return result;
     },
+    cr:(d, n)=> d.node.r(d, n, {content:true}),//.filter(e=> !['owner', 'viewer'].includes(e.t)),
     re:(d, nodes, a)=> d.node.r(d, nodes, {edge:true, ...a}),
     rne(d, nodes){
         const result = [];

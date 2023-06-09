@@ -1,5 +1,7 @@
 import { Vector3 } from 'three';
 
+const tv = new Vector3();
+
 export const create_graph_slice = (set,get)=>({graph:{
     scale: 1,
     n: [],
@@ -65,7 +67,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         }
 
         const level = [];
-        for(var i=0; i<=highest_lvl+10; i++){  level.push({max_x:0, group:{}});  }
+        for(var i=0; i<=highest_lvl+10; i++){  level.push({max_x:0, group:{}, count:0});  }
         d.graph.n.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];
@@ -73,54 +75,59 @@ export const create_graph_slice = (set,get)=>({graph:{
                 if(t != 'unknown' && d.graph.n.includes(r)) rt.push(r);       
             });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
-            if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = {n:[], x:0, c:0};
+            if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = {n:[], x:0, count:0};
             level[lvl].group[grp].n.push(n);
+            level[lvl].count++;
             d.n[n].graph.grp = grp; 
         });
 
-        var lx=0;
         var ly=0;
         var max_x = 0;
         var max_y = 0;
-        level.forEach((l,i)=>{
-            var gx = lx;
-            if(i > 0) Object.values(l.group).forEach(g=> g.x /= g.c);
-            Object.values(l.group).sort((a,b)=>{
-                if(a.x < b.x) return -1;    if(a.x > b.x) return  1;    return 0;
+        for(var i=0; i<level.length-1; i++){//level.forEach((l,i)=>{if(i+1 < level.length){
+            var l = level[i],  ll = level[i+1];
+            var gx = 0;
+            var x_step = (ll.count / l.count) * 0.5;
+            if(x_step < 1) x_step = 1;
+            const groups = Object.values(l.group);
+            if(i > 0) groups.forEach(g=> g.x /= g.count+0.00001);
+            groups.sort((a,b)=>{
+                if(a.x < b.x) return -1;    
+                if(a.x > b.x) return  1;    
+                return 0;
             }).forEach(g=>{
                 const size = Math.round(Math.sqrt(g.n.length));
-                var x = gx;
+                var x = (gx > g.x ? gx : g.x);
                 var y = ly;
                 g.n.forEach(n=>{
                     if(x > l.max_x) l.max_x = x;
                     if(y > max_y) max_y = y;
                     d.n[n].graph.pos.set(x, -y, 0);
-                    if(i+1 < level.length){
-                        d.node.for_n(d, n, (r,n)=>{if(level[i+1].group[d.n[n].graph.grp]){
-                            level[i+1].group[d.n[n].graph.grp].x += x;
-                            level[i+1].group[d.n[n].graph.grp].c++;
-                        }});
-                    }
+                    d.node.for_n(d, n, (r,n)=>{if(ll.group[d.n[n].graph.grp]){
+                        ll.group[d.n[n].graph.grp].x+=x;
+                        ll.group[d.n[n].graph.grp].count++;
+                    }});
                     y++;
                     if(y >= ly+size){
                         y=ly;  
-                        x++;
+                        x += x_step;
                     }
                 });
-                gx = l.max_x + 2;
+                gx = l.max_x + x_step*1.5;
             });
             if(l.max_x > max_x) max_x = l.max_x;
             ly = max_y + 2;
-        });
+        };
 
         if(d.graph.scale == 1){
             const window_size = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight
             const graph_size = max_x > max_y ? max_x : max_y;
             d.graph.scale = window_size / graph_size / 2;
         }
-        d.graph.n.forEach(n=>{   
-            d.n[n].graph = {...d.n[n].graph, pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(
-                -level[d.n[n].graph.lvl].max_x*d.graph.scale/2, // -max_x*d.graph.scale/2
+        d.graph.n.forEach(n=>{  
+            var lvl = d.n[n].graph.lvl;
+            d.n[n].graph = {...d.n[n].graph, pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(tv.set(
+                -level[lvl].max_x*d.graph.scale/2,   // -max_x*d.graph.scale/2
                 (max_y+2)*d.graph.scale/2,
                 0
             ))};
@@ -130,9 +137,33 @@ export const create_graph_slice = (set,get)=>({graph:{
 
 
 
+// level.reverse().forEach((l,i)=>{
+        //     var ll = level[i+1];
+        //     console.log(l,ll,i);
+        //     if(ll && l.max_x > ll.max_x){
+        //         var old_max_x = ll.max_x;
+        //         //ll.max_x += 3;
+        //         //if(ll.max_x > max_x) max_x = l.max_x;
+        //         var scale_x = ll.max_x / old_max_x;
+        //         //ll.max_x += l.max_x - ll.max_x;
+        //         //var scale_x = l.max_x / ll.max_x;
+        //         //ll.max_x = l.max_x;
+        //         Object.values(ll.group).forEach(g=>{
+        //             g.n.forEach(n=>{ 
+        //                 d.n[n].graph.pos.multiply(tv.set(scale_x,1,1));
+        //             });
+        //         });
+        //     }
+        // });
+        // level.reverse();
+
+// *((level[lvl+1] && level[lvl+1].max_x > level[lvl].max_x) ? (level[lvl+1].max_x/level[lvl].max_x) : 1)
 
 
-
+//d.graph.n.sort((a,b)=>{
+        //    if(d.n[a].graph.lvl > d.n[b].graph.lvl) return -1;
+        //    return 1;
+        //}).forEach(n=>{ 
 
 
 // const level = [];

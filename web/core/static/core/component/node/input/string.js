@@ -1,6 +1,7 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
-import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
-import {useS, ss, readable} from '../../../app.js';
+import {Row, Col, Container, Form, InputGroup, Button} from 'react-bootstrap';
+import {useS, ss, gs, readable} from '../../../app.js';
+import {Buttons} from './buttons.js';
 
 const area_tags = ['story'];
 
@@ -8,6 +9,7 @@ export function String({t}){
     const content   = useS(d=> d.inspect.content[t]);
     const placeholder = useS(d=> d.inspect.placeholder[t]);
     const asset = useS(d=> d.inspect.asset[t]);
+    const d = gs();
     return (
         content!=undefined && c(InputGroup, {className:'mb-3'}, 
             c(InputGroup.Text, {}, readable(t)),
@@ -19,6 +21,7 @@ export function String({t}){
                 disabled:!asset, 
                 onChange:(e)=> ss(d=> d.pick.sv(d, t, e.target.value)),//useD.getState().pick.edit_val(t, e.target.value),
             }),
+            c(Buttons, {t:t}),
         )
     )
 }
