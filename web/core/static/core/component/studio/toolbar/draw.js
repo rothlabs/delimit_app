@@ -21,17 +21,18 @@ export function Draw(){
                     checked: design_mode == button.value,
                     className: button.icon + ' border-white',
                     onChange:e=> ss(d=>{
-                        //console.log(e.currentTarget.value, e.currentTarget.checked);
                         if(d.design.mode == e.currentTarget.value){
                             d.design.mode = '';
                         }else{
                             d.design.mode = e.currentTarget.value;
                         }
-                        if(d.design.mode=='erase') d.pick.mode = '';
-                        //if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';
                     }),
                 })
             ),
         )
     )
 }
+
+
+//if(d.design.mode=='erase') d.pick.mode = '';
+                        //if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';

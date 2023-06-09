@@ -30,7 +30,6 @@ export function Inspect(){
                 c(Remake),
                 c(Delete),
             ),
-
             ...string_tags.map(t=>
                 c(String, {t:t})
             ),

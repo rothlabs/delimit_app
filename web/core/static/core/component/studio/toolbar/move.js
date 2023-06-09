@@ -24,7 +24,6 @@ export function Move(){
                         }else{
                             d.design.move_mode = button.value;
                         }
-                        //if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';
                     }),
                 })
             ),

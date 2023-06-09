@@ -46,7 +46,7 @@ export const create_design_slice = (set,get)=>({design:{
             if(sorted[0].i == sorted.length-1) o+=2;
         }
         const n = d.make.point(d, pos, r, o); // must have insertion index. For now, using -1 for last
-        d.pick.one(d, n, true);
+        d.pick.one(d, n, {t:true});
     },
     update: d=>{
         d.design.candidate = d.pick.get_if_one(d, d.design.tags);

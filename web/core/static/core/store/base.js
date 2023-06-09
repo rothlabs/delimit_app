@@ -31,10 +31,10 @@ export const create_base_slice = (set,get)=>({
         ready:false,
         mode:'graph',
         panel: {},
-        make: (d, t)=>{
-            const n = d.make.part(d, t);
-            d.pick.one(d, n);
-        }
+        // make: (d, t)=>{
+        //     const n = d.make.part(d, t);
+        //     d.pick.one(d, n);
+        // }
     },
 
     init(d){

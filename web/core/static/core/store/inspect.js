@@ -2,7 +2,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
     content:{}, 
     asset:{}, 
     placeholder:{}, 
-    update(d){
+    update(d){ 
         //console.log('update inspect');
         const node_content = d.pick.n.map(n=> d.n[n]);
         d.value_tags.forEach(t=>{

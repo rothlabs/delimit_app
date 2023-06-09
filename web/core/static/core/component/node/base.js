@@ -13,25 +13,22 @@ export function Badge({n}){ // more than one reason to change but okay because i
 }
 
 export function Pickable({n, children}){
-    const pick_mode = useS(d=> d.pick.mode);
-    const pick = useS(d=> d.n[n].pick.pick);
-    const studio_mode = useS(d=> d.studio.mode);
-    const design_mode = useS(d=> d.design.mode);
     return c('group', {
         name: 'pickable',
-        onClick:e=>{ e.stopPropagation(); 
-            if(studio_mode=='design' && design_mode == 'erase'){
-                ss(d=> d.delete.node(d, n, {deep:true}));
-            }else{
-                if(pick_mode=='multi'){  
-                    ss(d=>d.pick.set(d, n, !pick));
-                }else{   
-                    ss(d=>d.pick.one(d,n));
-                }  
-            }
+        onClick:e=>{
+            e.stopPropagation(); 
+            ss(d=>{
+                if(d.studio.mode=='design' && d.design.mode == 'erase'){
+                    d.delete.node(d, n, {deep:true});
+                }else{
+                    const a = {deep:d.pick.deep};
+                    if(d.pick.multi){   d.pick.set(d, n, !d.n[n].pick.pick, a);    }
+                    else{               d.pick.one(d, n, a);                       }  
+                }
+            });
         },
-        onPointerOver:e=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n, true ));}, // should be something different from recieve state but should not commit state here
-        onPointerOut:e=>  {e.stopPropagation(); ss(d=>d.pick.hover(d,n, false));},
+        onPointerOver:e=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n,true ));}, // should be something different from recieve state but should not commit state here
+        onPointerOut:e=>  {e.stopPropagation(); ss(d=>d.pick.hover(d,n,false));},
         children:children,
     });
 }
