@@ -3,23 +3,39 @@ import {Row, Col, Container, Form, InputGroup, Button} from 'react-bootstrap';
 import {useS, ss, gs, readable} from '../../../app.js';
 
 export function Buttons({t}){
+    const asset = useS(d=> d.inspect.asset[t]);
+    const mergeable = useS(d=> d.inspect.mergeable[t]);
+    const splittable = useS(d=> d.inspect.splittable[t]);
     const d = gs();
+    var buttons = [];
+    if(mergeable) buttons.push({name:'Merge', icon:'bi-arrows-angle-contract', func(d){
+        const n = d.node.get(d, d.pick.n, t); 
+        d.remake.merge(d, n.slice(0,-1),  n.at(-1));
+    }});
+    if(splittable) buttons.push({name:'Split', icon:'bi-arrows-angle-expand', func(d){
+        console.log('Split!');
+        //const target = d.node.get(d, d.pick.n, t)[0];
+        //d.remake.split(d, d.pick.n, d.node.get(d, d.pick.n, t)[0]);
+    }});
+    if(!d.atom_tags.includes(t)) buttons.push({name:'Remove', icon:'bi-x-lg', func(d){
+            [...d.pick.n].forEach(r=>{
+                const n = d.node.get(d,r,t);
+                if(d.node.cr(d, n).length > 1){
+                    d.delete.edge(d, r, n, t);
+                }else{
+                    d.delete.node(d, n);
+                }
+            });
+    }});
     return (
-        d.inspect.asset[t] && !d.atom_tags.includes(t) && c(Fragment, {}, 
-            c(Button, {
-                className: 'bi-x-lg',// + ' border-white',
-                variant: 'outline-secondary',
-                onClick(){ss(d=>{
-                    [...d.pick.n].forEach(r=>{
-                        const n = d.node.get(d,r,t);
-                        if(d.node.cr(d, n).length > 1){
-                            d.delete.edge(d, r, n, t);
-                        }else{
-                            d.delete.node(d, n);
-                        }
-                    });
-                })},
-            }),
+        asset && c(Fragment, {}, 
+            ...buttons.map((button,i)=>
+                c(Button, {
+                    className: button.icon,
+                    variant: 'outline-secondary',
+                    onClick:e=> ss(d=> button.func(d)),
+                }),
+            ),
         )
     )
 }

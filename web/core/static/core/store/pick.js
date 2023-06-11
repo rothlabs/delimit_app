@@ -15,7 +15,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     limited: false, // rename to remakeable
     addable: false,
     removable: false,
-    mergable: false,
+    mergeable: false,
     splittable: false,
     deletable: false,
     set(d, n, v, a){
@@ -41,7 +41,7 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.pick.limited = d.node.limited(d, d.pick.n);
         d.pick.addable = false;
         d.pick.removable = false;
-        d.pick.mergable = false;
+        d.pick.mergeable = false;
         d.pick.splittable = false;
         d.pick.deletable = d.pick.n.some(n=> d.n[n].asset);
         if(d.pick.n.length > 1){
@@ -53,7 +53,7 @@ export const create_pick_slice = (set,get)=>({pick:{
                 && !d.node.n(d,d.pick.group,{deep:true}).includes(d.pick.target) 
                 && d.pick.group.some(n=> !target_nodes.includes(n));
             d.pick.removable = d.n[d.pick.target].asset && group_in_target;//d.node.n(d,d.pick.target).some(n=> d.pick.group.includes(n));
-            d.pick.mergable = d.n[d.pick.target].asset && d.pick.n.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
+            d.pick.mergeable = d.n[d.pick.target].asset && d.pick.n.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
             d.pick.splittable = d.n[d.pick.target].asset && group_in_target;  //d.pick.group.every(n=> (d.n[n].asset && d.node.n(d,n).includes(d.pick.target))); 
         }else{
             d.pick.group = d.pick.n; // copy with spread ?

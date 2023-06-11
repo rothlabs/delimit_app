@@ -33,13 +33,11 @@ export const create_graph_slice = (set,get)=>({graph:{
         //console.log('update graph');
         d.graph.n = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.edges = [];
-        //d.graph.n.forEach(r=>{
-            d.node.for_n(d, d.graph.n, (r,n,t)=>{
-                if(d.node.be(d,n) && d.n[n].graph.vis && d.graph.edge_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
-                    d.graph.edges.push({r:r, t:t, n:n}); 
-                }
-            });
-       // });
+        d.node.for_n(d, d.graph.n, (r,n,t)=>{
+            if(d.node.be(d,n) && d.n[n].graph.vis && d.graph.edge_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
+                d.graph.edges.push({r:r, t:t, n:n}); 
+            }
+        });
 
         d.graph.n.forEach(n=>{   
             d.n[n].graph.lvl = 0; 

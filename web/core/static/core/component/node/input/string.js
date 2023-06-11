@@ -9,7 +9,6 @@ export function String({t}){
     const content   = useS(d=> d.inspect.content[t]);
     const placeholder = useS(d=> d.inspect.placeholder[t]);
     const asset = useS(d=> d.inspect.asset[t]);
-    const d = gs();
     return (
         content!=undefined && c(InputGroup, {className:'mb-3'}, 
             c(InputGroup.Text, {}, readable(t)),

@@ -121,7 +121,6 @@ function ignore_patch(p){
 const ignored_node_props = ['pick', 'graph', 'pin', 'c'];
 
 function commit_state(arg){
-    
     arg.patches = arg.patches.filter(p=> ignore_patch(p));
     arg.inverse = arg.inverse.filter(p=> ignore_patch(p));
     var save_patches = false;
@@ -148,7 +147,7 @@ function commit_state(arg){
     //     if(p.op=='replace' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
     // });
     if(save_patches){
-        console.log('Commit Patches');
+        //console.log('Commit Patches');
         arg.state.send(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
         //console.log(arg.patches);
         if(patches.length > patch){

@@ -5,7 +5,7 @@ import {ss, useS} from '../../../app.js';
 export function Remake(){ //Transmute Recast
     const addable = useS(d=> d.pick.addable);
     const removable = useS(d=> d.pick.removable);
-    const mergable = useS(d=> d.pick.mergable);
+    const mergeable = useS(d=> d.pick.mergeable);
     const splittable = useS(d=> d.pick.splittable);
     var buttons = [
         {name:'Deep Copy',   icon:'bi-file-earmark-fill', func(d){
@@ -28,7 +28,7 @@ export function Remake(){ //Transmute Recast
             })
             //d.node.delete_edges(d, edges);// d.edge.delete();
         }},
-        {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!mergable, func(d){ // put button definitions like this in store
+        {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!mergeable, func(d){ // put button definitions like this in store
             d.remake.merge(d, d.pick.group,  d.pick.target);//d.pick.merge(d);
         }},
         {name:'Split',  icon:'bi-arrows-angle-expand', disabled:!splittable, func(d){ // disabled: if nodes don't have any splittable r 

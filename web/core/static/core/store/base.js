@@ -183,7 +183,7 @@ export const create_base_slice = (set,get)=>({
                             pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),
                             //dir: new Vector3(),
                             vis: true,
-                            lvl: 0,
+                            //lvl: 0,
                         },
                         pin: {},
                     };

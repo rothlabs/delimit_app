@@ -28,10 +28,13 @@ export const create_node_slice =(set,get)=>({node:{
     set_pos(d, n, pos){ // should go in transform slice?
         d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
     },
-    get(d, r, t, o){
-        if(!o) o=0;
-        if(d.n[r].n && d.n[r].n[t] && o < d.n[r].n[t].length) return d.n[r].n[t][o];
-        return null;
+    get(d, roots, t){ // like n but different. need better name to differentiate
+        if(!Array.isArray(roots)) roots = [roots];
+        const result = [];
+        roots.forEach(r=>{
+            if(d.n[r].n && d.n[r].n[t]) d.add(result, d.n[r].n[t][0]);//return d.n[r].n[t][o];  && o < d.n[r].n[t].length
+        });
+        return result;
     },
     set(d, n, a){
         Object.entries(a).forEach(([t,v],i)=>{
@@ -45,13 +48,15 @@ export const create_node_slice =(set,get)=>({node:{
     },
     n(d, roots, a){ 
         if(!Array.isArray(roots)) roots = [roots]; //if(!filter) filter = ['open']; 
-        var result = []; // should be key value pair for faster checking?  //const result = (a&&a.rt ? [...roots] : []); // might not need this ?!?!?!
-        var add_n = (r,n,t,o)=>result.push(n);
+        var result = []; // should be key value pair for faster checking?  
+        var add_n = (r,n,t,o)=>result.push(n); // use d.add to avoid duplicates ?!?!?!
         if(a&&a.edge) add_n = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
+        if(a && a.unique && !a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
         roots.forEach(r=>{
             if(d.node.be(d,r) && d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
-                if(d.node.be(d,n) == 'open' && !(a&&a.unique && d.node.cr(d,n).some(r=> !result.includes(r)))){
+                if(d.node.be(d,n) == 'open' && !(a&&a.unique && d.node.cr(d,n).some(r=> !a.collected[r]))){ //a.n.includes(r)
                     add_n(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
+                    if(a&&a.unique) a.collected[n] = true;
                     if(a&&a.deep) result = result.concat(d.node.n(d,n,a));
                 }
             }));
@@ -63,7 +68,7 @@ export const create_node_slice =(set,get)=>({node:{
     r(d, nodes, a){
         if(!Array.isArray(nodes)) nodes = [nodes];
         var result = [];//const result = (a&&a.rt ? [...nodes] : []); // might not need this ?!?!?!
-        var add_r = (r,n,t,o)=>result.push(n);
+        var add_r = (r,n,t,o)=>result.push(r);
         if(a&&a.edge) add_r = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
         nodes.forEach(n=>{
             if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
