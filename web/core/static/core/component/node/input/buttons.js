@@ -13,9 +13,8 @@ export function Buttons({t}){
         d.remake.merge(d, n.slice(0,-1),  n.at(-1));
     }});
     if(splittable) buttons.push({name:'Split', icon:'bi-arrows-angle-expand', func(d){
-        console.log('Split!');
-        //const target = d.node.get(d, d.pick.n, t)[0];
-        //d.remake.split(d, d.pick.n, d.node.get(d, d.pick.n, t)[0]);
+        const group = d.node.get(d, d.pick.n, t);
+        d.pick.n.forEach(target=> d.remake.split(d, group, target));
     }});
     if(!d.atom_tags.includes(t)) buttons.push({name:'Remove', icon:'bi-x-lg', func(d){
             [...d.pick.n].forEach(r=>{

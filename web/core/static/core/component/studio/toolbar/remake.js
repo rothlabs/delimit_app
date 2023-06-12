@@ -2,7 +2,7 @@ import {createElement as c} from 'react';
 import {Button, ButtonToolbar} from 'react-bootstrap';
 import {ss, useS} from '../../../app.js';
 
-export function Remake(){ //Transmute Recast
+export function Remake(){ //Transmute or Recast
     const addable = useS(d=> d.pick.addable);
     const removable = useS(d=> d.pick.removable);
     const mergeable = useS(d=> d.pick.mergeable);
@@ -22,14 +22,12 @@ export function Remake(){ //Transmute Recast
             }); 
         }},
         {name:'Remove',  icon:'bi-box-arrow-up-right', disabled:!removable, func(d){ 
-            //const edges = [];
             d.node.for_n(d, d.pick.target, (r,n,t)=>{
-                if(d.pick.group.includes(n)) d.delete.edge(d,r,n,t);//edges.push({r:r,n:n,t:t}); //,o:o
+                if(d.pick.group.includes(n)) d.delete.edge(d,r,n,t);
             })
-            //d.node.delete_edges(d, edges);// d.edge.delete();
         }},
         {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!mergeable, func(d){ // put button definitions like this in store
-            d.remake.merge(d, d.pick.group,  d.pick.target);//d.pick.merge(d);
+            d.remake.merge(d, d.pick.group, d.pick.target);//d.pick.merge(d);
         }},
         {name:'Split',  icon:'bi-arrows-angle-expand', disabled:!splittable, func(d){ // disabled: if nodes don't have any splittable r 
             d.remake.split(d, d.pick.group, d.pick.target);

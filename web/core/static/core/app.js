@@ -108,6 +108,7 @@ function next_state(state, func){
     useS.setState(result[0]); 
     return {state:result[0], patches:all_patches, inverse:all_inverse}; // rename state to d
 }
+
 function ignore_patch(p){
     const path = p.path.join('.');
     if(path == 'studio.panel') return false;
@@ -117,9 +118,7 @@ function ignore_patch(p){
     //if(p.path.includes('pick')) return false;
     return true;
 }
-
 const ignored_node_props = ['pick', 'graph', 'pin', 'c'];
-
 function commit_state(arg){
     arg.patches = arg.patches.filter(p=> ignore_patch(p));
     arg.inverse = arg.inverse.filter(p=> ignore_patch(p));

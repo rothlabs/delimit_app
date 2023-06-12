@@ -31,10 +31,6 @@ export const create_base_slice = (set,get)=>({
         ready:false,
         mode:'graph',
         panel: {},
-        // make: (d, t)=>{
-        //     const n = d.make.part(d, t);
-        //     d.pick.one(d, n);
-        // }
     },
 
     init(d){
@@ -141,7 +137,7 @@ export const create_base_slice = (set,get)=>({
         //function include_part(n){ // don't set if already set!   don't set part if profile?
         parts.forEach(n=>{ // need to test with two profiles working on same asset
             if(d.n[n].t != 'profile' && !deleted_nodes.includes(n)){
-                console.log('send part', n, d.n[n].t);
+                //console.log('send part', n, d.n[n].t);
                 const part = [[n],        [], [], [], [], []]; //, ['replace']
                 const tags = [[d.n[n].t], [], [], [], [], []];
                 d.node.for_n(d, n, (r,n,t)=>{
@@ -164,7 +160,7 @@ export const create_base_slice = (set,get)=>({
         //     edits.t.push(append.tags);
         // });
         if(JSON.stringify(edits).split('').sort().join() != no_edits){ // might not need this check anymore
-            console.log('Push Pack - mutate');
+            //console.log('Push Pack - mutate');
             d.push_pack({variables:edits});
         }
     },

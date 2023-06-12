@@ -16,16 +16,16 @@ export function Studio(){
         ['openPack pack{ t{id v} p{id t} '+edges+' '+atoms+' } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{data = data.openPack;
-        console.log('Open Pack - complete');
-        console.log(Date.now()/1000 - 1685555000);
+        //console.log('Open Pack - complete');
+        //console.log(Date.now()/1000 - 1685555000);
         if(data.pack) rs(d=> d.receive(d,data.pack) ); 
         //console.log(data);
         //console.log(useS.getState().n);
     }}); 
     useEffect(()=>{
         if(Object.keys(gs().n).length < 1) {
-            console.log('Open Pack - mutate');
-            console.log(Date.now()/1000 - 1685555000);
+            //console.log('Open Pack - mutate');
+            //console.log(Date.now()/1000 - 1685555000);
             open_pack.mutate();
         }
     },[]);
@@ -44,10 +44,7 @@ export function Studio(){
         ['[ID] fdel',       null],
         ['[ID] sdel',       null],
     ]],{onCompleted:(data)=>{data = data.pushPack;
-        console.log('Push Pack - complete');
-        //console.log('Push Pack Reply: '+data.reply);
-        //console.log('Push Pack Restricted: '+data.restricted);
-        //console.log('Push Pack: '+data.reply);
+        //console.log('Push Pack - complete');
     }});
 
     // merge with push_pack ?!?! Or make delete_pack and keep all types of ops seperate?

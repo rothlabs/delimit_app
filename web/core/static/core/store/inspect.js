@@ -12,8 +12,8 @@ export const create_inspect_slice = (set,get)=>({inspect:{
             const nodes = d.node.get(d, d.pick.n, t);
             d.inspect.mergeable[t] = false;
             d.inspect.splittable[t] = false;
-            if(nodes.length>1) d.inspect.mergeable[t] = true;
-            if(nc.length>1 && nodes.length==1) d.inspect.splittable[t] = true;
+            if(nodes.length > 1) d.inspect.mergeable[t] = true;
+            if(nodes.length == 1 && d.node.cr(d,nodes[0]).length > 1) d.inspect.splittable[t] = true;
             if(nc.length){
                 if(nc.every((n,i,nc)=> n.c[t]==nc[0].c[t])){
                     d.inspect.content[t] = nc[0].c[t];
@@ -27,8 +27,6 @@ export const create_inspect_slice = (set,get)=>({inspect:{
         })
         Object.entries(d.model_tags).forEach(([m,t],i)=>{
             const nc = node_content.filter(n=> n.m==m && n.v!=null);
-            //d.inspect.mergeable[t] = false;
-            //if(nc.length>1) d.inspect.mergeable[t] = true;
             if(nc.length){  
                 if(nc.every((n,i,nc)=> n.v==nc[0].v)){
                     d.inspect.content[t] = nc[0].v;   // could be content just like part
