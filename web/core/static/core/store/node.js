@@ -87,13 +87,14 @@ export const create_node_slice =(set,get)=>({node:{
     rne(d, nodes){
         const result = [];
         d.node.for_r(d, nodes, r=>{
-            result.push(d.node.ne(d,r).find(e=> nodes.includes(e.n)));//d.node.for_n(d, r, (r,n,t,o)=>{  if(nodes.includes(n)) result.push({r:r,n:n,t:t,o:o});   })
+            const ne = d.node.ne(d,r).find(e=> nodes.includes(e.n));
+            if(ne) result.push(ne);//d.node.for_n(d, r, (r,n,t,o)=>{  if(nodes.includes(n)) result.push({r:r,n:n,t:t,o:o});   })
         });
         return result;
     },
     for_n:(d, roots, func, a)=> d.node.ne(d,roots,a).forEach(e=> func(...Object.values(e))), // rename to for_ne
     for_r:(d, nodes, func, a)=> d.node.re(d,nodes,a).forEach(e=> func(...Object.values(e))), 
-    for_rn:(d, nodes, func)=> d.node.rne(d, nodes).forEach(e=> func(...Object.values(e))), // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
+    for_rn:(d, nodes, func)=> d.node.rne(d,nodes).forEach(e=> func(...Object.values(e))), // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
         d.pick.set(d, n, false);

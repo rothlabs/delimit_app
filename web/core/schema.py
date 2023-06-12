@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
 import django.utils
 import time
+from django.db import connection
 
 class Authenticated_User_Type(DjangoObjectType):
     class Meta:
@@ -18,85 +19,47 @@ class User_Type(DjangoObjectType):
     class Meta:
         model = User
         fields = ('id', 'first_name',)
-
-
-class Part_Type(DjangoObjectType):
-    class Meta:
-        model = Part
-        fields = '__all__'
 class Tag_Type(DjangoObjectType):
     class Meta:
         model = Tag
         fields = '__all__'
-class Bool_Type(DjangoObjectType):
-    class Meta:
-        model = Bool
-        fields = '__all__'
-class Int_Type(DjangoObjectType):
-    class Meta:
-        model = Int
-        fields = '__all__'
-class Float_Type(DjangoObjectType):
-    class Meta:
-        model = Float
-        fields = '__all__'
-class String_Type(DjangoObjectType):
-    class Meta:
-        model = String
-        fields = '__all__'
-
-class Part_Part_Type(DjangoObjectType):
-    class Meta:
-        model = Part_Part
-        fields = '__all__'
-class Part_Bool_Type(DjangoObjectType):
-    class Meta:
-        model = Part_Bool
-        fields = '__all__'
-class Part_Int_Type(DjangoObjectType):
-    class Meta:
-        model = Part_Int
-        fields = '__all__'
-class Part_Float_Type(DjangoObjectType):
-    class Meta:
-        model = Part_Float
-        fields = '__all__'
-class Part_String_Type(DjangoObjectType):
-    class Meta:
-        model = Part_String
-        fields = '__all__'
-
-
-class Part_Min_Type(graphene.ObjectType): 
+class Part_Type(graphene.ObjectType): 
     id = graphene.ID()
     t = graphene.ID()
-    def __init__(self, id, t):
-        self.id=id
-        self.t=t
-    def resolve_id(self, info): return self.id
-    def resolve_t(self, info): return self.t
-
+    def __init__(self, n): self.n=n
+    def resolve_id(self, info): return self.n.id
+    def resolve_t(self, info): return self.n.t_id
+class Atom_Type(graphene.ObjectType):
+    id = graphene.ID()
+    def resolve_id(self, info): return self.n.id 
+class Bool_Type(Atom_Type):
+    v = graphene.Boolean()
+    def __init__(self, n): self.n=n
+    def resolve_v(self, info): return self.n.v 
+class Int_Type(Atom_Type):
+    v = graphene.Int()
+    def __init__(self, n): self.n=n
+    def resolve_v(self, info): return self.n.v 
+class Float_Type(Atom_Type):
+    v = graphene.Float()
+    def __init__(self, n): self.n=n
+    def resolve_v(self, info): return self.n.v 
+class String_Type(Atom_Type):
+    v = graphene.String()
+    def __init__(self, n): self.n=n
+    def resolve_v(self, info): return self.n.v 
 class Edge_Type(graphene.ObjectType): 
-    #o = graphene.Int()
     r = graphene.ID()
     t = graphene.ID()
     n = graphene.ID()
-    def __init__(self, r, t, n):
-        #self.o=o
-        self.r=r
-        self.t=t
-        self.n=n
-    #def resolve_o(self, info): return self.o
-    def resolve_r(self, info): return self.r
-    def resolve_t(self, info): return self.t
-    def resolve_n(self, info): return self.n
-
-def list_edges(edges):
-    return [Edge_Type(r=e['r_id'], t=e['t_id'], n=e['n_id']) for e in edges]
+    def __init__(self, e): self.e = e
+    def resolve_r(self, info): return self.e.r_id
+    def resolve_t(self, info): return self.e.t_id
+    def resolve_n(self, info): return self.e.n_id
 
 class Pack_Type(graphene.ObjectType): 
     t = graphene.List(Tag_Type)
-    p = graphene.List(Part_Min_Type)
+    p = graphene.List(Part_Type)
     b = graphene.List(Bool_Type)
     i = graphene.List(Int_Type)
     f = graphene.List(Float_Type)
@@ -113,30 +76,31 @@ class Pack_Type(graphene.ObjectType):
         self.i=i
         self.f=f
         self.s=s
+        self.p_ids = tuple([n.id for n in self.p])
     def resolve_t(self, info): return Tag.objects.all()
-    def resolve_p(self, info): return [Part_Min_Type(id=p['id'], t=p['t_id']) for p in self.p.values()]
-    def resolve_b(self, info): return self.b.all()
-    def resolve_i(self, info): return self.i.all()
-    def resolve_f(self, info): return self.f.all()
-    def resolve_s(self, info): return self.s.all()
-    def resolve_pe(self, info):
-        edges = Part_Part.objects.filter(Q(r__in=self.p) | Q(n__in=self.p)).values() # sending reverse and forward relationships!
-        return list_edges(edges)
-    def resolve_be(self, info):
-        edges = Part_Bool.objects.filter(Q(r__in=self.p) | Q(n__in=self.b)).values() # could it be n__id for all of these?
-        return list_edges(edges)
-    def resolve_ie(self, info):
-        edges = Part_Int.objects.filter(Q(r__in=self.p) | Q(n__in=self.i)).values()
-        return list_edges(edges)
-    def resolve_fe(self, info):
-        edges = Part_Float.objects.filter(Q(r__in=self.p) | Q(n__in=self.f)).values()
-        return list_edges(edges)
-    def resolve_se(self, info):
-        edges = Part_String.objects.filter(Q(r__in=self.p) | Q(n__in=self.s)).values()
-        return list_edges(edges)
-    def resolve_ue(self, info):
-        edges = Part_User.objects.filter(r__in=self.p).values()
-        return list_edges(edges)
+    def resolve_p(self, info): return [Part_Type(n=n) for n in self.p] #[Part_Min_Type(id=pc, t=p['t_id']) for p in self.p.values()]
+    def resolve_b(self, info): return [Bool_Type(n=n) for n in self.b]
+    def resolve_i(self, info): return [Int_Type(n=n) for n in self.i]
+    def resolve_f(self, info): return [Float_Type(n=n) for n in self.f]
+    def resolve_s(self, info): return [String_Type(n=n) for n in self.s]
+    def resolve_pe(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
+        SELECT * FROM core_part_part WHERE core_part_part.r_id IN %(parts)s OR core_part_part.n_id IN %(parts)s""", 
+        {'parts':self.p_ids})]
+    def resolve_be(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
+        SELECT * FROM core_part_bool WHERE core_part_bool.r_id IN %(parts)s OR core_part_bool.n_id IN %(bools)s""", 
+        {'parts':self.p_ids, 'bools':tuple([n.id for n in self.b] + ['none'])})]
+    def resolve_ie(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
+        SELECT * FROM core_part_int WHERE core_part_int.r_id IN %(parts)s OR core_part_int.n_id IN %(ints)s""", 
+        {'parts':self.p_ids, 'ints':tuple([n.id for n in self.i] + ['none'])})]
+    def resolve_fe(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
+        SELECT * FROM core_part_float WHERE core_part_float.r_id IN %(parts)s OR core_part_float.n_id IN %(floats)s""", 
+        {'parts':self.p_ids, 'floats':tuple([n.id for n in self.f] + ['none'])})]
+    def resolve_se(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
+        SELECT * FROM core_part_string WHERE core_part_string.r_id IN %(parts)s OR core_part_string.n_id IN %(strings)s""", 
+        {'parts':self.p_ids, 'strings':tuple([n.id for n in self.s] + ['none'])})]
+    def resolve_ue(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
+        SELECT * FROM core_part_user WHERE core_part_user.r_id IN %(parts)s""", 
+        {'parts':self.p_ids})]
 
 def clear_part(part):
     part.p.clear()
@@ -269,69 +233,142 @@ class Open_Pack(graphene.Mutation):
         #print('got request for open pack!!!')
         #print(time.time())
         try:
-            # get context
+            #### get context
             user = info.context.user
-            # filter by ids:
-            parts = None
-            if ids: parts = Part.objects.filter(id__in=ids)
-            # filter by public and viewable (excluding deleted):
-            if user.is_authenticated: viewable = Q(r__t__v='profile', r__u=user) | Q(t__v='profile', u=user)
-            else: viewable = Q(pk__in=[]) # always false
-            permission =  (Q(r__t__v='public') | Q(t__v='public') | viewable)
-            if parts: parts = parts.filter(permission)#.distinct()
-            else: parts = Part.objects.filter(permission)#.distinct()
-            # filter out deleted
-            delete_packs = Part.objects.filter(t__v='delete_pack')
-            parts = parts.filter(~Q(r__in=delete_packs))
-            # filter by include and exclude props:
-            if include:
-                for prop in include:
-                    if prop[0]=='b': parts = parts.filter(pe__t__v=prop[1], n__v=prop[2]=='true')#.distinct() # is it higher or lower case?
-                    if prop[0]=='i': parts = parts.filter(ie__t__v=prop[1], n__v=int(prop[2]))#.distinct()
-                    if prop[0]=='f': parts = parts.filter(fe__t__v=prop[1], n__v=float(prop[2]))#.distinct()
-                    if prop[0]=='s': parts = parts.filter(se__t__v=prop[1], n__v=prop[2])#.distinct()
-            if exclude:
-                for prop in exclude:
-                    if prop[0]=='b': parts = parts.filter(~Q(pe__t__v=prop[1], n__v=prop[2]=='true'))#.distinct() # is it higher or lower case?
-                    if prop[0]=='i': parts = parts.filter(~Q(ie__t__v=prop[1], n__v=int(prop[2])))#.distinct()
-                    if prop[0]=='f': parts = parts.filter(~Q(fe__t__v=prop[1], n__v=float(prop[2])))#.distinct()
-                    if prop[0]=='s': parts = parts.filter(~Q(se__t__v=prop[1], n__v=prop[2]))#.distinct()
-            # get dependencies filtered by public and viewable
-            part_count = len(parts.all())
-            while depth is None or depth > 0:  # replace with Part.objects.raw(recursive sql)!!!!
-                parts = Part.objects.filter(Q(r__in=parts) | Q(id__in=parts.values_list('id', flat=True)), permission)
-                parts = parts.filter(~Q(r__in=delete_packs))#.distinct()
-                if(len(parts.all()) > part_count): 
-                   part_count = len(parts.all())
-                   if depth: depth -= 1
-                else: break
-            # get atoms:
+            #### filter by ids:
+            # parts = None
+            # if ids: parts = Part.objects.filter(id__in=ids)
+            # #### filter by public and viewable (excluding deleted):
+            # if user.is_authenticated: viewable = Q(r__t__v='profile', r__u=user) | Q(t__v='profile', u=user)
+            # else: viewable = Q(pk__in=[]) # always false
+            # permission =  (Q(r__t__v='public') | Q(t__v='public') | viewable)
+            # if parts: parts = parts.filter(permission)#.distinct()
+            # else: parts = Part.objects.filter(permission)#.distinct()
+            # #### filter out deleted
+            # delete_packs = Part.objects.filter(t__v='delete_pack')
+            # parts = parts.filter(~Q(r__in=delete_packs))
+
+            params = {
+                'public': Part.objects.get(t__v='public').id,
+                'profile': Part.objects.get(t__v='profile', ue__n=user).id 
+                    if user.is_authenticated else 'none',
+            }
+
+            # try:
+            #     profile = Part.objects.get(t__v='profile', ue__n=user)
+            #     print('worked')
+            #     print(user.id)
+            #     print(profile)
+            # except Exception as e:
+            #     print('didnt work')
+            #     print(e)
+
+            parts = Part.objects.raw("""
+                SELECT core_part.id, core_part.t_id 
+                FROM core_part_part JOIN core_part ON core_part_part.n_id=core_part.id 
+                WHERE  core_part_part.r_id = %(profile)s 
+                    OR core_part_part.r_id = %(public)s
+                    OR core_part.id = %(public)s
+                """, params)
+            bools = Part.objects.raw("""
+                SELECT core_bool.id, core_bool.v 
+                FROM core_part_bool JOIN core_bool ON core_part_bool.n_id=core_bool.id 
+                WHERE  core_part_bool.r_id = %(profile)s 
+                    OR core_part_bool.r_id = %(public)s
+                """, params)
+            ints = Part.objects.raw("""
+                SELECT core_int.id, core_int.v 
+                FROM core_part_int JOIN core_int ON core_part_int.n_id=core_int.id 
+                WHERE  core_part_int.r_id = %(profile)s 
+                    OR core_part_int.r_id = %(public)s
+                """, params)
+            floats = Part.objects.raw("""
+                SELECT core_float.id, core_float.v 
+                FROM core_part_float JOIN core_float ON core_part_float.n_id=core_float.id 
+                WHERE  core_part_float.r_id = %(profile)s 
+                    OR core_part_float.r_id = %(public)s
+                """, params)
+            strings = Part.objects.raw("""
+                SELECT core_string.id, core_string.v 
+                FROM core_part_string JOIN core_string ON core_part_string.n_id=core_string.id 
+                WHERE  core_part_string.r_id = %(profile)s 
+                    OR core_part_string.r_id = %(public)s
+                """, params)
+
+            #'SELECT core_part.id FROM core_part_user JOIN auth_user WHERE core_part_user.n_id'
+
+            # fe = Part_Float.objects.raw("""
+            #     SELECT core_part_float.id, core_part_float.r_id, core_part_float.n_id, core_part_float.t_id
+            #     FROM core_part_float
+            #     WHERE  core_part_float.r_id = %(profile)s 
+            #         OR core_part_float.n_id = %(profile)s
+            #         OR core_part_float.r_id = %(public)s 
+            #         OR core_part_float.n_id = %(public)s
+            #     """, params)
+
+            #for flt in floats:
+            #    print(flt.v)
+
+
+            #### filter by include and exclude props:
+            # if include:
+            #     for prop in include:
+            #         if prop[0]=='b': parts = parts.filter(pe__t__v=prop[1], n__v=prop[2]=='true')#.distinct() # is it higher or lower case?
+            #         if prop[0]=='i': parts = parts.filter(ie__t__v=prop[1], n__v=int(prop[2]))#.distinct()
+            #         if prop[0]=='f': parts = parts.filter(fe__t__v=prop[1], n__v=float(prop[2]))#.distinct()
+            #         if prop[0]=='s': parts = parts.filter(se__t__v=prop[1], n__v=prop[2])#.distinct()
+            # if exclude:
+            #     for prop in exclude:
+            #         if prop[0]=='b': parts = parts.filter(~Q(pe__t__v=prop[1], n__v=prop[2]=='true'))#.distinct() # is it higher or lower case?
+            #         if prop[0]=='i': parts = parts.filter(~Q(ie__t__v=prop[1], n__v=int(prop[2])))#.distinct()
+            #         if prop[0]=='f': parts = parts.filter(~Q(fe__t__v=prop[1], n__v=float(prop[2])))#.distinct()
+            #         if prop[0]=='s': parts = parts.filter(~Q(se__t__v=prop[1], n__v=prop[2]))#.distinct()
+            # #### get dependencies filtered by public and viewable
+            # part_count = len(parts.all())
+            # while depth is None or depth > 0:  # replace with Part.objects.raw(recursive sql)!!!!
+            #     parts = Part.objects.filter(Q(r__in=parts) | Q(id__in=parts.values_list('id', flat=True)), permission)
+            #     parts = parts.filter(~Q(r__in=delete_packs))#.distinct()
+            #     if(len(parts.all()) > part_count): 
+            #        part_count = len(parts.all())
+            #        if depth: depth -= 1
+            #     else: break
+            # parts = parts.distinct()
+            # #### get atoms:
+            # if user.is_authenticated: 
+            #     profile = Part.objects.get(t__v='profile', u=user)
+            #     viewable = Q(Q(e__t__v='asset') | Q(e__t__v='view'), e__r=profile)
+            # else: viewable = Q(pk__in=[])
+            # permission = Q(e__r__t__v='public') | viewable
+            # bools   = Bool.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__n1__u=user)) 
+            # ints    = Int.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__n1__u=user))
+            # floats  = Float.objects.filter(permission, p__in=parts)#.distinct() # might not need distinct
+            # strings = String.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__n1__u=user))
+            # bools = bools.filter(~Q(p__in=delete_packs))#.distinct()
+            # ints = ints.filter(~Q(p__in=delete_packs))#.distinct()
+            # floats = floats.filter(~Q(p__in=delete_packs))#.distinct()
+            # strings = strings.filter(~Q(p__in=delete_packs))#.distinct()
+            # #### add to open_pack
             if user.is_authenticated: 
-                profile = Part.objects.get(t__v='profile', u=user)
-                viewable = Q(Q(e__t__v='asset') | Q(e__t__v='view'), e__r=profile)
-            else: viewable = Q(pk__in=[])
-            permission = Q(e__r__t__v='public') | viewable
-            bools   = Bool.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(pb2__t1__v='public') | Q(Q(pb2__t1__v='viewer') | Q(pb2__t1__v='editor'), pb2__n1__u=user)) 
-            ints    = Int.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(pi2__t1__v='public') | Q(Q(pi2__t1__v='viewer') | Q(pi2__t1__v='editor'), pi2__n1__u=user))
-            floats  = Float.objects.filter(permission, p__in=parts)#.distinct() # might not need distinct
-            strings = String.objects.filter(permission, p__in=parts)#.distinct()#.filter(Q(ps2__t1__v='public') | Q(Q(ps2__t1__v='viewer') | Q(ps2__t1__v='editor'), ps2__n1__u=user))
-            bools = bools.filter(~Q(p__in=delete_packs))
-            ints = ints.filter(~Q(p__in=delete_packs))
-            floats = floats.filter(~Q(p__in=delete_packs))
-            strings = strings.filter(~Q(p__in=delete_packs))
-            # add to open_pack
-            if user.is_authenticated: 
-                open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__n2=user
-                open_pack.p.add(*parts, through_defaults={'t':tag['open_pack']}) #.set(open_pack.p.union(parts), through_defaults={'t1':open_pack_tag})
-                open_pack.b.add(*bools, through_defaults={'t':tag['open_pack']})
-                open_pack.i.add(*ints, through_defaults={'t':tag['open_pack']})
-                open_pack.f.add(*floats, through_defaults={'t':tag['open_pack']})
-                open_pack.s.add(*strings, through_defaults={'t':tag['open_pack']})
-            # return pack:
-            #print('sending open pack!!!')
-            #print(time.time())
-            return Open_Pack(pack=Pack_Type(p=parts.distinct(), b=bools.distinct(), i=ints.distinct(), f=floats.distinct(), s=strings.distinct()), reply='Parts opened.')
-        except Exception as e: print(e)
+                r_id = Part.objects.get(t__v='open_pack', u=user).id # pu1__n2=user
+                t_id = tag['open_pack'].id
+                Part_Part.objects.bulk_create([Part_Part(r_id=r_id, n_id=n.id, t_id=t_id) for n in parts], ignore_conflicts=True)
+                Part_Bool.objects.bulk_create([Part_Bool(r_id=r_id, n_id=n.id, t_id=t_id) for n in bools], ignore_conflicts=True)
+                Part_Int.objects.bulk_create([Part_Int(r_id=r_id, n_id=n.id, t_id=t_id) for n in ints], ignore_conflicts=True)
+                Part_Float.objects.bulk_create([Part_Float(r_id=r_id, n_id=n.id, t_id=t_id) for n in floats], ignore_conflicts=True)
+                Part_String.objects.bulk_create([Part_String(r_id=r_id, n_id=n.id, t_id=t_id) for n in strings], ignore_conflicts=True)
+                # with connection.cursor() as cursor:
+                #     cursor.execute("""
+                #     UPDATE bar SET foo = 1 WHERE baz = %s""", 
+                #     [self.baz])
+                # open_pack.p.add(*parts, through_defaults={'t':tag['open_pack']}) #.set(open_pack.p.union(parts), through_defaults={'t1':open_pack_tag})
+                # open_pack.b.add(*bools, through_defaults={'t':tag['open_pack']})
+                # open_pack.i.add(*ints, through_defaults={'t':tag['open_pack']})
+                # open_pack.f.add(*floats, through_defaults={'t':tag['open_pack']})
+                # open_pack.s.add(*strings, through_defaults={'t':tag['open_pack']})
+            return Open_Pack(pack=Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
+        except Exception as e: 
+            print('open_pack error')
+            print(e)
         return Open_Pack()
 
 class Close_Pack(graphene.Mutation):
@@ -416,7 +453,7 @@ class Push_Pack(graphene.Mutation):
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
-                profile = Part.objects.get(t__v='profile', u=user)  #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
+                profile = Part.objects.get(t__v='profile', ue__n=user)# profile = Part.objects.get(t__v='profile', u=user)   #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
                 is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user
                 poll_pack = Part.objects.create(t=tag['poll_pack']) 
                 system_time = Int.objects.create(v=int(time.time()))
@@ -618,7 +655,28 @@ def make_data():
 
 
 
+# def list_edges(edges):
+#     return [Edge_Type(r=e['r_id'], t=e['t_id'], n=e['n_id']) for e in edges]
 
+# class Edge_Type(graphene.ObjectType): 
+#     #o = graphene.Int()
+#     r = graphene.ID()
+#     t = graphene.ID()
+#     n = graphene.ID()
+#     def __init__(self, r, t, n):
+#         #self.o=o
+#         self.r=r
+#         self.t=t
+#         self.n=n
+#     #def resolve_o(self, info): return self.o
+#     def resolve_r(self, info): return self.r
+#     def resolve_t(self, info): return self.t
+#     def resolve_n(self, info): return self.n
+
+
+# def resolve_se(self, info):
+#         edges = Part_String.objects.filter(Q(r__in=self.p) | Q(n__in=self.s)).values()
+#         return list_edges(edges)
 
 
 

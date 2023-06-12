@@ -37,8 +37,10 @@ class Part(Id):
     u    = models.ManyToManyField(User,   related_name='p', through='Part_User')
     def __str__(self): return self.t.v+' ('+self.id+')'
 
-class Edge(models.Model): 
-    class Meta: abstract = True
+class Edge(models.Model):
+    class Meta: 
+        abstract = True
+        unique_together = ['r', 'n', 't']
     o = models.IntegerField(default=0) # order (look into PositiveIntegerField)
     def __str__(self): 
         ntv = 'user'
