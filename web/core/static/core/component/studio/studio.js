@@ -85,17 +85,17 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     // ]); 
     
     use_query('PollPack', [ // rerenders this component on every poll
-        ['pollPack p{id t} '+edges+' '+atoms, ['String instance', instance]], //['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]],
-        ['deletePack p{id t} '+atoms, ['String instance', instance]] //['deletePack p{id} b{id} i{id} f{id} s{id}', ['String instance', instance]]
+        ['pollPack p{id t} '+edges+' '+atoms+ ' dp db di df ds', ['String instance', instance]], //['pollPack p{id t} '+edges+' '+atoms, ['String instance', instance]], //['pollPack p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms, ['String instance', instance]],
+        //['deletePack p{id t} '+atoms, ['String instance', instance]] //['deletePack p{id} b{id} i{id} f{id} s{id}', ['String instance', instance]]
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         //if(data.pollPack) console.log(data.pollPack);
         if(data.pollPack) {
-            if(data.pollPack && data.pollPack.p.length > 0) console.log('poll pack part recieved', data.pollPack.p);
-            if(data.deletePack && data.deletePack.p.length > 0) console.log('delete pack part recieved', data.deletePack.p);
+            if(data.pollPack && data.pollPack.p.length > 0) console.log('poll pack recieved', data.pollPack.p);
+            //if(data.deletePack && data.deletePack.p.length > 0) console.log('delete pack part recieved', data.deletePack.p);
             //console.log(data.pollPack.s.find(s=> s.v==instance));
             rs(d=> d.receive(d, data.pollPack)); // do not read anything older than when loader!!!!!!!
         }
-        if(data.deletePack) rs(d=> d.receive_deleted(d, data.deletePack) ); 
+        //if(data.deletePack) rs(d=> d.receive_deleted(d, data.deletePack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
     return null;

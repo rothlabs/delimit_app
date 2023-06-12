@@ -258,16 +258,19 @@ export const create_base_slice = (set,get)=>({
         });
         d.studio.ready = true;
         if(set_update_graph) d.next('graph.update'); // only if add/remove or d.n[n].n/d.n[n].r changes
-    },
-
-    receive_deleted: (d, data)=>{ 
-        ['p','b','i','f','s'].forEach(m=>{
-            //d.delete.node(d, data[m].map(n=>n.id), true);
-            data[m].forEach(n=>{
-                d.delete.node(d, n.id); // shallow delete
-            });
+        ['dp','db','di','df','ds'].forEach(m=>{
+            if(data[m]) data[m].forEach(n=> d.delete.node(d, n));
         });
     },
+
+    // receive_deleted: (d, data)=>{ 
+    //     ['p','b','i','f','s'].forEach(m=>{
+    //         //d.delete.node(d, data[m].map(n=>n.id), true);
+    //         data[m].forEach(n=>{
+    //             d.delete.node(d, n.id); // shallow delete
+    //         });
+    //     });
+    // },
 
     close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)
         const close_pack = {p:[], b:[], i:[], f:[], s:[]};
