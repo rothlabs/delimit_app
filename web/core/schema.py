@@ -64,25 +64,40 @@ class Pack_Type(graphene.ObjectType):
     i = graphene.List(Int_Type)
     f = graphene.List(Float_Type)
     s = graphene.List(String_Type)
+    dp = graphene.List(graphene.ID)
+    db = graphene.List(graphene.ID)
+    di = graphene.List(graphene.ID)
+    df = graphene.List(graphene.ID)
+    ds = graphene.List(graphene.ID)
     pe = graphene.List(Edge_Type)
     be = graphene.List(Edge_Type)
     ie = graphene.List(Edge_Type)
     fe = graphene.List(Edge_Type)
     se = graphene.List(Edge_Type)
     ue = graphene.List(Edge_Type)
-    def __init__(self, p, b, i, f, s):
+    def __init__(self, p, b, i, f, s, dp, db, di, df, ds):
+        self.p_ids = tuple([n.id for n in p])
         self.p=p
         self.b=b
         self.i=i
         self.f=f
         self.s=s
-        self.p_ids = tuple([n.id for n in self.p])
+        self.dp=dp
+        self.db=db
+        self.di=di
+        self.df=df
+        self.ds=ds
     def resolve_t(self, info): return Tag.objects.all()
     def resolve_p(self, info): return [Part_Type(n=n) for n in self.p] #[Part_Min_Type(id=pc, t=p['t_id']) for p in self.p.values()]
     def resolve_b(self, info): return [Bool_Type(n=n) for n in self.b]
     def resolve_i(self, info): return [Int_Type(n=n) for n in self.i]
     def resolve_f(self, info): return [Float_Type(n=n) for n in self.f]
     def resolve_s(self, info): return [String_Type(n=n) for n in self.s]
+    def resolve_dp(self, info): return [n.id for n in self.dp] #[Part_Min_Type(id=pc, t=p['t_id']) for p in self.p.values()]
+    def resolve_db(self, info): return [n.id for n in self.db]
+    def resolve_di(self, info): return [n.id for n in self.di]
+    def resolve_df(self, info): return [n.id for n in self.df]
+    def resolve_ds(self, info): return [n.id for n in self.ds]
     def resolve_pe(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
         SELECT * FROM core_part_part WHERE core_part_part.r_id IN %(parts)s OR core_part_part.n_id IN %(parts)s""", 
         {'parts':self.p_ids})]
@@ -126,44 +141,72 @@ class Query(graphene.ObjectType):
                 #String.objects.filter(~Q(e__t__v='client_instance'), p__in=old_poll_packs).delete() 
                 #old_poll_packs.delete()
 
-                open_pack = Part.objects.get(t__v='open_pack', u=user)
-                # poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
-                # poll_packs = Part.objects.annotate(
-                # instances=Count('s',filter=Q(s__v=instance))).filter(~Q(instances__gt=1), t__v='poll_pack')
-                #poll_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='poll_pack')
-                poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
-                #author_instance = String.objects.
-                #poll_packs = Part.objects.filter(t__v='poll_pack')#.filter(se__o__lt=2)
-                # delete_packs = Part.objects.filter(t__v='delete_pack')  .filter(~Q(r__in=delete_packs))
-                parts   = Part.objects.filter(r__in=poll_packs).distinct() # make this the behavior of shallow_pack
-                bools   = Bool.objects.filter(p__in=poll_packs).distinct()
-                ints    = Int.objects.filter(p__in=poll_packs).distinct()
-                floats  = Float.objects.filter(p__in=poll_packs).distinct()
-                strings = String.objects.filter(p__in=poll_packs).distinct()
-                open_pack.p.add(*parts.filter(r__r=open_pack), through_defaults={'t':tag['open_pack']}) # make shallow pack skip this
-                open_pack.b.add(*bools.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']}) # this is a mutation inside query (bad)
-                open_pack.i.add(*ints.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
-                open_pack.f.add(*floats.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
-                open_pack.s.add(*strings.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
-                parts   = parts.filter(r=open_pack)#parts   = parts.filter(Q(r=open_pack) | Q(r__r=open_pack))
-                bools   = bools.filter(p=open_pack)
-                ints    = ints.filter(p=open_pack)
-                floats  = floats.filter(p=open_pack)
-                strings = strings.filter(p=open_pack)
-                #print('pollPack!!')
-                #print(parts.all())
+                #open_pack = Part.objects.get(t__v='open_pack', u=user).id
+                #poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
+                params = {
+                    'op': Part.objects.get(t__v='open_pack', u=user).id,
+                    'pp': tuple([pp.id for pp in Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')] + ['none']),
+                    'opt': tag['open_pack'].id,
+                }
+                
 
-                # for pack in poll_packs:
-                #     client_instance = String.objects.get_or_create(v=instance)[0]
-                #     pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
-                #     se = pack.se.get(n__v=instance)
-                #     se.o += 1
-                #     se.save()  
+                # parts   = Part.objects.filter(r__in=poll_packs).distinct() # make this the behavior of shallow_pack
+                # bools   = Bool.objects.filter(p__in=poll_packs).distinct()
+                # ints    = Int.objects.filter(p__in=poll_packs).distinct()
+                # floats  = Float.objects.filter(p__in=poll_packs).distinct()
+                # strings = String.objects.filter(p__in=poll_packs).distinct()
+                # open_pack.p.add(*parts.filter(r__r=open_pack), through_defaults={'t':tag['open_pack']}) # make shallow pack skip this
+                # open_pack.b.add(*bools.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']}) # this is a mutation inside query (bad)
+                # open_pack.i.add(*ints.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
+                # open_pack.f.add(*floats.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
+                # open_pack.s.add(*strings.filter(p__r=open_pack), through_defaults={'t':tag['open_pack']})
 
-                pack = Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
-                #print('poll pack') 
-                #print(pack)        
-                return pack
+                # with connection.cursor() as cursor:
+                #     cursor.execute("""INSERT INTO core_part_part (r_id, n_id, t_id)
+                #         SELECT %(op)s, core_part_part.n_id, %(opt)s FROM core_part_part WHERE 
+                #             EXISTS (SELECT * FROM core_part_part WHERE core_part_part.n_id = target_id 
+                #     core_part_part.r_id = %(pp)s,""", params)
+                #     cursor.execute("""INSERT INTO core_part_bool (r_id, n_id, t_id)
+                # #         SELECT %(op)s, n_id, %(opt)s FROM core_part_bool WHERE core_part_bool.r_id = %(pp)s,""", params)
+                #     cursor.execute("""INSERT INTO core_part_int (r_id, n_id, t_id)
+                #         SELECT %(op)s, n_id, %(opt)s FROM core_part_int WHERE core_part_int.r_id = %(pp)s,""", params)
+                #     cursor.execute("""INSERT INTO core_part_float (r_id, n_id, t_id)
+                #         SELECT %(op)s, n_id, %(opt)s FROM core_part_float WHERE core_part_float.r_id = %(pp)s,""", params)
+                #     cursor.execute("""INSERT INTO core_part_string (r_id, n_id, t_id)
+                #         SELECT %(op)s, n_id, %(opt)s FROM core_part_string WHERE core_part_string.r_id = %(pp)s,""", params)
+
+                # skip if pp is none?
+                parts = Part.objects.raw("""SELECT core_part.id, core_part.t_id FROM core_part WHERE
+                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(pp)s) 
+                """, params)
+                bools = Bool.objects.raw("""SELECT core_bool.id, core_bool.v FROM core_bool WHERE
+                    EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id IN %(pp)s) 
+                """, params)
+                ints = Int.objects.raw("""SELECT core_int.id, core_int.v FROM core_int WHERE
+                    EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id IN %(pp)s) 
+                """, params)
+                floats = Float.objects.raw("""SELECT core_float.id, core_float.v FROM core_float WHERE
+                    EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id IN %(pp)s) 
+                """, params)
+                strings = String.objects.raw("""SELECT core_string.id, core_string.v FROM core_string WHERE
+                    EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id IN %(pp)s) 
+                """, params)
+
+                # FROM core_part_float JOIN core_float ON core_part_float.n_id=core_float.id 
+                #     WHERE core_part_float.r_id = %(open_pack)s AND core_part_float.r_id IN %(poll_packs)s
+
+                # parts   = parts.filter(r=open_pack)#parts   = parts.filter(Q(r=open_pack) | Q(r__r=open_pack))
+                # bools   = bools.filter(p=open_pack)
+                # ints    = ints.filter(p=open_pack)
+                # floats  = floats.filter(p=open_pack)
+                # strings = strings.filter(p=open_pack)
+
+                return Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings)
             return None
         except Exception as e: 
             print('poll_pack error') 
@@ -180,20 +223,40 @@ class Query(graphene.ObjectType):
                 Float.objects.filter(p__in=old_delete_packs).delete()
                 String.objects.filter(~Q(e__t__v='client_instance'), p__in=old_delete_packs).delete() #  temp disable so client instance string does not get deleted!!!!
                 old_delete_packs.delete()
-                open_pack = Part.objects.get(t__v='open_pack', u=user) 
                 #delete_packs = Part.objects.filter(~Q(se__n__v=instance, se__o__gt=1), t__v='delete_pack') #delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')
-                delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack') 
-                parts   = Part.objects.filter(r=open_pack).filter(r__in=delete_packs).distinct()
-                bools   = Bool.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
-                ints    = Int.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
-                floats  = Float.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
-                strings = String.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
-                # for pack in delete_packs:
-                #     client_instance = String.objects.get_or_create(v=instance)[0]
-                #     pack.s.add(client_instance, through_defaults={'o':0,'t':tag['client_instance']})
-                #     se = pack.se.get(n__v=instance)
-                #     se.o += 1
-                #     se.save()    
+
+                params = {
+                    'op': Part.objects.get(t__v='open_pack', u=user).id,
+                    'dp': tuple([pp.id for pp in Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')] + ['none']),
+                }
+                # skip if dp is none?
+                parts = Part.objects.raw("""SELECT core_part.id, core_part.t_id FROM core_part WHERE
+                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(dp)s) 
+                """, params)
+                bools = Bool.objects.raw("""SELECT core_bool.id, core_bool.v FROM core_bool WHERE
+                    EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id IN %(dp)s) 
+                """, params)
+                ints = Int.objects.raw("""SELECT core_int.id, core_int.v FROM core_int WHERE
+                    EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id IN %(dp)s) 
+                """, params)
+                floats = Float.objects.raw("""SELECT core_float.id, core_float.v FROM core_float WHERE
+                    EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id IN %(dp)s) 
+                """, params)
+                strings = String.objects.raw("""SELECT core_string.id, core_string.v FROM core_string WHERE
+                    EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id IN %(dp)s) 
+                """, params)
+                # open_pack = Part.objects.get(t__v='open_pack', u=user) 
+                # delete_packs = Part.objects.filter(~Q(s__v=instance), t__v='delete_pack') 
+                # parts   = Part.objects.filter(r=open_pack).filter(r__in=delete_packs).distinct()
+                # bools   = Bool.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
+                # ints    = Int.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
+                # floats  = Float.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()
+                # strings = String.objects.filter(p=open_pack).filter(p__in=delete_packs).distinct()  
                 return Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings) # must switch to pack type
             return None
         except Exception as e: print(e)
@@ -248,51 +311,38 @@ class Open_Pack(graphene.Mutation):
             # delete_packs = Part.objects.filter(t__v='delete_pack')
             # parts = parts.filter(~Q(r__in=delete_packs))
 
+
             params = {
                 'public': Part.objects.get(t__v='public').id,
                 'profile': Part.objects.get(t__v='profile', ue__n=user).id 
                     if user.is_authenticated else 'none',
             }
 
-            # try:
-            #     profile = Part.objects.get(t__v='profile', ue__n=user)
-            #     print('worked')
-            #     print(user.id)
-            #     print(profile)
-            # except Exception as e:
-            #     print('didnt work')
-            #     print(e)
-
             parts = Part.objects.raw("""
                 SELECT core_part.id, core_part.t_id 
                 FROM core_part_part JOIN core_part ON core_part_part.n_id=core_part.id 
-                WHERE  core_part_part.r_id = %(profile)s 
-                    OR core_part_part.r_id = %(public)s
-                    OR core_part.id = %(public)s
+                WHERE  core_part_part.r_id = %(profile)s OR core_part_part.r_id = %(public)s
+                UNION SELECT core_part.id, core_part.t_id FROM core_part WHERE core_part.id = %(public)s
                 """, params)
-            bools = Part.objects.raw("""
+            bools = Bool.objects.raw("""
                 SELECT core_bool.id, core_bool.v 
                 FROM core_part_bool JOIN core_bool ON core_part_bool.n_id=core_bool.id 
-                WHERE  core_part_bool.r_id = %(profile)s 
-                    OR core_part_bool.r_id = %(public)s
+                WHERE  core_part_bool.r_id = %(profile)s OR core_part_bool.r_id = %(public)s
                 """, params)
-            ints = Part.objects.raw("""
+            ints = Int.objects.raw("""
                 SELECT core_int.id, core_int.v 
                 FROM core_part_int JOIN core_int ON core_part_int.n_id=core_int.id 
-                WHERE  core_part_int.r_id = %(profile)s 
-                    OR core_part_int.r_id = %(public)s
+                WHERE  core_part_int.r_id = %(profile)s OR core_part_int.r_id = %(public)s
                 """, params)
-            floats = Part.objects.raw("""
+            floats = Float.objects.raw("""
                 SELECT core_float.id, core_float.v 
                 FROM core_part_float JOIN core_float ON core_part_float.n_id=core_float.id 
-                WHERE  core_part_float.r_id = %(profile)s 
-                    OR core_part_float.r_id = %(public)s
+                WHERE  core_part_float.r_id = %(profile)s OR core_part_float.r_id = %(public)s
                 """, params)
-            strings = Part.objects.raw("""
+            strings = String.objects.raw("""
                 SELECT core_string.id, core_string.v 
                 FROM core_part_string JOIN core_string ON core_part_string.n_id=core_string.id 
-                WHERE  core_part_string.r_id = %(profile)s 
-                    OR core_part_string.r_id = %(public)s
+                WHERE  core_part_string.r_id = %(profile)s OR core_part_string.r_id = %(public)s
                 """, params)
 
             #'SELECT core_part.id FROM core_part_user JOIN auth_user WHERE core_part_user.n_id'
@@ -421,8 +471,8 @@ class Push_Pack(graphene.Mutation):
         fdel = graphene.List(graphene.ID)
         sdel = graphene.List(graphene.ID)
     reply = graphene.String(default_value = 'Failed to save.')
-    restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)
-    def mod_or_make_atom(profile, model, part_model, m, id, v, restricted, poll_pack): # check if m is correct value?
+    #restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)
+    def mod_or_make_atom(profile, model, part_model, m, id, v, new_nodes, poll_pack): # check if m is correct value?
         atom = None
         try: atom = model.objects.get(id=id, e__t__v='asset', e__r=profile) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
         except Exception as e: 
@@ -430,14 +480,15 @@ class Push_Pack(graphene.Mutation):
             try: 
                 atom = model.objects.create(id=id) # should throw error if exists already
                 getattr(profile, m).add(atom, through_defaults={'t':tag['asset']}) #temp_pack.p.append(team)
+                new_nodes[m].append(id)
             except Exception as e: print(e)
         if atom:
             atom.v = v
             atom.save() #if obj: temp_pack[m].append(obj)#return atom
             getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']}) # change to 'atom' 
             part_model.objects.filter(r__t__v='delete_pack', n=atom).delete()
-        else: restricted.append(id)
-    def add_atom(is_asset, part, model, m, id, order, t, restricted, poll_pack): # check if m is correct value?
+        #else: restricted.append(id)
+    def add_atom(is_asset, part, model, m, id, order, t, poll_pack): # check if m is correct value?
         try:
             tag_obj = Tag.objects.get(v=t, system=False)
             if tag_obj.v in permission_tags: atom = model.objects.get(is_asset, id=id) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
@@ -446,7 +497,7 @@ class Push_Pack(graphene.Mutation):
             getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']})
         except Exception as e: 
             print(e)
-            restricted.append(id)
+            #restricted.append(id)
     @classmethod
     def mutate(cls, root, info, instance, atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
         try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -464,23 +515,24 @@ class Push_Pack(graphene.Mutation):
                 poll_pack.p.add(profile, through_defaults={'t':tag['poll_pack']}) # change so profile is only added if it actually gains or loses assets or something like that
                 #print('instance!!!')
                 #print(instance)
-                restricted = []#{p:[], b:[], i:[], f:[], s:[]}
+                new_nodes = {'p':[], 'b':[], 'i':[], 'f':[], 's':[]}
                 if atoms:
                     # mutate atoms: 
                     for i in range(len(atoms[0])):
-                        cls.mod_or_make_atom(profile, Bool,   Part_Bool,   'b', atoms[0][i], b[i], restricted, poll_pack)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Bool,   Part_Bool,   'b', atoms[0][i], b[i], new_nodes, poll_pack)#, temp_pack)
                     for i in range(len(atoms[1])):
-                        cls.mod_or_make_atom(profile, Int,    Part_Int,    'i', atoms[1][i], i[i], restricted, poll_pack)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Int,    Part_Int,    'i', atoms[1][i], i[i], new_nodes, poll_pack)#, temp_pack)
                     for i in range(len(atoms[2])):
-                        cls.mod_or_make_atom(profile, Float,  Part_Float,  'f', atoms[2][i], f[i], restricted, poll_pack)#, temp_pack)
+                        cls.mod_or_make_atom(profile, Float,  Part_Float,  'f', atoms[2][i], f[i], new_nodes, poll_pack)#, temp_pack)
                     for i in range(len(atoms[3])):
-                        cls.mod_or_make_atom(profile, String, Part_String, 's', atoms[3][i], s[i], restricted, poll_pack)#, temp_pack)
+                        cls.mod_or_make_atom(profile, String, Part_String, 's', atoms[3][i], s[i], new_nodes, poll_pack)#, temp_pack)
                 if parts: # and len(parts) == len(t)
                     # make parts if don't exist:
                     for p in range(len(parts)): # use this loop to build list of parts for next loop
                         try: 
                             part = Part.objects.create(id=parts[p][0][0], t=tag[t[p][0][0]])
                             profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})       
+                            new_nodes['p'].append(part.id)
                         except Exception as e: print(e)
                     # mutate parts
                     for p in range(len(parts)): # need to check if id is in correct format
@@ -503,15 +555,15 @@ class Push_Pack(graphene.Mutation):
                                     #print('push_pack error: part node block') 
                                     print(e)
                                     #print(parts[p][1][o])
-                                    restricted.append(parts[p][1][o])
+                                    #restricted.append(parts[p][1][o])
                             for o in range(len(parts[p][2])):
-                                cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][o], o, t[p][2][o], restricted, poll_pack)
+                                cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][o], o, t[p][2][o], poll_pack)
                             for o in range(len(parts[p][3])):
-                                cls.add_atom(is_asset, part, Int,    'i', parts[p][3][o], o, t[p][3][o], restricted, poll_pack)
+                                cls.add_atom(is_asset, part, Int,    'i', parts[p][3][o], o, t[p][3][o], poll_pack)
                             for o in range(len(parts[p][4])):
-                                cls.add_atom(is_asset, part, Float,  'f', parts[p][4][o], o, t[p][4][o], restricted, poll_pack)
+                                cls.add_atom(is_asset, part, Float,  'f', parts[p][4][o], o, t[p][4][o], poll_pack)
                             for o in range(len(parts[p][5])):
-                                cls.add_atom(is_asset, part, String, 's', parts[p][5][o], o, t[p][5][o], restricted, poll_pack)
+                                cls.add_atom(is_asset, part, String, 's', parts[p][5][o], o, t[p][5][o], poll_pack)
                             #for i in range(len(parts[p][6])): # unknown nodes!!
                             #    pass 
                             poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
@@ -519,7 +571,40 @@ class Push_Pack(graphene.Mutation):
                             #print('push_pack error: p in parts block') 
                             print(e)
                             #print(p)
-                            restricted.append(parts[p][0][0])
+                            #restricted.append(parts[p][0][0])
+            
+                #### add nnids to poll_packs
+                params = {
+                    'op': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']),
+                    'opt': tag['open_pack'].id,
+                }
+                with connection.cursor() as cursor: # need ON CONFLICT DO NOTHING ?!?!?!
+                    if(len(new_nodes['p']) > 0): # this one must be recursive !!!! ?!?!?!
+                        params['p'] = tuple(new_nodes['p'])
+                        cursor.execute("""INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                            FROM core_part_part a JOIN core_part_part b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(p)s
+                            ON CONFLICT DO NOTHING""", params)
+                    if(len(new_nodes['b']) > 0):
+                        params['b'] = tuple(new_nodes['b'])
+                        cursor.execute("""INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                            FROM core_part_part a JOIN core_part_bool b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(b)s
+                            ON CONFLICT DO NOTHING""", params)
+                    if(len(new_nodes['i']) > 0):
+                        params['i'] = tuple(new_nodes['i'])
+                        cursor.execute("""INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                            FROM core_part_part a JOIN core_part_int b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(i)s
+                            ON CONFLICT DO NOTHING""", params)
+                    if(len(new_nodes['f']) > 0):
+                        params['f'] = tuple(new_nodes['f'])
+                        cursor.execute("""INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                            FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(f)s
+                            ON CONFLICT DO NOTHING""", params)
+                    if(len(new_nodes['s']) > 0):
+                        params['s'] = tuple(new_nodes['s'])
+                        cursor.execute("""INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                            FROM core_part_part a JOIN core_part_string b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(s)s 
+                            ON CONFLICT DO NOTHING""", params)
+
                 if pdel or bdel or idel or fdel or sdel:
                     delete_pack = Part.objects.create(t=tag['delete_pack']) 
                     delete_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
@@ -540,7 +625,7 @@ class Push_Pack(graphene.Mutation):
                         try: delete_pack.s.add(*String.objects.filter(is_asset, id__in=sdel), through_defaults={'t':tag['delete_pack']})
                         except Exception as e: print(e)
             else: reply = 'Sign-in required.'
-            return Push_Pack(reply=reply, restricted=restricted) #restricted=Part_Type(p=r.p, b=r.b, i=r.i, f=r.f, s=r.s)
+            return Push_Pack(reply=reply) 
         except Exception as e: print(e)
         return Push_Pack()
 

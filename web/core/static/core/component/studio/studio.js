@@ -29,7 +29,7 @@ export function Studio(){
             open_pack.mutate();
         }
     },[]);
-    const push_pack = use_mutation('PushPack', [['pushPack reply restricted',
+    const push_pack = use_mutation('PushPack', [['pushPack reply',
         ['String instance', instance],
         ['[[ID]] atoms',    null], 
         ['[Boolean] b',     null],

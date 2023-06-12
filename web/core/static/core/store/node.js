@@ -42,7 +42,7 @@ export const create_node_slice =(set,get)=>({node:{
         });
     },
     sv(d, n, v){
-        if(d.n[n].t=='decimal') v = Math.round((v + Number.EPSILON) * 100) / 100;//parseFloat(v.toFixed(2));// Math.round(v*100)*0.01; // need to set flag that says 'is_atom' or 'is_float'
+        if(d.node.be(d,n) && d.n[n].t=='decimal') v = Math.round((v + Number.EPSILON) * 100) / 100;//parseFloat(v.toFixed(2));// Math.round(v*100)*0.01; // need to set flag that says 'is_atom' or 'is_float'
         d.n[n].v = v; // check if has v?
         d.next('reckon.node', n); // d.reckon.node(d, n);
     },

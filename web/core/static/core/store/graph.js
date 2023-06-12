@@ -39,6 +39,7 @@ export const create_graph_slice = (set,get)=>({graph:{
             }
         });
 
+
         d.graph.n.forEach(n=>{   
             d.n[n].graph.lvl = 0; 
             d.n[n].graph.grp = null;  

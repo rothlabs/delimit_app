@@ -189,6 +189,7 @@ export const create_base_slice = (set,get)=>({
                     };
                     d.pick.color(d,n.id);
                 }
+                //if(n.id == 'tuXEbqsYYX8CdIPM') console.log('public!')
                 //if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
                 if(d.n[n.id].r){
                     //const edges = []; 
