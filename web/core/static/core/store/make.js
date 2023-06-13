@@ -14,16 +14,17 @@ export const create_make_slice = (set,get)=>({make:{
             if(!d.n[r].n[t].includes(n)){
                 if(a&&a.o != undefined){    d.n[r].n[t].splice(a.o, 0, n);     }
                 else{                       d.n[r].n[t].push(n);               }
-                if(d.root_tags[t]){  t=d.root_tags[t];  }
-                else{                t=d.n[r].t;        }
-                if(!d.n[n].r[t]) d.n[n].r[t] = [];
-                d.n[n].r[t].push(r); // reverse relationship 
+                var rt = d.n[r].t;
+                if(d.root_tags[t]){  rt=d.root_tags[t];  }
+                //else{                t=d.n[r].t;        }
+                if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
+                d.n[n].r[rt].push(r); // reverse relationship 
                 if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)  //!(a&&a.no_auto_group) && 
                     d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
                         d.make.edge(d, e.r, n); //, {no_auto_group:true}
                     });
                 }
-                d.next('reckon.node', r, {cause:'edge_created'});
+                d.next('reckon.node', r, {cause:'edge_created', r:r, n:n, t:t});
                 d.next('graph.update');
                 d.next('pick.update');
             }

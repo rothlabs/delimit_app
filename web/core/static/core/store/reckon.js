@@ -50,7 +50,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     line(d,n){
         d.reckon.list(d, n, 'point', 3, n=>({   pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
-    group(d,n){
+    group(d,n){ // use a.cause='edge_create' and a.cause='edge_deleted'?
         //if(d.n[n].c.n == undefined) d.n[n].c.n = [];
         const nodes = (d.n[n].n.group ? d.n[n].n.group : []);//d.node.n(d, n, {filter:n=>d.n[n].n});//.filter(n=> d.n[n].n);
         if(d.n[n].c.n == undefined) d.n[n].c.n = nodes;
@@ -69,11 +69,18 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         }
     },
     equalizer(d,n,a){
-        //console.log('equalizer', a);
+
+        console.log('equalizer', a);
         const grps = d.n[n].n.group;
         if(grps){ // && !d.n[n].c.stop 
             if(!d.n[n].c.grp) d.n[n].c.grp = {};
-            //const pg = grps.find(g=> d.n[g].c.pushed);
+
+
+            // grps.forEach(g=>{
+            //     const unsub = useS.s
+            // });
+
+
             var cg = [];
             grps.forEach(g=>{
                 if(d.n[g].c.pushed != undefined && d.n[g].c.removed != undefined){
@@ -95,11 +102,13 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                         });
                         d.n[cg].c.removed.forEach(rm=>{
                             //console.log('equalizer remove i', i);
-                            const rmn = d.n[g].n.group[rm.i];
-                            if(rmn){
-                                //console.log('equalizer remove rmv', rmv);
-                                d.delete.node(d, rmn);
-                                d.pop(d.n[g].c.n, rmn); // add to group content so it doesn't see a diff and cause infinit loop
+                            if(d.n[g].n.group){
+                                const rmn = d.n[g].n.group[rm.i];
+                                if(rmn){
+                                    //console.log('equalizer remove rmv', rmv);
+                                    d.delete.node(d, rmn);
+                                    d.pop(d.n[g].c.n, rmn); // add to group content so it doesn't see a diff and cause infinit loop
+                                }
                             }
                         });
                     }

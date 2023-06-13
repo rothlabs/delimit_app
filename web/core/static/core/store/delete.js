@@ -21,7 +21,7 @@ export const create_delete_slice = (set,get)=>({delete:{
             }
             d.pop(d.n[r].n[t], n); //d.n[r].n[t].splice(e.o, 1);
             if(d.n[r].n[t].length==0) delete d.n[r].n[t];
-            d.next('reckon.node', r, {cause:'edge_deleted'});
+            d.next('reckon.node', r, {cause:'edge_deleted', r:r, n:n, t:t});
             d.next('graph.update');
             d.next('pick.update');
         }

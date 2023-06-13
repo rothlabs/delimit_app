@@ -13,7 +13,7 @@ export const create_remake_slice = (set,get)=>({remake:{
             if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
             if(a&&a.root) d.make.edge(d, a.root, cpy);
             d.node.for_n(d, src, (r,n,t,o)=>{
-                if(a&&a.deep) {
+                if(a&&a.deep) { // when deep copying group then exclude nodes that are not in that group ?!?!?!?!
                     delete a.root;
                     d.make.edge(d, cpy, d.remake.copy(d,n,a), {t:t, o:o}); //{...a, exclude_r:r}
                 }else{

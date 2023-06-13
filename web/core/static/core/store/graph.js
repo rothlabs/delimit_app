@@ -84,9 +84,9 @@ export const create_graph_slice = (set,get)=>({graph:{
         var max_x = 0;
         var max_y = 0;
         for(var i=0; i<level.length-1; i++){//level.forEach((l,i)=>{if(i+1 < level.length){
-            var l = level[i],  ll = level[i+1];
+            var l = level[i],  ll = level[i+1],  prev_l = level[i-1];
             var gx = 0;
-            var x_step = (ll.count / l.count) * 0.5;
+            var x_step = ((ll.count + (prev_l ? prev_l.count : 0)) / 2 / l.count);
             if(x_step < 1) x_step = 1;
             const groups = Object.values(l.group);
             if(i > 0) groups.forEach(g=> g.x /= g.count+0.00001);
@@ -95,8 +95,8 @@ export const create_graph_slice = (set,get)=>({graph:{
                 if(a.x > b.x) return  1;    
                 return 0;
             }).forEach(g=>{
-                const size = Math.round(Math.sqrt(g.n.length));
-                var x = (gx > g.x ? gx : g.x);
+                const size = Math.round(Math.sqrt(g.n.length / 2));
+                var x = gx;//(gx > g.x ? gx : g.x);
                 var y = ly;
                 g.n.forEach(n=>{
                     if(x > l.max_x) l.max_x = x;
