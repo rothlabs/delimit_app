@@ -5,7 +5,7 @@ import { theme } from '../app.js';
 //const tv = new Vector3();
 
 export const create_pick_slice = (set,get)=>({pick:{
-    color_tags: ['point'],
+    color_tags: ['point'], // swap name with reckon_tags ?
     reckon_tags: ['line'],
     n: [], // rename to n ? // make null if empty?
     group: null,
@@ -102,7 +102,7 @@ export const create_pick_slice = (set,get)=>({pick:{
             selector ? d.pick.colors[target][1] : theme.secondary_l,
             selector ? d.pick.colors[target][2] : 'secondary',
         ];
-        if(d.studio.mode=='design' && d.pick.color_tags.includes(d.n[n].t)) d.next('reckon.node', n, {cause:'color'}); // only call if color changes !?!?!?!?
+        if(d.studio.mode=='design' && d.pick.color_tags.includes(d.n[n].t)) d.next('reckon.node', n, 'color'); // only call if color changes !?!?!?!?
     },
 }});
 

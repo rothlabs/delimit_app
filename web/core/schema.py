@@ -152,6 +152,7 @@ class Query(graphene.ObjectType):
                 }
 
                 # skip if pp is none?
+                # check if not in delete_pack
                 parts = Part.objects.raw("""SELECT core_part.id, core_part.t_id FROM core_part WHERE
                     EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id = %(op)s) AND
                     EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(pp)s) 

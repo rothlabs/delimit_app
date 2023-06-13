@@ -6,20 +6,26 @@ import {make_id, random_vector, theme} from '../app.js';
 
 // make list of nodes to never have more than one: name, x, y, z, etc (singular non-list nodes) - use value_tags!!!! (maybe rename to single_tags)
 
+
+// for a, do if(!a) a = {} at start of each function that uses a
 export const create_remake_slice = (set,get)=>({remake:{
-    copy(d, src, a){ // maybe place in d.node (only run for part
-        if(!d.node.limited(d, (a&&a.root ? [src,a.root] : [src]))){ // if a&&a.root then check if it is limited
+    copy(d, src, a={}){ // maybe place in d.node (only run for part
+        if(!d.node.limited(d, (a.root ? [src,a.root] : [src]))){ // if a&&a.root then check if it is limited
             const cpy = d.make.node(d, d.n[src].m, d.n[src].t);
             if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
-            if(a&&a.root) d.make.edge(d, a.root, cpy);
+            //if(a&&a.root) d.make.edge(d, a.root, cpy, {src:a_src});
+            if(!a.depth) a.depth=0;
             d.node.for_n(d, src, (r,n,t,o)=>{
-                if(a&&a.deep) { // when deep copying group then exclude nodes that are not in that group ?!?!?!?!
-                    delete a.root;
-                    d.make.edge(d, cpy, d.remake.copy(d,n,a), {t:t, o:o}); //{...a, exclude_r:r}
+                if(a.deep) { // when deep copying group then exclude nodes that are not in that group ?!?!?!?!
+                    //delete a.root;
+                    a.depth++;
+                    d.make.edge(d, cpy, d.remake.copy(d,n,a), {t:t, o:o, src:a.src}); //{...a, exclude_r:r}
+                    a.depth--;
                 }else{
-                    d.make.edge(d, cpy, n, {t:t, o:o});
+                    d.make.edge(d, cpy, n, {t:t, o:o, src:a.src});
                 }
             });
+            if(a.root && a.depth==0) d.make.edge(d, a.root, cpy, {src:a.src});
             d.next('reckon.node', cpy); // maybe this should go in node creation
             return cpy;
         }

@@ -21,10 +21,11 @@ export const create_make_slice = (set,get)=>({make:{
                 d.n[n].r[rt].push(r); // reverse relationship 
                 if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)  //!(a&&a.no_auto_group) && 
                     d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
-                        d.make.edge(d, e.r, n); //, {no_auto_group:true}
+                        d.make.edge(d, e.r, n, {src:(a?a.src:null)}); //, {no_auto_group:true}
                     });
                 }
-                d.next('reckon.node', r, {cause:'edge_created', r:r, n:n, t:t});
+                d.action.node(d, r, {action:'edge_created', src:(a?a.src:null), r:r, n:n, t:t});
+                d.next('reckon.node', r); //, {cause:'edge_created', r:r, n:n, t:t}
                 d.next('graph.update');
                 d.next('pick.update');
             }

@@ -1,7 +1,7 @@
 import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast} from '../../three/meshline.js';
 import {useThree, useFrame} from '@react-three/fiber';
-import {useS, gs, subSS, theme, static_url, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, gs, subSSI, theme, static_url, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 import {Line} from '@react-three/drei/Line';
@@ -20,7 +20,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     //useFrame(()=>{
     //    meshline_material.current.lineWidth = 1.5 / camera.zoom;
     //});
-    useEffect(()=> subSS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
+    useEffect(()=> subSSI(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
         text.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.5) );
         //arrow.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.75) );
         //arrow.current.obj.lookAt(d[0].pos);

@@ -46,6 +46,7 @@ export const create_base_slice = (set,get)=>({
     pop(array, item){ // static
         const index = array.indexOf(item);
         if(index !== -1) array.splice(index, 1);
+        return index;
     },
     next(...a){ // static
         const id = a.map(a=> String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!

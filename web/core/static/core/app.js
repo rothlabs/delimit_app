@@ -27,6 +27,7 @@ import {create_node_slice} from './store/node.js';
 import {create_reckon_slice} from './store/reckon.js'; 
 import {create_remake_slice} from './store/remake.js';
 import {create_delete_slice} from './store/delete.js';
+import {create_action_slice} from './store/action.js';
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
@@ -83,13 +84,15 @@ export const useS = create(
         ...create_reckon_slice(...a),
         ...create_remake_slice(...a),
         ...create_delete_slice(...a),
+        ...create_action_slice(...a),
     }))
 );
 useS.setState(d=>{  d.init(d); return d;  });
 export const gs = ()=> useS.getState();
 export const useSS = selector=> useS(selector, shallow);
 export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
-export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow});
+export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {equalityFn:shallow});
+export const subSSI = (selector, callback)=> useS.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
 
 var patch = 0;
 var patches = [];
