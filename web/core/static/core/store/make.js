@@ -6,6 +6,7 @@ export const create_make_slice = (set,get)=>({make:{
     edge(d, r, n, a){ 
         if(d.n[r].asset || (r==d.profile && a&&a.t=='asset') || (r==d.public && a&&a.t=='view')){
             var t = d.n[n].t;
+            if(d.n[r].t == 'group') t = d.n[r].t; 
             if(a&&a.t != undefined) t = a.t;
             if(!d.n[r].n[t]) d.n[r].n[t] = [];
             /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
@@ -17,9 +18,14 @@ export const create_make_slice = (set,get)=>({make:{
                 else{                t=d.n[r].t;        }
                 if(!d.n[n].r[t]) d.n[n].r[t] = [];
                 d.n[n].r[t].push(r); // reverse relationship 
+                if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)  //!(a&&a.no_auto_group) && 
+                    d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
+                        d.make.edge(d, e.r, n); //, {no_auto_group:true}
+                    });
+                }
+                d.next('reckon.node', r, {cause:'edge_created'});
                 d.next('graph.update');
                 d.next('pick.update');
-                d.next('reckon.node', r);
             }
         }
     },
@@ -39,7 +45,8 @@ export const create_make_slice = (set,get)=>({make:{
         d.pick.color(d,n);
         if(m=='p'){ d.n[n].n={}; }
         d.make.edge(d, d.profile, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
-        if(a&&a.r) d.make.edge(d, a.r, n, a);//{
+        if(a&&a.r) d.make.edge(d, a.r, n, a);
+        //{
         //    if(Array.isArray(a.r)){   a.r.forEach(r=> d.make.edge(d, r, n, a))   }
         //    else{   d.make.edge(d, a.r, n, a);  }
         //}
@@ -55,14 +62,19 @@ export const create_make_slice = (set,get)=>({make:{
         d.n[n].v = v; //d.n[n].pin = v;
         return n;
     },
-    point(d, pos, r, o){
+    point(d, pos, r, o){ // invert so children are made first and then part takes a list of children to be attached?
         const n = d.make.part(d, 'point', {r:r, o:o}); // d, part_tag, root_id, edge_tag
         d.make.atom(d, 'f', pos.x, n, 'x'); // d, v, root_id, edge_tag
         d.make.atom(d, 'f', pos.y, n, 'y'); 
         d.make.atom(d, 'f', pos.z, n, 'z'); 
-        d.reckon.node(d,n); // should this be d.next() ?!?!?!
+        d.reckon.node(d,n); // should this be d.next() and located in d.make.node ?!?!?!
         return n;
     },
+    // group(d){
+    //     const n = d.make.part(d, 'group');
+    //     d.n[n].c.pushed = [];
+    //     d.n[n].c.removed = [];
+    // },
 }});
 
 // if(d.profile){

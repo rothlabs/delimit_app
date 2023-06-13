@@ -16,16 +16,16 @@ export function Studio(){
         ['openPack pack{ t{id v} p{id t} '+edges+' '+atoms+' } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{data = data.openPack;
-        //console.log('Open Pack - complete');
-        //console.log(Date.now()/1000 - 1685555000);
+        console.log('Open Pack - complete');
+        console.log(Date.now()/1000 - 1685555000);
         if(data.pack) rs(d=> d.receive(d,data.pack) ); 
         //console.log(data);
         //console.log(useS.getState().n);
     }}); 
     useEffect(()=>{
         if(Object.keys(gs().n).length < 1) {
-            //console.log('Open Pack - mutate');
-            //console.log(Date.now()/1000 - 1685555000);
+            console.log('Open Pack - mutate');
+            console.log(Date.now()/1000 - 1685555000);
             open_pack.mutate();
         }
     },[]);
@@ -87,7 +87,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         //if(data.pollPack) console.log(data.pollPack);
         if(data.pollPack) {
-            if(data.pollPack && data.pollPack.p.length > 0) console.log('poll pack recieved', data.pollPack.p);
+            if(data.pollPack && data.pollPack.p.length > 0) console.log('poll pack recieved', data.pollPack);
             //if(data.deletePack && data.deletePack.p.length > 0) console.log('delete pack part recieved', data.deletePack.p);
             //console.log(data.pollPack.s.find(s=> s.v==instance));
             rs(d=> d.receive(d, data.pollPack)); // do not read anything older than when loader!!!!!!!

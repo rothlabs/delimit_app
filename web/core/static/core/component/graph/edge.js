@@ -64,7 +64,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
                 ref: text,
                 size: active ? 1.25 : 1,
             },
-                d.n[n].t!=t && c(Text, {
+                d.n[r].t!=t && d.n[n].t!=t && c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     outlineWidth: '25%',
                     outlineColor: 'white',

@@ -4,8 +4,8 @@ import { static_url } from '../app.js';
 const tv = new Vector3();
 
 export const create_node_slice =(set,get)=>({node:{
-    icons:Object.fromEntries([
-        'decimal','point','line','sketch',
+    icons:Object.fromEntries([ // put icon boolean in db?
+        'decimal','point','line','sketch', 'equalizer', 'group',
     ].map(i=> [i, static_url+'svg/node/'+i+'.svg'])),//{},
     be:(d,n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
         if(d.n[n] && !d.n[n].deleted){
@@ -49,12 +49,12 @@ export const create_node_slice =(set,get)=>({node:{
     n(d, roots, a){ 
         if(!Array.isArray(roots)) roots = [roots]; //if(!filter) filter = ['open']; 
         var result = []; // should be key value pair for faster checking?  
-        var add_n = (r,n,t,o)=>result.push(n); // use d.add to avoid duplicates ?!?!?!
-        if(a&&a.edge) add_n = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
+        var add_n = (r,n,t,o)=> d.add(result, n);//result.push(n); // use d.add to avoid duplicates ?!?!?!
+        if(a&&a.edge) add_n = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates ?!?!?!
         if(a && a.unique && !a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
         roots.forEach(r=>{
             if(d.node.be(d,r) && d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
-                if(d.node.be(d,n) == 'open' && !(a&&a.unique && d.node.cr(d,n).some(r=> !a.collected[r]))){ //a.n.includes(r)
+                if(d.node.be(d,n) == 'open' && !(a&&a.unique && d.node.cr(d,n).some(r=> !a.collected[r])) && !(a&&a.filter && !a.filter(n))){ //a.n.includes(r)
                     add_n(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
                     if(a&&a.unique) a.collected[n] = true;
                     if(a&&a.deep) result = result.concat(d.node.n(d,n,a));
@@ -68,11 +68,11 @@ export const create_node_slice =(set,get)=>({node:{
     r(d, nodes, a){
         if(!Array.isArray(nodes)) nodes = [nodes];
         var result = [];//const result = (a&&a.rt ? [...nodes] : []); // might not need this ?!?!?!
-        var add_r = (r,n,t,o)=>result.push(r);
-        if(a&&a.edge) add_r = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o});
+        var add_r = (r,n,t,o)=>result.push(r); // use d.add to avoid duplicates ?!?!?!
+        if(a&&a.edge) add_r = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates ?!?!?!
         nodes.forEach(n=>{
             if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
-                if(!(a&&a.content && ['owner','viewer'].includes(t))) roots.forEach((r,o)=> {
+                if(!(a&&a.content && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> {
                     if(d.node.be(d,r) == 'open'){
                         add_r(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
                         if(a&&a.deep) result = result.concat(d.node.r(d,r,a));

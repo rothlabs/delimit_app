@@ -22,6 +22,12 @@ export function Make(){
         {name:' Sketch',  icon:'bi-easel',   func(d){
             return {n:d.make.part(d, 'sketch')};
         }},
+        {name:' Group',  icon:'bi-box-seam',   func(d){
+            return {n:d.make.part(d, 'group')};
+        }},
+        {name:' Equalizer',  icon:'bi-files',   func(d){
+            return {n:d.make.part(d, 'equalizer')};
+        }},
     ]);
     const d = gs();
     return(

@@ -8,7 +8,7 @@ export const create_graph_slice = (set,get)=>({graph:{
     edges: [],
     edge_vis:{
         view:false, asset:false,
-        name:true, x:true, y:true, z:true, point:true, line:true,
+        name:true, x:true, y:true, z:true, point:true, line:true, sketch:true, equalizer:true, group:true,
     },
     init(d){
         d.graph.tag_vis = {
@@ -30,7 +30,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.update(d);
     },
     update:d=>{
-        //console.log('update graph');
+        //console.log('update graph!!!');
         d.graph.n = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.edges = [];
         d.node.for_n(d, d.graph.n, (r,n,t)=>{

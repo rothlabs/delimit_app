@@ -5,7 +5,8 @@ import { theme } from '../app.js';
 //const tv = new Vector3();
 
 export const create_pick_slice = (set,get)=>({pick:{
-    reckon_tags: ['point'],
+    color_tags: ['point'],
+    reckon_tags: ['line'],
     n: [], // rename to n ? // make null if empty?
     group: null,
     target: null,
@@ -84,7 +85,6 @@ export const create_pick_slice = (set,get)=>({pick:{
     hover(d, n, hover){
         d.n[n].pick.hover = hover;
         d.pick.color(d,n);
-        if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); //d.reckon.node(d, n);//
     },
     none(d, t){
         var nodes = [...d.pick.n];
@@ -92,7 +92,7 @@ export const create_pick_slice = (set,get)=>({pick:{
         nodes.forEach(n=> d.pick.set(d, n, false)); //d.n[n].pick.pick=false   Object.values(d.n).forEach(n=> n.pick.pick=false);
     },
     colors: [[theme.primary, theme.primary_l, 'primary'], [theme.info, theme.info_l, 'info']],
-    color(d,n){
+    color(d,n,a){
         const selector = d.n[n].pick.pick || d.n[n].pick.hover;
         const target = (n == d.pick.target ? 1 : 0); // d.pick.n.length > 1 && 
         d.n[n].pick.color = [
@@ -102,7 +102,7 @@ export const create_pick_slice = (set,get)=>({pick:{
             selector ? d.pick.colors[target][1] : theme.secondary_l,
             selector ? d.pick.colors[target][2] : 'secondary',
         ];
-        if(d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n); // only call if color changes !?!?!?!?
+        if(d.studio.mode=='design' && d.pick.color_tags.includes(d.n[n].t)) d.next('reckon.node', n, {cause:'color'}); // only call if color changes !?!?!?!?
     },
 }});
 

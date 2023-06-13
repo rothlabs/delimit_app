@@ -1,5 +1,5 @@
 import {createElement as c, Fragment} from 'react';
-import {Row, Col, Container, ToggleButton, ButtonGroup, ButtonToolbar, Button} from 'react-bootstrap';
+import {Row, Col, Container, ToggleButton, ButtonGroup, ButtonToolbar, Button, Badge} from 'react-bootstrap';
 import {Inspect} from './inspect.js';
 import {History} from './history.js';
 import {Draw} from './draw.js';
@@ -8,8 +8,8 @@ import {Pick} from './pick.js';
 import {Make} from './make.js';
 import {Move} from './move.js';
 import {useS, gs, ss, use_window_size} from '../../../app.js';
+//import { Badge } from '../../node/base.js';
 //import {Panel} from '../panel/panel.js';
-
 
 export function Toolbar(){
     const window_size = use_window_size();
@@ -52,8 +52,14 @@ export function Toolbar(){
                     }),
                 }, c('i',{className:'bi-pencil-square', style:{fontSize:'24px'}}), ' Edit'),
             ),
+            c(Reckon_Count),
         )
     )
+}
+
+function Reckon_Count(){
+    const reckon_count = useS(d=> d.reckon.count);
+    return c(Badge, {className:'position-absolute bottom-0 end-0 m-1'}, 'Reckons: '+reckon_count);
 }
 
 //}, c('i',{className:button.icon, style:{fontSize:'24px'}}), window_size.width>576 ? button.name : '')

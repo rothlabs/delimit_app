@@ -316,33 +316,34 @@ class Open_Pack(graphene.Mutation):
                 'public': Part.objects.get(t__v='public').id,
                 'profile': Part.objects.get(t__v='profile', ue__n=user).id 
                     if user.is_authenticated else 'none',
+                'dps': tuple([dp.id for dp in Part.objects.filter(t__v='delete_pack')] + ['none']),
             }
 
             parts = Part.objects.raw("""
                 SELECT core_part.id, core_part.t_id 
                 FROM core_part_part JOIN core_part ON core_part_part.n_id=core_part.id 
-                WHERE  core_part_part.r_id = %(profile)s OR core_part_part.r_id = %(public)s
+                WHERE (core_part_part.r_id = %(profile)s OR core_part_part.r_id = %(public)s) AND core_part_part.r_id NOT IN %(dps)s
                 UNION SELECT core_part.id, core_part.t_id FROM core_part WHERE core_part.id = %(public)s
                 """, params)
             bools = Bool.objects.raw("""
                 SELECT core_bool.id, core_bool.v 
                 FROM core_part_bool JOIN core_bool ON core_part_bool.n_id=core_bool.id 
-                WHERE  core_part_bool.r_id = %(profile)s OR core_part_bool.r_id = %(public)s
+                WHERE (core_part_bool.r_id = %(profile)s OR core_part_bool.r_id = %(public)s) AND core_part_bool.r_id NOT IN %(dps)s
                 """, params)
             ints = Int.objects.raw("""
                 SELECT core_int.id, core_int.v 
                 FROM core_part_int JOIN core_int ON core_part_int.n_id=core_int.id 
-                WHERE  core_part_int.r_id = %(profile)s OR core_part_int.r_id = %(public)s
+                WHERE (core_part_int.r_id = %(profile)s OR core_part_int.r_id = %(public)s) AND core_part_int.r_id NOT IN %(dps)s
                 """, params)
             floats = Float.objects.raw("""
                 SELECT core_float.id, core_float.v 
                 FROM core_part_float JOIN core_float ON core_part_float.n_id=core_float.id 
-                WHERE  core_part_float.r_id = %(profile)s OR core_part_float.r_id = %(public)s
+                WHERE (core_part_float.r_id = %(profile)s OR core_part_float.r_id = %(public)s) AND core_part_float.r_id NOT IN %(dps)s
                 """, params)
             strings = String.objects.raw("""
                 SELECT core_string.id, core_string.v 
                 FROM core_part_string JOIN core_string ON core_part_string.n_id=core_string.id 
-                WHERE  core_part_string.r_id = %(profile)s OR core_part_string.r_id = %(public)s
+                WHERE (core_part_string.r_id = %(profile)s OR core_part_string.r_id = %(public)s) AND core_part_string.r_id NOT IN %(dps)s
                 """, params)
 
             #'SELECT core_part.id FROM core_part_user JOIN auth_user WHERE core_part_user.n_id'

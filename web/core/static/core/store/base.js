@@ -17,7 +17,7 @@ export const create_base_slice = (set,get)=>({
     value_tags: [...float_tags, ...string_tags], // single_tags
     //order_tags: ['point'],
     atom_tags: Object.values(model_tags).slice(1),
-    node_tags: [...Object.values(model_tags), 'public', 'profile', 'point', 'line', 'sketch'],
+    node_tags: [...Object.values(model_tags), 'public', 'profile', 'point', 'line', 'sketch', 'equalizer', 'group'],
     limited_tags: ['public', 'profile'],
 
     n: {},
@@ -48,8 +48,9 @@ export const create_base_slice = (set,get)=>({
         if(index !== -1) array.splice(index, 1);
     },
     next(...a){ // static
-        const id = a.map(a=> String(a)).join('_');
+        const id = a.map(a=> String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!
         if(get().add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
+            //console.log(id);
             //console.log(id, get().n[a[1]] ? get().n[a[1]].t : 'unknown');
             next_funcs.push(a);
         }
