@@ -19,10 +19,10 @@ export const create_pick_slice = (set,get)=>({pick:{
     mergeable: false,
     splittable: false,
     deletable: false,
-    set(d, n, v, a){
-        //if(a&&a.deep) d.node.for_n(d, n, (r,n)= d.pick.set(d,n,true,a));
+    set(d, n, v, a={}){
+        //if(a.deep) d.node.for_n(d, n, (r,n)= d.pick.set(d,n,true,a));
         var nodes = [n]; // this and the next two lines are common so make d.node.for_n with inclusive flag?!?!?!?!?
-        if(a&&a.deep) nodes = nodes.concat(d.node.n(d, n, a).filter(n=> d.n[n].m=='p'));
+        if(a.deep) nodes = nodes.concat(d.node.n(d, n, a).filter(n=> d.n[n].m=='p'));
         nodes.forEach(n=>{
             d.n[n].pick.pick = v;
             if(v){ d.add(d.pick.n, n)}
@@ -31,8 +31,8 @@ export const create_pick_slice = (set,get)=>({pick:{
         });
         d.pick.update(d); // d.next('pick.update');
     },
-    one(d, n, a){
-        d.pick.none(d, a&&a.t ? d.n[n].t : null);
+    one(d, n, a={}){
+        d.pick.none(d, a.t ? d.n[n].t : null);
         d.pick.set(d, n, true, a);
         if(d.n[n].pick.pick) console.log(n, current(d).n[n]);
     },
@@ -92,7 +92,7 @@ export const create_pick_slice = (set,get)=>({pick:{
         nodes.forEach(n=> d.pick.set(d, n, false)); //d.n[n].pick.pick=false   Object.values(d.n).forEach(n=> n.pick.pick=false);
     },
     colors: [[theme.primary, theme.primary_l, 'primary'], [theme.info, theme.info_l, 'info']],
-    color(d,n,a){
+    color(d,n){
         const selector = d.n[n].pick.pick || d.n[n].pick.hover;
         const target = (n == d.pick.target ? 1 : 0); // d.pick.n.length > 1 && 
         d.n[n].pick.color = [

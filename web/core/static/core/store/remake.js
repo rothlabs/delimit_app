@@ -10,14 +10,14 @@ import {make_id, random_vector, theme} from '../app.js';
 // for a, do if(!a) a = {} at start of each function that uses a
 export const create_remake_slice = (set,get)=>({remake:{
     copy(d, src, a={}){ // maybe place in d.node (only run for part
-        if(!d.node.limited(d, (a.root ? [src,a.root] : [src]))){ // if a&&a.root then check if it is limited
+        if(!d.node.limited(d, (a.r ? [src,a.r] : [src]))){ // if a.r then check if it is limited
             const cpy = d.make.node(d, d.n[src].m, d.n[src].t);
             if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
-            //if(a&&a.root) d.make.edge(d, a.root, cpy, {src:a_src});
+            //if(a.r) d.make.edge(d, a.r, cpy, {src:a_src});
             if(!a.depth) a.depth=0;
             d.node.for_n(d, src, (r,n,t,o)=>{
                 if(a.deep) { // when deep copying group then exclude nodes that are not in that group ?!?!?!?!
-                    //delete a.root;
+                    //delete a.r;
                     a.depth++;
                     d.make.edge(d, cpy, d.remake.copy(d,n,a), {t:t, o:o, src:a.src}); //{...a, exclude_r:r}
                     a.depth--;
@@ -25,7 +25,7 @@ export const create_remake_slice = (set,get)=>({remake:{
                     d.make.edge(d, cpy, n, {t:t, o:o, src:a.src});
                 }
             });
-            if(a.root && a.depth==0) d.make.edge(d, a.root, cpy, {src:a.src});
+            if(a.r && a.depth==0) d.make.edge(d, a.r, cpy, {src:a.src});
             d.next('reckon.node', cpy); // maybe this should go in node creation
             return cpy;
         }
@@ -94,7 +94,7 @@ export const create_remake_slice = (set,get)=>({remake:{
 
 //d.node.for_r(d, src, r=>{ // could use for_rn here, 
             // d.node.for_rn(d, src, (r,n,t,o)=>{
-            //     if(!(a&&a.exclude_r && a.exclude_r == r)){  // && !(a&&a.rt && !a.rt.includes(d.n[r].t))
+            //     if(!(a.exclude_r && a.exclude_r == r)){  // && !(a.rt && !a.rt.includes(d.n[r].t))
             //         //d.node.for_n(d, r, (r,n,t,o)=>{
             //             //if(!(r==d.profile && t=='asset')){ //src == n && 
             //                 d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
@@ -103,8 +103,8 @@ export const create_remake_slice = (set,get)=>({remake:{
             //     }
             // });
 
-            // if(a&&a.root){
-            //     const rne = d.node.rne(d, src).find(e=> e.r == a.root);
+            // if(a.r){
+            //     const rne = d.node.rne(d, src).find(e=> e.r == a.r);
             //     if(rne) d.make.edge(d, rne.r, cpy, {t:rne.t, o:rne.o});
             // }
 

@@ -124,6 +124,17 @@ def clear_part(part):
     part.f.clear()
     part.s.clear()
 
+select_p = ' SELECT core_part.id, core_part.t_id FROM core_part WHERE '
+select_b = ' SELECT core_bool.id, core_bool.t_id FROM core_bool WHERE '
+select_i = ' SELECT core_int.id, core_int.t_id FROM core_int WHERE '
+select_f = ' SELECT core_float.id, core_float.t_id FROM core_float WHERE '
+select_s = ' SELECT core_string.id, core_string.t_id FROM core_string WHERE '
+exists_p = ' EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND '
+exists_b = ' EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_part.id AND '
+exists_i = ' EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_part.id AND '
+exists_f = ' EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_part.id AND '
+exists_s = ' EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_part.id AND '
+
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
     pollPack   = graphene.Field(Pack_Type, instance=graphene.String())
@@ -145,33 +156,42 @@ class Query(graphene.ObjectType):
                 #poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
 
                 op_id = Part.objects.get(t__v='open_pack', u=user).id
+                #dp_ids = tuple(Part.objects.filter(t__v='delete_pack').values_list('id')) or ('',)
+
+
                 params = {
                     'op': op_id,
                     'pp': tuple([pp.id for pp in Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')] + ['none']),
                     'opt': tag['open_pack'].id,
+                    'dp': tuple(Part.objects.filter(t__v='delete_pack').values_list('id')) or ('',),
                 }
 
                 # skip if pp is none?
                 # check if not in delete_pack
                 parts = Part.objects.raw("""SELECT core_part.id, core_part.t_id FROM core_part WHERE
-                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(pp)s) 
+                    EXISTS """+p_exists+""" core_part_part.r_id = %(op)s) AND
+                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(pp)s) AND
+                    NOT EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id NOT IN %(dp)s)
                 """, params)
                 bools = Bool.objects.raw("""SELECT core_bool.id, core_bool.v FROM core_bool WHERE
                     EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id IN %(pp)s) 
+                    EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id IN %(pp)s) AND
+                    NOT EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id NOT IN %(dp)s) 
                 """, params)
                 ints = Int.objects.raw("""SELECT core_int.id, core_int.v FROM core_int WHERE
                     EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id IN %(pp)s) 
+                    EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id IN %(pp)s) AND
+                    NOT EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id NOT IN %(dp)s) 
                 """, params)
                 floats = Float.objects.raw("""SELECT core_float.id, core_float.v FROM core_float WHERE
                     EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id IN %(pp)s) 
+                    EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id IN %(pp)s) AND
+                    NOT EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id NOT IN %(dp)s) 
                 """, params)
                 strings = String.objects.raw("""SELECT core_string.id, core_string.v FROM core_string WHERE
                     EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id IN %(pp)s) 
+                    EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id IN %(pp)s) AND
+                    NOT EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id NOT IN %(dp)s) 
                 """, params)
 
                 old_delete_packs = Part.objects.filter(~Q(ie__t__v='system_time'), t__v='delete_pack')
@@ -183,6 +203,7 @@ class Query(graphene.ObjectType):
                 old_delete_packs.delete()
                 params = {
                     'op': op_id,
+                    'dp': dp_ids,
                     'dp': tuple([pp.id for pp in Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')] + ['none']),
                 }
                 # skip if dp is none?
@@ -317,34 +338,34 @@ class Open_Pack(graphene.Mutation):
                 'public': Part.objects.get(t__v='public').id,
                 'profile': Part.objects.get(t__v='profile', ue__n=user).id 
                     if user.is_authenticated else 'none',
-                'dps': tuple([dp.id for dp in Part.objects.filter(t__v='delete_pack')] + ['none']),
+                'dp': tuple(Part.objects.filter(t__v='delete_pack').values_list('id')) or ('',),#tuple([dp.id for dp in Part.objects.filter(t__v='delete_pack')] + ['none']), # use .values instead of list comp
             }
 
             parts = Part.objects.raw("""
-                SELECT core_part.id, core_part.t_id 
-                FROM core_part_part JOIN core_part ON core_part_part.n_id=core_part.id 
-                WHERE (core_part_part.r_id = %(profile)s OR core_part_part.r_id = %(public)s) AND core_part_part.r_id NOT IN %(dps)s
+                SELECT core_part.id, core_part.t_id WHERE
+                EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND (core_part_part.r_id = %(profile)s OR core_part_part.r_id = %(public)s)) AND
+#               NOT EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id NOT IN %(dp)s)
                 UNION SELECT core_part.id, core_part.t_id FROM core_part WHERE core_part.id = %(public)s
                 """, params)
             bools = Bool.objects.raw("""
                 SELECT core_bool.id, core_bool.v 
                 FROM core_part_bool JOIN core_bool ON core_part_bool.n_id=core_bool.id 
-                WHERE (core_part_bool.r_id = %(profile)s OR core_part_bool.r_id = %(public)s) AND core_part_bool.r_id NOT IN %(dps)s
+                WHERE (core_part_bool.r_id = %(profile)s OR core_part_bool.r_id = %(public)s) AND (core_part_bool.r_id NOT IN %(dp)s)
                 """, params)
             ints = Int.objects.raw("""
                 SELECT core_int.id, core_int.v 
                 FROM core_part_int JOIN core_int ON core_part_int.n_id=core_int.id 
-                WHERE (core_part_int.r_id = %(profile)s OR core_part_int.r_id = %(public)s) AND core_part_int.r_id NOT IN %(dps)s
+                WHERE (core_part_int.r_id = %(profile)s OR core_part_int.r_id = %(public)s) AND (core_part_int.r_id NOT IN %(dp)s)
                 """, params)
             floats = Float.objects.raw("""
                 SELECT core_float.id, core_float.v 
                 FROM core_part_float JOIN core_float ON core_part_float.n_id=core_float.id 
-                WHERE (core_part_float.r_id = %(profile)s OR core_part_float.r_id = %(public)s) AND core_part_float.r_id NOT IN %(dps)s
+                WHERE (core_part_float.r_id = %(profile)s OR core_part_float.r_id = %(public)s) AND (core_part_float.r_id NOT IN %(dp)s)
                 """, params)
             strings = String.objects.raw("""
                 SELECT core_string.id, core_string.v 
                 FROM core_part_string JOIN core_string ON core_part_string.n_id=core_string.id 
-                WHERE (core_part_string.r_id = %(profile)s OR core_part_string.r_id = %(public)s) AND core_part_string.r_id NOT IN %(dps)s
+                WHERE (core_part_string.r_id = %(profile)s OR core_part_string.r_id = %(public)s) AND (core_part_string.r_id NOT IN %(dp)s)
                 """, params)
 
             #'SELECT core_part.id FROM core_part_user JOIN auth_user WHERE core_part_user.n_id'
@@ -740,6 +761,34 @@ def make_data():
     
 #make_data() 
 
+
+
+            # parts = Part.objects.raw("""
+            #     SELECT core_part.id, core_part.t_id 
+            #     FROM core_part_part JOIN core_part ON core_part_part.n_id=core_part.id 
+            #     WHERE (core_part_part.r_id = %(profile)s OR core_part_part.r_id = %(public)s) AND (core_part_part.r_id NOT IN %(dp)s)
+            #     UNION SELECT core_part.id, core_part.t_id FROM core_part WHERE core_part.id = %(public)s
+            #     """, params)
+            # bools = Bool.objects.raw("""
+            #     SELECT core_bool.id, core_bool.v 
+            #     FROM core_part_bool JOIN core_bool ON core_part_bool.n_id=core_bool.id 
+            #     WHERE (core_part_bool.r_id = %(profile)s OR core_part_bool.r_id = %(public)s) AND (core_part_bool.r_id NOT IN %(dp)s)
+            #     """, params)
+            # ints = Int.objects.raw("""
+            #     SELECT core_int.id, core_int.v 
+            #     FROM core_part_int JOIN core_int ON core_part_int.n_id=core_int.id 
+            #     WHERE (core_part_int.r_id = %(profile)s OR core_part_int.r_id = %(public)s) AND (core_part_int.r_id NOT IN %(dp)s)
+            #     """, params)
+            # floats = Float.objects.raw("""
+            #     SELECT core_float.id, core_float.v 
+            #     FROM core_part_float JOIN core_float ON core_part_float.n_id=core_float.id 
+            #     WHERE (core_part_float.r_id = %(profile)s OR core_part_float.r_id = %(public)s) AND (core_part_float.r_id NOT IN %(dp)s)
+            #     """, params)
+            # strings = String.objects.raw("""
+            #     SELECT core_string.id, core_string.v 
+            #     FROM core_part_string JOIN core_string ON core_part_string.n_id=core_string.id 
+            #     WHERE (core_part_string.r_id = %(profile)s OR core_part_string.r_id = %(public)s) AND (core_part_string.r_id NOT IN %(dp)s)
+            #     """, params)
 
 
 

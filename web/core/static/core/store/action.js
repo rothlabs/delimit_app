@@ -1,22 +1,22 @@
 import {current} from 'immer';
 
 export const create_action_slice=(set,get)=>({action:{
-    node(d, n, a){ // might need to check for node existence or track original reckon call
+    node(d, n, a={}){ // might need to check for node existence or track original reckon call
         if(d.action[d.n[n].t]) d.action[d.n[n].t](d,n,a);
         d.node.for_r(d, n, r=> d.action.node(d,r,a)); // watch out for cycle ?!?!?!
     },
-    equalizer(d, n, a){
-        if(!(a&&a.src==n)){
+    equalizer(d, n, a={}){
+        if(a.src!=n){
             console.log('equalizer', a);
             const grps = d.n[n].n.group;
-            if(grps && a.action == 'edge_created' && grps.includes(a.r)){ // && !d.n[n].c.stop 
+            if(grps && a.act == 'make.edge' && grps.includes(a.r)){ // && !d.n[n].c.stop 
                 grps.forEach(g=>{
                     if(g != a.r){
-                        d.remake.copy(d, a.n, {root:g, src:n});
+                        d.remake.copy(d, a.n, {r:g, src:n});
                     }
                 });
             }
-            if(grps && a.action == 'edge_deleted' && grps.includes(a.r)){ // && !d.n[n].c.stop 
+            if(grps && a.act == 'delete.edge' && grps.includes(a.r)){ // && !d.n[n].c.stop 
                 grps.forEach(g=>{
                     if(g != a.r && d.n[g].n.group){
                         d.delete.node(d, d.n[g].n.group[a.o], {src:n});

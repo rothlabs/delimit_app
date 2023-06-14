@@ -3,35 +3,34 @@ import {Vector3} from 'three';
 import {current} from 'immer';
 
 export const create_make_slice = (set,get)=>({make:{
-    edge(d, r, n, a){ 
-        if(d.n[r].asset || (r==d.profile && a&&a.t=='asset') || (r==d.public && a&&a.t=='view')){
+    edge(d, r, n, a={}){ 
+        if(d.n[r].asset || (r==d.profile && a.t=='asset') || (r==d.public && a.t=='view')){
             var t = d.n[n].t;
             if(d.n[r].t == 'group') t = d.n[r].t; 
-            if(a&&a.t != undefined) t = a.t;
+            if(a.t != undefined) t = a.t;
             if(!d.n[r].n[t]) d.n[r].n[t] = [];
             /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
             //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
             if(!d.n[r].n[t].includes(n)){
-                if(a&&a.o != undefined){    d.n[r].n[t].splice(a.o, 0, n);     }
-                else{                       d.n[r].n[t].push(n);               }
+                if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
+                else              {d.n[r].n[t].push(n)          }
                 var rt = d.n[r].t;
-                if(d.root_tags[t]){  rt=d.root_tags[t];  }
-                //else{                t=d.n[r].t;        }
+                if(d.root_tags[t]) rt=d.root_tags[t];
                 if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
                 d.n[n].r[rt].push(r); // reverse relationship 
-                if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)  //!(a&&a.no_auto_group) && 
+                if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
                     d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
-                        d.make.edge(d, e.r, n, {src:(a?a.src:null)}); //, {no_auto_group:true}
+                        d.make.edge(d, e.r, n, {src:a.src}); //, {no_auto_group:true}
                     });
                 }
-                d.action.node(d, r, {action:'edge_created', src:(a?a.src:null), r:r, n:n, t:t});
+                d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t});
                 d.next('reckon.node', r); //, {cause:'edge_created', r:r, n:n, t:t}
                 d.next('graph.update');
                 d.next('pick.update');
             }
         }
     },
-    node(d, m, t, a){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
+    node(d, m, t, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         //const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
         d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true, deleted:false,
@@ -47,7 +46,7 @@ export const create_make_slice = (set,get)=>({make:{
         d.pick.color(d,n);
         if(m=='p'){ d.n[n].n={}; }
         d.make.edge(d, d.profile, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
-        if(a&&a.r) d.make.edge(d, a.r, n, a);
+        if(a.r) d.make.edge(d, a.r, n, a);
         //{
         //    if(Array.isArray(a.r)){   a.r.forEach(r=> d.make.edge(d, r, n, a))   }
         //    else{   d.make.edge(d, a.r, n, a);  }

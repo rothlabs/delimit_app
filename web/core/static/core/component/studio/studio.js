@@ -87,7 +87,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
     ],{notifyOnNetworkStatusChange:true, pollInterval: 1000, onCompleted:(data)=>{ //fetchPolicy:'no-cache',
         //if(data.pollPack) console.log(data.pollPack);
         if(data.pollPack) {
-            if(data.pollPack && data.pollPack.p.length > 0) console.log('poll pack recieved', data.pollPack);
+            if(data.pollPack) console.log('poll pack recieved', data.pollPack);
             //if(data.deletePack && data.deletePack.p.length > 0) console.log('delete pack part recieved', data.deletePack.p);
             //console.log(data.pollPack.s.find(s=> s.v==instance));
             rs(d=> d.receive(d, data.pollPack)); // do not read anything older than when loader!!!!!!!

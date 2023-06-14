@@ -133,7 +133,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 //    const g = grps[i];
 
 //d.n[n].c.n = d.node.n(d,n).filter(n=> d.n[n].n);
-        // if(a&&a.src){
+        // if(a.src){
         //     if(d.node.be(d,a.src) && d.n[a.src].n){
         //         d.add(d.n[n].c.nodes, a.src);
         //     }else{
