@@ -36,7 +36,7 @@ export const create_base_slice = (set,get)=>({
     init(d){
         d.graph.init(d); //d.node.init(d);
     },
-    add(array,item){ // static
+    add(array,item){ // static upgrade to do deep compare to find same object ?!?!?!?!
         if(array.indexOf(item) === -1){
             array.push(item);
             return true;

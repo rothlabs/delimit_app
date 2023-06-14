@@ -9,19 +9,34 @@ export const create_action_slice=(set,get)=>({action:{
         if(a.src!=n){
             console.log('equalizer', a);
             const grps = d.n[n].n.group;
-            if(grps && a.act == 'make.edge' && grps.includes(a.r)){ // && !d.n[n].c.stop 
-                grps.forEach(g=>{
-                    if(g != a.r){
-                        d.remake.copy(d, a.n, {r:g, src:n});
+            if(grps){
+                if(a.act == 'make.edge'){
+                    if(grps.includes(a.r)){ // && !d.n[n].c.stop 
+                        grps.forEach(g=>{
+                            if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n});
+                        });
+                    }else{ //if(d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true})){
+                        const cg1 = d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true});
+                        const cg2 = d.node.r(d, a.n, {filter:r=>grps.includes(r), deep:true});
+                        if(cg1&&cg2 && cg1[0]==cg2[0]){
+                            const cg = cg1[0];
+                            grps.forEach(g=>{
+                                if(g != cg){
+                                    const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
+                                    const alt_n = d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)];
+                                    d.make.edge(d, alt_r, alt_n, {t:a.t});
+                                }
+                            });
+                        }
                     }
-                });
-            }
-            if(grps && a.act == 'delete.edge' && grps.includes(a.r)){ // && !d.n[n].c.stop 
-                grps.forEach(g=>{
-                    if(g != a.r && d.n[g].n.group){
-                        d.delete.node(d, d.n[g].n.group[a.o], {src:n});
+                }
+                if(a.act == 'delete.edge'){
+                    if(grps.includes(a.r)){ // && !d.n[n].c.stop 
+                        grps.forEach(g=>{
+                            if(g != a.r && d.n[g].n.group) d.delete.node(d, d.n[g].n.group[a.o], {src:n});
+                        });
                     }
-                });
+                }
             }
         }
 
@@ -65,6 +80,11 @@ export const create_action_slice=(set,get)=>({action:{
     }
 }});
 
+
+// var grp1 = null;
+                        // d.node.for_r(d, a.r, r=>{
+                        //     grp1 = grps.find(r)
+                        // },{deep:true});
 
 // group(d,n){ // use a.cause='edge_create' and a.cause='edge_deleted'?
     //     //if(d.n[n].c.n == undefined) d.n[n].c.n = [];

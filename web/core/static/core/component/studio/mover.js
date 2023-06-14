@@ -22,10 +22,9 @@ export function Mover(){
     //    if(!show) set_show(true);
     //},[show]);
     //set_show(true);
-    //console.log('render mover ', mover);
+    //console.log('render mover ', studio_mode, move_mode, pick_count, mover);
     return (
-        pick_count>0 && c(PivotControls, { //&& Date.now()-reset>50
-            //autoTransform: false,
+        pick_count>0 && c(PivotControls, { 
             offset:[mover.pos.x, mover.pos.y, mover.pos.z], 
             visible: studio_mode=='design' && move_mode=='move',
             activeAxes:[true, true, false],
@@ -33,7 +32,6 @@ export function Mover(){
             depthTest:false,
             fixed:true,
             lineWidth:3,
-            //matrix:matrix,
             onDragStart:e=> fs(d=> d.design.pin_move(d)),
             onDrag:e=> {
                 set_matrix(e);

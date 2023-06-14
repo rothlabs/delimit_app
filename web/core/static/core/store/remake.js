@@ -15,6 +15,13 @@ export const create_remake_slice = (set,get)=>({remake:{
             if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
             //if(a.r) d.make.edge(d, a.r, cpy, {src:a_src});
             if(!a.depth) a.depth=0;
+
+            // if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
+            //     d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
+            //         d.make.edge(d, e.r, n, {src:a.src}); //, {no_auto_group:true}
+            //     });
+            // }
+
             d.node.for_n(d, src, (r,n,t,o)=>{
                 if(a.deep) { // when deep copying group then exclude nodes that are not in that group ?!?!?!?!
                     //delete a.r;

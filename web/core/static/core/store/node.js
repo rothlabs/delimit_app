@@ -49,7 +49,7 @@ export const create_node_slice =(set,get)=>({node:{
     n(d, roots, a={}){ 
         if(!Array.isArray(roots)) roots = [roots]; //if(!filter) filter = ['open']; 
         var result = []; // should be key value pair for faster checking?  
-        var add_n = (r,n,t,o)=> d.add(result, n);//result.push(n); // use d.add to avoid duplicates ?!?!?!
+        var add_n = (r,n,t,o)=> d.add(result, n);//result.push(n); 
         if(a.edge) add_n = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates ?!?!?!
         if(a && a.unique && !a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
         roots.forEach(r=>{
@@ -68,12 +68,12 @@ export const create_node_slice =(set,get)=>({node:{
     r(d, nodes, a={}){
         if(!Array.isArray(nodes)) nodes = [nodes];
         var result = [];//const result = (a.rt ? [...nodes] : []); // might not need this ?!?!?!
-        var add_r = (r,n,t,o)=>result.push(r); // use d.add to avoid duplicates ?!?!?!
-        if(a.edge) add_r = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates ?!?!?!
+        var add_r = (r,n,t,o)=> result.push(r); //d.add(d, result, r);// 
+        if(a.edge) add_r = (r,n,t,o)=> result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates (upgrad for deep compare) ?!?!?!
         nodes.forEach(n=>{
             if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
                 if(!(a.content && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> {
-                    if(d.node.be(d,r) == 'open'){
+                    if(d.node.be(d,r) == 'open' && !(a.filter && !a.filter(r))){
                         add_r(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
                         if(a.deep) result = result.concat(d.node.r(d,r,a));
                     }
@@ -93,7 +93,7 @@ export const create_node_slice =(set,get)=>({node:{
         return result;
     },
     for_n:(d, roots, func, a)=> d.node.ne(d,roots,a).forEach(e=> func(...Object.values(e))), // rename to for_ne
-    for_r:(d, nodes, func, a)=> d.node.re(d,nodes,a).forEach(e=> func(...Object.values(e))), 
+    for_r:(d, nodes, func, a)=> d.node.re(d,nodes,a).forEach(e=> func(...Object.values(e))), // make for loop and exit when function returns true
     for_rn:(d, nodes, func)=> d.node.rne(d,nodes).forEach(e=> func(...Object.values(e))), // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
     close:(d, n)=>{
         d.n[n].open = false; // rename to closed?
