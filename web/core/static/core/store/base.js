@@ -3,22 +3,36 @@ import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
 
-const model_tags={'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; // make seperate atoms tag list?
-const float_tags  = ['decimal', 'x', 'y', 'z']; //edge tags
-const string_tags = ['text', 'name', 'story'];  //edge tags
+
+const subject_tags= ['point', 'line', 'sketch', 'repeater', 'group', 'transform'];
+const admin_tags  = ['public', 'profile'];
+const model_tags  = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
+const float_tags  = [model_tags['f'], 'x', 'y', 'z'];
+const string_tags = [model_tags['s'], 'name', 'story'];
+const atom_tags   = Object.values(model_tags).slice(1);
+
+// const nodes = {
+//     part:{
+//         m:'p'
+//         css: '',
+//         reckon:
+//         action:
+//     },
+// };
+
 var next_funcs = [];
 var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
-    model_tags: model_tags,
-    root_tags: {'view':'viewer', 'asset':'owner',},
-    float_tags: float_tags,
-    string_tags: string_tags,
-    value_tags: [...float_tags, ...string_tags], // single_tags
-    //order_tags: ['point'],
-    atom_tags: Object.values(model_tags).slice(1),
-    node_tags: [...Object.values(model_tags), 'public', 'profile', 'point', 'line', 'sketch', 'equalizer', 'group'],
-    limited_tags: ['public', 'profile'],
+    root_tags:    {'view':'viewer', 'asset':'owner',},
+    model_tags:   model_tags,
+    float_tags:   float_tags,
+    string_tags:  string_tags,
+    atom_tags:    atom_tags,
+    subject_tags: subject_tags,
+    admin_tags:   admin_tags,
+    value_tags:   [...float_tags, ...string_tags],
+    node_tags:    [...atom_tags, ...subject_tags, ...admin_tags],
 
     n: {},
     t: {},
@@ -26,16 +40,18 @@ export const create_base_slice = (set,get)=>({
     profile: null,
     public: null,
     search: {depth:null, ids:null},
-
     studio: {
-        ready:false,
-        mode:'graph',
+        ready: false,
+        mode: 'graph',
         panel: {},
     },
 
     init(d){
+        d.node.init(d);
+        //d.make.init(d);
         d.graph.init(d); //d.node.init(d);
     },
+
     add(array,item){ // static upgrade to do deep compare to find same object ?!?!?!?!
         if(array.indexOf(item) === -1){
             array.push(item);
@@ -231,7 +247,7 @@ export const create_base_slice = (set,get)=>({
                 set_update_graph = true;
                 d.n[n.id].open = true;
                 d.n[n.id].deleted = false;
-                if(d.graph.tag_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.tag_vis[d.n[n.id].t];
+                if(d.graph.n_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.n_vis[d.n[n.id].t];
                 //}
             }); 
         });

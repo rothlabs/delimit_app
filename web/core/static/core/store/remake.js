@@ -10,7 +10,7 @@ import {make_id, random_vector, theme} from '../app.js';
 // for a, do if(!a) a = {} at start of each function that uses a
 export const create_remake_slice = (set,get)=>({remake:{
     copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
-        if(!d.node.limited(d, (a.r ? [n,a.r] : [n]))){ // if a.r then check if it is limited
+        if(!d.node.admin(d, (a.r ? [n,a.r] : [n]))){ // if a.r then check if it is limited
             const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
             if(d.n[n].m != 'p') d.n[cpy].v = d.n[n].v;
             //if(a.r) d.make.edge(d, a.r, cpy, {src:a_src});
@@ -43,13 +43,13 @@ export const create_remake_slice = (set,get)=>({remake:{
                     d.make.edge(d, cpy, n, {t:t, o:o, src:a.src});
                 }
             });
-            if(a.r && a.depth==0) d.make.edge(d, a.r, cpy, {src:a.src}); // attaching last is important for copying groups inside equalizer
+            if(a.r && a.depth==0) d.make.edge(d, a.r, cpy, {src:a.src}); // attaching last is important for copying groups inside repeater
             d.next('reckon.node', cpy); // maybe this should go in node creation
             return cpy;
         }
     },
     split(d, nodes, target){ // make unique copy for everything but asset and transform?
-        if(!d.node.limited(d, [...nodes, target])){ 
+        if(!d.node.admin(d, [...nodes, target])){ 
             //const dead_edges = [];
             d.node.for_n(d, target, (r,n,t,o)=>{
                 if(nodes.includes(n)){
@@ -64,10 +64,10 @@ export const create_remake_slice = (set,get)=>({remake:{
         }
     },
     merge(d, nodes, target){ 
-        if(!d.node.limited(d, [...nodes, target])){ // d.n[target].asset && 
+        if(!d.node.admin(d, [...nodes, target])){ // d.n[target].asset && 
             if(d.remake.merging[d.n[d.pick.n[0]].t]){  
                 d.remake.merging[d.n[d.pick.n[0]].t](d, nodes, target); 
-                d.remake.merging.base(d, nodes, target);  
+                d.remake.merging.base(d, nodes, target);
             }
             else{  
                 d.remake.merging.default(d, nodes, target);  
@@ -128,7 +128,7 @@ export const create_remake_slice = (set,get)=>({remake:{
 
 // split(d, roots, target){ // make unique copy for everything but asset and transform?
 //     roots = roots.filter(r=> d.n[r].asset);
-//     if(!d.node.limited(d, [...roots, target])){ 
+//     if(!d.node.admin(d, [...roots, target])){ 
 //         const dead_edges = [];
 //         //console.log(roots);
 //         //console.log(target);

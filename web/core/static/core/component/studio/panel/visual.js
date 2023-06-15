@@ -5,8 +5,8 @@ import {useS, ss, readable} from '../../../app.js'
 export function Visual(){
     const panel = useS(d=> d.studio.panel.name);
     const show = useS(d=> d.studio.panel.show);
-    const graph_tag_vis = useS(d=> d.graph.tag_vis);
-    const graph_edge_vis = useS(d=> d.graph.edge_vis);
+    const graph_tag_vis = useS(d=> d.graph.n_vis);
+    const graph_edge_vis = useS(d=> d.graph.e_vis);
     return(
         show && panel=='visual' && c(Fragment, {},
             c(Row, {className:'mt-3 mb-3'},
@@ -17,7 +17,7 @@ export function Visual(){
                             className:'mt-2', 
                             label: readable(t), 
                             checked: vis, 
-                            onChange:e=> ss(d=> d.graph.set_tag_vis(d, t, e.target.checked)),
+                            onChange:e=> ss(d=> d.graph.set_node_vis(d, t, e.target.checked)),
                         }),
                     ),
                 ),

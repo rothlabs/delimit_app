@@ -3,6 +3,9 @@ import {Vector3} from 'three';
 import {current} from 'immer';
 
 export const create_make_slice = (set,get)=>({make:{
+    // init(d){
+    //     d.make.buttons = d.subject
+    // },
     edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
         if(d.node.be(d,r) && d.node.be(d,n)){
             if(d.n[r].asset || (r==d.profile && a.t=='asset') || (r==d.public && a.t=='view')){
@@ -40,7 +43,7 @@ export const create_make_slice = (set,get)=>({make:{
             graph: { 
                 pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
                 //dir: new Vector3(),
-                vis: d.graph.tag_vis[t]!=undefined ? d.graph.tag_vis[t] : true,
+                vis: d.graph.n_vis[t]!=undefined ? d.graph.n_vis[t] : true,
                 //lvl: 0,
             },
             pin: {},
@@ -60,35 +63,34 @@ export const create_make_slice = (set,get)=>({make:{
         //    else{   d.make.edge(d, a.r, n, a);  }
         //}
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
+        d.next('reckon.node', n);
         d.next('graph.update'); // check if in graph_tags 
         return n;
-    },
-    part(d, t, a){ // a.r should be array 
-        return d.make.node(d, 'p', t, a);
     },
     atom(d, m, v, a){ // just check v to figure if b, i, f, or s
         const n = d.make.node(d, m, d.model_tags[m], a); //{r:r, t:t}
         d.n[n].v = v; //d.n[n].pin = v;
         return n;
     },
-    point(d, pos, r, o){ 
-        //const x = d.make.atom(d, 'f', pos.x); //, n, 'x' // d, v, root_id, edge_tag
-        //const y = d.make.atom(d, 'f', pos.y); //, n, 'y' 
-        //const z = d.make.atom(d, 'f', pos.z); //, n, 'z'
-        const n = d.make.part(d, 'point', {r:r, o:o, n:{
-            x: d.make.atom(d, 'f', pos.x),
-            y: d.make.atom(d, 'f', pos.y),
-            z: d.make.atom(d, 'f', pos.z),
+    part(d, t, a){ // a.r should be array 
+        if(d.make[t]){return d.make[t](d,a)}
+        else         {return d.make.node(d, 'p', t, a)}
+    },
+    point(d, a={}){ //pos, r, o
+        if(a.pos == undefined) a.pos = new Vector3();
+        const n = d.make.node(d,'p','point', {r:a.r, o:a.o, n:{
+            x: d.make.atom(d, 'f', a.pos.x),
+            y: d.make.atom(d, 'f', a.pos.y),
+            z: d.make.atom(d, 'f', a.pos.z),
         }}); // d, part_tag, root_id, edge_tag 
-        d.reckon.node(d,n); // should this be d.next() and located in d.make.node ?!?!?!
+        //d.reckon.node(d,n); // should this be d.next() and located in d.make.node ?!?!?!
         return n;
     },
-    // group(d){
-    //     const n = d.make.part(d, 'group');
-    //     d.n[n].c.pushed = [];
-    //     d.n[n].c.removed = [];
-    // },
 }});
+
+//const x = d.make.atom(d, 'f', pos.x); //, n, 'x' // d, v, root_id, edge_tag
+        //const y = d.make.atom(d, 'f', pos.y); //, n, 'y' 
+        //const z = d.make.atom(d, 'f', pos.z); //, n, 'z'
 
 // if(d.profile){
         //     if(!d.n[d.profile].n.asset) d.n[d.profile].n.asset = [];

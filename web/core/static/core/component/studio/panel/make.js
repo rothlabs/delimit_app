@@ -1,39 +1,45 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, Button} from 'react-bootstrap';
-import {useS, ss, gs} from '../../../app.js'
+import {useS, ss, gs, static_url} from '../../../app.js'
 import {Badge} from '../../node/base.js'
+
+//import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
 
 export function Make(){
     const show = useS(d=> d.studio.panel.show);
     const panel = useS(d=> d.studio.panel.name);
     const nodes = useS(d=> d.pick.n);
-    var items = [];
-    if(nodes.length){
-        items = items.concat([
-            {name:' Name',    icon:'bi-triangle',  func(d){
-                d.make.atom(d, 's', '', {r:d.pick.n, t:'name'})
-                //return {n:d.make.atom(d, 's', ''), t:'name'};
-            }},
-        ]);
-    }
-    items = items.concat([
-        {name:' Line',    icon:'bi-bezier2', func(d){
-            d.make.part(d, 'line', {r:d.pick.n});
-            //return {n:d.make.part(d, 'line')};
-        }},
-        {name:' Sketch',  icon:'bi-easel',   func(d){
-            d.make.part(d, 'sketch', {r:d.pick.n});
-            //return {n:d.make.part(d, 'sketch')};
-        }},
-        {name:' Group',  icon:'bi-box-seam',   func(d){
-            d.make.part(d, 'group', {r:d.pick.n});
-            //return {n:d.make.part(d, 'group')};
-        }},
-        {name:' Equalizer',  icon:'bi-files',   func(d){
-            d.make.part(d, 'equalizer', {r:d.pick.n});
-            //return {n:d.make.part(d, 'equalizer')};
-        }},
-    ]);
+    // var items = [];
+    // if(nodes.length){
+    //     items = items.concat([
+    //         {name:' Name',    icon:'bi-triangle',  func(d){
+    //             d.make.atom(d, 's', '', {r:d.pick.n, t:'name'})
+    //             //return {n:d.make.atom(d, 's', ''), t:'name'};
+    //         }},
+    //     ]);
+    // }
+    // items = items.concat([
+    //     {name:'Point',    icon:'bi-dot', func(d){
+    //         d.make.part(d, 'point', {r:d.pick.n});
+    //         //return {n:d.make.part(d, 'line')};
+    //     }},
+    //     {name:'Line',    icon:'bi-bezier2', func(d){
+    //         d.make.part(d, 'line', {r:d.pick.n});
+    //         //return {n:d.make.part(d, 'line')};
+    //     }},
+    //     {name:'Sketch',  icon:'bi-easel',   func(d){
+    //         d.make.part(d, 'sketch', {r:d.pick.n});
+    //         //return {n:d.make.part(d, 'sketch')};
+    //     }},
+    //     {name:'Group',  icon:'bi-box-seam',   func(d){
+    //         d.make.part(d, 'group', {r:d.pick.n});
+    //         //return {n:d.make.part(d, 'group')};
+    //     }},
+    //     {name:'repeater',  icon:'bi-files',   func(d){
+    //         d.make.part(d, 'repeater', {r:d.pick.n});
+    //         //return {n:d.make.part(d, 'repeater')};
+    //     }},
+    // ]);
     const d = gs();
     return(
         show && panel=='make' && c(Fragment, {},
@@ -45,27 +51,46 @@ export function Make(){
                 ) : c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.profile})),
             ),
             c(Col, {className:'mb-3 ms-2 me-2'},
-                ...items.map((item, i)=>
+                ...Object.entries(d.node.meta).map(([t,node])=>
                     c(Row, {className: 'mt-1 text-left'},
+                        ///c(PublicIcon),
                         c(Button, {
-                            id:'make_'+item.value,
-                            className: 'border-white text-start '+item.icon,
+                            id:'make_'+t,
+                            className: 'border-white text-start '+node.css_icon,
                             variant:'outline-primary', size:'lg',
                             onClick:e=> ss(d=>{ 
-                                // const result = item.func(d);
-                                // d.pick.n.forEach(r=>{
-                                //     d.make.edge(d, r, result.n, {t:result.t}); 
-                                // });
-                                item.func(d);
+                                d.make.part(d, t, {r:d.pick.n});
                                 d.studio.panel.show = false;
                             }),
-                        }, c('span',{style:{fontSize:'18px'}}, item.name))
+                        }, 
+                            //c('img', {src:node.icon}),
+                            c('span',{style:{fontSize:'18px'}}, ' '+node.name)
+                        )
                     )
                 ),
             ),
         )
     )
 }
+
+// ...items.map((item, i)=>
+//                     c(Row, {className: 'mt-1 text-left'},
+//                         c(Button, {
+//                             id:'make_'+item.value,
+//                             className: 'border-white text-start '+item.icon,
+//                             variant:'outline-primary', size:'lg',
+//                             onClick:e=> ss(d=>{ 
+//                                 item.func(d);
+//                                 d.studio.panel.show = false;
+//                             }),
+//                         }, c('span',{style:{fontSize:'18px'}}, ' '+item.name))
+//                     )
+//                 ),
+
+// const result = item.func(d);
+// d.pick.n.forEach(r=>{
+//     d.make.edge(d, r, result.n, {t:result.t}); 
+// });
 
 // if(d.pick.n.length){
 //     d.pick.n.forEach(n => {

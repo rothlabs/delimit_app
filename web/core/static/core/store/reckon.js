@@ -69,8 +69,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     //         d.n[n].c.n = nodes;
     //     }
     // },
-    // equalizer(d,n,a){
-    //     console.log('equalizer', a);
+    // repeater(d,n,a){
+    //     console.log('repeater', a);
     //     const grps = d.n[n].n.group;
     //     if(grps){ // && !d.n[n].c.stop 
     //         if(!d.n[n].c.grp) d.n[n].c.grp = [];
@@ -95,11 +95,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     //                         d.add(d.n[g].c.n, cpy); // add to group content so it doesn't see a diff and cause infinit loop
     //                     });
     //                     d.n[cg].c.removed.forEach(rm=>{
-    //                         //console.log('equalizer remove i', i);
+    //                         //console.log('repeater remove i', i);
     //                         if(d.n[g].n.group){
     //                             const rmn = d.n[g].n.group[rm.i];
     //                             if(rmn){
-    //                                 //console.log('equalizer remove rmv', rmv);
+    //                                 //console.log('repeater remove rmv', rmv);
     //                                 d.delete.node(d, rmn);
     //                                 d.pop(d.n[g].c.n, rmn); // add to group content so it doesn't see a diff and cause infinit loop
     //                             }

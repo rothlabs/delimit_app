@@ -1,12 +1,15 @@
-import { Vector3 } from 'three';
-import { static_url } from '../app.js';
+import {Vector3} from 'three';
+import {static_url, readable} from '../app.js';
 
 const tv = new Vector3();
 
 export const create_node_slice =(set,get)=>({node:{
-    icons:Object.fromEntries([ // put icon boolean in db?
-        'decimal','point','line','sketch', 'equalizer', 'group',
-    ].map(i=> [i, static_url+'svg/node/'+i+'.svg'])),//{},
+    init(d){
+        d.node.meta = Object.fromEntries(d.node_tags.map(t=>[t,{
+            icon: static_url+'icon/node/'+t+'.svg',
+            name: readable(t),
+        }])); // put in config file
+    },
     be:(d,n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
         if(d.n[n] && !d.n[n].deleted){
             if(d.n[n].open) return 'open';
@@ -14,9 +17,9 @@ export const create_node_slice =(set,get)=>({node:{
         }
         return null;
     },
-    limited(d, n){
+    admin(d, n){
         return n.some(n=>{
-            if(d.limited_tags.includes(d.n[n].t)) return true;
+            if(d.admin_tags.includes(d.n[n].t)) return true;
         });
     },
     pin_pos(d, n){  // should go in transform slice?    
@@ -66,11 +69,11 @@ export const create_node_slice =(set,get)=>({node:{
     un:(d, roots, a)=> d.node.n(d, roots, {unique:true, ...a}),
     ne:(d, roots, a)=> d.node.n(d, roots, {edge:true, ...a}),
     r(d, nodes, a={}){
-        if(!Array.isArray(nodes)) nodes = [nodes];
+        //if(!Array.isArray(nodes)) nodes = [nodes];
         var result = [];//const result = (a.rt ? [...nodes] : []); // might not need this ?!?!?!
         var add_r = (r,n,t,o)=> result.push(r); //d.add(d, result, r);// 
         if(a.edge) add_r = (r,n,t,o)=> result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates (upgrad for deep compare) ?!?!?!
-        nodes.forEach(n=>{
+        d.for(nodes, n=>{//nodes.forEach(n=>{
             if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
                 if(!(a.content && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> {
                     if(d.node.be(d,r) == 'open' && !(a.filter && !a.filter(r))){

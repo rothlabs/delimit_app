@@ -39,7 +39,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     update(d){
         //d.pick.n = d.pick.n.filter(n=> d.node.be(d,n));
         d.pick.target = null;
-        d.pick.limited = d.node.limited(d, d.pick.n);
+        d.pick.limited = d.node.admin(d, d.pick.n);
         d.pick.addable = false;
         d.pick.removable = false;
         d.pick.mergeable = false;

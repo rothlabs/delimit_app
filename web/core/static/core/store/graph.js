@@ -5,37 +5,38 @@ const tv = new Vector3();
 export const create_graph_slice = (set,get)=>({graph:{
     scale: 1,
     n: [],
-    edges: [],
-    edge_vis:{
-        view:false, asset:false,
-        name:true, x:true, y:true, z:true, point:true, line:true, sketch:true, equalizer:true, group:true,
-    },
+    e: [], // rename to e?
     init(d){
-        d.graph.tag_vis = {
-            ...Object.fromEntries(d.node_tags.map(t=> [t,true])),
-            decimal:false, text:false
+        d.graph.n_vis={ // n_vis
+            ...Object.fromEntries(d.node_tags.map(t=>[t,true])),
+            switch:false, integer:false, decimal:false, text:false,
+        };
+        d.graph.e_vis={ // e_vis
+            ...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),
+            ...Object.fromEntries([...d.subject_tags, ...d.value_tags].map(t=>[t,true])), 
+            view:false, asset:false,
         };
     },
-    set_tag_vis:(d, t, vis)=>{
-        d.graph.tag_vis = {...d.graph.tag_vis}; // make new object so visual panel rerenders
-        d.graph.tag_vis[t] = vis;
+    set_node_vis:(d, t, vis)=>{
+        d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders
+        d.graph.n_vis[t] = vis;
         Object.values(d.n).forEach(n=>{
-            if(d.graph.tag_vis[n.t]!=undefined) n.graph.vis = d.graph.tag_vis[n.t];
+            if(d.graph.n_vis[n.t]!=undefined) n.graph.vis = d.graph.n_vis[n.t];
         });
         d.graph.update(d);
     },
     set_edge_vis:(d, t, vis)=>{
-        d.graph.edge_vis = {...d.graph.edge_vis}; // make new object so visual panel rerenders
-        d.graph.edge_vis[t] = vis;
+        d.graph.e_vis = {...d.graph.e_vis}; // make new object so visual panel rerenders
+        d.graph.e_vis[t] = vis;
         d.graph.update(d);
     },
     update:d=>{
         //console.log('update graph!!!');
         d.graph.n = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
-        d.graph.edges = [];
+        d.graph.e = [];
         d.node.for_n(d, d.graph.n, (r,n,t)=>{
-            if(d.node.be(d,n) && d.n[n].graph.vis && d.graph.edge_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
-                d.graph.edges.push({r:r, t:t, n:n}); 
+            if(d.node.be(d,n) && d.n[n].graph.vis && d.graph.e_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
+                d.graph.e.push({r:r, t:t, n:n}); 
             }
         });
 
@@ -221,15 +222,15 @@ export const create_graph_slice = (set,get)=>({graph:{
 
 // update: d=>{
 //     d.graph.n = Object.keys(d.n);
-//     d.graph.edges = [];
+//     d.graph.e = [];
 //     Object.entries(d.n).forEach(([rid,r],i)=> {
 //         r.n && Object.entries(r.n).forEach(([tag,nodes],i)=>{
 //             nodes.forEach(nid=>{
-//                 d.n[nid] && rid!=nid && d.graph.edges.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
+//                 d.n[nid] && rid!=nid && d.graph.e.push({r:rid, tag:tag, n:nid}); // might not need rid!=nid
 //             });
 //         });
 //     });
-//     //d.graph.edges = edges;
+//     //d.graph.e = edges;
 //     d.graph.arrange = true;
 // },
 

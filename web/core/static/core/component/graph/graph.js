@@ -55,7 +55,7 @@ function Nodes(){
 }
 
 function Edges(){
-    const edges = useS(d=> d.graph.edges);  // rerendering every time the client polls for update!! 
+    const edges = useS(d=> d.graph.e);  // rerendering every time the client polls for update!! 
     //const edges = useDS(d=> d.graph.edge_roots);
     //const tags = useDS(d=> d.graph.edge_tags);
     //const nodes = useDS(d=> d.graph.edge_nodes);
@@ -75,7 +75,7 @@ function Edges(){
 // function Arrange(){
 //     const arrange = useS(d=> d.graph.arrange);  
 //     const nodes = useS(d=> d.graph.n);
-//     const edges = useS(d=> d.graph.edges);
+//     const edges = useS(d=> d.graph.e);
 //     useFrame((state, delta)=>{ // not using delta because it could make results unpredictable 
 //         if(arrange && nodes.length > 0){
 //             var moving = false;
@@ -119,8 +119,8 @@ function Edges(){
 
 
 
-//const edge_roots = useDS(d=> d.graph.edge_roots); //const edge_roots = useDS(d=> d.graph.edges().map(e=> e.r));
-    //const edge_nodes = useDS(d=> d.graph.edge_nodes); //const edge_nodes = useDS(d=> d.graph.edges().map(e=> e.n));
+//const edge_roots = useDS(d=> d.graph.edge_roots); //const edge_roots = useDS(d=> d.graph.e().map(e=> e.r));
+    //const edge_nodes = useDS(d=> d.graph.edge_nodes); //const edge_nodes = useDS(d=> d.graph.e().map(e=> e.n));
     //console.log(edge_roots);
     //const [equilibrium, set_equilibrium] = useState(false); // put this in the store as a derivitive that gets switch true when when something changes?
     //useEffect(()=>{

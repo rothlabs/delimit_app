@@ -1,6 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
-import {useS, useSS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, gs, useSS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
@@ -14,24 +14,26 @@ const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMap
 //const tv = new THREE.Vector3();
 
 export function Part({n}){ 
-    const d = useS.getState();
-    const pos = d.n[n].graph.pos; 
+    
+    const pos = useS(d=> d.n[n].graph.pos);//const pos = d.n[n].graph.pos; 
     const name = useS(d=> d.n[n].c.name);
-    const t = useS(d=> d.n[n].t);
+    
     const color = useS(d=> d.n[n].pick.color);
     const pick = useS(d=> d.n[n].pick.pick); 
-    const obj = useRef();
-    useEffect(()=> subS(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
-        obj.current.obj.position.copy(d.pos);
-        //console.log('update part pos');
-    }), []);
+    //const obj = useRef();
+    // useEffect(()=> subS(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
+    //     obj.current.obj.position.copy(d.pos);
+    //     //console.log('update part pos');
+    // }), []);
     //console.log('render part');
-    const icon = d.node.icons[t];
+    const d = gs();
+    const t = d.n[n].t;
+    const icon = d.node.meta[t].icon;
     const material = {color: color[0], toneMapped:false};
     return(
         r('group', {name: 'part'}, 
             r(Fixed_Size_Group, {
-                ref: obj,
+                //ref: obj,
                 size: pick ? 25 : 20, // 1.5 : 1, adjust size of other items
                 props:{
                     position: [pos.x, pos.y, pos.z],
@@ -47,21 +49,13 @@ export function Part({n}){
                     name,
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
-                icon ? 
-                    r(Svg, {
-                        src: icon,
-                        scale: 0.1,
-                        position: [-0.8, 0.8, 0],
-                        fillMaterial: material,
-                        strokeMaterial: material,
-                    }) :
-                    r(Spinner, {}, 
-                        r('mesh', {},
-                            r('icosahedronGeometry'),
-                            r('meshBasicMaterial', {color: color[1], toneMapped:false}),
-                            r(Edges, {scale:1.05, color: color[2]}),
-                        )
-                    ),
+                r(Svg, {
+                    src: icon,
+                    scale: 0.1,
+                    position: [-0.8, 0.8, 0],
+                    fillMaterial: material,
+                    strokeMaterial: material,
+                }),
                 r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
@@ -69,7 +63,7 @@ export function Part({n}){
                     outlineWidth: '25%',
                     outlineColor: 'white',
                 },
-                    readable(t), // memoize it?
+                    d.node.meta[t].name, // memoize it?
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Pickable, {n:n},
@@ -84,6 +78,22 @@ export function Part({n}){
     )
 }
 
+
+                // icon ? 
+                //     r(Svg, {
+                //         src: icon,
+                //         scale: 0.1,
+                //         position: [-0.8, 0.8, 0],
+                //         fillMaterial: material,
+                //         strokeMaterial: material,
+                //     }) :
+                //     r(Spinner, {}, 
+                //         r('mesh', {},
+                //             r('icosahedronGeometry'),
+                //             r('meshBasicMaterial', {color: color[1], toneMapped:false}),
+                //             r(Edges, {scale:1.05, color: color[2]}),
+                //         )
+                //     ),
 
 // r(Spinner, {}, 
                 //     r('mesh', {},
