@@ -9,25 +9,34 @@ import {make_id, random_vector, theme} from '../app.js';
 
 // for a, do if(!a) a = {} at start of each function that uses a
 export const create_remake_slice = (set,get)=>({remake:{
-    copy(d, src, a={}){ // maybe place in d.node (only run for part
-        if(!d.node.limited(d, (a.r ? [src,a.r] : [src]))){ // if a.r then check if it is limited
-            const cpy = d.make.node(d, d.n[src].m, d.n[src].t);
-            if(d.n[src].m != 'p') d.n[cpy].v = d.n[src].v;
+    copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
+        if(!d.node.limited(d, (a.r ? [n,a.r] : [n]))){ // if a.r then check if it is limited
+            const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
+            if(d.n[n].m != 'p') d.n[cpy].v = d.n[n].v;
             //if(a.r) d.make.edge(d, a.r, cpy, {src:a_src});
             if(!a.depth) a.depth=0;
+            if(!a.copied) a.copied=[];
 
-            // if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
-            //     d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
-            //         d.make.edge(d, e.r, n, {src:a.src}); //, {no_auto_group:true}
-            //     });
-            // }
+            if(a.r && d.n[n].n){ // make this func to be used in make node as well  // need to make is_part function?!?!?! (or is_atom)   
+                d.node.re(d,a.r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
+                    d.make.edge(d, e.r, cpy, {src:a.src}); //, {no_auto_group:true}
+                });
+            }
 
-            d.node.for_n(d, src, (r,n,t,o)=>{
+            d.node.for_n(d, n, (r,n,t,o)=>{
                 if(a.deep) { // when deep copying group then exclude nodes that are not in that group ?!?!?!?!
                     //delete a.r;
-                    a.depth++;
-                    d.make.edge(d, cpy, d.remake.copy(d,n,a), {t:t, o:o, src:a.src}); //{...a, exclude_r:r}
-                    a.depth--;
+                    var nn = n;
+                    var copied = a.copied.find(a=> a.src==n);
+                    if(copied == undefined){
+                        a.depth++;
+                        nn = d.remake.copy(d,n,a);
+                        a.depth--;
+                        a.copied.push({src:n, cpy:nn});
+                    }else{
+                        nn = copied.cpy;
+                    } 
+                    d.make.edge(d, cpy, nn, {t:t, o:o, src:a.src}); //{...a, exclude_r:r}
                 }else{
                     d.make.edge(d, cpy, n, {t:t, o:o, src:a.src});
                 }

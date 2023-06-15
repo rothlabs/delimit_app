@@ -18,7 +18,7 @@ export const create_action_slice=(set,get)=>({action:{
                     }else{ //if(d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true})){
                         const cg1 = d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true});
                         const cg2 = d.node.r(d, a.n, {filter:r=>grps.includes(r), deep:true});
-                        if(cg1&&cg2 && cg1[0]==cg2[0]){
+                        if(cg1.length>0 && cg2.length>0 && cg1[0]==cg2[0]){
                             const cg = cg1[0];
                             grps.forEach(g=>{
                                 if(g != cg){

@@ -20,7 +20,7 @@ export const create_make_slice = (set,get)=>({make:{
                     if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
                     d.n[n].r[rt].push(r); // reverse relationship 
                     if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
-                        d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
+                        d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> { // deep?
                             d.make.edge(d, e.r, n, {src:a.src}); //, {no_auto_group:true}
                         });
                     }
