@@ -13,17 +13,19 @@ export const create_action_slice=(set,get)=>({action:{
                 if(a.act == 'make.edge'){
                     if(grps.includes(a.r)){ // && !d.n[n].c.stop 
                         grps.forEach(g=>{
-                            if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n});
+                            if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n}); // rename src to act ?!?!?!?!
                         });
-                    }else{ //if(d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true})){
-                        const cg1 = d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true});
-                        const cg2 = d.node.r(d, a.n, {filter:r=>grps.includes(r), deep:true});
-                        if(cg1.length>0 && cg2.length>0 && cg1[0]==cg2[0]){
-                            const cg = cg1[0];
+                    }else{ // check if atom should be shared or not in a?!?!?!?!
+                        const share = (d.n[a.n].n ? false : true);
+                        const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true});
+                        const cgn = (share ? cgr : d.node.r(d, a.n, {filter:r=>grps.includes(r), deep:true}));
+                        if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
+                            const cg = cgr[0];
                             grps.forEach(g=>{
                                 if(g != cg){
                                     const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
-                                    const alt_n = d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)];
+                                    //const alt_n = d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)];
+                                    const alt_n = (share ? a.n : d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)]);
                                     d.make.edge(d, alt_r, alt_n, {t:a.t});
                                 }
                             });
@@ -80,6 +82,8 @@ export const create_action_slice=(set,get)=>({action:{
     }
 }});
 
+
+//if(d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true})){
 
 // var grp1 = null;
                         // d.node.for_r(d, a.r, r=>{

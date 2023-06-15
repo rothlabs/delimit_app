@@ -7,6 +7,7 @@ import {Visual} from './visual.js';
 import {Pick} from './pick.js';
 import {Make} from './make.js';
 import {Move} from './move.js';
+import {Group} from './group.js';
 import {useS, gs, ss, use_window_size} from '../../../app.js';
 //import { Badge } from '../../node/base.js';
 //import {Panel} from '../panel/panel.js';
@@ -20,7 +21,7 @@ export function Toolbar(){
         {name:' Design',  icon:'bi-pencil-square',  value:'design', disabled:design_part==null},
         {name:' Graph',   icon:'bi-diagram-3',      value:'graph',  disabled:false},
     ];
-    const tools = [Make, Inspect, Visual, History, Pick, Draw, Move];
+    const tools = [Make, Inspect, History, Visual, Group, Pick, Draw, Move];
     return(
         c(Fragment,{},
             c(ButtonGroup, {className:'position-absolute top-0 start-50 translate-middle-x mt-3', style:{zIndex: 1}}, 

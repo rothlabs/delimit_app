@@ -48,6 +48,13 @@ export const create_base_slice = (set,get)=>({
         if(index !== -1) array.splice(index, 1);
         return index;
     },
+    for(arg, func){
+        if(arg != undefined){
+            if(Array.isArray(arg)){arg.forEach(a=> func(a))}
+            else                  {func(arg)}
+        }
+    },
+
     next(...a){ // static
         const id = a.map(a=> String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!
         if(get().add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()

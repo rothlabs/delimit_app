@@ -17,7 +17,7 @@ export const create_remake_slice = (set,get)=>({remake:{
             if(!a.depth) a.depth=0;
             if(!a.copied) a.copied=[];
 
-            if(a.r && d.n[n].n){ // make this func to be used in make node as well  // need to make is_part function?!?!?! (or is_atom)   
+            if(d.studio.grouping && a.r && d.n[n].n){ // cache e.r?!?!?! // make this func to be used in make node as well  // need to make is_part function?!?!?! (or is_atom)   
                 d.node.re(d,a.r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
                     d.make.edge(d, e.r, cpy, {src:a.src}); //, {no_auto_group:true}
                 });
@@ -29,9 +29,11 @@ export const create_remake_slice = (set,get)=>({remake:{
                     var nn = n;
                     var copied = a.copied.find(a=> a.src==n);
                     if(copied == undefined){
-                        a.depth++;
-                        nn = d.remake.copy(d,n,a);
-                        a.depth--;
+                        //if(d.n[e.r].t=='group'){
+                            a.depth++;
+                            nn = d.remake.copy(d,n,a);
+                            a.depth--;
+                        //}
                         a.copied.push({src:n, cpy:nn});
                     }else{
                         nn = copied.cpy;
@@ -41,7 +43,7 @@ export const create_remake_slice = (set,get)=>({remake:{
                     d.make.edge(d, cpy, n, {t:t, o:o, src:a.src});
                 }
             });
-            if(a.r && a.depth==0) d.make.edge(d, a.r, cpy, {src:a.src});
+            if(a.r && a.depth==0) d.make.edge(d, a.r, cpy, {src:a.src}); // attaching last is important for copying groups inside equalizer
             d.next('reckon.node', cpy); // maybe this should go in node creation
             return cpy;
         }

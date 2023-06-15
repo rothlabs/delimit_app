@@ -11,22 +11,27 @@ export function Make(){
     if(nodes.length){
         items = items.concat([
             {name:' Name',    icon:'bi-triangle',  func(d){
-                return {n:d.make.atom(d, 's', ''), t:'name'};
+                d.make.atom(d, 's', '', {r:d.pick.n, t:'name'})
+                //return {n:d.make.atom(d, 's', ''), t:'name'};
             }},
         ]);
     }
     items = items.concat([
         {name:' Line',    icon:'bi-bezier2', func(d){
-            return {n:d.make.part(d, 'line')};
+            d.make.part(d, 'line', {r:d.pick.n});
+            //return {n:d.make.part(d, 'line')};
         }},
         {name:' Sketch',  icon:'bi-easel',   func(d){
-            return {n:d.make.part(d, 'sketch')};
+            d.make.part(d, 'sketch', {r:d.pick.n});
+            //return {n:d.make.part(d, 'sketch')};
         }},
         {name:' Group',  icon:'bi-box-seam',   func(d){
-            return {n:d.make.part(d, 'group')};
+            d.make.part(d, 'group', {r:d.pick.n});
+            //return {n:d.make.part(d, 'group')};
         }},
         {name:' Equalizer',  icon:'bi-files',   func(d){
-            return {n:d.make.part(d, 'equalizer')};
+            d.make.part(d, 'equalizer', {r:d.pick.n});
+            //return {n:d.make.part(d, 'equalizer')};
         }},
     ]);
     const d = gs();
@@ -47,10 +52,11 @@ export function Make(){
                             className: 'border-white text-start '+item.icon,
                             variant:'outline-primary', size:'lg',
                             onClick:e=> ss(d=>{ 
-                                const result = item.func(d);
-                                d.pick.n.forEach(r=>{
-                                    d.make.edge(d, r, result.n, {t:result.t}); 
-                                });
+                                // const result = item.func(d);
+                                // d.pick.n.forEach(r=>{
+                                //     d.make.edge(d, r, result.n, {t:result.t}); 
+                                // });
+                                item.func(d);
                                 d.studio.panel.show = false;
                             }),
                         }, c('span',{style:{fontSize:'18px'}}, item.name))

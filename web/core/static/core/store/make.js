@@ -19,7 +19,7 @@ export const create_make_slice = (set,get)=>({make:{
                     if(d.root_tags[t]) rt=d.root_tags[t];
                     if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
                     d.n[n].r[rt].push(r); // reverse relationship 
-                    if(d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
+                    if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
                         d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> { // deep?
                             d.make.edge(d, e.r, n, {src:a.src}); //, {no_auto_group:true}
                         });
@@ -48,7 +48,13 @@ export const create_make_slice = (set,get)=>({make:{
         d.pick.color(d,n);
         if(m=='p'){ d.n[n].n={}; }
         d.make.edge(d, d.profile, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
-        if(a.r) d.make.edge(d, a.r, n, a);
+        
+        //if(a.r) d.make.edge(d, a.r, n, a); // a.r should be list?
+        d.for(a.r, r=> d.make.edge(d, r, n, a));
+
+        if(a.n) Object.entries(a.n).forEach(([t,nn],i)=>{
+            d.make.edge(d, n, nn, {t:t});
+        });
         //{
         //    if(Array.isArray(a.r)){   a.r.forEach(r=> d.make.edge(d, r, n, a))   }
         //    else{   d.make.edge(d, a.r, n, a);  }
@@ -57,19 +63,23 @@ export const create_make_slice = (set,get)=>({make:{
         d.next('graph.update'); // check if in graph_tags 
         return n;
     },
-    part(d, t, a){
+    part(d, t, a){ // a.r should be array 
         return d.make.node(d, 'p', t, a);
     },
-    atom(d, m, v, r, t){
-        const n = d.make.node(d, m, d.model_tags[m], {r:r, t:t});
+    atom(d, m, v, a){ // just check v to figure if b, i, f, or s
+        const n = d.make.node(d, m, d.model_tags[m], a); //{r:r, t:t}
         d.n[n].v = v; //d.n[n].pin = v;
         return n;
     },
-    point(d, pos, r, o){ // invert so children are made first and then part takes a list of children to be attached?
-        const n = d.make.part(d, 'point', {r:r, o:o}); // d, part_tag, root_id, edge_tag
-        d.make.atom(d, 'f', pos.x, n, 'x'); // d, v, root_id, edge_tag
-        d.make.atom(d, 'f', pos.y, n, 'y'); 
-        d.make.atom(d, 'f', pos.z, n, 'z'); 
+    point(d, pos, r, o){ 
+        //const x = d.make.atom(d, 'f', pos.x); //, n, 'x' // d, v, root_id, edge_tag
+        //const y = d.make.atom(d, 'f', pos.y); //, n, 'y' 
+        //const z = d.make.atom(d, 'f', pos.z); //, n, 'z'
+        const n = d.make.part(d, 'point', {r:r, o:o, n:{
+            x: d.make.atom(d, 'f', pos.x),
+            y: d.make.atom(d, 'f', pos.y),
+            z: d.make.atom(d, 'f', pos.z),
+        }}); // d, part_tag, root_id, edge_tag 
         d.reckon.node(d,n); // should this be d.next() and located in d.make.node ?!?!?!
         return n;
     },
