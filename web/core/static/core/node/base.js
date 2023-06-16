@@ -1,0 +1,8 @@
+const nodes = {
+    switch:{
+
+    },
+    integer:{
+
+    },
+};

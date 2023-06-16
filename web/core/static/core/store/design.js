@@ -45,7 +45,7 @@ export const create_design_slice = (set,get)=>({design:{
             o = Math.ceil((sorted[0].i + (ad1.d<ad2.d?ad1.i:ad2.i)) / 2); // ceil
             if(sorted[0].i == sorted.length-1) o+=2;
         }
-        const n = d.make.point(d, pos, r, o); // must have insertion index. For now, using -1 for last
+        const n = d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
         d.pick.one(d, n, {t:true});
     },
     update: d=>{

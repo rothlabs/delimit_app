@@ -3,14 +3,14 @@ __pycache__
 /cax/tmp
 /cax/freecad/Curves
 
+
 /web/env
 /web/static
 /web/media
-/web/node_modules/
 /web/sass/bootstrap/
 /web/sass/dart-sass/
 /web/core/static/core/css/boot.css
-/web/core/static/core/node_modules/
+/web/npm/
 
 *.DS_Store
 *.FCStd1

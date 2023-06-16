@@ -3,25 +3,15 @@ import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
 
+var next_funcs = [];
+var next_ids = [];
 
 const subject_tags= ['point', 'line', 'sketch', 'repeater', 'group', 'transform'];
 const admin_tags  = ['public', 'profile'];
 const model_tags  = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const float_tags  = [model_tags['f'], 'x', 'y', 'z'];
-const string_tags = [model_tags['s'], 'name', 'story'];
+const string_tags = [model_tags['s'], 'name', 'story',];
 const atom_tags   = Object.values(model_tags).slice(1);
-
-// const nodes = {
-//     part:{
-//         m:'p'
-//         css: '',
-//         reckon:
-//         action:
-//     },
-// };
-
-var next_funcs = [];
-var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
     root_tags:    {'view':'viewer', 'asset':'owner',},
@@ -33,6 +23,20 @@ export const create_base_slice = (set,get)=>({
     admin_tags:   admin_tags,
     value_tags:   [...float_tags, ...string_tags],
     node_tags:    [...atom_tags, ...subject_tags, ...admin_tags],
+    node_css: {
+        'switch':    'bi-bezier2',
+        'integer':   'bi-123',
+        'decimal':   'bi-123',
+        'text':      'bi-type',
+        'public':    'bi-globe-americas',
+        'profile':   'bi-person',
+        'point':     'bi-record-circle',
+        'line':      'bi-bezier2',
+        'sketch':    'bi-easel',
+        'repeater':  'bi-files',
+        'group':     'bi-box-seam',
+        'transform': 'bi-arrows-move',
+    },
 
     n: {},
     t: {},
@@ -44,6 +48,7 @@ export const create_base_slice = (set,get)=>({
         ready: false,
         mode: 'graph',
         panel: {},
+        grouping: false,
     },
 
     init(d){

@@ -1,6 +1,6 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, Button} from 'react-bootstrap';
-import {useS, ss, gs, static_url} from '../../../app.js'
+import {useS, ss, gs, static_url, readable, theme} from '../../../app.js'
 import {Badge} from '../../node/base.js'
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
@@ -9,7 +9,7 @@ export function Make(){
     const show = useS(d=> d.studio.panel.show);
     const panel = useS(d=> d.studio.panel.name);
     const nodes = useS(d=> d.pick.n);
-    // var items = [];
+    //var items = [];
     // if(nodes.length){
     //     items = items.concat([
     //         {name:' Name',    icon:'bi-triangle',  func(d){
@@ -18,6 +18,98 @@ export function Make(){
     //         }},
     //     ]);
     // }
+    const d = gs();
+    //const tags = [...d.subject_tags];
+    return(
+        show && panel=='make' && c(Fragment, {},
+            c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
+                nodes.length ? nodes.map(n=>
+                    c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
+                        c(Badge, {n:n})
+                    ) 
+                ) : c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.profile})),
+            ),
+            c(Row, {className:'mb-3 ms-0 me-0'},
+                c(Col, {}, 
+                    ...d.subject_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
+                        c(Row, {className: 'mt-1 text-left'},
+                            c(Button, {
+                                id:'make_'+t,
+                                className: 'border-white text-start '+d.node.meta[t].css,
+                                variant:'outline-primary', size:'lg',
+                                onClick:e=> ss(d=>{ 
+                                    d.make.part(d, t, {r:d.pick.n});
+                                    d.studio.panel.show = false;
+                                }),
+                            }, 
+                                c('span',{style:{fontSize:'18px'}}, ' '+d.node.meta[t].name)
+                            )
+                        )
+                    ),
+                ),
+                !nodes.length ? null : c(Col, {}, 
+                    //c(Row, {className:'mb-3'}, 
+                        c('i', {className:'text-secondary bi-type', style:{fontSize:'28px'}}), //, color:'primary'
+                        ...d.string_tags.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
+                            t=='text' ? null : c(Row, {className: 'mb-1 text-left '+(i==d.string_tags.length-1?'mb-3':'')},
+                                c(Button, {
+                                    id:'make_'+t,
+                                    className: 'border-white text-start bi-dot',
+                                    variant:'outline-primary', size:'lg',
+                                    onClick:e=> ss(d=>{ 
+                                        d.make.atom(d, 's', '', {r:d.pick.n, t:t});
+                                        d.studio.panel.show = false;
+                                    }),
+                                }, 
+                                    c('span',{style:{fontSize:'18px'}}, ' '+readable(t))
+                                )
+                            )
+                        ),
+                    //),
+                    //c(Row, {}, 
+                        c('i', {className:'text-secondary bi-123', style:{fontSize:'28px'}}), //, color:'primary'
+                        ...d.float_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
+                            t=='decimal' ? null : c(Row, {className: 'mb-1 text-left'},
+                                c(Button, {
+                                    id:'make_'+t,
+                                    className: 'border-white text-start bi-dot',
+                                    variant:'outline-primary', size:'lg',
+                                    onClick:e=> ss(d=>{ 
+                                        d.make.atom(d, 'f', 0, {r:d.pick.n, t:t});
+                                        d.studio.panel.show = false;
+                                    }),
+                                }, 
+                                    c('span',{style:{fontSize:'18px'}}, ' '+readable(t))
+                                )
+                            )
+                        ),
+                    //),
+                ),
+                // !nodes.length ? null : c(Col, {}, 
+                //     c('i', {className:'text-secondary bi-123', style:{fontSize:'24px'}}), //, color:'primary'
+                //     ...d.float_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
+                //         t=='text' ? null : c(Row, {className: 'mt-1 text-left'},
+                //             c(Button, {
+                //                 id:'make_'+t,
+                //                 className: 'border-white text-start',
+                //                 variant:'outline-primary', size:'lg',
+                //                 onClick:e=> ss(d=>{ 
+                //                     d.make.atom(d, 'f', 0, {r:d.pick.n, t:t});
+                //                     d.studio.panel.show = false;
+                //                 }),
+                //             }, 
+                //                 c('span',{style:{fontSize:'18px'}}, ' '+readable(t))
+                //             )
+                //         )
+                //     ),
+                // ),
+            ),
+        )
+    )
+}
+
+//c('img', {src:node.icon, className:'p-0 m-0'}),
+
     // items = items.concat([
     //     {name:'Point',    icon:'bi-dot', func(d){
     //         d.make.part(d, 'point', {r:d.pick.n});
@@ -40,38 +132,6 @@ export function Make(){
     //         //return {n:d.make.part(d, 'repeater')};
     //     }},
     // ]);
-    const d = gs();
-    return(
-        show && panel=='make' && c(Fragment, {},
-            c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
-                nodes.length ? nodes.map(n=>
-                    c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
-                        c(Badge, {n:n})
-                    ) 
-                ) : c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.profile})),
-            ),
-            c(Col, {className:'mb-3 ms-2 me-2'},
-                ...Object.entries(d.node.meta).map(([t,node])=>
-                    c(Row, {className: 'mt-1 text-left'},
-                        ///c(PublicIcon),
-                        c(Button, {
-                            id:'make_'+t,
-                            className: 'border-white text-start '+node.css_icon,
-                            variant:'outline-primary', size:'lg',
-                            onClick:e=> ss(d=>{ 
-                                d.make.part(d, t, {r:d.pick.n});
-                                d.studio.panel.show = false;
-                            }),
-                        }, 
-                            //c('img', {src:node.icon}),
-                            c('span',{style:{fontSize:'18px'}}, ' '+node.name)
-                        )
-                    )
-                ),
-            ),
-        )
-    )
-}
 
 // ...items.map((item, i)=>
 //                     c(Row, {className: 'mt-1 text-left'},

@@ -13,7 +13,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n, cause){
         d.reckon.count++;
-        d.reckon.v(d, n, 'name');
+        d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
         d.node.for_r(d, n, r=>{
             if(!(cause=='color' && !d.pick.reckon_tags.includes(d.n[r].t))) d.next('reckon.node', r, cause); //{src:n, ...a}
         }); // got to watch out for cycle

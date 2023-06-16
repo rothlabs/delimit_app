@@ -8,6 +8,7 @@ export const create_node_slice =(set,get)=>({node:{
         d.node.meta = Object.fromEntries(d.node_tags.map(t=>[t,{
             icon: static_url+'icon/node/'+t+'.svg',
             name: readable(t),
+            css: d.node_css[t],
         }])); // put in config file
     },
     be:(d,n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all

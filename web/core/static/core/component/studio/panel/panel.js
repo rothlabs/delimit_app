@@ -14,7 +14,7 @@ export function Panel(){
         if(window_size.width > 576) set_width('30vw');
     },[window_size.width])
     return (
-        show && c(Container, {className:'position-absolute start-0 ps-3 pe-3', style:{minWidth:'300px', maxWidth:width}}, 
+        show && c(Container, {className:'position-absolute start-0 ps-3 pe-3', style:{minWidth:'350px', maxWidth:width}}, 
             c(Container, {fluid:true, className:'bg-white pt-3 ps-3 pe-3 border rounded'}, 
                 c(CloseButton, {
                     className:'position-absolute top-0 end-0 mt-2 me-4',
