@@ -42,7 +42,7 @@ export function Make(){
                                     d.studio.panel.show = false;
                                 }),
                             }, 
-                                c('span',{style:{fontSize:'18px'}}, ' '+d.node.meta[t].name)
+                                c('span',{style:{fontSize:'18px'}}, ' '+d.node.meta[t].tag)
                             )
                         )
                     ),

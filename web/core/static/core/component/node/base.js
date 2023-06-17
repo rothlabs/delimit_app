@@ -1,14 +1,15 @@
 import {createElement as c} from 'react';
 import {Badge as Boot_Badge} from 'react-bootstrap';
-import {useS, ss, rs, readable} from '../../app.js';
+import {useS, ss, gs} from '../../app.js';
 
 export function Badge({n}){ // more than one reason to change but okay because it's so simple?
-    const tag = useS(d=> d.n[n].t);
     const name = useS(d=> d.n[n].c.name);
     const color = useS(d=> d.n[n].pick.color);
     //console.log('render node badge');
+    const d = gs();
+    const t = d.n[n].t;
     return (
-        c(Boot_Badge, {bg:color[4]}, (name?name:'') + ' ('+readable(tag)+')')
+        c(Boot_Badge, {className:d.node.meta[t].css, g:color[4]}, (name?' '+name:'') + ' ('+d.node.meta[t].tag+')')
     )
 }
 

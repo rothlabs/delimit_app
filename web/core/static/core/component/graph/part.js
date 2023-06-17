@@ -63,7 +63,7 @@ export function Part({n}){
                     outlineWidth: '25%',
                     outlineColor: 'white',
                 },
-                    d.node.meta[t].name, // memoize it?
+                    d.node.meta[t].tag, // memoize it?
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Pickable, {n:n},

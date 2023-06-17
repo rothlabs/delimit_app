@@ -7,14 +7,17 @@ export const create_node_slice =(set,get)=>({node:{
     init(d){
         d.node.meta = Object.fromEntries(d.node_tags.map(t=>[t,{
             icon: static_url+'icon/node/'+t+'.svg',
-            name: readable(t),
+            tag: readable(t),
             css: d.node_css[t],
         }])); // put in config file
     },
-    be:(d,n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
-        if(d.n[n] && !d.n[n].deleted){
-            if(d.n[n].open) return 'open';
-            return 'here';
+    be:(d,n)=>{ //use try catch to perform func ?!?!?!?! // have to calculate this every time a user wants to know because the node could not be present at all
+        if(n){
+            if(Array.isArray(n)) n = n[0];
+            if(d.n[n] && !d.n[n].deleted){
+                if(d.n[n].open) return 'open';
+                return 'here';
+            }
         }
         return null;
     },
@@ -41,12 +44,16 @@ export const create_node_slice =(set,get)=>({node:{
         return result;
     },
     set(d, n, a){
-        Object.entries(a).forEach(([t,v],i)=>{
-            if(d.n[n].n && d.n[n].n[t]) d.node.sv(d, d.n[n].n[t][0], v);//d.n[n].n[t][0].v = v;
-        });
+        if(d.n[n].n){
+            Object.entries(a).forEach(([t,v],i)=>{
+                if(d.n[n].n[t]){
+                    d.for(v, (v,o)=> d.node.sv(d, d.n[n].n[t][o], v));
+                }else if(d.n[n].c[t]!=undefined){ d.cast.v(d,n,t,v) }
+            });
+        }
     },
-    sv(d, n, v){
-        if(d.node.be(d,n) && d.n[n].t=='decimal') v = Math.round((v + Number.EPSILON) * 100) / 100;//parseFloat(v.toFixed(2));// Math.round(v*100)*0.01; // need to set flag that says 'is_atom' or 'is_float'
+    sv(d, n, v){ // rename to set_atom?
+        if(d.node.be(d,n) && d.n[n].t=='decimal') v = d.rnd(v,100);//Math.round((v + Number.EPSILON) * 100) / 100; Math.round((v + Number.EPSILON) * 100) / 100;//parseFloat(v.toFixed(2));// Math.round(v*100)*0.01; // need to set flag that says 'is_atom' or 'is_float'
         d.n[n].v = v; // check if has v?
         d.next('reckon.node', n); // d.reckon.node(d, n);
     },
@@ -107,6 +114,14 @@ export const create_node_slice =(set,get)=>({node:{
     },
 }});
 
+
+// be:(d,n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all
+//     if(d.n[n] && !d.n[n].deleted){
+//         if(d.n[n].open) return 'open';
+//         return 'here';
+//     }
+//     return null;
+// },
 
 // delete:(d, n, a)=>{ // allow delete if not asset when it is another user deleting 
     //     var nodes = [n];

@@ -18,12 +18,13 @@ export function Buttons({t}){
     }});
     if(!d.atom_tags.includes(t)) buttons.push({name:'Remove', icon:'bi-x-lg', func(d){
             [...d.pick.n].forEach(r=>{
-                const n = d.node.get(d,r,t);
-                if(d.node.cr(d, n).length > 1){
-                    d.delete.edge(d, r, n, t);
-                }else{
-                    d.delete.node(d, n);
-                }
+                d.node.get(d,r,t).forEach(n=>{
+                    if(d.node.cr(d, n).length > 1){
+                        d.delete.edge(d, r, n, t);
+                    }else{
+                        d.delete.node(d, n);
+                    }
+                });
             });
     }});
     return (

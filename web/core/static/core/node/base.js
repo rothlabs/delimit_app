@@ -1,8 +1,0 @@
-const nodes = {
-    switch:{
-
-    },
-    integer:{
-
-    },
-};

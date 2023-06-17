@@ -6,10 +6,10 @@ import lodash from 'lodash';
 var next_funcs = [];
 var next_ids = [];
 
-const subject_tags= ['point', 'line', 'sketch', 'repeater', 'group', 'transform'];
+const subject_tags= ['point', 'line', 'sketch', 'repeater', 'group', 'transform', 'matrix'];
 const admin_tags  = ['public', 'profile'];
 const model_tags  = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-const float_tags  = [model_tags['f'], 'x', 'y', 'z'];
+const float_tags  = [model_tags['f'], 'x', 'y', 'z', 'rx', 'ry', 'rz', 'element'];
 const string_tags = [model_tags['s'], 'name', 'story',];
 const atom_tags   = Object.values(model_tags).slice(1);
 
@@ -24,18 +24,19 @@ export const create_base_slice = (set,get)=>({
     value_tags:   [...float_tags, ...string_tags],
     node_tags:    [...atom_tags, ...subject_tags, ...admin_tags],
     node_css: {
+        'public':    'bi-globe-americas',
+        'profile':   'bi-person',
         'switch':    'bi-bezier2',
         'integer':   'bi-123',
         'decimal':   'bi-123',
         'text':      'bi-type',
-        'public':    'bi-globe-americas',
-        'profile':   'bi-person',
         'point':     'bi-record-circle',
         'line':      'bi-bezier2',
         'sketch':    'bi-easel',
         'repeater':  'bi-files',
         'group':     'bi-box-seam',
         'transform': 'bi-arrows-move',
+        'matrix':    'bi-grid-3x3',
     },
 
     n: {},
@@ -71,9 +72,12 @@ export const create_base_slice = (set,get)=>({
     },
     for(arg, func){
         if(arg != undefined){
-            if(Array.isArray(arg)){arg.forEach(a=> func(a))}
-            else                  {func(arg)}
+            if(Array.isArray(arg)){arg.forEach((a,i)=> func(a,i))}
+            else                  {func(arg,0)}
         }
+    },
+    rnd(v, sigfigs=1000){
+        return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
 
     next(...a){ // static

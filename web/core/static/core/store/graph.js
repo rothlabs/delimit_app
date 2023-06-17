@@ -16,6 +16,8 @@ export const create_graph_slice = (set,get)=>({graph:{
             ...Object.fromEntries([...d.subject_tags, ...d.value_tags].map(t=>[t,true])), 
             view:false, asset:false,
         };
+        delete d.graph.e_vis.decimal;
+        delete d.graph.e_vis.text;
     },
     set_node_vis:(d, t, vis)=>{
         d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders

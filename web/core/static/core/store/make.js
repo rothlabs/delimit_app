@@ -1,5 +1,5 @@
 import {make_id, random_vector, theme} from '../app.js';
-import {Vector3} from 'three';
+import {Vector3, Matrix4} from 'three';
 import {current} from 'immer';
 
 export const create_make_slice = (set,get)=>({make:{
@@ -56,7 +56,7 @@ export const create_make_slice = (set,get)=>({make:{
         d.for(a.r, r=> d.make.edge(d, r, n, a));
 
         if(a.n) Object.entries(a.n).forEach(([t,nn],i)=>{
-            d.make.edge(d, n, nn, {t:t});
+            d.for(nn, nn=> d.make.edge(d, n, nn, {t:t}));
         });
         //{
         //    if(Array.isArray(a.r)){   a.r.forEach(r=> d.make.edge(d, r, n, a))   }
@@ -67,9 +67,9 @@ export const create_make_slice = (set,get)=>({make:{
         d.next('graph.update'); // check if in graph_tags 
         return n;
     },
-    atom(d, m, v, a){ // just check v to figure if b, i, f, or s
+    atom(d, m, v, a={}){ // just check v to figure if b, i, f, or s
         const n = d.make.node(d, m, d.model_tags[m], a); //{r:r, t:t}
-        d.n[n].v = v; //d.n[n].pin = v;
+        d.n[n].v = v; 
         return n;
     },
     part(d, t, a){ // a.r should be array 
@@ -78,15 +78,49 @@ export const create_make_slice = (set,get)=>({make:{
     },
     point(d, a={}){ //pos, r, o
         if(a.pos == undefined) a.pos = new Vector3();
-        const n = d.make.node(d,'p','point', {r:a.r, o:a.o, n:{
-            x: d.make.atom(d, 'f', a.pos.x),
-            y: d.make.atom(d, 'f', a.pos.y),
-            z: d.make.atom(d, 'f', a.pos.z),
+        return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
+            x: d.make.atom(d,'f', a.pos.x),
+            y: d.make.atom(d,'f', a.pos.y),
+            z: d.make.atom(d,'f', a.pos.z),
         }}); // d, part_tag, root_id, edge_tag 
-        //d.reckon.node(d,n); // should this be d.next() and located in d.make.node ?!?!?!
-        return n;
+    },
+    transform(d, a={}){
+        return d.make.node(d,'p','transform', {...a, n:{
+            matrix: d.make.part(d,'matrix'),
+        }});
+    },
+    matrix(d, a={}){
+        if(a.matrix == undefined) a.matrix = new Matrix4();
+        return d.make.node(d,'p','matrix', {...a, n:{
+            element: a.matrix.elements.map(v=> d.make.atom(d,'f', v)),
+        }});
     },
 }});
+
+
+//if(a.v == undefined){d.n[n].v = {'b':true, 'i':0, 'f':0, 's':''}[m]}
+        //else                {d.n[n].v = a.v}  
+//const tags = ['d11','d21','d31','d41','d12','d22','d32','d42','d13','d23','d33','d43','d14','d24','d34','d44'];
+//n: Object.fromEntries(tags.map((t,i)=>['d', 
+            //    d.make.atom(d,'f',{v:a.matrix.elements[i]})
+            //])),
+
+// d11: d.make.atom(d,'f', {v:el[0]}),
+            // d21: d.make.atom(d,'f'),
+            // d31: d.make.atom(d,'f'),
+            // d41: d.make.atom(d,'f'),
+            // d12: d.make.atom(d,'f'),
+            // d22: d.make.atom(d,'f'),
+            // d32: d.make.atom(d,'f'),
+            // d42: d.make.atom(d,'f'),
+            // d13: d.make.atom(d,'f'),
+            // d23: d.make.atom(d,'f'),
+            // d33: d.make.atom(d,'f'),
+            // d43: d.make.atom(d,'f'),
+            // d14: d.make.atom(d,'f'),
+            // d24: d.make.atom(d,'f'),
+            // d34: d.make.atom(d,'f'),
+            // d44: d.make.atom(d,'f'),
 
 //const x = d.make.atom(d, 'f', pos.x); //, n, 'x' // d, v, root_id, edge_tag
         //const y = d.make.atom(d, 'f', pos.y); //, n, 'y' 

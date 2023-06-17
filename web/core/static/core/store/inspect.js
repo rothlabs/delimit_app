@@ -15,7 +15,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
             if(nodes.length > 1) d.inspect.mergeable[t] = true;
             if(nodes.length == 1 && d.node.cr(d,nodes[0]).length > 1) d.inspect.splittable[t] = true;
             if(nc.length){
-                if(nc.every((n,i,nc)=> n.c[t]==nc[0].c[t])){
+                if(nc.every((n,i,nc)=> n.c[t]==nc[0].c[t])){ // nc[0].c[t] might be array
                     d.inspect.content[t] = nc[0].c[t];
                     d.inspect.placeholder[t] = '';
                 }else{ 

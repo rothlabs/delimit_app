@@ -79,10 +79,14 @@ class Part_User(Edge):
     t = models.ForeignKey(Tag,  related_name='ue', on_delete=models.CASCADE)
     n = models.ForeignKey(User, related_name='e', on_delete=models.CASCADE)
 
-system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'client_instance', 'system_time', 'delete_pack']
-tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [
-    'user', 'open_pack', 'poll_pack', 'public', 'view', 'asset', 'profile', 'name', 'client_instance', 'system_time', 'delete_pack', 
-    'part', 'point', 'line', 'x', 'y', 'z', 'sketch', 'repeater', 'group', 
+system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time']
+tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [ # put all this in config file
+    'user', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time', 'part',  
+    'view', 'asset',
+    'public', 'profile',
+    'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'matrix', 
+    'x', 'y', 'z', 'element',
+    'name', 'story',
 ]}
 
 @receiver(post_save, sender=User)

@@ -1,8 +1,10 @@
-import { Vector3 } from "three";
+import { Matrix4, Vector3, Euler, MathUtils } from "three";
 import {current} from 'immer';
 import { subSS } from '../app.js';
+import lodash from 'lodash';
 
 const zero_vector = new Vector3();
+const tm = new Matrix4();
 
 export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
@@ -25,11 +27,19 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     v(d, n, t){
         const result = {};
         t.split(' ').forEach(t=>{
-            if(d.n[n].n && d.n[n].n[t] && d.node.be(d,d.n[n].n[t][0])){
-                result[t] = d.n[d.n[n].n[t][0]].v;
+            if(d.n[n].n && d.n[n].n[t]){ //  && d.node.be(d,d.n[n].n[t][0])
+                if(d.n[n].n[t].length > 1){ // and tag is not singleton ?!?!?! (x, y, z, etc should only have one!) 
+                    result[t] = [];
+                    d.n[n].n[t].forEach(nn=>{
+                        if(d.node.be(d,nn)) result[t].push(d.n[nn].v);
+                    });
+                }else if(d.node.be(d,d.n[n].n[t][0])){
+                    result[t] = d.n[d.n[n].n[t][0]].v;
+                }
                 d.n[n].c[t] = result[t];
             }else{   d.n[n].c[t]=null;  }
         });
+        if(lodash.isEmpty(result)) return null;
         return result;
     },
     atom(d,n,cause){
@@ -46,75 +56,63 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     point(d,n){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         const pos = d.reckon.v(d, n, 'x y z');
-        d.n[n].c.pos = new Vector3(pos.x, pos.y, pos.z); // for convenience in calculations elsewhere
+        if(pos){
+            d.n[n].c.pos   = new Vector3(pos.x, pos.y, pos.z); // local
+            //const trans = d.n[n].r.transform[0];//d.node.r(d,n,{filter:r=> d.n[r].t=='transform'})[0]; 
+            if(d.node.be(d,d.n[n].r.transform)){ // make try catch func that takes func and performs next func with result of first if first success 
+                const trans = d.n[n].r.transform[0];
+                if(d.n[trans].c.matrix){
+                    d.n[n].c.pos_g = new Vector3().copy(d.n[n].c.pos).applyMatrix4(d.n[trans].c.matrix); //d.n[trans].c.matrix).transpose()
+                }
+            }
+        }
     },
     line(d,n){
-        d.reckon.list(d, n, 'point', 3, n=>({   pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
+        d.reckon.list(d, n, 'point', 3, n=>({   
+            pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  
+        })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
-    // group(d,n){ // use a.cause='edge_create' and a.cause='edge_deleted'?
-    //     //if(d.n[n].c.n == undefined) d.n[n].c.n = [];
-    //     const nodes = (d.n[n].n.group ? d.n[n].n.group : []);//d.node.n(d, n, {filter:n=>d.n[n].n});//.filter(n=> d.n[n].n);
-    //     if(d.n[n].c.n == undefined) d.n[n].c.n = nodes;
-    //     if(d.n[n].c.pushed == undefined) d.n[n].c.pushed = [];
-    //     if(d.n[n].c.removed == undefined) d.n[n].c.removed = [];
-    //     if(nodes.join() != d.n[n].c.n.join()){
-    //         d.n[n].c.pushed = [];
-    //         d.n[n].c.removed = [];
-    //         nodes.forEach(nn=>{
-    //             if(!d.n[n].c.n.includes(nn)) d.n[n].c.pushed.push(nn);
-    //         });
-    //         d.n[n].c.n.forEach((nn,i)=>{
-    //             if(!nodes.includes(nn)) d.n[n].c.removed.push({n:nn, i:i.toString()});
-    //         });
-    //         d.n[n].c.n = nodes;
-    //     }
-    // },
-    // repeater(d,n,a){
-    //     console.log('repeater', a);
-    //     const grps = d.n[n].n.group;
-    //     if(grps){ // && !d.n[n].c.stop 
-    //         if(!d.n[n].c.grp) d.n[n].c.grp = [];
+    matrix(d,n){
+        const matrix = d.reckon.v(d, n, 'element');
+        if(matrix) d.n[n].c.matrix = new Matrix4(...matrix.element).transpose();
+    },
+    transform(d,n){
+        if(d.n[n].n.matrix){
+            const nn = d.n[n].n.matrix[0];
+            if(d.node.be(d,nn) && d.n[nn].c.matrix != undefined){
+                const matrix = d.n[nn].c.matrix;
+                d.n[n].c.matrix = matrix;
+                const pos = new Vector3().setFromMatrixPosition(matrix);
+                const rot = new Euler().setFromRotationMatrix(matrix); // 0,0,0,'XYZ'
+                d.n[n].c.pos = pos;
+                d.n[n].c.rot = rot;
+                d.n[n].c.x=pos.x;    d.n[n].c.y=pos.y;    d.n[n].c.z=pos.z;
+                d.n[n].c.rx = d.rnd(MathUtils.radToDeg(rot.x));   
+                d.n[n].c.ry = d.rnd(MathUtils.radToDeg(rot.y));   
+                d.n[n].c.rz = d.rnd(MathUtils.radToDeg(rot.z));
+            }
+        }
+    },
 
-    //         var cg = [];
-    //         grps.forEach(g=>{
-    //             if(d.n[g].c.pushed != undefined && d.n[g].c.removed != undefined){
-    //                 if(!d.n[n].c.grp[g]) d.n[n].c.grp[g] = {pushed:d.n[g].c.pushed, removed:d.n[g].c.removed};
-    //                 if(d.n[n].c.grp[g].pushed.join() != d.n[g].c.pushed.join() || d.n[n].c.grp[g].removed.map(rm=>rm.n).join() != d.n[g].c.removed.map(rm=>rm.n).join()){
-    //                     cg.push(g);
-    //                 }
-    //                 d.n[n].c.grp[g].pushed = d.n[g].c.pushed;
-    //                 d.n[n].c.grp[g].removed = d.n[g].c.removed;
-    //             }
-    //         });
-    //         if(cg.length){
-    //             cg = cg[0];
-    //             grps.forEach(g=>{
-    //                 if(g!=cg){
-    //                     d.n[cg].c.pushed.forEach(pn=>{
-    //                         const cpy = d.remake.copy(d, pn, {root:g});
-    //                         d.add(d.n[g].c.n, cpy); // add to group content so it doesn't see a diff and cause infinit loop
-    //                     });
-    //                     d.n[cg].c.removed.forEach(rm=>{
-    //                         //console.log('repeater remove i', i);
-    //                         if(d.n[g].n.group){
-    //                             const rmn = d.n[g].n.group[rm.i];
-    //                             if(rmn){
-    //                                 //console.log('repeater remove rmv', rmv);
-    //                                 d.delete.node(d, rmn);
-    //                                 d.pop(d.n[g].c.n, rmn); // add to group content so it doesn't see a diff and cause infinit loop
-    //                             }
-    //                         }
-    //                     });
-    //                 }
-    //             });
-    //         }
-    //     }
-    // }
     //sketch(d,n){
         //d.reckon.list(d, n, 'line', n=>({}));
     //},
 }});
 
+
+
+
+
+// v(d, n, t){
+//     const result = {};
+//     t.split(' ').forEach(t=>{
+//         if(d.n[n].n && d.n[n].n[t] && d.node.be(d,d.n[n].n[t][0])){
+//             result[t] = d.n[d.n[n].n[t][0]].v;
+//             d.n[n].c[t] = result[t];
+//         }else{   d.n[n].c[t]=null;  }
+//     });
+//     return result;
+// },
 
 
 // if(d.n[n].c.grp) d.n[n].c.grp.forEach(unsub=>{

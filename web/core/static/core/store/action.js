@@ -13,7 +13,7 @@ export const create_action_slice=(set,get)=>({action:{
                 if(a.act == 'make.edge'){
                     if(grps.includes(a.r)){ // && !d.n[n].c.stop 
                         grps.forEach(g=>{
-                            if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n}); // rename src to act ?!?!?!?!
+                            if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n}); // only if not grouping? // rename src to act ?!?!?!?!
                         });
                     }else{ // check if atom should be shared or not in a?!?!?!?!
                         const share = (d.n[a.n].n ? false : true);
@@ -24,9 +24,8 @@ export const create_action_slice=(set,get)=>({action:{
                             grps.forEach(g=>{
                                 if(g != cg){
                                     const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
-                                    //const alt_n = d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)];
                                     const alt_n = (share ? a.n : d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)]);
-                                    d.make.edge(d, alt_r, alt_n, {t:a.t});
+                                    d.make.edge(d, alt_r, alt_n, {t:a.t, src:n});
                                 }
                             });
                         }
@@ -37,6 +36,19 @@ export const create_action_slice=(set,get)=>({action:{
                         grps.forEach(g=>{
                             if(g != a.r && d.n[g].n.group) d.delete.node(d, d.n[g].n.group[a.o], {src:n});
                         });
+                    }else{ 
+                        const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true});
+                        const cgn = d.node.r(d, a.n, {filter:r=>grps.includes(r), deep:true});
+                        if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
+                            const cg = cgr[0];
+                            grps.forEach(g=>{
+                                if(g != cg){
+                                    const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
+                                    const alt_n = d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)];
+                                    d.delete.edge(d, alt_r, alt_n, a.t, {src:n});
+                                }
+                            });
+                        }
                     }
                 }
             }
