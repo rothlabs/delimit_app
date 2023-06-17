@@ -12,13 +12,13 @@ export const create_node_slice =(set,get)=>({node:{
         }])); // put in config file
     },
     be:(d,n)=>{ //use try catch to perform func ?!?!?!?! // have to calculate this every time a user wants to know because the node could not be present at all
-        if(n){
-            if(Array.isArray(n)) n = n[0];
+        //if(n){
+            //if(Array.isArray(n)) n = n[0];
             if(d.n[n] && !d.n[n].deleted){
                 if(d.n[n].open) return 'open';
                 return 'here';
             }
-        }
+        //}
         return null;
     },
     admin(d, n){
@@ -29,7 +29,9 @@ export const create_node_slice =(set,get)=>({node:{
     pin_pos(d, n){  // should go in transform slice?    
         if(d.node.be(d,n) && d.n[n].c.pos){
             if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.node.get(d, n, 'x y z');
-            d.n[n].pin.pos.copy(d.n[n].c.pos);//.set(pos.x, pos.y, pos.z);//d.n[n].pin.pos.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z);
+            d.n[n].pin.pos.copy(d.n[n].c.pos);
+            try{ d.n[n].pin.pos.applyMatrix4(d.n[d.n[n].r.transform[0]].c.matrix.clone().invert()); 
+            }catch{}
         }
     },
     set_pos(d, n, pos){ // should go in transform slice?

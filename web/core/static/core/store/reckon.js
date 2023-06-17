@@ -56,16 +56,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     point(d,n){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         const pos = d.reckon.v(d, n, 'x y z');
-        if(pos){
-            d.n[n].c.pos   = new Vector3(pos.x, pos.y, pos.z); // local
-            //const trans = d.n[n].r.transform[0];//d.node.r(d,n,{filter:r=> d.n[r].t=='transform'})[0]; 
-            if(d.node.be(d,d.n[n].r.transform)){ // make try catch func that takes func and performs next func with result of first if first success 
-                const trans = d.n[n].r.transform[0];
-                if(d.n[trans].c.matrix){
-                    d.n[n].c.pos_g = new Vector3().copy(d.n[n].c.pos).applyMatrix4(d.n[trans].c.matrix); //d.n[trans].c.matrix).transpose()
-                }
-            }
-        }
+        try{ //if(pos){
+            d.n[n].c.pos_l   = new Vector3(pos.x, pos.y, pos.z); // local
+            d.n[n].c.pos = d.n[n].c.pos_l;
+            d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[d.n[n].r.transform[0]].c.matrix);
+        }catch{}
     },
     line(d,n){
         d.reckon.list(d, n, 'point', 3, n=>({   
@@ -101,6 +96,17 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 
 
 
+
+//const trans = d.n[n].r.transform[0];//d.node.r(d,n,{filter:r=> d.n[r].t=='transform'})[0]; 
+            // if(d.node.be(d,d.n[n].r.transform)){ // make try catch func that takes func and performs next func with result of first if first success 
+            //     const trans = d.n[n].r.transform[0];
+            //     if(d.n[trans].c.matrix){
+            //         d.n[n].c.pos = new Vector3().copy(d.n[n].c.pos_l).applyMatrix4(d.n[trans].c.matrix); //d.n[trans].c.matrix).transpose()
+            //     }
+            // }
+            // d.try(()=> d.n[n].r.transform[0].c.matrix, matrix=>{
+            //     d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(matrix);
+            // });
 
 
 // v(d, n, t){

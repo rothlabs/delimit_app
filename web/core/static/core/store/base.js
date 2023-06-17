@@ -79,6 +79,13 @@ export const create_base_slice = (set,get)=>({
     rnd(v, sigfigs=1000){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
+    // try(...funcs){
+    //     const result = null;
+    //     for(var i=0; i<funcs.length; i++){
+    //         try{ result = funcs[i](result);
+    //         }catch{ break; }
+    //     }
+    // },
 
     next(...a){ // static
         const id = a.map(a=> String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!

@@ -11,6 +11,7 @@ export const create_action_slice=(set,get)=>({action:{
             const grps = d.n[n].n.group;
             if(grps){
                 if(a.act == 'make.edge'){
+                    console.log('make edge');
                     if(grps.includes(a.r)){ // && !d.n[n].c.stop 
                         grps.forEach(g=>{
                             if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n}); // only if not grouping? // rename src to act ?!?!?!?!

@@ -18,7 +18,8 @@ export const create_remake_slice = (set,get)=>({remake:{
             if(!a.copied) a.copied=[];
 
             if(d.studio.grouping && a.r && d.n[n].n){ // cache e.r?!?!?! // make this func to be used in make node as well  // need to make is_part function?!?!?! (or is_atom)   
-                d.node.re(d,a.r).filter(e=> d.n[e.r].t=='group').forEach(e=> {
+                //if(d.n[a.r].t=='group') d.make.edge(d, a.r, cpy, {src:a.src});
+                d.node.re(d,a.r).filter(e=> d.n[e.r].t=='group').forEach(e=> {  // d.node.r_by_name ?!?!?!?!
                     d.make.edge(d, e.r, cpy, {src:a.src}); //, {no_auto_group:true}
                 });
             }
