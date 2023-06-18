@@ -4,6 +4,7 @@ import { Vector3, Matrix4 } from 'three';
 const tv = new Vector3();
 const off_screen = new Vector3(10000,10000,0);
 const tm = new Matrix4();
+const tm1 = new Matrix4();
 const tm2 = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
@@ -12,22 +13,25 @@ export const create_design_slice = (set,get)=>({design:{
     part: null, 
     candidate: null, 
     matrix: new Matrix4(), // not following wrapper rule!!!
-    pin_matrix: new Matrix4(),
+    //pin_matrix: new Matrix4(),
     move_mode: '',
     mover: {pos: new Vector3()}, //, rot: new Vector3()
     pin_move(d){ // make drag slice?
-        d.design.pin_matrix.copy(d.design.matrix).invert();
-        d.pick.n.forEach(n => d.node.pin_pos(d, n)); //d.design.matrix
+        //d.design.pin_matrix.copy(d.design.matrix).invert();
+        d.pick.n.forEach(n => d.node.pin_pos(d, n, d.design.matrix)); //d.design.matrix
     },
     move(d, matrix){ //offset
         d.design.matrix = matrix;
         d.pick.n.forEach(n=>{ // must check if point or position contents!!!!
             if(d.n[n].pin.pos){ //if(d.n[n].pin.pos){
-                //tm.copy(matrix).multiply()
+                //tm.copy(d.design.pin_matrix);
+                //tm1.copy(matrix);
                 // try{
-                //     d.n[d.node.rt0(d,n,'transform')].c.matrix
+                //     const mod = tm2.copy(d.n[d.node.rt0(d,n,'transform')].c.matrix);
+                //     tm.multiply(mod);
+                //     tm1.multiply(mod);
                 // }catch{}
-                tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix); // // tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix); 
+                tv.copy(d.n[n].pin.pos).applyMatrix4(matrix); // tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix);
                 d.node.set_pos(d, n, tv);
             }
         });

@@ -30,12 +30,12 @@ export const create_node_slice =(set,get)=>({node:{
     pin_pos(d, n, matrix){  // should go in transform slice?    
         if(d.node.be(d,n) && d.n[n].c.pos){
             if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.node.get(d, n, 'x y z');
-            d.n[n].pin.pos.copy(d.n[n].c.pos_l);//.applyMatrix4(tm.copy(matrix).invert());
-            //try{ d.n[n].pin.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix.clone().invert()); 
-            //}catch{}
+            d.n[n].pin.pos.copy(d.n[n].c.pos).applyMatrix4(tm.copy(matrix).invert());
         }
     },
     set_pos(d, n, pos){ // should go in transform slice?
+        try{pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,n,'transform')].c.matrix).invert());
+        }catch{}
         d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
     },
     get(d, roots, t){ // like n but different. need better name to differentiate
@@ -98,7 +98,7 @@ export const create_node_slice =(set,get)=>({node:{
     },
     cr:(d, n)=> d.node.r(d, n, {content:true}),//.filter(e=> !['owner', 'viewer'].includes(e.t)),
     re:(d, n, a)=> d.node.r(d, n, {edge:true, ...a}),
-    rt0:(d,n,t)=> d.node.r(d, n, {deep:true}).filter(r=>d.n[r].t==t)[0],
+    rt0:(d,n,t)=> d.node.r(d, n, {deep:true}).filter(r=>d.n[r].t==t)[0], // a.exit condition to exit search on correct condition
     rne(d, nodes){
         const result = [];
         d.node.for_r(d, nodes, r=>{

@@ -2,6 +2,8 @@ import {make_id, random_vector, theme} from '../app.js';
 import {Vector3, Matrix4} from 'three';
 import {current} from 'immer';
 
+const tm = new Matrix4();
+
 export const create_make_slice = (set,get)=>({make:{
     // init(d){
     //     d.make.buttons = d.subject
@@ -16,8 +18,11 @@ export const create_make_slice = (set,get)=>({make:{
                 /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
                 //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
                 if(!d.n[r].n[t].includes(n)){
-                    if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
-                    else              {d.n[r].n[t].push(n)}
+                    var o = a.o;
+                    if(a.o==undefined) o = d.n[r].n[t].length;
+                    d.n[r].n[t].splice(a.o, 0, n);
+                    //if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
+                    //else              {d.n[r].n[t].push(n)}
                     var rt = d.n[r].t;
                     if(d.root_tags[t]) rt=d.root_tags[t];
                     if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
@@ -27,7 +32,7 @@ export const create_make_slice = (set,get)=>({make:{
                             d.make.edge(d, r, n, {src:a.src}); //, e.r 
                         });
                     }
-                    d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t});
+                    d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
                     d.next('reckon.node', r); //, {cause:'edge_created', r:r, n:n, t:t}
                     d.next('graph.update');
                     d.next('pick.update');
@@ -78,6 +83,8 @@ export const create_make_slice = (set,get)=>({make:{
     },
     point(d, a={}){ //pos, r, o
         if(a.pos == undefined) a.pos = new Vector3();
+        try{a.pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,a.r,'transform')].c.matrix).invert());
+        }catch{}
         return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
             x: d.make.atom(d,'f', a.pos.x),
             y: d.make.atom(d,'f', a.pos.y),

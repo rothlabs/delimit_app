@@ -26,7 +26,7 @@ export const create_action_slice=(set,get)=>({action:{
                                 if(g != cg){
                                     const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
                                     const alt_n = (share ? a.n : d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)]);
-                                    d.make.edge(d, alt_r, alt_n, {t:a.t, src:n});
+                                    d.make.edge(d, alt_r, alt_n, {src:n, t:a.t, o:a.o}); // need o:o
                                 }
                             });
                         }
