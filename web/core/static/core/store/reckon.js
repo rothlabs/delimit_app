@@ -59,8 +59,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         try{ //if(pos){
             d.n[n].c.pos_l   = new Vector3(pos.x, pos.y, pos.z); // local
             d.n[n].c.pos = d.n[n].c.pos_l;
-            d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[d.n[n].r.transform[0]].c.matrix);
-        }catch{}
+            d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
+        }catch{}//console.error(); 
     },
     line(d,n){
         d.reckon.list(d, n, 'point', 3, n=>({   

@@ -17,14 +17,14 @@ export const create_make_slice = (set,get)=>({make:{
                 //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
                 if(!d.n[r].n[t].includes(n)){
                     if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
-                    else              {d.n[r].n[t].push(n)          }
+                    else              {d.n[r].n[t].push(n)}
                     var rt = d.n[r].t;
                     if(d.root_tags[t]) rt=d.root_tags[t];
                     if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
                     d.n[n].r[rt].push(r); // reverse relationship 
                     if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
-                        d.node.re(d,r).filter(e=> d.n[e.r].t=='group').forEach(e=> { // deep?
-                            d.make.edge(d, e.r, n, {src:a.src}); //, {no_auto_group:true}
+                        d.node.r(d,r).filter(r=> d.n[r].t=='group').forEach(r=> { // deep?  //d.node.re(d,r).filter(e=> d.n[e.r].t=='group')
+                            d.make.edge(d, r, n, {src:a.src}); //, e.r 
                         });
                     }
                     d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t});

@@ -1,7 +1,8 @@
-import {Vector3} from 'three';
+import {Vector3, Matrix4} from 'three';
 import {static_url, readable} from '../app.js';
 
 const tv = new Vector3();
+const tm = new Matrix4();
 
 export const create_node_slice =(set,get)=>({node:{
     init(d){
@@ -26,12 +27,12 @@ export const create_node_slice =(set,get)=>({node:{
             if(d.admin_tags.includes(d.n[n].t)) return true;
         });
     },
-    pin_pos(d, n){  // should go in transform slice?    
+    pin_pos(d, n, matrix){  // should go in transform slice?    
         if(d.node.be(d,n) && d.n[n].c.pos){
             if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.node.get(d, n, 'x y z');
-            d.n[n].pin.pos.copy(d.n[n].c.pos);
-            try{ d.n[n].pin.pos.applyMatrix4(d.n[d.n[n].r.transform[0]].c.matrix.clone().invert()); 
-            }catch{}
+            d.n[n].pin.pos.copy(d.n[n].c.pos_l);//.applyMatrix4(tm.copy(matrix).invert());
+            //try{ d.n[n].pin.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix.clone().invert()); 
+            //}catch{}
         }
     },
     set_pos(d, n, pos){ // should go in transform slice?
@@ -86,7 +87,7 @@ export const create_node_slice =(set,get)=>({node:{
         d.for(nodes, n=>{//nodes.forEach(n=>{
             if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
                 if(!(a.content && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> {
-                    if(d.node.be(d,r) == 'open' && !(a.filter && !a.filter(r))){
+                    if(d.node.be(d,r) == 'open' && !(a.filter && !a.filter(r))){ // && !(a.t && !d.n[r].t==a.t)
                         add_r(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
                         if(a.deep) result = result.concat(d.node.r(d,r,a));
                     }
@@ -96,7 +97,8 @@ export const create_node_slice =(set,get)=>({node:{
         return result;
     },
     cr:(d, n)=> d.node.r(d, n, {content:true}),//.filter(e=> !['owner', 'viewer'].includes(e.t)),
-    re:(d, nodes, a)=> d.node.r(d, nodes, {edge:true, ...a}),
+    re:(d, n, a)=> d.node.r(d, n, {edge:true, ...a}),
+    rt0:(d,n,t)=> d.node.r(d, n, {deep:true}).filter(r=>d.n[r].t==t)[0],
     rne(d, nodes){
         const result = [];
         d.node.for_r(d, nodes, r=>{
