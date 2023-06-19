@@ -9,7 +9,7 @@ export const create_graph_slice = (set,get)=>({graph:{
     init(d){
         d.graph.n_vis={ // n_vis
             ...Object.fromEntries(d.node_tags.map(t=>[t,true])),
-            switch:false, integer:false, decimal:false, text:false,
+            switch:false, integer:false, decimal:false, text:false, matrix:false,
         };
         d.graph.e_vis={ // e_vis
             ...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),
@@ -18,9 +18,9 @@ export const create_graph_slice = (set,get)=>({graph:{
         };
         delete d.graph.e_vis.decimal;
         delete d.graph.e_vis.text;
-        delete d.graph.e_vis.rx;
-        delete d.graph.e_vis.ry;
-        delete d.graph.e_vis.rz;
+        delete d.graph.e_vis.turn_x;
+        delete d.graph.e_vis.turn_y;
+        delete d.graph.e_vis.turn_z;
     },
     set_node_vis:(d, t, vis)=>{
         d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders

@@ -92,8 +92,12 @@ export const create_make_slice = (set,get)=>({make:{
         }}); // d, part_tag, root_id, edge_tag 
     },
     transform(d, a={}){
+        const scale = new Vector3(1,1,1);
         return d.make.node(d,'p','transform', {...a, n:{
             matrix: d.make.part(d,'matrix'),
+            scale_x: d.make.atom(d,'f', scale.x),
+            scale_y: d.make.atom(d,'f', scale.y),
+            scale_z: d.make.atom(d,'f', scale.z),
         }});
     },
     matrix(d, a={}){

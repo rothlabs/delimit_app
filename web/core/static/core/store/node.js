@@ -33,8 +33,11 @@ export const create_node_slice =(set,get)=>({node:{
             d.n[n].pin.pos.copy(d.n[n].c.pos).applyMatrix4(tm.copy(matrix).invert());
         }
     },
-    set_pos(d, n, pos){ // should go in transform slice?
-        try{pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,n,'transform')].c.matrix).invert());
+    set_pos(d, n, pos){ // should go in transform slice? // should be in cast clice ?!?!?!
+        try{
+            const trans = d.n[d.node.rt0(d,n,'transform')].c;
+            pos.applyMatrix4(tm.copy(trans.matrix).invert());
+            pos.set(pos.x*(1/trans.scale_x),pos.y*(1/trans.scale_y),pos.z*(1/trans.scale_z)); // correct for zero !!!!
         }catch{}
         d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
     },

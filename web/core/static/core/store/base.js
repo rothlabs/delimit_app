@@ -9,7 +9,7 @@ var next_ids = [];
 const subject_tags= ['point', 'line', 'sketch', 'repeater', 'group', 'transform', 'matrix'];
 const admin_tags  = ['public', 'profile'];
 const model_tags  = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-const float_tags  = [model_tags['f'], 'x', 'y', 'z', 'rx', 'ry', 'rz', 'element'];
+const float_tags  = [model_tags['f'], 'element', 'x', 'y', 'z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',];
 const string_tags = [model_tags['s'], 'name', 'story',];
 const atom_tags   = Object.values(model_tags).slice(1);
 

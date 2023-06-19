@@ -59,8 +59,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         try{ //if(pos){
             d.n[n].c.pos_l   = new Vector3(pos.x, pos.y, pos.z); // local
             d.n[n].c.pos = d.n[n].c.pos_l;
-            d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
-        }catch{}//console.error(); 
+            const trans = d.n[d.node.rt0(d,n,'transform')].c;
+            //console.log(trans.scale);
+            d.n[n].c.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
+            d.n[n].c.pos.applyMatrix4(trans.matrix); //d.n[n].r.transform[0]
+        }catch{} //console.error(e)
     },
     line(d,n){
         d.reckon.list(d, n, 'point', 3, n=>({   
@@ -72,6 +75,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(matrix) d.n[n].c.matrix = new Matrix4(...matrix.element).transpose();
     },
     transform(d,n){
+        const scale = d.reckon.v(d, n, 'scale_x scale_y scale_z');
+        //if(scale) d.n[n].c.scale = new Vector3(scale.x, scale.y, scale.z);
         if(d.n[n].n.matrix){
             const nn = d.n[n].n.matrix[0];
             if(d.node.be(d,nn) && d.n[nn].c.matrix != undefined){
@@ -82,9 +87,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 d.n[n].c.pos = pos;
                 d.n[n].c.rot = rot;
                 d.n[n].c.x=pos.x;    d.n[n].c.y=pos.y;    d.n[n].c.z=pos.z;
-                d.n[n].c.rx = d.rnd(MathUtils.radToDeg(rot.x));   
-                d.n[n].c.ry = d.rnd(MathUtils.radToDeg(rot.y));   
-                d.n[n].c.rz = d.rnd(MathUtils.radToDeg(rot.z));
+                d.n[n].c.turn_x = d.rnd(MathUtils.radToDeg(rot.x));   
+                d.n[n].c.turn_y = d.rnd(MathUtils.radToDeg(rot.y));   
+                d.n[n].c.turn_z = d.rnd(MathUtils.radToDeg(rot.z));
             }
         }
     },

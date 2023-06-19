@@ -9,7 +9,7 @@ export const create_cast_slice=(set,get)=>({cast:{
         d.n[n].c[t] = v; 
         d.n[n].c.pos.set(d.n[n].c.x, d.n[n].c.y, d.n[n].c.z);
         d.n[n].c.rot.set(
-            MathUtils.degToRad(d.n[n].c.rx), MathUtils.degToRad(d.n[n].c.ry), MathUtils.degToRad(d.n[n].c.rz) 
+            MathUtils.degToRad(d.n[n].c.turn_x), MathUtils.degToRad(d.n[n].c.turn_y), MathUtils.degToRad(d.n[n].c.turn_z) 
         );
         const matrix = d.n[n].n.matrix;
         if(matrix){
