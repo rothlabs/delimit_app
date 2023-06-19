@@ -79,6 +79,9 @@ export const create_node_slice =(set,get)=>({node:{
     },
     un:(d, roots, a)=> d.node.n(d, roots, {unique:true, ...a}),
     ne:(d, roots, a)=> d.node.n(d, roots, {edge:true, ...a}),
+    for_nt:(d,n,t,func)=> d.node.n(d, n, {deep:true}).forEach(n=>{
+        if(d.n[n].t==t) func(n);
+    }),
     r(d, nodes, a={}){
         //if(!Array.isArray(nodes)) nodes = [nodes];
         var result = [];//const result = (a.rt ? [...nodes] : []); // might not need this ?!?!?!

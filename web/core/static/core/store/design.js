@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import { Vector3, Matrix4 } from 'three';
+import { Vector3, Matrix4, CatmullRomCurve3 } from 'three';
 
 const tv = new Vector3();
 const off_screen = new Vector3(10000,10000,0);
@@ -24,13 +24,6 @@ export const create_design_slice = (set,get)=>({design:{
         d.design.matrix = matrix;
         d.pick.n.forEach(n=>{ // must check if point or position contents!!!!
             if(d.n[n].pin.pos){ //if(d.n[n].pin.pos){
-                //tm.copy(d.design.pin_matrix);
-                //tm1.copy(matrix);
-                // try{
-                //     const mod = tm2.copy(d.n[d.node.rt0(d,n,'transform')].c.matrix);
-                //     tm.multiply(mod);
-                //     tm1.multiply(mod);
-                // }catch{}
                 tv.copy(d.n[n].pin.pos).applyMatrix4(matrix); // tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix);
                 d.node.set_pos(d, n, tv);
             }
@@ -46,13 +39,27 @@ export const create_design_slice = (set,get)=>({design:{
             }
         }
         var o = undefined;
-        if(d.n[r].c.point && d.n[r].c.point.length > 1){ // upgrade to sample curve to find true closest creation and pick control points on either side of it
-            const sorted = d.n[r].c.point.map((p,i)=>({i:i, d:tv.copy(p.pos).distanceTo(pos)})).sort((a,b)=>(a.d>=b.d?1:-1));
-            var ad1 = sorted[0], ad2 = sorted[0];
-            if(sorted[0].i-1 >= 0)            ad1 = {i:sorted[0].i-1, d:tv.copy(d.n[r].c.point[sorted[0].i-1].pos).distanceTo(pos)};
-            if(sorted[0].i+1 < sorted.length) ad2 = {i:sorted[0].i+1, d:tv.copy(d.n[r].c.point[sorted[0].i+1].pos).distanceTo(pos)};
-            o = Math.ceil((sorted[0].i + (ad1.d<ad2.d?ad1.i:ad2.i)) / 2); // ceil
-            if(sorted[0].i == sorted.length-1) o+=2;
+        if(d.n[r].c.point && d.n[r].c.point.length > 1){
+            const test_pos = new CatmullRomCurve3(d.n[r].c.point.map(p=> p.pos)).getPoints(100);
+            const tests = [];
+            var o = 0;
+            var prev_dist = 0;
+            for (var i = 0; i < test_pos.length; i++) {
+                const dist = test_pos[i].distanceTo(d.n[r].c.point[o].pos);
+                if(dist > prev_dist){
+                    o++;
+                    prev_dist = test_pos[i].distanceTo(d.n[r].c.point[o].pos);
+                }else{ prev_dist = dist }
+                tests.push({o:o, dist:test_pos[i].distanceTo(pos)});
+            }
+            tests.push({o:d.n[r].c.point.length, dist:d.n[r].c.point.at(-1).pos.distanceTo(pos)});
+            prev_dist = Infinity;
+            for (var i = 0; i < tests.length; i++) { // use .sort here ?!?!?!?!
+                if(tests[i].dist < prev_dist){
+                    o = tests[i].o;
+                    prev_dist = tests[i].dist;
+                }
+            }
         }
         const n = d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
         d.pick.one(d, n, {t:true});
@@ -80,6 +87,19 @@ export const create_design_slice = (set,get)=>({design:{
     },
 }});
 
+
+
+// const pts = curve.getPoints(100).sort((a,b)=> (a.distanceTo(pos) < b.distanceTo(pos))?-1:1);
+            // d.n[r].c.point.forEach(p=>{});
+
+// if(d.n[r].c.point && d.n[r].c.point.length > 1){ // upgrade to sample curve to find true closest creation and pick control points on either side of it
+//     const sorted = d.n[r].c.point.map((p,i)=>({i:i, d:tv.copy(p.pos).distanceTo(pos)})).sort((a,b)=>(a.d>=b.d?1:-1));
+//     var ad1 = sorted[0], ad2 = sorted[0];
+//     if(sorted[0].i-1 >= 0)            ad1 = {i:sorted[0].i-1, d:tv.copy(d.n[r].c.point[sorted[0].i-1].pos).distanceTo(pos)};
+//     if(sorted[0].i+1 < sorted.length) ad2 = {i:sorted[0].i+1, d:tv.copy(d.n[r].c.point[sorted[0].i+1].pos).distanceTo(pos)};
+//     o = Math.ceil((sorted[0].i + (ad1.d<ad2.d?ad1.i:ad2.i)) / 2); // ceil
+//     if(sorted[0].i == sorted.length-1) o+=2;
+// }
 
 //if(d.pick.n.length == 1 && d.design.tags.includes(d.n[d.pick.n[0]].t)){  d.design.candidate = d.pick.n[0];  } 
         //else{  d.design.candidate = null;  }

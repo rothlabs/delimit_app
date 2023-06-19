@@ -18,8 +18,8 @@ export const create_action_slice=(set,get)=>({action:{
                         });
                     }else{ // check if atom should be shared or not in a?!?!?!?!
                         const share = (d.n[a.n].n ? false : true);
-                        const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true});
-                        const cgn = (share ? cgr : d.node.r(d, a.n, {filter:r=>grps.includes(r), deep:true}));
+                        const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+                        const cgn = (share ? cgr : d.node.r(d, a.n, {filter:r=>grps.includes(r)})); //, deep:true
                         if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
                             const cg = cgr[0];
                             grps.forEach(g=>{
@@ -38,8 +38,8 @@ export const create_action_slice=(set,get)=>({action:{
                             if(g != a.r && d.n[g].n.group) d.delete.node(d, d.n[g].n.group[a.o], {src:n});
                         });
                     }else{ 
-                        const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true});
-                        const cgn = d.node.r(d, a.n, {filter:r=>grps.includes(r), deep:true});
+                        const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+                        const cgn = d.node.r(d, a.n, {filter:r=>grps.includes(r)}); //, deep:true
                         if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
                             const cg = cgr[0];
                             grps.forEach(g=>{

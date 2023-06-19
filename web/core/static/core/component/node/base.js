@@ -9,7 +9,7 @@ export function Badge({n}){ // more than one reason to change but okay because i
     const d = gs();
     const t = d.n[n].t;
     return (
-        c(Boot_Badge, {className:d.node.meta[t].css, g:color[4]}, (name?' '+name:'') + ' ('+d.node.meta[t].tag+')')
+        c(Boot_Badge, {className:d.node.meta[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node.meta[t].tag+')')
     )
 }
 
@@ -23,8 +23,8 @@ export function Pickable({n, children}){
                     d.delete.node(d, n, {deep:true});
                 }else{
                     const a = {deep:d.pick.deep};
-                    if(d.pick.multi){   d.pick.set(d, n, !d.n[n].pick.pick, a);    }
-                    else{               d.pick.one(d, n, a);                       }  
+                    if(d.pick.multi){d.pick.set(d, n, !d.n[n].pick.pick, a)}
+                    else            {d.pick.one(d, n, a)}  
                 }
             });
         },

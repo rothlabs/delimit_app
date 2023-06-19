@@ -49,7 +49,7 @@ export const create_base_slice = (set,get)=>({
         ready: false,
         mode: 'graph',
         panel: {},
-        grouping: false,
+        grouping: true,
     },
 
     init(d){
