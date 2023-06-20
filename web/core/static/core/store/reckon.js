@@ -71,7 +71,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         }catch{} //console.error(e)
     },
     line(d,n){
-        d.reckon.list(d, n, 'point', 3, n=>({   
+        d.reckon.list(d, n, 'point', 0, n=>({   
             pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  
         })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)

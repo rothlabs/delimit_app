@@ -67,7 +67,7 @@ export function Studio(){
             c(Toolbar),
             c(Panel),
             c('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                c(Canvas,{orthographic:true, camera:{position:[0, 0, 400]}}, //, far:10000 zoom:1    //frameloop:'demand', 
+                c(Canvas,{orthographic:true, camera:{position:[0, 0, 400], far:10000}}, //, far:10000 zoom:1    //frameloop:'demand', 
                     c(Viewport),
                 )
             )

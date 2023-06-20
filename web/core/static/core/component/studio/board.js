@@ -150,7 +150,7 @@ export function Board(){
             //     }
             // },
         },   
-            c('planeGeometry', {args:[10000, 10000],}),
+            c('planeGeometry', {args:[20000, 20000],}),
             c('meshBasicMaterial', {color:'white', toneMapped:false}),
         )
     )

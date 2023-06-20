@@ -16,8 +16,13 @@ export function Badge({n}){ // more than one reason to change but okay because i
 export function Pickable({n, children}){
     return c('group', {
         name: 'pickable',
-        onClick:e=>{
+        //onClick(e){
+        //    console.log('on click pickable');
+        //    e.stopPropagation();
+        //},
+        onClick(e){ // onClick //onPointerDown
             e.stopPropagation(); 
+            console.log('pointer down');
             ss(d=>{
                 if(d.studio.mode=='design' && d.design.mode == 'erase'){
                     d.delete.node(d, n, {deep:true});

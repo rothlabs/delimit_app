@@ -48,7 +48,7 @@ export function Viewport(){
                     c('boxGeometry'),
                     c('meshBasicMaterial', {color:'grey', toneMapped:false}),
                 )
-            )
+            ),
             // r('ambientLight', {
             //     color: 'white',
             //     intensity: 0.5,
