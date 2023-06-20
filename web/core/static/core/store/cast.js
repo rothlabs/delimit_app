@@ -16,8 +16,9 @@ export const create_cast_slice=(set,get)=>({cast:{
             d.n[matrix[0]].c.matrix.makeRotationFromEuler(d.n[n].c.rot);
             d.n[matrix[0]].c.matrix.setPosition(d.n[n].c.pos);
             d.node.set(d, matrix[0], {element:d.n[matrix[0]].c.matrix.elements});
-            d.node.for_nt(d,n,'point', p=>d.next('reckon.node',p));
+            
         }
+        d.node.for_nt(d,n,'point', p=>d.next('reckon.node',p));
     }
 }});
 
