@@ -9,7 +9,7 @@ var next_ids = [];
 const subject_tags= ['point', 'line', 'sketch', 'repeater', 'group', 'transform', 'matrix'];
 const admin_tags  = ['public', 'profile'];
 const model_tags  = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-const float_tags  = [model_tags['f'], 'element', 'x', 'y', 'z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',];
+const float_tags  = [model_tags['f'], 'x', 'y', 'z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',];
 const string_tags = [model_tags['s'], 'name', 'story',];
 const atom_tags   = Object.values(model_tags).slice(1);
 
@@ -23,7 +23,7 @@ export const create_base_slice = (set,get)=>({
     admin_tags:   admin_tags,
     value_tags:   [...float_tags, ...string_tags],
     node_tags:    [...atom_tags, ...subject_tags, ...admin_tags],
-    cast_tags:    ['scale_x','scale_y','scale_z'],
+    //cast_tags:    ['scale_x','scale_y','scale_z'],
     node_css: {
         'public':    'bi-globe-americas',
         'profile':   'bi-person',

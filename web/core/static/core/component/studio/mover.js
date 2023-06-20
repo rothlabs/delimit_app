@@ -37,7 +37,7 @@ export function Mover(){
                 set_matrix(e);
                 sf(d=> d.design.move(d,e));
             },
-            onDragEnd:()=> mf(d=> d.design.move(d, matrix)),
+            onDragEnd:()=> mf(d=>{ if(d)d.design.move(d, matrix) }),
         })
     )
 }

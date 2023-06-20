@@ -1,11 +1,13 @@
-import { Matrix4, Vector3, Euler, MathUtils } from "three";
+import { Matrix4, Vector3, Euler, Quaternion, MathUtils } from "three";
 import {current} from 'immer';
 import { subSS } from '../app.js';
 import lodash from 'lodash';
 
 const zero_vector = new Vector3();
-const tv = new Vector3();
+const tv1 = new Vector3();
+const tv2 = new Vector3();
 const te = new Euler();
+const tq = new Quaternion();
 const tm = new Matrix4();
 
 export const create_reckon_slice =(set,get)=>({reckon:{
@@ -15,14 +17,16 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         else if(d.atom_tags.includes(d.n[n].t)){d.reckon.atom(d,n,cause)}
         else                                   {d.reckon.default(d,n,cause)} // could delete this?
     },
-    base(d, n, cause){
+    base(d, n, cause=''){
         d.reckon.count++;
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
-        d.node.for_r(d, n, r=>{
-            if(!(cause=='color' && !d.pick.reckon_tags.includes(d.n[r].t))) d.next('reckon.node', r, cause); //{src:n, ...a}
-        }); // got to watch out for cycle
         d.n[n].public = false;
         if(d.n[n].r['viewer'] && d.n[n].r['viewer'].includes(d.public)) d.n[n].public = true; // put asset checker here too ?!?!?!?!
+        d.node.for_r(d, n, r=>{
+            //if(!(cause.split('__').includes('color') && !d.pick.color_tags.includes(d.n[r].t))){
+                d.next('reckon.node', r, cause+'__'+d.n[n].t); //{src:n, ...a}
+            //}
+        }); // got to watch out for cycle
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -44,26 +48,26 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null;
         return result;
     },
-    atom(d,n,cause){
-        d.reckon.base(d, n,cause);
-    },
-    default(d,n,cause){
-        d.reckon.base(d,n,cause);
-    },
     list(d, n, t, pick_color, func){ // build in n:n and color:color
         d.n[n].c[t] = [];
         d.n[n].n[t] && d.n[n].n[t].forEach(nn=>{
             if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, color:d.n[nn].pick.color[pick_color], ...func(nn)});
         });
     },
-    point(d,n){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
-        const pos = d.reckon.v(d, n, 'x y z');
+    atom(d,n,cause){
+        d.reckon.base(d, n,cause);
+    },
+    default(d,n,cause){
+        d.reckon.base(d,n,cause);
+    },
+    point(d,n,cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
+            const pos = d.reckon.v(d, n, 'x y z');
             d.n[n].c.pos_l   = new Vector3(pos.x, pos.y, pos.z); // local
             d.n[n].c.pos = d.n[n].c.pos_l;
-            const trans = d.n[d.node.rt0(d,n,'transform')].c;
-            d.n[n].c.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
-            d.n[n].c.pos.applyMatrix4(trans.matrix); //d.n[n].r.transform[0]
+            //const trans = d.n[d.node.rt0(d,n,'transform')].c;
+            //d.n[n].c.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
+            d.n[n].c.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
         }catch{} //console.error(e)
     },
     line(d,n){
@@ -71,25 +75,20 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  
         })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
-    matrix(d,n){
-        const matrix = d.reckon.v(d, n, 'element');
-        if(matrix) d.n[n].c.matrix = new Matrix4(...matrix.element).transpose();
-    },
-    transform(d,n){
-        d.reckon.v(d, n, 'scale_x scale_y scale_z');
-        if(d.n[n].n.matrix){
-            const nn = d.n[n].n.matrix[0];
-            if(d.node.be(d,nn) && d.n[nn].c.matrix != undefined){
-                const matrix = d.n[nn].c.matrix;
-                d.n[n].c.matrix = matrix;
-                te.setFromRotationMatrix(matrix); // 0,0,0,'XYZ'
-                tv.setFromMatrixPosition(matrix);
-                d.n[n].c.x=tv.x;    d.n[n].c.y=tv.y;    d.n[n].c.z=tv.z;
-                d.n[n].c.turn_x = d.rnd(MathUtils.radToDeg(te.x));   
-                d.n[n].c.turn_y = d.rnd(MathUtils.radToDeg(te.y));   
-                d.n[n].c.turn_z = d.rnd(MathUtils.radToDeg(te.z));
+    transform(d,n,cause=''){
+        try{
+            if(!cause.split('__').some(c=> (c==n || c=='point'))){ // put this check in base?
+                const trans = d.reckon.v(d, n, 'x y z turn_x turn_y turn_z scale_x scale_y scale_z');
+                tv1.set(trans.x, trans.y, trans.z);
+                te.set(MathUtils.degToRad(trans.turn_x), MathUtils.degToRad(trans.turn_y), MathUtils.degToRad(trans.turn_z));
+                tq.setFromEuler(te);
+                tv2.set(trans.scale_x, trans.scale_y, trans.scale_z);
+                tm.compose(tv1, tq, tv2);
+                d.n[n].c.matrix = new Matrix4().copy(tm);
+                d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
+                d.node.for_nt(d,n,'point', p=>d.next('reckon.node',p,n));
             }
-        }
+        }catch(e){console.log(e)}
     },
 
     //sketch(d,n){
@@ -98,6 +97,10 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 }});
 
 
+// matrix(d,n){
+    //     const matrix = d.reckon.v(d, n, 'element');
+    //     if(matrix) d.n[n].c.matrix = new Matrix4(...matrix.element).transpose();
+    // },
 
 // const scale = d.reckon.v(d, n, 'scale_x scale_y scale_z');
 //         //if(scale) d.n[n].c.scale = new Vector3(scale.x, scale.y, scale.z);

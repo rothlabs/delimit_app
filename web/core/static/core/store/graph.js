@@ -18,9 +18,6 @@ export const create_graph_slice = (set,get)=>({graph:{
         };
         delete d.graph.e_vis.decimal;
         delete d.graph.e_vis.text;
-        delete d.graph.e_vis.turn_x;
-        delete d.graph.e_vis.turn_y;
-        delete d.graph.e_vis.turn_z;
     },
     set_node_vis:(d, t, vis)=>{
         d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders

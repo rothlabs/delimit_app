@@ -34,10 +34,10 @@ export const create_node_slice =(set,get)=>({node:{
         }
     },
     set_pos(d, n, pos){ // should go in transform slice? // should be in cast clice ?!?!?!
-        try{
-            const trans = d.n[d.node.rt0(d,n,'transform')].c;
-            pos.applyMatrix4(tm.copy(trans.matrix).invert());
-            pos.set(pos.x*(1/trans.scale_x),pos.y*(1/trans.scale_y),pos.z*(1/trans.scale_z)); // correct for zero !!!!
+        try{pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.inverse_matrix);
+            //const trans = d.n[d.node.rt0(d,n,'transform')].c;
+            //pos.applyMatrix4(tm.copy(trans.matrix).invert());inverse_matrix
+            //pos.set(pos.x*(1/trans.scale_x),pos.y*(1/trans.scale_y),pos.z*(1/trans.scale_z)); // correct for zero !!!!
         }catch{}
         d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
     },
@@ -52,10 +52,10 @@ export const create_node_slice =(set,get)=>({node:{
     set(d, n, a){
         if(d.n[n].n){
             Object.entries(a).forEach(([t,v],i)=>{
-                if(d.n[n].n[t]){
+                //if(d.n[n].n[t]){
                     d.for(v, (v,o)=> d.node.sv(d, d.n[n].n[t][o], v));
-                    if(d.cast_tags.includes(t)) d.cast.v(d,n,t,v);//d.node.for_nt(d,n,'point', p=>d.next('reckon.node',p));
-                }else if(d.n[n].c[t]!=undefined){ d.cast.v(d,n,t,v) }
+                    //if(d.cast_tags.includes(t)) d.cast.v(d,n,t,v);//d.node.for_nt(d,n,'point', p=>d.next('reckon.node',p));
+                //}else if(d.n[n].c[t]!=undefined){ d.cast.v(d,n,t,v) }
             });
         }
     },
@@ -83,7 +83,8 @@ export const create_node_slice =(set,get)=>({node:{
     },
     un:(d, roots, a)=> d.node.n(d, roots, {unique:true, ...a}),
     ne:(d, roots, a)=> d.node.n(d, roots, {edge:true, ...a}),
-    for_nt:(d,n,t,func)=> d.node.n(d, n, {deep:true}).forEach(n=>{
+    nt:(d, roots, t)=> d.node.n(d, roots, {deep:true}).filter(n=> d.n[n].t==t),
+    for_nt:(d,roots,t,func)=> d.node.n(d, roots, {deep:true}).forEach(n=>{
         if(d.n[n].t==t) func(n);
     }),
     r(d, nodes, a={}){

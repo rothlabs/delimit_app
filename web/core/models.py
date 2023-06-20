@@ -84,8 +84,8 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'user', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time', 'part',  
     'view', 'asset',
     'public', 'profile',
-    'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'matrix', 
-    'x', 'y', 'z', 'scale_x','scale_y','scale_z', 'element',
+    'point', 'line', 'sketch', 'repeater', 'group', 'transform',# 'matrix', 
+    'x', 'y', 'z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z',# 'element',
     'name', 'story',
 ]}
 

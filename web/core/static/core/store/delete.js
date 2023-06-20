@@ -21,12 +21,19 @@ export const create_delete_slice = (set,get)=>({delete:{
                 if(!d.n[n].n && d.node.cr(d,n).length==0) d.delete.node(d,n); // delete unused atoms
             }
             //console.log('delete edge', r, n, t);
+
+            ////////////////////////////// special case that needs generalized ?!?!?!?!?
+            var reckon_nodes = null;
+            if(d.n[r].t=='transform') reckon_nodes = d.node.nt(d,n,'point');
+            //////////////////////////////
+
             const o = d.pop(d.n[r].n[t], n); //d.n[r].n[t].splice(e.o, 1);
             //console.log('delete edge', o);
             if(o > -1){
                 if(d.n[r].n[t].length==0) delete d.n[r].n[t];
                 d.action.node(d, r, {act:'delete.edge', r:r, n:n, t:t, o:o, src:a.src});
-                d.next('reckon.node', r); 
+                if(reckon_nodes) reckon_nodes.forEach(n=> d.next('reckon.node', n));
+                d.next('reckon.node', r);
                 d.next('graph.update');
                 d.next('pick.update');
             }

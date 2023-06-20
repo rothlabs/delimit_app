@@ -83,7 +83,7 @@ export const create_make_slice = (set,get)=>({make:{
     },
     point(d, a={}){ //pos, r, o
         if(a.pos == undefined) a.pos = new Vector3();
-        try{a.pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,a.r,'transform')].c.matrix).invert());
+        try{a.pos.applyMatrix4(d.n[d.node.rt0(d,a.r,'transform')].c.inverse_matrix);//a.pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,a.r,'transform')].c.matrix).invert());
         }catch{}
         return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
             x: d.make.atom(d,'f', a.pos.x),
@@ -92,20 +92,25 @@ export const create_make_slice = (set,get)=>({make:{
         }}); // d, part_tag, root_id, edge_tag 
     },
     transform(d, a={}){
-        const scale = new Vector3(1,1,1);
         return d.make.node(d,'p','transform', {...a, n:{
-            matrix: d.make.part(d,'matrix'),
-            scale_x: d.make.atom(d,'f', scale.x),
-            scale_y: d.make.atom(d,'f', scale.y),
-            scale_z: d.make.atom(d,'f', scale.z),
+            //matrix: d.make.part(d,'matrix'),
+            x: d.make.atom(d,'f', 0),
+            y: d.make.atom(d,'f', 0),
+            z: d.make.atom(d,'f', 0),
+            turn_x: d.make.atom(d,'f', 0),
+            turn_y: d.make.atom(d,'f', 0),
+            turn_z: d.make.atom(d,'f', 0),
+            scale_x: d.make.atom(d,'f', 1),
+            scale_y: d.make.atom(d,'f', 1),
+            scale_z: d.make.atom(d,'f', 1),
         }});
     },
-    matrix(d, a={}){
-        if(a.matrix == undefined) a.matrix = new Matrix4();
-        return d.make.node(d,'p','matrix', {...a, n:{
-            element: a.matrix.elements.map(v=> d.make.atom(d,'f', v)),
-        }});
-    },
+    // matrix(d, a={}){
+    //     if(a.matrix == undefined) a.matrix = new Matrix4();
+    //     return d.make.node(d,'p','matrix', {...a, n:{
+    //         element: a.matrix.elements.map(v=> d.make.atom(d,'f', v)),
+    //     }});
+    // },
 }});
 
 
