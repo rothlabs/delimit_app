@@ -54,6 +54,7 @@ export const create_node_slice =(set,get)=>({node:{
             Object.entries(a).forEach(([t,v],i)=>{
                 if(d.n[n].n[t]){
                     d.for(v, (v,o)=> d.node.sv(d, d.n[n].n[t][o], v));
+                    if(d.cast_tags.includes(t)) d.cast.v(d,n,t,v);//d.node.for_nt(d,n,'point', p=>d.next('reckon.node',p));
                 }else if(d.n[n].c[t]!=undefined){ d.cast.v(d,n,t,v) }
             });
         }

@@ -23,6 +23,7 @@ export const create_base_slice = (set,get)=>({
     admin_tags:   admin_tags,
     value_tags:   [...float_tags, ...string_tags],
     node_tags:    [...atom_tags, ...subject_tags, ...admin_tags],
+    cast_tags:    ['scale_x','scale_y','scale_z'],
     node_css: {
         'public':    'bi-globe-americas',
         'profile':   'bi-person',
@@ -76,7 +77,7 @@ export const create_base_slice = (set,get)=>({
             else                  {func(arg,0)}
         }
     },
-    rnd(v, sigfigs=1000){
+    rnd(v, sigfigs=10000){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
     // try(...funcs){

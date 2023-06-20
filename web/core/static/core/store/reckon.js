@@ -4,6 +4,8 @@ import { subSS } from '../app.js';
 import lodash from 'lodash';
 
 const zero_vector = new Vector3();
+const tv = new Vector3();
+const te = new Euler();
 const tm = new Matrix4();
 
 export const create_reckon_slice =(set,get)=>({reckon:{
@@ -60,7 +62,6 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.n[n].c.pos_l   = new Vector3(pos.x, pos.y, pos.z); // local
             d.n[n].c.pos = d.n[n].c.pos_l;
             const trans = d.n[d.node.rt0(d,n,'transform')].c;
-            //console.log(trans.scale);
             d.n[n].c.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
             d.n[n].c.pos.applyMatrix4(trans.matrix); //d.n[n].r.transform[0]
         }catch{} //console.error(e)
@@ -75,21 +76,18 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(matrix) d.n[n].c.matrix = new Matrix4(...matrix.element).transpose();
     },
     transform(d,n){
-        const scale = d.reckon.v(d, n, 'scale_x scale_y scale_z');
-        //if(scale) d.n[n].c.scale = new Vector3(scale.x, scale.y, scale.z);
+        d.reckon.v(d, n, 'scale_x scale_y scale_z');
         if(d.n[n].n.matrix){
             const nn = d.n[n].n.matrix[0];
             if(d.node.be(d,nn) && d.n[nn].c.matrix != undefined){
                 const matrix = d.n[nn].c.matrix;
                 d.n[n].c.matrix = matrix;
-                const pos = new Vector3().setFromMatrixPosition(matrix);
-                const rot = new Euler().setFromRotationMatrix(matrix); // 0,0,0,'XYZ'
-                d.n[n].c.pos = pos;
-                d.n[n].c.rot = rot;
-                d.n[n].c.x=pos.x;    d.n[n].c.y=pos.y;    d.n[n].c.z=pos.z;
-                d.n[n].c.turn_x = d.rnd(MathUtils.radToDeg(rot.x));   
-                d.n[n].c.turn_y = d.rnd(MathUtils.radToDeg(rot.y));   
-                d.n[n].c.turn_z = d.rnd(MathUtils.radToDeg(rot.z));
+                te.setFromRotationMatrix(matrix); // 0,0,0,'XYZ'
+                tv.setFromMatrixPosition(matrix);
+                d.n[n].c.x=tv.x;    d.n[n].c.y=tv.y;    d.n[n].c.z=tv.z;
+                d.n[n].c.turn_x = d.rnd(MathUtils.radToDeg(te.x));   
+                d.n[n].c.turn_y = d.rnd(MathUtils.radToDeg(te.y));   
+                d.n[n].c.turn_z = d.rnd(MathUtils.radToDeg(te.z));
             }
         }
     },
@@ -99,6 +97,25 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     //},
 }});
 
+
+
+// const scale = d.reckon.v(d, n, 'scale_x scale_y scale_z');
+//         //if(scale) d.n[n].c.scale = new Vector3(scale.x, scale.y, scale.z);
+//         if(d.n[n].n.matrix){
+//             const nn = d.n[n].n.matrix[0];
+//             if(d.node.be(d,nn) && d.n[nn].c.matrix != undefined){
+//                 const matrix = d.n[nn].c.matrix;
+//                 d.n[n].c.matrix = matrix;
+//                 const pos = new Vector3().setFromMatrixPosition(matrix);
+//                 const rot = new Euler().setFromRotationMatrix(matrix); // 0,0,0,'XYZ'
+//                 d.n[n].c.pos = pos;
+//                 d.n[n].c.rot = rot;
+//                 d.n[n].c.x=pos.x;    d.n[n].c.y=pos.y;    d.n[n].c.z=pos.z;
+//                 d.n[n].c.turn_x = d.rnd(MathUtils.radToDeg(rot.x));   
+//                 d.n[n].c.turn_y = d.rnd(MathUtils.radToDeg(rot.y));   
+//                 d.n[n].c.turn_z = d.rnd(MathUtils.radToDeg(rot.z));
+//             }
+//         }
 
 
 
