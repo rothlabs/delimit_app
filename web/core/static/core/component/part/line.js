@@ -34,7 +34,7 @@ export function Line({n}){
                         size: 7, // 1.5 : 1, adjust size of other items
                         props:{position: [p.pos.x, p.pos.y, p.pos.z+100],}
                     },
-                        c(Pickable, {n:p.n}, c('mesh', {geometry:circle_geometry,},
+                        c(Pickable, {n:p.n}, c('mesh', {name:'point', geometry:circle_geometry,},
                             c('meshBasicMaterial', {color:p.color, toneMapped:false}),
                         )),
                     ),

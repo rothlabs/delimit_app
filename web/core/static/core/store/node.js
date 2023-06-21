@@ -94,7 +94,7 @@ export const create_node_slice =(set,get)=>({node:{
         if(a.edge) add_r = (r,n,t,o)=> result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates (upgrad for deep compare) ?!?!?!
         d.for(nodes, n=>{//nodes.forEach(n=>{
             if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
-                if(!(a.content && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> {
+                if(!(a.content && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> { // 'group' causing things like shared name to be delete when trying to remove name from none group
                     if(d.node.be(d,r) == 'open' && !(a.filter && !a.filter(r))){ // && !(a.t && !d.n[r].t==a.t)
                         add_r(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
                         if(a.deep) result = result.concat(d.node.r(d,r,a));
@@ -118,10 +118,10 @@ export const create_node_slice =(set,get)=>({node:{
     for_n:(d, roots, func, a)=> d.node.ne(d,roots,a).forEach(e=> func(...Object.values(e))), // rename to for_ne
     for_r:(d, nodes, func, a)=> d.node.re(d,nodes,a).forEach(e=> func(...Object.values(e))), // make for loop and exit when function returns true
     for_rn:(d, nodes, func)=> d.node.rne(d,nodes).forEach(e=> func(...Object.values(e))), // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
-    close:(d, n)=>{
+    close:(d, n)=>{ // need to remove edges to this node after close ?!?!?!?!
         d.n[n].open = false; // rename to closed?
         d.pick.set(d, n, false);
-        d.pick.hover(d, n, false);
+        d.pick.hover(d, n, false); // not needed?
         d.next('graph.update');
     },
 }});

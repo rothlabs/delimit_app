@@ -21,7 +21,8 @@ export const create_pick_slice = (set,get)=>({pick:{
     deletable: false,
     set(d, n, v, a={}){
         //if(a.deep) d.node.for_n(d, n, (r,n)= d.pick.set(d,n,true,a));
-        var nodes = [n]; // this and the next two lines are common so make d.node.for_n with inclusive flag?!?!?!?!?
+        var nodes = n; // this and the next two lines are common so make d.node.for_n with inclusive flag?!?!?!?!?
+        if(!Array.isArray(nodes)) nodes = [nodes];
         if(a.deep) nodes = nodes.concat(d.node.n(d, n, a).filter(n=> d.n[n].m=='p'));
         nodes.forEach(n=>{
             d.n[n].pick.pick = v;
@@ -89,7 +90,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     none(d, t){
         var nodes = [...d.pick.n];
         if(t) nodes = nodes.filter(n=> d.n[n].t==t);
-        nodes.forEach(n=> d.pick.set(d, n, false)); //d.n[n].pick.pick=false   Object.values(d.n).forEach(n=> n.pick.pick=false);
+        d.pick.set(d, nodes, false); //nodes.forEach(n=> d.pick.set(d, n, false)); //d.n[n].pick.pick=false   Object.values(d.n).forEach(n=> n.pick.pick=false);
     },
     colors: [[theme.primary, theme.primary_l, 'primary'], [theme.info, theme.info_l, 'info']],
     color(d,n){

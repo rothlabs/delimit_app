@@ -13,7 +13,7 @@ export const create_delete_slice = (set,get)=>({delete:{
         }
     },
     edge(d, r, n, t, a={}){ // can be delete_edge, not taking array  
-        if(d.n[r].asset){
+        if(d.n[r].asset && d.n[r].n[t]){ // d.n[r].n[t] remove d.n[r].n[t] ?!?!?!?!
             const re = d.node.re(d, n).find(re=> re.r==r);
             if(re){
                 d.pop(d.n[n].r[re.t], re.r); //d.n[n].r[re.t].splice(re.o, 1);

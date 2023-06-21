@@ -20,8 +20,10 @@ export function Buttons({t}){
             [...d.pick.n].forEach(r=>{
                 d.node.get(d,r,t).forEach(n=>{
                     if(d.node.cr(d, n).length > 1){
+                        console.log('edge only?');
                         d.delete.edge(d, r, n, t);
                     }else{
+                        console.log('delete node for some reason?');
                         d.delete.node(d, n);
                     }
                 });

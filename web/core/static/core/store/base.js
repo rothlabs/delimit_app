@@ -202,7 +202,7 @@ export const create_base_slice = (set,get)=>({
         //     edits.t.push(append.tags);
         // });
         if(JSON.stringify(edits).split('').sort().join() != no_edits){ // might not need this check anymore
-            //console.log('Push Pack - mutate');
+            console.log('Push Pack - mutate');
             d.push_pack({variables:edits});
         }
     },

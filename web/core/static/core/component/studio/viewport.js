@@ -4,8 +4,9 @@ import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Part} from './part.js';
 import {Mover} from './mover.js';
-import {useS, Fixed_Size_Group} from '../../app.js';
+import {useS, ss, Fixed_Size_Group} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
+import {Selection_Box} from '../selection/selection_box.js'; // selection box
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();
@@ -49,6 +50,27 @@ export function Viewport(){
                     c('meshBasicMaterial', {color:'grey', toneMapped:false}),
                 )
             ),
+
+            c(Selection_Box, {
+                style:{
+                    border: "1px dashed #55aaff",
+                    backgroundColor: "rgba(75, 160, 255, 0.3)",
+                    position: "fixed",
+                },
+                onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
+                    //console.log(objs); 
+                    if(!d.pick.multi) d.pick.none(d);
+                    const nodes = [];
+                    objs.forEach(obj=>{
+                        //obj?.parent?.__r3f.handlers.onClick?.call(null,{multi:true}); // artificially clicking Pickable
+                        //obj?.parent?.__r3f.memoizedProps.pick?.call();
+                        const pickable = obj.parent?.__r3f.memoizedProps.pickable;
+                        if(pickable) nodes.push(pickable);
+                    });
+                    d.pick.set(d, nodes, true);
+                }),
+            }),
+
             // r('ambientLight', {
             //     color: 'white',
             //     intensity: 0.5,

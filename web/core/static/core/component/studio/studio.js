@@ -44,7 +44,7 @@ export function Studio(){
         ['[ID] fdel',       null],
         ['[ID] sdel',       null],
     ]],{onCompleted:(data)=>{data = data.pushPack;
-        //console.log('Push Pack - complete');
+        console.log('Push Pack - complete: ',data.reply);
     }});
 
     // merge with push_pack ?!?! Or make delete_pack and keep all types of ops seperate?

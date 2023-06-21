@@ -3,6 +3,7 @@ import {Row, Col, Dropdown, Container, Form, ButtonGroup, ButtonToolbar, Button,
 import {ss, gs, useS, use_window_size} from '../../../app.js';
 import {Remake} from '../toolbar/remake.js';
 import {Delete} from '../toolbar/delete.js';
+import {Close} from '../toolbar/close.js';
 import {Badge} from '../../node/base.js'
 import {String} from '../../node/input/string.js';
 import {Float} from '../../node/input/float.js';
@@ -29,6 +30,7 @@ export function Inspect(){
             limited ? null : c(ButtonToolbar, {className:'gap-2 mb-3'},
                 c(Remake),
                 c(Delete),
+                c(Close),
             ),
             ...string_tags.map(t=>
                 c(String, {t:t})

@@ -14,6 +14,7 @@ export const create_design_slice = (set,get)=>({design:{
     candidate: null, 
     matrix: new Matrix4(), // not following wrapper rule!!!
     //pin_matrix: new Matrix4(),
+    moving: false,
     move_mode: '',
     mover: {pos: new Vector3()}, //, rot: new Vector3()
     pin_move(d){ // make drag slice?
@@ -52,12 +53,12 @@ export const create_design_slice = (set,get)=>({design:{
                 }else{ prev_dist = dist }
                 tests.push({o:o, dist:test_pos[i].distanceTo(pos)});
             }
-            tests.push({o:d.n[r].c.point.length, dist:d.n[r].c.point.at(-1).pos.distanceTo(pos)});
             prev_dist = Infinity;
             for (var i = 0; i < tests.length; i++) { // use .sort here ?!?!?!?!
                 if(tests[i].dist < prev_dist){
                     o = tests[i].o;
                     prev_dist = tests[i].dist;
+                    if(i == test_pos.length-1) o++;
                 }
             }
         }

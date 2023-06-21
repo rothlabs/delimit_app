@@ -20,7 +20,8 @@ export const create_make_slice = (set,get)=>({make:{
                 if(!d.n[r].n[t].includes(n)){
                     var o = a.o;
                     if(a.o==undefined) o = d.n[r].n[t].length;
-                    d.n[r].n[t].splice(a.o, 0, n);
+                    d.n[r].n[t].splice(o, 0, n); //d.n[r].n[t].splice(a.o, 0, n);
+                    //console.log('make edge o', d.n[r].t, d.n[n].t, t, o);
                     //if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
                     //else              {d.n[r].n[t].push(n)}
                     var rt = d.n[r].t;
@@ -32,6 +33,7 @@ export const create_make_slice = (set,get)=>({make:{
                             d.make.edge(d, r, n, {src:a.src}); //, e.r 
                         });
                     }
+                    
                     d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
                     d.next('reckon.node', r); //, {cause:'edge_created', r:r, n:n, t:t}
                     d.next('graph.update');

@@ -16,19 +16,18 @@ export function Badge({n}){ // more than one reason to change but okay because i
 export function Pickable({n, children}){
     return c('group', {
         name: 'pickable',
-        //onClick(e){
-        //    console.log('on click pickable');
-        //    e.stopPropagation();
-        //},
+        pickable: n, // for accessing via three_object.__r3f.memoizedProps.pickable
+        // pick(a){
+        //     console.log('pick!');
+        // },
         onClick(e){ // onClick //onPointerDown
-            e.stopPropagation(); 
-            console.log('pointer down');
+            e.stopPropagation();//e.stopPropagation?.call(); 
             ss(d=>{
                 if(d.studio.mode=='design' && d.design.mode == 'erase'){
                     d.delete.node(d, n, {deep:true});
                 }else{
                     const a = {deep:d.pick.deep};
-                    if(d.pick.multi){d.pick.set(d, n, !d.n[n].pick.pick, a)}
+                    if(d.pick.multi){d.pick.set(d, n, !d.n[n].pick.pick, a)} // || e.multi
                     else            {d.pick.one(d, n, a)}  
                 }
             });

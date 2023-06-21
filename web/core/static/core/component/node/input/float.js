@@ -1,5 +1,5 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
-import {Row, Col, Container, Form, InputGroup} from 'react-bootstrap';
+import {Row, Col, Container, Button, Form, InputGroup} from 'react-bootstrap';
 import {ss, useS, readable} from '../../../app.js';
 import {Buttons} from './buttons.js';
 
@@ -28,6 +28,15 @@ export function Float({t}){
                         ss(d=> d.pick.sv(d, t, e.target.value));
                     }
                 }
+            }),
+            c(Button, {
+                className: 'bi-symmetry-vertical',
+                variant: 'outline-secondary',
+                onClick:e=>ss(d=>{
+                    d.node.get(d, d.pick.n, t).forEach(n => {
+                        d.node.sv(d, n, -d.n[n].v);
+                    });
+                }),
             }),
             c(Buttons, {t:t}),
         )

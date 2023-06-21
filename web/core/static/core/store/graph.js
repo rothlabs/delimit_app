@@ -9,7 +9,7 @@ export const create_graph_slice = (set,get)=>({graph:{
     init(d){
         d.graph.n_vis={ // n_vis
             ...Object.fromEntries(d.node_tags.map(t=>[t,true])),
-            switch:false, integer:false, decimal:false, text:false, matrix:false,
+            switch:false, integer:false, decimal:false, text:false, point:false,//matrix:false, 
         };
         d.graph.e_vis={ // e_vis
             ...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),

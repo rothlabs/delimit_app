@@ -32,12 +32,18 @@ export function Mover(){
             depthTest:false,
             fixed:true,
             lineWidth:3,
-            onDragStart:e=> fs(d=> d.design.pin_move(d)),
+            onDragStart:e=> fs(d=>{ 
+                d.design.pin_move(d);
+                d.design.moving = true;
+            }),
             onDrag:e=> {
                 set_matrix(e);
                 sf(d=> d.design.move(d,e));
             },
-            onDragEnd:()=> mf(d=>{ if(d)d.design.move(d, matrix) }),
+            onDragEnd:()=> mf(d=>{ 
+                if(d) d.design.move(d, matrix);
+                d.design.moving = false;
+            }),
         })
     )
 }
