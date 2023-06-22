@@ -463,6 +463,7 @@ class Push_Pack(graphene.Mutation):
                         params['s_r_id'] += [parts[p][0][0] for n in parts[p][5]] 
                         params['s_n_id'] += parts[p][5]
                         params['s_t_id'] += t[p][5]
+                params['r_id_tuple'] = tuple(params['r_id'])
                 with connection.cursor() as cursor: 
                     cursor.execute("""
                         -- floats
@@ -501,31 +502,38 @@ class Push_Pack(graphene.Mutation):
                         INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;
                         DELETE FROM core_part_part a USING new_part WHERE a.n_id = new_part.id AND a.t_id = %(delete_tag)s;
 
+                        DELETE FROM core_part_part a WHERE a.r_id IN %(r_id_tuple)s AND 
+                            EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s);
+                        DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s AND 
+                            EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s);
+                        DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s AND 
+                            EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s);
+
                         -- part to part edges
                         WITH data AS (
                             SELECT unnest(%(p_r_id)s) AS r, unnest(%(p_n_id)s) AS n, unnest(%(p_t_id)s) AS t
-                        )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 
-                            FROM data JOIN core_part_part a ON a.n_id = data.r  
-                                WHERE a.r_id = %(profile)s AND (data.t NOT IN %(permission_tags)s OR
-                                    EXISTS (SELECT data.n FROM data JOIN core_part_part b ON b.n_id = data.n WHERE b.r_id = %(profile)s)
+                        )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data 
+                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
+                                AND (data.t NOT IN %(permission_tags)s OR
+                                    EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
                                 ) ON CONFLICT DO NOTHING;
 
                         -- float edges
                         WITH data AS (
                             SELECT unnest(%(f_r_id)s) AS r, unnest(%(f_n_id)s) AS n, unnest(%(f_t_id)s) AS t
-                        )INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 
-                            FROM data JOIN core_part_float a ON a.n_id = data.r  
-                                WHERE a.r_id = %(profile)s AND (data.t NOT IN %(permission_tags)s OR
-                                    EXISTS (SELECT data.n FROM data JOIN core_part_float b ON b.n_id = data.n WHERE b.r_id = %(profile)s)
+                        )INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
+                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
+                                AND (data.t NOT IN %(permission_tags)s OR
+                                    EXISTS (SELECT a.id FROM core_part_float a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
                                 ) ON CONFLICT DO NOTHING;
 
                         -- string edges
                         WITH data AS (
                             SELECT unnest(%(s_r_id)s) AS r, unnest(%(s_n_id)s) AS n, unnest(%(s_t_id)s) AS t
-                        )INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 
-                            FROM data JOIN core_part_string a ON a.n_id = data.r  
-                                WHERE a.r_id = %(profile)s AND (data.t NOT IN %(permission_tags)s OR
-                                    EXISTS (SELECT data.n FROM data JOIN core_part_string b ON b.n_id = data.n WHERE b.r_id = %(profile)s)
+                        )INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
+                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s) 
+                                AND (data.t NOT IN %(permission_tags)s OR
+                                    EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
                                 ) ON CONFLICT DO NOTHING;
                     """, params)
 
