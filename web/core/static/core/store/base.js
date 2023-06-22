@@ -42,6 +42,7 @@ export const create_base_slice = (set,get)=>({
 
     n: {},
     t: {},
+    t_id: {},
     user: 0,
     profile: null,
     public: null,
@@ -180,12 +181,12 @@ export const create_base_slice = (set,get)=>({
         parts.forEach(n=>{ // need to test with two profiles working on same asset
             if(d.n[n].t != 'profile' && !deleted_nodes.includes(n)){
                 //console.log('send part', n, d.n[n].t);
-                const part = [[n],        [], [], [], [], []]; //, ['replace']
-                const tags = [[d.n[n].t], [], [], [], [], []];
+                const part = [[n],                [], [], [], [], []]; //, ['replace']
+                const tags = [[d.t_id[d.n[n].t]], [], [], [], [], []];
                 d.node.for_n(d, n, (r,n,t)=>{
                     const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
                     part[mi].push(n);
-                    tags[mi].push(t);
+                    tags[mi].push(d.t_id[t]);
                 });
                 edits.parts.push(part);
                 edits.t.push(tags);
@@ -210,7 +211,10 @@ export const create_base_slice = (set,get)=>({
     receive: (d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         //const window_size = (window.innerWidth+window.innerHeight)/4;
         var set_update_graph = false;
-        if(data.t) d.t = Object.fromEntries(data.t.map(t=> [t.id, t.v]));
+        if(data.t){
+            d.t = Object.fromEntries(data.t.map(t=> [t.id, t.v]));
+            d.t_id = Object.fromEntries(data.t.map(t=> [t.v, t.id]));
+        }
         ['p','b','i','f','s'].forEach(m=>{
             data[m].forEach(n=>{
                 if(!d.n[n.id]){

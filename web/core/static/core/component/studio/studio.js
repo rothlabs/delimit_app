@@ -37,7 +37,7 @@ export function Studio(){
         ['[Float] f',       null],
         ['[String] s',      null],
         ['[[[ID]]] parts',  null], // should split so first id is not [ID] for part make seperate list that coresponds?
-        ['[[[String]]] t',  null],
+        ['[[[ID]]] t',      null],
         ['[ID] pdel',       null],
         ['[ID] bdel',       null],
         ['[ID] idel',       null],
