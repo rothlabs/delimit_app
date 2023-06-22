@@ -29,14 +29,14 @@ export function Studio(){
             open_pack.mutate();
         }
     },[]);
-    const push_pack = use_mutation('PushPack', [['pushPack reply',
+    const push_pack = use_mutation('PushPack', [['pushPack reply', // send edges as [ID] pr_id, [ID] pn_id, [ID] pt_id,  [ID] parts, [ID] floats 
         ['String instance', instance],
         ['[[ID]] atoms',    null], 
         ['[Boolean] b',     null],
         ['[Int] i',         null],
         ['[Float] f',       null],
         ['[String] s',      null],
-        ['[[[ID]]] parts',  null],
+        ['[[[ID]]] parts',  null], // should split so first id is not [ID] for part make seperate list that coresponds?
         ['[[[String]]] t',  null],
         ['[ID] pdel',       null],
         ['[ID] bdel',       null],
