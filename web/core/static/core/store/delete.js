@@ -23,8 +23,10 @@ export const create_delete_slice = (set,get)=>({delete:{
             //console.log('delete edge', r, n, t);
 
             ////////////////////////////// special case that needs generalized ?!?!?!?!?
-            var reckon_nodes = null;
-            if(d.n[r].t=='transform') reckon_nodes = d.node.nt(d,n,'point');
+            //var reckon_nodes = null;
+            //if(d.n[r].t=='transform') reckon_nodes = d.node.nt(d,n,'point');
+            //if(d.n[r].t=='transform') 
+            //d.clear.down(d,r,n);
             //////////////////////////////
 
             const o = d.pop(d.n[r].n[t], n); //d.n[r].n[t].splice(e.o, 1);
@@ -32,7 +34,7 @@ export const create_delete_slice = (set,get)=>({delete:{
             if(o > -1){
                 if(d.n[r].n[t].length==0) delete d.n[r].n[t];
                 d.action.node(d, r, {act:'delete.edge', r:r, n:n, t:t, o:o, src:a.src});
-                if(reckon_nodes) reckon_nodes.forEach(n=> d.next('reckon.node', n));
+                //if(reckon_nodes) reckon_nodes.forEach(n=> d.next('reckon.node', n));
                 d.next('reckon.node', r);
                 d.next('graph.update');
                 d.next('pick.update');

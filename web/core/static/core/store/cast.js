@@ -5,13 +5,50 @@ const tv = new Vector3();
 const te = new Euler();
 
 export const create_cast_slice=(set,get)=>({cast:{
-    v(d,n,t,v){ // might need to check for node existence or track original reckon call
-        if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,t,v);
+    down(d,n,c){ 
+        //if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
+        d.node.for_n(d, n, n=> d.cast.base(d,n,c));
     },
-    // high_level_node(d,n,t,v){
-
-    // }
+    base(d,n,c){
+        if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
+        //d.node.for_n(d, n, n=> d.cast.base(d,n,c));
+    },
+    point(d,n,c){
+        if(c.matrix){
+            d.n[n].c.matrix = c.matrix;
+            d.n[n].c.inverse_matrix = c.inverse_matrix;
+            //d.next('reckon.node',n);
+            console.log('cast matrix to point');
+        }
+    },
 }});
+
+
+
+// down(d,n,c){ 
+//     const content = {};
+//     c.split(' ').forEach(c => content[c]=d.n[n].c[c]);
+//     d.node.for_n(d, n, n=> d.cast.base(d,n,content));
+// },
+// base(d,n,c){
+//     if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
+//     d.node.for_n(d, n, n=> d.cast.base(d,n,c));
+// },
+// point(d,n,c){
+//     if(c.matrix){
+//         d.n[n].c.matrix = c.matrix;
+//         d.n[n].c.inverse_matrix = c.matrix
+//         d.next('reckon.node',n);
+//     }
+// },
+
+
+// v(d,n,t,v){ // might need to check for node existence or track original reckon call
+//     if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,t,v);
+// },
+// high_level_node(d,n,t,v){
+
+// }
 
 //if(['rx','ry','rz'].includes(t)) v = MathUtils.degToRad(v);
 

@@ -85,8 +85,10 @@ export const create_make_slice = (set,get)=>({make:{
     },
     point(d, a={}){ //pos, r, o
         if(a.pos == undefined) a.pos = new Vector3();
-        try{a.pos.applyMatrix4(d.n[d.node.rt0(d,a.r,'transform')].c.inverse_matrix);//a.pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,a.r,'transform')].c.matrix).invert());
+        try{a.pos.applyMatrix4(d.n[a.r].c.inverse_matrix);
         }catch{}
+        //try{a.pos.applyMatrix4(d.n[d.node.rt0(d,a.r,'transform')].c.inverse_matrix);//a.pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,a.r,'transform')].c.matrix).invert());
+        //}catch{}
         return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
             x: d.make.atom(d,'f', a.pos.x),
             y: d.make.atom(d,'f', a.pos.y),

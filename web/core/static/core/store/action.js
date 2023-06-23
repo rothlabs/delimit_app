@@ -1,7 +1,7 @@
 import {current} from 'immer';
 
 export const create_action_slice=(set,get)=>({action:{
-    node(d, n, a={}){ // might need to check for node existence or track original reckon call
+    node(d, n, a={}){ // rename to send? // might need to check for node existence or track original reckon call
         if(d.action[d.n[n].t]) d.action[d.n[n].t](d,n,a);
         d.node.for_r(d, n, r=> d.action.node(d,r,a)); // watch out for cycle ?!?!?!
     },

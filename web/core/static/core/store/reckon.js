@@ -60,14 +60,16 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     default(d,n,cause){
         d.reckon.base(d,n,cause);
     },
-    point(d,n,cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
+    point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
-            const pos = d.reckon.v(d, n, 'x y z');
-            d.n[n].c.pos_l   = new Vector3(pos.x, pos.y, pos.z); // local
-            d.n[n].c.pos = d.n[n].c.pos_l;
+            const nn = d.reckon.v(d, n, 'x y z');
+            d.n[n].c.pos = new Vector3(nn.x, nn.y, nn.z);
+            d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            //d.n[n].c.pos_l   = new Vector3(nn.x, nn.y, nn.z); // local
+            //d.n[n].c.pos = d.n[n].c.pos_l;
             //const trans = d.n[d.node.rt0(d,n,'transform')].c;
             //d.n[n].c.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
-            d.n[n].c.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
+            //d.n[n].c.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
         }catch{} //console.error(e)
     },
     line(d,n){
@@ -78,15 +80,18 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     transform(d,n,cause=''){
         try{
             if(!cause.split('__').some(c=> (c==n || c=='point'))){ // put this check in base?
-                const trans = d.reckon.v(d, n, 'x y z turn_x turn_y turn_z scale_x scale_y scale_z');
-                tv1.set(trans.x, trans.y, trans.z);
-                te.set(MathUtils.degToRad(trans.turn_x), MathUtils.degToRad(trans.turn_y), MathUtils.degToRad(trans.turn_z));
+            //if(!cause.split('__').some(c=> (c=='point'))){ // only reckon if caused by direct float? so c='float' ?!?!?!?!?
+                const nn = d.reckon.v(d, n, 'x y z turn_x turn_y turn_z scale_x scale_y scale_z'); // rename to move_x, move_y, move_z
+                tv1.set(nn.x, nn.y, nn.z);
+                te.set(MathUtils.degToRad(nn.turn_x), MathUtils.degToRad(nn.turn_y), MathUtils.degToRad(nn.turn_z));
                 tq.setFromEuler(te);
-                tv2.set(trans.scale_x, trans.scale_y, trans.scale_z);
+                tv2.set(nn.scale_x, nn.scale_y, nn.scale_z);
                 tm.compose(tv1, tq, tv2);
                 d.n[n].c.matrix = new Matrix4().copy(tm);
                 d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
-                d.node.for_nt(d,n,'point', p=>d.next('reckon.node',p,n));
+                d.cast.down(d,n,{matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix});
+                //d.next('reckon_down.node', n);
+                //d.node.for_nt(d,n,'point', p=>d.next('reckon.node', p, n));
             }
         }catch(e){console.log(e)}
     },
