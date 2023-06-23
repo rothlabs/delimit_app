@@ -341,33 +341,6 @@ class Push_Pack(graphene.Mutation):
         fdel = graphene.List(graphene.ID)
         sdel = graphene.List(graphene.ID)
     reply = graphene.String(default_value = 'Failed to save.')
-    #restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)
-    # def mod_or_make_atom(profile, model, part_model, m, id, v, new_nodes, poll_pack): # check if m is correct value?
-    #     atom = None
-    #     try: atom = model.objects.get(id=id, e__t__v='asset', e__r=profile) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
-    #     except Exception as e: 
-    #         print(e)
-    #         try:
-    #             atom = model.objects.create(id=id) # should throw error if exists already
-    #             getattr(profile, m).add(atom, through_defaults={'t':tag['asset']}) #temp_pack.p.append(team)
-    #             new_nodes[m].append(id)
-    #         except Exception as e: print(e)
-    #     if atom:
-    #         atom.v = v
-    #         atom.save() #if obj: temp_pack[m].append(obj)#return atom
-    #         getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']}) # change to 'atom' 
-    #         part_model.objects.filter(r__t__v='delete_pack', n=atom).delete()
-    #     #else: restricted.append(id)
-    # def add_atom(is_asset, part, model, m, id, order, t, poll_pack): # check if m is correct value?
-    #     try:
-    #         tag_obj = Tag.objects.get(v=t, system=False)
-    #         if tag_obj.v in permission_tags: atom = model.objects.get(is_asset, id=id) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
-    #         else: atom = model.objects.get(id=id) 
-    #         getattr(part, m).add(atom, through_defaults={'o':order, 't':tag_obj}) #temp_pack[m].append(obj)
-    #         getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']})
-    #     except Exception as e: 
-    #         print(e)
-    #         #restricted.append(id)
     @classmethod
     def mutate(cls, root, info, instance, atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
         try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -387,43 +360,12 @@ class Push_Pack(graphene.Mutation):
                 poll_pack.p.add(profile, through_defaults={'t':tag['poll_pack']}) # change so profile is only added if it actually gains or loses assets or something like that
                 new_nodes = {'p':[], 'b':[], 'i':[], 'f':[], 's':[]}
 
-                
-
-                                # INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, data.id, %(open_tag)s, 0 
-                                #     FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id JOIN data ON b.n_id = data.id
-                                #         WHERE a.r_id IN %(open)s ON CONFLICT DO NOTHING;
-
-                                # INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT a.r_id, data.id, %(open_tag)s, 0 
-                                # FROM core_part_part a JOIN core_part_part b ON a.n_id = b.r_id JOIN data ON b.n_id = data.id
-                                # WHERE a.r_id IN %(open)s ON CONFLICT DO NOTHING;
-
-                # still need to add to open pack
-
-                # upsert atoms:
-
-                    # 'f_id':   ['none'],
-                    # 'f_v':    [0],
-                    # 's_id':   ['none'],
-                    # 's_v':    ['empty'],
-                    # 'r_id':   ['none'],
-                    # 'r_t_id': ['none'],
-                    # 'p_r_id': ['none'],
-                    # 'p_n_id': ['none'],
-                    # 'p_t_id': ['none'],
-                    # 'f_r_id': ['none'],
-                    # 'f_n_id': ['none'],
-                    # 'f_t_id': ['none'],
-                    # 's_r_id': ['none'],
-                    # 's_n_id': ['none'],
-                    # 's_t_id': ['none'],
-                
-                # must clear parts!!!!!
-                    
                 params = {
                     'open': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']),
                     'profile':    profile.id,
                     'update':     poll_pack.id,
                     'asset_tag':  tag['asset'].id,
+                    'open_tag':   tag['open_pack'].id,
                     'update_tag': tag['poll_pack'].id,
                     'delete_tag': tag['delete_pack'].id,
                     'permission_tags': tuple([tag[t].id for t in permission_tags]),
@@ -502,6 +444,7 @@ class Push_Pack(graphene.Mutation):
                         INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;
                         DELETE FROM core_part_part a USING new_part WHERE a.n_id = new_part.id AND a.t_id = %(delete_tag)s;
 
+                        -- clear parts
                         DELETE FROM core_part_part a WHERE a.r_id IN %(r_id_tuple)s AND 
                             EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s);
                         DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s AND 
@@ -535,135 +478,19 @@ class Push_Pack(graphene.Mutation):
                                 AND (data.t NOT IN %(permission_tags)s OR
                                     EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
                                 ) ON CONFLICT DO NOTHING;
+
+                        -- add to open packs
+                        INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, new_float.id, %(open_tag)s, 0 
+                            FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id JOIN new_float ON b.n_id = new_float.id
+                                WHERE a.r_id IN %(open)s ON CONFLICT DO NOTHING;
+                        INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT a.r_id, new_string.id, %(open_tag)s, 0 
+                            FROM core_part_part a JOIN core_part_string b ON a.n_id = b.r_id JOIN new_string ON b.n_id = new_string.id
+                                WHERE a.r_id IN %(open)s ON CONFLICT DO NOTHING;
+                        INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT a.r_id, new_part.id, %(open_tag)s, 0 
+                            FROM core_part_part a JOIN core_part_part b ON a.n_id = b.r_id JOIN new_part ON b.n_id = new_part.id
+                                WHERE a.r_id IN %(open)s ON CONFLICT DO NOTHING;
                     """, params)
 
-                #     d_parts = Part.objects.raw("""SELECT core_part.id, core_part.t_id FROM core_part WHERE
-                #     EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id = %(op)s) AND
-                #     EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(dp)s) 
-                # """, params)
-                    # for i in range(len(atoms[0])):
-                    #     cls.mod_or_make_atom(profile, Bool,   Part_Bool,   'b', atoms[0][i], b[i], new_nodes, poll_pack)#, temp_pack)
-                    # for i in range(len(atoms[1])):
-                    #     cls.mod_or_make_atom(profile, Int,    Part_Int,    'i', atoms[1][i], i[i], new_nodes, poll_pack)#, temp_pack)
-                    # #for i in range(len(atoms[2])):
-                    # #    cls.mod_or_make_atom(profile, Float,  Part_Float,  'f', atoms[2][i], f[i], new_nodes, poll_pack)#, temp_pack)
-                    # for i in range(len(atoms[3])):
-                    #     cls.mod_or_make_atom(profile, String, Part_String, 's', atoms[3][i], s[i], new_nodes, poll_pack)#, temp_pack)
-
-
-
-                # if parts: # and len(parts) == len(t)
-                #     with connection.cursor() as cursor: 
-                #         params['r_id'] = ['none']
-                #         params['r_t_id'] = ['none']
-                #         params['p_id'] = ['none']
-                #         params['p_t_id'] = ['none']
-                #         for p in range(len(parts)):
-                #             params['r_id'].append(parts[p][0][0])
-                #             params['r_t_id'].append(t[p][0][0])
-                #             params['p_id'].append(parts[p][1]) 
-                #             params['p_t_id'].append(t[p][1]) 
-                #         cursor.execute("""
-                #             CREATE TEMP TABLE new_part (id TEXT, t_id TEXT);
-                #             WITH data AS (
-                #                 INSERT INTO core_part (id, t_id) SELECT unnest(%(r_id)s), unnest(%(r_t_id)s) 
-                #                     ON CONFLICT (id) DO UPDATE SET t_id = EXCLUDED.t_id
-                #                     WHERE EXISTS (SELECT e.id FROM core_part_part e WHERE e.n_id = core_part.id AND e.r_id = %(profile)s)  
-                #                 RETURNING id, t_id
-                #             ) INSERT INTO new_part (id, t_id) SELECT * FROM data;
-                #             INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;  
-                #             INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;
-                #             DELETE FROM core_part_part a USING new_part WHERE a.n_id = new_part.id AND a.t_id = %(delete_tag)s;
-
-                #             -- Make part to part edges
-                #             WITH data AS (
-                #                 SELECT unnest(%(r_id)s) AS r, unnest(unnest(%(p_id)s)) AS n, unnest(unnest(%(p_t_id)s)) AS t
-                #             )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 
-                #                 FROM data JOIN core_part_part a ON a.n_id = data.r  
-                #                     WHERE a.r = %(profile)s AND (data.t NOT IN %(permission_tags)s OR
-                #                         EXISTS (SELECT data.n FROM data JOIN core_part_part b ON b.n_id = data.n WHERE b.r = %(profile)s)
-                #                     ) ON CONFLICT DO NOTHING;
-                #         """, params)
-
-
-                    # make parts if don't exist:
-                    # for p in range(len(parts)): # use this loop to build list of parts for next loop
-                    #     try: 
-                    #         part = Part.objects.create(id=parts[p][0][0], t=tag[t[p][0][0]])
-                    #         profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})       
-                    #         new_nodes['p'].append(part.id)
-                    #     except Exception as e: print(e)
-                    # # mutate parts
-                    # for p in range(len(parts)): # need to check if id is in correct format
-                    #     try: # could remove this try wrap?
-                    #         part = Part.objects.get(is_asset, id=parts[p][0][0]) # is_asset OR this user's profile
-                    #         part.t = Tag.objects.get(v=t[p][0][0], system=False)
-                    #         part.save()
-                    #         clear_part(part) #if parts[p][6][0]=='replace': clear_part(part) 
-                    #         poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
-                    #         Part_Part.objects.filter(r__t__v='delete_pack', n=part).delete() # remove part from delete pack  # ~Q(n__id__in=pdel), 
-
-                    #         # just making edges:
-                    #         for o in range(len(parts[p][1])):
-                    #             try:
-                    #                 tag_obj = Tag.objects.get(v=t[p][1][o], system=False)
-                    #                 if tag_obj.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][o])
-                    #                 else: obj = Part.objects.get(id = parts[p][1][o]) 
-                    #                 #Part_Part.objects.create(r=part, t=tag_obj, n=obj, o=o) # manually create though item so duplicates are allowed (should always add with different o)
-                    #                 part.p.add(obj, through_defaults={'o':o, 't':tag_obj})#temp_pack.p.append(obj)
-                    #                 ##########################poll_pack.p.add(obj, through_defaults={'t':tag['poll_pack']})
-                    #             except Exception as e:
-                    #                 #print('push_pack error: part node block') 
-                    #                 print(e)
-                    #                 #print(parts[p][1][o])
-                    #                 #restricted.append(parts[p][1][o])
-                    #         for o in range(len(parts[p][2])):
-                    #             cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][o], o, t[p][2][o], poll_pack)
-                    #         for o in range(len(parts[p][3])):
-                    #             cls.add_atom(is_asset, part, Int,    'i', parts[p][3][o], o, t[p][3][o], poll_pack)
-                    #         for o in range(len(parts[p][4])):
-                    #             cls.add_atom(is_asset, part, Float,  'f', parts[p][4][o], o, t[p][4][o], poll_pack)
-                    #         for o in range(len(parts[p][5])):
-                    #             cls.add_atom(is_asset, part, String, 's', parts[p][5][o], o, t[p][5][o], poll_pack)
-                    #         #for i in range(len(parts[p][6])): # unknown nodes!!
-                    #         #    pass 
-                    #     except Exception as e: 
-                    #         #print('push_pack error: p in parts block') 
-                    #         print(e)
-                    #         #print(p)
-                    #         #restricted.append(parts[p][0][0])
-            
-                #### add new_nodes to poll_packs
-                # params = {
-                #     'op': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']),
-                #     'opt': tag['open_pack'].id, 
-                # }
-                # with connection.cursor() as cursor: 
-                #     if(len(new_nodes['p']) > 0): # this one must be recursive !!!! ?!?!?!
-                #         params['p'] = tuple(new_nodes['p'])
-                #         cursor.execute("""INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
-                #             FROM core_part_part a JOIN core_part_part b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(p)s
-                #             ON CONFLICT DO NOTHING""", params)
-                #     if(len(new_nodes['b']) > 0):
-                #         params['b'] = tuple(new_nodes['b'])
-                #         cursor.execute("""INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
-                #             FROM core_part_part a JOIN core_part_bool b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(b)s
-                #             ON CONFLICT DO NOTHING""", params)
-                #     if(len(new_nodes['i']) > 0):
-                #         params['i'] = tuple(new_nodes['i'])
-                #         cursor.execute("""INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
-                #             FROM core_part_part a JOIN core_part_int b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(i)s
-                #             ON CONFLICT DO NOTHING""", params)
-                #     if(len(new_nodes['f']) > 0):
-                #         params['f'] = tuple(new_nodes['f'])
-                #         cursor.execute("""INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
-                #             FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(f)s
-                #             ON CONFLICT DO NOTHING""", params)
-                #     if(len(new_nodes['s']) > 0):
-                #         params['s'] = tuple(new_nodes['s'])
-                #         cursor.execute("""INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
-                #             FROM core_part_part a JOIN core_part_string b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(s)s 
-                #             ON CONFLICT DO NOTHING""", params)
 
                 if pdel or bdel or idel or fdel or sdel:
                     delete_pack = Part.objects.create(t=tag['delete_pack']) 
@@ -797,6 +624,169 @@ def make_data():
     except Exception as e: print(e)
     
 #make_data() 
+
+
+
+
+
+
+#restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)
+    # def mod_or_make_atom(profile, model, part_model, m, id, v, new_nodes, poll_pack): # check if m is correct value?
+    #     atom = None
+    #     try: atom = model.objects.get(id=id, e__t__v='asset', e__r=profile) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
+    #     except Exception as e: 
+    #         print(e)
+    #         try:
+    #             atom = model.objects.create(id=id) # should throw error if exists already
+    #             getattr(profile, m).add(atom, through_defaults={'t':tag['asset']}) #temp_pack.p.append(team)
+    #             new_nodes[m].append(id)
+    #         except Exception as e: print(e)
+    #     if atom:
+    #         atom.v = v
+    #         atom.save() #if obj: temp_pack[m].append(obj)#return atom
+    #         getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']}) # change to 'atom' 
+    #         part_model.objects.filter(r__t__v='delete_pack', n=atom).delete()
+    #     #else: restricted.append(id)
+    # def add_atom(is_asset, part, model, m, id, order, t, poll_pack): # check if m is correct value?
+    #     try:
+    #         tag_obj = Tag.objects.get(v=t, system=False)
+    #         if tag_obj.v in permission_tags: atom = model.objects.get(is_asset, id=id) #model.objects.get(**{'id':id, 'p'+m+'2__t1__v':'editor', 'p'+m+'2__n1__u':user}) #'p'+m+'2__n1__pu1__n2':user
+    #         else: atom = model.objects.get(id=id) 
+    #         getattr(part, m).add(atom, through_defaults={'o':order, 't':tag_obj}) #temp_pack[m].append(obj)
+    #         getattr(poll_pack, m).add(atom, through_defaults={'t':tag['poll_pack']})
+    #     except Exception as e: 
+    #         print(e)
+    #         #restricted.append(id)
+
+
+#     d_parts = Part.objects.raw("""SELECT core_part.id, core_part.t_id FROM core_part WHERE
+                #     EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id = %(op)s) AND
+                #     EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(dp)s) 
+                # """, params)
+                    # for i in range(len(atoms[0])):
+                    #     cls.mod_or_make_atom(profile, Bool,   Part_Bool,   'b', atoms[0][i], b[i], new_nodes, poll_pack)#, temp_pack)
+                    # for i in range(len(atoms[1])):
+                    #     cls.mod_or_make_atom(profile, Int,    Part_Int,    'i', atoms[1][i], i[i], new_nodes, poll_pack)#, temp_pack)
+                    # #for i in range(len(atoms[2])):
+                    # #    cls.mod_or_make_atom(profile, Float,  Part_Float,  'f', atoms[2][i], f[i], new_nodes, poll_pack)#, temp_pack)
+                    # for i in range(len(atoms[3])):
+                    #     cls.mod_or_make_atom(profile, String, Part_String, 's', atoms[3][i], s[i], new_nodes, poll_pack)#, temp_pack)
+
+
+
+                # if parts: # and len(parts) == len(t)
+                #     with connection.cursor() as cursor: 
+                #         params['r_id'] = ['none']
+                #         params['r_t_id'] = ['none']
+                #         params['p_id'] = ['none']
+                #         params['p_t_id'] = ['none']
+                #         for p in range(len(parts)):
+                #             params['r_id'].append(parts[p][0][0])
+                #             params['r_t_id'].append(t[p][0][0])
+                #             params['p_id'].append(parts[p][1]) 
+                #             params['p_t_id'].append(t[p][1]) 
+                #         cursor.execute("""
+                #             CREATE TEMP TABLE new_part (id TEXT, t_id TEXT);
+                #             WITH data AS (
+                #                 INSERT INTO core_part (id, t_id) SELECT unnest(%(r_id)s), unnest(%(r_t_id)s) 
+                #                     ON CONFLICT (id) DO UPDATE SET t_id = EXCLUDED.t_id
+                #                     WHERE EXISTS (SELECT e.id FROM core_part_part e WHERE e.n_id = core_part.id AND e.r_id = %(profile)s)  
+                #                 RETURNING id, t_id
+                #             ) INSERT INTO new_part (id, t_id) SELECT * FROM data;
+                #             INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;  
+                #             INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;
+                #             DELETE FROM core_part_part a USING new_part WHERE a.n_id = new_part.id AND a.t_id = %(delete_tag)s;
+
+                #             -- Make part to part edges
+                #             WITH data AS (
+                #                 SELECT unnest(%(r_id)s) AS r, unnest(unnest(%(p_id)s)) AS n, unnest(unnest(%(p_t_id)s)) AS t
+                #             )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 
+                #                 FROM data JOIN core_part_part a ON a.n_id = data.r  
+                #                     WHERE a.r = %(profile)s AND (data.t NOT IN %(permission_tags)s OR
+                #                         EXISTS (SELECT data.n FROM data JOIN core_part_part b ON b.n_id = data.n WHERE b.r = %(profile)s)
+                #                     ) ON CONFLICT DO NOTHING;
+                #         """, params)
+
+
+                    # make parts if don't exist:
+                    # for p in range(len(parts)): # use this loop to build list of parts for next loop
+                    #     try: 
+                    #         part = Part.objects.create(id=parts[p][0][0], t=tag[t[p][0][0]])
+                    #         profile.p.add(part, through_defaults={'t':tag['asset']}) # team.p.add(part, through_defaults={'t1':editor_tag, 't2':editable_tag})       
+                    #         new_nodes['p'].append(part.id)
+                    #     except Exception as e: print(e)
+                    # # mutate parts
+                    # for p in range(len(parts)): # need to check if id is in correct format
+                    #     try: # could remove this try wrap?
+                    #         part = Part.objects.get(is_asset, id=parts[p][0][0]) # is_asset OR this user's profile
+                    #         part.t = Tag.objects.get(v=t[p][0][0], system=False)
+                    #         part.save()
+                    #         clear_part(part) #if parts[p][6][0]=='replace': clear_part(part) 
+                    #         poll_pack.p.add(part, through_defaults={'t':tag['poll_pack']})
+                    #         Part_Part.objects.filter(r__t__v='delete_pack', n=part).delete() # remove part from delete pack  # ~Q(n__id__in=pdel), 
+
+                    #         # just making edges:
+                    #         for o in range(len(parts[p][1])):
+                    #             try:
+                    #                 tag_obj = Tag.objects.get(v=t[p][1][o], system=False)
+                    #                 if tag_obj.v in permission_tags: obj = Part.objects.get(is_asset, id=parts[p][1][o])
+                    #                 else: obj = Part.objects.get(id = parts[p][1][o]) 
+                    #                 #Part_Part.objects.create(r=part, t=tag_obj, n=obj, o=o) # manually create though item so duplicates are allowed (should always add with different o)
+                    #                 part.p.add(obj, through_defaults={'o':o, 't':tag_obj})#temp_pack.p.append(obj)
+                    #                 ##########################poll_pack.p.add(obj, through_defaults={'t':tag['poll_pack']})
+                    #             except Exception as e:
+                    #                 #print('push_pack error: part node block') 
+                    #                 print(e)
+                    #                 #print(parts[p][1][o])
+                    #                 #restricted.append(parts[p][1][o])
+                    #         for o in range(len(parts[p][2])):
+                    #             cls.add_atom(is_asset, part, Bool,   'b', parts[p][2][o], o, t[p][2][o], poll_pack)
+                    #         for o in range(len(parts[p][3])):
+                    #             cls.add_atom(is_asset, part, Int,    'i', parts[p][3][o], o, t[p][3][o], poll_pack)
+                    #         for o in range(len(parts[p][4])):
+                    #             cls.add_atom(is_asset, part, Float,  'f', parts[p][4][o], o, t[p][4][o], poll_pack)
+                    #         for o in range(len(parts[p][5])):
+                    #             cls.add_atom(is_asset, part, String, 's', parts[p][5][o], o, t[p][5][o], poll_pack)
+                    #         #for i in range(len(parts[p][6])): # unknown nodes!!
+                    #         #    pass 
+                    #     except Exception as e: 
+                    #         #print('push_pack error: p in parts block') 
+                    #         print(e)
+                    #         #print(p)
+                    #         #restricted.append(parts[p][0][0])
+            
+                #### add new_nodes to poll_packs
+                # params = {
+                #     'op': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']),
+                #     'opt': tag['open_pack'].id, 
+                # }
+                # with connection.cursor() as cursor: 
+                #     if(len(new_nodes['p']) > 0): # this one must be recursive !!!! ?!?!?!
+                #         params['p'] = tuple(new_nodes['p'])
+                #         cursor.execute("""INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                #             FROM core_part_part a JOIN core_part_part b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(p)s
+                #             ON CONFLICT DO NOTHING""", params)
+                #     if(len(new_nodes['b']) > 0):
+                #         params['b'] = tuple(new_nodes['b'])
+                #         cursor.execute("""INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                #             FROM core_part_part a JOIN core_part_bool b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(b)s
+                #             ON CONFLICT DO NOTHING""", params)
+                #     if(len(new_nodes['i']) > 0):
+                #         params['i'] = tuple(new_nodes['i'])
+                #         cursor.execute("""INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                #             FROM core_part_part a JOIN core_part_int b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(i)s
+                #             ON CONFLICT DO NOTHING""", params)
+                #     if(len(new_nodes['f']) > 0):
+                #         params['f'] = tuple(new_nodes['f'])
+                #         cursor.execute("""INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                #             FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(f)s
+                #             ON CONFLICT DO NOTHING""", params)
+                #     if(len(new_nodes['s']) > 0):
+                #         params['s'] = tuple(new_nodes['s'])
+                #         cursor.execute("""INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT a.r_id, b.n_id, %(opt)s, 0 
+                #             FROM core_part_part a JOIN core_part_string b ON a.n_id = b.r_id WHERE a.r_id IN %(op)s AND b.n_id IN %(s)s 
+                #             ON CONFLICT DO NOTHING""", params)
+
 
 
 # -- Make Edges
