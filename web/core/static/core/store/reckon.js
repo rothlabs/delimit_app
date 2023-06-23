@@ -65,11 +65,6 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             const nn = d.reckon.v(d, n, 'x y z');
             d.n[n].c.pos = new Vector3(nn.x, nn.y, nn.z);
             d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
-            //d.n[n].c.pos_l   = new Vector3(nn.x, nn.y, nn.z); // local
-            //d.n[n].c.pos = d.n[n].c.pos_l;
-            //const trans = d.n[d.node.rt0(d,n,'transform')].c;
-            //d.n[n].c.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
-            //d.n[n].c.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
         }catch{} //console.error(e)
     },
     line(d,n){
@@ -79,8 +74,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
     transform(d,n,cause=''){
         try{
-            if(!cause.split('__').some(c=> (c==n || c=='point'))){ // put this check in base?
-            //if(!cause.split('__').some(c=> (c=='point'))){ // only reckon if caused by direct float? so c='float' ?!?!?!?!?
+            if(cause == '__decimal' || cause == '__text'){
                 const nn = d.reckon.v(d, n, 'x y z turn_x turn_y turn_z scale_x scale_y scale_z'); // rename to move_x, move_y, move_z
                 tv1.set(nn.x, nn.y, nn.z);
                 te.set(MathUtils.degToRad(nn.turn_x), MathUtils.degToRad(nn.turn_y), MathUtils.degToRad(nn.turn_z));
@@ -90,16 +84,28 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 d.n[n].c.matrix = new Matrix4().copy(tm);
                 d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
                 d.cast.down(d,n,{matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix});
-                //d.next('reckon_down.node', n);
-                //d.node.for_nt(d,n,'point', p=>d.next('reckon.node', p, n));
             }
-        }catch(e){console.log(e)}
+        }catch{} //}catch(e){console.log(e)}
     },
 
     //sketch(d,n){
         //d.reckon.list(d, n, 'line', n=>({}));
     //},
 }});
+
+
+
+//d.n[n].c.pos_l   = new Vector3(nn.x, nn.y, nn.z); // local
+            //d.n[n].c.pos = d.n[n].c.pos_l;
+            //const trans = d.n[d.node.rt0(d,n,'transform')].c;
+            //d.n[n].c.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
+            //d.n[n].c.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
+
+//d.next('reckon_down.node', n);
+                //d.node.for_nt(d,n,'point', p=>d.next('reckon.node', p, n));
+//console.log('transform reckon cause ',cause);
+            //if(!cause.split('__').some(c=> (c==n || c=='point'))){ // put this check in base?
+            //if(!cause.split('__').some(c=> (c=='point'))){ // only reckon if caused by direct float? so c='float' ?!?!?!?!?
 
 
 // matrix(d,n){
