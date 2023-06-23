@@ -35,7 +35,7 @@ export const create_make_slice = (set,get)=>({make:{
                     }
                     
                     d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
-                    d.next('reckon.node', r); //, {cause:'edge_created', r:r, n:n, t:t}
+                    d.next('reckon.node', r, 'make.edge'); //, {cause:'edge_created', r:r, n:n, t:t}
                     d.next('graph.update');
                     d.next('pick.update');
                 }
@@ -45,7 +45,7 @@ export const create_make_slice = (set,get)=>({make:{
     node(d, m, t, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         //const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
-        d.n[n] = {m: m, t:t, r:{}, c:a.c?a.c:{}, open:true, asset:true, deleted:false,
+        d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true, deleted:false, // c:a.c?a.c:{}
             pick: {pick:false, hover:false},
             graph: { 
                 pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
@@ -87,25 +87,25 @@ export const create_make_slice = (set,get)=>({make:{
         if(a.pos == undefined) a.pos = new Vector3();
         try{
             a.pos.applyMatrix4(d.n[a.r].c.inverse_matrix);
-            console.log(d.n[a.r].c.inverse_matrix);
-        }catch(e){console.log(e)}
+            //console.log(d.n[a.r].c.inverse_matrix);
+        }catch{}
         //try{a.pos.applyMatrix4(d.n[d.node.rt0(d,a.r,'transform')].c.inverse_matrix);//a.pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,a.r,'transform')].c.matrix).invert());
         //}catch{}
         return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
             x: d.make.atom(d,'f', a.pos.x),
             y: d.make.atom(d,'f', a.pos.y),
             z: d.make.atom(d,'f', a.pos.z),
-        }, c:{
-            matrix: d?.n[a.r].c.matrix,
-            inverse_matrix: d?.n[a.r].c.inverse_matrix,
-        }}); // d, part_tag, root_id, edge_tag 
+        }});//, c:{
+        //    matrix: d?.n[a.r].c.matrix,
+        //    inverse_matrix: d?.n[a.r].c.inverse_matrix,
+        //}}); // d, part_tag, root_id, edge_tag 
     },
     transform(d, a={}){
         return d.make.node(d,'p','transform', {...a, n:{
             //matrix: d.make.part(d,'matrix'),
-            x: d.make.atom(d,'f', 0),
-            y: d.make.atom(d,'f', 0),
-            z: d.make.atom(d,'f', 0),
+            move_x: d.make.atom(d,'f', 0),
+            move_y: d.make.atom(d,'f', 0),
+            move_z: d.make.atom(d,'f', 0),
             turn_x: d.make.atom(d,'f', 0),
             turn_y: d.make.atom(d,'f', 0),
             turn_z: d.make.atom(d,'f', 0),

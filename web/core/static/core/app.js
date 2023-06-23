@@ -29,6 +29,7 @@ import {create_remake_slice} from './store/remake.js';
 import {create_delete_slice} from './store/delete.js';
 import {create_action_slice} from './store/action.js';
 import {create_cast_slice} from './store/cast.js';
+import {create_clear_slice} from './store/clear.js';
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
@@ -87,6 +88,7 @@ export const useS = create(
         ...create_delete_slice(...a),
         ...create_action_slice(...a),
         ...create_cast_slice(...a),
+        ...create_clear_slice(...a),
     }))
 );
 useS.setState(d=>{  d.init(d); return d;  });

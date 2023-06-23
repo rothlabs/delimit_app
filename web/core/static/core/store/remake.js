@@ -71,7 +71,7 @@ export const create_remake_slice = (set,get)=>({remake:{
             }
         }
     },
-    merging:{
+    merging:{ // make this it's own slice?
         base(d, nodes, target){
             d.node.for_rn(d, nodes, (r,n,t,o)=>{
                 if(!(d.n[r].n[t] && d.n[r].n[t].includes(target))){
@@ -84,7 +84,8 @@ export const create_remake_slice = (set,get)=>({remake:{
         default(d, nodes, target){
             d.node.for_n(d, nodes, (r,n,t)=>{
                 if(d.value_tags.includes(t)){
-                    d.delete.node(d, n, {deep:true}); 
+                    d.delete.edge_or_node(d,r,n,t);
+                    //d.delete.node(d, n, {deep:true}); // make delete if not in use by others func?
                 }else{
                     d.make.edge(d, target, n, {t:t}); // should order be included?
                 }

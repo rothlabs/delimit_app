@@ -64,7 +64,12 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
             d.n[n].c.pos = new Vector3(nn.x, nn.y, nn.z);
-            d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            if(d.n[n].c.matrix){ d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix) }
+            else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
+                d.n[n].c.matrix = d.n[r].c.matrix;
+                d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
+                d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            }})}
         }catch{} //console.error(e)
     },
     line(d,n){
@@ -74,16 +79,16 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
     transform(d,n,cause=''){
         try{
-            if(cause == '__decimal' || cause == '__text'){
-                const nn = d.reckon.v(d, n, 'x y z turn_x turn_y turn_z scale_x scale_y scale_z'); // rename to move_x, move_y, move_z
-                tv1.set(nn.x, nn.y, nn.z);
+            if(['make.node', 'make.edge', '__decimal'].includes(cause)){
+                const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
+                tv1.set(nn.move_x, nn.move_y, nn.move_z);
                 te.set(MathUtils.degToRad(nn.turn_x), MathUtils.degToRad(nn.turn_y), MathUtils.degToRad(nn.turn_z));
                 tq.setFromEuler(te);
                 tv2.set(nn.scale_x, nn.scale_y, nn.scale_z);
                 tm.compose(tv1, tq, tv2);
                 d.n[n].c.matrix = new Matrix4().copy(tm);
                 d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
-                d.cast.down(d,n,{matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix});
+                d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
             }
         }catch{} //}catch(e){console.log(e)}
     },

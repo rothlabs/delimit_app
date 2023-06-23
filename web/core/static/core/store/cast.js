@@ -6,8 +6,9 @@ const te = new Euler();
 
 export const create_cast_slice=(set,get)=>({cast:{
     down(d,n,c){ 
-        //if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
-        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
+        const content = {};
+        c.split(' ').forEach(c=> content[c]=d.n[n].c[c]);
+        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content));
     },
     base(d,n,c){
         d.n[n].c.matrix = c.matrix;
@@ -16,16 +17,15 @@ export const create_cast_slice=(set,get)=>({cast:{
         d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
     },
     point(d,n,c){
-        if(c.matrix){
-            //d.n[n].c.matrix = c.matrix;
-            //d.n[n].c.inverse_matrix = c.inverse_matrix;
-            d.next('reckon.node',n);
-            //console.log('cast matrix to point');
-        }
+        if(c.matrix) d.next('reckon.node',n);
     },
 }});
 
 
+
+// down(d,n,c){ 
+//     d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
+// },
 
 // down(d,n,c){ 
 //     const content = {};
