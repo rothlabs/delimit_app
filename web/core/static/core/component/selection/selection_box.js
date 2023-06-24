@@ -7,29 +7,33 @@ import { Vector2 } from "three"
 import { SelectionBox } from "./base.js"
 import { useS } from '../../app.js';
 
-const mouse_vector = new Vector2();
+const end_vector = new Vector2();
+const min_delta = 10;
 
 const getCoords = (clientX, clientY) => [
   (clientX / window.innerWidth) * 2 - 1,
   -(clientY / window.innerHeight) * 2 + 1
 ]
 
-const setSelectedStyle = (collection, selected) => {
+//const setSelectedStyle = (collection, selected) => {
   // for (const item of collection) {
   //   if (item.material) {
   //     // @ts-ignore
   //     item.material.linewidth = selected ? 3 : 1
   //   }
   // }
-}
+//}
 
 export const Selection_Box = ({ style, onSelectionChanged }) => {
   const moving = useS(d=> d.design.moving);
+  const multi = useS(d=> d.pick.multi);
 
   const { camera, scene, gl } = useThree()
   const [start, setStart] = useState()
   const [mouse, setMouse] = useState()
+  //const [delta, set_delta] = useState(0);
   const [isSelecting, setIsSelecting] = useState(false)
+  const [isSelecting2, setIsSelecting2] = useState(false);
   const [selection, setSelection] = useState([])
   const selectRectangle = useRef(document.createElement("div"))
 
@@ -54,7 +58,7 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
 
   useEffect(() => {
     //mouse_vector.set(mouse[0],mouse[1]);
-    if (isSelecting && start && mouse && start.distanceTo(mouse_vector.set(mouse[0],mouse[1]))>5) { //!moving &&
+    if (isSelecting && start && mouse && !moving && isSelecting2) { 
       gl.domElement.parentElement?.append(selectRectangle.current)
 
       const topLeft = {
@@ -75,7 +79,7 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
         selectRectangle.current
       )
     }
-  }, [isSelecting, gl, start, mouse, selectRectangle])
+  }, [isSelecting, gl, start, mouse, selectRectangle, moving, isSelecting2])
 
   const selectionBox = useMemo(() => new SelectionBox(camera, scene), [
     scene,
@@ -93,13 +97,13 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
     e => {
       const event = e
       const { clientX, clientY, altKey, ctrlKey, button } = event
-      if (!altKey && !isSelecting && !button && !moving) {
+      if (!altKey && !isSelecting && !button) {
         const [startX, startY] = getCoords(clientX, clientY)
         setStart(new Vector2(clientX, clientY))
         setIsSelecting(true)
-        if (!ctrlKey) {
-          setSelectedStyle(selection, false)
-        }
+        //if (!ctrlKey) {
+        //  setSelectedStyle(selection, false)
+        //}
         selectionBox.startPoint.set(startX, startY, 0.5)
         selectionBox.endPoint.set(startX, startY, 0.5)
       }
@@ -114,12 +118,16 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
       const [endX, endY] = getCoords(clientX, clientY)
       setMouse([clientX, clientY])
       selectionBox.select()
-      setSelectedStyle(selectionBox.collection, false)
+      //setSelectedStyle(selectionBox.collection, false)
 
       selectionBox.endPoint.set(endX, endY, 0.5)
       selectionBox.select()
 
-      setSelectedStyle(selectionBox.collection, true)
+      //setSelectedStyle(selectionBox.collection, true)
+      end_vector.set(clientX, clientY);
+      //set_delta(start.distanceTo(end_vector));
+      setIsSelecting2((start.distanceTo(end_vector) > min_delta));
+      //console.log(start, end_vector);
     },
     [isSelecting]
   )
@@ -128,28 +136,31 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
     e => {
       const { ctrlKey, clientX, clientY, button } = e
 
-      if (isSelecting || !button) {
-        setIsSelecting(false)
+      if (isSelecting && isSelecting2) { // || !button
+        //setIsSelecting(false)
 
         const [endX, endY] = getCoords(clientX, clientY)
         selectionBox.endPoint.set(endX, endY, 0.5)
         const curSelected = selectionBox.select()
 
-        if(!(start && start.distanceTo(mouse_vector.set(clientX,clientY))<10)){
-          if (ctrlKey) {
+        //if(!(start && start.distanceTo(mouse_vector.set(clientX,clientY))>10)){
+        //if(!moving && delta > min_delta){
+          if(multi){//if (ctrlKey) {
             appendSelection(curSelected)
           } else {
             setSelection(curSelected)
           }
-        }
+        //}
 
         setMouse(undefined)
         setStart(undefined)
 
-        setSelectedStyle(selectionBox.collection, true)
+        //setSelectedStyle(selectionBox.collection, true)
       }
+      setIsSelecting(false);
+      setIsSelecting2(false);
     },
-    [isSelecting]
+    [isSelecting, isSelecting2, moving]
   )
 
   useEvent("pointerdown", onPointerDown, gl.domElement)

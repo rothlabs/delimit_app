@@ -77,7 +77,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  
         })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
-    transform(d,n,cause=''){
+    transform(d,n,cause=''){ // put this in base and make it work for at least one component (just scale_x for example)
         try{
             if(['make.node', 'make.edge', '__decimal'].includes(cause)){
                 const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 

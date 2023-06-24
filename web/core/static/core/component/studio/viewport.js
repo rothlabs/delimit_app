@@ -51,25 +51,25 @@ export function Viewport(){
                 )
             ),
 
-            // c(Selection_Box, {
-            //     style:{
-            //         border: "1px dashed #55aaff",
-            //         backgroundColor: "rgba(75, 160, 255, 0.3)",
-            //         position: "fixed",
-            //     },
-            //     onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
-            //         //console.log(objs); 
-            //         if(!d.pick.multi) d.pick.none(d);
-            //         const nodes = [];
-            //         objs.forEach(obj=>{
-            //             //obj?.parent?.__r3f.handlers.onClick?.call(null,{multi:true}); // artificially clicking Pickable
-            //             //obj?.parent?.__r3f.memoizedProps.pick?.call();
-            //             const pickable = obj.parent?.__r3f.memoizedProps.pickable;
-            //             if(pickable) nodes.push(pickable);
-            //         });
-            //         d.pick.set(d, nodes, true);
-            //     }),
-            // }),
+            c(Selection_Box, {
+                style:{
+                    border: "1px dashed #55aaff",
+                    backgroundColor: "rgba(75, 160, 255, 0.3)",
+                    position: "fixed",
+                },
+                onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
+                    //console.log(objs); 
+                    if(!d.pick.multi) d.pick.none(d);
+                    const nodes = [];
+                    objs.forEach(obj=>{
+                        //obj?.parent?.__r3f.handlers.onClick?.call(null,{multi:true}); // artificially clicking Pickable
+                        //obj?.parent?.__r3f.memoizedProps.pick?.call();
+                        const pickable = obj.parent?.__r3f.memoizedProps.pickable;
+                        if(pickable) nodes.push(pickable);
+                    });
+                    d.pick.set(d, nodes, true);
+                }),
+            }),
 
             
             // r('ambientLight', {

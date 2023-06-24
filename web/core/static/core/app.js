@@ -122,6 +122,7 @@ function ignore_patch(p){
     if(path == 'studio.panel.show') return false;
     if(path == 'studio.panel.name') return false;
     if(path == 'design.matrix') return false;
+    if(path == 'design.moving') return false;
     //if(p.path.includes('pick')) return false;
     return true;
 }

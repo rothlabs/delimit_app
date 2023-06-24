@@ -41,7 +41,7 @@ export function Mover(){
                 sf(d=> d.design.move(d,e));
             },
             onDragEnd:()=> mf(d=>{ 
-                if(d) d.design.move(d, matrix);
+                d.design.move(d, matrix); // if(d) 
                 d.design.moving = false;
             }),
         })
