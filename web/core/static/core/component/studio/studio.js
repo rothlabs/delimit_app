@@ -10,7 +10,22 @@ const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms =
 
 export function Studio(){
     const ready = useS(d=> d.studio.ready);
-    //console.log('instance: '+instance);
+    return (
+        c(Fragment,{}, 
+            c(Open_Push_Close),
+            ready && c(Poll), 
+            c(Toolbar),
+            c(Panel),
+            c('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
+                c(Canvas,{orthographic:true, camera:{position:[0, 0, 400], far:10000}}, //, far:10000 zoom:1    //frameloop:'demand', 
+                    c(Viewport),
+                )
+            )
+        )
+    )
+}
+
+function Open_Push_Close(){
     const search = useS(d=> d.search);
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{ t{id v} p{id t} '+edges+' '+atoms+' } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
@@ -46,7 +61,6 @@ export function Studio(){
     ]],{onCompleted:(data)=>{data = data.pushPack;
         console.log('Push Pack - complete: ',data.reply);
     }});
-
     // merge with push_pack ?!?! Or make delete_pack and keep all types of ops seperate?
     const close_pack = use_mutation('ClosePack', [['closePack reply', 
         ['[ID] p', null], ['[ID] b', null], ['[ID] i', null], ['[ID] f', null], ['[ID] s', null],
@@ -54,25 +68,12 @@ export function Studio(){
         console.log('Close Pack - complete');
         //console.log(data.closePack.reply);
     }}); 
-
     useEffect(()=>{
         ss(d=> d.open_pack = open_pack.mutate );//d.set(d=> {d.open_pack = open_pack.mutate;});
         ss(d=> d.push_pack = push_pack.mutate );//d.set(d=> {d.push_pack = push_pack.mutate;});
         ss(d=> d.close_pack = close_pack.mutate );//d.set(d=> {d.close_pack = close_pack.mutate;});
     },[]);
-
-    return (
-        c(Fragment,{}, 
-            ready && c(Poll), 
-            c(Toolbar),
-            c(Panel),
-            c('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                c(Canvas,{orthographic:true, camera:{position:[0, 0, 400], far:10000}}, //, far:10000 zoom:1    //frameloop:'demand', 
-                    c(Viewport),
-                )
-            )
-        )
-    )
+    return null;
 }
 
 function Poll(){ // appears to be a bug where the server doesn't always catch changes so doesn't deliver in poll pack?

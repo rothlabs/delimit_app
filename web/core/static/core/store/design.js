@@ -15,7 +15,7 @@ export const create_design_slice = (set,get)=>({design:{
     matrix: new Matrix4(), // not following wrapper rule!!!
     //pin_matrix: new Matrix4(),
     moving: false,
-    move_mode: '',
+    move_mode: '', 
     mover: {pos: new Vector3()}, //, rot: new Vector3()
     pin_move(d){ // make drag slice?
         //d.design.pin_matrix.copy(d.design.matrix).invert();
@@ -79,12 +79,16 @@ export const create_design_slice = (set,get)=>({design:{
                 count++;
             }
         });
-        if(count > 0){
+        if(count > 0){ 
             d.design.mover = {
                 pos: d.design.mover.pos.divideScalar(count).applyMatrix4(tm.copy(d.design.matrix).invert()),
             };
-        }else{  d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};  }
-        if(d.pick.n.length===0) d.design.matrix.identity();
+        }//}else{  d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};  }
+        //if(d.pick.n.length===0) d.design.matrix.identity();
+        if(!(d.studio.mode=='design' && d.design.move_mode=='move' && count > 0)){ 
+            d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};
+            d.design.matrix.identity();
+        }
     },
 }});
 

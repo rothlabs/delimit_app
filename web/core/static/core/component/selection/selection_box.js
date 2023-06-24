@@ -26,7 +26,7 @@ const getCoords = (clientX, clientY) => [
 
 export const Selection_Box = ({ style, onSelectionChanged }) => {
   const moving = useS(d=> d.design.moving);
-  const multi = useS(d=> d.pick.multi);
+  //const multi = useS(d=> d.pick.multi);
 
   const { camera, scene, gl } = useThree()
   const [start, setStart] = useState()
@@ -43,6 +43,8 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
 
   useEffect(() => {
     selectRectangle.current.classList.add("selectBox")
+    selectRectangle.current.classList.add("bg-primary");
+    selectRectangle.current.classList.add("bg-opacity-10");
     selectRectangle.current.style.pointerEvents = "none"
     for (const key in style) {
       const val = style[key]
@@ -86,18 +88,18 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
     camera
   ])
 
-  const appendSelection = useCallback(
-    toAppend => {
-      setSelection([...selection, ...toAppend])
-    },
-    [selection]
-  )
+  // const appendSelection = useCallback(
+  //   toAppend => {
+  //     setSelection([...selection, ...toAppend])
+  //   },
+  //   [selection]
+  // )
 
   const onPointerDown = useCallback(
     e => {
       const event = e
       const { clientX, clientY, altKey, ctrlKey, button } = event
-      if (!altKey && !isSelecting && !button) {
+      if (!isSelecting && !button) { //if (!altKey && !isSelecting && !button) {
         const [startX, startY] = getCoords(clientX, clientY)
         setStart(new Vector2(clientX, clientY))
         setIsSelecting(true)
@@ -117,11 +119,11 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
       const { clientX, clientY } = e
       const [endX, endY] = getCoords(clientX, clientY)
       setMouse([clientX, clientY])
-      selectionBox.select()
+      //selectionBox.select()
       //setSelectedStyle(selectionBox.collection, false)
 
       selectionBox.endPoint.set(endX, endY, 0.5)
-      selectionBox.select()
+      //selectionBox.select()
 
       //setSelectedStyle(selectionBox.collection, true)
       end_vector.set(clientX, clientY);
@@ -134,9 +136,9 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
 
   const onPointerUp = useCallback(
     e => {
-      const { ctrlKey, clientX, clientY, button } = e
+      const {clientX, clientY, button} = e; // const { ctrlKey, clientX, clientY, button } = e
 
-      if (isSelecting && isSelecting2) { // || !button
+      if (isSelecting2 && !button) { // || !button
         //setIsSelecting(false)
 
         const [endX, endY] = getCoords(clientX, clientY)
@@ -145,11 +147,11 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
 
         //if(!(start && start.distanceTo(mouse_vector.set(clientX,clientY))>10)){
         //if(!moving && delta > min_delta){
-          if(multi){//if (ctrlKey) {
-            appendSelection(curSelected)
-          } else {
-            setSelection(curSelected)
-          }
+          //if(multi){//if (ctrlKey) {
+          //  appendSelection(curSelected)
+          //} else {
+        if(!moving) setSelection(curSelected);
+          //}
         //}
 
         setMouse(undefined)

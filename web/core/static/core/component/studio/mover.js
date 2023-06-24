@@ -7,26 +7,16 @@ import * as THREE from 'three';
 // save starting state and then rebase to that and ss(d=> set_final_pos);
 
 export function Mover(){
-    const studio_mode = useS(d=> d.studio.mode);
-    const move_mode = useS(d=> d.design.move_mode);
+    //const studio_mode = useS(d=> d.studio.mode);
+    //const move_mode = useS(d=> d.design.move_mode);
     const pick_count = useS(d=> d.pick.n.length);
     const mover = useS(d=> d.design.mover);
-    //const reset = useS(d=> d.design.mover_reset);
-    const [matrix, set_matrix] = useState(new THREE.Matrix4());
-    //const [show, set_show] = useState(true);
-    //useEffect(()=>{
-    //    if(reset) set_show(false);
-        //set_show(false);
-    //},[reset]);
-    //useEffect(()=>{
-    //    if(!show) set_show(true);
-    //},[show]);
-    //set_show(true);
+    const [matrix, set_matrix] = useState(new THREE.Matrix4()); // keep this in d.design
     //console.log('render mover ', studio_mode, move_mode, pick_count, mover);
     return (
         pick_count>0 && c(PivotControls, { 
             offset:[mover.pos.x, mover.pos.y, mover.pos.z], 
-            visible: studio_mode=='design' && move_mode=='move',
+            //visible: studio_mode=='design' && move_mode=='move',
             activeAxes:[true, true, false],
             scale:120,
             depthTest:false,
@@ -47,3 +37,16 @@ export function Mover(){
         })
     )
 }
+
+
+//const reset = useS(d=> d.design.mover_reset);
+
+//const [show, set_show] = useState(true);
+    //useEffect(()=>{
+    //    if(reset) set_show(false);
+        //set_show(false);
+    //},[reset]);
+    //useEffect(()=>{
+    //    if(!show) set_show(true);
+    //},[show]);
+    //set_show(true);

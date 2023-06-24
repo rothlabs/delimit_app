@@ -4,7 +4,7 @@ import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Part} from './part.js';
 import {Mover} from './mover.js';
-import {useS, ss, Fixed_Size_Group} from '../../app.js';
+import {useS, ss, Fixed_Size_Group, theme} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Selection_Box} from '../selection/selection_box.js'; // selection box
 
@@ -30,6 +30,7 @@ export function Viewport(){
     //    camera_zoom_rv(camera.zoom);
     //});
     const studio_mode = useS(d=> d.studio.mode);
+    console.log('viewport Render!');
     return (
         c('group', {name:'viewport'}, 
             c(CameraControls, { //ref: camera_controls,
@@ -40,36 +41,32 @@ export function Viewport(){
                 azimuthRotateSpeed: 0, 
                 draggingSmoothTime: 0,
             }), 
-            c(Board),
             studio_mode=='graph'  && c(Graph),
             studio_mode=='design' && c(Part),
+            c(Board),
             c(Mover),
-            c(Fixed_Size_Group, {size:6},
-                c('mesh', {},
-                    c('boxGeometry'),
-                    c('meshBasicMaterial', {color:'grey', toneMapped:false}),
-                )
-            ),
-
             c(Selection_Box, {
                 style:{
-                    border: "1px dashed #55aaff",
-                    backgroundColor: "rgba(75, 160, 255, 0.3)",
+                    border: "1px dashed #d6006a",
+                    //backgroundColor: "rgba(75, 160, 255, 0.3)",
                     position: "fixed",
                 },
                 onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
-                    //console.log(objs); 
                     if(!d.pick.multi) d.pick.none(d);
                     const nodes = [];
                     objs.forEach(obj=>{
-                        //obj?.parent?.__r3f.handlers.onClick?.call(null,{multi:true}); // artificially clicking Pickable
-                        //obj?.parent?.__r3f.memoizedProps.pick?.call();
                         const pickable = obj.parent?.__r3f.memoizedProps.pickable;
                         if(pickable) nodes.push(pickable);
                     });
                     d.pick.set(d, nodes, true);
                 }),
             }),
+            c(Fixed_Size_Group, {size:6},
+                c('mesh', {},
+                    c('boxGeometry'),
+                    c('meshBasicMaterial', {color:'grey', toneMapped:false}),
+                )
+            ),
 
             
             // r('ambientLight', {

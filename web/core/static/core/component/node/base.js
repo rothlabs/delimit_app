@@ -5,9 +5,9 @@ import {useS, ss, gs} from '../../app.js';
 export function Badge({n}){ // more than one reason to change but okay because it's so simple?
     const name = useS(d=> d.n[n].c.name);
     const color = useS(d=> d.n[n].pick.color);
-    //console.log('render node badge');
     const d = gs();
     const t = d.n[n].t;
+    //console.log('render node badge');
     return (
         c(Boot_Badge, {className:d.node.meta[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node.meta[t].tag+')')
     )

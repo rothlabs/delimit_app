@@ -24,6 +24,7 @@ export function Move(){
                         }else{
                             d.design.move_mode = button.value;
                         }
+                        d.next('design.update');
                     }),
                 })
             ),
