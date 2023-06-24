@@ -1,10 +1,11 @@
 import {createElement as c, useRef} from 'react';
 import {useS, theme, Fixed_Size_Group} from '../../app.js';
-import {Points, Point} from '@react-three/drei/Points';
-import {PointMaterial} from '@react-three/drei/PointMaterial'; 
+//import {Points, Point} from '@react-three/drei/Points';
+//import {PointMaterial} from '@react-three/drei/PointMaterial'; 
 import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import { Pickable } from '../node/base.js';
 import {Sphere, Vector3, CircleGeometry} from 'three';
+import {Point} from './point.js';
 //import {Circle} from '';
 //import {Color} from '@react-three/fiber';
 
@@ -17,13 +18,8 @@ const circle_geometry = new CircleGeometry(1,12);
 //const bounding_sphere = new Sphere(tv, 10000);
 
 export function Line({n}){ 
-    const p_ref = useRef();
     const points = useS(d=> d.n[n].c.point);
     const color = useS(d=> d.n[n].pick.color); 
-    if(p_ref.current){
-        //p_ref.current.geometry.boundingSphere = bounding_sphere;
-        //console.log('render line',p_ref.current, p_ref.current.geometry); // increase bounding sphere radius or recenter?
-    }
     return(
         c('group', {name:'line'},
             points && c('group', {
@@ -57,3 +53,9 @@ export function Line({n}){
         )
     )
 }
+
+//const p_ref = useRef();
+// if(p_ref.current){
+//     //p_ref.current.geometry.boundingSphere = bounding_sphere;
+//     //console.log('render line',p_ref.current, p_ref.current.geometry); // increase bounding sphere radius or recenter?
+// }
