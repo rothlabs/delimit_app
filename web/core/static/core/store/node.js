@@ -23,9 +23,10 @@ export const create_node_slice =(set,get)=>({node:{
         return null;
     },
     admin(d, n){
-        return n.some(n=>{
-            if(d.admin_tags.includes(d.n[n].t)) return true;
-        });
+        if(!Array.isArray(n)) n = [n];
+        return n.some(n=> d.admin_tags.includes(d.n[n].t));//{
+            //if(d.admin_tags.includes(d.n[n].t)) return true;
+        //});
     },
     pin_pos(d, n, matrix){  // should go in transform slice?    
         if(d.node.be(d,n) && d.n[n].c.pos){

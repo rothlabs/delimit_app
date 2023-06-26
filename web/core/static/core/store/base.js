@@ -6,51 +6,58 @@ import lodash from 'lodash';
 var next_funcs = [];
 var next_ids = [];
 
-const subject_tags= [
-    'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line',
+const category_tags=[
+    'public', 'top_view', 'inner_view',
 ];
-const admin_tags  = ['public', 'profile'];
+const subject_tags= [
+    'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line',
+];
+const admin_tags  = ['profile', ...category_tags];
 const model_tags  = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-const float_tags  = [model_tags['f'], 
+const float_tags  = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
 ];
-const string_tags = [model_tags['s'], 'name', 'story',];
+const string_tags = [model_tags['s'], 'name', 'story',]; // rename to text_tags
 const atom_tags   = Object.values(model_tags).slice(1);
 
 export const create_base_slice = (set,get)=>({
-    root_tags:    {'view':'viewer', 'asset':'owner',},
-    model_tags:   model_tags,
-    float_tags:   float_tags,
-    string_tags:  string_tags,
-    atom_tags:    atom_tags,
-    subject_tags: subject_tags,
-    admin_tags:   admin_tags,
-    value_tags:   [...float_tags, ...string_tags],
-    node_tags:    [...atom_tags, ...subject_tags, ...admin_tags],
-    //cast_tags:    ['scale_x','scale_y','scale_z'],
+    model_tags:     model_tags,
+    float_tags:     float_tags,
+    string_tags:    string_tags,
+    atom_tags:      atom_tags,
+    category_tags:  category_tags,
+    subject_tags:   subject_tags,
+    admin_tags:     admin_tags,
+    value_tags:     [...float_tags, ...string_tags],
+    node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
+    root_tags:      {'viewable':'viewer', 'asset':'owner',},
     node_css: {
-        'public':     'bi-globe-americas',
-        'profile':    'bi-person',
-        'switch':     'bi-bezier2',
-        'integer':    'bi-123',
-        'decimal':    'bi-123',
-        'text':       'bi-type',
-        'point':      'bi-record-circle',
-        'line':       'bi-bezier2',
-        'sketch':     'bi-easel',
-        'repeater':   'bi-files',
-        'group':      'bi-box-seam',
-        'transform':  'bi-arrows-move',
-        'mixed_line': 'bi-bezier',
-        //'matrix':    'bi-grid-3x3',
+        'public':       'bi-globe-americas',
+        'profile':      'bi-person',
+        'switch':       'bi-bezier2',
+        'integer':      'bi-123',
+        'decimal':      'bi-123',
+        'text':         'bi-type',
+        'point':        'bi-record-circle',
+        'line':         'bi-bezier2',
+        'sketch':       'bi-easel2',
+        'repeater':     'bi-files',
+        'group':        'bi-box-seam',
+        'transform':    'bi-arrows-move',
+        'mixed_line':   'bi-bezier',
+        'top_view':     'bi-camera-reels',
+        'inner_view':   'bi-camera-reels',
+        'product':      'bi-bag',
     },
+    //cast_tags:    ['scale_x','scale_y','scale_z'],
 
     n: {},
     t: {},
     t_id: {},
+    cat: {},
     user: 0,
     profile: null,
-    public: null,
+    //public: null,
     search: {depth:null, ids:null},
     studio: {
         ready: false,
@@ -262,7 +269,11 @@ export const create_base_slice = (set,get)=>({
                             if(e.r==n.id && e.n==d.user) d.profile = n.id;
                         });
                     }
-                    if(d.n[n.id].t=='public') d.public = n.id;
+                    //if(d.n[n.id].t=='public') d.public = n.id;
+                    if(d.category_tags.includes(d.n[n.id].t)) {
+                        console.log('found cat', d.n[n.id].t);
+                        d.cat[d.n[n.id].t] = n.id;
+                    }
                     //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                 }else{  
                     d.n[n.id].t = d.model_tags[d.n[n.id].m];

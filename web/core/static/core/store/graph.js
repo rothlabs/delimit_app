@@ -14,7 +14,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.e_vis={ // e_vis
             ...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),
             ...Object.fromEntries([...d.subject_tags, ...d.value_tags].map(t=>[t,true])), 
-            view:false, asset:false,
+            viewable:false, asset:false,
         };
         delete d.graph.e_vis.decimal;
         delete d.graph.e_vis.text;

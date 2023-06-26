@@ -79,15 +79,7 @@ class Part_User(Edge):
     t = models.ForeignKey(Tag,  related_name='ue', on_delete=models.CASCADE)
     n = models.ForeignKey(User, related_name='e', on_delete=models.CASCADE)
 
-system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time']
-tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [ # put all this in config file
-    'user', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time', 'part',  
-    'view', 'asset',
-    'public', 'profile',
-    'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line', 
-    'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z',# 'element',
-    'name', 'story',
-]}
+
 
 @receiver(post_save, sender=User)
 def create_user_system_packs(sender, instance, created, **kwargs): # not tested 

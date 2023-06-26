@@ -10,7 +10,7 @@ import {make_id, random_vector, theme} from '../app.js';
 // for a, do if(!a) a = {} at start of each function that uses a
 export const create_remake_slice = (set,get)=>({remake:{
     copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
-        if(!d.node.admin(d, (a.r ? [n,a.r] : [n]))){ // if a.r then check if it is limited
+        if(!d.node.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.node.admin(d, (a.r ? [n,a.r] : [n]))){ 
             const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
             if(d.n[n].m != 'p') d.n[cpy].v = d.n[n].v;
             //if(a.r) d.make.edge(d, a.r, cpy, {src:a_src});

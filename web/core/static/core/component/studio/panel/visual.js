@@ -11,7 +11,7 @@ export function Visual(){
         show && panel=='visual' && c(Fragment, {},
             c(Row, {className:'mt-3 mb-3'},
                 c(Col, {}, 
-                    c('h5', {className:'mb-3'}, 'Nodes'),
+                    c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'), // c('h5', {className:'mb-3'}, 'Nodes'),
                     ...Object.entries(graph_tag_vis).map(([t,vis], i)=>
                         c(Form.Check, {
                             className:'mt-2', 
@@ -22,7 +22,7 @@ export function Visual(){
                     ),
                 ),
                 c(Col, {}, 
-                    c('h5', {className:'mb-3'}, 'Edges'),
+                    c('h5',{className:'text-secondary bi-slash-lg'}, ' Edge'), // c('h5', {className:'mb-3'}, 'Edges'),
                     ...Object.entries(graph_edge_vis).map(([t,vis], i)=>
                         c(Form.Check, {
                             className:'mt-2', 

@@ -3,13 +3,29 @@ from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
 from core.models import make_id, Part, Tag, Bool, Int, Float, String
 from core.models import Part_Part, Part_Bool, Part_Int, Part_Float, Part_String, Part_User
-from core.models import tag
+#from core.models import tag, perm_tag, cats
 from django.db.models import Q, Count
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
 import django.utils
 import time
 from django.db import connection
+
+
+system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time']
+tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [ # put all this in config file
+    'user', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time', 'part',  
+    'viewable', 'asset',
+    'public', 'top_view', 'inner_view',
+    'profile',
+    'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line', 
+    'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z',
+    'name', 'story',
+]}
+cats = tuple(Part.objects.get_or_create(t=tag[t].id)[0].id for t in [
+    'public', 'top_view', 'inner_view',
+])
+perm_tag = tuple(tag[t].id for t in ['viewable', 'asset',])
 
 class Authenticated_User_Type(DjangoObjectType):
     class Meta:
@@ -250,7 +266,8 @@ class Open_Pack(graphene.Mutation):
         try:
             user = info.context.user
             params = {
-                'public': Part.objects.get(t__v='public').id,
+                'cats':     cats,
+                'public':  Part.objects.get(t__v='public').id,
                 'profile': Part.objects.get(t__v='profile', ue__n=user).id 
                     if user.is_authenticated else 'none',
                 'dp': tuple(Part.objects.filter(t__v='delete_pack').values_list('id')) or ('',),#tuple([dp.id for dp in Part.objects.filter(t__v='delete_pack')] + ['none']), # use .values instead of list comp
@@ -259,7 +276,7 @@ class Open_Pack(graphene.Mutation):
                 +"n.t_id != 'none' AND "
                 +exists_p+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
                 +'NOT'+exists_p+'e.r_id IN %(dp)s) '
-                +'UNION SELECT core_part.id, core_part.t_id FROM core_part WHERE core_part.id = %(public)s'
+                +'UNION SELECT core_part.id, core_part.t_id FROM core_part WHERE core_part.id in %(cats)s'
                 ,params)
             bools = Bool.objects.raw(select_b
                 +exists_b+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
@@ -324,7 +341,7 @@ class Close_Pack(graphene.Mutation):
         except Exception as e: print(e)
         return Close_Pack()
 
-permission_tags = ['public', 'view', 'asset',] 
+
 class Push_Pack(graphene.Mutation):
     class Arguments:
         instance = graphene.String()
@@ -361,14 +378,15 @@ class Push_Pack(graphene.Mutation):
                 new_nodes = {'p':[], 'b':[], 'i':[], 'f':[], 's':[]}
 
                 params = {
-                    'open': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']),
+                    'open': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']), # could be tuple comprehension?
                     'profile':    profile.id,
                     'update':     poll_pack.id,
+                    'cats':       cats,
+                    'perm_tag':   perm_tag,#tuple([tag[t].id for t in perm_tag]),
                     'asset_tag':  tag['asset'].id,
                     'open_tag':   tag['open_pack'].id,
                     'update_tag': tag['poll_pack'].id,
                     'delete_tag': tag['delete_pack'].id,
-                    'permission_tags': tuple([tag[t].id for t in permission_tags]),
                     'f_id':   ['none'],
                     'f_v':    [0],
                     's_id':   ['none'],
@@ -456,8 +474,8 @@ class Push_Pack(graphene.Mutation):
                         WITH data AS (
                             SELECT unnest(%(p_r_id)s) AS r, unnest(%(p_n_id)s) AS n, unnest(%(p_t_id)s) AS t
                         )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data 
-                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
-                                AND (data.t NOT IN %(permission_tags)s OR
+                            WHERE (data.r in %(cats)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s))
+                                AND (data.t NOT IN %(perm_tag)s OR
                                     EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
                                 ) ON CONFLICT DO NOTHING;
 
@@ -466,7 +484,7 @@ class Push_Pack(graphene.Mutation):
                             SELECT unnest(%(f_r_id)s) AS r, unnest(%(f_n_id)s) AS n, unnest(%(f_t_id)s) AS t
                         )INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
                             WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
-                                AND (data.t NOT IN %(permission_tags)s OR
+                                AND (data.t NOT IN %(perm_tag)s OR
                                     EXISTS (SELECT a.id FROM core_part_float a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
                                 ) ON CONFLICT DO NOTHING;
 
@@ -475,7 +493,7 @@ class Push_Pack(graphene.Mutation):
                             SELECT unnest(%(s_r_id)s) AS r, unnest(%(s_n_id)s) AS n, unnest(%(s_t_id)s) AS t
                         )INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
                             WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s) 
-                                AND (data.t NOT IN %(permission_tags)s OR
+                                AND (data.t NOT IN %(perm_tag)s OR
                                     EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
                                 ) ON CONFLICT DO NOTHING;
 
@@ -570,7 +588,7 @@ def make_data():
 
             system_tags = ['user', 'profile', 'open_pack', 'poll_pack']
             tag = {t: Tag.objects.create(v=t, system=(t in system_tags)) for t in [
-                'user', 'open_pack', 'poll_pack', 'profile', 'public', 'view', 'asset', 
+                'user', 'open_pack', 'poll_pack', 'profile', 'public', 'viewable', 'asset', 
                 'name', 'x', 'y', 'z', 'point', 'line',
             ]}
 
@@ -598,12 +616,12 @@ def make_data():
             point2.f.add(z2, through_defaults={'t':tag['z']})
 
             public = Part.objects.create(t=tag['public'])
-            public.p.add(point1, through_defaults={'t':tag['view']})
-            public.s.add(name0, through_defaults={'t':tag['view']})
-            public.s.add(name1, through_defaults={'t':tag['view']})
-            public.f.add(x1, through_defaults={'t':tag['view']})
-            public.f.add(y1, through_defaults={'t':tag['view']})
-            public.f.add(z1, through_defaults={'t':tag['view']})
+            public.p.add(point1, through_defaults={'t':tag['viewable']})
+            public.s.add(name0, through_defaults={'t':tag['viewable']})
+            public.s.add(name1, through_defaults={'t':tag['viewable']})
+            public.f.add(x1, through_defaults={'t':tag['viewable']})
+            public.f.add(y1, through_defaults={'t':tag['viewable']})
+            public.f.add(z1, through_defaults={'t':tag['viewable']})
 
             poll_pack = Part.objects.create(t=tag['poll_pack']) # don't need to create if cycling poll by create and delete
             poll_pack.u.add(user1, through_defaults={'t':tag['user']})
@@ -620,14 +638,14 @@ def make_data():
             profile1.f.add(y2, through_defaults={'t':tag['asset']})
             profile1.f.add(z2, through_defaults={'t':tag['asset']})
 
-            public.p.add(profile1, through_defaults={'t':tag['view']})
+            public.p.add(profile1, through_defaults={'t':tag['viewable']})
     except Exception as e: print(e)
     
 #make_data() 
 
 
 
-
+# WHERE NOT EXISTS (SELECT tag.id FROM core_tag tag WHERE tag.system = TRUE AND tag.id = id)
 
 
 #restricted = graphene.List(graphene.ID) #graphene.Field(Part_Type)

@@ -10,10 +10,12 @@ export const create_make_slice = (set,get)=>({make:{
     // },
     edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
         if(d.node.be(d,r) && d.node.be(d,n)){
-            if(d.n[r].asset || (r==d.profile && a.t=='asset') || (r==d.public && a.t=='view')){
+            if(d.n[r].asset || r==d.profile || (d.cat[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
                 var t = d.n[n].t;
-                if(d.n[r].t == 'group') t = d.n[r].t; 
+                if(d.n[r].t == 'group')  t = 'group'; 
                 if(a.t != undefined) t = a.t;
+                if(d.n[r].t == 'public') t = 'viewable';
+                if(r==d.profile) t = 'asset';
                 if(!d.n[r].n[t]) d.n[r].n[t] = [];
                 /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
                 //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
@@ -33,10 +35,8 @@ export const create_make_slice = (set,get)=>({make:{
                             d.make.edge(d, r, n, {src:a.src}); //, e.r 
                         });
                     }
-                    
                     d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
-                    d.next('reckon.node', r, 'make.edge'); //, {cause:'edge_created', r:r, n:n, t:t}
-                    //d.reckon.node(d,n,'make.edge');
+                    d.next('reckon.node', r, 'make.edge'); 
                     d.next('graph.update');
                     d.next('pick.update');
                 }
