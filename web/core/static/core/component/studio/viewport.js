@@ -45,7 +45,7 @@ export function Viewport(){
             studio_mode=='design' && c(Part),
             c(Board),
             c(Mover),
-            c(Selection_Box, {
+            c(Selection_Box, { // studio mode causes this to render and removes selection!!!!!!!
                 style:{
                     border: "1px dashed #d6006a",
                     //backgroundColor: "rgba(75, 160, 255, 0.3)",

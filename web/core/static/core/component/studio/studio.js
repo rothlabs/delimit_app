@@ -73,6 +73,7 @@ function Open_Push_Close(){
         ss(d=> d.push_pack = push_pack.mutate );//d.set(d=> {d.push_pack = push_pack.mutate;});
         ss(d=> d.close_pack = close_pack.mutate );//d.set(d=> {d.close_pack = close_pack.mutate;});
     },[]);
+    console.log('studio render');
     return null;
 }
 

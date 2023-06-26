@@ -6,7 +6,9 @@ import lodash from 'lodash';
 var next_funcs = [];
 var next_ids = [];
 
-const subject_tags= ['point', 'line', 'sketch', 'repeater', 'group', 'transform'];
+const subject_tags= [
+    'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line',
+];
 const admin_tags  = ['public', 'profile'];
 const model_tags  = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const float_tags  = [model_tags['f'], 
@@ -27,18 +29,19 @@ export const create_base_slice = (set,get)=>({
     node_tags:    [...atom_tags, ...subject_tags, ...admin_tags],
     //cast_tags:    ['scale_x','scale_y','scale_z'],
     node_css: {
-        'public':    'bi-globe-americas',
-        'profile':   'bi-person',
-        'switch':    'bi-bezier2',
-        'integer':   'bi-123',
-        'decimal':   'bi-123',
-        'text':      'bi-type',
-        'point':     'bi-record-circle',
-        'line':      'bi-bezier2',
-        'sketch':    'bi-easel',
-        'repeater':  'bi-files',
-        'group':     'bi-box-seam',
-        'transform': 'bi-arrows-move',
+        'public':     'bi-globe-americas',
+        'profile':    'bi-person',
+        'switch':     'bi-bezier2',
+        'integer':    'bi-123',
+        'decimal':    'bi-123',
+        'text':       'bi-type',
+        'point':      'bi-record-circle',
+        'line':       'bi-bezier2',
+        'sketch':     'bi-easel',
+        'repeater':   'bi-files',
+        'group':      'bi-box-seam',
+        'transform':  'bi-arrows-move',
+        'mixed_line': 'bi-bezier',
         //'matrix':    'bi-grid-3x3',
     },
 

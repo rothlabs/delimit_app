@@ -1,5 +1,5 @@
 import {createElement as c, useState, useRef, useMemo, useEffect} from 'react';
-import {useS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, useSub, gs, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 import * as THREE from 'three';
@@ -16,19 +16,24 @@ export function Atom({n}){
     //const color = useMemo(()=> pick||hover? theme.primary : theme.secondary, [pick, hover]);
     const val = useS(d=> ''+d.n[n].v);
     const tag = useS(d=> d.n[n].t); //d.tag(n)
-    const pos = useS(d=> d.n[n].graph.pos); // can i remove?!!!
-    useEffect(()=>subS(d=> d.n[n].graph, d=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
-        obj.current.obj.position.copy(d.pos);
-    }),[]); 
+    //const pos = useS(d=> d.n[n].graph.pos); // can i remove?!!!
+    useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
+        obj.current.position.copy(graph.pos);
+    }); 
+    //const pos = gs().n[n].graph.pos
+
+    // useEffect(()=>subS(d=> d.n[n].graph, d=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
+    //     obj.current.obj.position.copy(d.pos);
+    // }),[]); 
     //console.log('render atom');
     return(
         c('group', {name: 'atom'}, 
             c(Fixed_Size_Group, {
                 ref: obj,
                 size: pick ? 25 : 20,
-                props:{
-                    position: [pos.x, pos.y, pos.z],
-                }
+                // props:{
+                //     position: [pos.x, pos.y, pos.z],
+                // }
             },
                 c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 

@@ -37,7 +37,7 @@ export const create_delete_slice = (set,get)=>({delete:{
                 d.clear.down(d, n, d.n[r].c);
                 d.action.node(d, r, {act:'delete.edge', r:r, n:n, t:t, o:o, src:a.src}); // d.action.go?
                 //if(reckon_nodes) reckon_nodes.forEach(n=> d.next('reckon.node', n));
-                d.next('reckon.node', r);
+                d.next('reckon.node', r); //d.reckon.node(d,n); // 
                 d.next('graph.update');
                 d.next('pick.update');
             }

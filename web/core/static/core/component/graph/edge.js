@@ -1,7 +1,7 @@
 import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
 import {MeshLineRaycast} from '../../three/meshline.js';
 import {useThree, useFrame} from '@react-three/fiber';
-import {useS, gs, subSSI, theme, static_url, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, gs, useSubS, theme, static_url, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 import {Line} from '@react-three/drei/Line';
@@ -12,6 +12,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     //const meshline = useRef();
     //const meshline_material = useRef();
     const text = useRef();
+    const line = useRef();
     //const arrow = useRef();
     const [active, set_active] = useState(false);
     const [hover, set_hover] = useState(false);
@@ -20,19 +21,22 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     //useFrame(()=>{
     //    meshline_material.current.lineWidth = 1.5 / camera.zoom;
     //});
-    useEffect(()=> subSSI(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
-        text.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.5) );
+    useSubS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
+        if(text.current) text.current.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.5) );
+        line.current.geometry.setPositions([d[0].pos.x,d[0].pos.y,d[0].pos.z-100, d[1].pos.x,d[1].pos.y,d[1].pos.z-100]);
+    }); 
         //arrow.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.75) );
         //arrow.current.obj.lookAt(d[0].pos);
         //arrow.current.obj.rotateX(1.5708);
         //arrow.current.obj.position.setZ(d[0].pos.z-100);
         //meshline.current.setPoints([arrow.current.obj.position.x,arrow.current.obj.position.y,arrow.current.obj.position.z, d[1].pos.x,d[1].pos.y,d[1].pos.z-100]);
         //console.log('update edge pos');
-    }),[]); 
     //console.log('render edge');
-    const rg = useS(d=> d.n[r].graph);
-    const ng = useS(d=> d.n[n].graph);
+    //const rg = useS(d=> d.n[r].graph);
+    //const ng = useS(d=> d.n[n].graph);
     const d = gs();
+    const rp = d.n[r].graph.pos;
+    const np = d.n[n].graph.pos;
     return(
         c('group', { // not using Pickable because it is not a node. make another Pickable for none node objects
             name: 'edge',
@@ -42,7 +46,8 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
             onPointerOut: e=> set_hover(false),
         }, 
             c(Line, {
-                points:[[rg.pos.x, rg.pos.y, rg.pos.z-100], [ng.pos.x, ng.pos.y, ng.pos.z-100]],       // Array of points, Array<Vector3 | Vector2 | [number, number, number] | [number, number] | number>
+                ref: line,
+                points:[[rp.x, rp.y, rp.z-100], [np.x, np.y, np.z-100]],       // Array of points, Array<Vector3 | Vector2 | [number, number, number] | [number, number] | number>
                 color:color,                   // Default
                 lineWidth:1,                   // In pixels (default)
                 segments:false,                 // If true, renders a THREE.LineSegments2. Otherwise, renders a THREE.Line2
@@ -60,11 +65,11 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
             //     }), 
             //     c('meshLineMaterial', {ref:meshline_material, color:active||hover? theme.primary_s : theme.secondary_s}),
             // ),
-            c(Fixed_Size_Group, {
+            d.n[r].t!=t && d.n[n].t!=t && c(Fixed_Size_Group, {
                 ref: text,
                 size: active ? 1.25 : 1,
             },
-                d.n[r].t!=t && d.n[n].t!=t && c(Text, {
+                c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
                     outlineWidth: '25%',
                     outlineColor: 'white',

@@ -1,58 +1,72 @@
-import {createElement as c, useRef} from 'react';
-import {useS, theme, Fixed_Size_Group} from '../../app.js';
-//import {Points, Point} from '@react-three/drei/Points';
-//import {PointMaterial} from '@react-three/drei/PointMaterial'; 
+import {createElement as c, useRef, useEffect} from 'react';
+import {useS, useSub, gs} from '../../app.js';
 import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import { Pickable } from '../node/base.js';
-import {Sphere, Vector3, CircleGeometry} from 'three';
+import {CatmullRomCurve3} from 'three';
 import {Point} from './point.js';
-//import {Circle} from '';
-//import {Color} from '@react-three/fiber';
 
-// renders every frame while dragging which is bad for performance
-// fix by subscribing to state in useEffect
-
-const circle_geometry = new CircleGeometry(1,12);
-
-//const tv = new Vector3();
-//const bounding_sphere = new Sphere(tv, 10000);
+const res = 100;
 
 export function Line({n}){ 
-    const points = useS(d=> d.n[n].c.point);
+    const obj = useRef();
+    const pl = useS(d=> d.n[n].c.point.length); 
     const color = useS(d=> d.n[n].pick.color); 
+    useSub(d=> d.n[n].c.point, pts=>{ // make useSub that includes useEffect
+        if(obj.current){
+            const curve = new CatmullRomCurve3(pts.map(p=>p.pos));
+            obj.current.geometry.setPositions(curve.getPoints(res).map(p=> [p.x, p.y, p.z]).flat()); //new Float32Array(
+        }
+    });
+    const points = gs().n[n].c.point;
+    //console.log('render line');
     return(
         c('group', {name:'line'},
             points && c('group', {
                 name:'points',
             },
-            ...points.map(p=>   // use frame and sub to update positions
-                    c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
-                        size: 7, // 1.5 : 1, adjust size of other items
-                        props:{position: [p.pos.x, p.pos.y, p.pos.z+100],}
-                    },
-                        c(Pickable, {n:p.n}, c('mesh', {name:'point', geometry:circle_geometry,},
-                            c('meshBasicMaterial', {color:p.color, toneMapped:false}),
-                        )),
-                    ),
-                ),
+                ...points.map(p=> c(Point, {n:p.n, key:p.n})),
             ),
-            // points && c(Points, {ref:p_ref, limit:1000, range:1000}, 
-            //     c(PointMaterial, {size:14, vertexColors:true, toneMapped:false, transparent:true}),
-            //     ...points.map(p=> c(Pickable, {n:p.n}, 
-            //         c(Point, {position: [p.pos.x, p.pos.y, p.pos.z+100], color:p.color}) 
-            //     )),
-            // ),
-            points && points.length>1 && c(Pickable, {n:n},
+            points && points.length>1 && c(Pickable, {n:n}, // points && points.length>1 && 
                 c(CatmullRomLine, {
-                    points: points.map(p=> [p.pos.x, p.pos.y, p.pos.z]),
+                    ref: obj,
+                    points: points.map(p=> [p.pos.x, p.pos.y, p.pos.z]), //[[0,0,0],[0,0,0]], //points: 
                     lineWidth: 3,
                     color: color[0],
-                    segments: 100, // need to make this adjustable or dependent on zoom or line length 
+                    segments: res, // need to make this adjustable or dependent on zoom or line length 
                 }),
             ),
         )
     )
 }
+
+// useEffect(()=>subS(d=> d.n[n].c.point, points=>{ // make useSub that includes useEffect
+    //     const curve = new CatmullRomCurve3(points.map(p=>p.pos));
+    //     obj.current.geometry.setPositions(curve.getPoints(res).map(p=>[p.x, p.y, p.z]).flat()); //new Float32Array(
+    // }),[]);
+
+// c(drei_line, {
+                //     ref: obj,
+                //     points: points.map(p=> [p.pos.x, p.pos.y, p.pos.z]),
+                //     lineWidth: 3,
+                //     color: color[0],
+                //     //segments: true, 
+                // }),
+
+// c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
+                    //     size: 7, // 1.5 : 1, adjust size of other items
+                    //     props:{position: [p.pos.x, p.pos.y, p.pos.z+100],}
+                    // },
+                    //     c(Pickable, {n:p.n}, c('mesh', {name:'point', geometry:circle_geometry,},
+                    //         c('meshBasicMaterial', {color:p.color, toneMapped:false}),
+                    //     )),
+                    // ),
+
+// points && c(Points, {ref:p_ref, limit:1000, range:1000}, 
+            //     c(PointMaterial, {size:14, vertexColors:true, toneMapped:false, transparent:true}),
+            //     ...points.map(p=> c(Pickable, {n:p.n}, 
+            //         c(Point, {position: [p.pos.x, p.pos.y, p.pos.z+100], color:p.color}) 
+            //     )),
+            // ),
 
 //const p_ref = useRef();
 // if(p_ref.current){

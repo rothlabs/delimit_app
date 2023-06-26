@@ -1,6 +1,5 @@
 import { Matrix4, Vector3, Euler, Quaternion, MathUtils } from "three";
 import {current} from 'immer';
-import { subSS } from '../app.js';
 import lodash from 'lodash';
 
 const zero_vector = new Vector3();
@@ -48,10 +47,10 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null;
         return result;
     },
-    list(d, n, t, pick_color, func){ // build in n:n and color:color
+    list(d, n, t, func){ // build in n:n and color:color pick_color, 
         d.n[n].c[t] = [];
         d.n[n].n[t] && d.n[n].n[t].forEach(nn=>{
-            if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, color:d.n[nn].pick.color[pick_color], ...func(nn)});
+            if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, ...func(nn)}); //color:d.n[nn].pick.color[pick_color],
         });
     },
     atom(d,n,cause){
@@ -73,8 +72,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         }catch{} //console.error(e)
     },
     line(d,n){
-        d.reckon.list(d, n, 'point', 0, n=>({   
-            pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)  
+        d.reckon.list(d, n, 'point', n=>({ // 0,   
+            pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector) // does it need to copy the pos? 
         })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
     transform(d,n,cause=''){ // put this in base and make it work for at least one component (just scale_x for example)

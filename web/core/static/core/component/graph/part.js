@@ -1,6 +1,6 @@
 import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
-import {useS, gs, useSS, subS, theme, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, gs, useSub, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
@@ -14,18 +14,21 @@ const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMap
 //const tv = new THREE.Vector3();
 
 export function Part({n}){ 
+    const obj = useRef();
     
-    const pos = useS(d=> d.n[n].graph.pos);//const pos = d.n[n].graph.pos; 
+    //const pos = useS(d=> d.n[n].graph.pos);//const pos = d.n[n].graph.pos; 
     const name = useS(d=> d.n[n].c.name);
     
     const color = useS(d=> d.n[n].pick.color);
     const pick = useS(d=> d.n[n].pick.pick); 
-    //const obj = useRef();
     // useEffect(()=> subS(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
     //     obj.current.obj.position.copy(d.pos);
     //     //console.log('update part pos');
     // }), []);
     //console.log('render part');
+    useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
+        obj.current.position.copy(graph.pos);
+    }); 
     const d = gs();
     const t = d.n[n].t;
     const icon = d.node.meta[t].icon;
@@ -33,11 +36,11 @@ export function Part({n}){
     return(
         r('group', {name: 'part'}, 
             r(Fixed_Size_Group, {
-                //ref: obj,
+                ref: obj,
                 size: pick ? 25 : 20, // 1.5 : 1, adjust size of other items
-                props:{
-                    position: [pos.x, pos.y, pos.z],
-                }
+                // props:{
+                //     position: [pos.x, pos.y, pos.z],
+                // }
             },
                 name && r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 

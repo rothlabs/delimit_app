@@ -94,9 +94,11 @@ export const useS = create(
 useS.setState(d=>{  d.init(d); return d;  });
 export const gs = ()=> useS.getState();
 export const useSS = selector=> useS(selector, shallow);
-export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
-export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {equalityFn:shallow});
-export const subSSI = (selector, callback)=> useS.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
+export const useSub  = (selector, callback, triggers=[])=> useEffect(()=>useS.subscribe(selector, callback, {fireImmediately:true}), triggers);
+export const useSubS = (selector, callback)=> useEffect(()=>useS.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow}),[]);
+//export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
+//export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true, equalityFn:shallow});
+//export const subSSI = (selector, callback)=> useS.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
 
 var patch = 0;
 var patches = [];
@@ -379,15 +381,15 @@ export function use_media_glb(url){ // makes fresh copy of glb geom and such on 
     return cloned_nodes;
 }
 
-export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, props, children}, ref){
-    const obj = useRef();
+export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, props, children}, obj){
+    //const obj = useRef();
     const {camera} = useThree();
-    useImperativeHandle(ref,()=>({ 
-        obj:obj.current,
-    }));
+    //useImperativeHandle(ref,()=>({ 
+    //    obj:obj.current,
+    //}));
     useFrame(() => {
         var factor = size / camera.zoom;
-        obj.current.scale.set(factor,factor,factor);
+        if(obj) obj.current.scale.set(factor,factor,factor);
     });
     return(
         r('group', {ref: obj, ...props, children:children})

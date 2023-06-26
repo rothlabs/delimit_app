@@ -11,6 +11,7 @@ const components = {
 export function Part(){
     const part = useS(d=> d.design.part);
     const component = components[gs().n[part].t];
+    console.log('part render');
     return (
         component && c(component, {n:part})
     )

@@ -38,8 +38,8 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
   const selectRectangle = useRef(document.createElement("div"))
 
   useEffect(() => {
-    onSelectionChanged?.call(null, selection)
-  }, [selection, onSelectionChanged])
+    onSelectionChanged?.call(null, selection);
+  }, [selection]) //onSelectionChanged
 
   useEffect(() => {
     selectRectangle.current.classList.add("selectBox")

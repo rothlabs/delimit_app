@@ -37,6 +37,7 @@ export function Board(){
     //useFrame(()=>{
     //    camera_zoom_rv(camera.zoom);
     //});
+    console.log('board render');
     return (
         c('mesh', { 
             name: 'board',

@@ -32,7 +32,10 @@ export function Toolbar(){
                         variant: 'outline-primary', size: 'lg',
                         value: button.value,
                         checked: mode == button.value,
-                        onChange:e=> ss(d=> d.studio.mode=e.currentTarget.value),
+                        onChange:e=> ss(d=>{
+                            d.studio.mode=e.currentTarget.value
+                            d.next('design.update'); 
+                        }),
                         disabled: button.disabled,
                         className: button.icon,
                     }, c('span',{style:{fontSize:'18px'}}, window_size.width>576 ? button.name : '')) //c('span',{className:'align-baseline'},button.name)
