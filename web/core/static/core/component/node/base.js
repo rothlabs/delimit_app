@@ -1,17 +1,6 @@
 import {createElement as c} from 'react';
-import {Badge as Boot_Badge} from 'react-bootstrap';
+import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
 import {useS, ss, gs} from '../../app.js';
-
-export function Badge({n}){ // more than one reason to change but okay because it's so simple?
-    const name = useS(d=> d.n[n].c.name);
-    const color = useS(d=> d.n[n].pick.color);
-    const d = gs();
-    const t = d.n[n].t;
-    //console.log('render node badge');
-    return (
-        c(Boot_Badge, {className:d.node.meta[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node.meta[t].tag+')')
-    )
-}
 
 export function Pickable({n, children}){
     return c('group', {
@@ -37,3 +26,34 @@ export function Pickable({n, children}){
         children:children,
     });
 }
+
+export function Badge({n}){ // more than one reason to change but okay because it's so simple?
+    const name = useS(d=> d.n[n].c.name);
+    const color = useS(d=> d.n[n].pick.color);
+    const d = gs();
+    const t = d.n[n].t;
+    //console.log('render node badge');
+    return (
+        c(Boot_Badge, {className:d.node.meta[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node.meta[t].tag+')')
+    )
+}
+
+// export function Cat_Badge({t}){ // need to include remove button ?!?!?!?!
+//     const d = gs();
+//     return (
+//         c(Boot_Badge, {className:'bg-secondary '+d.node.meta[t].css, style:{fontSize:'16px'}}, 
+//             ' '+d.node.meta[t].tag,
+//             c(CloseButton, {className:'p-0 m-0'}),
+//         )
+//     )
+// }
+
+// export function Cat_Badge({t}){ // need to include remove button ?!?!?!?!
+//     const d = gs();
+//     return (
+//         c(Boot_Badge, {className:'bg-secondary '+d.node.meta[t].css, style:{fontSize:'16px'}}, 
+//             ' '+d.node.meta[t].tag,
+//             c(CloseButton, {className:'p-0 m-0'}),
+//         )
+//     )
+// }

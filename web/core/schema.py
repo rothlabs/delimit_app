@@ -16,14 +16,14 @@ system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'delete_pack', 'clie
 tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [ # put all this in config file
     'user', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time', 'part',  
     'viewable', 'asset',
-    'public', 'top_view', 'inner_view',
+    'public', 'top_view', 'inner_view', 'outer_view',
     'profile',
     'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line', 
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z',
     'name', 'story',
 ]}
-cats = tuple(Part.objects.get_or_create(t=tag[t].id)[0].id for t in [
-    'public', 'top_view', 'inner_view',
+cats = tuple(Part.objects.get_or_create(t=tag[t])[0].id for t in [
+    'public', 'top_view', 'inner_view', 'outer_view',
 ])
 perm_tag = tuple(tag[t].id for t in ['viewable', 'asset',])
 
@@ -382,7 +382,7 @@ class Push_Pack(graphene.Mutation):
                     'profile':    profile.id,
                     'update':     poll_pack.id,
                     'cats':       cats,
-                    'perm_tag':   perm_tag,#tuple([tag[t].id for t in perm_tag]),
+                    'perm_tag':   perm_tag, # data.t NOT IN %(perm_tag)s -- make it about anything that could effect meaning/behavior of child node!!!!!?!?!?!?
                     'asset_tag':  tag['asset'].id,
                     'open_tag':   tag['open_pack'].id,
                     'update_tag': tag['poll_pack'].id,
@@ -463,39 +463,39 @@ class Push_Pack(graphene.Mutation):
                         DELETE FROM core_part_part a USING new_part WHERE a.n_id = new_part.id AND a.t_id = %(delete_tag)s;
 
                         -- clear parts
-                        DELETE FROM core_part_part a WHERE a.r_id IN %(r_id_tuple)s AND 
-                            EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s);
-                        DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s AND 
-                            EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s);
-                        DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s AND 
-                            EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s);
+                        DELETE FROM core_part_part a WHERE a.r_id IN %(r_id_tuple)s 
+                            AND (a.r_id IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
+                            AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
+                        DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s 
+                            AND (a.r_id IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
+                            AND EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
+                        DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s 
+                            AND (a.r_id IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
+                            AND EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
 
                         -- part to part edges
                         WITH data AS (
                             SELECT unnest(%(p_r_id)s) AS r, unnest(%(p_n_id)s) AS n, unnest(%(p_t_id)s) AS t
                         )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data 
-                            WHERE (data.r in %(cats)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s))
-                                AND (data.t NOT IN %(perm_tag)s OR
-                                    EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
-                                ) ON CONFLICT DO NOTHING;
+                            WHERE (data.r IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s))
+                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                                ON CONFLICT DO NOTHING;
 
                         -- float edges
                         WITH data AS (
                             SELECT unnest(%(f_r_id)s) AS r, unnest(%(f_n_id)s) AS n, unnest(%(f_t_id)s) AS t
                         )INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
                             WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
-                                AND (data.t NOT IN %(perm_tag)s OR
-                                    EXISTS (SELECT a.id FROM core_part_float a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
-                                ) ON CONFLICT DO NOTHING;
+                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_float a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                                ON CONFLICT DO NOTHING;
 
                         -- string edges
                         WITH data AS (
                             SELECT unnest(%(s_r_id)s) AS r, unnest(%(s_n_id)s) AS n, unnest(%(s_t_id)s) AS t
                         )INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
                             WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s) 
-                                AND (data.t NOT IN %(perm_tag)s OR
-                                    EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = data.n AND a.r_id = %(profile)s)
-                                ) ON CONFLICT DO NOTHING;
+                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                                ON CONFLICT DO NOTHING;
 
                         -- add to open packs
                         INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, new_float.id, %(open_tag)s, 0 

@@ -7,7 +7,7 @@ var next_funcs = [];
 var next_ids = [];
 
 const category_tags=[
-    'public', 'top_view', 'inner_view',
+    'public', 'top_view', 'inner_view', 'outer_view',
 ];
 const subject_tags= [
     'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line',
@@ -47,6 +47,7 @@ export const create_base_slice = (set,get)=>({
         'mixed_line':   'bi-bezier',
         'top_view':     'bi-camera-reels',
         'inner_view':   'bi-camera-reels',
+        'outer_view':   'bi-camera-reels',
         'product':      'bi-bag',
     },
     //cast_tags:    ['scale_x','scale_y','scale_z'],
@@ -54,7 +55,7 @@ export const create_base_slice = (set,get)=>({
     n: {},
     t: {},
     t_id: {},
-    cat: {},
+    cats: {},
     user: 0,
     profile: null,
     //public: null,
@@ -247,7 +248,7 @@ export const create_base_slice = (set,get)=>({
                 //if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
                 if(d.n[n.id].r){
                     //const edges = []; 
-                    d.node.for_rn(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,t)); 
+                    d.node.for_rn(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); 
                         //edges.push({r:r, n:n, t:t}); // // , o:o don't know if this is needed ?!?!?!?!,  this will cause reverse edges to be deleted on forward node
                     //});
                     //d.node.delete_edges(d, edges);
@@ -258,7 +259,7 @@ export const create_base_slice = (set,get)=>({
                     d.n[n.id].t = d.t[n.t];
                     if(d.n[n.id].n){
                         //const edges = [];
-                        d.node.for_n(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,t)); 
+                        d.node.for_n(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); 
                         //    edges.push({r:r, n:n, t:t}); // , o:o this will cause reverse edges to be deleted on forward node
                         //});
                         //d.node.delete_edges(d, edges);
@@ -270,10 +271,7 @@ export const create_base_slice = (set,get)=>({
                         });
                     }
                     //if(d.n[n.id].t=='public') d.public = n.id;
-                    if(d.category_tags.includes(d.n[n.id].t)) {
-                        console.log('found cat', d.n[n.id].t);
-                        d.cat[d.n[n.id].t] = n.id;
-                    }
+                    if(d.category_tags.includes(d.n[n.id].t)) d.cats[d.n[n.id].t] = n.id;
                     //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                 }else{  
                     d.n[n.id].t = d.model_tags[d.n[n.id].m];

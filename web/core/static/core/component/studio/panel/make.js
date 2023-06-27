@@ -9,8 +9,8 @@ export function Make(){
     const show = useS(d=> d.studio.panel.show);
     const panel = useS(d=> d.studio.panel.name);
     const nodes = useS(d=> d.pick.n);
+    const limited = useS(d=> d.pick.limited); 
     const d = gs();
-    const limited = !nodes.length || d.node.admin(d,nodes);
     return(
         show && panel=='make' && c(Fragment, {},
             c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
@@ -49,7 +49,7 @@ export function Make(){
                                     className: 'border-white text-start '+d.node.meta[t].css,
                                     variant:'outline-primary', size:'lg',
                                     onClick:e=> ss(d=>{ 
-                                        d.pick.n.forEach(n=> d.make.edge(d, d.cat[t], n)); 
+                                        d.pick.n.forEach(n=> d.make.edge(d, d.cats[t], n)); 
                                         d.studio.panel.show = false;
                                     }),
                                 }, 
@@ -97,6 +97,8 @@ export function Make(){
         )
     )
 }
+
+//const limited = !nodes.length || d.node.admin(d,nodes);
 
 
 // !nodes.length ? null : c(Col, {}, 

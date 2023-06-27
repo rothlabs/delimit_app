@@ -23,7 +23,7 @@ export function Remake(){ //Transmute or Recast
         }},
         {name:'Remove',  icon:'bi-box-arrow-up-right', disabled:!removable, func(d){ 
             d.node.for_n(d, d.pick.target, (r,n,t)=>{
-                if(d.pick.group.includes(n)) d.delete.edge(d,r,n,t);
+                if(d.pick.group.includes(n)) d.delete.edge(d,r,n,{t:t});
             })
         }},
         {name:'Merge',  icon:'bi-arrows-angle-contract', disabled:!mergeable, func(d){ // put button definitions like this in store

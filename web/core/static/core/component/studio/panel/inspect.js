@@ -1,10 +1,11 @@
-import {createElement as c, useEffect, useState, Fragment} from 'react';
-import {Row, Col, Dropdown, Container, Form, ButtonGroup, ButtonToolbar, Button, ToggleButton} from 'react-bootstrap';
+import {createElement as c, Fragment} from 'react';
+import {Row, Col, ButtonToolbar, Button} from 'react-bootstrap';
 import {ss, gs, useS, use_window_size} from '../../../app.js';
 import {Remake} from '../toolbar/remake.js';
 import {Delete} from '../toolbar/delete.js';
 import {Close} from '../toolbar/close.js';
 import {Badge} from '../../node/base.js'
+//import {Cat_Badge} from '../../node/base.js'
 import {String} from '../../node/input/string.js';
 import {Float} from '../../node/input/float.js';
 
@@ -12,12 +13,10 @@ import {Float} from '../../node/input/float.js';
 export function Inspect(){ 
     const panel = useS(d=> d.studio.panel.name);
     const show = useS(d=> d.studio.panel.show);
-    const string_tags = useS(d=> d.string_tags);
-    const float_tags = useS(d=> d.float_tags);
     const nodes = useS(d=> d.pick.n); 
     const limited = useS(d=> d.pick.limited); 
-    //const d = gs();
-    //console.log('render inspector');
+    const cats = useS(d=> d.inspect.cats);
+    const d = gs();
     return (
         show && (panel=='inspect_design' || panel=='inspect_nodes') && c(Fragment, {},
             c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
@@ -32,15 +31,39 @@ export function Inspect(){
                 c(Delete),
                 c(Close),
             ),
-            ...string_tags.map(t=>
+            ...d.string_tags.map(t=>
                 c(String, {t:t})
             ),
-            ...float_tags.map(t=>
+            ...d.float_tags.map(t=>
                 c(Float, {t:t})
+            ),
+            !cats.length ? null : c(Fragment,{},
+                c('h5',{className:'text-secondary bi-tag mt-4'}, ' Category'),
+                c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
+                    ...cats.map(t=>
+                        c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
+                            c(Button, {
+                                id:'make_'+t,
+                                className:'border-white pt-0 pb-1 px-2 '+d.node.meta[t].css,
+                                variant:'outline-primary', 
+                                onClick:e=> ss(d=>{ 
+                                    d.pick.n.forEach(n=> d.delete.edge(d, d.cats[t], n)); 
+                                }),
+                            }, 
+                                ' '+d.node.meta[t].tag
+                            ) 
+                        ) 
+                    ),
+                ),
             ),
         )
     )
 }
+
+// c(Cat_Badge, {t:t})
+
+//const d = gs();
+    //console.log('render inspector');
 
 
 // c(ButtonToolbar, {},

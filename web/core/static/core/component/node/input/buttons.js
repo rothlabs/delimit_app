@@ -19,14 +19,7 @@ export function Buttons({t}){
     if(!d.atom_tags.includes(t)) buttons.push({name:'Remove', icon:'bi-x-lg', func(d){
             [...d.pick.n].forEach(r=>{
                 d.node.get(d,r,t).forEach(n=>{
-                    d.delete.edge_or_node(d,r,n,t);
-                    // if(d.node.cr(d, n).length > 1){
-                    //     //console.log('edge only?');
-                    //     d.delete.edge(d, r, n, t);
-                    // }else{
-                    //     //console.log('delete node for some reason?');
-                    //     d.delete.node(d, n);
-                    // }
+                    d.delete.edge_or_node(d,r,n,{t:t});
                 });
             });
     }});
@@ -42,3 +35,11 @@ export function Buttons({t}){
         )
     )
 }
+
+// if(d.node.cr(d, n).length > 1){
+                    //     //console.log('edge only?');
+                    //     d.delete.edge(d, r, n, t);
+                    // }else{
+                    //     //console.log('delete node for some reason?');
+                    //     d.delete.node(d, n);
+                    // }

@@ -12,7 +12,13 @@ export const create_remake_slice = (set,get)=>({remake:{
     copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
         if(!d.node.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.node.admin(d, (a.r ? [n,a.r] : [n]))){ 
             const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
-            if(d.n[n].m != 'p') d.n[cpy].v = d.n[n].v;
+            if(d.n[n].m == 'p') {
+                Object.keys(d.n[n].r).forEach(t=>{
+                    if(d.cats[t]) d.make.edge(d, d.cats[t], cpy);
+                });
+            }else{
+                d.n[cpy].v = d.n[n].v;
+            }
             //if(a.r) d.make.edge(d, a.r, cpy, {src:a_src});
             //if(!a.depth) a.depth=0;
             if(!a.copied) a.copied=[];
@@ -51,7 +57,7 @@ export const create_remake_slice = (set,get)=>({remake:{
                 if(nodes.includes(n)){
                     const cpy = d.remake.copy(d, n, {deep:true}); // get rid of view for children as well //, rt:['asset', 'view']
                     d.make.edge(d, r, cpy, {t:t, o:o});
-                    d.delete.edge(d, r, n, t);
+                    d.delete.edge(d, r, n, {t:t});
                     //dead_edges.push({r:r, n:n, t:t}); // , o:o+1 +1 because new edge is inersted just in front of old edge 
                 }
             });
@@ -84,7 +90,7 @@ export const create_remake_slice = (set,get)=>({remake:{
         default(d, nodes, target){
             d.node.for_n(d, nodes, (r,n,t)=>{
                 if(d.value_tags.includes(t)){
-                    d.delete.edge_or_node(d,r,n,t);
+                    d.delete.edge_or_node(d,r,n,{t:t});
                     //d.delete.node(d, n, {deep:true}); // make delete if not in use by others func?
                 }else{
                     d.make.edge(d, target, n, {t:t}); // should order be included?

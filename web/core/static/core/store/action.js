@@ -5,7 +5,7 @@ export const create_action_slice=(set,get)=>({action:{
         if(d.action[d.n[n].t]) d.action[d.n[n].t](d,n,a);
         d.node.for_r(d, n, r=> d.action.node(d,r,a)); // watch out for cycle ?!?!?!
     },
-    repeater(d, n, a={}){
+    repeater(d, n, a={}){ // need to repeat category actions !!!!!!!
         if(a.src!=n){
             console.log('repeater', a);
             const grps = d.n[n].n.group;
@@ -46,7 +46,7 @@ export const create_action_slice=(set,get)=>({action:{
                                 if(g != cg){
                                     const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
                                     const alt_n = d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)];
-                                    d.delete.edge(d, alt_r, alt_n, a.t, {src:n});
+                                    d.delete.edge(d, alt_r, alt_n, {t:a.t, src:n});
                                 }
                             });
                         }

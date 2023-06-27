@@ -20,12 +20,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.reckon.count++;
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
         d.n[n].public = false;
-        if(d.n[n].r['viewer'] && d.n[n].r['viewer'].includes(d.cat.public)) d.n[n].public = true; // put asset checker here too ?!?!?!?!
-        d.node.for_r(d, n, r=>{
-            //if(!(cause.split('__').includes('color') && !d.pick.color_tags.includes(d.n[r].t))){
-                d.next('reckon.node', r, cause+'__'+d.n[n].t); //{src:n, ...a}
-            //}
-        }); // got to watch out for cycle
+        if(d.n[n].r['viewer'] && d.n[n].r['viewer'].includes(d.cats.public)) d.n[n].public = true; // put asset checker here too ?!?!?!?!
+        d.node.for_r(d, n, r=> d.next('reckon.node', r, cause+'__'+d.n[n].t)); // got to watch out for cycle
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -98,6 +94,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 }});
 
 
+// //if(!(cause.split('__').includes('color') && !d.pick.color_tags.includes(d.n[r].t))){
 
 //d.n[n].c.pos_l   = new Vector3(nn.x, nn.y, nn.z); // local
             //d.n[n].c.pos = d.n[n].c.pos_l;

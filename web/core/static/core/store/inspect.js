@@ -1,4 +1,5 @@
 export const create_inspect_slice = (set,get)=>({inspect:{
+    cats:[],
     content:{}, 
     asset:{}, 
     placeholder:{}, 
@@ -6,6 +7,13 @@ export const create_inspect_slice = (set,get)=>({inspect:{
     splittable:{},
     update(d){ 
         //console.log('update inspect');
+        d.inspect.cats = [];
+        d.pick.n.forEach(n=>{
+            Object.keys(d.n[n].r).forEach(rt=>{
+                if(d.cats[rt]) d.inspect.cats.push(rt);
+            });
+        });
+
         const node_content = d.pick.n.map(n=> d.n[n]);
         d.value_tags.forEach(t=>{
             const nc = node_content.filter(n=> n.c[t]!=null);
