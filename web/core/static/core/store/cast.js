@@ -11,8 +11,11 @@ export const create_cast_slice=(set,get)=>({cast:{
         d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content));
     },
     base(d,n,c){
-        d.n[n].c.matrix = c.matrix;
-        d.n[n].c.inverse_matrix = c.inverse_matrix;
+        //d.n[n].c.matrix = c.matrix;
+        //d.n[n].c.inverse_matrix = c.inverse_matrix;
+        d.cast_tags.forEach(t => {
+            if(c[t]!=undefined) d.n[n].c[t] = c[t]; 
+        });
         if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
         d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
     },

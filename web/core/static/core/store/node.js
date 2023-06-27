@@ -22,6 +22,13 @@ export const create_node_slice =(set,get)=>({node:{
         //}
         return null;
     },
+    cats(d,n){
+        const result = [];
+        Object.keys(d.cats).forEach(t=>{ 
+            if(d.n[n].r[t]) d.add(result, t);
+        });
+        return result;
+    },
     admin(d, n){
         if(!Array.isArray(n)) n = [n];
         return n.some(n=> d.admin_tags.includes(d.n[n].t));//{

@@ -9,9 +9,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
         //console.log('update inspect');
         d.inspect.cats = [];
         d.pick.n.forEach(n=>{
-            Object.keys(d.n[n].r).forEach(rt=>{
-                if(d.cats[rt]) d.inspect.cats.push(rt);
-            });
+            d.node.cats(d,n).forEach(t=> d.add(d.inspect.cats, t));
         });
 
         const node_content = d.pick.n.map(n=> d.n[n]);

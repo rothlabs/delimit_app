@@ -19,8 +19,10 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     base(d, n, cause=''){
         d.reckon.count++;
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
-        d.n[n].public = false;
-        if(d.n[n].r['viewer'] && d.n[n].r['viewer'].includes(d.cats.public)) d.n[n].public = true; // put asset checker here too ?!?!?!?!
+
+        //d.clear.down(d, n, d.n[n].c);
+        //if(d.node.cats(d,n))
+
         d.node.for_r(d, n, r=> d.next('reckon.node', r, cause+'__'+d.n[n].t)); // got to watch out for cycle
         d.next('design.update'); 
         d.next('inspect.update'); 
@@ -87,12 +89,16 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             }
         }catch{} //}catch(e){console.log(e)}
     },
+    mixed_line(d,n,cause=''){
+        try{
 
-    //sketch(d,n){
-        //d.reckon.list(d, n, 'line', n=>({}));
-    //},
+        }catch(e){console.log(e)}
+    },
 }});
 
+
+// d.n[n].public = false;
+// if(d.n[n].r['viewer'] && d.n[n].r['viewer'].includes(d.cats.public)) d.n[n].public = true; // put asset checker here too ?!?!?!?!
 
 // //if(!(cause.split('__').includes('color') && !d.pick.color_tags.includes(d.n[r].t))){
 

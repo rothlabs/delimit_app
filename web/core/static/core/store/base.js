@@ -50,7 +50,10 @@ export const create_base_slice = (set,get)=>({
         'outer_view':   'bi-camera-reels',
         'product':      'bi-bag',
     },
-    //cast_tags:    ['scale_x','scale_y','scale_z'],
+    cast_tags: [
+        'matrix', 'inverse_matrix',
+        'top_view', 'inner_view', 'outer_view',
+    ],
 
     n: {},
     t: {},
