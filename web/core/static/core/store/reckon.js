@@ -20,7 +20,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     base(d, n, cause=''){
         d.reckon.count++;
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
-        if(d.cat_cast_tags.includes(d.n[n].t)){ // make dictionary (Object.fromEntries) for fast lookup ?!?!?!?!?!
+        if(d.cat_cast[d.n[n].t]){ // make dictionary (Object.fromEntries) for fast lookup ?!?!?!?!?!
             d.n[n].c[d.n[n].t] = true;
             d.cast.down(d, n, d.n[n].t);
         }

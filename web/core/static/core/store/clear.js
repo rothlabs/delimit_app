@@ -6,8 +6,8 @@ import {current} from 'immer';
 
 export const create_clear_slice=(set,get)=>({clear:{
     down(d,n,c){ 
-        d.cast_tags.forEach(t=>{
-            if(c[t]!=undefined && d.n[n].c[t] === c[t]) delete d.n[n].c[t]; 
+        Object.entries(c).forEach(([t,c])=>{
+            if(d.cast_tags[t] && d.n[n].c[t] === c) delete d.n[n].c[t]; 
         });
         if(d.clear[d.n[n].t]) d.clear[d.n[n].t](d,n,c);
         d.node.for_n(d, n, (r,n)=> d.clear.down(d,n,c));
@@ -16,6 +16,11 @@ export const create_clear_slice=(set,get)=>({clear:{
         if(c.matrix) d.next('reckon.node',n);
     },
 }});
+
+
+// d.cast_tags.forEach(t=>{
+//     if(c[t]!=undefined && d.n[n].c[t] === c[t]) delete d.n[n].c[t]; 
+// });
 
 // down(d,n,c){ 
 //     if(Array.isArray(c)){//if(typeof c === 'string'){

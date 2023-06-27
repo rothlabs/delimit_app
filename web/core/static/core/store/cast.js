@@ -11,8 +11,8 @@ export const create_cast_slice=(set,get)=>({cast:{
         d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content));
     },
     base(d,n,c){
-        d.cast_tags.forEach(t => { // make loop through c first and check if in cast tag
-            if(c[t]!=undefined) d.n[n].c[t] = c[t]; 
+        Object.entries(c).forEach(([t,c])=>{
+            if(d.cast_tags[t]) d.n[n].c[t] = c; 
         });
         if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
         d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
@@ -21,6 +21,11 @@ export const create_cast_slice=(set,get)=>({cast:{
         if(c.matrix) d.next('reckon.node',n);
     },
 }});
+
+
+// d.cast_tags.forEach(t => { // make loop through c first and check if in cast tag
+//     if(c[t]!=undefined) d.n[n].c[t] = c[t]; 
+// });
 
 
 // down(d,n,c){ 

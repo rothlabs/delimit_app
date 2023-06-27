@@ -13,6 +13,7 @@ const cat_cast_tags=[
     'top_view', 'inner_view', 'outer_view',
 ];
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
+const cat_cast = Object.fromEntries(cat_cast_tags.map(t=>[t,true]));
 const category_tags = ['public', ...cat_cast_tags,];
 const admin_tags    = ['profile', ...category_tags];
 const float_tags    = [model_tags['f'], // rename to number_tags
@@ -51,10 +52,10 @@ export const create_base_slice = (set,get)=>({
         'outer_view':   'bi-camera-reels',
         'product':      'bi-bag',
     },
-    cat_cast_tags: cat_cast_tags,
-    cast_tags: [
-        'matrix', 'inverse_matrix', ...cat_cast_tags,
-    ],
+    cat_cast: cat_cast,
+    cast_tags: {...cat_cast, ...Object.fromEntries([
+        'matrix', 'inverse_matrix'
+    ].map(t=>[t,true]))},
 
     n: {},
     t: {},
@@ -275,7 +276,7 @@ export const create_base_slice = (set,get)=>({
                         });
                     }
                     //if(d.n[n.id].t=='public') d.public = n.id;
-                    if(d.category_tags.includes(d.n[n.id].t)) d.cats[d.n[n.id].t] = n.id;
+                    if(d.category_tags.includes(d.n[n.id].t)) d.cats[d.n[n.id].t] = n.id; // optimize with direct lookup ?!?!?!?!
                     //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                 }else{  
                     d.n[n.id].t = d.model_tags[d.n[n.id].m];

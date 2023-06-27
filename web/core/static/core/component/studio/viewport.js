@@ -30,7 +30,7 @@ export function Viewport(){
     //    camera_zoom_rv(camera.zoom);
     //});
     const studio_mode = useS(d=> d.studio.mode);
-    console.log('viewport Render!');
+    //console.log('viewport Render!');
     return (
         c('group', {name:'viewport'}, 
             c(CameraControls, { //ref: camera_controls,
