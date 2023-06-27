@@ -11,7 +11,7 @@ const tm = new Matrix4();
 
 export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
-    node(d, n, cause){ // might need to check for node existence or track original reckon call
+    node(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
         d.reckon.base(d, n, cause);
         //if(d.reckon[d.n[n].t])                 {d.reckon[d.n[n].t](d,n,cause); d.reckon.base(d,n,cause);}
         //else if(d.atom_tags.includes(d.n[n].t)){d.reckon.atom(d,n,cause)}
@@ -20,14 +20,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     base(d, n, cause=''){
         d.reckon.count++;
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
-
-        //d.clear.down(d, n, d.n[n].c);
-        //if(d.node.cats(d,n))
-        d.clear.down(d, n, d.n[n].c);
-        if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause);
-
-        d.cast.down(d, n, d.n[n].c);
-
+        if(d.cat_cast_tags.includes(d.n[n].t)){ // make dictionary (Object.fromEntries) for fast lookup ?!?!?!?!?!
+            d.n[n].c[d.n[n].t] = true;
+            d.cast.down(d, n, d.n[n].t);
+        }
+        if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
         d.node.for_r(d, n, r=> d.next('reckon.node', r, cause+'__'+d.n[n].t)); // got to watch out for cycle
         d.next('design.update'); 
         d.next('inspect.update'); 
@@ -45,9 +42,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                     result[t] = d.n[d.n[n].n[t][0]].v;
                 }
                 d.n[n].c[t] = result[t];
-            }else{   d.n[n].c[t]=null;  }
+            }else{   d.n[n].c[t]=null;  } // should delete attr instead ?!?!?!
         });
-        if(lodash.isEmpty(result)) return null;
+        if(lodash.isEmpty(result)) return null; 
         return result;
     },
     list(d, n, t, func){ // build in n:n and color:color pick_color, 
@@ -90,7 +87,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 tm.compose(tv1, tq, tv2);
                 d.n[n].c.matrix = new Matrix4().copy(tm);
                 d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
-                //d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
+                d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
             }
         }catch{} //}catch(e){console.log(e)}
     },
@@ -101,6 +98,44 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
 }});
 
+
+
+// var cast_downs = '';
+        // var clear_downs = [];
+        // d.node.cats(d,n).forEach(t=>{
+        //     if(d.cat_cast_tags.includes(t)){
+        //         console.log('trying to cast', d.n[n].c[t]);
+        //         if(d.n[n].c[t] != true){
+        //             d.n[n].c[t] = true;
+        //             cast_downs += t+' ';
+        //         }else{
+        //             if(d.n[n].c[t] != undefined){
+        //                 clear_downs.push(t);
+        //             }
+        //         }
+        //     }
+        // });
+        // if(clear_downs.length) d.clear.down(d,n,clear_downs);
+        // if(cast_downs) d.cast.down(d,n,cast_downs);
+
+// //d.clear.down(d, n, d.cat_cast_tags);
+// var cast_downs = '';
+// //var clear_downs = [];
+// d.node.cats(d,n).forEach(t=>{
+//     if(d.cat_cast_tags[t]){
+//         if(d.n[n].c[t] != true){
+//             d.n[n].c[t] = true;
+//             cast_downs += t+' ';
+//         }
+//     }
+//     // }else{
+//     //     if(d.n[n].c[t] != undefined){
+//     //         clear_downs.push(t);
+//     //     }
+//     // }
+// });
+// //d.clear.down(d,n,clear_downs);
+// d.cast.down(d,n,cast_downs);
 
 // d.n[n].public = false;
 // if(d.n[n].r['viewer'] && d.n[n].r['viewer'].includes(d.cats.public)) d.n[n].public = true; // put asset checker here too ?!?!?!?!

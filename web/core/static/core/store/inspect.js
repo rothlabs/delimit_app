@@ -7,10 +7,10 @@ export const create_inspect_slice = (set,get)=>({inspect:{
     splittable:{},
     update(d){ 
         //console.log('update inspect');
-        d.inspect.cats = [];
-        d.pick.n.forEach(n=>{
-            d.node.cats(d,n).forEach(t=> d.add(d.inspect.cats, t));
-        });
+        d.inspect.cats = d.node.cats(d,d.pick.n);
+        //d.pick.n.forEach(n=>{
+        //    d.node.cats(d,n).forEach(t=> d.add(d.inspect.cats, t));
+        //});
 
         const node_content = d.pick.n.map(n=> d.n[n]);
         d.value_tags.forEach(t=>{

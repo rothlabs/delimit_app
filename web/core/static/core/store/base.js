@@ -6,15 +6,16 @@ import lodash from 'lodash';
 var next_funcs = [];
 var next_ids = [];
 
-const category_tags=[
-    'public', 'top_view', 'inner_view', 'outer_view',
-];
 const subject_tags= [
     'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line',
 ];
-const admin_tags  = ['profile', ...category_tags];
-const model_tags  = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-const float_tags  = [model_tags['f'], // rename to number_tags
+const cat_cast_tags=[
+    'top_view', 'inner_view', 'outer_view',
+];
+const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
+const category_tags = ['public', ...cat_cast_tags,];
+const admin_tags    = ['profile', ...category_tags];
+const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
 ];
 const string_tags = [model_tags['s'], 'name', 'story',]; // rename to text_tags
@@ -50,9 +51,9 @@ export const create_base_slice = (set,get)=>({
         'outer_view':   'bi-camera-reels',
         'product':      'bi-bag',
     },
+    cat_cast_tags: cat_cast_tags,
     cast_tags: [
-        'matrix', 'inverse_matrix',
-        'top_view', 'inner_view', 'outer_view',
+        'matrix', 'inverse_matrix', ...cat_cast_tags,
     ],
 
     n: {},
@@ -88,7 +89,7 @@ export const create_base_slice = (set,get)=>({
         if(index !== -1) array.splice(index, 1);
         return index;
     },
-    for(arg, func){
+    for(arg, func){ // need ability to break !!!!!!
         if(arg != undefined){
             if(Array.isArray(arg)){arg.forEach((a,i)=> func(a,i))}
             else                  {func(arg,0)}

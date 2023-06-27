@@ -5,12 +5,18 @@ const tv = new Vector3();
 const te = new Euler();
 
 export const create_cast_slice=(set,get)=>({cast:{
-    down(d,n,c){
-        d.cast_tags.forEach(t => {
+    down(d,n,c){ 
+        const content = {};
+        c.split(' ').forEach(c=> content[c]=d.n[n].c[c]);
+        //console.log('cast down', content);
+        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content));
+    },
+    base(d,n,c){
+        d.cast_tags.forEach(t => { // make loop through c first and check if in cast tag
             if(c[t]!=undefined) d.n[n].c[t] = c[t]; 
         });
         if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
-        d.node.for_n(d, n, (r,n)=> d.cast.down(d,n,c));
+        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
     },
     point(d,n,c){
         if(c.matrix) d.next('reckon.node',n);
