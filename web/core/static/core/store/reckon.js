@@ -42,7 +42,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                     result[t] = d.n[d.n[n].n[t][0]].v;
                 }
                 d.n[n].c[t] = result[t];
-            }else{   d.n[n].c[t]=null;  } // should delete attr instead ?!?!?!
+            }else{   delete d.n[n].c[t];  } // d.n[n].c[t]=null; // should delete attr instead ?!?!?!
         });
         if(lodash.isEmpty(result)) return null; 
         return result;

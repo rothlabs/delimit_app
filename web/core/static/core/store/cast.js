@@ -8,7 +8,6 @@ export const create_cast_slice=(set,get)=>({cast:{
     down(d,n,c){ 
         const content = {};
         c.split(' ').forEach(c=> content[c]=d.n[n].c[c]);
-        //console.log('cast down', content);
         d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content));
     },
     base(d,n,c){
