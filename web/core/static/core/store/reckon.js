@@ -12,9 +12,10 @@ const tm = new Matrix4();
 export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
     node(d, n, cause){ // might need to check for node existence or track original reckon call
-        if(d.reckon[d.n[n].t])                 {d.reckon[d.n[n].t](d,n,cause); d.reckon.base(d,n,cause);}
-        else if(d.atom_tags.includes(d.n[n].t)){d.reckon.atom(d,n,cause)}
-        else                                   {d.reckon.default(d,n,cause)} // could delete this?
+        d.reckon.base(d, n, cause);
+        //if(d.reckon[d.n[n].t])                 {d.reckon[d.n[n].t](d,n,cause); d.reckon.base(d,n,cause);}
+        //else if(d.atom_tags.includes(d.n[n].t)){d.reckon.atom(d,n,cause)}
+        //else                                   {d.reckon.default(d,n,cause)} // could delete this?
     },
     base(d, n, cause=''){
         d.reckon.count++;
@@ -22,6 +23,10 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 
         //d.clear.down(d, n, d.n[n].c);
         //if(d.node.cats(d,n))
+        d.clear.down(d, n, d.n[n].c);
+        if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause);
+
+        d.cast.down(d, n, d.n[n].c);
 
         d.node.for_r(d, n, r=> d.next('reckon.node', r, cause+'__'+d.n[n].t)); // got to watch out for cycle
         d.next('design.update'); 
@@ -51,12 +56,12 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, ...func(nn)}); //color:d.n[nn].pick.color[pick_color],
         });
     },
-    atom(d,n,cause){
-        d.reckon.base(d, n,cause);
-    },
-    default(d,n,cause){
-        d.reckon.base(d,n,cause);
-    },
+    // atom(d,n,cause){
+    //     d.reckon.base(d, n,cause);
+    // },
+    // default(d,n,cause){
+    //     d.reckon.base(d,n,cause);
+    // },
     point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
@@ -85,7 +90,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 tm.compose(tv1, tq, tv2);
                 d.n[n].c.matrix = new Matrix4().copy(tm);
                 d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
-                d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
+                //d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
             }
         }catch{} //}catch(e){console.log(e)}
     },
