@@ -7,6 +7,7 @@ import {Point} from './point.js';
 
 const res = 100;
 
+
 export function Line({n}){ 
     const obj = useRef();
     const pl = useS(d=> d.n[n].c.point.length); 
@@ -21,12 +22,12 @@ export function Line({n}){
     //console.log('render line');
     return(
         c('group', {name:'line'},
-            points && c('group', {
+            points[0]?.n && c('group', {
                 name:'points',
             },
                 ...points.map(p=> c(Point, {n:p.n, key:p.n})),
             ),
-            points && points.length>1 && c(Pickable, {n:n}, // points && points.length>1 && 
+            points?.length && c(Pickable, {n:n}, // points && points.length>1 && 
                 c(CatmullRomLine, {
                     ref: obj,
                     points: points.map(p=> [p.pos.x, p.pos.y, p.pos.z]), //[[0,0,0],[0,0,0]], //points: 
@@ -38,6 +39,12 @@ export function Line({n}){
         )
     )
 }
+
+
+
+
+
+
 
 // useEffect(()=>subS(d=> d.n[n].c.point, points=>{ // make useSub that includes useEffect
     //     const curve = new CatmullRomCurve3(points.map(p=>p.pos));

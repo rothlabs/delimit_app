@@ -15,10 +15,13 @@ export const create_cast_slice=(set,get)=>({cast:{
             if(d.cast_tags[t]) d.n[n].c[t] = c; 
         });
         if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
-        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
+        if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
     },
     point(d,n,c){
         if(c.matrix) d.next('reckon.node',n);
+    },
+    mixed_line(d,n,c){
+        if(c.matrix) d.next('reckon.node',n,'matrix');
     },
 }});
 

@@ -8,7 +8,7 @@ const tm1 = new Matrix4();
 const tm2 = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
-    tags: ['line', 'sketch'],
+    tags: ['line', 'mixed_line', 'sketch'],
     mode: '', // make this draw mode and make seperate delete mode (erase)
     part: null, 
     candidate: null, 

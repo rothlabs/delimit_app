@@ -1,11 +1,13 @@
 import {createElement as c} from 'react';
 import {useS, gs} from '../../app.js';
 import {Line} from '../part/line.js';
+//import {Line3} from '../part/line3.js';
 import {Sketch} from '../part/sketch.js';
 
 const components = {
-    'line': Line,
-    'sketch': Sketch,
+    'line':       Line,
+    'mixed_line': Line,
+    'sketch':     Sketch,
 };
 
 export function Part(){

@@ -61,7 +61,7 @@ export function Viewport(){
                     d.pick.set(d, nodes, true);
                 }),
             }),
-            c(Fixed_Size_Group, {size:6},
+            c(Fixed_Size_Group, {size:12,},
                 c('mesh', {},
                     c('boxGeometry'),
                     c('meshBasicMaterial', {color:'grey', toneMapped:false}),

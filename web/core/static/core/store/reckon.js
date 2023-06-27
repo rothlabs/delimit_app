@@ -1,4 +1,4 @@
-import { Matrix4, Vector3, Euler, Quaternion, MathUtils } from "three";
+import { Matrix4, Vector3, Euler, Quaternion, MathUtils, CatmullRomCurve3 } from 'three';
 import {current} from 'immer';
 import lodash from 'lodash';
 
@@ -25,7 +25,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d, n, d.n[n].t);
         }
         if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
-        d.node.for_r(d, n, r=> d.next('reckon.node', r, cause+'__'+d.n[n].t)); // got to watch out for cycle
+        d.node.for_r(d, n, r=> d.next('reckon.node', r, cause+'__'+d.n[n].t)); // got to watch out for cycle // cause should include ID ?!?!?!?!
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -53,12 +53,6 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, ...func(nn)}); //color:d.n[nn].pick.color[pick_color],
         });
     },
-    // atom(d,n,cause){
-    //     d.reckon.base(d, n,cause);
-    // },
-    // default(d,n,cause){
-    //     d.reckon.base(d,n,cause);
-    // },
     point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
@@ -93,11 +87,59 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     mixed_line(d,n,cause=''){
         try{
-
+            //split_cause = cause.split('__');
+            if(cause.includes('line') || cause.includes('matrix')){ //  && !cause.includes(n) // make this check better so cause includes ID ?!?!??!
+                const res_i = 100;
+                const res_o = 25;
+                const l1 = d.n[n].n.line[0];
+                const l2 = d.n[n].n.line[1];
+                var pti = null;
+                if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
+                    pti = new CatmullRomCurve3(d.n[l1].c.point.map(p=>p.pos)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+                          new CatmullRomCurve3(d.n[l2].c.point.map(p=>p.pos)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+                }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
+                    pti = new CatmullRomCurve3(d.n[l2].c.point.map(p=>p.pos)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+                          new CatmullRomCurve3(d.n[l1].c.point.map(p=>p.pos)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+                }
+                if(pti){
+                    const pto = [];
+                    pti.sort((a,b)=> (a.p.x<b.p.x ? -1 : 1));
+                    var x = 0;
+                    var y = 0;
+                    var first = 0;
+                    for(var i=0; i<pti.length; i++){
+                        if(pti[i].v == 't'){ x = pti[i].p.y; first++;
+                        }else{ y = pti[i].p.y; first++; }
+                        if(first > 1) break;
+                    }
+                    for(var i=0; i<pti.length; i++){
+                        if(pti[i].v == 't'){
+                            x = pti[i].p.y;
+                            pto.push(new Vector3(x, y, pti[i].p.x));
+                        }else{
+                            y = pti[i].p.y;
+                            pto.push(new Vector3(x, y, pti[i].p.x));
+                        }
+                    }
+                    if(d.n[n].c.matrix){ 
+                        d.n[n].c.point = new CatmullRomCurve3(pto).getPoints(res_o).map(p=>({pos:p.applyMatrix4(d.n[n].c.matrix)})); 
+                    }else{
+                        d.n[n].c.point = new CatmullRomCurve3(pto).getPoints(res_o).map(p=>({pos:p}));
+                    }
+                }
+            }
         }catch(e){console.log(e)}
     },
 }});
 
+
+
+// atom(d,n,cause){
+    //     d.reckon.base(d, n,cause);
+    // },
+    // default(d,n,cause){
+    //     d.reckon.base(d,n,cause);
+    // },
 
 
 // var cast_downs = '';

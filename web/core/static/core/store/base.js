@@ -56,6 +56,9 @@ export const create_base_slice = (set,get)=>({
     cast_tags: {...cat_cast, ...Object.fromEntries([
         'matrix', 'inverse_matrix'
     ].map(t=>[t,true]))},
+    cast_end:Object.fromEntries([
+        'point', 'mixed_line',
+    ].map(t=>[t,true])),
 
     n: {},
     t: {},
