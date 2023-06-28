@@ -12,7 +12,7 @@ export const create_make_slice = (set,get)=>({make:{
         if(d.node.be(d,r) && d.node.be(d,n)){
             if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
                 var t = d.n[n].t;
-                if(d.n[r].t == 'group')  t = 'group'; 
+                //if(d.n[r].t == 'group')  t = 'group'; 
                 if(a.t != undefined) t = a.t;
                 //if(d.n[r].t == 'public') t = 'viewable';
                 if(r==d.profile && t!='viewable') t = 'asset';

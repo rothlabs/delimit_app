@@ -117,12 +117,12 @@ export const create_node_slice =(set,get)=>({node:{
     cr:(d, n)=> d.node.r(d, n, {content:true}),//.filter(e=> !['owner', 'viewer'].includes(e.t)),
     re:(d, n, a)=> d.node.r(d, n, {edge:true, ...a}),
     rt0:(d,n,t)=> d.node.r(d, n, {deep:true}).filter(r=>d.n[r].t==t)[0], // a.exit condition to exit search on correct condition
-    rne(d, nodes){
+    rne(d, nodes, a={}){
         const result = [];
         d.node.for_r(d, nodes, r=>{
             const ne = d.node.ne(d,r).find(e=> nodes.includes(e.n));
             if(ne) result.push(ne);//d.node.for_n(d, r, (r,n,t,o)=>{  if(nodes.includes(n)) result.push({r:r,n:n,t:t,o:o});   })
-        });
+        }, a);
         return result;
     },
     for_n:(d, roots, func, a)=> d.node.ne(d,roots,a).forEach(e=> func(...Object.values(e))), // rename to for_ne

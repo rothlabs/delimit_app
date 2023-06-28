@@ -11,21 +11,22 @@ export const create_action_slice=(set,get)=>({action:{
             const grps = d.n[n].n.group;
             if(grps){
                 if(a.act == 'make.edge'){
-                    console.log('make edge');
+                    //console.log('make edge');
                     if(grps.includes(a.r)){ // && !d.n[n].c.stop 
                         grps.forEach(g=>{
-                            if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n}); // only if not grouping? // rename src to act ?!?!?!?!
+                            if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n}); // enforce rne tag on copy (t:a.t) // only if not grouping? // rename src to act ?!?!?!?!
                         });
                     }else{ // check if atom should be shared or not in a?!?!?!?!
-                        const share = (d.n[a.n].n ? false : true);
-                        const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
-                        const cgn = (share ? cgr : d.node.r(d, a.n, {filter:r=>grps.includes(r)})); //, deep:true
-                        if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
-                            const cg = cgr[0];
+                        const share = (d.n[a.n].n ? false : true); // share if atom
+                        var cgr =             d.node.rne(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+                        var cgn = (share?cgr: d.node.rne(d, a.n, {filter:r=>grps.includes(r)})); //, deep:true
+                        if(cgr.length>0 && cgn.length>0 && cgr[0].r==cgn[0].r){
+                            cgr = cgr[0];
+                            cgn = cgn[0];
                             grps.forEach(g=>{
-                                if(g != cg){
-                                    const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
-                                    const alt_n = (share ? a.n : d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)]);
+                                if(g != cgr.r){
+                                    const alt_r =             d.n[g].n[cgr.t][cgr.o]; //d.n[g].n[cg.t][d.n[cg.r].n[cg.t].indexOf(a.r)]; // could index just come from d.node.rne above ?!?!?!?!
+                                    const alt_n = (share?a.n: d.n[g].n[cgn.t][cgn.o]); //d.n[g].n[cg.t][d.n[cg.r].n[cg.t].indexOf(a.n)]);
                                     d.make.edge(d, alt_r, alt_n, {src:n, t:a.t, o:a.o}); // need o:o
                                 }
                             });
@@ -35,17 +36,18 @@ export const create_action_slice=(set,get)=>({action:{
                 if(a.act == 'delete.edge'){
                     if(grps.includes(a.r)){ // && !d.n[n].c.stop 
                         grps.forEach(g=>{
-                            if(g != a.r && d.n[g].n.group) d.delete.node(d, d.n[g].n.group[a.o], {src:n});
+                            if(g != a.r && d.n[g].n[a.t]) d.delete.node(d, d.n[g].n[a.t][a.o], {src:n});
                         });
                     }else{ 
-                        const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
-                        const cgn = d.node.r(d, a.n, {filter:r=>grps.includes(r)}); //, deep:true
-                        if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
-                            const cg = cgr[0];
+                        var cgr = d.node.rne(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+                        var cgn = d.node.rne(d, a.n, {filter:r=>grps.includes(r)}); //, deep:true
+                        if(cgr.length>0 && cgn.length>0 && cgr[0].r==cgn[0].r){
+                            cgr = cgr[0];
+                            cgn = cgn[0];
                             grps.forEach(g=>{
-                                if(g != cg){
-                                    const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
-                                    const alt_n = d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)];
+                                if(g != cgr.r){
+                                    const alt_r = d.n[g].n[cgr.t][cgr.o];
+                                    const alt_n = d.n[g].n[cgn.t][cgn.o];
                                     d.delete.edge(d, alt_r, alt_n, {t:a.t, src:n});
                                 }
                             });
@@ -54,6 +56,84 @@ export const create_action_slice=(set,get)=>({action:{
                 }
             }
         }
+    }
+}});
+
+
+// export const create_action_slice=(set,get)=>({action:{
+//     node(d, n, a={}){ // rename to send? // might need to check for node existence or track original reckon call
+//         if(d.action[d.n[n].t]) d.action[d.n[n].t](d,n,a);
+//         d.node.for_r(d, n, r=> d.action.node(d,r,a)); // watch out for cycle ?!?!?!
+//     },
+//     repeater(d, n, a={}){ // need to repeat category actions !!!!!!!
+//         if(a.src!=n){
+//             console.log('repeater', a);
+//             const grps = d.n[n].n.group;
+//             if(grps){
+//                 if(a.act == 'make.edge'){
+//                     console.log('make edge');
+//                     if(grps.includes(a.r)){ // && !d.n[n].c.stop 
+//                         grps.forEach(g=>{
+//                             if(g != a.r) d.remake.copy(d, a.n, {r:g, src:n}); // only if not grouping? // rename src to act ?!?!?!?!
+//                         });
+//                     }else{ // check if atom should be shared or not in a?!?!?!?!
+//                         const share = (d.n[a.n].n ? false : true);
+//                         const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+//                         const cgn = (share ? cgr : d.node.r(d, a.n, {filter:r=>grps.includes(r)})); //, deep:true
+//                         if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
+//                             const cg = cgr[0];
+//                             grps.forEach(g=>{
+//                                 if(g != cg){
+//                                     const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
+//                                     const alt_n = (share ? a.n : d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)]);
+//                                     d.make.edge(d, alt_r, alt_n, {src:n, t:a.t, o:a.o}); // need o:o
+//                                 }
+//                             });
+//                         }
+//                     }
+//                 }
+//                 if(a.act == 'delete.edge'){
+//                     if(grps.includes(a.r)){ // && !d.n[n].c.stop 
+//                         grps.forEach(g=>{
+//                             if(g != a.r && d.n[g].n.group) d.delete.node(d, d.n[g].n.group[a.o], {src:n});
+//                         });
+//                     }else{ 
+//                         const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+//                         const cgn = d.node.r(d, a.n, {filter:r=>grps.includes(r)}); //, deep:true
+//                         if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
+//                             const cg = cgr[0];
+//                             grps.forEach(g=>{
+//                                 if(g != cg){
+//                                     const alt_r = d.n[g].n.group[d.n[cg].n.group.indexOf(a.r)];
+//                                     const alt_n = d.n[g].n.group[d.n[cg].n.group.indexOf(a.n)];
+//                                     d.delete.edge(d, alt_r, alt_n, {t:a.t, src:n});
+//                                 }
+//                             });
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         //     if(!d.n[n].c.grp) d.n[n].c.grp = [];
@@ -92,8 +172,7 @@ export const create_action_slice=(set,get)=>({action:{
         //         });
         //     }
         // }
-    }
-}});
+
 
 
 //if(d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true})){
