@@ -17,10 +17,9 @@ export function Point({n}){
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
     useSub(d=> d.n[n].c.pos, pos=>{
-        if(pos){
-            obj.current.position.set(pos.x,pos.y,pos.z+100);
-        }
+        if(pos) obj.current.position.set(pos.x,pos.y,pos.z+100);
     });
+    console.log('render point');
     return(
         c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
             ref: obj,

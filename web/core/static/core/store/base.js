@@ -2,7 +2,8 @@ import {current} from 'immer';
 import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
-import { Group } from '../component/part/group.js';
+//import { Group } from '../component/part/group.js';
+import { Point } from '../component/part/point.js';
 import { Line } from '../component/part/line.js';
 
 var next_funcs = [];
@@ -15,10 +16,11 @@ const cat_cast_tags=[
     'top_view', 'inner_view', 'outer_view',
 ];
 const component = {
-    'group':       Group,
-    'product':     Group,
-    'sketch':      Group,
-    'repeater':    Group,
+    // 'group':       Group,
+    // 'product':     Group,
+    // 'sketch':      Group,
+    // 'repeater':    Group,
+    'point':       Point,
     'line':        Line,
     'mixed_line':  Line,
 };

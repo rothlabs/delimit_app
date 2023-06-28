@@ -10,7 +10,7 @@ const res = 100;
 
 export function Line({n}){ 
     const obj = useRef();
-    useSS(d=> d.n[n].n.point); 
+    //useSS(d=> d.n[n].n.point); 
     const color = useS(d=> d.n[n].pick.color); 
     useSub(d=> d.n[n].c.point, pts=>{ // make useSub that includes useEffect
         if(obj.current){
@@ -21,12 +21,12 @@ export function Line({n}){
     const points = gs().n[n].c.point;
     //console.log('render line');
     return(
-        c('group', {name:'line'},
-            points[0]?.n && c('group', {
-                name:'points',
-            },
-                ...points.map(p=> c(Point, {n:p.n, key:p.n})),
-            ),
+        //c('group', {name:'line'},
+            // points[0]?.n && c('group', {
+            //     name:'points',
+            // },
+            //     ...points.map(p=> c(Point, {n:p.n, key:p.n})),
+            // ),
             points?.length && c(Pickable, {n:n}, // points && points.length>1 && 
                 c(CatmullRomLine, {
                     ref: obj,
@@ -35,8 +35,8 @@ export function Line({n}){
                     color: color[0],
                     segments: res, // need to make this adjustable or dependent on zoom or line length 
                 }),
-            ),
-        )
+            )//,
+        //)
     )
 }
 

@@ -32,6 +32,7 @@ export const create_delete_slice = (set,get)=>({delete:{
                 d.next('reckon.node', r); //d.reckon.node(d,n); // 
                 d.next('graph.update');
                 d.next('pick.update');
+                d.next('design.show');
             }
         }
     },

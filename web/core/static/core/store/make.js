@@ -39,6 +39,7 @@ export const create_make_slice = (set,get)=>({make:{
                     d.next('reckon.node', r, 'make.edge'); 
                     d.next('graph.update');
                     d.next('pick.update');
+                    d.next('design.show');
                 }
             }
         }

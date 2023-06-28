@@ -34,6 +34,7 @@ export function Toolbar(){
                         checked: mode == button.value,
                         onChange:e=> ss(d=>{
                             d.studio.mode=e.currentTarget.value
+                            if(d.studio.mode=='design') d.design.show(d);
                             d.next('design.update'); 
                         }),
                         disabled: button.disabled,
@@ -52,6 +53,7 @@ export function Toolbar(){
                     onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
                         d.design.part = design_candidate; 
                         d.studio.mode = 'design';
+                        d.design.show(d);
                         d.pick.none(d);
                     }),
                 }, c('i',{className:'bi-pencil-square', style:{fontSize:'24px'}}), ' Edit'),

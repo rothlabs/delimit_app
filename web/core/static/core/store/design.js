@@ -9,6 +9,7 @@ const tm2 = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
     //tags: ['line', 'mixed_line', 'sketch'],
+    n: [],
     mode: '', // make this draw mode and make seperate delete mode (erase)
     part: null, 
     candidate: null, 
@@ -65,8 +66,9 @@ export const create_design_slice = (set,get)=>({design:{
         const n = d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
         d.pick.one(d, n, {t:true});
     },
-    update: d=>{
-        d.design.candidate = d.pick.get_if_one(d, d.component_tags);
+    update(d){
+        d.design.candidate = d.pick.get_if_one(d);//d.design.candidate = d.pick.get_if_one(d, d.component_tags);
+        if(!d.n[d.design.candidate]?.n) d.design.candidate = null;
         if(!d.node.be(d, d.design.part)){ // use exists/available function here?  d.design.part && !d.n[d.design.part].open
             d.design.part = null;
             d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
@@ -90,6 +92,15 @@ export const create_design_slice = (set,get)=>({design:{
             d.design.matrix.identity();
         }
     },
+    show(d){
+        //console.log('show');
+        //console.trace();
+        if(d.design.part){
+            d.design.n = [d.design.part, ...d.node.n(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t]);
+        }else{
+            d.design.n = [];
+        }
+    }
 }});
 
 
