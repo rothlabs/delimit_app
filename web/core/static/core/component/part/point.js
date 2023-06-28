@@ -1,4 +1,4 @@
-import {createElement as c, useRef, useEffect} from 'react';
+import {createElement as c, useRef, memo} from 'react';
 import {gs, useS, useSub, Fixed_Size_Group} from '../../app.js';
 import {Pickable} from '../node/base.js';
 import {CircleGeometry} from 'three';
@@ -13,13 +13,13 @@ const circle_geometry = new CircleGeometry(1,12);
 //const tv = new Vector3();
 //const bounding_sphere = new Sphere(tv, 10000);
 
-export function Point({n}){ 
+export const Point = memo(function Point({n}){//export function Point({n}){ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
     useSub(d=> d.n[n].c.pos, pos=>{
         if(pos) obj.current.position.set(pos.x,pos.y,pos.z+100);
     });
-    console.log('render point');
+    //console.log('render point');
     return(
         c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
             ref: obj,
@@ -36,7 +36,7 @@ export function Point({n}){
             ),
         )
     )
-}
+})
 
 // , [obj.current]  // find way to forward more props from fixed size group
     // useEffect(()=>subS(d=> d.n[n].c.pos, pos=>{ // make useSub that includes useEffect

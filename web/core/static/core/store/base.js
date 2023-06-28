@@ -270,7 +270,7 @@ export const create_base_slice = (set,get)=>({
                 //if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
                 if(d.n[n.id].r){
                     //const edges = []; 
-                    d.node.for_rn(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); 
+                    d.node.for_rn(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
                         //edges.push({r:r, n:n, t:t}); // // , o:o don't know if this is needed ?!?!?!?!,  this will cause reverse edges to be deleted on forward node
                     //});
                     //d.node.delete_edges(d, edges);
@@ -281,7 +281,7 @@ export const create_base_slice = (set,get)=>({
                     d.n[n.id].t = d.t[n.t];
                     if(d.n[n.id].n){
                         //const edges = [];
-                        d.node.for_n(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); 
+                        d.node.for_n(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
                         //    edges.push({r:r, n:n, t:t}); // , o:o this will cause reverse edges to be deleted on forward node
                         //});
                         //d.node.delete_edges(d, edges);
@@ -308,7 +308,7 @@ export const create_base_slice = (set,get)=>({
                 //}
             }); 
         });
-        ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{  // use d.make.edge here?  
+        ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{  // use d.make.edge here so repeater takes action ?!?!?!?!?!?
             const root_exists = d.node.be(d, e.r);
             if(root_exists){ // change be to ex? (ex for exists)
                 if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = [];  
@@ -332,7 +332,7 @@ export const create_base_slice = (set,get)=>({
             }
         }));
         data.p.forEach(n=>{
-            if(d.node.be(d,n.id)) d.reckon.node(d, n.id); // need to track if reckon was already called due to branch (so not running same calc)
+            if(d.node.be(d,n.id)) d.reckon.node(d, n.id); // d.next('reckon.node',n.id); // run lowest level reckon only ?!?!?!?!
         });
         d.studio.ready = true;
         if(set_update_graph) d.next('graph.update'); // only if add/remove or d.n[n].n/d.n[n].r changes

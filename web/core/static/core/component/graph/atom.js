@@ -1,4 +1,4 @@
-import {createElement as c, useState, useRef, useMemo, useEffect} from 'react';
+import {createElement as c, memo, useRef} from 'react';
 import {useS, useSub, gs, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
@@ -8,7 +8,7 @@ import { Pickable } from '../node/base.js';
 const circle_geometry = new THREE.CircleGeometry(1.8,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 
-export function Atom({n}){
+export const Atom = memo(function Atom({n}){
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color);
     const pick = useS(d=> d.n[n].pick.pick); //const pick = useD(d=> d.selection.includes(n));
@@ -76,7 +76,7 @@ export function Atom({n}){
             )
         )
     )
-}
+})
 
                     // c('mesh', {},
                     //     c('tetrahedronGeometry'),

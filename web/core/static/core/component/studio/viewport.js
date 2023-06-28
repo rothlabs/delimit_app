@@ -45,22 +45,22 @@ export function Viewport(){
             studio_mode=='design' && c(Part),
             c(Board),
             c(Mover),
-            c(Selection_Box, { // studio mode causes this to render and removes selection!!!!!!!
-                style:{
-                    border: "1px dashed #d6006a",
-                    //backgroundColor: "rgba(75, 160, 255, 0.3)",
-                    position: "fixed",
-                },
-                onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
-                    if(!d.pick.multi) d.pick.none(d);
-                    const nodes = [];
-                    objs.forEach(obj=>{
-                        const pickable = obj.parent?.__r3f.memoizedProps.pickable;
-                        if(pickable) nodes.push(pickable);
-                    });
-                    d.pick.set(d, nodes, true);
-                }),
-            }),
+            // c(Selection_Box, { // studio mode causes this to render and removes selection!!!!!!!
+            //     style:{
+            //         border: "1px dashed #d6006a",
+            //         //backgroundColor: "rgba(75, 160, 255, 0.3)",
+            //         position: "fixed",
+            //     },
+            //     onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
+            //         if(!d.pick.multi) d.pick.none(d);
+            //         const nodes = [];
+            //         objs.forEach(obj=>{
+            //             const pickable = obj.parent?.__r3f.memoizedProps.pickable;
+            //             if(pickable) nodes.push(pickable);
+            //         });
+            //         d.pick.set(d, nodes, true);
+            //     }),
+            // }),
             c(Fixed_Size_Group, {size:12,},
                 c('mesh', {},
                     c('boxGeometry'),

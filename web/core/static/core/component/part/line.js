@@ -1,4 +1,4 @@
-import {createElement as c, useRef, useEffect} from 'react';
+import {createElement as c, useRef, memo} from 'react';
 import {useS, useSS, useSub, gs} from '../../app.js';
 import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import { Pickable } from '../node/base.js';
@@ -8,12 +8,12 @@ import {Point} from './point.js';
 const res = 100;
 
 
-export function Line({n}){ 
+export const Line = memo(function Line({n}){ 
     const obj = useRef();
     //useSS(d=> d.n[n].n.point); 
     const color = useS(d=> d.n[n].pick.color); 
     useSub(d=> d.n[n].c.point, pts=>{ // make useSub that includes useEffect
-        if(obj.current){
+        if(pts && obj.current){
             const curve = new CatmullRomCurve3(pts.map(p=>p.pos));
             obj.current.geometry.setPositions(curve.getPoints(res).map(p=> [p.x, p.y, p.z]).flat()); //new Float32Array(
         }
@@ -27,7 +27,7 @@ export function Line({n}){
             // },
             //     ...points.map(p=> c(Point, {n:p.n, key:p.n})),
             // ),
-            points?.length && c(Pickable, {n:n}, // points && points.length>1 && 
+            points?.length>1 && c(Pickable, {n:n}, // points && points.length>1 && 
                 c(CatmullRomLine, {
                     ref: obj,
                     points: points.map(p=> [p.pos.x, p.pos.y, p.pos.z]), //[[0,0,0],[0,0,0]], //points: 
@@ -38,7 +38,7 @@ export function Line({n}){
             )//,
         //)
     )
-}
+})
 
 
 

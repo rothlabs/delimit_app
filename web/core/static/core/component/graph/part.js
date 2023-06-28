@@ -1,4 +1,4 @@
-import {createElement as r, useState, useRef, useMemo, useEffect} from 'react';
+import {createElement as r, memo, useRef} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
 import {useS, gs, useSub, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
@@ -13,7 +13,7 @@ const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 //const tv = new THREE.Vector3();
 
-export function Part({n}){ 
+export const Part = memo(function Part({n}){ 
     const obj = useRef();
     
     //const pos = useS(d=> d.n[n].graph.pos);//const pos = d.n[n].graph.pos; 
@@ -79,7 +79,7 @@ export function Part({n}){
             )
         )
     )
-}
+})
 
 
                 // icon ? 

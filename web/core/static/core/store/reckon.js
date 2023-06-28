@@ -56,7 +56,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
-            d.n[n].c.pos = new Vector3(nn.x, nn.y, nn.z);
+            d.n[n].c.pos_l = new Vector3(nn.x, nn.y, nn.z);
+            d.n[n].c.pos   = new Vector3(nn.x, nn.y, nn.z);
             if(d.n[n].c.matrix){ d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix) }
             else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
                 d.n[n].c.matrix = d.n[r].c.matrix;
@@ -71,64 +72,60 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
     transform(d,n,cause=''){ // put this in base and make it work for at least one component (just scale_x for example)
-        try{
-            if(['make.node', 'make.edge', '__decimal'].includes(cause)){
-                const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
-                tv1.set(nn.move_x, nn.move_y, nn.move_z);
-                te.set(MathUtils.degToRad(nn.turn_x), MathUtils.degToRad(nn.turn_y), MathUtils.degToRad(nn.turn_z));
-                tq.setFromEuler(te);
-                tv2.set(nn.scale_x, nn.scale_y, nn.scale_z);
-                tm.compose(tv1, tq, tv2);
-                d.n[n].c.matrix = new Matrix4().copy(tm);
-                d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
-                d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
-            }
-        }catch{} //}catch(e){console.log(e)}
+        try{if(['make.node', 'make.edge', '__decimal'].includes(cause)){
+            const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
+            tv1.set(nn.move_x, nn.move_y, nn.move_z);
+            te.set(MathUtils.degToRad(nn.turn_x), MathUtils.degToRad(nn.turn_y), MathUtils.degToRad(nn.turn_z));
+            tq.setFromEuler(te);
+            tv2.set(nn.scale_x, nn.scale_y, nn.scale_z);
+            tm.compose(tv1, tq, tv2);
+            d.n[n].c.matrix = new Matrix4().copy(tm);
+            d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
+            d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
+        }}catch{} //}catch(e){console.log(e)}
     },
-    mixed_line(d,n,cause=''){
-        try{
-            //split_cause = cause.split('__');
-            if(cause.includes('line') || cause.includes('matrix')){ //  && !cause.includes(n) // make this check better so cause includes ID ?!?!??!
-                const res_i = 100;
-                const res_o = 25;
-                const l1 = d.n[n].n.line[0];
-                const l2 = d.n[n].n.line[1];
-                var pti = null;
-                if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
-                    pti = new CatmullRomCurve3(d.n[l1].c.point.map(p=>p.pos)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-                          new CatmullRomCurve3(d.n[l2].c.point.map(p=>p.pos)).getPoints(res_i).map(p=>({p:p,v:'s'})));
-                }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
-                    pti = new CatmullRomCurve3(d.n[l2].c.point.map(p=>p.pos)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-                          new CatmullRomCurve3(d.n[l1].c.point.map(p=>p.pos)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+    mixed_line(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
+        try{if(cause.includes('line') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 
+            delete d.n[n].c.point;
+            const res_i = 100;
+            const res_o = 25;
+            const l1 = d.n[n].n.line[0];
+            const l2 = d.n[n].n.line[1];
+            var pti = null;
+            if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
+                pti = new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+                      new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+            }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
+                pti = new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+                      new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+            }
+            if(pti){
+                const pto = [];
+                pti.sort((a,b)=> (a.p.x<b.p.x ? -1 : 1));
+                var x = 0;
+                var y = 0;
+                var first = 0;
+                for(var i=0; i<pti.length; i++){
+                    if(pti[i].v == 't'){ x = pti[i].p.y; first++;
+                    }else{ y = pti[i].p.y; first++; }
+                    if(first > 1) break;
                 }
-                if(pti){
-                    const pto = [];
-                    pti.sort((a,b)=> (a.p.x<b.p.x ? -1 : 1));
-                    var x = 0;
-                    var y = 0;
-                    var first = 0;
-                    for(var i=0; i<pti.length; i++){
-                        if(pti[i].v == 't'){ x = pti[i].p.y; first++;
-                        }else{ y = pti[i].p.y; first++; }
-                        if(first > 1) break;
-                    }
-                    for(var i=0; i<pti.length; i++){
-                        if(pti[i].v == 't'){
-                            x = pti[i].p.y;
-                            pto.push(new Vector3(x, y, pti[i].p.x));
-                        }else{
-                            y = pti[i].p.y;
-                            pto.push(new Vector3(x, y, pti[i].p.x));
-                        }
-                    }
-                    if(d.n[n].c.matrix){ 
-                        d.n[n].c.point = new CatmullRomCurve3(pto).getPoints(res_o).map(p=>({pos:p.applyMatrix4(d.n[n].c.matrix)})); 
+                for(var i=0; i<pti.length; i++){
+                    if(pti[i].v == 't'){
+                        x = pti[i].p.y;
+                        pto.push(new Vector3(x, y, pti[i].p.x));
                     }else{
-                        d.n[n].c.point = new CatmullRomCurve3(pto).getPoints(res_o).map(p=>({pos:p}));
+                        y = pti[i].p.y;
+                        pto.push(new Vector3(x, y, pti[i].p.x));
                     }
+                }
+                if(d.n[n].c.matrix){ 
+                    d.n[n].c.point = new CatmullRomCurve3(pto).getPoints(res_o).map(p=>({pos:p.applyMatrix4(d.n[n].c.matrix)})); 
+                }else{
+                    d.n[n].c.point = new CatmullRomCurve3(pto).getPoints(res_o).map(p=>({pos:p}));
                 }
             }
-        }catch(e){console.log(e)}
+        }}catch{}//}catch(e){console.log(e)}
     },
 }});
 

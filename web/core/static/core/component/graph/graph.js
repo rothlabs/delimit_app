@@ -42,9 +42,9 @@ export function Graph(){
 }
 
 function Nodes(){
-    const nodes = useS(d=> d.graph.n);   // doesn't need to be ss?
+    const nodes = useSS(d=> d.graph.n);   // doesn't need to be ss?
     const d = useS.getState();
-    //console.log('render graph nodes');
+    console.log('render graph nodes');
     return (
         c('group', {name:'nodes'}, // ref:graph, dispose:null
 			...nodes.map(n=> 
@@ -55,12 +55,12 @@ function Nodes(){
 }
 
 function Edges(){
-    const edges = useS(d=> d.graph.e);  // rerendering every time the client polls for update!! 
+    const edges = useSS(d=> d.graph.e);  // rerendering every time the client polls for update!! 
     //const edges = useDS(d=> d.graph.edge_roots);
     //const tags = useDS(d=> d.graph.edge_tags);
     //const nodes = useDS(d=> d.graph.edge_nodes);
     //const d = useD.getState();
-    //console.log('render graph edges');
+    console.log('render graph edges');
     return (
         c('group', {name:'edges'}, // ref:graph, dispose:null
 			...edges.map(e=> 
