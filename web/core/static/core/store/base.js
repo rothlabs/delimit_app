@@ -10,10 +10,11 @@ var next_funcs = [];
 var next_ids = [];
 
 const subject_tags= [
-    'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 'mixed_line',
+    'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 
+    'mixed_line', 'surface',
 ];
 const cat_cast_tags=[
-    'top_view', 'inner_view', 'outer_view',
+    'top_view', 'inner_view', 'outer_view', 'guide',
 ];
 const component = {
     // 'group':       Group,
@@ -63,13 +64,15 @@ export const create_base_slice = (set,get)=>({
         'inner_view':   'bi-camera-reels',
         'outer_view':   'bi-camera-reels',
         'product':      'bi-bag',
+        'surface':      'bi-map',
+        'guide':        'bi-rulers',
     },
     cat_cast: cat_cast,
     cast_tags: {...cat_cast, ...Object.fromEntries([
         'matrix', 'inverse_matrix'
     ].map(t=>[t,true]))},
     cast_end:Object.fromEntries([
-        'point', 'mixed_line',
+        'point', 'mixed_line', 'surface',
     ].map(t=>[t,true])),
     component:component,
     component_tags:Object.keys(component),

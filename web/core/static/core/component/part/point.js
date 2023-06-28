@@ -24,7 +24,7 @@ export const Point = memo(function Point({n}){//export function Point({n}){
         c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
             ref: obj,
             name:'point',
-            size: 7, // 1.5 : 1, adjust size of other items
+            size: 6, // 1.5 : 1, adjust size of other items
             //props: {position: [pos.x, pos.y, pos.z+100]},
         },
             c(Pickable, {n:n}, 

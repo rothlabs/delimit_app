@@ -36,6 +36,7 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
   const [isSelecting2, setIsSelecting2] = useState(false);
   const [selection, setSelection] = useState([])
   const selectRectangle = useRef(document.createElement("div"))
+  //const [can_start, set_can_start] = useState(false)
 
   useEffect(() => {
     onSelectionChanged?.call(null, selection);
@@ -99,7 +100,7 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
     e => {
       const event = e
       const { clientX, clientY, altKey, ctrlKey, button } = event
-      if (!isSelecting && !button) { //if (!altKey && !isSelecting && !button) {
+      if (!isSelecting && !button && !moving) { //if (!altKey && !isSelecting && !button) {
         const [startX, startY] = getCoords(clientX, clientY)
         setStart(new Vector2(clientX, clientY))
         setIsSelecting(true)
@@ -108,9 +109,10 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
         //}
         selectionBox.startPoint.set(startX, startY, 0.5)
         selectionBox.endPoint.set(startX, startY, 0.5)
+        //set_can_start(true);
       }
     },
-    [selection]
+    [selection, moving]
   )
 
   const onPointerMove = useCallback(
@@ -138,7 +140,7 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
     e => {
       const {clientX, clientY, button} = e; // const { ctrlKey, clientX, clientY, button } = e
 
-      if (isSelecting2 && !button) { // || !button
+      if (isSelecting2 && !button && !moving) { // || !button
         //setIsSelecting(false)
 
         const [endX, endY] = getCoords(clientX, clientY)
@@ -150,15 +152,17 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
           //if(multi){//if (ctrlKey) {
           //  appendSelection(curSelected)
           //} else {
-        if(!moving) setSelection(curSelected);
+        //if(!moving) 
+        setSelection(curSelected);
           //}
         //}
 
-        setMouse(undefined)
-        setStart(undefined)
+        
 
         //setSelectedStyle(selectionBox.collection, true)
       }
+      setMouse(undefined);
+      setStart(undefined);
       setIsSelecting(false);
       setIsSelecting2(false);
     },
