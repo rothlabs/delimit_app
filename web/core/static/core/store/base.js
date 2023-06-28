@@ -2,6 +2,8 @@ import {current} from 'immer';
 import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
+import { Group } from '../component/part/group.js';
+import { Line } from '../component/part/line.js';
 
 var next_funcs = [];
 var next_ids = [];
@@ -12,6 +14,14 @@ const subject_tags= [
 const cat_cast_tags=[
     'top_view', 'inner_view', 'outer_view',
 ];
+const component = {
+    'group':       Group,
+    'product':     Group,
+    'sketch':      Group,
+    'repeater':    Group,
+    'line':        Line,
+    'mixed_line':  Line,
+};
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_cast = Object.fromEntries(cat_cast_tags.map(t=>[t,true]));
 const category_tags = ['public', ...cat_cast_tags,];
@@ -59,6 +69,8 @@ export const create_base_slice = (set,get)=>({
     cast_end:Object.fromEntries([
         'point', 'mixed_line',
     ].map(t=>[t,true])),
+    component:component,
+    component_tags:Object.keys(component),
 
     n: {},
     t: {},

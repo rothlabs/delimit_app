@@ -1,5 +1,5 @@
 import {createElement as c, useRef, useEffect} from 'react';
-import {useS, useSub, gs} from '../../app.js';
+import {useS, useSS, useSub, gs} from '../../app.js';
 import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import { Pickable } from '../node/base.js';
 import {CatmullRomCurve3} from 'three';
@@ -10,7 +10,7 @@ const res = 100;
 
 export function Line({n}){ 
     const obj = useRef();
-    const pl = useS(d=> d.n[n].c.point.length); 
+    useSS(d=> d.n[n].n.point); 
     const color = useS(d=> d.n[n].pick.color); 
     useSub(d=> d.n[n].c.point, pts=>{ // make useSub that includes useEffect
         if(obj.current){

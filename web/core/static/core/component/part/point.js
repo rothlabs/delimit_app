@@ -24,12 +24,12 @@ export function Point({n}){
     return(
         c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
             ref: obj,
+            name:'point',
             size: 7, // 1.5 : 1, adjust size of other items
             //props: {position: [pos.x, pos.y, pos.z+100]},
         },
             c(Pickable, {n:n}, 
                 c('mesh', {
-                    name:'point', 
                     geometry:circle_geometry,
                 },
                     c('meshBasicMaterial', {color:color[0], toneMapped:false}),

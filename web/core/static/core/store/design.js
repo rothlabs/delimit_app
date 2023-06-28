@@ -8,7 +8,7 @@ const tm1 = new Matrix4();
 const tm2 = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
-    tags: ['line', 'mixed_line', 'sketch'],
+    //tags: ['line', 'mixed_line', 'sketch'],
     mode: '', // make this draw mode and make seperate delete mode (erase)
     part: null, 
     candidate: null, 
@@ -66,7 +66,7 @@ export const create_design_slice = (set,get)=>({design:{
         d.pick.one(d, n, {t:true});
     },
     update: d=>{
-        d.design.candidate = d.pick.get_if_one(d, d.design.tags);
+        d.design.candidate = d.pick.get_if_one(d, d.component_tags);
         if(!d.node.be(d, d.design.part)){ // use exists/available function here?  d.design.part && !d.n[d.design.part].open
             d.design.part = null;
             d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!

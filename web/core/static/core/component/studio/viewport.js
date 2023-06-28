@@ -2,7 +2,7 @@ import {createElement as c, useRef, useState, useEffect, Fragment, useImperative
 import {CameraControls} from '@react-three/drei/CameraControls';
 import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
-import {Part} from './part.js';
+import {Part} from '../part/part.js';
 import {Mover} from './mover.js';
 import {useS, ss, Fixed_Size_Group, theme} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
