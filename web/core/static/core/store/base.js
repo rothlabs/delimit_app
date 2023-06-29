@@ -3,8 +3,9 @@ import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
 //import { Group } from '../component/part/group.js';
-import { Point } from '../component/part/point.js';
-import { Line } from '../component/part/line.js';
+import {Point} from '../component/part/point.js';
+import {Line} from '../component/part/line.js';
+import {Surface} from '../component/part/surface.js';
 
 var next_funcs = [];
 var next_ids = [];
@@ -24,6 +25,7 @@ const component = {
     'point':       Point,
     'line':        Line,
     'mixed_line':  Line,
+    'surface':     Surface,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_cast = Object.fromEntries(cat_cast_tags.map(t=>[t,true]));
@@ -76,6 +78,7 @@ export const create_base_slice = (set,get)=>({
     ].map(t=>[t,true])),
     component:component,
     component_tags:Object.keys(component),
+    line_res: 100,
 
     n: {},
     t: {},

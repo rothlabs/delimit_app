@@ -18,7 +18,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //else                                   {d.reckon.default(d,n,cause)} // could delete this?
     },
     base(d, n, cause=''){
-        d.reckon.count++;
+        d.reckon.count++; // could be causing extra renders ?!?!?!?!?!
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
         if(d.cat_cast[d.n[n].t]){ // make dictionary (Object.fromEntries) for fast lookup ?!?!?!?!?!
             d.n[n].c[d.n[n].t] = true;
@@ -47,12 +47,12 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null; 
         return result;
     },
-    list(d, n, t, func){ // build in n:n and color:color pick_color, 
-        d.n[n].c[t] = [];
-        d.n[n].n[t] && d.n[n].n[t].forEach(nn=>{
-            if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, ...func(nn)}); //color:d.n[nn].pick.color[pick_color],
-        });
-    },
+    // list(d, n, t, func){ // build in n:n and color:color pick_color, 
+    //     d.n[n].c[t] = [];
+    //     d.n[n].n[t] && d.n[n].n[t].forEach(nn=>{
+    //         if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, ...func(nn)}); //color:d.n[nn].pick.color[pick_color],
+    //     });
+    // },
     point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
@@ -66,11 +66,6 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             }})}
         }catch{} //console.error(e)
     },
-    line(d,n){
-        d.reckon.list(d, n, 'point', n=>({ // 0,   
-            pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector) // does it need to copy the pos? 
-        })); //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
-    }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
     transform(d,n,cause=''){ // put this in base and make it work for at least one component (just scale_x for example)
         try{if(['make.node', 'make.edge', '__decimal'].includes(cause)){
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
@@ -84,11 +79,20 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
         }}catch{} //}catch(e){console.log(e)}
     },
+    line(d,n){
+        // d.reckon.list(d, n, 'point', n=>({ // 0,   
+        //     pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector) // does it need to copy the pos? 
+        // })); 
+        d.n[n].c.points = [];
+        try{
+            d.n[n].c.points = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos)).getPoints(d.line_res);
+        }catch{}
+        //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
+    }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
     mixed_line(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
         try{if(cause.includes('line') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 
             delete d.n[n].c.point;
-            const res_i = 100;
-            const res_o = 25;
+            const res_i = 200;
             const l1 = d.n[n].n.line[0];
             const l2 = d.n[n].n.line[1];
             var pti = null;
@@ -110,7 +114,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                     }else{ y = pti[i].p.y; first++; }
                     if(first > 1) break;
                 }
-                for(var i=0; i<pti.length; i++){
+                for(var i=0; i<pti.length; i++){ // interpolate x and y here ?!?!?!?!
                     if(pti[i].v == 't'){
                         x = pti[i].p.y;
                         pto.push(new Vector3(x, y, pti[i].p.x));
@@ -119,16 +123,60 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                         pto.push(new Vector3(x, y, pti[i].p.x));
                     }
                 }
-                if(d.n[n].c.matrix){ 
-                    d.n[n].c.point = new CatmullRomCurve3(pto).getPoints(res_o).map(p=>({pos:p.applyMatrix4(d.n[n].c.matrix)})); 
-                }else{
-                    d.n[n].c.point = new CatmullRomCurve3(pto).getPoints(res_o).map(p=>({pos:p}));
+                const pto2 = [pto[0]];
+                const cmp = pto.slice(1,10);
+                for(var i=0; i<pto.length-1; i++){
+                    cmp.sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
+                    if(cmp[0].distanceTo(pto2.at(-1)) < pto[i+1].distanceTo(pto2.at(-1))){
+                        pto2.push(cmp.shift());
+                        cmp.push(pto[i+1]);
+                    }else{
+                        pto2.push(pto[i+1]);
+                    }
+                    if(i<pto.length-10) cmp.push(pto[i+10]);
                 }
+                while(cmp.length > 1){
+                    cmp.sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
+                    if(pto.at(-1).distanceTo(pto2.at(-1)) < cmp[0].distanceTo(pto2.at(-1))) break;
+                    pto2.push(cmp.shift());
+                }
+                pto2[pto2.length-1] = pto.at(-1);
+                d.n[n].c.points = new CatmullRomCurve3(pto2).getPoints(d.line_res);
+                if(d.n[n].c.matrix) d.n[n].c.points = d.n[n].c.points.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
             }
-        }}catch{}//}catch(e){console.log(e)}
+        }}catch(e){console.log(e)}
+    },
+    surface(d,n,cause=''){
+        // try{//if(cause.includes('line') || ['make.edge', 'delete.edge'].includes(cause)){ 
+        //     const ribs = d.n[n].n.mixed_line;//.filter(n=> !d.n[n].c.guide);
+        //     const rail  = d.n[n].n.line;//.filter(n=>  d.n[n].c.guide);
+        //     const pts = [];
+        //     ribs.forEach(rib=>{
+        //         pts = pts.concat(d.n[rib].c.points);
+        //     });
+        //     d.n[n].c.pts = pts;
+        //     //console.log('ribs gds', ribs, rails);
+        // }catch(e){console.log(e)}
     },
 }});
 
+
+//const sp = pto.slice(i+1,i+10).sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
+                    //pto2.push(sp[0]);
+                    //console.log('before and after sort:');
+                    //console.log(pto.slice(i+1,i+5).map(p=> p.distanceTo(pto[i])));
+                    //console.log(sp.map(p=> p.distanceTo(pto[i])));
+                    //const tmp = pto[i+1];
+                    //pto[i+1] = sp[0];
+                    //pto[pto.indexOf(sp[0])] = tmp;
+
+// if(pto[i+1].distanceTo(pto[i]) > pto[i+2].distanceTo(pto[i])){
+//     const tmp = pto[i+1];
+//     pto[i+1] = pto[i+2];
+//     pto[i+2] = tmp;
+// }
+
+//const pts = pto.slice(i+1,i+4).sort((a,b)=> a.distanceTo(pto[i])-b.distanceTo(pto[i]));
 
 
 // atom(d,n,cause){

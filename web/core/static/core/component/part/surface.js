@@ -2,20 +2,10 @@ import {createElement as c, useRef, memo} from 'react';
 import {useS, useSS, useSub, gs} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import {Line as Drei_Line} from '@react-three/drei/Line';
-import { Pickable } from '../node/base.js';
-import {CatmullRomCurve3} from 'three';
-import {Point} from './point.js';
-
-const res = 100;
-
-// function interpolate(d,n,a={}){
-//     pts = new CatmullRomCurve3(pts.map(p=>p.pos)).getPoints(res).map(p=> [p.x, p.y, p.z]);
-//     if(a.flat) pts = pts.flat();
-//     return pts;
-// }
+import {Pickable} from '../node/base.js';
 
 
-export const Line = memo(function Line({n}){ 
+export const Surface = memo(function Surface({n}){ 
     const obj = useRef();
     //useSS(d=> d.n[n].n.point); 
     const color = useS(d=> d.n[n].pick.color); 
