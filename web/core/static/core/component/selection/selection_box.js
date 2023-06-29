@@ -103,6 +103,7 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
       if (!isSelecting && !button && !moving) { //if (!altKey && !isSelecting && !button) {
         const [startX, startY] = getCoords(clientX, clientY)
         setStart(new Vector2(clientX, clientY))
+        //setMouse([clientX, clientY]); //////// don't need this ?!?!?!
         setIsSelecting(true)
         //if (!ctrlKey) {
         //  setSelectedStyle(selection, false)
@@ -117,23 +118,31 @@ export const Selection_Box = ({ style, onSelectionChanged }) => {
 
   const onPointerMove = useCallback(
     e => {
-      if (!isSelecting) return
-      const { clientX, clientY } = e
-      const [endX, endY] = getCoords(clientX, clientY)
-      setMouse([clientX, clientY])
-      //selectionBox.select()
-      //setSelectedStyle(selectionBox.collection, false)
+      if(moving){
+        setMouse(undefined);
+        setStart(undefined);
+        setIsSelecting(false);
+        setIsSelecting2(false);
+      }
+      if (!isSelecting || moving) return
+      //if(isSelecting && !moving){
+        const { clientX, clientY } = e
+        const [endX, endY] = getCoords(clientX, clientY)
+        setMouse([clientX, clientY])
+        //selectionBox.select()
+        //setSelectedStyle(selectionBox.collection, false)
 
-      selectionBox.endPoint.set(endX, endY, 0.5)
-      //selectionBox.select()
+        selectionBox.endPoint.set(endX, endY, 0.5)
+        //selectionBox.select()
 
-      //setSelectedStyle(selectionBox.collection, true)
-      end_vector.set(clientX, clientY);
-      //set_delta(start.distanceTo(end_vector));
-      setIsSelecting2((start.distanceTo(end_vector) > min_delta));
-      //console.log(start, end_vector);
+        //setSelectedStyle(selectionBox.collection, true)
+        end_vector.set(clientX, clientY);
+        //set_delta(start.distanceTo(end_vector));
+        setIsSelecting2((start.distanceTo(end_vector) > min_delta));
+        //console.log(start, end_vector);
+      //}
     },
-    [isSelecting]
+    [isSelecting, moving]
   )
 
   const onPointerUp = useCallback(

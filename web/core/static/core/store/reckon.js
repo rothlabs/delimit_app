@@ -83,9 +83,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         // d.reckon.list(d, n, 'point', n=>({ // 0,   
         //     pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector) // does it need to copy the pos? 
         // })); 
-        d.n[n].c.points = [];
+        d.n[n].c.pts = [];
         try{
-            d.n[n].c.points = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos)).getPoints(d.line_res);
+            d.n[n].c.pts = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos)).getPoints(d.line_res);
         }catch{}
         //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
     }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
@@ -95,44 +95,50 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             const res_i = 200;
             const l1 = d.n[n].n.line[0];
             const l2 = d.n[n].n.line[1];
-            var pti = null;
             if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
-                pti = new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-                      new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+                var pti=new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+                        new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
             }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
-                pti = new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-                      new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+                var pti=new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+                        new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
             }
             if(pti){
                 const pto = [];
-                pti.sort((a,b)=> (a.p.x<b.p.x ? -1 : 1));
-                var x = 0;
-                var y = 0;
-                var first = 0;
+                pti.sort((a,b)=> a.p.x-b.p.x);//(a.p.x<b.p.x ? -1 : 1));
+                var xi = -1;
+                var yi = -1;
                 for(var i=0; i<pti.length; i++){
-                    if(pti[i].v == 't'){ x = pti[i].p.y; first++;
-                    }else{ y = pti[i].p.y; first++; }
-                    if(first > 1) break;
+                    if(pti[i].v == 't'){ var x = pti[i].p.y; xi=i; 
+                    }else{ var y = pti[i].p.y; yi=i; }
+                    if(xi>-1 && yi>-1) break;
                 }
                 for(var i=0; i<pti.length; i++){ // interpolate x and y here ?!?!?!?!
                     if(pti[i].v == 't'){
                         x = pti[i].p.y;
+                        for(let k=xi+1; k<i; k++){
+                            let amt = (k-xi)/(i-xi);
+                            pto[k].setX((1-amt)*pto[xi].x+amt*x);
+                        }
                         pto.push(new Vector3(x, y, pti[i].p.x));
+                        xi=i;
                     }else{
                         y = pti[i].p.y;
+                        for(let k=yi+1; k<i; k++){
+                            let amt = (k-yi)/(i-yi);
+                            pto[k].setY((1-amt)*pto[yi].y+amt*y);
+                        }
                         pto.push(new Vector3(x, y, pti[i].p.x));
+                        yi=i;
                     }
                 }
                 const pto2 = [pto[0]];
                 const cmp = pto.slice(1,10);
                 for(var i=0; i<pto.length-1; i++){
                     cmp.sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
-                    if(cmp[0].distanceTo(pto2.at(-1)) < pto[i+1].distanceTo(pto2.at(-1))){
+                    if(cmp[0].distanceTo(pto2.at(-1))+0.01 < pto[i+1].distanceTo(pto2.at(-1))){
                         pto2.push(cmp.shift());
                         cmp.push(pto[i+1]);
-                    }else{
-                        pto2.push(pto[i+1]);
-                    }
+                    }else{ pto2.push(pto[i+1]) }
                     if(i<pto.length-10) cmp.push(pto[i+10]);
                 }
                 while(cmp.length > 1){
@@ -141,8 +147,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                     pto2.push(cmp.shift());
                 }
                 pto2[pto2.length-1] = pto.at(-1);
-                d.n[n].c.points = new CatmullRomCurve3(pto2).getPoints(d.line_res);
-                if(d.n[n].c.matrix) d.n[n].c.points = d.n[n].c.points.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
+                d.n[n].c.pts = new CatmullRomCurve3(pto2).getPoints(d.line_res);
+                if(d.n[n].c.matrix) d.n[n].c.pts = d.n[n].c.pts.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
             }
         }}catch(e){console.log(e)}
     },
@@ -152,7 +158,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //     const rail  = d.n[n].n.line;//.filter(n=>  d.n[n].c.guide);
         //     const pts = [];
         //     ribs.forEach(rib=>{
-        //         pts = pts.concat(d.n[rib].c.points);
+        //         pts = pts.concat(d.n[rib].c.pts);
         //     });
         //     d.n[n].c.pts = pts;
         //     //console.log('ribs gds', ribs, rails);
@@ -315,10 +321,10 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //     }
         // }
 
-        // d.n[n].c.points = [];
+        // d.n[n].c.pts = [];
         // d.n[n].n.point && d.n[n].n.point.forEach(p=>{
         //     if(d.node.be(d,p)){
-        //         d.n[n].c.points.push({n:p, x:d.n[p].c.x, y:d.n[p].c.y, z:d.n[p].c.z, color:d.n[p].pick.color[0]});
+        //         d.n[n].c.pts.push({n:p, x:d.n[p].c.x, y:d.n[p].c.y, z:d.n[p].c.z, color:d.n[p].pick.color[0]});
         //     }
         // }); 
 

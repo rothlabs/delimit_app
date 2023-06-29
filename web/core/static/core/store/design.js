@@ -41,16 +41,16 @@ export const create_design_slice = (set,get)=>({design:{
             }
         }
         var o = undefined;
-        if(d.n[r].c.point && d.n[r].c.point.length > 1){
-            const test_pos = new CatmullRomCurve3(d.n[r].c.point.map(p=> p.pos)).getPoints(100);
+        if(d.n[r].c.pts && d.n[r].c.pts.length > 1){
+            const test_pos = new CatmullRomCurve3(d.n[r].c.pts).getPoints(100); //.map(p=> p.pos)
             const tests = [];
             var o = 0;
             var prev_dist = 0;
             for (var i = 0; i < test_pos.length; i++) {
-                const dist = test_pos[i].distanceTo(d.n[r].c.point[o].pos);
+                const dist = test_pos[i].distanceTo(d.n[r].c.pts[o]); //.pos
                 if(dist > prev_dist){
                     o++;
-                    prev_dist = test_pos[i].distanceTo(d.n[r].c.point[o].pos);
+                    prev_dist = test_pos[i].distanceTo(d.n[r].c.pts[o]); //.pos
                 }else{ prev_dist = dist }
                 tests.push({o:o, dist:test_pos[i].distanceTo(pos)});
             }
@@ -106,13 +106,13 @@ export const create_design_slice = (set,get)=>({design:{
 
 
 // const pts = curve.getPoints(100).sort((a,b)=> (a.distanceTo(pos) < b.distanceTo(pos))?-1:1);
-            // d.n[r].c.point.forEach(p=>{});
+            // d.n[r].c.pts.forEach(p=>{});
 
-// if(d.n[r].c.point && d.n[r].c.point.length > 1){ // upgrade to sample curve to find true closest creation and pick control points on either side of it
-//     const sorted = d.n[r].c.point.map((p,i)=>({i:i, d:tv.copy(p.pos).distanceTo(pos)})).sort((a,b)=>(a.d>=b.d?1:-1));
+// if(d.n[r].c.pts && d.n[r].c.pts.length > 1){ // upgrade to sample curve to find true closest creation and pick control points on either side of it
+//     const sorted = d.n[r].c.pts.map((p,i)=>({i:i, d:tv.copy(p.pos).distanceTo(pos)})).sort((a,b)=>(a.d>=b.d?1:-1));
 //     var ad1 = sorted[0], ad2 = sorted[0];
-//     if(sorted[0].i-1 >= 0)            ad1 = {i:sorted[0].i-1, d:tv.copy(d.n[r].c.point[sorted[0].i-1].pos).distanceTo(pos)};
-//     if(sorted[0].i+1 < sorted.length) ad2 = {i:sorted[0].i+1, d:tv.copy(d.n[r].c.point[sorted[0].i+1].pos).distanceTo(pos)};
+//     if(sorted[0].i-1 >= 0)            ad1 = {i:sorted[0].i-1, d:tv.copy(d.n[r].c.pts[sorted[0].i-1].pos).distanceTo(pos)};
+//     if(sorted[0].i+1 < sorted.length) ad2 = {i:sorted[0].i+1, d:tv.copy(d.n[r].c.pts[sorted[0].i+1].pos).distanceTo(pos)};
 //     o = Math.ceil((sorted[0].i + (ad1.d<ad2.d?ad1.i:ad2.i)) / 2); // ceil
 //     if(sorted[0].i == sorted.length-1) o+=2;
 // }

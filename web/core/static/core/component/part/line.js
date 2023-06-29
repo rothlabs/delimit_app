@@ -20,7 +20,7 @@ export const Line = memo(function Line({n}){
     //useSS(d=> d.n[n].n.point); 
     const color = useS(d=> d.n[n].pick.color); 
     const curve = useS(d=> d.n[n].c.curve);
-    useSub(d=> d.n[n].c.points, pts=>{ // make useSub that includes useEffect
+    useSub(d=> d.n[n].c.pts, pts=>{ // make useSub that includes useEffect
         if(pts && obj.current){
             //const curve = new CatmullRomCurve3(pts.map(p=>p.pos));
             //obj.current.geometry.setPositions(curve.getPoints(res).map(p=> [p.x, p.y, p.z]).flat()); //new Float32Array(
@@ -28,7 +28,7 @@ export const Line = memo(function Line({n}){
             obj.current.geometry.setPositions(pts.map(p=>[p.x, p.y, p.z]).flat());
         }
     });
-    const points = gs().n[n].c.points;
+    const points = gs().n[n].c.pts;
     //console.log('render line');
     return(
         //c('group', {name:'line'},
