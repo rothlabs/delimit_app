@@ -1,6 +1,7 @@
 import { Matrix4, Vector3, Euler, Quaternion, MathUtils, CatmullRomCurve3 } from 'three';
 import {current} from 'immer';
 import lodash from 'lodash';
+import {curve} from './curve.js';
 
 const zero_vector = new Vector3();
 const tv1 = new Vector3();
@@ -17,7 +18,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //else if(d.atom_tags.includes(d.n[n].t)){d.reckon.atom(d,n,cause)}
         //else                                   {d.reckon.default(d,n,cause)} // could delete this?
     },
-    base(d, n, cause=''){
+    base(d, n, cause=''){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra renders ?!?!?!?!?!
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
         if(d.cat_cast[d.n[n].t]){ // make dictionary (Object.fromEntries) for fast lookup ?!?!?!?!?!
@@ -47,12 +48,6 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null; 
         return result;
     },
-    // list(d, n, t, func){ // build in n:n and color:color pick_color, 
-    //     d.n[n].c[t] = [];
-    //     d.n[n].n[t] && d.n[n].n[t].forEach(nn=>{
-    //         if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, ...func(nn)}); //color:d.n[nn].pick.color[pick_color],
-    //     });
-    // },
     point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
@@ -79,79 +74,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
         }}catch{} //}catch(e){console.log(e)}
     },
-    line(d,n){
-        // d.reckon.list(d, n, 'point', n=>({ // 0,   
-        //     pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector) // does it need to copy the pos? 
-        // })); 
-        d.n[n].c.pts = [];
-        try{
-            d.n[n].c.pts = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos)).getPoints(d.line_res);
-        }catch{}
-        //x:d.n[n].c.x, y:d.n[n].c.y, z:d.n[n].c.z,   pos:d.n[n].c.pos
-    }, //pos:(d.n[n].c.pos ? new Vector3().copy(d.n[n].c.pos) : zero_vector)
-    mixed_line(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
-        try{if(cause.includes('line') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 
-            delete d.n[n].c.point;
-            const res_i = 200;
-            const l1 = d.n[n].n.line[0];
-            const l2 = d.n[n].n.line[1];
-            if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
-                var pti=new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-                        new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
-            }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
-                var pti=new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-                        new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
-            }
-            if(pti){
-                const pto = [];
-                pti.sort((a,b)=> a.p.x-b.p.x);//(a.p.x<b.p.x ? -1 : 1));
-                var xi = -1;
-                var yi = -1;
-                for(var i=0; i<pti.length; i++){
-                    if(pti[i].v == 't'){ var x = pti[i].p.y; xi=i; 
-                    }else{ var y = pti[i].p.y; yi=i; }
-                    if(xi>-1 && yi>-1) break;
-                }
-                for(var i=0; i<pti.length; i++){ // interpolate x and y here ?!?!?!?!
-                    if(pti[i].v == 't'){
-                        x = pti[i].p.y;
-                        for(let k=xi+1; k<i; k++){
-                            let amt = (k-xi)/(i-xi);
-                            pto[k].setX((1-amt)*pto[xi].x+amt*x);
-                        }
-                        pto.push(new Vector3(x, y, pti[i].p.x));
-                        xi=i;
-                    }else{
-                        y = pti[i].p.y;
-                        for(let k=yi+1; k<i; k++){
-                            let amt = (k-yi)/(i-yi);
-                            pto[k].setY((1-amt)*pto[yi].y+amt*y);
-                        }
-                        pto.push(new Vector3(x, y, pti[i].p.x));
-                        yi=i;
-                    }
-                }
-                const pto2 = [pto[0]];
-                const cmp = pto.slice(1,10);
-                for(var i=0; i<pto.length-1; i++){
-                    cmp.sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
-                    if(cmp[0].distanceTo(pto2.at(-1))+0.01 < pto[i+1].distanceTo(pto2.at(-1))){
-                        pto2.push(cmp.shift());
-                        cmp.push(pto[i+1]);
-                    }else{ pto2.push(pto[i+1]) }
-                    if(i<pto.length-10) cmp.push(pto[i+10]);
-                }
-                while(cmp.length > 1){
-                    cmp.sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
-                    if(pto.at(-1).distanceTo(pto2.at(-1)) < cmp[0].distanceTo(pto2.at(-1))) break;
-                    pto2.push(cmp.shift());
-                }
-                pto2[pto2.length-1] = pto.at(-1);
-                d.n[n].c.pts = new CatmullRomCurve3(pto2).getPoints(d.line_res);
-                if(d.n[n].c.matrix) d.n[n].c.pts = d.n[n].c.pts.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
-            }
-        }}catch(e){console.log(e)}
-    },
+    ...curve,
     surface(d,n,cause=''){
         // try{//if(cause.includes('line') || ['make.edge', 'delete.edge'].includes(cause)){ 
         //     const ribs = d.n[n].n.mixed_line;//.filter(n=> !d.n[n].c.guide);
@@ -165,6 +88,13 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         // }catch(e){console.log(e)}
     },
 }});
+
+// list(d, n, t, func){ // build in n:n and color:color pick_color, 
+    //     d.n[n].c[t] = [];
+    //     d.n[n].n[t] && d.n[n].n[t].forEach(nn=>{
+    //         if(d.node.be(d,nn)) d.n[n].c[t].push({n:nn, ...func(nn)}); //color:d.n[nn].pick.color[pick_color],
+    //     });
+    // },
 
 
 //const sp = pto.slice(i+1,i+10).sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));

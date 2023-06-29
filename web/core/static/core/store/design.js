@@ -41,16 +41,16 @@ export const create_design_slice = (set,get)=>({design:{
             }
         }
         var o = undefined;
-        if(d.n[r].c.pts && d.n[r].c.pts.length > 1){
-            const test_pos = new CatmullRomCurve3(d.n[r].c.pts).getPoints(100); //.map(p=> p.pos)
+        if(d.n[r].n.point && d.n[r].n.point.length > 1){
+            const test_pos = new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].c.pos)).getPoints(100); //d.n[r].c.pts.map(p=> p.pos)
             const tests = [];
             var o = 0;
             var prev_dist = 0;
             for (var i = 0; i < test_pos.length; i++) {
-                const dist = test_pos[i].distanceTo(d.n[r].c.pts[o]); //.pos
+                const dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].c.pos); //d.n[r].c.pts[o].pos
                 if(dist > prev_dist){
                     o++;
-                    prev_dist = test_pos[i].distanceTo(d.n[r].c.pts[o]); //.pos
+                    prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].c.pos); //d.n[r].c.pts[o].pos
                 }else{ prev_dist = dist }
                 tests.push({o:o, dist:test_pos[i].distanceTo(pos)});
             }
