@@ -8,7 +8,7 @@ const tm1 = new Matrix4();
 const tm2 = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
-    //tags: ['line', 'mixed_line', 'sketch'],
+    //tags: ['curve', 'mixed_curve', 'sketch'],
     n: [],
     mode: '', // make this draw mode and make seperate delete mode (erase)
     part: null, 
@@ -33,10 +33,10 @@ export const create_design_slice = (set,get)=>({design:{
     },
     make_point: (d, pos)=>{
         var r = d.design.part;
-        if(d.n[r].t != 'line'){
-            r = d.pick.get_if_one(d, ['line']); //, {one_tag:true}
+        if(d.n[r].t != 'curve'){
+            r = d.pick.get_if_one(d, ['curve']); //, {one_tag:true}
             if(!r){
-                r = d.make.part(d, 'line', {r:d.design.part});
+                r = d.make.part(d, 'curve', {r:d.design.part});
                 d.pick.one(d, r);
             }
         }

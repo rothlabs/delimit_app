@@ -10,7 +10,7 @@ import {Pickable} from '../node/base.js';
 
 // might want sketch to contain and render lose points
 export function Group({n}){ 
-    //const lines = useSS(d=> d.n[n].n.line); // not triggering on closed lines ?!?!?!?!
+    //const lines = useSS(d=> d.n[n].n.curve); // not triggering on closed lines ?!?!?!?!
     //const sketches = useSS(d=> d.n[n].n.sketch);
     //const groups = useSS(d=> d.n[n].n.group);
     //const nodes = [...groups, ...sketches];
@@ -35,7 +35,7 @@ export function Group({n}){
 }
 
 // export function Sketch({n}){ 
-//     const lines = useSS(d=> d.n[n].n.line); // not triggering on closed lines ?!?!?!?!
+//     const lines = useSS(d=> d.n[n].n.curve); // not triggering on closed lines ?!?!?!?!
 //     const sketches = useSS(d=> d.n[n].n.sketch);
 //     //console.log('render sketch');
 //     const d = gs();

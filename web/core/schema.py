@@ -18,8 +18,8 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'viewable', 'asset',
     'public', 'top_view', 'inner_view', 'outer_view', 'guide',
     'profile',
-    'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 
-    'mixed_line', 'surface',
+    'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
+    'mixed_curve', 'surface',
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z',
     'name', 'story',
 ]}
@@ -575,72 +575,72 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
 
 
 
-def make_data():
-    try:
-        try:
-            Part.objects.get(t__v='profile')
-        except:
-            Tag.objects.all().delete()
-            Part.objects.all().delete()
-            Bool.objects.all().delete()
-            Int.objects.all().delete()
-            Float.objects.all().delete()
-            String.objects.all().delete()
+# def make_data():
+#     try:
+#         try:
+#             Part.objects.get(t__v='profile')
+#         except:
+#             Tag.objects.all().delete()
+#             Part.objects.all().delete()
+#             Bool.objects.all().delete()
+#             Int.objects.all().delete()
+#             Float.objects.all().delete()
+#             String.objects.all().delete()
 
-            system_tags = ['user', 'profile', 'open_pack', 'poll_pack']
-            tag = {t: Tag.objects.create(v=t, system=(t in system_tags)) for t in [
-                'user', 'open_pack', 'poll_pack', 'profile', 'public', 'viewable', 'asset', 
-                'name', 'x', 'y', 'z', 'point', 'line',
-            ]}
+#             system_tags = ['user', 'profile', 'open_pack', 'poll_pack']
+#             tag = {t: Tag.objects.create(v=t, system=(t in system_tags)) for t in [
+#                 'user', 'open_pack', 'poll_pack', 'profile', 'public', 'viewable', 'asset', 
+#                 'name', 'x', 'y', 'z', 'point', 'line',
+#             ]}
 
-            user1 = User.objects.get(id=1)
+#             user1 = User.objects.get(id=1)
 
-            name0 = String.objects.create(v=user1.first_name) 
-            name1 = String.objects.create(v='Pink')
-            name2 = String.objects.create(v='Orange')
-            x1 = Float.objects.create(v=1.11)
-            y1 = Float.objects.create(v=2.22)
-            z1 = Float.objects.create(v=3.33)
-            x2 = Float.objects.create(v=4.44)
-            y2 = Float.objects.create(v=5.55)
-            z2 = Float.objects.create(v=6.66)
+#             name0 = String.objects.create(v=user1.first_name) 
+#             name1 = String.objects.create(v='Pink')
+#             name2 = String.objects.create(v='Orange')
+#             x1 = Float.objects.create(v=1.11)
+#             y1 = Float.objects.create(v=2.22)
+#             z1 = Float.objects.create(v=3.33)
+#             x2 = Float.objects.create(v=4.44)
+#             y2 = Float.objects.create(v=5.55)
+#             z2 = Float.objects.create(v=6.66)
 
-            point1 = Part.objects.create(t=tag['point'])
-            point1.s.add(name1, through_defaults={'t':tag['name']})
-            point1.f.add(x1, through_defaults={'t':tag['x']})
-            point1.f.add(y1, through_defaults={'t':tag['y']})
-            point1.f.add(z1, through_defaults={'t':tag['z']})
-            point2 = Part.objects.create(t=tag['point'])
-            point2.s.add(name2, through_defaults={'t':tag['name']})
-            point2.f.add(x2, through_defaults={'t':tag['x']})
-            point2.f.add(y2, through_defaults={'t':tag['y']})
-            point2.f.add(z2, through_defaults={'t':tag['z']})
+#             point1 = Part.objects.create(t=tag['point'])
+#             point1.s.add(name1, through_defaults={'t':tag['name']})
+#             point1.f.add(x1, through_defaults={'t':tag['x']})
+#             point1.f.add(y1, through_defaults={'t':tag['y']})
+#             point1.f.add(z1, through_defaults={'t':tag['z']})
+#             point2 = Part.objects.create(t=tag['point'])
+#             point2.s.add(name2, through_defaults={'t':tag['name']})
+#             point2.f.add(x2, through_defaults={'t':tag['x']})
+#             point2.f.add(y2, through_defaults={'t':tag['y']})
+#             point2.f.add(z2, through_defaults={'t':tag['z']})
 
-            public = Part.objects.create(t=tag['public'])
-            public.p.add(point1, through_defaults={'t':tag['viewable']})
-            public.s.add(name0, through_defaults={'t':tag['viewable']})
-            public.s.add(name1, through_defaults={'t':tag['viewable']})
-            public.f.add(x1, through_defaults={'t':tag['viewable']})
-            public.f.add(y1, through_defaults={'t':tag['viewable']})
-            public.f.add(z1, through_defaults={'t':tag['viewable']})
+#             public = Part.objects.create(t=tag['public'])
+#             public.p.add(point1, through_defaults={'t':tag['viewable']})
+#             public.s.add(name0, through_defaults={'t':tag['viewable']})
+#             public.s.add(name1, through_defaults={'t':tag['viewable']})
+#             public.f.add(x1, through_defaults={'t':tag['viewable']})
+#             public.f.add(y1, through_defaults={'t':tag['viewable']})
+#             public.f.add(z1, through_defaults={'t':tag['viewable']})
 
-            poll_pack = Part.objects.create(t=tag['poll_pack']) # don't need to create if cycling poll by create and delete
-            poll_pack.u.add(user1, through_defaults={'t':tag['user']})
-            open_pack = Part.objects.create(t=tag['open_pack'])
-            open_pack.u.add(user1, through_defaults={'t':tag['user']})
-            open_pack.p.add(poll_pack, through_defaults={'t':tag['poll_pack']})
+#             poll_pack = Part.objects.create(t=tag['poll_pack']) # don't need to create if cycling poll by create and delete
+#             poll_pack.u.add(user1, through_defaults={'t':tag['user']})
+#             open_pack = Part.objects.create(t=tag['open_pack'])
+#             open_pack.u.add(user1, through_defaults={'t':tag['user']})
+#             open_pack.p.add(poll_pack, through_defaults={'t':tag['poll_pack']})
 
-            profile1 = Part.objects.create(t=tag['profile'])
-            profile1.u.add(user1, through_defaults={'t':tag['user']})
-            profile1.p.add(point2, through_defaults={'t':tag['asset']})
-            profile1.s.add(name0, through_defaults={'t':tag['name']})
-            profile1.s.add(name2, through_defaults={'t':tag['asset']})
-            profile1.f.add(x2, through_defaults={'t':tag['asset']})
-            profile1.f.add(y2, through_defaults={'t':tag['asset']})
-            profile1.f.add(z2, through_defaults={'t':tag['asset']})
+#             profile1 = Part.objects.create(t=tag['profile'])
+#             profile1.u.add(user1, through_defaults={'t':tag['user']})
+#             profile1.p.add(point2, through_defaults={'t':tag['asset']})
+#             profile1.s.add(name0, through_defaults={'t':tag['name']})
+#             profile1.s.add(name2, through_defaults={'t':tag['asset']})
+#             profile1.f.add(x2, through_defaults={'t':tag['asset']})
+#             profile1.f.add(y2, through_defaults={'t':tag['asset']})
+#             profile1.f.add(z2, through_defaults={'t':tag['asset']})
 
-            public.p.add(profile1, through_defaults={'t':tag['viewable']})
-    except Exception as e: print(e)
+#             public.p.add(profile1, through_defaults={'t':tag['viewable']})
+#     except Exception as e: print(e)
     
 #make_data() 
 

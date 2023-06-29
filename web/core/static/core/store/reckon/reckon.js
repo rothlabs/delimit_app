@@ -77,8 +77,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     ...curve,
     surface(d,n,cause=''){
         // try{//if(cause.includes('line') || ['make.edge', 'delete.edge'].includes(cause)){ 
-        //     const ribs = d.n[n].n.mixed_line;//.filter(n=> !d.n[n].c.guide);
-        //     const rail  = d.n[n].n.line;//.filter(n=>  d.n[n].c.guide);
+        //     const ribs = d.n[n].n.mixed_curve;//.filter(n=> !d.n[n].c.guide);
+        //     const rail  = d.n[n].n.curve;//.filter(n=>  d.n[n].c.guide);
         //     const pts = [];
         //     ribs.forEach(rib=>{
         //         pts = pts.concat(d.n[rib].c.pts);

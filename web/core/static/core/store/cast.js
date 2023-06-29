@@ -20,7 +20,7 @@ export const create_cast_slice=(set,get)=>({cast:{
     point(d,n,c){
         if(c.matrix) d.next('reckon.node',n);
     },
-    mixed_line(d,n,c){
+    mixed_curve(d,n,c){
         if(c.matrix) d.next('reckon.node',n,'matrix');
     },
 }});

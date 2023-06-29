@@ -21,7 +21,7 @@ export function Part(){ // check if in design mode
 //     'sketch':      Group,
 //     'repeater':    Group,
 //     'line':        Line,
-//     'mixed_line':  Line,
+//     'mixed_curve':  Line,
 // };
 // export const compnt_list = Object.keys(compnt);
 

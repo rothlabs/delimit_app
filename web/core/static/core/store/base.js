@@ -4,15 +4,15 @@ import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
 //import { Group } from '../component/part/group.js';
 import {Point} from '../component/part/point.js';
-import {Line} from '../component/part/line.js';
+import {Curve} from '../component/part/curve.js';
 import {Surface} from '../component/part/surface.js';
 
 var next_funcs = [];
 var next_ids = [];
 
 const subject_tags= [
-    'product', 'point', 'line', 'sketch', 'repeater', 'group', 'transform', 
-    'mixed_line', 'surface',
+    'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
+    'mixed_curve', 'surface',
 ];
 const cat_cast_tags=[
     'top_view', 'inner_view', 'outer_view', 'guide',
@@ -23,8 +23,8 @@ const component = {
     // 'sketch':      Group,
     // 'repeater':    Group,
     'point':       Point,
-    'line':        Line,
-    'mixed_line':  Line,
+    'curve':        Curve,
+    'mixed_curve': Curve,
     'surface':     Surface,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
@@ -56,12 +56,12 @@ export const create_base_slice = (set,get)=>({
         'decimal':      'bi-123',
         'text':         'bi-type',
         'point':        'bi-record-circle',
-        'line':         'bi-bezier2',
+        'curve':         'bi-bezier2',
         'sketch':       'bi-easel2',
         'repeater':     'bi-files',
         'group':        'bi-box-seam',
         'transform':    'bi-arrows-move',
-        'mixed_line':   'bi-bezier',
+        'mixed_curve':   'bi-bezier',
         'top_view':     'bi-camera-reels',
         'inner_view':   'bi-camera-reels',
         'outer_view':   'bi-camera-reels',
@@ -74,11 +74,11 @@ export const create_base_slice = (set,get)=>({
         'matrix', 'inverse_matrix'
     ].map(t=>[t,true]))},
     cast_end:Object.fromEntries([
-        'point', 'mixed_line', 'surface',
+        'point', 'mixed_curve', 'surface',
     ].map(t=>[t,true])),
     component:component,
     component_tags:Object.keys(component),
-    line_res: 100,
+    curve_res: 100,
 
     n: {},
     t: {},
@@ -292,7 +292,7 @@ export const create_base_slice = (set,get)=>({
                         //});
                         //d.node.delete_edges(d, edges);
                     }
-                    d.n[n.id].n = {}; // might not need this line because of delete above  should respective r of other nodes 
+                    d.n[n.id].n = {}; // might not need this curve because of delete above  should respective r of other nodes 
                     if(d.n[n.id].t=='profile'){
                         data.ue.forEach(e=>{
                             if(e.r==n.id && e.n==d.user) d.profile = n.id;
@@ -438,7 +438,7 @@ export const create_base_slice = (set,get)=>({
 
 // export const node_tag = [ // make it so this reads from server
 //     'Profile', 'Public', // admin
-//     'Point', 'Line', // geom
+//     'Point', 'curve', // geom
 //     ...Object.values(atom_tags), 
 // ];
 

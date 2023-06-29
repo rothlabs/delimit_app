@@ -1,7 +1,7 @@
 import {createElement as c, useRef, memo} from 'react';
 import {useS, useSS, useSub, gs} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
-import {Line as Drei_Line} from '@react-three/drei/Line';
+import {Line} from '@react-three/drei/Line';
 import { Pickable } from '../node/base.js';
 import {CatmullRomCurve3} from 'three';
 import {Point} from './point.js';
@@ -15,7 +15,7 @@ const res = 100;
 // }
 
 
-export const Line = memo(function Line({n}){ 
+export const Curve = memo(function Curve({n}){ 
     const obj = useRef();
     //useSS(d=> d.n[n].n.point); 
     const color = useS(d=> d.n[n].pick.color); 
@@ -38,7 +38,7 @@ export const Line = memo(function Line({n}){
             //     ...points.map(p=> c(Point, {n:p.n, key:p.n})),
             // ),
             points?.length>1 && c(Pickable, {n:n}, // points && points.length>1 && 
-                c(Drei_Line, {
+                c(Line, {
                     ref: obj,
                     points: points.map(p=> [p.x, p.y, p.z]),//interpolate(gs(),n),//points.map(p=> [p.pos.x, p.pos.y, p.pos.z]), //[[0,0,0],[0,0,0]], //points: 
                     lineWidth: 3,

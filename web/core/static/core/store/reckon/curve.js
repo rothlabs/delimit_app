@@ -1,17 +1,17 @@
 import {Vector3, CatmullRomCurve3} from 'three';
 import {current} from 'immer';
 export const curve = {
-    line(d,n){
+    curve(d,n){
         d.n[n].c.pts = [];
-        try{d.n[n].c.pts = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos)).getPoints(d.line_res);
+        try{d.n[n].c.pts = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos)).getPoints(d.curve_res);
         }catch{}
     }, 
-    mixed_line(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
-        try{if(cause.includes('line') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 
+    mixed_curve(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
+        try{if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 
             delete d.n[n].c.point;
             const res_i = 200;
-            const l1 = d.n[n].n.line[0];
-            const l2 = d.n[n].n.line[1];
+            const l1 = d.n[n].n.curve[0];
+            const l2 = d.n[n].n.curve[1];
             if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
                 var pti=new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
                         new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
@@ -64,7 +64,7 @@ export const curve = {
                     pto2.push(cmp.shift());
                 }
                 pto2[pto2.length-1] = pto.at(-1);
-                d.n[n].c.pts = new CatmullRomCurve3(pto2).getPoints(d.line_res);
+                d.n[n].c.pts = new CatmullRomCurve3(pto2).getPoints(d.curve_res);
                 if(d.n[n].c.matrix) d.n[n].c.pts = d.n[n].c.pts.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
             }
         }}catch(e){console.log(e)}
