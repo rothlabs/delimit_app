@@ -19,17 +19,17 @@ export const Curve = memo(function Curve({n}){
     const obj = useRef();
     //useSS(d=> d.n[n].n.point); 
     const color = useS(d=> d.n[n].pick.color); 
-    const curve = useS(d=> d.n[n].c.curve);
-    useSub(d=> d.n[n].c.pts, pts=>{ // make useSub that includes useEffect
-        if(pts && obj.current){
+    //const curve = useS(d=> d.n[n].c.curve);
+    useSub(d=> d.n[n].c.curve, curve=>{ // make useSub that includes useEffect
+        if(curve && obj.current){
             //const curve = new CatmullRomCurve3(pts.map(p=>p.pos));
             //obj.current.geometry.setPositions(curve.getPoints(res).map(p=> [p.x, p.y, p.z]).flat()); //new Float32Array(
             //obj.current.geometry.setPositions(interpolate(gs(),n,{flat:true}));
-            obj.current.geometry.setPositions(pts.map(p=>[p.x, p.y, p.z]).flat());
+            obj.current.geometry.setPositions(curve.getPoints(res).map(p=>[p.x, p.y, p.z]).flat());
         }
     });
-    const points = gs().n[n].c.pts;
-    //console.log('render line');
+    const curve = gs().n[n].c.curve;
+    //console.log('render line', curve.getPoints(res));
     return(
         //c('group', {name:'line'},
             // points[0]?.n && c('group', {
@@ -37,10 +37,10 @@ export const Curve = memo(function Curve({n}){
             // },
             //     ...points.map(p=> c(Point, {n:p.n, key:p.n})),
             // ),
-            points?.length>1 && c(Pickable, {n:n}, // points && points.length>1 && 
+            curve && c(Pickable, {n:n},//points?.length>1 && c(Pickable, {n:n}, // points && points.length>1 && 
                 c(Line, {
                     ref: obj,
-                    points: points.map(p=> [p.x, p.y, p.z]),//interpolate(gs(),n),//points.map(p=> [p.pos.x, p.pos.y, p.pos.z]), //[[0,0,0],[0,0,0]], //points: 
+                    points: curve.getPoints(res).map(p=> [p.x, p.y, p.z]),//interpolate(gs(),n),//points.map(p=> [p.pos.x, p.pos.y, p.pos.z]), //[[0,0,0],[0,0,0]], //points: 
                     lineWidth: 3,
                     color: color[0],
                     //segments: res, // need to make this adjustable or dependent on zoom or line length 

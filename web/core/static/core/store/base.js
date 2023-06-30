@@ -78,7 +78,6 @@ export const create_base_slice = (set,get)=>({
     ].map(t=>[t,true])),
     component:component,
     component_tags:Object.keys(component),
-    curve_res: 100,
 
     n: {},
     t: {},

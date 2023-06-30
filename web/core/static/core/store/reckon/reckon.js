@@ -2,6 +2,7 @@ import { Matrix4, Vector3, Euler, Quaternion, MathUtils, CatmullRomCurve3 } from
 import {current} from 'immer';
 import lodash from 'lodash';
 import {curve} from './curve.js';
+import {surface} from './surface.js';
 
 const zero_vector = new Vector3();
 const tv1 = new Vector3();
@@ -48,19 +49,6 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null; 
         return result;
     },
-    point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
-        try{ //if(pos){
-            const nn = d.reckon.v(d, n, 'x y z');
-            d.n[n].c.pos_l = new Vector3(nn.x, nn.y, nn.z);
-            d.n[n].c.pos   = new Vector3(nn.x, nn.y, nn.z);
-            if(d.n[n].c.matrix){ d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix) }
-            else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
-                d.n[n].c.matrix = d.n[r].c.matrix;
-                d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
-                d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
-            }})}
-        }catch{} //console.error(e)
-    },
     transform(d,n,cause=''){ // put this in base and make it work for at least one component (just scale_x for example)
         try{if(['make.node', 'make.edge', '__decimal'].includes(cause)){
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
@@ -74,19 +62,21 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
         }}catch{} //}catch(e){console.log(e)}
     },
-    ...curve,
-    surface(d,n,cause=''){
-        // try{//if(cause.includes('line') || ['make.edge', 'delete.edge'].includes(cause)){ 
-        //     const ribs = d.n[n].n.mixed_curve;//.filter(n=> !d.n[n].c.guide);
-        //     const rail  = d.n[n].n.curve;//.filter(n=>  d.n[n].c.guide);
-        //     const pts = [];
-        //     ribs.forEach(rib=>{
-        //         pts = pts.concat(d.n[rib].c.pts);
-        //     });
-        //     d.n[n].c.pts = pts;
-        //     //console.log('ribs gds', ribs, rails);
-        // }catch(e){console.log(e)}
+    point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
+        try{ //if(pos){
+            const nn = d.reckon.v(d, n, 'x y z');
+            d.n[n].c.pos_l = new Vector3(nn.x, nn.y, nn.z);
+            d.n[n].c.pos   = new Vector3(nn.x, nn.y, nn.z);
+            if(d.n[n].c.matrix){ d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix) }
+            else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
+                d.n[n].c.matrix = d.n[r].c.matrix;
+                d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
+                d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            }})}
+        }catch{} //console.error(e)
     },
+    ...curve,
+    ...surface,
 }});
 
 // list(d, n, t, func){ // build in n:n and color:color pick_color, 

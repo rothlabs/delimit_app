@@ -61,23 +61,23 @@ export function Viewport(){
                     d.pick.set(d, nodes, true);
                 }),
             }),
-            c(Fixed_Size_Group, {size:12,},
-                c('mesh', {},
-                    c('boxGeometry'),
-                    c('meshBasicMaterial', {color:'grey', toneMapped:false}),
-                )
-            ),
+            //c(Fixed_Size_Group, {size:12,},
+                // c('mesh', {scale:100, rotation:[10,20,0], position:[0,0,0]},
+                //     c('boxGeometry'),
+                //     c('meshStandardMaterial', {color:'grey'}), //, toneMapped:false
+                // ),
+            //),
 
             
-            // r('ambientLight', {
-            //     color: 'white',
-            //     intensity: 0.5,
-            // }),
-            // r('directionalLight', { 
-            //     color: 'white',
-            //     intensity: 0.5,
-            //     position: [2,2,1],
-            // }),
+            c('ambientLight', {
+               color: 'white',
+               intensity: 0.25,
+            }),
+            c('directionalLight', { 
+                color: 'white',
+                intensity: 0.75,
+                position: [50,50,100],
+            }),
             // r('mesh', { 
             //     name: 'board',
             //     onClick:(e)=>{ e.stopPropagation();

@@ -1,23 +1,32 @@
 import {Vector3, CatmullRomCurve3} from 'three';
 import {current} from 'immer';
 export const curve = {
+    //res: 100,
     curve(d,n){
-        d.n[n].c.pts = [];
-        try{d.n[n].c.pts = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos)).getPoints(d.curve_res);
+        //d.n[n].c.pts = [];
+        try{
+            if(d.n[n].c.pos && d.n[n].c.pos_l){
+                d.n[n].c.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos));
+                d.n[n].c.curve_l = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos_l));
+            }else{
+                delete d.n[n].c.curve;
+                delete d.n[n].c.curve_l;
+            }
+            //d.n[n].c.pts = d.n[n].c.curve.getPoints(this.res);
         }catch{}
     }, 
     mixed_curve(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
         try{if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 
-            delete d.n[n].c.point;
-            const res_i = 200;
+            delete d.n[n].c.curve;
+            const mid_res = this.res * 2;
             const l1 = d.n[n].n.curve[0];
             const l2 = d.n[n].n.curve[1];
             if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
-                var pti=new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-                        new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+                var pti=d.n[l1].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'t'})).concat(
+                        d.n[l2].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'s'})));
             }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
-                var pti=new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-                        new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+                var pti=d.n[l2].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'t'})).concat(
+                        d.n[l1].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'s'})));
             }
             if(pti){
                 const pto = [];
@@ -64,9 +73,21 @@ export const curve = {
                     pto2.push(cmp.shift());
                 }
                 pto2[pto2.length-1] = pto.at(-1);
-                d.n[n].c.pts = new CatmullRomCurve3(pto2).getPoints(d.curve_res);
-                if(d.n[n].c.matrix) d.n[n].c.pts = d.n[n].c.pts.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
+                if(d.n[n].c.matrix) pto2 = pto2.map(p=>p.applyMatrix4(d.n[n].c.matrix))
+                d.n[n].c.curve = new CatmullRomCurve3(pto2);
             }
-        }}catch(e){console.log(e)}
+        }}catch(e){console.log(e);}
     },
 };
+
+
+// d.n[n].c.pts = new CatmullRomCurve3(pto2).getPoints(this.res);
+// if(d.n[n].c.matrix) d.n[n].c.pts = d.n[n].c.pts.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
+
+// if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
+//     var pti=new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+//             new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+// }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
+//     var pti=new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+//             new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+// }
