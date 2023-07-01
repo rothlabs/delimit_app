@@ -2,14 +2,23 @@ import {Vector3, CatmullRomCurve3, Shape, CurvePath} from 'three';
 import {current} from 'immer';
 export const surface = {
     boundary_res: 100,
-    max_dist: 20,
+    max_dist: 40,
     //res_w: 100,//d.reckon.curve.res,
     res_h: 10,
     surface(d,n,cause=''){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         try{//if(cause.includes('curve') || ['make.edge', 'delete.edge'].includes(cause)){ 
-            const ribs = d.n[n].n.mixed_curve;//.filter(n=> !d.n[n].c.guide);
+            //const ribs = d.n[n].n.mixed_curve;//.filter(n=> !d.n[n].c.guide);
+            const ribs = d.n[n].n.mixed_curve.map(n=>{
+                //let pts = d.n[n].c.curve.getPoints();
+                return {
+                    used:false,
+                    n: n,
+                    pts: d.n[n].c.curve.getPoints(this.boundary_res),
+                    h: d.n[n].c.curve.getPoints(4).reduce((a,b)=>a.y+b.y,0),
+                }
+            }).sort((a,b)=>a.h-b.h);
             function transform_points(pts){
-                if(d.n[ribs[0]].c.matrix) return pts.map(p=>p.applyMatrix4(d.n[ribs[0]].c.matrix));
+                if(d.n[ribs[0].n].c.matrix) return pts.map(p=>p.applyMatrix4(d.n[ribs[0].n].c.matrix));
                 return pts;
             }
             const bndry  = d.n[n].n.curve.map(n=>({
@@ -19,15 +28,16 @@ export const surface = {
             var pts = [...bndry[0].pts];
             bndry[0].used = true;
             var i = 1;
-            while(i < bndry.length){
-                if(!bndry[i].used){
-                    if(pts.at(-1).distanceTo(bndry[i].pts[0]) < this.max_dist) {
-                        bndry[i].used = true;
-                        pts = pts.concat(bndry[i].pts); 
+            const curves = [...bndry, ribs[0], ribs.at(-1)];
+            while(i < curves.length){
+                if(!curves[i].used){
+                    if(pts.at(-1).distanceTo(curves[i].pts[0]) < this.max_dist) {
+                        curves[i].used = true;
+                        pts = pts.concat(curves[i].pts); 
                         i = 0;
-                    }else if(pts.at(-1).distanceTo(bndry[i].pts.at(-1)) < this.max_dist){
-                        bndry[i].used = true;
-                        pts = pts.concat(bndry[i].pts.reverse());
+                    }else if(pts.at(-1).distanceTo(curves[i].pts.at(-1)) < this.max_dist){
+                        curves[i].used = true;
+                        pts = pts.concat(curves[i].pts.reverse());
                         i = 0;
                     }
                 }

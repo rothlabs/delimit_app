@@ -29,9 +29,14 @@ const params = {
 export const Surface = memo(function Surface({n}){ 
     const color = useS(d=> d.n[n].pick.color); 
     const shape = useS(d=> d.n[n].c.shape);
-    var geo = new ShapeGeometry(shape);
-    geo = LoopSubdivision.modify(geo, 2, params);
-    geo = mergeVertices(geo, 4);
+    const [geo,set_geo] = useState(new PlaneGeometry());
+    useEffect(()=>{
+        var geo = new ShapeGeometry(shape);
+        geo = LoopSubdivision.modify(geo, 2, params);
+        geo = mergeVertices(geo, 4); // try this in progressive stages of greater tolerance ?!?!?!?!
+        set_geo(geo);
+    },[shape]);
+    
     // const idx = geo.index.array;
     // const pa = geo.getAttribute('position');
     // for(let i=0; i<idx.length-3; i+=3){
@@ -51,7 +56,7 @@ export const Surface = memo(function Surface({n}){
             c('mesh', {
                 geometry:geo,
             },
-                c('meshStandardMaterial', {color:color[1], wireframe:true, toneMapped:false, side:DoubleSide,}), //toneMapped:false, side:BackSide
+                c('meshStandardMaterial', {color:color[0], wireframe:true, toneMapped:false, side:DoubleSide,}), //toneMapped:false, side:BackSide
                 //c(Edges, {color: color[2]},),
             ),
         )

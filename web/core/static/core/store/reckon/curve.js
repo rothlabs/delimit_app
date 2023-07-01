@@ -31,29 +31,29 @@ export const curve = {
             if(pti){
                 var pto = [];
                 pti.sort((a,b)=> a.p.x-b.p.x);//(a.p.x<b.p.x ? -1 : 1));
-                var xi = -1;
+                var zi = -1;
                 var yi = -1;
                 for(var i=0; i<pti.length; i++){
-                    if(pti[i].v == 't'){ var x = pti[i].p.y; xi=i; 
+                    if(pti[i].v == 't'){ var z = pti[i].p.y; zi=i; 
                     }else{ var y = pti[i].p.y; yi=i; }
-                    if(xi>-1 && yi>-1) break;
+                    if(zi>-1 && yi>-1) break;
                 }
                 for(var i=0; i<pti.length; i++){ // interpolate x and y here ?!?!?!?!
                     if(pti[i].v == 't'){
-                        x = pti[i].p.y;
-                        for(let k=xi+1; k<i; k++){
-                            let amt = (k-xi)/(i-xi);
-                            pto[k].setX((1-amt)*pto[xi].x+amt*x);
+                        z = pti[i].p.y;
+                        for(let k=zi+1; k<i; k++){
+                            let amt = (k-zi)/(i-zi);
+                            pto[k].setZ((1-amt)*pto[zi].z+amt*z);
                         }
-                        pto.push(new Vector3(x, y, pti[i].p.x));
-                        xi=i;
+                        pto.push(new Vector3(pti[i].p.x, y, z));
+                        zi=i;
                     }else{
                         y = pti[i].p.y;
                         for(let k=yi+1; k<i; k++){
                             let amt = (k-yi)/(i-yi);
                             pto[k].setY((1-amt)*pto[yi].y+amt*y);
                         }
-                        pto.push(new Vector3(x, y, pti[i].p.x));
+                        pto.push(new Vector3(pti[i].p.x, y, z));
                         yi=i;
                     }
                 }
@@ -62,7 +62,7 @@ export const curve = {
                 const cmp = pto.slice(1,10);
                 for(var i=0; i<pto.length-1; i++){
                     cmp.sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
-                    if(cmp[0].distanceTo(pto2.at(-1))+0.01 < pto[i+1].distanceTo(pto2.at(-1))){
+                    if(cmp[0].distanceTo(pto2.at(-1)) < pto[i+1].distanceTo(pto2.at(-1))){
                         pto2.push(cmp.shift());
                         cmp.push(pto[i+1]);
                     }else{ pto2.push(pto[i+1]) }
