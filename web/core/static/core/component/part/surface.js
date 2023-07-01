@@ -3,37 +3,72 @@ import {useS, useSS, useSub, gs} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 //import {Plane} from '@react-three/drei/Plane';
 import {Pickable} from '../node/base.js';
-import {Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, BackSide} from 'three';
+import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, BackSide} from 'three';
+import {LoopSubdivision} from './three/LoopSubdivision.js';
+import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
+//import {Edges} from '@react-three/drei/Edges';
 
 // function make_surface(res_w, res_h){
 //     return new THREE.PlaneGeometry(1, 1, divisions, frames.length + tailfinSlices -1);
 // }
-// const tv1 =  new Vector3();
-// const tv2 =  new Vector3();
-// const tv3 =  new Vector3();
+const zp =  new Vector3(0,0,1);
+const v1 =  new Vector3();
+const v2 =  new Vector3();
+const v3 =  new Vector3();
+const v4 =  new Vector3();
+//const v5 =  new Vector3();
+
+const params = {
+    split:          true,       // optional, default: true
+    uvSmooth:       false,      // optional, default: false
+    preserveEdges:  false,      // optional, default: false
+    flatOnly:       true,      // optional, default: false
+    maxTriangles:   Infinity,   // optional, default: Infinity
+};
 
 export const Surface = memo(function Surface({n}){ 
     const color = useS(d=> d.n[n].pick.color); 
-    const res_w = useS(d=> d.n[n].c.res_w); 
-    const res_h = useS(d=> d.n[n].c.res_h); 
-    const pts = useS(d=> d.n[n].c.pts); 
-    const geo = new PlaneGeometry(1, 1, res_w, res_h);
-    geo.setAttribute('position', new Float32BufferAttribute(pts.map(p=>[p.x,p.y,p.z]).flat(),3));
-    geo.computeVertexNormals();
-    geo.computeBoundingBox();
-    geo.computeBoundingSphere();
+    const shape = useS(d=> d.n[n].c.shape);
+    var geo = new ShapeGeometry(shape);
+    geo = LoopSubdivision.modify(geo, 2, params);
+    geo = mergeVertices(geo, 4);
+    // const idx = geo.index.array;
+    // const pa = geo.getAttribute('position');
+    // for(let i=0; i<idx.length-3; i+=3){
+    //     v1.fromBufferAttribute(pa,idx[i]);
+    //     v2.fromBufferAttribute(pa,idx[i+1]);
+    //     v3.fromBufferAttribute(pa,idx[i+2]);
+    //     v4.copy(v2).sub(v1).cross(zp).normalize();
+    //     if(v3.sub(v2).normalize().dot(v4) > 0){
+    //         var tmp = idx[i];
+    //         idx[i] = idx[i+1];
+    //         idx[i+1] = tmp;
+    //     }
+    // }
     console.log('render surface');
     return(
         c(Pickable, {n:n}, // points && points.length>1 && 
             c('mesh', {
                 geometry:geo,
             },
-                c('meshStandardMaterial', {color:color[1], toneMapped:false, side:BackSide,}), //toneMapped:false, side:BackSide
+                c('meshStandardMaterial', {color:color[1], wireframe:true, toneMapped:false, side:DoubleSide,}), //toneMapped:false, side:BackSide
+                //c(Edges, {color: color[2]},),
             ),
         )
     )
 })
 
+
+//geo.setAttribute('normal', new Float32BufferAttribute(nml.map(p=>{p.normalize(); return [p.x,p.y,p.z]}).flat(),3));
+    
+    // const res_w = useS(d=> d.n[n].c.res_w); 
+    // const res_h = useS(d=> d.n[n].c.res_h); 
+    // const pts = useS(d=> d.n[n].c.pts); 
+    //const geo = new PlaneGeometry(1, 1, res_w, res_h);
+    // geo.setAttribute('position', new Float32BufferAttribute(pts.map(p=>[p.x,p.y,p.z]).flat(),3)); //setFromPoints
+    // geo.computeVertexNormals();
+    // geo.computeBoundingBox();
+    // geo.computeBoundingSphere();
 
 // export const Surface = memo(function Surface({n}){ 
 //     const color = useS(d=> d.n[n].pick.color); 
@@ -56,7 +91,7 @@ export const Surface = memo(function Surface({n}){
 //         console.log('center',center);
 //         //center.divideScalar(pts.length);
 //         const idx = geo.index.array;
-//         for(let i=0; i<idx.length-3; i++){
+//         for(let i=0; i<idx.length-3; i+=3){
 //             tv1.copy(pts[idx[i]]).sub(pts[idx[i+1]]);
 //             tv2.copy(pts[idx[i]]).sub(pts[idx[i+2]]);
 //             tv1.cross(tv2).normalize();

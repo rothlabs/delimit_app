@@ -5,7 +5,7 @@ export const curve = {
     curve(d,n){
         //d.n[n].c.pts = [];
         try{
-            if(d.n[n].c.pos && d.n[n].c.pos_l){
+            if(d.n[n].n.point?.length > 1){
                 d.n[n].c.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos));
                 d.n[n].c.curve_l = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos_l));
             }else{
@@ -18,7 +18,7 @@ export const curve = {
     mixed_curve(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
         try{if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 
             delete d.n[n].c.curve;
-            const mid_res = this.res * 2;
+            const mid_res = 200;
             const l1 = d.n[n].n.curve[0];
             const l2 = d.n[n].n.curve[1];
             if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
@@ -29,7 +29,7 @@ export const curve = {
                         d.n[l1].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'s'})));
             }
             if(pti){
-                const pto = [];
+                var pto = [];
                 pti.sort((a,b)=> a.p.x-b.p.x);//(a.p.x<b.p.x ? -1 : 1));
                 var xi = -1;
                 var yi = -1;
@@ -57,7 +57,8 @@ export const curve = {
                         yi=i;
                     }
                 }
-                const pto2 = [pto[0]];
+                if(d.n[n].c.matrix) pto = pto.map(p=>p.applyMatrix4(d.n[n].c.matrix));
+                var pto2 = [pto[0]];
                 const cmp = pto.slice(1,10);
                 for(var i=0; i<pto.length-1; i++){
                     cmp.sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
@@ -73,13 +74,13 @@ export const curve = {
                     pto2.push(cmp.shift());
                 }
                 pto2[pto2.length-1] = pto.at(-1);
-                if(d.n[n].c.matrix) pto2 = pto2.map(p=>p.applyMatrix4(d.n[n].c.matrix))
                 d.n[n].c.curve = new CatmullRomCurve3(pto2);
             }
         }}catch(e){console.log(e);}
     },
 };
 
+//if(d.n[n].c.matrix) pto2 = pto2.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix));
 
 // d.n[n].c.pts = new CatmullRomCurve3(pto2).getPoints(this.res);
 // if(d.n[n].c.matrix) d.n[n].c.pts = d.n[n].c.pts.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
