@@ -34,13 +34,13 @@ export const curve = {
                 var zi = -1;
                 var yi = -1;
                 for(var i=0; i<pti.length; i++){
-                    if(pti[i].v == 't'){ var z = pti[i].p.y; zi=i; 
+                    if(pti[i].v == 't'){ var z = -pti[i].p.y; zi=i; 
                     }else{ var y = pti[i].p.y; yi=i; }
                     if(zi>-1 && yi>-1) break;
                 }
                 for(var i=0; i<pti.length; i++){ // interpolate x and y here ?!?!?!?!
                     if(pti[i].v == 't'){
-                        z = pti[i].p.y;
+                        z = -pti[i].p.y;
                         for(let k=zi+1; k<i; k++){
                             let amt = (k-zi)/(i-zi);
                             pto[k].setZ((1-amt)*pto[zi].z+amt*z);
@@ -57,7 +57,6 @@ export const curve = {
                         yi=i;
                     }
                 }
-                if(d.n[n].c.matrix) pto = pto.map(p=>p.applyMatrix4(d.n[n].c.matrix));
                 var pto2 = [pto[0]];
                 const cmp = pto.slice(1,10);
                 for(var i=0; i<pto.length-1; i++){
@@ -74,7 +73,8 @@ export const curve = {
                     pto2.push(cmp.shift());
                 }
                 pto2[pto2.length-1] = pto.at(-1);
-                d.n[n].c.curve = new CatmullRomCurve3(pto2);
+                d.n[n].c.curve_l = new CatmullRomCurve3(pto2);
+                if(d.n[n].c.matrix) d.n[n].c.curve = new CatmullRomCurve3(pto2.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
             }
         }}catch(e){console.log(e);}
     },

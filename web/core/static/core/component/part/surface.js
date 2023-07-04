@@ -1,9 +1,9 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
-import {useS, useSS, useSub, gs} from '../../app.js';
+import {useS, useSS, useSub, gs, Fixed_Size_Group} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 //import {Plane} from '@react-three/drei/Plane';
 import {Pickable} from '../node/base.js';
-import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, BackSide} from 'three';
+import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, FrontSide, BackSide, CircleGeometry} from 'three';
 import {LoopSubdivision} from './three/LoopSubdivision.js';
 import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
 //import {Edges} from '@react-three/drei/Edges';
@@ -11,6 +11,9 @@ import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
 // function make_surface(res_w, res_h){
 //     return new THREE.PlaneGeometry(1, 1, divisions, frames.length + tailfinSlices -1);
 // }
+
+const circle_geometry = new CircleGeometry(1,12);
+
 const zp =  new Vector3(0,0,1);
 const v1 =  new Vector3();
 const v2 =  new Vector3();
@@ -28,14 +31,17 @@ const params = {
 
 export const Surface = memo(function Surface({n}){ 
     const color = useS(d=> d.n[n].pick.color); 
-    const shape = useS(d=> d.n[n].c.shape);
-    const [geo,set_geo] = useState(new PlaneGeometry());
-    useEffect(()=>{
-        var geo = new ShapeGeometry(shape);
-        geo = LoopSubdivision.modify(geo, 2, params);
-        geo = mergeVertices(geo, 4); // try this in progressive stages of greater tolerance ?!?!?!?!
-        set_geo(geo);
-    },[shape]);
+    const geo = useS(d=> d.n[n].c.geo); 
+    //const geo2 = useS(d=> d.n[n].c.geo2); 
+    //const pts = useS(d=> d.n[n].c.pts); 
+    // const shape = useS(d=> d.n[n].c.shape);
+    // const [geo,set_geo] = useState(new PlaneGeometry());
+    // useEffect(()=>{
+    //     var geo = new ShapeGeometry(shape);
+    //     geo = LoopSubdivision.modify(geo, 2, params);
+    //     geo = mergeVertices(geo, 4); // try this in progressive stages of greater tolerance ?!?!?!?!
+    //     set_geo(geo);
+    // },[shape]);
     
     // const idx = geo.index.array;
     // const pa = geo.getAttribute('position');
@@ -52,13 +58,35 @@ export const Surface = memo(function Surface({n}){
     // }
     console.log('render surface');
     return(
-        c(Pickable, {n:n}, // points && points.length>1 && 
-            c('mesh', {
-                geometry:geo,
-            },
-                c('meshStandardMaterial', {color:color[0], wireframe:true, toneMapped:false, side:DoubleSide,}), //toneMapped:false, side:BackSide
-                //c(Edges, {color: color[2]},),
+        c('group', {},
+            // pts && c('group', {},
+            //     ...pts.map(p=>
+            //         //console.log(p);
+            //         c('mesh', {
+            //             geometry:circle_geometry,
+            //             scale: .25,
+            //             position: [p.x, p.y, p.z],
+            //         },
+            //             c('meshBasicMaterial', {color:'black', toneMapped:false}),
+            //         )
+            //     ),
+            // ),
+            geo && c(Pickable, {n:n}, // points && points.length>1 && 
+                c('mesh', {
+                    geometry:geo,
+                },
+                    c('meshStandardMaterial', {color:color[1], wireframe:false, toneMapped:true, side:DoubleSide,}), //toneMapped:false, side:BackSide
+                    //c(Edges, {color: color[2]},),
+                ),
             ),
+            // geo2 && c(Pickable, {n:n}, // points && points.length>1 && 
+            //     c('mesh', {
+            //         geometry:geo2,
+            //     },
+            //         c('meshStandardMaterial', {color:color[1], wireframe:true, toneMapped:false, side:DoubleSide,}), //toneMapped:false, side:BackSide
+            //         c(Edges, {color: color[2]},),
+            //     ),
+            // )
         )
     )
 })
