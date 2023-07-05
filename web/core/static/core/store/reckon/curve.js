@@ -1,19 +1,53 @@
-import {Vector3, CatmullRomCurve3} from 'three';
+import {Vector3, Vector4, MathUtils, CatmullRomCurve3} from 'three';
+import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {current} from 'immer';
 export const curve = {
     //res: 100,
     curve(d,n){
         //d.n[n].c.pts = [];
         try{
-            if(d.n[n].n.point?.length > 1){
-                d.n[n].c.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos));
-                d.n[n].c.curve_l = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos_l));
-            }else{
-                delete d.n[n].c.curve;
-                delete d.n[n].c.curve_l;
+            //delete d.n[n].c.curve;
+            //delete d.n[n].c.curve_l;
+            if(d.n[n].n.point?.length > 1){ 
+                //d.n[n].c.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos));
+                //d.n[n].c.curve_l = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos_l));
+                const pts = d.n[n].n.point.map(n=>d.n[n].c.pos);    // rename so this is pos_a ?!?!?! (absolute or g for global)
+                const pts_l = d.n[n].n.point.map(n=>d.n[n].c.pos_l); // rename so this is pos ?!?!?!?!
+                // var knots = [0,0];
+                // var last_knot = 0;
+                // pts.forEach((p,i) => {
+                //     if(i < pts.length-1){
+                //         knots.push(i);
+                //         last_knot = i;
+                //     }else{knots.push(last_knot,last_knot)}
+                // });
+
+
+                const cp = [];
+                const cp_l = [];
+				const knots = [];
+				const degree = 2;
+				for (let i=0; i<=degree; i++) knots.push(0);
+				for(let i=0; i < pts.length; i++) {
+					cp.push(new Vector4(pts[i].x, pts[i].y, pts[i].z, 1));
+                    cp_l.push(new Vector4(pts_l[i].x, pts_l[i].y, pts_l[i].z, 1));
+					const knot = ( i + 1 ) / (pts.length - degree);
+					knots.push( MathUtils.clamp( knot, 0, 1 ) );
+				}
+                d.n[n].c.curve = new NURBSCurve(degree, knots, cp);
+                d.n[n].c.curve_l = new NURBSCurve(degree, knots, cp_l);
+                d.n[n].c.curve.getPoints(3); // checking if valid curve 
+                //console.log('CURVE COMPLETE');
+            //}else{
+            //    delete d.n[n].c.curve;
+            //    delete d.n[n].c.curve_l;
             }
             //d.n[n].c.pts = d.n[n].c.curve.getPoints(this.res);
-        }catch{}
+        }catch(e){
+            delete d.n[n].c.curve;
+            delete d.n[n].c.curve_l;
+            //console.log('CURVE ERROR',e);
+        } // make switch so easy to view reckon errors for different types of nodes ?!?!?!?!
     }, 
     mixed_curve(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
         try{if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 

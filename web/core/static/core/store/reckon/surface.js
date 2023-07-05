@@ -17,7 +17,8 @@ export const surface = {
     guide_res: 60,
     boundary_res: 60,
     //sub_res: 30,
-    sub_div: 2,
+    sub_div: 12,
+    tri_res: 80,
     //max_dist: 40,
     //res_w: 100,//d.reckon.curve.res,
     //res_h: 10,
@@ -29,7 +30,7 @@ export const surface = {
 
             //var pts = [];
             const ribs = d.n[n].n.mixed_curve.map(n=>{
-                const points = d.n[n].c.curve_l.getSpacedPoints(this.rib_res-1); //getSpacedPoints
+                const points = d.n[n].c.curve_l.getPoints(this.rib_res-1); //getSpacedPoints
                 if(points[0].x > points.at(-1).x) points.reverse();
                 //pts.push(points.map(p=>new Vector4(p.x, p.y, p.z, 1)));
                 //pts.push(points);
@@ -39,31 +40,33 @@ export const surface = {
                     //matrix: d.n[n].c.matrix,
                     pts: points,
                     //curve: new CatmullRomCurve3(pts),
-                    y: d.n[n].c.curve_l.getPoints(20).reduce((a,b)=>a+b.y,0), // returning NaN ?!?!?!?!
+                    y: d.n[n].c.curve_l.getPoints(9).reduce((a,b)=>a+b.y,0)/10, // returning NaN ?!?!?!?!
                 }
             }).sort((a,b)=>a.y-b.y);
-            const guide = d.n[n].n.curve.filter(n=> d.n[n].c.guide).map(n=>{
+            const guide = d.n[n].n.curve.map(n=>{//.filter(n=> d.n[n].c.guide).map(n=>{
                 const pts = d.n[n].c.curve_l.getPoints(this.guide_res);
                 if(pts[0].y > pts.at(-1).y) pts.reverse();
                 return {
                     pts: pts,
                     sub: [], // sub points between ribs
-                    x: d.n[n].c.curve_l.getPoints(20).reduce((a,b)=>a+b.x,0),
+                    x: d.n[n].c.curve_l.getPoints(9).reduce((a,b)=>a+b.x,0)/10,
                 }
             }).sort((a,b)=>a.x-b.x);
             var idx1 = 0;
             var idx2 = 0;
             for(let i=1; i<ribs.length; i++){
+                const sub_div = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (this.sub_div+1));
+
                 var closest = guide[0].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts[0])-b.distanceTo(ribs[i].pts[0]))[0];
                 var idx = guide[0].pts.indexOf(closest);
                 //pts = pts.concat(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.sub_div+1));
                 //console.log('before error', closest, idx);
-                guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.sub_div+1));
+                guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getPoints(sub_div)); 
                 idx1 = idx;
                 closest = guide[1].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts.at(-1))-b.distanceTo(ribs[i].pts.at(-1)))[0];
                 idx = guide[1].pts.indexOf(closest);
                 //pts = pts.concat(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.sub_div+1));
-                guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.sub_div+1));
+                guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getPoints(sub_div));
                 idx2 = idx;
             }
             
@@ -85,9 +88,10 @@ export const surface = {
                 var r2 = ribs[k+1].pts;
                 var g1 = guide[0].sub[k];
                 var g2 = guide[1].sub[k];
+                
                 //prfl1.push(r1[0]);
                 //prfl2.push(r1.at(-1));
-                for(let i=1; i<this.sub_div+1; i++){
+                for(let i=1; i<g1.length-1; i++){
                     var a1 = v1.set(r1[0].x,r1[0].y,0).distanceTo(g1[i]) / v1.set(r1[0].x,r1[0].y,0).distanceTo(v2.set(r2[0].x,r2[0].y,0));
                     var a2 = v1.set(r1.at(-1).x,r1.at(-1).y,0).distanceTo(g2[i]) / v1.set(r1.at(-1).x,r1.at(-1).y,0).distanceTo(v2.set(r2.at(-1).x,r2.at(-1).y,0));
                     const endpoint1 = new Vector3(g1[i].x, g1[i].y, r1[0].z*(1-a1) + r2[0].z*a1);
@@ -113,7 +117,7 @@ export const surface = {
                     for (let j=0; j < r1.length; j++) { // change to rib_res ?!?!?!
                         var amt = j/r1.length;
                         var point1 = r1[j].clone();
-                        //amt = ((point1.distanceTo(r1[0]) - point1.distanceTo(r1.at(-1))) / endpoint_dist1 + 1) / 2;
+                        //var amt = ((point1.distanceTo(r1[0]) - point1.distanceTo(r1.at(-1))) / endpoint_dist1 + 1) / 2;
                         //var amt = ribs[k].curve.getLengths(this.rib_res)[j] / ribs[k].curve.getLength();
                         var np1 = point1.add(delta1.clone().multiplyScalar(1-amt)).add(delta2.clone().multiplyScalar(amt));
                         //d.n[n].c.pts.push(np.clone().applyMatrix4(d.n[n].c.matrix));
@@ -125,7 +129,7 @@ export const surface = {
                         
                         var np2 = point2.add(delta3.clone().multiplyScalar(1-amt)).add(delta4.clone().multiplyScalar(amt));
                         
-                        amt = i/(this.sub_div+1);
+                        amt = i/(g1.length-1);
                         var np  = np1.multiplyScalar(1-amt).add(np2.multiplyScalar(amt));
 
                         //d.n[n].c.pts.push(np.clone().applyMatrix4(d.n[n].c.matrix));
@@ -170,8 +174,8 @@ export const surface = {
                 if(i < pts[0].length-1) knots2.push(i);
             });
             knots2 = knots2.concat([pts[0].length-2, pts[0].length-2]);
-            console.log('knots1', knots1);
-            console.log('knots2', knots2);
+            //console.log('knots1', knots1);
+            //console.log('knots2', knots2);
             var surface = new NURBSSurface(
                 degree1, // u degree
                 degree2, // v degree
@@ -184,9 +188,9 @@ export const surface = {
                 //console.log(u, v, target);
                 return target;
             }
-            d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, 80, 80);
-            if(d.n[n].c.inner_view) d.n[n].c.geo.index.array.reverse();
-            d.n[n].c.geo.computeVertexNormals();
+            d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
+            //if(d.n[n].c.inner_view) d.n[n].c.geo.index.array.reverse();
+            //d.n[n].c.geo.computeVertexNormals();
 
 
 

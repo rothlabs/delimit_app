@@ -61,12 +61,12 @@ export function Viewport(){
                     d.pick.set(d, nodes, true);
                 }),
             }),
-            //c(Fixed_Size_Group, {size:12,},
-                // c('mesh', {scale:100, rotation:[10,20,0], position:[0,0,0]},
-                //     c('boxGeometry'),
-                //     c('meshStandardMaterial', {color:'grey'}), //, toneMapped:false
-                // ),
-            //),
+            c(Fixed_Size_Group, {size:12,},
+                c('mesh', {scale:1, rotation:[0,0,0], position:[0,0,0]},
+                    c('boxGeometry'),
+                    c('meshStandardMaterial', {color:'grey'}), //, toneMapped:false
+                ),
+            ),
 
             
             c('ambientLight', {

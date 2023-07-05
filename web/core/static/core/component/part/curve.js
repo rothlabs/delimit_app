@@ -25,6 +25,7 @@ export const Curve = memo(function Curve({n}){
             //const curve = new CatmullRomCurve3(pts.map(p=>p.pos));
             //obj.current.geometry.setPositions(curve.getPoints(res).map(p=> [p.x, p.y, p.z]).flat()); //new Float32Array(
             //obj.current.geometry.setPositions(interpolate(gs(),n,{flat:true}));
+            //console.log(curve.getPoints(res));
             obj.current.geometry.setPositions(curve.getPoints(res).map(p=>[p.x, p.y, p.z]).flat());
         }
     });

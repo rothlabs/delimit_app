@@ -4,8 +4,8 @@ import {useS, useSS, useSub, gs, Fixed_Size_Group} from '../../app.js';
 //import {Plane} from '@react-three/drei/Plane';
 import {Pickable} from '../node/base.js';
 import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, FrontSide, BackSide, CircleGeometry} from 'three';
-import {LoopSubdivision} from './three/LoopSubdivision.js';
-import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
+//import {LoopSubdivision} from './three/LoopSubdivision.js';
+//import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
 //import {Edges} from '@react-three/drei/Edges';
 
 // function make_surface(res_w, res_h){
@@ -64,12 +64,16 @@ export const Surface = memo(function Surface({n}){
             //         c('group', {},
             //             ...p.map(p=>
             //                 //console.log(p);
-            //                 c('mesh', {
-            //                     geometry:circle_geometry,
-            //                     scale: 1,
-            //                     position: [p.x, p.y, p.z],
-            //                 },
-            //                     c('meshBasicMaterial', {color:'black', toneMapped:false}),
+            //                 c('group', {name: 'weird', position: [p.x, p.y, p.z]}, 
+            //                 c(Fixed_Size_Group, {size:12}, // , props:{position: [p.x, p.y, p.z]}
+            //                     c('mesh', {
+            //                         geometry:circle_geometry,
+            //                         //scale: 1,
+            //                         //position: [p.x, p.y, p.z],
+            //                     },
+            //                         c('meshBasicMaterial', {color:'black', toneMapped:false}),
+            //                     )
+            //                 )
             //                 )
             //             )
             //         )
