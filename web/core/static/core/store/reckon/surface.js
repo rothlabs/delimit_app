@@ -1,5 +1,7 @@
 import {current} from 'immer';
-import {Vector3, CatmullRomCurve3, Shape, CurvePath, BufferGeometry, ShapeGeometry} from 'three';
+import {Vector3, Vector4, CatmullRomCurve3, Shape, CurvePath, BufferGeometry, ShapeGeometry} from 'three';
+import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
+import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 import Delaunator from 'delaunator';
 import { closest } from '../../junk/vertex.js';
 
@@ -11,11 +13,11 @@ const v2 = new Vector3();
 //const v6 = new Vector3();
 
 export const surface = {
-    rib_res: 60,
+    rib_res: 40,
     guide_res: 60,
     boundary_res: 60,
     //sub_res: 30,
-    sub_div: 40,
+    sub_div: 2,
     //max_dist: 40,
     //res_w: 100,//d.reckon.curve.res,
     //res_h: 10,
@@ -23,15 +25,21 @@ export const surface = {
         try{//if(cause.includes('curve') || ['make.edge', 'delete.edge'].includes(cause)){ 
             
 
+            
+
+            //var pts = [];
             const ribs = d.n[n].n.mixed_curve.map(n=>{
-                const pts = d.n[n].c.curve_l.getPoints(this.rib_res);
-                if(pts[0].x > pts.at(-1).x) pts.reverse();
+                const points = d.n[n].c.curve_l.getSpacedPoints(this.rib_res-1); //getSpacedPoints
+                if(points[0].x > points.at(-1).x) points.reverse();
+                //pts.push(points.map(p=>new Vector4(p.x, p.y, p.z, 1)));
+                //pts.push(points);
+                //console.log('reducer?',points.reduce((a,b)=>a+b.y,0));
                 return {
                     //used:false,
                     //matrix: d.n[n].c.matrix,
-                    pts: pts,
+                    pts: points,
                     //curve: new CatmullRomCurve3(pts),
-                    y: d.n[n].c.curve_l.getPoints(20).reduce((a,b)=>a.y+b.y,0),
+                    y: d.n[n].c.curve_l.getPoints(20).reduce((a,b)=>a+b.y,0), // returning NaN ?!?!?!?!
                 }
             }).sort((a,b)=>a.y-b.y);
             const guide = d.n[n].n.curve.filter(n=> d.n[n].c.guide).map(n=>{
@@ -40,29 +48,38 @@ export const surface = {
                 return {
                     pts: pts,
                     sub: [], // sub points between ribs
-                    x: d.n[n].c.curve_l.getPoints(20).reduce((a,b)=>a.x+b.x,0),
+                    x: d.n[n].c.curve_l.getPoints(20).reduce((a,b)=>a+b.x,0),
                 }
             }).sort((a,b)=>a.x-b.x);
-
             var idx1 = 0;
             var idx2 = 0;
             for(let i=1; i<ribs.length; i++){
                 var closest = guide[0].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts[0])-b.distanceTo(ribs[i].pts[0]))[0];
                 var idx = guide[0].pts.indexOf(closest);
-                console.log('before error', closest, idx);
+                //pts = pts.concat(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.sub_div+1));
+                //console.log('before error', closest, idx);
                 guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.sub_div+1));
                 idx1 = idx;
                 closest = guide[1].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts.at(-1))-b.distanceTo(ribs[i].pts.at(-1)))[0];
                 idx = guide[1].pts.indexOf(closest);
+                //pts = pts.concat(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.sub_div+1));
                 guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.sub_div+1));
                 idx2 = idx;
             }
-            // make extra ribs in between existing ribs
             
+
+
+            // make extra ribs in between existing ribs
             var pts = [];
+            
             const prfl1 = [];
             const prfl2 = [];
-            d.n[n].c.pts = [];
+            //d.n[n].c.pts = [];
+            pts.push(ribs[0].pts);
+            //var first_knots = ribs[0].pts.reduce((a,b)=>a+b.y,0);
+            //console.log('first_knots',first_knots);
+            //var knots1 = [first_knots,first_knots,first_knots];
+            //knots1.push(ribs[0].pts.reduce((a,b)=>a.y+b.y,0));
             for(let k=0; k<ribs.length-1; k++){
                 var r1 = ribs[k].pts;
                 var r2 = ribs[k+1].pts;
@@ -91,7 +108,9 @@ export const surface = {
 	                const delta4 = endpoint2.clone().sub(r2.at(-1)); // don't need to clone here ?!?!?!
 	                //const endpoint_dist1 = r1[0].distanceTo(r1.at(-1));
                     //const endpoint_dist2 = r2[0].distanceTo(r2.at(-1));
-                    for (let j=0; j < r1.length; j+=2) { // change to rib_res ?!?!?!
+                    
+                    const new_rib = []
+                    for (let j=0; j < r1.length; j++) { // change to rib_res ?!?!?!
                         var amt = j/r1.length;
                         var point1 = r1[j].clone();
                         //amt = ((point1.distanceTo(r1[0]) - point1.distanceTo(r1.at(-1))) / endpoint_dist1 + 1) / 2;
@@ -109,11 +128,15 @@ export const surface = {
                         amt = i/(this.sub_div+1);
                         var np  = np1.multiplyScalar(1-amt).add(np2.multiplyScalar(amt));
 
-                        d.n[n].c.pts.push(np.clone().applyMatrix4(d.n[n].c.matrix));
-                        pts.push(np);
+                        //d.n[n].c.pts.push(np.clone().applyMatrix4(d.n[n].c.matrix));
+                        new_rib.push(np);
                         if(j==0) prfl1.push(np);
                         if(j==r1.length-1) prfl2.push(np);
                     }
+                    pts.push(new_rib);
+                    //knots1.push(new_rib.reduce((a,b)=>a+b.y,0));
+                    
+                    //knots1.push(r2.reduce((a,b)=>a+b.y,0));
                     
 
                     //var nr = [];
@@ -121,33 +144,72 @@ export const surface = {
 
                     //}
                 }
+                pts.push(r2);
                 //prfl1.push(r2[0]);
                 //prfl2.push(r2.at(-1));
             }
 
 
-            //const prfl = d.n[n].n.curve.filter(n=> !d.n[n].c.guide).map(n=> d.n[n].
-            const prfl = ribs[0].pts.reverse().concat(prfl1, ribs.at(-1).pts, prfl2.reverse());
-            
-            //console.log('prfl',prfl);
-            
-            for(let i=0; i<ribs.length; i++){
-                pts = pts.concat(ribs[i].pts);
-            };
-            var geo = new BufferGeometry().setFromPoints(pts);
-            if(d.n[n].c.matrix) geo.applyMatrix4(d.n[n].c.matrix);
-            var tri = Delaunator.from(pts.map(v=> [v.x, v.y])).triangles;
-            var idx = []; 
-            for (let i = 0; i < tri.length-3; i+=3){
-                let o1 = prfl.indexOf(pts[tri[i]]), o2 = prfl.indexOf(pts[tri[i+1]]), o3 = prfl.indexOf(pts[tri[i+2]]);
-                if(o1>-1 && o2>-1 && Math.abs(o1-o2)>1) continue;
-                if(o2>-1 && o3>-1 && Math.abs(o2-o3)>1) continue;
-                if(o3>-1 && o1>-1 && Math.abs(o3-o1)>1) continue;
-                idx.push(tri[i], tri[i+2], tri[i+1]); // delaunay index => three.js index
+            pts = pts.map(p=> p.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
+            d.n[n].c.pts = pts;
+            var degree1 = 2;
+            var degree2 = 2;
+            //var knots1 = [0, 0, 0, 1, 1, 1];
+            var knots1 = [0,0];
+            var last_knot = 0;
+            pts.forEach((p,i) => {
+                if(i < pts.length-1){
+                    knots1.push(i);
+                    last_knot = i;
+                }else{knots1.push(last_knot,last_knot)}
+            });
+            //knots1.push(knots1.at(-1),knots1.at(-1));
+            //var knots2 = [0, 0, 0,   1, 2, 3,   4, 4, 4];
+            var knots2 = [0,0];
+            pts[0].forEach((p,i) => {
+                if(i < pts[0].length-1) knots2.push(i);
+            });
+            knots2 = knots2.concat([pts[0].length-2, pts[0].length-2]);
+            console.log('knots1', knots1);
+            console.log('knots2', knots2);
+            var surface = new NURBSSurface(
+                degree1, // u degree
+                degree2, // v degree
+                knots1,
+                knots2,
+                pts
+            );
+            function getSurfacePoint(u, v, target) {
+                surface.getPoint(u, v, target);
+                //console.log(u, v, target);
+                return target;
             }
-            geo.setIndex(idx);
-            geo.computeVertexNormals();
-            d.n[n].c.geo = geo;
+            d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, 80, 80);
+            if(d.n[n].c.inner_view) d.n[n].c.geo.index.array.reverse();
+            d.n[n].c.geo.computeVertexNormals();
+
+
+
+            // const prfl = ribs[0].pts.reverse().concat(prfl1, ribs.at(-1).pts, prfl2.reverse());
+            // for(let i=0; i<ribs.length; i++){
+            //     pts = pts.concat(ribs[i].pts);
+            // };
+            // var geo = new BufferGeometry().setFromPoints(pts);
+            // if(d.n[n].c.matrix) geo.applyMatrix4(d.n[n].c.matrix);
+            // var tri = Delaunator.from(pts.map(v=> [v.x, v.y])).triangles;
+            // var idx = []; 
+            // for (let i = 0; i < tri.length-3; i+=3){
+            //     let o1 = prfl.indexOf(pts[tri[i]]), o2 = prfl.indexOf(pts[tri[i+1]]), o3 = prfl.indexOf(pts[tri[i+2]]);
+            //     if(o1>-1 && o2>-1 && Math.abs(o1-o2)>1) continue;
+            //     if(o2>-1 && o3>-1 && Math.abs(o2-o3)>1) continue;
+            //     if(o3>-1 && o1>-1 && Math.abs(o3-o1)>1) continue;
+            //     idx.push(tri[i], tri[i+2], tri[i+1]); // delaunay index => three.js index
+            // }
+            // geo.setIndex(idx);
+            // geo.computeVertexNormals();
+            // d.n[n].c.geo = geo;
+
+
 
             // const bndry  = d.n[n].n.curve.map(n=>({
             //     used: false,

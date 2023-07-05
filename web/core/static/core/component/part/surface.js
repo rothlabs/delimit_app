@@ -33,7 +33,7 @@ export const Surface = memo(function Surface({n}){
     const color = useS(d=> d.n[n].pick.color); 
     const geo = useS(d=> d.n[n].c.geo); 
     //const geo2 = useS(d=> d.n[n].c.geo2); 
-    //const pts = useS(d=> d.n[n].c.pts); 
+    const pts = useS(d=> d.n[n].c.pts); 
     // const shape = useS(d=> d.n[n].c.shape);
     // const [geo,set_geo] = useState(new PlaneGeometry());
     // useEffect(()=>{
@@ -61,13 +61,17 @@ export const Surface = memo(function Surface({n}){
         c('group', {},
             // pts && c('group', {},
             //     ...pts.map(p=>
-            //         //console.log(p);
-            //         c('mesh', {
-            //             geometry:circle_geometry,
-            //             scale: .25,
-            //             position: [p.x, p.y, p.z],
-            //         },
-            //             c('meshBasicMaterial', {color:'black', toneMapped:false}),
+            //         c('group', {},
+            //             ...p.map(p=>
+            //                 //console.log(p);
+            //                 c('mesh', {
+            //                     geometry:circle_geometry,
+            //                     scale: 1,
+            //                     position: [p.x, p.y, p.z],
+            //                 },
+            //                     c('meshBasicMaterial', {color:'black', toneMapped:false}),
+            //                 )
+            //             )
             //         )
             //     ),
             // ),
