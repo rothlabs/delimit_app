@@ -1,7 +1,7 @@
 import {createElement as c, useRef, memo} from 'react';
 import {gs, useS, useSub, Fixed_Size_Group} from '../../app.js';
 import {Pickable} from '../node/base.js';
-import {CircleGeometry} from 'three';
+import {CircleGeometry, DoubleSide} from 'three';
 //import {Circle} from '';
 //import {Color} from '@react-three/fiber';
 
@@ -17,7 +17,7 @@ export const Point = memo(function Point({n}){//export function Point({n}){
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
     useSub(d=> d.n[n].c.pos, pos=>{
-        if(pos) obj.current.position.set(pos.x,pos.y,pos.z+100);
+        if(pos) obj.current.position.set(pos.x,pos.y,pos.z+5);
     });
     //console.log('render point');
     return(
@@ -31,7 +31,7 @@ export const Point = memo(function Point({n}){//export function Point({n}){
                 c('mesh', {
                     geometry:circle_geometry,
                 },
-                    c('meshBasicMaterial', {color:color[0], toneMapped:false}),
+                    c('meshBasicMaterial', {color:color[0], toneMapped:false, side:DoubleSide,}),
                 )
             ),
         )

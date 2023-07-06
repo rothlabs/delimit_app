@@ -276,7 +276,9 @@ export const surface = {
             // d.n[n].c.res_h = res_h-1;
             // //console.log('reckon surf');
             // //console.log('ribs gds', ribs, rails);
-        }catch(e){console.log(e)}
+        }catch(e){
+            //console.log(e);
+        }
     },
 };
 

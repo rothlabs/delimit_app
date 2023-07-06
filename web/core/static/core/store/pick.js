@@ -13,6 +13,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     //mode: '', 
     deep: false,
     multi: false,
+    box: false,
     limited: false, // rename to remakeable
     addable: false,
     removable: false,

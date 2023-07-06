@@ -110,7 +110,9 @@ export const curve = {
                 d.n[n].c.curve_l = new CatmullRomCurve3(pto2);
                 if(d.n[n].c.matrix) d.n[n].c.curve = new CatmullRomCurve3(pto2.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
             }
-        }}catch(e){console.log(e);}
+        }}catch(e){
+            //console.log(e);
+        }
     },
 };
 

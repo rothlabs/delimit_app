@@ -4,7 +4,7 @@ import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Part} from '../part/part.js';
 import {Mover} from './mover.js';
-import {useS, ss, Fixed_Size_Group, theme} from '../../app.js';
+import {useS, ss, Fixed_Size_Group, theme, gs} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Selection_Box} from '../selection/selection_box.js'; // selection box
 
@@ -16,9 +16,61 @@ import {Selection_Box} from '../selection/selection_box.js'; // selection box
 // const name=(e)=>   e.intersections[0].object.name
 // const select=(e)=> e.intersections[0];
 
+function Viewport_Control(){
+    const camera_controls = useRef();
+    const pick_box = useS(d=> d.pick.box);
+    const {camera} = useThree(); 
+    useEffect(()=>ss(d=>{
+        d.camera_controls = camera_controls.current;
+        d.camera_controls.addEventListener('control', ()=>ss(d=>{ // need to remove listener ?!?!?!?!
+            if(d.studio.mode=='graph' && d.design.part){
+                d.graph_cc = {
+                    azimuth: d.camera_controls.azimuthAngle,
+                    polar: d.camera_controls.polarAngle,
+                    pos: d.camera_controls.getTarget(),
+                    zoom: camera.zoom,
+                };
+            }else if(d.studio.mode=='design'){
+                d.n[d.design.part].cc = {
+                    azimuth: d.camera_controls.azimuthAngle,
+                    polar: d.camera_controls.polarAngle,
+                    pos: d.camera_controls.getTarget(),
+                    zoom: camera.zoom,
+                };
+            }
+        }));
+    }),[camera_controls]);
+    return(c('group', {name:'viewport_parts'}, 
+        c(CameraControls, {
+            ref: camera_controls,
+            makeDefault: true,
+            minDistance: 1000, 
+            maxDistance: 1000, 
+            polarRotateSpeed: (pick_box ? 0 : 1), 
+            azimuthRotateSpeed: (pick_box ? 0 : 1), 
+            draggingSmoothTime: 0,
+        }), 
+        pick_box && c(Selection_Box, { // studio mode causes this to render and removes selection!!!!!!!
+            style:{
+                border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",
+                position: "fixed",
+            },
+            onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
+                if(!d.pick.multi) d.pick.none(d);
+                const nodes = [];
+                objs.forEach(obj=>{
+                    const pickable = obj.parent?.__r3f.memoizedProps.pickable;
+                    if(pickable) nodes.push(pickable);
+                });
+                d.pick.set(d, nodes, true);
+            }),
+        }),
+    ))
+}
 
 export function Viewport(){
-    const {camera, raycaster} = useThree(); 
+    const light = useRef();
+    const {scene, camera, raycaster} = useThree(); 
     useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom); //< ----- needed for point clicking!
     //const camera_controls = useRef();
     //const [dragging, set_dragging] = useState();
@@ -30,53 +82,54 @@ export function Viewport(){
     //    camera_zoom_rv(camera.zoom);
     //});
     const studio_mode = useS(d=> d.studio.mode);
+
+    useEffect(()=>ss(d=>{
+        //const d = gs();
+        if(d.camera_controls){
+            var cc = null;
+            if(studio_mode=='graph'){ cc = d.graph_cc }
+            else if(studio_mode=='design'){ cc = d.n[d.design.part].cc }
+            if(cc){
+                d.camera_controls.rotateTo(cc.azimuth, cc.polar);
+                d.camera_controls.moveTo(cc.pos.x, cc.pos.y, cc.pos.z);
+                d.camera_controls.zoomTo(cc.zoom);
+            }else{
+                d.camera_controls.rotateTo(0,Math.PI/2);
+                d.camera_controls.moveTo(0,0,0);
+                d.camera_controls.zoomTo(1);
+            }
+            d.camera_controls.dollyTo(400);
+        }
+    }),[studio_mode]);
+
+    useEffect(()=>{
+        scene.add(camera);
+        camera.add(light.current);
+    },[]);
+
     //console.log('viewport Render!');
     return (
         c('group', {name:'viewport'}, 
-            c(CameraControls, { //ref: camera_controls,
-                makeDefault: true,
-                minDistance: 1000, 
-                maxDistance: 1000, 
-                polarRotateSpeed: 0, 
-                azimuthRotateSpeed: 0, 
-                draggingSmoothTime: 0,
-            }), 
+            c(Viewport_Control),
             studio_mode=='graph'  && c(Graph),
             studio_mode=='design' && c(Part),
             c(Board),
             c(Mover),
-            c(Selection_Box, { // studio mode causes this to render and removes selection!!!!!!!
-                style:{
-                    border: "1px dashed #d6006a",
-                    //backgroundColor: "rgba(75, 160, 255, 0.3)",
-                    position: "fixed",
-                },
-                onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
-                    if(!d.pick.multi) d.pick.none(d);
-                    const nodes = [];
-                    objs.forEach(obj=>{
-                        const pickable = obj.parent?.__r3f.memoizedProps.pickable;
-                        if(pickable) nodes.push(pickable);
-                    });
-                    d.pick.set(d, nodes, true);
-                }),
-            }),
             c(Fixed_Size_Group, {size:12,},
                 c('mesh', {scale:1, rotation:[0,0,0], position:[0,0,0]},
                     c('boxGeometry'),
                     c('meshStandardMaterial', {color:'grey'}), //, toneMapped:false
                 ),
             ),
-
-            
+            c('directionalLight', { 
+                ref:light,
+                color: 'white',
+                intensity: 0.75,
+                position: [0,0,1000],
+            }),
             c('ambientLight', {
                color: 'white',
                intensity: 0.25,
-            }),
-            c('directionalLight', { 
-                color: 'white',
-                intensity: 0.75,
-                position: [50,50,100],
             }),
             // r('mesh', { 
             //     name: 'board',

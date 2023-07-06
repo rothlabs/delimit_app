@@ -5,14 +5,16 @@ import {ss, useS} from '../../../app.js';
 export function Pick(){
     const deep = useS(d=> d.pick.deep);
     const multi = useS(d=> d.pick.multi);
+    const box = useS(d=> d.pick.box);
     const buttons = [
         {name:'Deep', icon:'bi-cursor-fill', checked:deep, func(d){
             d.pick.deep = !d.pick.deep;
-            if(d.design.mode == 'erase') d.design.mode = '';
         }},
         {name:'Multi', icon:'bi-cursor', checked:multi, func(d){
             d.pick.multi = !d.pick.multi;
-            if(d.design.mode == 'erase') d.design.mode = '';
+        }},
+        {name:'Box', icon:'bi-bounding-box-circles', checked:box, func(d){
+            d.pick.box = !d.pick.box;
         }},
     ];
     return(
@@ -24,7 +26,10 @@ export function Pick(){
                     variant: 'outline-primary', size: 'lg',
                     checked: button.checked,
                     className: button.icon + ' border-white',
-                    onChange:e=> ss(d=> button.func(d)),
+                    onChange:e=> ss(d=>{
+                        button.func(d);
+                        if(d.design.mode == 'erase') d.design.mode = '';
+                    }),
                 })
             ),
         )

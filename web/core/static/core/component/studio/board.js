@@ -15,7 +15,7 @@ function round(v){
     return Math.round((v + Number.EPSILON) * 100)/100
 }
 
-const pos=e=> {
+const pos=e=> { // need to project to plane in front of camera so works with different camera tilts ?!?!?!?!
     const p = e.intersections[e.intersections.length-1].point;
     return tv.set(round(p.x), round(p.y), 0); //tv.set(p.x, p.y, 0); //tv.set(Math.round(p.x),Math.round(p.y),0); 
 }// could just be e.intersections[0].point?
@@ -24,7 +24,8 @@ const pos=e=> {
 
 
 export function Board(){
-    //const {camera, raycaster} = useThree(); 
+    const obj = useRef();
+    const {camera} = useThree(); 
     //const camera_controls = useRef();
     //const [dragging, set_dragging] = useState();
     //const board = useRef();
@@ -37,11 +38,17 @@ export function Board(){
     //useFrame(()=>{
     //    camera_zoom_rv(camera.zoom);
     //});
+
+    useEffect(()=>{
+        //camera.add(obj.current);
+    },[]);
+
     //console.log('board render');
     return (
         c('mesh', { 
+            ref: obj,
             name: 'board',
-            position:[0,0,-400],
+            position:[0,0,-800],
             onClick:e=>{e.stopPropagation();
                 if(e.delta < 5){
                     //const p = point(e);

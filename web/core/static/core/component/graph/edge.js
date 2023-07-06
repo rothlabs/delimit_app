@@ -7,6 +7,7 @@ import {Vector3} from 'three';
 import {Line} from '@react-three/drei/Line';
 
 const tv = new Vector3();
+const z_pos = -40;
 
 export function Edge({r, t, n}){  // need to make edges their own object in store with reckon function
     //const meshline = useRef();
@@ -23,7 +24,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     //});
     useSubS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
         if(text.current) text.current.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.5) );
-        line.current.geometry.setPositions([d[0].pos.x,d[0].pos.y,d[0].pos.z-100, d[1].pos.x,d[1].pos.y,d[1].pos.z-100]);
+        line.current.geometry.setPositions([d[0].pos.x,d[0].pos.y,d[0].pos.z+z_pos, d[1].pos.x,d[1].pos.y,d[1].pos.z+z_pos]);
     }); 
         //arrow.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.75) );
         //arrow.current.obj.lookAt(d[0].pos);
@@ -47,7 +48,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
         }, 
             c(Line, {
                 ref: line,
-                points:[[rp.x, rp.y, rp.z-100], [np.x, np.y, np.z-100]],       // Array of points, Array<Vector3 | Vector2 | [number, number, number] | [number, number] | number>
+                points:[[rp.x, rp.y, rp.z+z_pos], [np.x, np.y, np.z+z_pos]],       // Array of points, Array<Vector3 | Vector2 | [number, number, number] | [number, number] | number>
                 color:color,                   // Default
                 lineWidth:1,                   // In pixels (default)
                 segments:false,                 // If true, renders a THREE.LineSegments2. Otherwise, renders a THREE.Line2
