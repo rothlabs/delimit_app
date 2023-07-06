@@ -10,6 +10,15 @@ export const create_delete_slice = (set,get)=>({delete:{
                 d.node.close(d, n);
                 d.n[n].deleted = true;
                 d.next('design.show');
+                // try{
+                //     d.n[n].c.object3D.children[0].position.set(1000,1000,1000);
+                //     //d.n[n].c.object3D.removeFromParent();
+                //     if(d.n[n].c.object3D) console.log(d.n[n].c.object3D);
+                //     console.log('removed succesfully');
+                //     //d.design.group.remove(d.n[n].c.object3D);
+                // }catch(e){
+                //     console.log(e)
+                // }
             });
         }
     },

@@ -56,7 +56,7 @@ export const Surface = memo(function Surface({n}){
     //         idx[i+1] = tmp;
     //     }
     // }
-    console.log('render surface');
+    //console.log('render surface');
     return(
         c('group', {},
             // pts && c('group', {},

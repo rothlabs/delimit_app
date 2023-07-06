@@ -64,7 +64,7 @@ export const Atom = memo(function Atom({n}){
                 ),
                 c(Pickable, {n:n},
                     c('mesh', {
-                        position: [0,0,-1],
+                        //position: [0,0,0],
                         geometry: circle_geometry,
                         material: background_material,
                         // onClick: (e)=> {e.stopPropagation(); select(n, true);},

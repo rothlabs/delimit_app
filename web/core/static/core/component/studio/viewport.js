@@ -24,14 +24,14 @@ function Viewport_Control(){
         d.camera_controls = camera_controls.current;
         d.camera_controls.addEventListener('control', ()=>ss(d=>{ // need to remove listener ?!?!?!?!
             if(d.studio.mode=='graph' && d.design.part){
-                d.graph_cc = {
+                d.graph.c_c = {
                     azimuth: d.camera_controls.azimuthAngle,
                     polar: d.camera_controls.polarAngle,
                     pos: d.camera_controls.getTarget(),
                     zoom: camera.zoom,
                 };
             }else if(d.studio.mode=='design'){
-                d.n[d.design.part].cc = {
+                d.n[d.design.part].c_c = {
                     azimuth: d.camera_controls.azimuthAngle,
                     polar: d.camera_controls.polarAngle,
                     pos: d.camera_controls.getTarget(),
@@ -83,12 +83,12 @@ export function Viewport(){
     //});
     const studio_mode = useS(d=> d.studio.mode);
 
-    useEffect(()=>ss(d=>{
-        //const d = gs();
+    useEffect(()=>{
+        const d = gs();
         if(d.camera_controls){
             var cc = null;
-            if(studio_mode=='graph'){ cc = d.graph_cc }
-            else if(studio_mode=='design'){ cc = d.n[d.design.part].cc }
+            if(studio_mode=='graph'){ cc = d.graph.c_c }
+            else if(studio_mode=='design'){ cc = d.n[d.design.part].c_c }
             if(cc){
                 d.camera_controls.rotateTo(cc.azimuth, cc.polar);
                 d.camera_controls.moveTo(cc.pos.x, cc.pos.y, cc.pos.z);
@@ -98,9 +98,9 @@ export function Viewport(){
                 d.camera_controls.moveTo(0,0,0);
                 d.camera_controls.zoomTo(1);
             }
-            d.camera_controls.dollyTo(400);
+            d.camera_controls.dollyTo(1000);
         }
-    }),[studio_mode]);
+    },[studio_mode]);
 
     useEffect(()=>{
         scene.add(camera);

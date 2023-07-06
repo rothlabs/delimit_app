@@ -1,7 +1,8 @@
-import {createElement as c, useRef, memo} from 'react';
-import {gs, useS, useSub, Fixed_Size_Group} from '../../app.js';
+import {createElement as c, useRef, memo, useEffect} from 'react';
+import {gs, useS, useSub, Fixed_Size_Group, ss} from '../../app.js';
 import {Pickable} from '../node/base.js';
 import {CircleGeometry, DoubleSide} from 'three';
+import {useThree} from '@react-three/fiber';
 //import {Circle} from '';
 //import {Color} from '@react-three/fiber';
 
@@ -16,10 +17,19 @@ const circle_geometry = new CircleGeometry(1,12);
 export const Point = memo(function Point({n}){//export function Point({n}){ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
+    //const deleted = useS(d=> d.n[n].deleted); 
+    //const {scene} = useThree();
+    // useEffect(()=>{
+    //     if(obj.current){
+    //         //console.log(obj.current);
+    //         ss(d=> d.n[n].c.object3D = obj.current);
+    //     }
+    //     //if(deleted) scene.remove(obj.current);
+    // },[obj]);
     useSub(d=> d.n[n].c.pos, pos=>{
-        if(pos) obj.current.position.set(pos.x,pos.y,pos.z+5);
+        if(pos) obj.current.position.set(pos.x,pos.y,pos.z+1);
     });
-    //console.log('render point');
+    //console.log('render point', n, deleted);
     return(
         c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
             ref: obj,

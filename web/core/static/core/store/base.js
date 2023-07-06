@@ -23,7 +23,7 @@ const component = {
     // 'sketch':      Group,
     // 'repeater':    Group,
     'point':       Point,
-    'curve':        Curve,
+    'curve':       Curve,
     'mixed_curve': Curve,
     'surface':     Surface,
 };

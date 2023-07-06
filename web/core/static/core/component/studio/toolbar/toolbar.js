@@ -34,7 +34,7 @@ export function Toolbar(){
                         checked: mode == button.value,
                         onChange:e=> ss(d=>{
                             d.studio.mode=e.currentTarget.value
-                            if(d.studio.mode=='design') d.design.show(d);
+                            if(d.studio.mode=='design') d.design.show(d); // should this be in NEXT statement ?!?!?!?!?!
                             d.next('design.update'); 
                         }),
                         disabled: button.disabled,

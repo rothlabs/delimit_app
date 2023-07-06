@@ -40,7 +40,7 @@ export function Board(){
     //});
 
     useEffect(()=>{
-        //camera.add(obj.current);
+        camera.add(obj.current);
     },[]);
 
     //console.log('board render');
@@ -48,7 +48,7 @@ export function Board(){
         c('mesh', { 
             ref: obj,
             name: 'board',
-            position:[0,0,-800],
+            position:[0,0,-2000],
             onClick:e=>{e.stopPropagation();
                 if(e.delta < 5){
                     //const p = point(e);

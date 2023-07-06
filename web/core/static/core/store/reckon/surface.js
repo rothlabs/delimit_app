@@ -277,6 +277,7 @@ export const surface = {
             // //console.log('reckon surf');
             // //console.log('ribs gds', ribs, rails);
         }catch(e){
+            delete d.n[n].c.geo;
             //console.log(e);
         }
     },

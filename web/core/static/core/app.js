@@ -125,10 +125,13 @@ function ignore_patch(p){
     if(path == 'studio.panel.name') return false;
     if(path == 'design.matrix') return false;
     if(path == 'design.moving') return false;
+    //if(path == 'design.n') return false;
+    //if(path == 'design.group') return false;
+    if(path == 'graph.c_c') return false;
     //if(p.path.includes('pick')) return false;
     return true;
 }
-const ignored_node_props = ['pick', 'graph', 'pin', 'c'];
+const ignored_node_props = ['pick', 'graph', 'pin', 'c', 'c_c'];
 function commit_state(arg){
     arg.patches = arg.patches.filter(p=> ignore_patch(p));
     arg.inverse = arg.inverse.filter(p=> ignore_patch(p));

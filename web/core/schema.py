@@ -378,8 +378,10 @@ class Push_Pack(graphene.Mutation):
                 poll_pack.p.add(profile, through_defaults={'t':tag['poll_pack']}) # change so profile is only added if it actually gains or loses assets or something like that
                 new_nodes = {'p':[], 'b':[], 'i':[], 'f':[], 's':[]}
 
+
                 params = {
-                    'open': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']), # could be tuple comprehension?
+                    'opens': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']), # could be tuple comprehension?
+                    'open': Part.objects.get(t__v='open_pack', u=user).id,
                     'profile':    profile.id,
                     'update':     poll_pack.id,
                     'cats':       cats,
@@ -463,15 +465,18 @@ class Push_Pack(graphene.Mutation):
                         INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;
                         DELETE FROM core_part_part a USING new_part WHERE a.n_id = new_part.id AND a.t_id = %(delete_tag)s;
 
-                        -- clear parts
+                        -- clear parts -- must only clear what is open
                         DELETE FROM core_part_part a WHERE a.r_id IN %(r_id_tuple)s 
-                            AND (a.r_id IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
+                            AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
+                                OR EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
                             AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
                         DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s 
-                            AND (a.r_id IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
+                            AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
+                                OR EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
                             AND EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
                         DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s 
-                            AND (a.r_id IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
+                            AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
+                                OR EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
                             AND EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
 
                         -- part to part edges
@@ -501,13 +506,13 @@ class Push_Pack(graphene.Mutation):
                         -- add to open packs
                         INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, new_float.id, %(open_tag)s, 0 
                             FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id JOIN new_float ON b.n_id = new_float.id
-                                WHERE a.r_id IN %(open)s ON CONFLICT DO NOTHING;
+                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
                         INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT a.r_id, new_string.id, %(open_tag)s, 0 
                             FROM core_part_part a JOIN core_part_string b ON a.n_id = b.r_id JOIN new_string ON b.n_id = new_string.id
-                                WHERE a.r_id IN %(open)s ON CONFLICT DO NOTHING;
+                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
                         INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT a.r_id, new_part.id, %(open_tag)s, 0 
                             FROM core_part_part a JOIN core_part_part b ON a.n_id = b.r_id JOIN new_part ON b.n_id = new_part.id
-                                WHERE a.r_id IN %(open)s ON CONFLICT DO NOTHING;
+                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
                     """, params)
 
 

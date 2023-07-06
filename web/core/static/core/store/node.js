@@ -82,7 +82,7 @@ export const create_node_slice =(set,get)=>({node:{
         if(a && a.unique && !a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
         roots.forEach(r=>{
             if(d.node.be(d,r) && d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
-                if(d.node.be(d,n) == 'open' && !(a.unique && d.node.cr(d,n).some(r=> !a.collected[r])) && !(a.filter && !a.filter(n))){ //a.n.includes(r)
+                if(d.node.be(d,n)=='open' && !(a.unique && d.node.cr(d,n).some(r=> !a.collected[r])) && !(a.filter && !a.filter(n))){ //a.n.includes(r)
                     add_n(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
                     if(a.unique) a.collected[n] = true;
                     if(a.deep) result = result.concat(d.node.n(d,n,a));

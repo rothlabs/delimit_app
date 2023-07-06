@@ -55,7 +55,7 @@ export const Part = memo(function Part({n}){
                 r(Svg, {
                     src: icon,
                     scale: 0.1,
-                    position: [-0.8, 0.8, 0],
+                    position: [-0.8, 0.8, 1],
                     fillMaterial: material,
                     strokeMaterial: material,
                 }),
@@ -71,7 +71,7 @@ export const Part = memo(function Part({n}){
                 ),
                 r(Pickable, {n:n},
                     r('mesh', {
-                        position:[0,0,-1], 
+                        //position:[0,0,0], 
                         geometry: circle_geometry,
                         material: background_material, //raycast:()=>null,
                     }),
