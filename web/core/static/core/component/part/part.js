@@ -2,9 +2,9 @@ import {createElement as c, useRef, useEffect, useState} from 'react';
 import {useS, useSS, gs, ss} from '../../app.js';
 //import {Line} from './line.js';
 //import {Group} from './group.js';
-import {Point} from './point.js';
-import {Curve} from './curve.js';
-import {Surface} from './surface.js';
+// import {Point} from './point.js';
+// import {Curve} from './curve.js';
+// import {Surface} from './surface.js';
 
 
 // export function Part(){ // check if in design mode

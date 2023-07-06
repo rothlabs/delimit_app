@@ -79,13 +79,16 @@ export const create_node_slice =(set,get)=>({node:{
         var result = []; // should be key value pair for faster checking?  
         var add_n = (r,n,t,o)=> d.add(result, n);//result.push(n); 
         if(a.edge) add_n = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates ?!?!?!
-        if(a && a.unique && !a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
+        //if(a.unique && !a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
+        if(!a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
         roots.forEach(r=>{
             if(d.node.be(d,r) && d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
-                if(d.node.be(d,n)=='open' && !(a.unique && d.node.cr(d,n).some(r=> !a.collected[r])) && !(a.filter && !a.filter(n))){ //a.n.includes(r)
-                    add_n(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
-                    if(a.unique) a.collected[n] = true;
-                    if(a.deep) result = result.concat(d.node.n(d,n,a));
+                if(d.node.be(d,n)=='open' && (a.edge || !a.collected[n])){
+                    if(!(a.unique && d.node.cr(d,n).some(r=> !a.collected[r])) && !(a.filter && !a.filter(n))){ //a.n.includes(r)
+                        add_n(r,n,t,o); //if(allow_null || d.node.be(d, n)) func(n,t,o);  //if(filter.includes(d.node.be(d,n)))
+                        a.collected[n] = true; //if(a.unique) a.collected[n] = true;
+                        if(a.deep) result = result.concat(d.node.n(d,n,a));
+                    }
                 }
             }));
         });
@@ -97,17 +100,21 @@ export const create_node_slice =(set,get)=>({node:{
     for_nt:(d,roots,t,func)=> d.node.n(d, roots, {deep:true}).forEach(n=>{
         if(d.n[n].t==t) func(n);
     }),
-    r(d, nodes, a={}){
+    r(d, nodes, a={}){ 
         //if(!Array.isArray(nodes)) nodes = [nodes];
         var result = [];//const result = (a.rt ? [...nodes] : []); // might not need this ?!?!?!
         var add_r = (r,n,t,o)=> result.push(r); //d.add(d, result, r);// 
         if(a.edge) add_r = (r,n,t,o)=> result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates (upgrad for deep compare) ?!?!?!
+        if(!a.collected) a.collected = {};//...Object.fromEntries(nodes.map(r=>[r,true]))};
         d.for(nodes, n=>{//nodes.forEach(n=>{
             if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
                 if(!(a.content && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> { // 'group' causing things like shared name to be delete when trying to remove name from none group
-                    if(d.node.be(d,r) == 'open' && !(a.filter && !a.filter(r))){ // && !(a.t && !d.n[r].t==a.t)
-                        add_r(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
-                        if(a.deep) result = result.concat(d.node.r(d,r,a));
+                    if(d.node.be(d,r) == 'open' && (a.edge || !a.collected[n])){
+                        if(!(a.filter && !a.filter(r))){ // && !(a.t && !d.n[r].t==a.t)
+                            add_r(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
+                            a.collected[n] = true;
+                            if(a.deep) result = result.concat(d.node.r(d,r,a));
+                        }
                     }
                 });
             });

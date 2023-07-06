@@ -1,12 +1,13 @@
 import {createElement as r, memo, useRef} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
-import {useS, gs, useSub, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, gs, useSub, static_url, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
 import { Pickable } from '../node/base.js';
 import {Svg} from '@react-three/drei/Svg';
+import {Fix_Size} from '../base/base.js';
 
 export const circle_size = 1.25;
 const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
@@ -35,12 +36,9 @@ export const Part = memo(function Part({n}){
     const material = {color: color[0], toneMapped:false};
     return(
         r('group', {name: 'part'}, 
-            r(Fixed_Size_Group, {
+            r(Fix_Size, {
                 ref: obj,
                 size: pick ? 25 : 20, // 1.5 : 1, adjust size of other items
-                // props:{
-                //     position: [pos.x, pos.y, pos.z],
-                // }
             },
                 name && r(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 

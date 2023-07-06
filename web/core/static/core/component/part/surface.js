@@ -1,9 +1,10 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
-import {useS, useSS, useSub, gs, Fixed_Size_Group} from '../../app.js';
+import {useS, useSS, useSub, gs} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 //import {Plane} from '@react-three/drei/Plane';
 import {Pickable} from '../node/base.js';
 import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, FrontSide, BackSide, CircleGeometry} from 'three';
+import {Fix_Size} from '../base/base.js';
 //import {LoopSubdivision} from './three/LoopSubdivision.js';
 //import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
 //import {Edges} from '@react-three/drei/Edges';
@@ -65,7 +66,7 @@ export const Surface = memo(function Surface({n}){
             //             ...p.map(p=>
             //                 //console.log(p);
             //                 c('group', {name: 'weird', position: [p.x, p.y, p.z]}, 
-            //                 c(Fixed_Size_Group, {size:12}, // , props:{position: [p.x, p.y, p.z]}
+            //                 c(Fix_Size, {size:12}, // , props:{position: [p.x, p.y, p.z]}
             //                     c('mesh', {
             //                         geometry:circle_geometry,
             //                         //scale: 1,
@@ -219,7 +220,7 @@ export const Surface = memo(function Surface({n}){
                 //     //segments: true, 
                 // }),
 
-// c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
+// c(Fix_Size, { // renamed to Fix_Size or Static_Size
                     //     size: 7, // 1.5 : 1, adjust size of other items
                     //     props:{position: [p.pos.x, p.pos.y, p.pos.z+100],}
                     // },

@@ -72,7 +72,7 @@ export const Curve = memo(function Curve({n}){
                 //     //segments: true, 
                 // }),
 
-// c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
+// c(Fix_Size, { // renamed to Fix_Size or Static_Size
                     //     size: 7, // 1.5 : 1, adjust size of other items
                     //     props:{position: [p.pos.x, p.pos.y, p.pos.z+100],}
                     // },

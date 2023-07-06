@@ -4,9 +4,10 @@ import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Part} from '../part/part.js';
 import {Mover} from './mover.js';
-import {useS, ss, Fixed_Size_Group, theme, gs} from '../../app.js';
+import {useS, ss, theme, gs} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Selection_Box} from '../selection/selection_box.js'; // selection box
+import {Fix_Size} from '../base/base.js';
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();
@@ -69,9 +70,10 @@ function Viewport_Control(){
 }
 
 export function Viewport(){
+    const center_point = useRef();
     const light = useRef();
     const {scene, camera, raycaster} = useThree(); 
-    useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom); //< ----- needed for point clicking!
+    //useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom); //< ----- needed for point clicking!
     //const camera_controls = useRef();
     //const [dragging, set_dragging] = useState();
     //const board = useRef();
@@ -115,8 +117,11 @@ export function Viewport(){
             studio_mode=='design' && c(Part),
             c(Board),
             c(Mover),
-            c(Fixed_Size_Group, {size:12,},
-                c('mesh', {scale:1, rotation:[0,0,0], position:[0,0,0]},
+            c(Fix_Size, {
+                name:'center_point',
+                size:25,
+            },
+                c('mesh', {},
                     c('boxGeometry'),
                     c('meshStandardMaterial', {color:'grey'}), //, toneMapped:false
                 ),

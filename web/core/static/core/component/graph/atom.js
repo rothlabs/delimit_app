@@ -1,9 +1,10 @@
 import {createElement as c, memo, useRef} from 'react';
-import {useS, useSub, gs, static_url, Spinner, Fixed_Size_Group, readable} from '../../app.js';
+import {useS, useSub, gs, static_url, readable} from '../../app.js';
 import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 import * as THREE from 'three';
 import { Pickable } from '../node/base.js';
+import {Spinner, Fix_Size} from '../base/base.js';
 
 const circle_geometry = new THREE.CircleGeometry(1.8,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
@@ -28,12 +29,9 @@ export const Atom = memo(function Atom({n}){
     //console.log('render atom');
     return(
         c('group', {name: 'atom'}, 
-            c(Fixed_Size_Group, {
+            c(Fix_Size, {
                 ref: obj,
                 size: pick ? 25 : 20,
-                // props:{
-                //     position: [pos.x, pos.y, pos.z],
-                // }
             },
                 c(Text, {
                     font: static_url+'font/Inter-Medium.ttf', 
@@ -45,7 +43,7 @@ export const Atom = memo(function Atom({n}){
                     val,
                     c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
-                c(Spinner, {}, 
+                c(Spinner, {position:[0,0,1]}, 
                     c('mesh', {},
                         c('tetrahedronGeometry'),
                         c('meshBasicMaterial', {color: color[1], toneMapped:false}),
@@ -64,13 +62,8 @@ export const Atom = memo(function Atom({n}){
                 ),
                 c(Pickable, {n:n},
                     c('mesh', {
-                        //position: [0,0,0],
                         geometry: circle_geometry,
                         material: background_material,
-                        // onClick: (e)=> {e.stopPropagation(); select(n, true);},
-                        // onPointerMissed: (e)=> {if(e.which == 1) select(n, false);},
-                        // onPointerOver: (e)=> {e.stopPropagation(); set_hovec(true);},
-                        // onPointerOut: (e)=> {e.stopPropagation(); set_hovec(false)},
                     }),
                 ),
             )

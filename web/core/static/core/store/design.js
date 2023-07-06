@@ -96,9 +96,10 @@ export const create_design_slice = (set,get)=>({design:{
         console.log('show');
         //console.trace();
         if(d.design.part){
-            d.design.n = Array.from(
-                new Set([d.design.part, ...d.node.n(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t]))
-            );
+            d.design.n = [d.design.part, ...d.node.n(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t]);
+            // d.design.n = Array.from( // use unique flag instead of set for performance ?!?!?!
+            //     new Set([d.design.part, ...d.node.n(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t]))
+            // );
         }else{
             d.design.n = [];
         }

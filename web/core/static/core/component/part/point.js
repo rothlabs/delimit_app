@@ -1,8 +1,9 @@
 import {createElement as c, useRef, memo, useEffect} from 'react';
-import {gs, useS, useSub, Fixed_Size_Group, ss} from '../../app.js';
+import {gs, useS, useSub, ss} from '../../app.js';
 import {Pickable} from '../node/base.js';
 import {CircleGeometry, DoubleSide} from 'three';
-import {useThree} from '@react-three/fiber';
+//import {useThree} from '@react-three/fiber';
+import {Fix_Size} from '../base/base.js';
 //import {Circle} from '';
 //import {Color} from '@react-three/fiber';
 
@@ -31,7 +32,7 @@ export const Point = memo(function Point({n}){//export function Point({n}){
     });
     //console.log('render point', n, deleted);
     return(
-        c(Fixed_Size_Group, { // renamed to Fix_Size or Static_Size
+        c(Fix_Size, { // renamed to Fix_Size or Static_Size
             ref: obj,
             name:'point',
             size: 6, // 1.5 : 1, adjust size of other items

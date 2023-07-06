@@ -384,32 +384,6 @@ export function use_media_glb(url){ // makes fresh copy of glb geom and such on 
     return cloned_nodes;
 }
 
-export const Fixed_Size_Group = forwardRef(function Fixed_Size_Group({size, props, children}, obj){
-    //const obj = useRef();
-    const {camera} = useThree();
-    //useImperativeHandle(ref,()=>({ 
-    //    obj:obj.current,
-    //}));
-    useFrame(() => {
-        var factor = size / camera.zoom;
-        if(obj) obj.current.scale.set(factor,factor,factor);
-    });
-    return(
-        r('group', {ref: obj, ...props, children:children})
-    )
-});
-
-export function Spinner({children}){
-    const obj = useRef();
-    const [dir, set_dir] = useState(random_vector({min:0.5, max:0.5}));
-    useFrame((state, delta) => {
-        obj.current.rotateX(delta * dir.x);//obj.current.rotation.x += delta * dir.x;
-        obj.current.rotateY(delta * dir.y);//obj.current.rotation.y += delta * dir.y;
-        obj.current.rotateZ(delta * dir.z);//obj.current.rotation.z += delta * dir.z;
-    });
-    return r('group', {ref:obj, children:children});
-}
-
 export function readable(text){
     return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
 }
