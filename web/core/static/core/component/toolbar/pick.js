@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {ToggleButton, ButtonToolbar} from 'react-bootstrap';
-import {ss, useS} from '../../../app.js';
+import {ss, useS} from '../../app.js';
 
 export function Pick(){
     const deep = useS(d=> d.pick.deep);

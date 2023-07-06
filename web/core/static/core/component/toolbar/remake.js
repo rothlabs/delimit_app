@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {Button, ButtonToolbar} from 'react-bootstrap';
-import {ss, useS} from '../../../app.js';
+import {ss, useS} from '../../app.js';
 
 export function Remake(){ //Transmute or Recast
     const addable = useS(d=> d.pick.addable);

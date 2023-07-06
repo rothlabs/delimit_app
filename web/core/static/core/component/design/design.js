@@ -1,5 +1,6 @@
 import {createElement as c, useRef, useEffect, useState} from 'react';
 import {useS, useSS, gs, ss} from '../../app.js';
+import {Fix_Size} from '../base/base.js';
 //import {Line} from './line.js';
 //import {Group} from './group.js';
 // import {Point} from './point.js';
@@ -25,7 +26,7 @@ import {useS, useSS, gs, ss} from '../../app.js';
 //     'surface':     Surface,
 // };
 
-export function Part(){
+export function Design(){
     //const obj = useRef();
     //const [id, set_id] = useState('123');
     const parts = useS(d=> d.design.n);
@@ -38,12 +39,19 @@ export function Part(){
     console.log('render parts');//, obj.current?.children);
     return (
         c('group', {
-            //ref: obj,
             name: 'parts',
-            //key: id,
         },
             ...parts.map(n=> 
                 c(d.component[d.n[n].t], {n:n, key:n}) // d.node.be(d,n) && 
+            ),
+            c(Fix_Size, {
+                name:'center_point',
+                size:6,
+            },
+                c('mesh', {},
+                    c('sphereGeometry'),
+                    c('meshBasicMaterial', {color:'yellow', toneMapped:false}), //, toneMapped:false
+                ),
             ),
         )
     )

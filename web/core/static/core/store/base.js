@@ -3,9 +3,9 @@ import {Vector3} from 'three';
 import {random_vector, theme} from '../app.js';
 import lodash from 'lodash';
 //import { Group } from '../component/part/group.js';
-import {Point} from '../component/part/point.js';
-import {Curve} from '../component/part/curve.js';
-import {Surface} from '../component/part/surface.js';
+import {Point} from '../component/design/point.js';
+import {Curve} from '../component/design/curve.js';
+import {Surface} from '../component/design/surface.js';
 
 var next_funcs = [];
 var next_ids = [];

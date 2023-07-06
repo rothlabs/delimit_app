@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {ButtonToolbar, ToggleButton} from 'react-bootstrap';
-import {ss, gs, useS} from '../../../app.js';
+import {ss, gs, useS} from '../../app.js';
 
 export function Inspect(){ 
     const panel = useS(d=> d.studio.panel.name);

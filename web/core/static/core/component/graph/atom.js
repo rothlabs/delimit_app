@@ -1,6 +1,6 @@
 import {createElement as c, memo, useRef} from 'react';
 import {useS, useSub, gs, static_url, readable} from '../../app.js';
-import {Text} from '@react-three/drei/Text';
+//import {Text} from '@react-three/drei/Text';
 import {Edges} from '@react-three/drei/Edges';
 import * as THREE from 'three';
 import { Pickable } from '../node/base.js';
@@ -33,16 +33,16 @@ export const Atom = memo(function Atom({n}){
                 ref: obj,
                 size: pick ? 25 : 20,
             },
-                c(Text, {
-                    font: static_url+'font/Inter-Medium.ttf', 
-                    fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                    position: [0, 1.35, 2],
-                    outlineWidth: '25%',
-                    outlineColor: 'white',
-                },
-                    val,
-                    c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
-                ),
+                // c(Text, {
+                //     font: static_url+'font/Inter-Medium.ttf', 
+                //     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
+                //     position: [0, 1.35, 2],
+                //     outlineWidth: '25%',
+                //     outlineColor: 'white',
+                // },
+                //     val,
+                //     c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
+                // ),
                 c(Spinner, {position:[0,0,1]}, 
                     c('mesh', {},
                         c('tetrahedronGeometry'),
@@ -50,16 +50,16 @@ export const Atom = memo(function Atom({n}){
                         c(Edges, {scale:1.05, color: color[2]},),
                     )
                 ),
-                c(Text, {
-                    font: static_url+'font/Inter-Medium.ttf', 
-                    fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                    position: [0, -1.35, 2],
-                    outlineWidth: '25%',
-                    outlineColor: 'white',
-                },
-                    readable(tag),
-                    c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
-                ),
+                // c(Text, {
+                //     font: static_url+'font/Inter-Medium.ttf', 
+                //     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
+                //     position: [0, -1.35, 2],
+                //     outlineWidth: '25%',
+                //     outlineColor: 'white',
+                // },
+                //     readable(tag),
+                //     c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
+                // ),
                 c(Pickable, {n:n},
                     c('mesh', {
                         geometry: circle_geometry,

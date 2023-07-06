@@ -1,9 +1,9 @@
 import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from '@react-three/fiber';
-import {Toolbar} from './toolbar/toolbar.js';
+import {Toolbar} from '../toolbar/toolbar.js';
 import {useS, gs, ss, rs, use_query, use_mutation, instance} from '../../app.js';
 import {Viewport} from './viewport.js';
-import {Panel} from './panel/panel.js';
+import {Panel} from '../panel/panel.js';
 
 const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead

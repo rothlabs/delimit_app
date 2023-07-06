@@ -7,6 +7,9 @@ import {
 
 /**
  * This is a class to check whether objects are in a selection area in 3D space
+ * 
+ * https://github.com/mrdoob/three.js/blob/dev/examples/jsm/interactive/SelectionBox.js
+ * 
  */
 
 const _frustum = new Frustum();

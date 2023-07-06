@@ -8,7 +8,7 @@ import {Pick} from './pick.js';
 import {Make} from './make.js';
 import {Move} from './move.js';
 import {Group} from './group.js';
-import {useS, gs, ss, use_window_size} from '../../../app.js';
+import {useS, gs, ss, use_window_size} from '../../app.js';
 //import { Badge } from '../../node/base.js';
 //import {Panel} from '../panel/panel.js';
 

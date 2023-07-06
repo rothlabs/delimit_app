@@ -4,7 +4,7 @@ import { useThree } from "@react-three/fiber"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 import { Vector2 } from "three"
-import { SelectionBox } from "./base.js"
+import { SelectionBox } from "../../three/SelectionBox.js"
 import { useS } from '../../app.js';
 
 const end_vector = new Vector2();
@@ -24,7 +24,7 @@ const getCoords = (clientX, clientY) => [
   // }
 //}
 
-export const Selection_Box = ({ style, onSelectionChanged }) => {
+export const Pickbox = ({ style, onSelectionChanged }) => {
   const moving = useS(d=> d.design.moving);
   //const multi = useS(d=> d.pick.multi);
 

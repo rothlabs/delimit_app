@@ -1,8 +1,8 @@
 import {createElement as c} from 'react';
-import {useSS, gs} from '../../app.js';
+import {useSS, gs} from '../app.js';
 //import {Points, Point} from '@react-three/drei/Points';
 //import {PointMaterial} from '@react-three/drei/PointMaterial'; 
-import {Pickable} from '../node/base.js';
+import {Pickable} from '../component/node/base.js';
 //import {Line} from './line.js';
 //import {component, component_tags} from './part.js';
 

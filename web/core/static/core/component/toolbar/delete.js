@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {Button, ButtonToolbar} from 'react-bootstrap';
-import {ss, gs, useS} from '../../../app.js';
+import {ss, gs, useS} from '../../app.js';
 
 export function Delete(){ 
     const deletable = useS(d=> d.pick.deletable);

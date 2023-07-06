@@ -1,7 +1,7 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, Button} from 'react-bootstrap';
-import {useS, ss, gs, static_url, readable, theme} from '../../../app.js'
-import {Badge} from '../../node/base.js'
+import {useS, ss, gs, static_url, readable, theme} from '../../app.js'
+import {Badge} from '../node/base.js'
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
 

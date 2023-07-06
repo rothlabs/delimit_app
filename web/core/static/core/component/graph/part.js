@@ -1,13 +1,17 @@
 import {createElement as r, memo, useRef} from 'react';
 //import {use_d, shallow} from '../../state/state.js';
 import {useS, gs, useSub, static_url, readable} from '../../app.js';
-import {Text} from '@react-three/drei/Text';
-import {Edges} from '@react-three/drei/Edges';
+//import {Text} from '@react-three/drei/Text';
+//import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
 import { Pickable } from '../node/base.js';
 import {Svg} from '@react-three/drei/Svg';
 import {Fix_Size} from '../base/base.js';
+import {Text} from '../../troika/troika-three-text.js';
+import {extend} from '@react-three/fiber';
+
+//extend({Text});
 
 export const circle_size = 1.25;
 const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
@@ -40,16 +44,16 @@ export const Part = memo(function Part({n}){
                 ref: obj,
                 size: pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             },
-                name && r(Text, {
-                    font: static_url+'font/Inter-Medium.ttf', 
-                    fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                    position: [0, 1.4, 2],
-                    outlineWidth: '25%',
-                    outlineColor: 'white',
-                },
-                    name,
-                    r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
-                ),
+                // name && r(Text, {
+                //     font: static_url+'font/Inter-Medium.ttf', 
+                //     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
+                //     position: [0, 1.4, 2],
+                //     outlineWidth: '25%',
+                //     outlineColor: 'white',
+                // },
+                //     name,
+                //     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
+                // ),
                 r(Svg, {
                     src: icon,
                     scale: 0.1,
@@ -57,14 +61,15 @@ export const Part = memo(function Part({n}){
                     fillMaterial: material,
                     strokeMaterial: material,
                 }),
-                r(Text, {
+                r('text', {
                     font: static_url+'font/Inter-Medium.ttf', 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
                     position: [0, -1.4, 2],
                     outlineWidth: '25%',
                     outlineColor: 'white',
+                    text: d.node.meta[t].tag,
                 },
-                    d.node.meta[t].tag, // memoize it?
+                    //d.node.meta[t].tag, // memoize it?
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Pickable, {n:n},

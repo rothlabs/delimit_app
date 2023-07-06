@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {ToggleButton, ButtonToolbar} from 'react-bootstrap';
-import {ss, useS} from '../../../app.js';
+import {ss, useS} from '../../app.js';
 
 export function Move(){
     const studio_mode = useS(d=> d.studio.mode);

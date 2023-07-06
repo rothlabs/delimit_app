@@ -2,12 +2,11 @@ import {createElement as c, useRef, useState, useEffect, Fragment, useImperative
 import {CameraControls} from '@react-three/drei/CameraControls';
 import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
-import {Part} from '../part/part.js';
+import {Design} from '../design/design.js';
 import {Mover} from './mover.js';
 import {useS, ss, theme, gs} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
-import {Selection_Box} from '../selection/selection_box.js'; // selection box
-import {Fix_Size} from '../base/base.js';
+import {Pickbox} from './pickbox.js'; // selection box
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();
@@ -51,7 +50,7 @@ function Viewport_Control(){
             azimuthRotateSpeed: (pick_box ? 0 : 1), 
             draggingSmoothTime: 0,
         }), 
-        pick_box && c(Selection_Box, { // studio mode causes this to render and removes selection!!!!!!!
+        pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
             style:{
                 border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",
                 position: "fixed",
@@ -70,7 +69,6 @@ function Viewport_Control(){
 }
 
 export function Viewport(){
-    const center_point = useRef();
     const light = useRef();
     const {scene, camera, raycaster} = useThree(); 
     //useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom); //< ----- needed for point clicking!
@@ -114,18 +112,9 @@ export function Viewport(){
         c('group', {name:'viewport'}, 
             c(Viewport_Control),
             studio_mode=='graph'  && c(Graph),
-            studio_mode=='design' && c(Part),
+            studio_mode=='design' && c(Design),
             c(Board),
             c(Mover),
-            c(Fix_Size, {
-                name:'center_point',
-                size:25,
-            },
-                c('mesh', {},
-                    c('boxGeometry'),
-                    c('meshStandardMaterial', {color:'grey'}), //, toneMapped:false
-                ),
-            ),
             c('directionalLight', { 
                 ref:light,
                 color: 'white',

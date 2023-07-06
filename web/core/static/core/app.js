@@ -2,7 +2,7 @@ import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql}
 import {setContext} from '@apollo/client/link/context';//'aclc';
 //import {createUploadLink} from 'auc';
 import Cookie from "js-cookie";
-import {createElement as r, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
+import {createElement as r, StrictMode, useEffect, useState, useLayoutEffect} from 'react';
 import {createRoot} from 'react-dom/client';//'rdc';
 import {createBrowserRouter, RouterProvider, Outlet} from 'react-router-dom';//'rrd';
 import {Root} from './component/app/root.js';
@@ -11,12 +11,13 @@ import {Router_Error, Query_Status} from './component/app/feedback.js';
 import {Color, ColorManagement} from 'three'; 
 import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
-import {useFrame, useThree} from '@react-three/fiber';//'r3f';
-
-import {produce, applyPatches, produceWithPatches, enablePatches} from 'immer'; enablePatches();
+import {extend} from '@react-three/fiber';
+import {Text} from './troika/troika-three-text.js';
+import {produce, applyPatches, produceWithPatches, enablePatches} from 'immer'; 
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
 import {shallow} from 'zustand/shallow';//'shallow';
+
 import {create_base_slice} from './store/base.js';
 import {create_graph_slice} from './store/graph.js';
 import {create_pick_slice} from './store/pick.js';
@@ -30,6 +31,10 @@ import {create_delete_slice} from './store/delete.js';
 import {create_action_slice} from './store/action.js';
 import {create_cast_slice} from './store/cast.js';
 import {create_clear_slice} from './store/clear.js';
+
+enablePatches();
+
+extend({Text});
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';

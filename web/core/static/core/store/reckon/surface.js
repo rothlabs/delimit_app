@@ -2,8 +2,8 @@ import {current} from 'immer';
 import {Vector3, Vector4, CatmullRomCurve3, Shape, CurvePath, BufferGeometry, ShapeGeometry} from 'three';
 import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
-import Delaunator from 'delaunator';
-import { closest } from '../../junk/vertex.js';
+//import Delaunator from 'delaunator';
+//import { closest } from '../../junk/vertex.js';
 
 const v1 = new Vector3();
 const v2 = new Vector3();

@@ -1,13 +1,13 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, ButtonToolbar, Button} from 'react-bootstrap';
-import {ss, gs, useS, use_window_size} from '../../../app.js';
+import {ss, gs, useS, use_window_size} from '../../app.js';
 import {Remake} from '../toolbar/remake.js';
 import {Delete} from '../toolbar/delete.js';
 import {Close} from '../toolbar/close.js';
-import {Badge} from '../../node/base.js'
+import {Badge} from '../node/base.js'
 //import {Cat_Badge} from '../../node/base.js'
-import {String} from '../../node/input/string.js';
-import {Float} from '../../node/input/float.js';
+import {String} from '../node/input/string.js';
+import {Float} from '../node/input/float.js';
 
 
 export function Inspect(){ 

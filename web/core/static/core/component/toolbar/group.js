@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {ToggleButton} from 'react-bootstrap';
-import {useS, ss} from '../../../app.js'
+import {useS, ss} from '../../app.js'
 
 export function Group(){
     const grouping = useS(d=> d.studio.grouping);

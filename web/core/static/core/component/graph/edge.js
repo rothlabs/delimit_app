@@ -1,8 +1,8 @@
 import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
-import {MeshLineRaycast} from '../../three/meshline.js';
+//import {MeshLineRaycast} from '../../three/MeshLine.js';
 import {useThree, useFrame} from '@react-three/fiber';
 import {useS, gs, useSubS, theme, static_url, readable} from '../../app.js';
-import {Text} from '@react-three/drei/Text';
+//import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 import {Line} from '@react-three/drei/Line';
 import {Fix_Size} from '../base/base.js';
@@ -71,15 +71,15 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
                 ref: text,
                 size: active ? 1.25 : 1,
             },
-                c(Text, {
-                    font: static_url+'font/Inter-Medium.ttf', 
-                    outlineWidth: '25%',
-                    outlineColor: 'white',
-                    fontSize: 14,
-                },
-                    readable(t),
-                    c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
-                ),
+                // c(Text, {
+                //     font: static_url+'font/Inter-Medium.ttf', 
+                //     outlineWidth: '25%',
+                //     outlineColor: 'white',
+                //     fontSize: 14,
+                // },
+                //     readable(t),
+                //     c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
+                // ),
             ),
             // c(Fix_Size, {
             //     ref: arrow,
