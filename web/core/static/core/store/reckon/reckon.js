@@ -19,7 +19,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //else if(d.atom_tags.includes(d.n[n].t)){d.reckon.atom(d,n,cause)}
         //else                                   {d.reckon.default(d,n,cause)} // could delete this?
     },
-    base(d, n, cause=''){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
+    base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra renders ?!?!?!?!?!
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
         if(d.cat_cast[d.n[n].t]){ // make dictionary (Object.fromEntries) for fast lookup ?!?!?!?!?!
@@ -27,7 +27,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d, n, d.n[n].t);
         }
         if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
-        d.node.for_r(d, n, r=> d.next('reckon.node', r, cause+'__'+d.n[n].t)); // got to watch out for cycle // cause should include ID ?!?!?!?!
+        d.node.for_r(d, n, r=> d.next('reckon.node', r, [d.n[n].t])); // cause+'__'+d.n[n].t // got to watch out for cycle // cause should include ID ?!?!?!?!
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -49,8 +49,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null; 
         return result;
     },
-    transform(d,n,cause=''){ // put this in base and make it work for at least one component (just scale_x for example)
-        try{if(['make.node', 'make.edge', '__decimal'].includes(cause)){
+    transform(d,n,cause=[]){ // put this in base and make it work for at least one component (just scale_x for example)
+        try{if(['make.node', 'make.edge', 'decimal'].includes(cause[0])){
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
             tv1.set(nn.move_x, nn.move_y, nn.move_z);
             te.set(MathUtils.degToRad(nn.turn_x), MathUtils.degToRad(nn.turn_y), MathUtils.degToRad(nn.turn_z));
@@ -62,7 +62,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
         }}catch{} //}catch(e){console.log(e)}
     },
-    point(d, n, cause){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
+    point(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
             d.n[n].c.pos_l = new Vector3(nn.x, nn.y, nn.z);

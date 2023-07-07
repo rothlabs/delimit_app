@@ -22,7 +22,7 @@ export const surface = {
     //max_dist: 40,
     //res_w: 100,//d.reckon.curve.res,
     //res_h: 10,
-    surface(d,n,cause=''){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
+    surface(d,n,cause=[]){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         try{//if(cause.includes('curve') || ['make.edge', 'delete.edge'].includes(cause)){ 
             
 

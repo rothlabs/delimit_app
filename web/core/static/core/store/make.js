@@ -36,7 +36,7 @@ export const create_make_slice = (set,get)=>({make:{
                         });
                     }
                     d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
-                    d.next('reckon.node', r, 'make.edge'); 
+                    d.next('reckon.node', r, ['make.edge']); 
                     d.next('graph.update');
                     d.next('pick.update');
                     d.next('design.show');
@@ -72,7 +72,7 @@ export const create_make_slice = (set,get)=>({make:{
         //    else{   d.make.edge(d, a.r, n, a);  }
         //}
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
-        d.next('reckon.node', n, 'make.node'); // d.reckon.node(d,n,'make.node'); // 
+        d.next('reckon.node', n, ['make.node']); // d.reckon.node(d,n,'make.node'); // 
         d.next('graph.update'); // check if in graph_tags 
         return n;
     },

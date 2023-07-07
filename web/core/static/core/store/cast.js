@@ -18,10 +18,10 @@ export const create_cast_slice=(set,get)=>({cast:{
         if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
     },
     point(d,n,c){
-        if(c.matrix) d.next('reckon.node',n);
+        if(c.matrix) d.next('reckon.node', n);
     },
     mixed_curve(d,n,c){
-        if(c.matrix) d.next('reckon.node',n,'matrix');
+        if(c.matrix) d.next('reckon.node', n, ['matrix']);
     },
 }});
 

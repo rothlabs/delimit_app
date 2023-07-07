@@ -49,8 +49,8 @@ export const curve = {
             //console.log('CURVE ERROR',e);
         } // make switch so easy to view reckon errors for different types of nodes ?!?!?!?!
     }, 
-    mixed_curve(d,n,cause=''){ // needs to figure if pos or pos_l results in better match !!!!!!
-        try{if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause)){ 
+    mixed_curve(d,n,cause=[]){ // needs to figure if pos or pos_l results in better match !!!!!!
+        try{if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause[0])){ 
             delete d.n[n].c.curve;
             const mid_res = 200;
             const l1 = d.n[n].n.curve[0];

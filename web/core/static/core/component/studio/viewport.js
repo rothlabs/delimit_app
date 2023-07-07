@@ -68,9 +68,10 @@ function Viewport_Control(){
     ))
 }
 
-export function Viewport(){
+export function Viewport(){ // for some reason this renders 5 times on load
     const light = useRef();
-    const {scene, camera, raycaster} = useThree(); 
+    const {scene, camera} = useThree(); // raycaster 
+
     //useFrame(()=>raycaster.params.Points.threshold = 12/camera.zoom); //< ----- needed for point clicking!
     //const camera_controls = useRef();
     //const [dragging, set_dragging] = useState();

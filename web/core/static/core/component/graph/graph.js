@@ -1,5 +1,5 @@
-import {createElement as c, useEffect, useState} from 'react';
-import {ss, useS, useSS, make_id} from '../../app.js';
+import {createElement as c, useEffect, useState, memo} from 'react';
+import {ss, gs, useS, useSS, make_id} from '../../app.js';
 import {useFrame, useThree} from '@react-three/fiber';
 //import {use_d, shallow} from '../../state/state.js';
 import {Part} from './part.js';
@@ -16,7 +16,7 @@ const part_spring = 0.05;
 const tv = new Vector3();
 
 
-export function Graph(){
+export const Graph = memo(()=>{
     //const ready = useS(d=> d.graph.ready);
     //console.log('render graph')
     // use_effect([nodes, controls],()=>{ // appears to always run once but first time loading the editor the project bounds aren't there yet
@@ -30,6 +30,7 @@ export function Graph(){
 	// 	action_rv({name:'record', init:true}); 
 	// 	sketches_rv({get:id=> sketches.current.find(sketch=> {if(sketch) return sketch.id==id})});
 	// });
+    //console.log('render graph');
     return(
         //ready && c(Bounds, {fit:true, clip:true, observe:true, damping:6, margin:1.2},
         c('group', {name:'graph'},
@@ -39,11 +40,11 @@ export function Graph(){
         )
         //)
     )
-}
+});
 
-function Nodes(){
-    const nodes = useSS(d=> d.graph.n);   // doesn't need to be ss?
-    const d = useS.getState();
+const Nodes = memo(()=>{
+    const nodes = useS(d=> d.graph.n);   // doesn't need to be ss?
+    const d = gs();
     //console.log('render graph nodes');
     return (
         c('group', {name:'nodes'}, // ref:graph, dispose:null
@@ -52,10 +53,10 @@ function Nodes(){
             ),
 		)
     )
-}
+});
 
-function Edges(){
-    const edges = useSS(d=> d.graph.e);  // rerendering every time the client polls for update!! 
+const Edges = memo(()=>{
+    const edges = useS(d=> d.graph.e);  // rerendering every time the client polls for update!! 
     //const edges = useDS(d=> d.graph.edge_roots);
     //const tags = useDS(d=> d.graph.edge_tags);
     //const nodes = useDS(d=> d.graph.edge_nodes);
@@ -68,7 +69,7 @@ function Edges(){
             ),
 		)
     )
-}
+});
 
 
 

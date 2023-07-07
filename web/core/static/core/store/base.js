@@ -130,11 +130,21 @@ export const create_base_slice = (set,get)=>({
     // },
 
     next(...a){ // static
-        const id = a.map(a=> String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!
+        const id = a.filter(a=>!Array.isArray(a)).map(a=>String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!
         if(get().add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
             //console.log(id);
             //console.log(id, get().n[a[1]] ? get().n[a[1]].t : 'unknown');
-            next_funcs.push(a);
+            next_funcs.push({a:a, id:id});
+        }else{
+            if(Array.isArray(a.at(-1))){
+                const f = next_funcs.find(f=>(f.id==id));
+                if(Array.isArray(f.a.at(-1))){
+                    const d = get();
+                    a.at(-1).forEach(cumulative=>{
+                        d.add(f.a[f.a.length-1], cumulative);
+                    });
+                }
+            }
         }
     },
     continue(d){
@@ -144,9 +154,9 @@ export const create_base_slice = (set,get)=>({
         next_ids = [];//d.empty_list;
         //console.log(current(d).empty_list);
         //console.log(funcs);
-        funcs.forEach(a=>{
+        funcs.forEach(f=>{
             //console.log(current(a));
-            lodash.get(d, a[0])(d, ...a.slice(1));
+            lodash.get(d, f.a[0])(d, ...f.a.slice(1));
         });// 0   1
     },
 

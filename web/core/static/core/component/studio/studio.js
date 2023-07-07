@@ -10,6 +10,7 @@ const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms =
 
 export function Studio(){
     const ready = useS(d=> d.studio.ready);
+    //console.log('render studio!');
     return (
         c(Fragment,{}, 
             c(Open_Push_Close),
