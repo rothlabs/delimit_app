@@ -13,11 +13,8 @@ const tm = new Matrix4();
 
 export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
-    node(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
+    up(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
         d.reckon.base(d, n, cause);
-        //if(d.reckon[d.n[n].t])                 {d.reckon[d.n[n].t](d,n,cause); d.reckon.base(d,n,cause);}
-        //else if(d.atom_tags.includes(d.n[n].t)){d.reckon.atom(d,n,cause)}
-        //else                                   {d.reckon.default(d,n,cause)} // could delete this?
     },
     base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
@@ -27,7 +24,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d, n, d.n[n].t);
         }
         if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
-        d.node.for_r(d, n, r=> d.next('reckon.node', r, [d.n[n].t])); // cause+'__'+d.n[n].t // got to watch out for cycle // cause should include ID ?!?!?!?!
+        d.node.for_r(d, n, r=> d.next('reckon.up', r, [d.n[n].t])); // cause+'__'+d.n[n].t // got to watch out for cycle // cause should include ID ?!?!?!?!
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -164,7 +161,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             //d.n[n].w.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
 
 //d.next('reckon_down.node', n);
-                //d.node.for_nt(d,n,'point', p=>d.next('reckon.node', p, n));
+                //d.node.for_nt(d,n,'point', p=>d.next('reckon.up', p, n));
 //console.log('transform reckon cause ',cause);
             //if(!cause.split('__').some(c=> (c==n || c=='point'))){ // put this check in base?
             //if(!cause.split('__').some(c=> (c=='point'))){ // only reckon if caused by direct float? so c='float' ?!?!?!?!?

@@ -46,7 +46,7 @@ export const create_remake_slice = (set,get)=>({remake:{
                 }
             });
             //if(a.r && a.depth==0) d.make.edge(d, a.r, cpy, {src:a.src}); // attaching last is important for copying groups inside repeater
-            d.next('reckon.node', cpy); // maybe this should go in node creation
+            d.next('reckon.up', cpy); // maybe this should go in node creation
             return cpy;
         }
     },
@@ -85,7 +85,7 @@ export const create_remake_slice = (set,get)=>({remake:{
                 }
             });
             nodes.forEach(n=> d.delete.node(d, n)); 
-            d.next('reckon.node', target); // maybe this should go in edge creation
+            d.next('reckon.up', target); // maybe this should go in edge creation
         },
         default(d, nodes, target){
             d.node.for_n(d, nodes, (r,n,t)=>{

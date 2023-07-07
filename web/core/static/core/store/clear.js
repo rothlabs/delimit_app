@@ -13,7 +13,7 @@ export const create_clear_slice=(set,get)=>({clear:{
         d.node.for_n(d, n, (r,n)=> d.clear.down(d,n,c));
     },
     point(d,n,c){
-        if(c.matrix) d.next('reckon.node',n);
+        if(c.matrix) d.next('reckon.up',n);
     },
 }});
 

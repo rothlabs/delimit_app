@@ -104,7 +104,7 @@ export const create_pick_slice = (set,get)=>({pick:{
             selector ? d.pick.colors[target][1] : theme.secondary_l,
             selector ? d.pick.colors[target][2] : 'secondary',
         ];
-        //if(d.studio.mode=='design' && d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.node', n, 'color'); // only call if color changes !?!?!?!?
+        //if(d.studio.mode=='design' && d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.up', n, 'color'); // only call if color changes !?!?!?!?
     },
 }});
 
@@ -134,7 +134,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     //     }); 
     //     d.pick.n = Object.keys(d.n).filter(n=> d.n[n].pick.pick); // make this a common function (iterate all nodes with filter and func 
     //     d.pick.n.forEach(n=>{
-    //         if(pick_reckon_tags.includes(d.n[n].t)) d.reckon.node(d,n);
+    //         if(pick_reckon_tags.includes(d.n[n].t)) d.reckon.up(d,n);
     //     });
     //     d.design.update(d);
     //     d.inspect.update(d);

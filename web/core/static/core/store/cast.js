@@ -18,10 +18,10 @@ export const create_cast_slice=(set,get)=>({cast:{
         if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
     },
     point(d,n,c){
-        if(c.matrix) d.next('reckon.node', n);
+        if(c.matrix) d.next('reckon.up', n);
     },
     mixed_curve(d,n,c){
-        if(c.matrix) d.next('reckon.node', n, ['matrix']);
+        if(c.matrix) d.next('reckon.up', n, ['matrix']);
     },
 }});
 
@@ -63,7 +63,7 @@ export const create_cast_slice=(set,get)=>({cast:{
 //     if(c.matrix){
 //         d.n[n].c.matrix = c.matrix;
 //         d.n[n].c.inverse_matrix = c.matrix
-//         d.next('reckon.node',n);
+//         d.next('reckon.up',n);
 //     }
 // },
 
@@ -89,5 +89,5 @@ export const create_cast_slice=(set,get)=>({cast:{
 //         d.node.set(d, matrix_node, {element:matrix.elements});
 //     }
 //     console.log('try to reckon points');
-//     d.node.for_nt(d,n,'point', p=>d.next('reckon.node',p));
+//     d.node.for_nt(d,n,'point', p=>d.next('reckon.up',p));
 // }

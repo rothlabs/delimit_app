@@ -349,7 +349,7 @@ export const create_base_slice = (set,get)=>({
             }
         }));
         data.p.forEach(n=>{
-            if(d.node.be(d,n.id)) d.reckon.node(d, n.id); // d.next('reckon.node',n.id); // run lowest level reckon only ?!?!?!?!
+            if(d.node.be(d,n.id)) d.reckon.up(d, n.id); // d.next('reckon.up',n.id); // run lowest level reckon only ?!?!?!?!
         });
         d.studio.ready = true;
         if(set_update_graph) d.next('graph.update'); // only if add/remove or d.n[n].n/d.n[n].r changes
