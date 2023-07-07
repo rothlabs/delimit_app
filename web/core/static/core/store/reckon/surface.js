@@ -30,7 +30,7 @@ export const surface = {
 
             //var pts = [];
             const ribs = d.n[n].n.mixed_curve.map(n=>{
-                const points = d.n[n].c.curve_l.getPoints(this.rib_res-1); //getSpacedPoints
+                const points = d.n[n].l.curve.getPoints(this.rib_res-1); //getSpacedPoints
                 if(points[0].x > points.at(-1).x) points.reverse();
                 //pts.push(points.map(p=>new Vector4(p.x, p.y, p.z, 1)));
                 //pts.push(points);
@@ -40,16 +40,16 @@ export const surface = {
                     //matrix: d.n[n].c.matrix,
                     pts: points,
                     //curve: new CatmullRomCurve3(pts),
-                    y: d.n[n].c.curve_l.getPoints(9).reduce((a,b)=>a+b.y,0)/10, // returning NaN ?!?!?!?!
+                    y: d.n[n].l.curve.getPoints(9).reduce((a,b)=>a+b.y,0)/10, // returning NaN ?!?!?!?!
                 }
             }).sort((a,b)=>a.y-b.y);
             const guide = d.n[n].n.curve.map(n=>{//.filter(n=> d.n[n].c.guide).map(n=>{
-                const pts = d.n[n].c.curve_l.getPoints(this.guide_res);
+                const pts = d.n[n].l.curve.getPoints(this.guide_res);
                 if(pts[0].y > pts.at(-1).y) pts.reverse();
                 return {
                     pts: pts,
                     sub: [], // sub points between ribs
-                    x: d.n[n].c.curve_l.getPoints(9).reduce((a,b)=>a+b.x,0)/10,
+                    x: d.n[n].l.curve.getPoints(9).reduce((a,b)=>a+b.x,0)/10,
                 }
             }).sort((a,b)=>a.x-b.x);
             var idx1 = 0;
@@ -217,7 +217,7 @@ export const surface = {
 
             // const bndry  = d.n[n].n.curve.map(n=>({
             //     used: false,
-            //     pts: d.n[n].c.curve_l.getPoints(this.boundary_res),
+            //     pts: d.n[n].l.curve.getPoints(this.boundary_res),
             // }));
             // var pts = [...bndry[0].pts];
             // bndry[0].used = true;
@@ -259,7 +259,7 @@ export const surface = {
             // var res_h = 0;
             // // sort ribs by Y
             // const ribs = d.n[n].n.mixed_curve.map(n=>{
-            //     let pts = d.n[n].c.curve.getPoints();
+            //     let pts = d.n[n].w.curve.getPoints();
             //     return {
             //         n: n,
             //         pts: d.n[n].c.pts,
@@ -301,7 +301,7 @@ export const surface = {
 //             var res_h = 0;
 //             // sort ribs by Y
 //             const ribs = d.n[n].n.mixed_curve.map(n=>{
-//                 let pts = d.n[n].c.curve.getPoints();
+//                 let pts = d.n[n].w.curve.getPoints();
 //                 return {
 //                     n: n,
 //                     pts: d.n[n].c.pts,

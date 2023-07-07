@@ -6,13 +6,13 @@ export const curve = {
     curve(d,n){
         //d.n[n].c.pts = [];
         try{
-            //delete d.n[n].c.curve;
-            //delete d.n[n].c.curve_l;
+            //delete d.n[n].w.curve;
+            //delete d.n[n].l.curve;
             if(d.n[n].n.point?.length > 1){ 
-                //d.n[n].c.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos));
-                //d.n[n].c.curve_l = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].c.pos_l));
-                const pts = d.n[n].n.point.map(n=>d.n[n].c.pos);    // rename so this is pos_a ?!?!?! (absolute or g for global)
-                const pts_l = d.n[n].n.point.map(n=>d.n[n].c.pos_l); // rename so this is pos ?!?!?!?!
+                //d.n[n].w.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].w.pos));
+                //d.n[n].l.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].l.pos));
+                const pts = d.n[n].n.point.map(n=>d.n[n].w.pos);    // rename so this is pos_a ?!?!?! (absolute or g for global)
+                const pts_l = d.n[n].n.point.map(n=>d.n[n].l.pos); // rename so this is pos ?!?!?!?!
                 // var knots = [0,0];
                 // var last_knot = 0;
                 // pts.forEach((p,i) => {
@@ -34,33 +34,33 @@ export const curve = {
 					const knot = ( i + 1 ) / (pts.length - degree);
 					knots.push( MathUtils.clamp( knot, 0, 1 ) );
 				}
-                d.n[n].c.curve = new NURBSCurve(degree, knots, cp);
-                d.n[n].c.curve_l = new NURBSCurve(degree, knots, cp_l);
-                d.n[n].c.curve.getPoints(3); // checking if valid curve 
+                d.n[n].w.curve = new NURBSCurve(degree, knots, cp);
+                d.n[n].l.curve = new NURBSCurve(degree, knots, cp_l);
+                d.n[n].w.curve.getPoints(3); // checking if valid curve 
                 //console.log('CURVE COMPLETE');
             //}else{
-            //    delete d.n[n].c.curve;
-            //    delete d.n[n].c.curve_l;
+            //    delete d.n[n].w.curve;
+            //    delete d.n[n].l.curve;
             }
-            //d.n[n].c.pts = d.n[n].c.curve.getPoints(this.res);
+            //d.n[n].c.pts = d.n[n].w.curve.getPoints(this.res);
         }catch(e){
-            delete d.n[n].c.curve;
-            delete d.n[n].c.curve_l;
+            delete d.n[n].w.curve;
+            delete d.n[n].l.curve;
             //console.log('CURVE ERROR',e);
         } // make switch so easy to view reckon errors for different types of nodes ?!?!?!?!
     }, 
     mixed_curve(d,n,cause=[]){ // needs to figure if pos or pos_l results in better match !!!!!!
         try{if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause[0])){ 
-            delete d.n[n].c.curve;
+            delete d.n[n].w.curve;
             const mid_res = 200;
             const l1 = d.n[n].n.curve[0];
             const l2 = d.n[n].n.curve[1];
             if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
-                var pti=d.n[l1].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'t'})).concat(
-                        d.n[l2].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'s'})));
+                var pti=d.n[l1].l.curve.getPoints(mid_res).map(p=>({p:p,v:'t'})).concat(
+                        d.n[l2].l.curve.getPoints(mid_res).map(p=>({p:p,v:'s'})));
             }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
-                var pti=d.n[l2].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'t'})).concat(
-                        d.n[l1].c.curve_l.getPoints(mid_res).map(p=>({p:p,v:'s'})));
+                var pti=d.n[l2].l.curve.getPoints(mid_res).map(p=>({p:p,v:'t'})).concat(
+                        d.n[l1].l.curve.getPoints(mid_res).map(p=>({p:p,v:'s'})));
             }
             if(pti){
                 var pto = [];
@@ -101,18 +101,18 @@ export const curve = {
                     }else{ pto2.push(pto[i+1]) }
                     if(i<pto.length-10) cmp.push(pto[i+10]);
                 }
-                while(cmp.length > 1){
+                while(cmp.length > 1){ // simplify continuity check to just this loop ?!?!?!?!
                     cmp.sort((a,b)=> a.distanceTo(pto2.at(-1))-b.distanceTo(pto2.at(-1)));
                     if(pto.at(-1).distanceTo(pto2.at(-1)) < cmp[0].distanceTo(pto2.at(-1))) break;
                     pto2.push(cmp.shift());
                 }
                 pto2[pto2.length-1] = pto.at(-1);
-                d.n[n].c.curve_l = new CatmullRomCurve3(pto2);
-                if(d.n[n].c.matrix) d.n[n].c.curve = new CatmullRomCurve3(pto2.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
+                d.n[n].l.curve = new CatmullRomCurve3(pto2);
+                if(d.n[n].c.matrix) d.n[n].w.curve = new CatmullRomCurve3(pto2.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
             }
         }}catch(e){
-            delete d.n[n].c.curve_l;
-            delete d.n[n].c.curve;
+            delete d.n[n].l.curve;
+            delete d.n[n].w.curve;
             //console.log(e);
         }
     },
@@ -124,9 +124,9 @@ export const curve = {
 // if(d.n[n].c.matrix) d.n[n].c.pts = d.n[n].c.pts.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
 
 // if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
-//     var pti=new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-//             new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+//     var pti=new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].l.pos)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+//             new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].l.pos)).getPoints(res_i).map(p=>({p:p,v:'s'})));
 // }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
-//     var pti=new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
-//             new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].c.pos_l)).getPoints(res_i).map(p=>({p:p,v:'s'})));
+//     var pti=new CatmullRomCurve3(d.n[l2].n.point.map(n=>d.n[n].l.pos)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(
+//             new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].l.pos)).getPoints(res_i).map(p=>({p:p,v:'s'})));
 // }

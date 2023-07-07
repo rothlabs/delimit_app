@@ -38,9 +38,9 @@ export const create_node_slice =(set,get)=>({node:{
         //});
     },
     pin_pos(d, n, matrix){  // should go in transform slice?    
-        if(d.node.be(d,n) && d.n[n].c.pos){
+        if(d.node.be(d,n) && d.n[n].w.pos){
             if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.node.get(d, n, 'x y z');
-            d.n[n].pin.pos.copy(d.n[n].c.pos).applyMatrix4(tm.copy(matrix).invert());
+            d.n[n].pin.pos.copy(d.n[n].w.pos).applyMatrix4(tm.copy(matrix).invert());
         }
     },
     set_pos(d, n, pos){ // should go in transform slice? // should be in cast clice ?!?!?!

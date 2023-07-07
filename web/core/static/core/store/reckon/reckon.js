@@ -65,19 +65,21 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     point(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
-            d.n[n].c.pos_l = new Vector3(nn.x, nn.y, nn.z);
-            d.n[n].c.pos   = new Vector3(nn.x, nn.y, nn.z);
-            if(d.n[n].c.matrix){ d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix) }
+            d.n[n].l.pos = new Vector3(nn.x, nn.y, nn.z);
+            d.n[n].w.pos = new Vector3(nn.x, nn.y, nn.z);
+            if(d.n[n].c.matrix){ d.n[n].w.pos.applyMatrix4(d.n[n].c.matrix) }
             else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
                 d.n[n].c.matrix = d.n[r].c.matrix;
                 d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
-                d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+                d.n[n].w.pos.applyMatrix4(d.n[n].c.matrix);
             }})}
         }catch{} //console.error(e)
     },
     ...curve,
     ...surface,
 }});
+
+
 
 // list(d, n, t, func){ // build in n:n and color:color pick_color, 
     //     d.n[n].c[t] = [];
@@ -155,11 +157,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 
 // //if(!(cause.split('__').includes('color') && !d.pick.color_tags.includes(d.n[r].t))){
 
-//d.n[n].c.pos_l   = new Vector3(nn.x, nn.y, nn.z); // local
-            //d.n[n].c.pos = d.n[n].c.pos_l;
+//d.n[n].l.pos   = new Vector3(nn.x, nn.y, nn.z); // local
+            //d.n[n].w.pos = d.n[n].l.pos;
             //const trans = d.n[d.node.rt0(d,n,'transform')].c;
-            //d.n[n].c.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
-            //d.n[n].c.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
+            //d.n[n].w.pos = new Vector3(pos.x*trans.scale_x, pos.y*trans.scale_y, pos.z*trans.scale_z);
+            //d.n[n].w.pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.matrix); //d.n[n].r.transform[0]
 
 //d.next('reckon_down.node', n);
                 //d.node.for_nt(d,n,'point', p=>d.next('reckon.node', p, n));
@@ -182,7 +184,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 //                 d.n[n].c.matrix = matrix;
 //                 const pos = new Vector3().setFromMatrixPosition(matrix);
 //                 const rot = new Euler().setFromRotationMatrix(matrix); // 0,0,0,'XYZ'
-//                 d.n[n].c.pos = pos;
+//                 d.n[n].w.pos = pos;
 //                 d.n[n].c.rot = rot;
 //                 d.n[n].c.x=pos.x;    d.n[n].c.y=pos.y;    d.n[n].c.z=pos.z;
 //                 d.n[n].c.turn_x = d.rnd(MathUtils.radToDeg(rot.x));   
@@ -197,11 +199,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             // if(d.node.be(d,d.n[n].r.transform)){ // make try catch func that takes func and performs next func with result of first if first success 
             //     const trans = d.n[n].r.transform[0];
             //     if(d.n[trans].c.matrix){
-            //         d.n[n].c.pos = new Vector3().copy(d.n[n].c.pos_l).applyMatrix4(d.n[trans].c.matrix); //d.n[trans].c.matrix).transpose()
+            //         d.n[n].w.pos = new Vector3().copy(d.n[n].l.pos).applyMatrix4(d.n[trans].c.matrix); //d.n[trans].c.matrix).transpose()
             //     }
             // }
             // d.try(()=> d.n[n].r.transform[0].c.matrix, matrix=>{
-            //     d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(matrix);
+            //     d.n[n].w.pos = d.n[n].w.pos.clone().applyMatrix4(matrix);
             // });
 
 

@@ -27,7 +27,7 @@ export const Point = memo(function Point({n}){//export function Point({n}){
     //     }
     //     //if(deleted) scene.remove(obj.current);
     // },[obj]);
-    useSub(d=> d.n[n].c.pos, pos=>{
+    useSub(d=> d.n[n].w.pos, pos=>{
         if(pos) obj.current.position.set(pos.x,pos.y,pos.z+1);
     });
     //console.log('render point', n, deleted);
@@ -50,10 +50,10 @@ export const Point = memo(function Point({n}){//export function Point({n}){
 })
 
 // , [obj.current]  // find way to forward more props from fixed size group
-    // useEffect(()=>subS(d=> d.n[n].c.pos, pos=>{ // make useSub that includes useEffect
+    // useEffect(()=>subS(d=> d.n[n].w.pos, pos=>{ // make useSub that includes useEffect
     //     obj.current.obj.position.copy(pos);
     // }),[]); 
-    //const pos = gs().n[n].c.pos;
+    //const pos = gs().n[n].w.pos;
     //console.log('render point', n);
 
-    //const pos = useS(d=> d.n[n].c.pos);
+    //const pos = useS(d=> d.n[n].w.pos);

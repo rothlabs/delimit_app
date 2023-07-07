@@ -42,15 +42,15 @@ export const create_design_slice = (set,get)=>({design:{
         }
         var o = undefined;
         if(d.n[r].n.point && d.n[r].n.point.length > 1){
-            const test_pos = new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].c.pos)).getPoints(100); //d.n[r].c.pts.map(p=> p.pos)
+            const test_pos = new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].w.pos)).getPoints(100); //d.n[r].c.pts.map(p=> p.pos)
             const tests = [];
             var o = 0;
             var prev_dist = 0;
             for (var i = 0; i < test_pos.length; i++) {
-                const dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].c.pos); //d.n[r].c.pts[o].pos
+                const dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].w.pos); //d.n[r].c.pts[o].pos
                 if(dist > prev_dist){
                     o++;
-                    prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].c.pos); //d.n[r].c.pts[o].pos
+                    prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].w.pos); //d.n[r].c.pts[o].pos
                 }else{ prev_dist = dist }
                 tests.push({o:o, dist:test_pos[i].distanceTo(pos)});
             }
@@ -76,8 +76,8 @@ export const create_design_slice = (set,get)=>({design:{
         d.design.mover.pos.set(0,0,0);
         var count = 0;
         d.pick.n.forEach(n=>{
-            if(d.n[n].c.pos){
-                d.design.mover.pos.add(d.n[n].c.pos);
+            if(d.n[n].w.pos){
+                d.design.mover.pos.add(d.n[n].w.pos);
                 count++;
             }
         });
@@ -131,7 +131,7 @@ export const create_design_slice = (set,get)=>({design:{
 
 // var md1={i:-1, d:Infinity}, md2={i:-1, d:Infinity};
             // d.n[r].n.point.forEach((n,i)=>{
-            //     const dist = tv.copy(d.n[n].c.pos).distanceTo(pos);
+            //     const dist = tv.copy(d.n[n].w.pos).distanceTo(pos);
             //     if(dist < md1.d){  md2.i=md1.i; md2.d=md1.d;  md1.i=i; md1.d=dist;   }
             // });
 
