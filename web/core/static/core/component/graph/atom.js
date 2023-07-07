@@ -21,6 +21,8 @@ export const Atom = memo(function Atom({n}){
     useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
         obj.current.position.copy(graph.pos);
     }); 
+    const d = gs();
+    const t = d.n[n].t;
     //const pos = gs().n[n].graph.pos
 
     // useEffect(()=>subS(d=> d.n[n].graph, d=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
@@ -33,16 +35,18 @@ export const Atom = memo(function Atom({n}){
                 ref: obj,
                 size: pick ? 25 : 20,
             },
-                // c(Text, {
-                //     font: static_url+'font/Inter-Medium.ttf', 
-                //     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                //     position: [0, 1.35, 2],
-                //     outlineWidth: '25%',
-                //     outlineColor: 'white',
-                // },
-                //     val,
-                //     c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
-                // ),
+                c('text', {
+                    font: static_url+'font/Inter-Medium.ttf', 
+                    fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
+                    position: [0, 1.35, 2],
+                    outlineWidth: '25%',
+                    outlineColor: 'white',
+                    anchorX: 'center',
+                    anchorY: 'middle',
+                    text: val,
+                },
+                    c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
+                ),
                 c(Spinner, {position:[0,0,1]}, 
                     c('mesh', {},
                         c('tetrahedronGeometry'),
@@ -50,16 +54,18 @@ export const Atom = memo(function Atom({n}){
                         c(Edges, {scale:1.05, color: color[2]},),
                     )
                 ),
-                // c(Text, {
-                //     font: static_url+'font/Inter-Medium.ttf', 
-                //     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                //     position: [0, -1.35, 2],
-                //     outlineWidth: '25%',
-                //     outlineColor: 'white',
-                // },
-                //     readable(tag),
-                //     c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
-                // ),
+                c('text', {
+                    font: static_url+'font/Inter-Medium.ttf', 
+                    fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
+                    position: [0, -1.35, 2],
+                    outlineWidth: '25%',
+                    outlineColor: 'white',
+                    anchorX: 'center',
+                    anchorY: 'middle',
+                    text: d.node.meta[t].tag, //readable(tag)
+                },
+                    c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
+                ),
                 c(Pickable, {n:n},
                     c('mesh', {
                         geometry: circle_geometry,

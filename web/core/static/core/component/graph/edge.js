@@ -71,15 +71,17 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
                 ref: text,
                 size: active ? 1.25 : 1,
             },
-                // c(Text, {
-                //     font: static_url+'font/Inter-Medium.ttf', 
-                //     outlineWidth: '25%',
-                //     outlineColor: 'white',
-                //     fontSize: 14,
-                // },
-                //     readable(t),
-                //     c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
-                // ),
+                c('text', {
+                    font: static_url+'font/Inter-Medium.ttf', 
+                    outlineWidth: '25%',
+                    outlineColor: 'white',
+                    fontSize: 14,
+                    anchorX: 'center',
+                    anchorY: 'middle',
+                    text: readable(t),
+                },
+                    c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
+                ),
             ),
             // c(Fix_Size, {
             //     ref: arrow,
