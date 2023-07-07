@@ -20,7 +20,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //else                                   {d.reckon.default(d,n,cause)} // could delete this?
     },
     base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
-        d.reckon.count++; // could be causing extra renders ?!?!?!?!?!
+        d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
         if(d.cat_cast[d.n[n].t]){ // make dictionary (Object.fromEntries) for fast lookup ?!?!?!?!?!
             d.n[n].c[d.n[n].t] = true;

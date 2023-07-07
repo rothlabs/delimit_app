@@ -1,12 +1,12 @@
-import {createElement as c, useRef, memo} from 'react';
-import {useS, useSS, useSub, gs} from '../../app.js';
+import {createElement as c, useRef, memo, useState} from 'react';
+import {useS, useSS, useSub, useSubS, gs} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import {Line} from '@react-three/drei/Line';
 import { Pickable } from '../node/base.js';
 import {CatmullRomCurve3} from 'three';
 import {Point} from './point.js';
 
-const res = 100;
+const res = 100; // make res dynamic ?!?!?!?!
 
 // function interpolate(d,n,a={}){
 //     pts = new CatmullRomCurve3(pts.map(p=>p.pos)).getPoints(res).map(p=> [p.x, p.y, p.z]);
@@ -16,38 +16,42 @@ const res = 100;
 
 
 export const Curve = memo(function Curve({n}){ 
-    const obj = useRef();
-    //useSS(d=> d.n[n].n.point); 
+    const curve_ref = useRef();
+    const segs_ref = useRef();
     const color = useS(d=> d.n[n].pick.color); 
-    //const curve = useS(d=> d.n[n].w.curve);
+    const [curve_geo] = useState({pts:[[0,0,0],[0,0,0]]});
+    const [segs_geo] = useState({pts:[[0,0,0],[0,0,0]]});
     useSub(d=> d.n[n].w.curve, curve=>{ // make useSub that includes useEffect
-        if(curve && obj.current){
-            //const curve = new CatmullRomCurve3(pts.map(p=>p.pos));
-            //obj.current.geometry.setPositions(curve.getPoints(res).map(p=> [p.x, p.y, p.z]).flat()); //new Float32Array(
-            //obj.current.geometry.setPositions(interpolate(gs(),n,{flat:true}));
-            //console.log(curve.getPoints(res));
-            obj.current.geometry.setPositions(curve.getPoints(res).map(p=>[p.x, p.y, p.z]).flat());
+        if(curve){ //curve_ref.current && 
+            curve_geo.pts = curve.getPoints(res).map(p=>[p.x, p.y, p.z]).flat();
+            curve_ref.current.geometry.setPositions(curve_geo.pts);
+            const pts = gs().n[n].w.pts;
+            if(pts){
+                segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
+                segs_ref.current.geometry.setPositions(segs_geo.pts);
+            }
         }
     });
-    const curve = gs().n[n].w.curve;
-    //console.log('render line', curve.getPoints(res));
+    //console.log('render line');
     return(
-        //c('group', {name:'line'},
-            // points[0]?.n && c('group', {
-            //     name:'points',
-            // },
-            //     ...points.map(p=> c(Point, {n:p.n, key:p.n})),
-            // ),
-            curve && c(Pickable, {n:n},//points?.length>1 && c(Pickable, {n:n}, // points && points.length>1 && 
+        c('group', {name:'line'},
+            c(Pickable, {n:n},//points?.length>1 && c(Pickable, {n:n}, // points && points.length>1 && 
                 c(Line, {
-                    ref: obj,
-                    points: curve.getPoints(res).map(p=> [p.x, p.y, p.z]),//interpolate(gs(),n),//points.map(p=> [p.pos.x, p.pos.y, p.pos.z]), //[[0,0,0],[0,0,0]], //points: 
+                    ref: curve_ref,
+                    points: curve_geo.pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
                     lineWidth: 3,
                     color: color[0],
-                    //segments: res, // need to make this adjustable or dependent on zoom or line length 
                 }),
-            )//,
-        //)
+            ),
+            c(Line, {
+                ref: segs_ref,
+                points: segs_geo.pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
+                lineWidth: 1,
+                color: color[0],
+                dashed: true,
+                dashScale: 1,
+            }),
+        )
     )
 })
 

@@ -12,6 +12,7 @@ export const curve = {
                 //d.n[n].w.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].w.pos));
                 //d.n[n].l.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].l.pos));
                 const pts = d.n[n].n.point.map(n=>d.n[n].w.pos);    // rename so this is pos_a ?!?!?! (absolute or g for global)
+                d.n[n].w.pts = pts;
                 const pts_l = d.n[n].n.point.map(n=>d.n[n].l.pos); // rename so this is pos ?!?!?!?!
                 // var knots = [0,0];
                 // var last_knot = 0;
@@ -37,6 +38,9 @@ export const curve = {
                 d.n[n].w.curve = new NURBSCurve(degree, knots, cp);
                 d.n[n].l.curve = new NURBSCurve(degree, knots, cp_l);
                 d.n[n].w.curve.getPoints(3); // checking if valid curve 
+                
+
+
                 //console.log('CURVE COMPLETE');
             //}else{
             //    delete d.n[n].w.curve;

@@ -34,7 +34,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.update(d);
     },
     update:d=>{
-        console.log('update graph!!!');
+        //console.log('update graph!!!');
         d.graph.n = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.e = [];
         d.node.for_n(d, d.graph.n, (r,n,t)=>{

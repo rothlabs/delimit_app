@@ -1,7 +1,6 @@
 import {current} from 'immer';
 import {Vector3, Vector4, CatmullRomCurve3, Shape, CurvePath, BufferGeometry, ShapeGeometry} from 'three';
 import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
-import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 //import Delaunator from 'delaunator';
 //import { closest } from '../../junk/vertex.js';
 
@@ -18,7 +17,7 @@ export const surface = {
     boundary_res: 60,
     //sub_res: 30,
     sub_div: 12,
-    tri_res: 80,
+    //tri_res: 80,
     //max_dist: 40,
     //res_w: 100,//d.reckon.curve.res,
     //res_h: 10,
@@ -155,7 +154,7 @@ export const surface = {
 
 
             pts = pts.map(p=> p.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
-            d.n[n].c.pts = pts;
+            d.n[n].w.pts = pts;
             var degree1 = 2;
             var degree2 = 2;
             //var knots1 = [0, 0, 0, 1, 1, 1];
@@ -176,19 +175,14 @@ export const surface = {
             knots2 = knots2.concat([pts[0].length-2, pts[0].length-2]);
             //console.log('knots1', knots1);
             //console.log('knots2', knots2);
-            var surface = new NURBSSurface(
-                degree1, // u degree
-                degree2, // v degree
-                knots1,
-                knots2,
-                pts
-            );
-            function getSurfacePoint(u, v, target) {
+            const surface = new NURBSSurface(degree1, degree2, knots1, knots2, pts);
+            surface.get_point = (u, v, target)=>{
                 surface.getPoint(u, v, target);
-                //console.log(u, v, target);
+                // override point here
                 return target;
             }
-            d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
+            d.n[n].w.surface = surface;
+            //d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
             //if(d.n[n].c.inner_view) d.n[n].c.geo.index.array.reverse();
             //d.n[n].c.geo.computeVertexNormals();
 
