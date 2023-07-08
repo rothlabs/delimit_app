@@ -1,11 +1,11 @@
 import {createElement as c, useRef, memo, useEffect} from 'react';
 import {gs, useS, useSub, ss} from '../../app.js';
 import {Pickable} from '../node/base.js';
-import {SphereGeometry, CircleGeometry, DoubleSide} from 'three';
+//import {SphereGeometry, CircleGeometry, DoubleSide} from 'three';
 //import {useThree} from '@react-three/fiber';
 import {Fix_Size} from '../base/base.js';
 
-export const Point = memo(function Point({n}){//export function Point({n}){ 
+export const Point = memo(({n})=>{//export function Point({n}){ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
     useSub(d=> d.n[n].w.pos, pos=>{
@@ -21,7 +21,7 @@ export const Point = memo(function Point({n}){//export function Point({n}){
             c(Pickable, {n:n}, 
                 c('mesh', {},
                     c('sphereGeometry'),
-                    c('meshBasicMaterial', {color:color[0], toneMapped:false, side:DoubleSide,}),
+                    c('meshBasicMaterial', {color:color[0], toneMapped:false}),
                 )
             ),
         )

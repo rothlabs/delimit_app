@@ -6,6 +6,7 @@ import lodash from 'lodash';
 import {Point} from '../component/design/point.js';
 import {Curve} from '../component/design/curve.js';
 import {Surface} from '../component/design/surface.js';
+import {Sketch} from '../component/design/sketch.js';
 
 var next_funcs = [];
 var next_ids = [];
@@ -18,14 +19,11 @@ const cat_cast_tags=[
     'top_view', 'inner_view', 'outer_view', 'guide',
 ];
 const component = {
-    // 'group':       Group,
-    // 'product':     Group,
-    // 'sketch':      Group,
-    // 'repeater':    Group,
     'point':       Point,
     'curve':       Curve,
     'mixed_curve': Curve,
     'surface':     Surface,
+    'sketch':      Sketch,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_cast = Object.fromEntries(cat_cast_tags.map(t=>[t,true]));

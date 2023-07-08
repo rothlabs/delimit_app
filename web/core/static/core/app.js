@@ -130,9 +130,11 @@ function ignore_patch(p){
     if(path == 'studio.panel.name') return false;
     if(path == 'design.matrix') return false;
     if(path == 'design.moving') return false;
+    if(path == 'graph.c_c') return false;
+    if(path == 'studio.gizmo_active') return false;
     //if(path == 'design.n') return false;
     //if(path == 'design.group') return false;
-    if(path == 'graph.c_c') return false;
+    
     //if(p.path.includes('pick')) return false;
     return true;
 }
@@ -246,6 +248,7 @@ export function undo(){
             var d = applyPatches(d, inverse[patch]);
             d.send(d, inverse[patch]);
             d = produce(d, d=>{
+                d.studio.gizmo_active = false;
                 //d.pick.update(d);
                 d.design.update(d);
                 d.inspect.update(d);
@@ -263,6 +266,7 @@ export function redo(){
             var d = applyPatches(d, patches[patch]);
             d.send(d, patches[patch]);
             d = produce(d, d=>{
+                d.studio.gizmo_active = false;
                 //d.pick.update(d);
                 d.design.update(d);
                 d.inspect.update(d);

@@ -49,22 +49,36 @@ export function Board(){
             ref: obj,
             name: 'board',
             position:[0,0,-2000],
-            onClick:e=>{e.stopPropagation();
-                if(e.delta < 5){
-                    //const p = point(e);
-                    if(studio_mode=='design'){
-                        if(design_mode=='draw'){
-                            ss(d=> d.design.make_point(d, pos(e)));  //{x:p.x, y:p.y, z:0}
-                            return
+            onClick(e){
+                e.stopPropagation();
+                ss(d=>{
+                    if(!d.studio.gizmo_active){
+                        if(e.delta < 5){ // remove this ?!?!?!
+                            //const p = point(e);
+                            if(studio_mode=='design'){
+                                if(design_mode=='draw'){
+                                    d.design.make_point(d, pos(e));
+                                    //ss(d=> d.design.make_point(d, pos(e)));  //{x:p.x, y:p.y, z:0}
+                                    return
+                                }
+                            }
+                            d.pick.none(d);
+                            //ss(d=> d.pick.none(d));
+                            //if(mode=='graph') 
+                            //if(name(e) == 'board') selection_rv(null);
+                            //if(draw_mode == 'erase' && name(e) == 'points')
+                                //project.current.mutate({selection:select(e), record:true});
+                            //if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
+                            //    selection_rv(select(e));
                         }
                     }
-                    ss(d=> d.pick.none(d));
-                    //if(mode=='graph') 
-                    //if(name(e) == 'board') selection_rv(null);
-                    //if(draw_mode == 'erase' && name(e) == 'points')
-                        //project.current.mutate({selection:select(e), record:true});
-                    //if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
-                    //    selection_rv(select(e));
+                    d.studio.gizmo_active = false;
+                });
+                
+            },
+            onPointerUp(e){
+                if(e.which==3){//[0,1].includes(e.which)){
+                    ss(d=>{ d.studio.gizmo_active = false; });
                 }
             },
             // onPointerDown:e=>{

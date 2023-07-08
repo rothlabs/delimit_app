@@ -65,7 +65,7 @@ export function Toolbar(){
 
 function Reckon_Count(){
     const reckon_count = useS(d=> d.reckon.count);
-    return c(Badge, {className:'position-absolute bottom-0 end-0 m-1'}, 'Reckons: '+reckon_count);
+    return c(Badge, {className:'position-absolute bottom-0 start-0 m-1'}, 'Reckons: '+reckon_count);
 }
 
 //}, c('i',{className:button.icon, style:{fontSize:'24px'}}), window_size.width>576 ? button.name : '')

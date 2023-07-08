@@ -25,6 +25,7 @@ export function Mover(){
             onDragStart:e=> fs(d=>{ 
                 d.design.pin_move(d);
                 d.design.moving = true;
+                d.studio.gizmo_active = true;
             }),
             onDrag:e=> {
                 set_matrix(e);

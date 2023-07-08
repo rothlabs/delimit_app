@@ -1,61 +1,85 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
 import {useS, useSS, useSub, gs} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
-//import {Plane} from '@react-three/drei/Plane';
+import {Grid} from '@react-three/drei/Grid';
 import {Pickable} from '../node/base.js';
 import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, FrontSide, BackSide, CircleGeometry} from 'three';
 import {Fix_Size} from '../base/base.js';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
-import {BufferGeometry} from 'three';
-//import {LoopSubdivision} from './three/LoopSubdivision.js';
-//import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
-//import {Edges} from '@react-three/drei/Edges';
+import {useThree, useFrame} from '@react-three/fiber';
 
-// function make_surface(res_w, res_h){
-//     return new THREE.PlaneGeometry(1, 1, divisions, frames.length + tailfinSlices -1);
-// }
+const v1 = new Vector3();
+const v2 = new Vector3();
 
-//const circle_geometry = new CircleGeometry(1,12);
-const res = 80;
-
-export const Surface = memo(({n})=>{ 
+export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
     const obj = useRef();
-    const color = useS(d=> d.n[n].pick.color); 
-    //const pts = useS(d=> d.n[n].w.pts); 
-    const [geo] = useState(new BufferGeometry());
-    useSub(d=> d.n[n].w.surface, surface=>{ 
-        if(surface){ // obj.current && 
-            obj.current.geometry.copy(new ParametricGeometry(surface.get_point, res, res));
+    //const color = useS(d=> d.n[n].pick.color); 
+    //const {camera} = useThree(); // use state selector ?!?!?!?!?! (state)=> state.camera 
+    const [offset, set_offset] = useState(0);
+    useFrame((state)=>{
+        if(obj.current){
+            state.camera.getWorldDirection(v1);
+            obj.current.getWorldDirection(v2);
+            if(v1.dot(v2)>0) set_offset(1) 
+            else             set_offset(-1);
+        }
+    });
+    useSub(d=> d.n[n].c.matrix, matrix=>{ // this won't work because cast down matrix is not replaced on reckon ?!?!?!?!?!
+        if(matrix){ // obj.current && 
+            obj.current.position.set(0,0,0);
+            obj.current.position.applyMatrix4(matrix);
         }
     });
     //console.log('render surface');
     return(
-        c('group', {},
-            // pts && c('group', {},
-            //     ...pts.map(p=>
-            //         c('group', {},
-            //             ...p.map(p=>
-            //                 c('group', {name: 'weird', position: [p.x, p.y, p.z]}, 
-            //                 c(Fix_Size, {size:6}, // , props:{position: [p.x, p.y, p.z]}
-            //                     c('mesh', {},
-            //                         c('sphereGeometry'),
-            //                         c('meshBasicMaterial', {color:'yellow', toneMapped:false}),
-            //                     )
-            //                 )
-            //                 )
-            //             )
-            //         )
-            //     ),
-            // ),
+        c('group', {
+            ref:obj,
+        },
             c(Pickable, {n:n}, // points && points.length>1 && 
-                c('mesh', {
-                    ref: obj,
-                    geometry:geo,
+                // c(Fix_Size, {size:6}, 
+                //     c('mesh', {},
+                //         c('sphereGeometry'),
+                //         c('meshBasicMaterial', {color:color[0], toneMapped:false}),
+                //     )
+                // ),
+                c('mesh',{
+                    position: [0,0,offset],
+                    visible:false,
                 },
-                    c('meshStandardMaterial', {color:color[1], wireframe:false, toneMapped:true, side:DoubleSide,}), //toneMapped:false, side:BackSide
-                    //c(Edges, {color: color[2]},),
+                    c('planeGeometry', {args:[200,200]}),
+                    c('meshBasicMaterial', {
+                        color:'yellow', 
+                        toneMapped:false, 
+                        side: DoubleSide, 
+                        //transparent:true, 
+                        //opacity:.2
+                    }),
                 ),
             ),
+            c(Grid, {
+                position: [0,0,offset],
+                rotation: [1.5708,0,0],
+                args: [200,200],
+                cellSize: 10,
+                cellThickness: 1,
+                cellColor: '#6f6f6f',
+                sectionSize: 100,
+                sectionThickness: 1,
+                sectionColor: '#9d4b4b',
+                fadeDistance: 10000,
+                fadeStrength: 0,
+                followCamera: false,
+                infiniteGrid: false,
+                side: DoubleSide,
+            }),
+            
+            // c('mesh', {
+            //     ref: obj,
+            //     geometry:geo,
+            // },
+            //     c('meshBasicMaterial', {color:color[1], wireframe:true, toneMapped:false, side:DoubleSide,}), //toneMapped:false, side:BackSide
+            //     //c(Edges, {color: color[2]},),
+            // ),
         )
     )
 });

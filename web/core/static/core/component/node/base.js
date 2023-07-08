@@ -3,6 +3,7 @@ import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
 import {useS, ss, gs} from '../../app.js';
 
 export function Pickable({n, children}){
+
     return c('group', {
         name: 'pickable',
         pickable: n, // for accessing via three_object.__r3f.memoizedProps.pickable
@@ -12,16 +13,41 @@ export function Pickable({n, children}){
         onClick(e){ // onClick //onPointerDown
             e.stopPropagation();//e.stopPropagation?.call(); 
             ss(d=>{
-                if(d.studio.mode=='design' && d.design.mode == 'erase'){
-                    d.delete.node(d, n, {deep:true});
-                }else{
-                    const a = {deep:d.pick.deep};
-                    if(d.pick.multi){d.pick.set(d, n, !d.n[n].pick.pick, a)} // || e.multi
-                    else            {d.pick.one(d, n, a)}  
+                if(!d.studio.gizmo_active){
+                    if(d.studio.mode=='design' && d.design.mode == 'erase'){
+                        d.delete.node(d, n, {deep:true});
+                    }else{
+                        
+                            const a = {deep:d.pick.deep};
+                            if(d.pick.multi){d.pick.set(d, n, !d.n[n].pick.pick, a)} // || e.multi
+                            else            {d.pick.one(d, n, a)}  
+                        
+                    }
                 }
+                d.studio.gizmo_active = false;
             });
         },
-        onPointerOver:e=> {e.stopPropagation(); ss(d=>d.pick.hover(d,n,true ));}, // should be something different from recieve state but should not commit state here
+        onPointerUp(e){
+            if(e.which==3){//[0,1].includes(e.which)){
+                ss(d=>{ d.studio.gizmo_active = false; });
+            }
+        },
+        // onPointerMove(e){
+        //     e.stopPropagation(); 
+        //     ss(d=>{
+        //         if(!d.studio.gizmo_active){
+        //             d.pick.hover(d, n, true);
+        //         }
+        //     });
+        // },
+        onPointerOver:e=>{
+            e.stopPropagation(); 
+            ss(d=>{
+                if(!d.studio.gizmo_active){
+                    d.pick.hover(d, n, true);
+                }
+            });
+        }, // should be something different from recieve state but should not commit state here
         onPointerOut:e=>  {e.stopPropagation(); ss(d=>d.pick.hover(d,n,false));},
         children:children,
     });

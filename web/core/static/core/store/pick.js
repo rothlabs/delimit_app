@@ -85,8 +85,10 @@ export const create_pick_slice = (set,get)=>({pick:{
         }
     },
     hover(d, n, hover){
-        d.n[n].pick.hover = hover;
-        d.pick.color(d,n);
+        if(d.n[n].pick.hover != hover){
+            d.n[n].pick.hover = hover;
+            d.pick.color(d,n);
+        }
     },
     none(d, t){
         var nodes = [...d.pick.n];

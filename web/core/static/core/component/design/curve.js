@@ -15,7 +15,7 @@ const res = 100; // make res dynamic ?!?!?!?!
 // }
 
 
-export const Curve = memo(function Curve({n}){ 
+export const Curve = memo(({n})=>{ 
     const curve_ref = useRef();
     const segs_ref = useRef();
     const color = useS(d=> d.n[n].pick.color); 

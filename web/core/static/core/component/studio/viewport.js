@@ -1,5 +1,6 @@
 import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
-import {CameraControls} from '@react-three/drei/CameraControls';
+import {CameraControls} from '@react-three/drei/CameraControls'; 
+import {OrbitControls} from '@react-three/drei/OrbitControls';
 import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Design} from '../design/design.js';
@@ -16,13 +17,38 @@ import {Pickbox} from './pickbox.js'; // selection box
 // const name=(e)=>   e.intersections[0].object.name
 // const select=(e)=> e.intersections[0];
 
+var using_camera = 0.0;
+var used_camera = false;
+
 function Viewport_Control(){
     const camera_controls = useRef();
     const pick_box = useS(d=> d.pick.box);
     const {camera} = useThree(); 
+    // useFrame((state, delta)=>{
+    //     if(used_camera){
+    //         if(using_camera < 0){
+    //             used_camera = false;
+    //             ss(d=> d.studio.gizmo_active = false);
+    //         }else{
+    //             using_camera -= delta;
+    //         }
+    //     }
+    // });
     useEffect(()=>ss(d=>{
         d.camera_controls = camera_controls.current;
+        d.camera_controls.addEventListener('update', (e)=>ss(d=>{
+            if(e.target._isDragging){//_isUserControllingRotate){//
+                //console.log('start controlling camera',e);
+                d.studio.gizmo_active = true;
+            }
+        }));
+        //d.camera_controls.addEventListener('controlend', ()=>ss(d=>{
+            //d.studio.gizmo_active = false;
+        //}));
         d.camera_controls.addEventListener('control', ()=>ss(d=>{ // need to remove listener ?!?!?!?!
+            //d.studio.gizmo_active = true;
+            //using_camera = 1;
+            //used_camera = true;
             if(d.studio.mode=='graph' && d.design.part){
                 d.graph.c_c = {
                     azimuth: d.camera_controls.azimuthAngle,
@@ -48,7 +74,7 @@ function Viewport_Control(){
             maxDistance: 1000, 
             polarRotateSpeed: (pick_box ? 0 : 1), 
             azimuthRotateSpeed: (pick_box ? 0 : 1), 
-            draggingSmoothTime: 0,
+            draggingSmoothTime: 0.02,
         }), 
         pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
             style:{
