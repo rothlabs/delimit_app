@@ -7,21 +7,33 @@ const te = new Euler();
 export const create_cast_slice=(set,get)=>({cast:{
     down(d,n,c){ 
         const content = {};
-        c.split(' ').forEach(c=> content[c]=d.n[n].c[c]);
-        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content));
-    },
-    base(d,n,c){
-        Object.entries(c).forEach(([t,c])=>{
-            if(d.cast_tags[t]) d.n[n].c[t] = c; 
+        const ax = {};
+        c.split(' ').forEach(c=>{
+            if(d.n[n].c[c] != undefined) content[c] = d.n[n].c[c];
+            if(d.n[n].ax[c] != undefined) ax[c] = d.n[n].ax[c];
         });
-        if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
-        if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
+        // if(ax) c.split(' ').forEach(c=> content[c]=d.n[n].ax[c])
+        // else c.split(' ').forEach(c=> content[c]=d.n[n].c[c]);
+        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content,ax));
     },
-    point(d,n,c){
-        if(c.matrix) d.next('reckon.up', n);
+    base(d,n,c,ax){
+        //if(ax){
+            Object.entries(c).forEach(([t,c])=>{
+                if(d.cast_tags[t]) d.n[n].c[t] = c; 
+            });
+        //}else{
+            Object.entries(ax).forEach(([t,ax])=>{
+                if(d.cast_tags[t]) d.n[n].ax[t] = ax; 
+            });
+        //}
+        if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c,ax); // merge c and ax together here ?!?!?!?!?
+        if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c,ax));
     },
-    mixed_curve(d,n,c){
-        if(c.matrix) d.next('reckon.up', n, ['matrix']);
+    point(d,n,c,ax){ 
+        if(c.matrix || ax.matrix) d.next('reckon.up', n);
+    },
+    mixed_curve(d,n,c,ax){
+        if(c.matrix || ax.matrix) d.next('reckon.up', n, ['matrix']);
     },
 }});
 

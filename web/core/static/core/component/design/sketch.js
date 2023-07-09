@@ -24,7 +24,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
             else             set_offset(-1);
         }
     });
-    useSub(d=> d.n[n].c.matrix, matrix=>{ // this won't work because cast down matrix is not replaced on reckon ?!?!?!?!?!
+    useSub(d=> d.n[n].ax.matrix, matrix=>{ // this won't work because cast down matrix is not replaced on reckon ?!?!?!?!?!
         if(matrix){ // obj.current && 
             obj.current.position.set(0,0,0);
             obj.current.position.applyMatrix4(matrix);

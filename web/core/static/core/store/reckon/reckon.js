@@ -46,7 +46,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null; 
         return result;
     },
-    transform(d,n,cause=[]){ // put this in base and make it work for at least one component (just scale_x for example)
+    transform(d, n, cause=[]){ // put this in base and make it work for at least one component (just scale_x for example)
         try{if(['make.node', 'make.edge', 'decimal'].includes(cause[0])){
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
             tv1.set(nn.move_x, nn.move_y, nn.move_z);
@@ -54,21 +54,34 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             tq.setFromEuler(te);
             tv2.set(nn.scale_x, nn.scale_y, nn.scale_z);
             tm.compose(tv1, tq, tv2);
-            d.n[n].c.matrix = new Matrix4().copy(tm);
-            d.n[n].c.inverse_matrix = new Matrix4().copy(tm).invert();
-            d.cast.down(d,n,'matrix inverse_matrix'); // {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix} just send c
+            // if(d.n[n].c.auxiliary){
+            //     d.n[n].aux.matrix = new Matrix4().copy(tm);
+            //     d.n[n].aux.inverse_matrix = new Matrix4().copy(tm).invert();
+            //     d.cast.down(d,n,'matrix inverse_matrix',true); 
+            // }else{
+                const ax_or_c = (d.n[n].c.auxiliary ? 'aux' : 'c');
+                d.n[n][ax_or_c].matrix = new Matrix4().copy(tm);
+                d.n[n][ax_or_c].inverse_matrix = new Matrix4().copy(tm).invert();
+                d.cast.down(d,n,'matrix inverse_matrix'); 
+            //}
         }}catch{} //}catch(e){console.log(e)}
     },
     point(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
-            d.n[n].l.pos = new Vector3(nn.x, nn.y, nn.z);
-            d.n[n].w.pos = new Vector3(nn.x, nn.y, nn.z);
-            if(d.n[n].c.matrix){ d.n[n].w.pos.applyMatrix4(d.n[n].c.matrix) }
+            d.n[n].c.pos = new Vector3(nn.x, nn.y, nn.z);
+            if(d.n[n].c.matrix){ d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix) }
             else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
                 d.n[n].c.matrix = d.n[r].c.matrix;
                 d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
-                d.n[n].w.pos.applyMatrix4(d.n[n].c.matrix);
+                d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            }})}
+            d.n[n].ax.pos = new Vector3(nn.x, nn.y, nn.z);
+            if(d.n[n].ax.matrix){ d.n[n].ax.pos.applyMatrix4(d.n[n].ax.matrix) }
+            else{ d.node.for_r(d,n,r=>{ if(d.n[r].ax.matrix){
+                d.n[n].ax.matrix = d.n[r].ax.matrix;
+                d.n[n].ax.inverse_matrix = d.n[r].ax.inverse_matrix;
+                d.n[n].ax.pos.applyMatrix4(d.n[n].ax.matrix);
             }})}
         }catch{} //console.error(e)
     },

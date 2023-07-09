@@ -21,11 +21,11 @@ export const Curve = memo(({n})=>{
     const color = useS(d=> d.n[n].pick.color); 
     const [curve_geo] = useState({pts:[[0,0,0],[0,0,0]]});
     const [segs_geo] = useState({pts:[[0,0,0],[0,0,0]]});
-    useSub(d=> d.n[n].w.curve, curve=>{ // make useSub that includes useEffect
+    useSub(d=> d.n[n].ax.curve, curve=>{ // make useSub that includes useEffect
         if(curve){ //curve_ref.current && 
             curve_geo.pts = curve.getPoints(res).map(p=>[p.x, p.y, p.z]).flat();
             curve_ref.current.geometry.setPositions(curve_geo.pts);
-            const pts = gs().n[n].w.pts;
+            const pts = gs().n[n].ax.pts;
             if(pts){
                 segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
                 segs_ref.current.geometry.setPositions(segs_geo.pts);

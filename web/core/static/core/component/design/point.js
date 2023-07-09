@@ -8,7 +8,7 @@ import {Fix_Size} from '../base/base.js';
 export const Point = memo(({n})=>{//export function Point({n}){ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
-    useSub(d=> d.n[n].w.pos, pos=>{
+    useSub(d=> d.n[n].ax.pos, pos=>{
         if(pos) obj.current.position.set(pos.x,pos.y,pos.z);
     });
     //console.log('render point', n, deleted);

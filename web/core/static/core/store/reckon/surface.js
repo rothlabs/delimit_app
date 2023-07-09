@@ -29,7 +29,7 @@ export const surface = {
 
             //var pts = [];
             const ribs = d.n[n].n.mixed_curve.map(n=>{
-                const points = d.n[n].l.curve.getPoints(this.rib_res-1); //getSpacedPoints
+                const points = d.n[n].c.curve.getPoints(this.rib_res-1); //getSpacedPoints
                 if(points[0].x > points.at(-1).x) points.reverse();
                 //pts.push(points.map(p=>new Vector4(p.x, p.y, p.z, 1)));
                 //pts.push(points);
@@ -39,16 +39,16 @@ export const surface = {
                     //matrix: d.n[n].c.matrix,
                     pts: points,
                     //curve: new CatmullRomCurve3(pts),
-                    y: d.n[n].l.curve.getPoints(9).reduce((a,b)=>a+b.y,0)/10, // returning NaN ?!?!?!?!
+                    y: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.y,0)/10, // returning NaN ?!?!?!?!
                 }
             }).sort((a,b)=>a.y-b.y);
             const guide = d.n[n].n.curve.map(n=>{//.filter(n=> d.n[n].c.guide).map(n=>{
-                const pts = d.n[n].l.curve.getPoints(this.guide_res);
+                const pts = d.n[n].c.curve.getPoints(this.guide_res);
                 if(pts[0].y > pts.at(-1).y) pts.reverse();
                 return {
                     pts: pts,
                     sub: [], // sub points between ribs
-                    x: d.n[n].l.curve.getPoints(9).reduce((a,b)=>a+b.x,0)/10,
+                    x: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.x,0)/10,
                 }
             }).sort((a,b)=>a.x-b.x);
             var idx1 = 0;
@@ -153,8 +153,7 @@ export const surface = {
             }
 
 
-            pts = pts.map(p=> p.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
-            d.n[n].w.pts = pts;
+            if(d.n[n].c.matrix) pts = pts.map(p=> p.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
             var degree1 = 2;
             var degree2 = 2;
             //var knots1 = [0, 0, 0, 1, 1, 1];
@@ -181,7 +180,8 @@ export const surface = {
                 // override point here
                 return target;
             }
-            d.n[n].w.surface = surface;
+            d.n[n].c.surface = surface;
+            d.n[n].c.pts = pts;
             //d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
             //if(d.n[n].c.inner_view) d.n[n].c.geo.index.array.reverse();
             //d.n[n].c.geo.computeVertexNormals();

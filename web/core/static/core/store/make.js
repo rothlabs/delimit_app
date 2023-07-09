@@ -47,7 +47,7 @@ export const create_make_slice = (set,get)=>({make:{
     node(d, m, t, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         //const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
-        d.n[n] = {m: m, t:t, r:{}, c:{}, l:{}, w:{}, open:true, asset:true, deleted:false, // c:a.c?a.c:{}
+        d.n[n] = {m: m, t:t, r:{}, c:{}, l:{}, w:{}, ax:{}, open:true, asset:true, deleted:false, // c:a.c?a.c:{}
             pick: {pick:false, hover:false},
             graph: { 
                 pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  

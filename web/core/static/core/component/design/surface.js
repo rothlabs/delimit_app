@@ -23,7 +23,7 @@ export const Surface = memo(({n})=>{
     const color = useS(d=> d.n[n].pick.color); 
     //const pts = useS(d=> d.n[n].w.pts); 
     const [geo] = useState(new BufferGeometry());
-    useSub(d=> d.n[n].w.surface, surface=>{ 
+    useSub(d=> d.n[n].ax.surface, surface=>{ 
         if(surface){ // obj.current && 
             obj.current.geometry.copy(new ParametricGeometry(surface.get_point, res, res));
         }
