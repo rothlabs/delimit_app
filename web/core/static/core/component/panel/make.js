@@ -42,7 +42,7 @@ export function Make(){
                     ),
                     limited ? null : c(Fragment,{},
                         c('h5',{className:'text-secondary bi-tag'}, ' Category'),
-                        ...d.category_tags.map(t=>
+                        ...d.cat_tags.map(t=>
                             c(Row, {className: 'mt-1 text-left'}, 
                                 c(Button, {
                                     id:'make_'+t,

@@ -5,18 +5,33 @@ import {current} from 'immer';
 //const te = new Euler();
 
 export const create_clear_slice=(set,get)=>({clear:{
-    down(d,n,c,ax){ // change to (d,r,n)
+    down(d,n,c,ax){ // change to (d,r,n) 
+        const change = {}
         Object.entries(c).forEach(([t,c])=>{
-            if(d.cast_tags[t] && d.n[n].c[t] === c) delete d.n[n].c[t]; 
+            if(d.cast_map[t] && d.n[n].c[t] === c){ 
+                change[t] = true;
+                delete d.n[n].c[t]; 
+            }
         });
         Object.entries(ax).forEach(([t,ax])=>{
-            if(d.cast_tags[t] && d.n[n].ax[t] === ax) delete d.n[n].ax[t]; 
+            if(d.cast_map[t] && d.n[n].ax[t] === ax){
+                change[t] = true;
+                delete d.n[n].ax[t]; 
+            }
         });
-        if(d.clear[d.n[n].t]) d.clear[d.n[n].t](d,n,c);
+        if(d.clear[d.n[n].t]) d.clear[d.n[n].t](d,n,change);
         d.node.for_n(d, n, (r,n)=> d.clear.down(d,n,c,ax));
     },
+    transform(d,n,c){
+        //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
+        //console.log('try to reckon transform from clear');
+        if(c.auxiliary) {
+            //console.log('reckon transform from clear');
+            d.next('reckon.up', n, ['auxiliary']);
+        }
+    },
     point(d,n,c){
-        if(c.matrix) d.next('reckon.up',n);
+        if(c.matrix) d.next('reckon.up',n); // check if matrix actually changed ?!?!?!?!?!
     },
 }});
 

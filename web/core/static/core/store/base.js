@@ -15,8 +15,8 @@ const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
     'mixed_curve', 'surface',
 ];
-const cat_cast_tags=[
-    'top_view', 'inner_view', 'outer_view', 'guide', 'auxiliary',
+const cat_tags=[ //cat_cast_tags=[
+    'public', 'auxiliary', 'top_view', 'inner_view', 'outer_view', 'guide',
 ];
 const component = {
     'point':       Point,
@@ -26,9 +26,9 @@ const component = {
     'sketch':      Sketch,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-const cat_cast = Object.fromEntries(cat_cast_tags.map(t=>[t,true]));
-const category_tags = ['public', ...cat_cast_tags,];
-const admin_tags    = ['profile', ...category_tags];
+const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
+//const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
+const admin_tags    = ['profile', ...cat_tags]; //category_tags
 const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
 ];
@@ -40,7 +40,8 @@ export const create_base_slice = (set,get)=>({
     float_tags:     float_tags,
     string_tags:    string_tags,
     atom_tags:      atom_tags,
-    category_tags:  category_tags,
+    cat_tags:       cat_tags, //category_tags
+    cat_map:        cat_map, //category //category_tags
     subject_tags:   subject_tags,
     admin_tags:     admin_tags,
     value_tags:     [...float_tags, ...string_tags],
@@ -54,7 +55,7 @@ export const create_base_slice = (set,get)=>({
         'decimal':      'bi-123',
         'text':         'bi-type',
         'point':        'bi-record-circle',
-        'curve':         'bi-bezier2',
+        'curve':        'bi-bezier2',
         'sketch':       'bi-easel2',
         'repeater':     'bi-files',
         'group':        'bi-box-seam',
@@ -66,12 +67,15 @@ export const create_base_slice = (set,get)=>({
         'product':      'bi-bag',
         'surface':      'bi-map',
         'guide':        'bi-rulers',
-        'auxiliary':    'bi-rulers',
+        'auxiliary':    'bi-binoculars',
     },
-    cat_cast: cat_cast,
-    cast_tags: {...cat_cast, ...Object.fromEntries([
+    //cat_cast: cat_cast,
+    cast_map: {...cat_map, ...Object.fromEntries([ // cast_tags
         'matrix', 'inverse_matrix'
     ].map(t=>[t,true]))},
+    cast_shallow_map: Object.fromEntries([ // cast_tags
+        'public', 'auxiliary'
+    ].map(t=>[t,true])),
     cast_end:Object.fromEntries([
         'point', 'mixed_curve', 'surface',
     ].map(t=>[t,true])),
@@ -310,7 +314,7 @@ export const create_base_slice = (set,get)=>({
                         });
                     }
                     //if(d.n[n.id].t=='public') d.public = n.id;
-                    if(d.category_tags.includes(d.n[n.id].t)) d.cats[d.n[n.id].t] = n.id; // optimize with direct lookup ?!?!?!?!
+                    if(d.cat_map[d.n[n.id].t]) d.cats[d.n[n.id].t] = n.id; // optimize with direct lookup ?!?!?!?!
                     //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                 }else{  
                     d.n[n.id].t = d.model_tags[d.n[n.id].m];

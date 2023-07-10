@@ -5,35 +5,62 @@ const tv = new Vector3();
 const te = new Euler();
 
 export const create_cast_slice=(set,get)=>({cast:{
-    down(d,n,c){ 
+    down(d,n,c,a={}){ 
         const content = {};
         const ax = {};
         c.split(' ').forEach(c=>{
+            //if(c=='auxiliary') console.log(c); 
             if(d.n[n].c[c] != undefined) content[c] = d.n[n].c[c];
             if(d.n[n].ax[c] != undefined) ax[c] = d.n[n].ax[c];
         });
         // if(ax) c.split(' ').forEach(c=> content[c]=d.n[n].ax[c])
         // else c.split(' ').forEach(c=> content[c]=d.n[n].c[c]);
-        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content,ax));
+
+        // Object.entries(content).forEach(([t,c])=>{
+        //     d.n[n].c[t] = c; 
+        // });
+        // Object.entries(ax).forEach(([t,ax])=>{
+        //     d.n[n].ax[t] = ax; 
+        // });
+
+        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content,ax,a));
     },
-    base(d,n,c,ax){
-        //if(ax){
-            Object.entries(c).forEach(([t,c])=>{
-                if(d.cast_tags[t]) d.n[n].c[t] = c; 
-            });
-        //}else{
-            Object.entries(ax).forEach(([t,ax])=>{
-                if(d.cast_tags[t]) d.n[n].ax[t] = ax; 
-            });
-        //}
-        if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c,ax); // merge c and ax together here ?!?!?!?!?
-        if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c,ax));
+    base(d,n,c,ax,a={}){
+        const change = {};
+        Object.entries(c).forEach(([t,c])=>{
+            //if(t=='auxiliary') console.log(t);
+            if(d.cast_map[t]) {
+                if(d.n[n].c[t] != c){
+                    change[t] = true;
+                    d.n[n].c[t] = c;  //depth==1 && 
+                }
+            }
+        });
+        Object.entries(ax).forEach(([t,ax])=>{
+            if(d.cast_map[t]){
+                if(d.n[n].ax[t] != ax){
+                    change[t] = true;
+                    d.n[n].ax[t] = ax; 
+                }
+            }
+        });
+        if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,change); // merge c and ax together here ?!?!?!?!?
+        if(a.shallow) return;
+        if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c,ax,a));
     },
-    point(d,n,c,ax){ 
-        if(c.matrix || ax.matrix) d.next('reckon.up', n);
+    transform(d,n,c){
+        //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
+        console.log('try to reckon transform');
+        if(c.auxiliary) {
+            console.log('reckon transform');
+            d.next('reckon.up', n, ['auxiliary']);
+        }
     },
-    mixed_curve(d,n,c,ax){
-        if(c.matrix || ax.matrix) d.next('reckon.up', n, ['matrix']);
+    point(d,n,c){ 
+        if(c.matrix) d.next('reckon.up', n);
+    },
+    mixed_curve(d,n,c){
+        if(c.matrix) d.next('reckon.up', n, ['matrix']);
     },
 }});
 

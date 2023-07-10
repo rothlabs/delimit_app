@@ -153,7 +153,7 @@ export const surface = {
             }
 
 
-            if(d.n[n].c.matrix) pts = pts.map(p=> p.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
+            //if(d.n[n].c.matrix) pts = pts.map(p=> p.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
             var degree1 = 2;
             var degree2 = 2;
             //var knots1 = [0, 0, 0, 1, 1, 1];
@@ -182,6 +182,8 @@ export const surface = {
             }
             d.n[n].c.surface = surface;
             d.n[n].c.pts = pts;
+            d.n[n].ax.surface = surface;
+            d.n[n].ax.pts = pts;
             //d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
             //if(d.n[n].c.inner_view) d.n[n].c.geo.index.array.reverse();
             //d.n[n].c.geo.computeVertexNormals();
@@ -271,8 +273,9 @@ export const surface = {
             // //console.log('reckon surf');
             // //console.log('ribs gds', ribs, rails);
         }catch(e){
-            delete d.n[n].c.geo;
-            //console.log(e);
+            delete d.n[n].c.surface;
+            delete d.n[n].ax.surface;
+            console.log(e);
         }
     },
 };

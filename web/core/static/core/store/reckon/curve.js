@@ -14,6 +14,7 @@ export const curve = {
                 const pts = d.n[n].n.point.map(n=>d.n[n].c.pos);    // rename so this is pos_a ?!?!?! (absolute or g for global)
                 d.n[n].c.pts = pts;
                 const ax_pts = d.n[n].n.point.map(n=>d.n[n].ax.pos); // rename so this is pos ?!?!?!?!
+                d.n[n].ax.pts = ax_pts;
                 // var knots = [0,0];
                 // var last_knot = 0;
                 // pts.forEach((p,i) => {
@@ -36,8 +37,8 @@ export const curve = {
 					knots.push( MathUtils.clamp( knot, 0, 1 ) );
 				}
                 d.n[n].c.curve = new NURBSCurve(degree, knots, cp);
-                d.n[n].c.curve.getPoints(3); // checking if valid curve
-                d.n[n].ax.curve = new NURBSCurve(degree, knots, ax_cp); 
+                d.n[n].ax.curve = new NURBSCurve(degree, knots, ax_cp);
+                d.n[n].c.curve.getPoints(3); // checking if valid curve 
                 
 
 
@@ -111,13 +112,15 @@ export const curve = {
                     pto2.push(cmp.shift());
                 }
                 pto2[pto2.length-1] = pto.at(-1);
+                if(d.n[n].c.matrix) pto2 = pto2.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix));
                 d.n[n].c.curve = new CatmullRomCurve3(pto2);
-                if(d.n[n].ax.matrix) d.n[n].w.curve = new CatmullRomCurve3(pto2.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
+                if(d.n[n].ax.matrix) d.n[n].ax.curve = new CatmullRomCurve3(pto2.map(p=>p.clone().applyMatrix4(d.n[n].ax.matrix)));
+                else d.n[n].ax.curve = d.n[n].c.curve;
             }
         }}catch(e){
             delete d.n[n].c.curve;
             delete d.n[n].ax.curve;
-            console.log(e);
+            //console.log(e);
         }
     },
 };

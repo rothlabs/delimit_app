@@ -19,9 +19,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
-        if(d.cat_cast[d.n[n].t]){ // make dictionary (Object.fromEntries) for fast lookup ?!?!?!?!?!
+        if(d.cast_map[d.n[n].t]){
             d.n[n].c[d.n[n].t] = true;
-            d.cast.down(d, n, d.n[n].t);
+            d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
         }
         if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
         d.node.for_r(d, n, r=> d.next('reckon.up', r, [d.n[n].t])); // cause+'__'+d.n[n].t // got to watch out for cycle // cause should include ID ?!?!?!?!
@@ -47,7 +47,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         return result;
     },
     transform(d, n, cause=[]){ // put this in base and make it work for at least one component (just scale_x for example)
-        try{if(['make.node', 'make.edge', 'decimal'].includes(cause[0])){
+        try{if(['make.node', 'make.edge', 'decimal','auxiliary'].includes(cause[0])){
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
             tv1.set(nn.move_x, nn.move_y, nn.move_z);
             te.set(MathUtils.degToRad(nn.turn_x), MathUtils.degToRad(nn.turn_y), MathUtils.degToRad(nn.turn_z));
@@ -59,10 +59,18 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             //     d.n[n].aux.inverse_matrix = new Matrix4().copy(tm).invert();
             //     d.cast.down(d,n,'matrix inverse_matrix',true); 
             // }else{
-                const ax_or_c = (d.n[n].c.auxiliary ? 'aux' : 'c');
-                d.n[n][ax_or_c].matrix = new Matrix4().copy(tm);
-                d.n[n][ax_or_c].inverse_matrix = new Matrix4().copy(tm).invert();
-                d.cast.down(d,n,'matrix inverse_matrix'); 
+
+
+            d.clear.down(d, n, {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix}, {matrix:d.n[n].ax.matrix, inverse_matrix:d.n[n].ax.inverse_matrix});
+
+            const ax_or_c = (d.n[n].c.auxiliary ? 'ax' : 'c');
+            //console.log('d.n[n].c.auxiliary', d.n[n].c.auxiliary);
+            //if(d.n[n].c.auxiliary) console.log(ax_or_c);
+            d.n[n][ax_or_c].matrix = new Matrix4().copy(tm);
+            d.n[n][ax_or_c].inverse_matrix = new Matrix4().copy(tm).invert();
+            d.cast.down(d,n,'matrix inverse_matrix'); 
+
+                
             //}
         }}catch{} //}catch(e){console.log(e)}
     },
@@ -70,19 +78,19 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
             d.n[n].c.pos = new Vector3(nn.x, nn.y, nn.z);
-            if(d.n[n].c.matrix){ d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix) }
-            else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
-                d.n[n].c.matrix = d.n[r].c.matrix;
-                d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
-                d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
-            }})}
-            d.n[n].ax.pos = new Vector3(nn.x, nn.y, nn.z);
-            if(d.n[n].ax.matrix){ d.n[n].ax.pos.applyMatrix4(d.n[n].ax.matrix) }
-            else{ d.node.for_r(d,n,r=>{ if(d.n[r].ax.matrix){
-                d.n[n].ax.matrix = d.n[r].ax.matrix;
-                d.n[n].ax.inverse_matrix = d.n[r].ax.inverse_matrix;
-                d.n[n].ax.pos.applyMatrix4(d.n[n].ax.matrix);
-            }})}
+            if(d.n[n].c.matrix) d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            // else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
+            //     d.n[n].c.matrix = d.n[r].c.matrix;
+            //     d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
+            //     d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            // }})}
+            d.n[n].ax.pos = d.n[n].c.pos; //new Vector3(nn.x, nn.y, nn.z);
+            if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].ax.pos.clone().applyMatrix4(d.n[n].ax.matrix);
+            // else{ d.node.for_r(d,n,r=>{ if(d.n[r].ax.matrix){
+            //     d.n[n].ax.matrix = d.n[r].ax.matrix;
+            //     d.n[n].ax.inverse_matrix = d.n[r].ax.inverse_matrix;
+            //     d.n[n].ax.pos.applyMatrix4(d.n[n].ax.matrix);
+            // }})}
         }catch{} //console.error(e)
     },
     ...curve,
