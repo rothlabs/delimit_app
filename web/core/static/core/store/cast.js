@@ -44,18 +44,19 @@ export const create_cast_slice=(set,get)=>({cast:{
                 }
             }
         });
+        if(change.auxiliary) d.next('reckon.up', n, ['auxiliary']);
         if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,change); // merge c and ax together here ?!?!?!?!?
         if(a.shallow) return;
         if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c,ax,a));
     },
-    transform(d,n,c){
-        //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
-        //console.log('try to reckon transform');
-        if(c.auxiliary) {
-            //console.log('reckon transform');
-            d.next('reckon.up', n, ['auxiliary']);
-        }
-    },
+    // transform(d,n,c){
+    //     //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
+    //     //console.log('try to reckon transform');
+    //     if(c.auxiliary) {
+    //         //console.log('reckon transform');
+    //         d.next('reckon.up', n, ['auxiliary']);
+    //     }
+    // },
     point(d,n,c){ 
         if(c.matrix) d.next('reckon.up', n);
     },

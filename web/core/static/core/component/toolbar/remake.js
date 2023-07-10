@@ -9,11 +9,11 @@ export function Remake(){ //Transmute or Recast
     const splittable = useS(d=> d.pick.splittable);
     var buttons = [
         {name:'Deep Copy',   icon:'bi-file-earmark-fill', func(d){
-            const r = (d.studio.mode == 'design' ? d.design.part : d.pick.target);
+            const r = d.pick.target;//(d.studio.mode == 'design' ? d.design.part : d.pick.target);
             d.pick.group.forEach(n=> d.remake.copy(d, n, {r:r, deep:true}));
         }},
         {name:'Shallow Copy',  icon:'bi-file-earmark', func(d){
-            const r = (d.studio.mode == 'design' ? d.design.part : d.pick.target);
+            const r = d.pick.target;//(d.studio.mode == 'design' ? d.design.part : d.pick.target);
             d.pick.group.forEach(n=> d.remake.copy(d, n, {r:r}));
         }},
         {name:'Add',  icon:'bi-box-arrow-in-up-right', disabled:!addable, func(d){ // put button definitions like this in store ?

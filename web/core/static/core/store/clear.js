@@ -19,17 +19,18 @@ export const create_clear_slice=(set,get)=>({clear:{
                 delete d.n[n].ax[t]; 
             }
         });
+        if(change.auxiliary) d.next('reckon.up', n, ['auxiliary']);
         if(d.clear[d.n[n].t]) d.clear[d.n[n].t](d,n,change);
         d.node.for_n(d, n, (r,n)=> d.clear.down(d,n,c,ax));
     },
-    transform(d,n,c){
-        //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
-        //console.log('try to reckon transform from clear');
-        if(c.auxiliary) {
-            //console.log('reckon transform from clear');
-            d.next('reckon.up', n, ['auxiliary']);
-        }
-    },
+    // transform(d,n,c){
+    //     //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
+    //     //console.log('try to reckon transform from clear');
+    //     if(c.auxiliary) {
+    //         //console.log('reckon transform from clear');
+    //         d.next('reckon.up', n, ['auxiliary']);
+    //     }
+    // },
     point(d,n,c){
         if(c.matrix) d.next('reckon.up',n); // check if matrix actually changed ?!?!?!?!?!
     },

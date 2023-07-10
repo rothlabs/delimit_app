@@ -26,8 +26,10 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
     });
     useSub(d=> d.n[n].ax.matrix, matrix=>{ // this won't work because cast down matrix is not replaced on reckon ?!?!?!?!?!
         if(matrix){ // obj.current && 
-            obj.current.position.set(0,0,0);
-            obj.current.position.applyMatrix4(matrix);
+            obj.current.position.set( 0, 0, 0 );
+            obj.current.rotation.set( 0, 0, 0 );
+            obj.current.scale.set( 1, 1, 1 );
+            obj.current.applyMatrix4(matrix);
         }
     });
     //console.log('render surface');

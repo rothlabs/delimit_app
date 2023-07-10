@@ -17,7 +17,7 @@ export const create_design_slice = (set,get)=>({design:{
     //pin_matrix: new Matrix4(),
     moving: false,
     move_mode: '', 
-    mover: {pos: new Vector3()}, //, rot: new Vector3()
+    mover: {pos: new Vector3(), show:false}, //, rot: new Vector3()
     pin_move(d){ // make drag slice?
         //d.design.pin_matrix.copy(d.design.matrix).invert();
         d.pick.n.forEach(n => d.node.pin_pos(d, n, d.design.matrix)); //d.design.matrix
@@ -81,19 +81,31 @@ export const create_design_slice = (set,get)=>({design:{
                 count++;
             }
         });
-        if(count > 0){ 
+        // if(count > 0){ 
+        //     d.design.mover = {
+        //         pos: d.design.mover.pos.divideScalar(count).applyMatrix4(tm.copy(d.design.matrix).invert()),
+        //     };
+        // }
+        //}else{  d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};  }
+        //if(d.pick.n.length===0) d.design.matrix.identity();
+        if(d.studio.mode=='design' && d.design.move_mode=='move' && count > 0){ 
+            //d.design.show_mover = true;
             d.design.mover = {
+                show:true,
                 pos: d.design.mover.pos.divideScalar(count).applyMatrix4(tm.copy(d.design.matrix).invert()),
             };
-        }//}else{  d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};  }
-        //if(d.pick.n.length===0) d.design.matrix.identity();
-        if(!(d.studio.mode=='design' && d.design.move_mode=='move' && count > 0)){ 
-            d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};
+        }else{
+            d.design.mover = {
+                show:false,
+                pos: d.design.mover.pos,
+            };
+            //d.design.show_mover = false;
+            //d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};
             d.design.matrix.identity();
         }
     },
     show(d){
-        console.log('show');
+        //console.log('show');
         //console.trace();
         if(d.design.part){
             d.design.n = [d.design.part, ...d.node.n(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t]);

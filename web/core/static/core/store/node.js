@@ -109,10 +109,10 @@ export const create_node_slice =(set,get)=>({node:{
         d.for(nodes, n=>{//nodes.forEach(n=>{
             if(d.node.be(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
                 if(!(a.content && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> { // 'group' causing things like shared name to be delete when trying to remove name from none group
-                    if(d.node.be(d,r) == 'open' && (a.edge || !a.collected[n])){
+                    if(d.node.be(d,r) == 'open' && (a.edge || !a.collected[r])){
                         if(!(a.filter && !a.filter(r))){ // && !(a.t && !d.n[r].t==a.t)
                             add_r(r,n,t,o); //if(allow_null || d.node.be(d, r)) func(r,t,o);
-                            a.collected[n] = true;
+                            a.collected[r] = true;
                             if(a.deep) result = result.concat(d.node.r(d,r,a));
                         }
                     }

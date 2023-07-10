@@ -23,6 +23,7 @@ var used_camera = false;
 function Viewport_Control(){
     const camera_controls = useRef();
     const pick_box = useS(d=> d.pick.box);
+    const studio_mode = useS(d=> d.studio.mode);
     const {camera} = useThree(); 
     // useFrame((state, delta)=>{
     //     if(used_camera){
@@ -36,12 +37,12 @@ function Viewport_Control(){
     // });
     useEffect(()=>ss(d=>{
         d.camera_controls = camera_controls.current;
-        d.camera_controls.addEventListener('update', (e)=>ss(d=>{
-            if(e.target._isDragging){//_isUserControllingRotate){//
-                //console.log('start controlling camera',e);
-                d.studio.gizmo_active = true;
-            }
-        }));
+        // d.camera_controls.addEventListener('update', (e)=>ss(d=>{
+        //     if(e.target._isDragging){//_isUserControllingRotate){//
+        //         //console.log('start controlling camera',e);
+        //         d.studio.gizmo_active = true;
+        //     }
+        // }));
         //d.camera_controls.addEventListener('controlend', ()=>ss(d=>{
             //d.studio.gizmo_active = false;
         //}));
@@ -72,8 +73,8 @@ function Viewport_Control(){
             makeDefault: true,
             minDistance: 1000, 
             maxDistance: 1000, 
-            polarRotateSpeed: (pick_box ? 0 : 1), 
-            azimuthRotateSpeed: (pick_box ? 0 : 1), 
+            polarRotateSpeed: (pick_box || studio_mode=='graph' ? 0 : 1), 
+            azimuthRotateSpeed: (pick_box || studio_mode=='graph' ? 0 : 1), 
             draggingSmoothTime: 0.02,
         }), 
         pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
@@ -141,7 +142,7 @@ export function Viewport(){ // for some reason this renders 5 times on load
             studio_mode=='graph'  && c(Graph),
             studio_mode=='design' && c(Design),
             c(Board),
-            c(Mover),
+            
             c('directionalLight', { 
                 ref:light,
                 color: 'white',

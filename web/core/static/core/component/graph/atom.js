@@ -36,7 +36,7 @@ export const Atom = memo(function Atom({n}){
                 size: pick ? 25 : 20,
             },
                 c('text', {
-                    font: static_url+'font/Inter-Medium.ttf', 
+                    font: d.base_font,
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
                     position: [0, 1.35, 2],
                     outlineWidth: '40%',
@@ -55,7 +55,7 @@ export const Atom = memo(function Atom({n}){
                     )
                 ),
                 c('text', {
-                    font: static_url+'font/Inter-Medium.ttf', 
+                    font: d.base_font,
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
                     position: [0, -1.35, 2],
                     outlineWidth: '40%',

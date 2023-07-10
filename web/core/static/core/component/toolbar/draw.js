@@ -6,7 +6,7 @@ export function Draw(){
     const studio_mode = useS(d=> d.studio.mode);
     const design_mode = useS(d=> d.design.mode);
     const buttons = [
-        {name:'Draw',  icon:'bi bi-pencil', value:'draw'},
+        {name:'Draw',  icon:'bi bi-vector-pen', value:'draw'},
         {name:'Erase', icon:'bi bi-eraser', value:'erase'},
         //{name:'Move', icon:'bi-arrows-move', value:'move'},
     ];

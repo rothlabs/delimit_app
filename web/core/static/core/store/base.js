@@ -1,6 +1,6 @@
 import {current} from 'immer';
 import {Vector3} from 'three';
-import {random_vector, theme} from '../app.js';
+import {random_vector, static_url, theme} from '../app.js';
 import lodash from 'lodash';
 //import { Group } from '../component/part/group.js';
 import {Point} from '../component/design/point.js';
@@ -81,6 +81,10 @@ export const create_base_slice = (set,get)=>({
     ].map(t=>[t,true])),
     component:component,
     component_tags:Object.keys(component),
+
+    max_click_delta: 7,
+    axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
+    base_font: static_url+'font/Inter-Medium.ttf',
 
     n: {},
     t: {},
@@ -204,6 +208,7 @@ export const create_base_slice = (set,get)=>({
                     }
                 }else if(patch.op == 'replace'){ 
                     if(patch.path[2]=='n'){
+                        //console.log('remove at',n);
                         d.add(parts,n);
                     }else if(patch.path[2]=='v'){ // atom has changed
                         //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
@@ -225,6 +230,7 @@ export const create_base_slice = (set,get)=>({
                     }
                 }else if(patch.op == 'remove'){
                     if(patch.path[2]=='n'){
+                        //console.log('remove at',n);
                         d.add(parts,n);
                     }
                 }

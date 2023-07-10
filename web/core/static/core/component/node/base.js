@@ -13,7 +13,7 @@ export function Pickable({n, children}){
         onClick(e){ // onClick //onPointerDown
             e.stopPropagation();//e.stopPropagation?.call(); 
             ss(d=>{
-                if(!d.studio.gizmo_active){
+                if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
                     if(d.studio.mode=='design' && d.design.mode == 'erase'){
                         d.delete.node(d, n, {deep:true});
                     }else{
@@ -27,11 +27,11 @@ export function Pickable({n, children}){
                 d.studio.gizmo_active = false;
             });
         },
-        onPointerUp(e){
-            if(e.which==3){//[0,1].includes(e.which)){
-                ss(d=>{ d.studio.gizmo_active = false; });
-            }
-        },
+        // onPointerUp(e){
+        //     if(e.which==3){//[0,1].includes(e.which)){
+        //         ss(d=>{ d.studio.gizmo_active = false; });
+        //     }
+        // },
         // onPointerMove(e){
         //     e.stopPropagation(); 
         //     ss(d=>{

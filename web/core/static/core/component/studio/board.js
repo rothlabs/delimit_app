@@ -52,8 +52,7 @@ export function Board(){
             onClick(e){
                 e.stopPropagation();
                 ss(d=>{
-                    if(!d.studio.gizmo_active){
-                        if(e.delta < 5){ // remove this ?!?!?!
+                    if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
                             //const p = point(e);
                             if(studio_mode=='design'){
                                 if(design_mode=='draw'){
@@ -70,17 +69,17 @@ export function Board(){
                                 //project.current.mutate({selection:select(e), record:true});
                             //if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
                             //    selection_rv(select(e));
-                        }
                     }
                     d.studio.gizmo_active = false;
                 });
                 
             },
-            onPointerUp(e){
-                if(e.which==3){//[0,1].includes(e.which)){
-                    ss(d=>{ d.studio.gizmo_active = false; });
-                }
-            },
+            // onPointerUp(e){
+            //     if(e.which==3){//[0,1].includes(e.which)){
+            //         ss(d=>{ d.studio.gizmo_active = false; });
+            //     }
+            // },
+
             // onPointerDown:e=>{
             //     if([0,1].includes(e.which)){
             //         ssl(d=>{

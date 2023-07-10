@@ -85,7 +85,7 @@ export const GizmoViewport = ({
   hideNegativeAxes,
   hideAxisHeads,
   disabled,
-  font = "18px Inter var, Arial, sans-serif",
+  font = "24px Inter var, Arial, sans-serif",
   axisColors = ["#ff2060", "#20df80", "#2080ff"],
   axisHeadScale = 1,
   axisScale,

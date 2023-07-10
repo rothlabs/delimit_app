@@ -72,7 +72,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
                 size: active ? 1.25 : 1,
             },
                 c('text', {
-                    font: static_url+'font/Inter-Medium.ttf', 
+                    font: d.base_font, 
                     outlineWidth: '40%',
                     outlineColor: 'white',
                     fontSize: 14,

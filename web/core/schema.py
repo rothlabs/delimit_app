@@ -470,14 +470,10 @@ class Push_Pack(graphene.Mutation):
                             AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
                                 OR EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
                             AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
-                        DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s 
-                            AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
-                                OR EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
-                            AND EXISTS (SELECT a.id FROM core_part_float b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
-                        DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s 
-                            AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
-                                OR EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
-                            AND EXISTS (SELECT a.id FROM core_part_string b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
+                        DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s;
+
+                        DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s;
+
 
                         -- part to part edges
                         WITH data AS (

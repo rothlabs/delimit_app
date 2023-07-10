@@ -5,8 +5,9 @@ import {curve} from './curve.js';
 import {surface} from './surface.js';
 
 const zero_vector = new Vector3();
-const tv1 = new Vector3();
-const tv2 = new Vector3();
+const v1 = new Vector3();
+const v2 = new Vector3();
+const v3 = new Vector3();
 const te = new Euler();
 const tq = new Quaternion();
 const tm = new Matrix4();
@@ -23,6 +24,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.n[n].c[d.n[n].t] = true;
             d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
         }
+        d.reckon.base_transform(d,n,cause);
         if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
         d.node.for_r(d, n, r=> d.next('reckon.up', r, [d.n[n].t])); // cause+'__'+d.n[n].t // got to watch out for cycle // cause should include ID ?!?!?!?!
         d.next('design.update'); 
@@ -46,57 +48,64 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null; 
         return result;
     },
-    transform(d, n, cause=[]){ // put this in base and make it work for at least one component (just scale_x for example)
-        try{if(['make.node', 'make.edge', 'decimal','auxiliary'].includes(cause[0])){
+    base_transform(d, n, cause=[]){ // put this in base and make it work for at least one component (just scale_x for example)
+        try{if(['make.node','delete.edge','make.edge','decimal','auxiliary'].includes(cause[0])){
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
-            tv1.set(nn.move_x, nn.move_y, nn.move_z);
-            te.set(MathUtils.degToRad(nn.turn_x), MathUtils.degToRad(nn.turn_y), MathUtils.degToRad(nn.turn_z));
-            tq.setFromEuler(te);
-            tv2.set(nn.scale_x, nn.scale_y, nn.scale_z);
-            tm.compose(tv1, tq, tv2);
-            // if(d.n[n].c.auxiliary){
-            //     d.n[n].aux.matrix = new Matrix4().copy(tm);
-            //     d.n[n].aux.inverse_matrix = new Matrix4().copy(tm).invert();
-            //     d.cast.down(d,n,'matrix inverse_matrix',true); 
-            // }else{
-
-
-            d.clear.down(d, n, {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix}, {matrix:d.n[n].ax.matrix, inverse_matrix:d.n[n].ax.inverse_matrix});
-
-            const ax_or_c = (d.n[n].c.auxiliary ? 'ax' : 'c');
-            //console.log('d.n[n].c.auxiliary', d.n[n].c.auxiliary);
-            //if(d.n[n].c.auxiliary) console.log(ax_or_c);
-            d.n[n][ax_or_c].matrix = new Matrix4().copy(tm);
-            d.n[n][ax_or_c].inverse_matrix = new Matrix4().copy(tm).invert();
-            d.cast.down(d,n,'matrix inverse_matrix'); 
-
-                
-            //}
+            if(d.n[n].c.transform == true){
+                delete d.n[n].c.transform;
+                d.clear.down(d, n, {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix}, {matrix:d.n[n].ax.matrix, inverse_matrix:d.n[n].ax.inverse_matrix});
+            }
+            if(Object.keys(nn).length > 0){ 
+                v1.set(0,0,0);
+                if(nn.move_x != undefined) v1.setX(nn.move_x);
+                if(nn.move_y != undefined) v1.setY(nn.move_y);
+                if(nn.move_z != undefined) v1.setZ(nn.move_z);
+                v2.set(0,0,0);
+                if(nn.turn_x != undefined) v2.setX(MathUtils.degToRad(nn.turn_x));
+                if(nn.turn_y != undefined) v2.setY(MathUtils.degToRad(nn.turn_y));
+                if(nn.turn_z != undefined) v2.setZ(MathUtils.degToRad(nn.turn_z));
+                tq.setFromEuler(te.setFromVector3(v2));
+                v3.set(1,1,1);
+                if(nn.scale_x != undefined) v3.setX(nn.scale_x);
+                if(nn.scale_y != undefined) v3.setY(nn.scale_y);
+                if(nn.scale_z != undefined) v3.setZ(nn.scale_z);
+                tm.compose(v1, tq, v3);   
+                const ax_or_c = (d.n[n].c.auxiliary ? 'ax' : 'c');
+                d.n[n][ax_or_c].matrix = new Matrix4().copy(tm);
+                d.n[n][ax_or_c].inverse_matrix = new Matrix4().copy(tm).invert();
+                d.cast.down(d,n,'matrix inverse_matrix'); 
+                d.n[n].c.transform = true;
+            }
         }}catch{} //}catch(e){console.log(e)}
     },
     point(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
-            d.n[n].c.pos = new Vector3(nn.x, nn.y, nn.z);
+            d.n[n].c.pos = new Vector3(0,0,0); // create vector on make.node so it can just be reused here ?!?!?!?!?!
+            if(nn.x != undefined) d.n[n].c.pos.setX(nn.x);
+            if(nn.y != undefined) d.n[n].c.pos.setY(nn.y);
+            if(nn.z != undefined) d.n[n].c.pos.setZ(nn.z);
             if(d.n[n].c.matrix) d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
-            // else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
-            //     d.n[n].c.matrix = d.n[r].c.matrix;
-            //     d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
-            //     d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
-            // }})}
             d.n[n].ax.pos = d.n[n].c.pos; //new Vector3(nn.x, nn.y, nn.z);
             if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].ax.pos.clone().applyMatrix4(d.n[n].ax.matrix);
-            // else{ d.node.for_r(d,n,r=>{ if(d.n[r].ax.matrix){
-            //     d.n[n].ax.matrix = d.n[r].ax.matrix;
-            //     d.n[n].ax.inverse_matrix = d.n[r].ax.inverse_matrix;
-            //     d.n[n].ax.pos.applyMatrix4(d.n[n].ax.matrix);
-            // }})}
         }catch{} //console.error(e)
     },
     ...curve,
     ...surface,
 }});
 
+
+// else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
+            //     d.n[n].c.matrix = d.n[r].c.matrix;
+            //     d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
+            //     d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            // }})}
+
+            // else{ d.node.for_r(d,n,r=>{ if(d.n[r].ax.matrix){
+            //     d.n[n].ax.matrix = d.n[r].ax.matrix;
+            //     d.n[n].ax.inverse_matrix = d.n[r].ax.inverse_matrix;
+            //     d.n[n].ax.pos.applyMatrix4(d.n[n].ax.matrix);
+            // }})}
 
 
 // list(d, n, t, func){ // build in n:n and color:color pick_color, 

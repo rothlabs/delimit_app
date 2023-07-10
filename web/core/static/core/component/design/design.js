@@ -4,6 +4,7 @@ import {Fix_Size} from '../base/base.js';
 import {GizmoHelper} from '@react-three/drei/GizmoHelper';
 //import {GizmoViewport} from '@react-three/drei/GizmoViewport';
 import {GizmoViewport} from '../../three/GizmoViewport.js';
+import {Mover} from '../studio/mover.js';
 //import {Line} from './line.js';
 //import {Group} from './group.js';
 // import {Point} from './point.js';
@@ -39,7 +40,7 @@ export function Design(){
     // },[obj]);
     const d = gs();
     //const component = d.component[gs().n[part].t];
-    console.log('render parts');//, obj.current?.children);
+    console.log('render design');//, obj.current?.children);
     return (
         c('group', {
             name: 'parts',
@@ -47,6 +48,7 @@ export function Design(){
             ...parts.map(n=> 
                 c(d.component[d.n[n].t], {n:n, key:n}) // d.node.be(d,n) && 
             ),
+            c(Mover),
             c(Fix_Size, {
                 name:'center_point',
                 size:6,
@@ -63,7 +65,13 @@ export function Design(){
                 //onTarget={/* return current camera target (e.g. from orbit controls) to center animation */}
                 //renderPriority={/* use renderPriority to prevent the helper from disappearing if there is another useFrame(..., 1)*/}
             },
-                c(GizmoViewport, {axisColors:['red', 'green', 'blue'], labelColor:'white'})
+                c(GizmoViewport, {
+                    axisColors:d.axis_colors, 
+                    labelColor:'white', 
+                    axisHeadScale:1.1, 
+                    //font: '24px '+d.base_font,
+                    //fontSize:30,
+                })
             ),
         )
     )

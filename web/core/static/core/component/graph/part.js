@@ -1,5 +1,5 @@
 import {createElement as r, memo, useRef} from 'react';
-import {useS, gs, useSub, static_url, readable} from '../../app.js';
+import {useS, gs, useSub, readable} from '../../app.js';
 //import {Text} from '@react-three/drei/Text';
 //import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
@@ -40,7 +40,7 @@ export const Part = memo(function Part({n}){
                 size: pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             },
                 name && r('text', {
-                    font: static_url+'font/Inter-Medium.ttf', 
+                    font: d.base_font, 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
                     position: [0, 1.4, 2],
                     outlineWidth: '40%',
@@ -59,7 +59,7 @@ export const Part = memo(function Part({n}){
                     strokeMaterial: material,
                 }),
                 r('text', {
-                    font: static_url+'font/Inter-Medium.ttf', 
+                    font: d.base_font, 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
                     position: [0, -1.4, 2],
                     outlineWidth: '40%',
