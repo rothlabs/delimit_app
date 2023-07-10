@@ -78,7 +78,7 @@ export function Make(){
                     ),
                     c('h5',{className:'text-secondary bi-plus-slash-minus'}, ' Quanty'),
                     ...d.float_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
-                        t=='decimal' ? null : c(Row, {className: 'mb-1 text-left'},
+                        t=='decimal' ? null : c(Row, {className: 'mb-1 text-left'}, //['decimal','x','y','z'].includes(t) ?
                             c(Button, {
                                 id:'make_'+t,
                                 className: 'border-white text-start bi-dot',

@@ -50,9 +50,9 @@ export const create_cast_slice=(set,get)=>({cast:{
     },
     transform(d,n,c){
         //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
-        console.log('try to reckon transform');
+        //console.log('try to reckon transform');
         if(c.auxiliary) {
-            console.log('reckon transform');
+            //console.log('reckon transform');
             d.next('reckon.up', n, ['auxiliary']);
         }
     },

@@ -38,17 +38,17 @@ export const create_node_slice =(set,get)=>({node:{
         //});
     },
     pin_pos(d, n, matrix){  // should go in transform slice?    
-        if(d.node.be(d,n) && d.n[n].c.pos){
+        if(d.node.be(d,n) && d.n[n].ax.pos){
             if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.node.get(d, n, 'x y z');
-            d.n[n].pin.pos.copy(d.n[n].c.pos).applyMatrix4(tm.copy(matrix).invert());
+            d.n[n].pin.pos.copy(d.n[n].ax.pos).applyMatrix4(tm.copy(matrix).invert());
         }
     },
     set_pos(d, n, pos){ // should go in transform slice? // should be in cast clice ?!?!?!
-        //try{pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].c.inverse_matrix); // use own inverse matrix
+        //try{pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].ax.inverse_matrix); // use own inverse matrix
             //const trans = d.n[d.node.rt0(d,n,'transform')].c;
             //pos.applyMatrix4(tm.copy(trans.matrix).invert());inverse_matrix
             //pos.set(pos.x*(1/trans.scale_x),pos.y*(1/trans.scale_y),pos.z*(1/trans.scale_z)); // correct for zero !!!!
-        try{pos.applyMatrix4(d.n[n].c.inverse_matrix)}catch{}
+        try{pos.applyMatrix4(d.n[n].ax.inverse_matrix)}catch{}
         d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
     },
     get(d, roots, t){ // like n but different. need better name to differentiate

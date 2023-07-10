@@ -275,7 +275,7 @@ export const surface = {
         }catch(e){
             delete d.n[n].c.surface;
             delete d.n[n].ax.surface;
-            console.log(e);
+            //console.log(e);
         }
     },
 };
