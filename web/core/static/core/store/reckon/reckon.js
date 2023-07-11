@@ -53,7 +53,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
             if(d.n[n].c.transform == true){
                 delete d.n[n].c.transform;
-                d.clear.down(d, n, {matrix:d.n[n].c.matrix, inverse_matrix:d.n[n].c.inverse_matrix}, {matrix:d.n[n].ax.matrix, inverse_matrix:d.n[n].ax.inverse_matrix});
+                delete d.n[n].c.base_matrix;
+                delete d.n[n].c.base_inverse;
+                delete d.n[n].ax.base_matrix;
+                delete d.n[n].ax.base_inverse;
+                d.clear.down(d, n, {matrix:d.n[n].c.matrix, inverse:d.n[n].c.inverse}, {matrix:d.n[n].ax.matrix, inverse:d.n[n].ax.inverse});
             }
             if(Object.keys(nn).length > 0){ 
                 v1.set(0,0,0);
@@ -70,10 +74,12 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 if(nn.scale_y != undefined) v3.setY(nn.scale_y);
                 if(nn.scale_z != undefined) v3.setZ(nn.scale_z);
                 tm.compose(v1, tq, v3);   
-                const ax_or_c = (d.n[n].c.auxiliary ? 'ax' : 'c');
-                d.n[n][ax_or_c].matrix = new Matrix4().copy(tm);
-                d.n[n][ax_or_c].inverse_matrix = new Matrix4().copy(tm).invert();
-                d.cast.down(d,n,'matrix inverse_matrix'); 
+                const c_ax = (d.n[n].c.auxiliary ? 'ax' : 'c');
+                d.n[n][c_ax].base_matrix = tm.clone();//new Matrix4().copy(tm);
+                d.n[n][c_ax].base_inverse = tm.clone().invert();//new Matrix4().copy(tm).invert();
+                d.n[n][c_ax].matrix = tm.clone();
+                d.n[n][c_ax].inverse = tm.clone().invert();
+                d.cast.down(d,n,'matrix inverse'); 
                 d.n[n].c.transform = true;
             }
         }}catch{} //}catch(e){console.log(e)}
@@ -97,13 +103,13 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 
 // else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
             //     d.n[n].c.matrix = d.n[r].c.matrix;
-            //     d.n[n].c.inverse_matrix = d.n[r].c.inverse_matrix;
+            //     d.n[n].c.inverse = d.n[r].c.inverse;
             //     d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
             // }})}
 
             // else{ d.node.for_r(d,n,r=>{ if(d.n[r].ax.matrix){
             //     d.n[n].ax.matrix = d.n[r].ax.matrix;
-            //     d.n[n].ax.inverse_matrix = d.n[r].ax.inverse_matrix;
+            //     d.n[n].ax.inverse = d.n[r].ax.inverse;
             //     d.n[n].ax.pos.applyMatrix4(d.n[n].ax.matrix);
             // }})}
 

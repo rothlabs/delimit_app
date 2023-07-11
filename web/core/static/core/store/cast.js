@@ -27,23 +27,29 @@ export const create_cast_slice=(set,get)=>({cast:{
     },
     base(d,n,c,ax,a={}){
         const change = {};
-        Object.entries(c).forEach(([t,c])=>{
-            //if(t=='auxiliary') console.log(t);
-            if(d.cast_map[t]) {
-                if(d.n[n].c[t] != c){
-                    change[t] = true;
-                    d.n[n].c[t] = c;  //depth==1 && 
+        [{c:c,t:'c'},{c:ax,t:'ax'}].forEach(c=>{
+            Object.entries(c.c).forEach(([t,cc])=>{
+                if(d.cast_map[t]) {
+                    if(d.n[n][c.t][t] != cc){ // !==
+                        change[t] = true;
+
+                        
+
+                        d.n[n][c.t][t] = cc; 
+                        
+                        
+                    }
                 }
-            }
+            });
         });
-        Object.entries(ax).forEach(([t,ax])=>{
-            if(d.cast_map[t]){
-                if(d.n[n].ax[t] != ax){
-                    change[t] = true;
-                    d.n[n].ax[t] = ax; 
-                }
-            }
-        });
+        // Object.entries(ax).forEach(([t,ax])=>{
+        //     if(d.cast_map[t]){
+        //         if(d.n[n].ax[t] != ax){
+        //             change[t] = true;
+        //             d.n[n].ax[t] = ax; 
+        //         }
+        //     }
+        // });
         if(change.auxiliary) d.next('reckon.up', n, ['auxiliary']);
         if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,change); // merge c and ax together here ?!?!?!?!?
         if(a.shallow) return;
@@ -78,7 +84,7 @@ export const create_cast_slice=(set,get)=>({cast:{
 // },
 // base(d,n,c){
 //     //d.n[n].c.matrix = c.matrix;
-//     //d.n[n].c.inverse_matrix = c.inverse_matrix;
+//     //d.n[n].c.inverse = c.inverse;
 //     d.cast_tags.forEach(t => {
 //         if(c[t]!=undefined) d.n[n].c[t] = c[t]; 
 //     });
@@ -102,7 +108,7 @@ export const create_cast_slice=(set,get)=>({cast:{
 // point(d,n,c){
 //     if(c.matrix){
 //         d.n[n].c.matrix = c.matrix;
-//         d.n[n].c.inverse_matrix = c.matrix
+//         d.n[n].c.inverse = c.matrix
 //         d.next('reckon.up',n);
 //     }
 // },

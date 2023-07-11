@@ -56,7 +56,7 @@ export const create_clear_slice=(set,get)=>({clear:{
 // },
 
 //if(d.n[n].c.matrix === c.matrix) delete d.n[n].c.matrix; //d.n[n].c.matrix = null;
-        //if(d.n[n].c.inverse_matrix === c.inverse_matrix) delete d.n[n].c.inverse_matrix;//d.n[n].c.inverse_matrix = null;
+        //if(d.n[n].c.inverse === c.inverse) delete d.n[n].c.inverse;//d.n[n].c.inverse = null;
 
         //typeof myVar === 'string'
 

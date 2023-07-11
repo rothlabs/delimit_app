@@ -18,7 +18,7 @@ const subject_tags= [
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'inner_view', 'outer_view', 'guide',
 ];
-const cast_tags = [...cat_tags, 'matrix', 'inverse_matrix'];
+const cast_tags = [...cat_tags, 'matrix', 'inverse'];
 //const cast_shallow_tags = ['public', 'auxiliary',];
 const component = {
     'point':       Point,

@@ -98,8 +98,8 @@ export const create_make_slice = (set,get)=>({make:{
     point(d, a={}){ //pos, r, o
         if(a.pos == undefined) a.pos = new Vector3();
         if(a.r){
-            if(d.n[a.r].c.inverse_matrix) a.pos.applyMatrix4(d.n[a.r].c.inverse_matrix);
-            if(d.n[a.r].ax.inverse_matrix) a.pos.applyMatrix4(d.n[a.r].ax.inverse_matrix);
+            if(d.n[a.r].c.inverse) a.pos.applyMatrix4(d.n[a.r].c.inverse);
+            if(d.n[a.r].ax.inverse) a.pos.applyMatrix4(d.n[a.r].ax.inverse);
         }
         return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
             x: d.make.atom(d,'f', a.pos.x),
@@ -132,11 +132,11 @@ export const create_make_slice = (set,get)=>({make:{
 
             // if(d.n[a.r].c.matrix){
             //     d.n[n].c.matrix = d.n[a.r].c.matrix;
-            //     d.n[n].c.inverse_matrix = d.n[a.r].c.inverse_matrix;
+            //     d.n[n].c.inverse = d.n[a.r].c.inverse;
             // }
             // if(d.n[a.r].ax.matrix){
             //     d.n[n].ax.matrix = d.n[a.r].ax.matrix;
-            //     d.n[n].ax.inverse_matrix = d.n[a.r].ax.inverse_matrix;
+            //     d.n[n].ax.inverse = d.n[a.r].ax.inverse;
             // }
 
 
