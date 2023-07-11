@@ -87,7 +87,7 @@ function Viewport_Control(){
                 if(!d.pick.multi) d.pick.none(d);
                 const nodes = [];
                 objs.forEach(obj=>{
-                    const pickable = obj.parent?.__r3f.memoizedProps.pickable;
+                    const pickable = obj.parent?.__r3f?.memoizedProps.pickable;
                     if(pickable) nodes.push(pickable);
                 });
                 d.pick.set(d, nodes, true);

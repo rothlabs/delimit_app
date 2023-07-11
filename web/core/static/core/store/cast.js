@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import { MathUtils, Vector3, Euler, Quaternion } from "three";
+import { Matrix4, MathUtils, Vector3, Euler, Quaternion } from "three";
 
 const tv = new Vector3();
 const te = new Euler();
@@ -27,17 +27,21 @@ export const create_cast_slice=(set,get)=>({cast:{
     },
     base(d,n,c,ax,a={}){
         const change = {};
-        [{c:c,t:'c'},{c:ax,t:'ax'}].forEach(c=>{
+        const content_packs = [{c:c,t:'c'},{c:ax,t:'ax'}];
+        content_packs.forEach(c=>{
             Object.entries(c.c).forEach(([t,cc])=>{
                 if(d.cast_map[t]) {
-                    if(d.n[n][c.t][t] != cc){ // !==
-                        change[t] = true;
-
-                        
-
-                        d.n[n][c.t][t] = cc; 
-                        
-                        
+                    if(t=='base_matrix'){
+                        d.reckon.matrix(d, n, c.t, d.add_nc, cc);
+                        change.matrix = true;
+                    // }else if(t=='base_invert'){
+                    //     d.reckon.invert(d, n, c.t, d.add_nc, cc);
+                    //     change.invert = true;
+                    }else{
+                        if(d.n[n][c.t][t] != cc){ // !==
+                            change[t] = true;
+                            d.n[n][c.t][t] = cc; 
+                        }
                     }
                 }
             });
@@ -67,9 +71,15 @@ export const create_cast_slice=(set,get)=>({cast:{
         if(c.matrix) d.next('reckon.up', n); // , ['matrix']
     },
     mixed_curve(d,n,c){
-        if(c.matrix) d.next('reckon.up', n, ['matrix']);
+        if(c.matrix) d.next('reckon.up', n); // , ['matrix']
     },
 }});
+
+
+
+//if(d.n[n][c.t].matrix_list == undefined) d.n[n][c.t].matrix_list = [];
+                        //d.add_nc(d.n[n][c.t].matrix_list, cc);
+                        //d.reckon.matrix(d, n, c.t);
 
 
 // d.cast_tags.forEach(t => { // make loop through c first and check if in cast tag

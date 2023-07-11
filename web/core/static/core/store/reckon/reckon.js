@@ -20,13 +20,13 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
         d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
-        if(d.cast_map[d.n[n].t]){
+        if(d.cast_map[d.n[n].t]){ // it is a category node if its tag is in the cast map
             d.n[n].c[d.n[n].t] = true;
             d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
         }
         d.reckon.base_transform(d,n,cause);
         if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
-        d.node.for_r(d, n, r=> d.next('reckon.up', r, [d.n[n].t])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
+        d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -48,18 +48,35 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null; 
         return result;
     },
+    matrix(d, n, ct, func, matrix){
+        if(d.n[n][ct].matrix_list == undefined){
+            if(func == d.pop_nc) return false;
+            d.n[n][ct].matrix_list = [];
+        }
+        const result = func(d.n[n][ct].matrix_list, matrix);
+        if(d.n[n][ct].matrix_list.length < 1){
+            delete d.n[n][ct].matrix_list;
+            delete d.n[n][ct].matrix;
+            delete d.n[n][ct].invert;
+            return;
+        }
+        d.n[n][ct].matrix = d.n[n][ct].matrix_list.reduce((a,b)=>a.multiply(b.c), new Matrix4());
+        d.n[n][ct].invert = d.n[n][ct].matrix.clone().invert();
+        return result;
+    },
     base_transform(d, n, cause=[]){ // put this in base and make it work for at least one component (just scale_x for example)
-        try{if(['delete.edge','make.edge','decimal','auxiliary'].includes(cause[0])){ //'make.node',
+        //try{
+        if(cause.length < 1) return;
+        const sc = cause[0].split('__'); //'make.node',
+        if(['make.edge','delete.edge','auxiliary'].includes(cause[0]) || (sc[0]=='decimal' && sc[1]==n)){ //'make.node',
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
             if(d.n[n].c.transform == true){
+                d.clear.down(d, n, {base_matrix:d.n[n].c.base_matrix}, {base_matrix:d.n[n].ax.base_matrix});
                 delete d.n[n].c.transform;
                 delete d.n[n].c.base_matrix;
-                delete d.n[n].c.base_inverse;
                 delete d.n[n].ax.base_matrix;
-                delete d.n[n].ax.base_inverse;
-                d.clear.down(d, n, {matrix:d.n[n].c.matrix, inverse:d.n[n].c.inverse}, {matrix:d.n[n].ax.matrix, inverse:d.n[n].ax.inverse});
             }
-            if(Object.keys(nn).length > 0){ 
+            if(nn){ //  && Object.keys(nn).length > 0
                 v1.set(0,0,0);
                 if(nn.move_x != undefined) v1.setX(nn.move_x);
                 if(nn.move_y != undefined) v1.setY(nn.move_y);
@@ -75,14 +92,14 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 if(nn.scale_z != undefined) v3.setZ(nn.scale_z);
                 tm.compose(v1, tq, v3);   
                 const c_ax = (d.n[n].c.auxiliary ? 'ax' : 'c');
-                d.n[n][c_ax].base_matrix = tm.clone();//new Matrix4().copy(tm);
-                d.n[n][c_ax].base_inverse = tm.clone().invert();//new Matrix4().copy(tm).invert();
-                d.n[n][c_ax].matrix = tm.clone();
-                d.n[n][c_ax].inverse = tm.clone().invert();
-                d.cast.down(d,n,'matrix inverse'); 
+                d.n[n][c_ax].base_matrix = {n:n, c:tm.clone()};
+                d.reckon.matrix(d, n, c_ax, d.add_nc, d.n[n][c_ax].base_matrix);
                 d.n[n].c.transform = true;
+                d.cast.down(d,n,'base_matrix'); 
+                //console.log('reckon transform!!!!');
             }
-        }}catch{} //}catch(e){console.log(e)}
+        }
+        //}}catch{} //}catch(e){console.log(e)}
     },
     point(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
@@ -96,10 +113,41 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].ax.pos.clone().applyMatrix4(d.n[n].ax.matrix);
         }catch{} //console.error(e)
     },
+    // sketch(d, n, cause=[]){
+
+    // },
     ...curve,
     ...surface,
 }});
 
+
+
+//d.reckon.invert(d, n, c_ax, d.add_nc, d.n[n][c_ax].base_invert);
+                // if(d.n[n][c_ax].matrix_list == undefined) d.n[n][c_ax].matrix_list = [];
+                // if(d.n[n][c_ax].invert_list == undefined) d.n[n][c_ax].invert_list = [];
+                // d.add_nc(d.n[n][c_ax].matrix_list, d.n[n][c_ax].base_matrix);
+                // d.add_nc(d.n[n][c_ax].invert_list, d.n[n][c_ax].base_invert);
+                // d.n[n][c_ax].matrix = d.n[n][c_ax].matrix_list.reduce((a,b)=>a.multiply(b.c), new Matrix4());
+                // d.n[n][c_ax].invert = d.n[n][c_ax].invert_list.reduce((a,b)=>a.multiply(b.c), new Matrix4());
+
+
+// invert(d, n, ct, func, invert){
+    //     if(d.n[n][ct].invert_list == undefined){
+    //         if(func == d.pop_nc) return false;
+    //         d.n[n][ct].invert_list = [];
+    //     }
+    //     const result = func(d.n[n][ct].invert_list, invert);
+    //     d.n[n][ct].invert = d.n[n][ct].invert_list.reduce((a,b)=>a.multiply(b.c), new Matrix4());
+    //     return result;
+    // },
+
+
+// d.n[n][c_ax].matrix = d.n[n][c_ax].base_matrix;
+                // d.n[n][c_ax].invert = d.n[n][c_ax].base_invert;
+                // if(d.n[n][c_ax].matrix_list){
+                //     d.n[n][c_ax].matrix = d.n[n][c_ax].matrix_list.reduce((a,b)=>a.multiply(b), d.n[n][c_ax].matrix.clone());
+                //     d.n[n][c_ax].invert = d.n[n][c_ax].invert_list.reduce((a,b)=>a.multiply(b), d.n[n][c_ax].invert.clone());
+                // }
 
 // else{ d.node.for_r(d,n,r=>{ if(d.n[r].c.matrix){
             //     d.n[n].c.matrix = d.n[r].c.matrix;

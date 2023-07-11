@@ -73,14 +73,20 @@ export const create_make_slice = (set,get)=>({make:{
         //}
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
 
-        if(a.r && !d.cast_end[d.n[a.r].t]){ 
-            d.cast_tags.forEach(tt=>{
-                if(!d.cast_shallow_map[tt]){
-                    if(d.n[a.r].c[tt]) d.n[n].c[tt] = d.n[a.r].c[tt];
-                    if(d.n[a.r].ax[tt]) d.n[n].ax[tt] = d.n[a.r].ax[tt];
-                }
-            });
-        }
+        // if(a.r && !d.cast_end[d.n[a.r].t]){  // just reckon a.r directly ?!?!?!?!?! 
+        //     d.cast_tags.forEach(tt=>{
+        //         if(!d.cast_shallow_map[tt]){ // must use matrix list !?!?!?!?!?!
+        //             if(tt=='base_matrix'){
+        //                 //d.reckon.matrix(d, n, 'c', d.add_nc, d.n[a.r].c[tt]);
+        //             }else if(tt=='base_invert'){
+
+        //             }else{
+        //                 if(d.n[a.r].c[tt]) d.n[n].c[tt] = d.n[a.r].c[tt];
+        //                 if(d.n[a.r].ax[tt]) d.n[n].ax[tt] = d.n[a.r].ax[tt];
+        //             }
+        //         }
+        //     });
+        // }
 
         d.next('reckon.up', n, ['make.node']); // d.reckon.up(d,n,'make.node'); // 
         d.next('graph.update'); // check if in graph_tags 
@@ -98,8 +104,8 @@ export const create_make_slice = (set,get)=>({make:{
     point(d, a={}){ //pos, r, o
         if(a.pos == undefined) a.pos = new Vector3();
         if(a.r){
-            if(d.n[a.r].c.inverse) a.pos.applyMatrix4(d.n[a.r].c.inverse);
-            if(d.n[a.r].ax.inverse) a.pos.applyMatrix4(d.n[a.r].ax.inverse);
+            if(d.n[a.r].c.invert) a.pos.applyMatrix4(d.n[a.r].c.invert);
+            if(d.n[a.r].ax.invert) a.pos.applyMatrix4(d.n[a.r].ax.invert);
         }
         return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
             x: d.make.atom(d,'f', a.pos.x),

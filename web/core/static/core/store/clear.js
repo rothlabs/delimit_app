@@ -7,18 +7,29 @@ import {current} from 'immer';
 export const create_clear_slice=(set,get)=>({clear:{
     down(d,n,c,ax){ // change to (d,r,n) 
         const change = {}
-        Object.entries(c).forEach(([t,c])=>{
-            if(d.cast_map[t] && d.n[n].c[t] === c){ 
-                change[t] = true;
-                delete d.n[n].c[t]; 
-            }
+        const content_packs = [{c:c,t:'c'},{c:ax,t:'ax'}];
+        content_packs.forEach(c=>{
+            Object.entries(c.c).forEach(([t,cc])=>{
+                if(d.cast_map[t]) {
+                    if(t=='base_matrix'){
+                        change.matrix = d.reckon.matrix(d, n, c.t, d.pop_nc, cc);
+                    // }else if(t=='base_invert'){
+                    //     change.invert = d.reckon.invert(d, n, c.t, d.pop_nc, cc);
+                    }else{
+                        if(d.n[n][c.t][t] === cc){ 
+                            change[t] = true;
+                            delete d.n[n][c.t][t]; 
+                        }
+                    }
+                }
+            });
         });
-        Object.entries(ax).forEach(([t,ax])=>{
-            if(d.cast_map[t] && d.n[n].ax[t] === ax){
-                change[t] = true;
-                delete d.n[n].ax[t]; 
-            }
-        });
+        // Object.entries(ax).forEach(([t,ax])=>{
+        //     if(d.cast_map[t] && d.n[n].ax[t] === ax){
+        //         change[t] = true;
+        //         delete d.n[n].ax[t]; 
+        //     }
+        // });
         if(change.auxiliary) d.next('reckon.up', n, ['auxiliary']);
         if(d.clear[d.n[n].t]) d.clear[d.n[n].t](d,n,change);
         d.node.for_n(d, n, (r,n)=> d.clear.down(d,n,c,ax));

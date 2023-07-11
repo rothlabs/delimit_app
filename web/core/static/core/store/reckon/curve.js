@@ -55,7 +55,7 @@ export const curve = {
         } // make switch so easy to view reckon errors for different types of nodes ?!?!?!?!
     }, 
     mixed_curve(d,n,cause=[]){ // needs to figure if pos or pos_l results in better match !!!!!!
-        try{if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause[0])){ 
+        try{//if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause[0])){ 
             //delete d.n[n].w.curve;
             const mid_res = 200;
             const l1 = d.n[n].n.curve[0];
@@ -117,7 +117,7 @@ export const curve = {
                 if(d.n[n].ax.matrix) d.n[n].ax.curve = new CatmullRomCurve3(pto2.map(p=>p.clone().applyMatrix4(d.n[n].ax.matrix)));
                 else d.n[n].ax.curve = d.n[n].c.curve;
             }
-        }}catch(e){
+        }catch(e){
             delete d.n[n].c.curve;
             delete d.n[n].ax.curve;
             //console.log(e);

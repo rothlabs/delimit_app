@@ -18,7 +18,7 @@ const subject_tags= [
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'inner_view', 'outer_view', 'guide',
 ];
-const cast_tags = [...cat_tags, 'matrix', 'inverse'];
+const cast_tags = [...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
 const component = {
     'point':       Point,
@@ -109,7 +109,7 @@ export const create_base_slice = (set,get)=>({
         d.graph.init(d); //d.node.init(d);
     },
 
-    add(array,item){ // static upgrade to do deep compare to find same object ?!?!?!?!
+    add(array, item){ // static upgrade to do deep compare to find same object ?!?!?!?!
         if(array.indexOf(item) === -1){
             array.push(item);
             return true;
@@ -120,6 +120,19 @@ export const create_base_slice = (set,get)=>({
         const index = array.indexOf(item);
         if(index !== -1) array.splice(index, 1);
         return index;
+    },
+    add_nc(array, item){ // item in the form of {n:n, c:c}
+        const target = array.find(v=> v.n==item.n);
+        if(target) target.c = item.c;
+        else array.push(item);
+    },
+    pop_nc(array, item){
+        const target = array.find(v=> v.n==item.n);
+        if(target){
+            array.splice(array.indexOf(target), 1);
+            return true;
+        }
+        return false;
     },
     for(arg, func){ // need ability to break !!!!!!
         if(arg != undefined){

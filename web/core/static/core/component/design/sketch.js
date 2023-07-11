@@ -1,5 +1,5 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
-import {useS, useSS, useSub, gs} from '../../app.js';
+import {useS, useSubS, useSub, gs} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import {Grid} from '@react-three/drei/Grid';
 import {Pickable} from '../node/base.js';
@@ -24,13 +24,12 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
             else             set_offset(-point_size / camera.zoom / 2);
         }
     });
-    useSub(d=> d.n[n].ax.matrix, matrix=>{ // this won't work because cast down matrix is not replaced on reckon ?!?!?!?!?!
-        if(matrix){ // obj.current && 
-            obj.current.position.set( 0, 0, 0 );
-            obj.current.rotation.set( 0, 0, 0 );
-            obj.current.scale.set( 1, 1, 1 );
-            obj.current.applyMatrix4(matrix);
-        }
+    useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], c=>{ // this won't work because cast down matrix is not replaced on reckon ?!?!?!?!?!
+        obj.current.position.set( 0, 0, 0 );
+        obj.current.rotation.set( 0, 0, 0 );
+        obj.current.scale.set( 1, 1, 1 );
+        if(c[0]) obj.current.applyMatrix4(c[0]);
+        if(c[1]) obj.current.applyMatrix4(c[1]);
     });
     //console.log('render surface');
     return(
