@@ -5,7 +5,7 @@ import {random_vector} from '../../app.js';
 export const Fix_Size = forwardRef((props, ref)=>{ //{size, props, children}
     var obj = null;
     //const {camera} = useThree();
-    useFrame((state) => {
+    useFrame((state) => { 
         var factor = props.size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!
         obj.scale.set(factor,factor,factor);
     });

@@ -26,7 +26,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         }
         d.reckon.base_transform(d,n,cause);
         if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
-        d.node.for_r(d, n, r=> d.next('reckon.up', r, [d.n[n].t])); // cause+'__'+d.n[n].t // got to watch out for cycle // cause should include ID ?!?!?!?!
+        d.node.for_r(d, n, r=> d.next('reckon.up', r, [d.n[n].t])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -49,7 +49,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         return result;
     },
     base_transform(d, n, cause=[]){ // put this in base and make it work for at least one component (just scale_x for example)
-        try{if(['make.node','delete.edge','make.edge','decimal','auxiliary'].includes(cause[0])){
+        try{if(['delete.edge','make.edge','decimal','auxiliary'].includes(cause[0])){ //'make.node',
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
             if(d.n[n].c.transform == true){
                 delete d.n[n].c.transform;

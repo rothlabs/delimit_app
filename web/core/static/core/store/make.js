@@ -72,6 +72,16 @@ export const create_make_slice = (set,get)=>({make:{
         //    else{   d.make.edge(d, a.r, n, a);  }
         //}
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
+
+        if(a.r && !d.cast_end[d.n[a.r].t]){ 
+            d.cast_tags.forEach(tt=>{
+                if(!d.cast_shallow_map[tt]){
+                    if(d.n[a.r].c[tt]) d.n[n].c[tt] = d.n[a.r].c[tt];
+                    if(d.n[a.r].ax[tt]) d.n[n].ax[tt] = d.n[a.r].ax[tt];
+                }
+            });
+        }
+
         d.next('reckon.up', n, ['make.node']); // d.reckon.up(d,n,'make.node'); // 
         d.next('graph.update'); // check if in graph_tags 
         return n;
@@ -87,20 +97,15 @@ export const create_make_slice = (set,get)=>({make:{
     },
     point(d, a={}){ //pos, r, o
         if(a.pos == undefined) a.pos = new Vector3();
-        try{
-            a.pos.applyMatrix4(d.n[a.r].c.inverse_matrix);
-            //console.log(d.n[a.r].c.inverse_matrix);
-        }catch{}
-        //try{a.pos.applyMatrix4(d.n[d.node.rt0(d,a.r,'transform')].c.inverse_matrix);//a.pos.applyMatrix4(tm.copy(d.n[d.node.rt0(d,a.r,'transform')].c.matrix).invert());
-        //}catch{}
+        if(a.r){
+            if(d.n[a.r].c.inverse_matrix) a.pos.applyMatrix4(d.n[a.r].c.inverse_matrix);
+            if(d.n[a.r].ax.inverse_matrix) a.pos.applyMatrix4(d.n[a.r].ax.inverse_matrix);
+        }
         return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
             x: d.make.atom(d,'f', a.pos.x),
             y: d.make.atom(d,'f', a.pos.y),
             z: d.make.atom(d,'f', a.pos.z),
-        }});//, c:{
-        //    matrix: d?.n[a.r].c.matrix,
-        //    inverse_matrix: d?.n[a.r].c.inverse_matrix,
-        //}}); // d, part_tag, root_id, edge_tag 
+        }});
     },
     transform(d, a={}){
         return d.make.node(d,'p','transform', {...a, n:{
@@ -123,6 +128,16 @@ export const create_make_slice = (set,get)=>({make:{
     //     }});
     // },
 }});
+
+
+            // if(d.n[a.r].c.matrix){
+            //     d.n[n].c.matrix = d.n[a.r].c.matrix;
+            //     d.n[n].c.inverse_matrix = d.n[a.r].c.inverse_matrix;
+            // }
+            // if(d.n[a.r].ax.matrix){
+            //     d.n[n].ax.matrix = d.n[a.r].ax.matrix;
+            //     d.n[n].ax.inverse_matrix = d.n[a.r].ax.inverse_matrix;
+            // }
 
 
 //if(a.v == undefined){d.n[n].v = {'b':true, 'i':0, 'f':0, 's':''}[m]}

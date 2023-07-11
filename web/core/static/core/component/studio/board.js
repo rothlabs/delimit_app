@@ -11,14 +11,14 @@ import {ss, rs, useS} from '../../app.js';
 
 const tv = new Vector3();
 
-function round(v){
-    return Math.round((v + Number.EPSILON) * 100)/100
-}
+// function round(v){
+//     return Math.round((v + Number.EPSILON) * 100)/100
+// }
 
-const pos=e=> { // need to project to plane in front of camera so works with different camera tilts ?!?!?!?!
-    const p = e.intersections[e.intersections.length-1].point;
-    return tv.set(round(p.x), round(p.y), 0); //tv.set(p.x, p.y, 0); //tv.set(Math.round(p.x),Math.round(p.y),0); 
-}// could just be e.intersections[0].point?
+// const pos=e=> { // need to project to plane in front of camera so works with different camera tilts ?!?!?!?!
+//     const p = e.intersections[e.intersections.length-1].point;
+//     return tv.set(round(p.x), round(p.y), 0); //tv.set(p.x, p.y, 0); //tv.set(Math.round(p.x),Math.round(p.y),0); 
+// }// could just be e.intersections[0].point?
 //const name=(e)=>   e.intersections[0].object.name
 //const select=(e)=> e.intersections[0];
 
@@ -54,13 +54,13 @@ export function Board(){
                 ss(d=>{
                     if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
                             //const p = point(e);
-                            if(studio_mode=='design'){
-                                if(design_mode=='draw'){
-                                    d.design.make_point(d, pos(e));
-                                    //ss(d=> d.design.make_point(d, pos(e)));  //{x:p.x, y:p.y, z:0}
-                                    return
-                                }
-                            }
+                            // // // if(studio_mode=='design'){
+                            // // //     if(design_mode=='draw'){
+                            // // //         d.design.make_point(d, pos(e));
+                            // // //         //ss(d=> d.design.make_point(d, pos(e)));  //{x:p.x, y:p.y, z:0}
+                            // // //         return
+                            // // //     }
+                            // // // }
                             d.pick.none(d);
                             //ss(d=> d.pick.none(d));
                             //if(mode=='graph') 

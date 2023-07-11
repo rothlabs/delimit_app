@@ -37,6 +37,7 @@ function Viewport_Control(){
     // });
     useEffect(()=>ss(d=>{
         d.camera_controls = camera_controls.current;
+        d.camera = camera;
         // d.camera_controls.addEventListener('update', (e)=>ss(d=>{
         //     if(e.target._isDragging){//_isUserControllingRotate){//
         //         //console.log('start controlling camera',e);

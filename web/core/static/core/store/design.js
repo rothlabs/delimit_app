@@ -1,11 +1,13 @@
 import {current} from 'immer';
 import { Vector3, Matrix4, CatmullRomCurve3 } from 'three';
 
-const tv = new Vector3();
-const off_screen = new Vector3(10000,10000,0);
+const v1 = new Vector3();
+const v2 = new Vector3();
+const v3 = new Vector3();
+//const off_screen = new Vector3(10000,10000,0);
 const tm = new Matrix4();
-const tm1 = new Matrix4();
-const tm2 = new Matrix4();
+//const tm1 = new Matrix4();
+//const tm2 = new Matrix4();
 
 export const create_design_slice = (set,get)=>({design:{ 
     //tags: ['curve', 'mixed_curve', 'sketch'],
@@ -18,6 +20,16 @@ export const create_design_slice = (set,get)=>({design:{
     moving: false,
     move_mode: '', 
     mover: {pos: new Vector3(), show:false}, //, rot: new Vector3()
+    ray_data(d,e){
+        d.camera.getWorldDirection(v1);
+        e.intersections[0].object.getWorldDirection(v2);
+        if(v1.dot(v2) > 0) v2.negate(); 
+        const p = e.intersections[0].point.add(v2.multiplyScalar(d.point_size / d.camera.zoom / 2));
+        return {
+            n: e.intersections[0].object.parent?.__r3f.memoizedProps.pickable,
+            pos: v3.set(d.rnd(p.x), d.rnd(p.y), d.rnd(p.z)),
+        }; 
+    },
     pin_move(d){ // make drag slice?
         //d.design.pin_matrix.copy(d.design.matrix).invert();
         d.pick.n.forEach(n => d.node.pin_pos(d, n, d.design.matrix)); //d.design.matrix
@@ -26,20 +38,22 @@ export const create_design_slice = (set,get)=>({design:{
         d.design.matrix = matrix;
         d.pick.n.forEach(n=>{ // must check if point or position contents!!!!
             if(d.n[n].pin.pos){ //if(d.n[n].pin.pos){
-                tv.copy(d.n[n].pin.pos).applyMatrix4(matrix); // tv.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix);
-                d.node.set_pos(d, n, tv);
+                v1.copy(d.n[n].pin.pos).applyMatrix4(matrix); // v1.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix);
+                d.node.set_pos(d, n, v1);
             }
         });
     },
-    make_point: (d, pos)=>{
-        var r = d.design.part;
-        if(d.n[r].t != 'curve'){
-            r = d.pick.get_if_one(d, ['curve']); //, {one_tag:true}
+    make_point: (d, e)=>{
+        const ray = d.design.ray_data(d,e);
+        if(!ray.n) return;
+        //var r = d.design.part;
+        //if(d.n[r].t != 'curve'){
+            var r = d.pick.get_if_one(d, ['curve']); //, {one_tag:true}
             if(!r){
-                r = d.make.part(d, 'curve', {r:d.design.part});
+                r = d.make.part(d, 'curve', {r:ray.n}); // d.design.part
                 d.pick.one(d, r);
             }
-        }
+        //}
         var o = undefined;
         if(d.n[r].n.point && d.n[r].n.point.length > 1){
             const test_pos = new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].ax.pos)).getPoints(100); //d.n[r].c.pts.map(p=> p.pos)
@@ -52,7 +66,7 @@ export const create_design_slice = (set,get)=>({design:{
                     o++;
                     prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].ax.pos); //d.n[r].c.pts[o].pos
                 }else{ prev_dist = dist }
-                tests.push({o:o, dist:test_pos[i].distanceTo(pos)});
+                tests.push({o:o, dist:test_pos[i].distanceTo(ray.pos)});
             }
             prev_dist = Infinity;
             for (var i = 0; i < tests.length; i++) { // use .sort here ?!?!?!?!
@@ -63,7 +77,7 @@ export const create_design_slice = (set,get)=>({design:{
                 }
             }
         }
-        const n = d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
+        const n = d.make.point(d, {pos:ray.pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
         d.pick.one(d, n, {t:true});
     },
     update(d){

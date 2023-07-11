@@ -18,6 +18,8 @@ const subject_tags= [
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'inner_view', 'outer_view', 'guide',
 ];
+const cast_tags = [...cat_tags, 'matrix', 'inverse_matrix'];
+//const cast_shallow_tags = ['public', 'auxiliary',];
 const component = {
     'point':       Point,
     'curve':       Curve,
@@ -41,6 +43,7 @@ export const create_base_slice = (set,get)=>({
     string_tags:    string_tags,
     atom_tags:      atom_tags,
     cat_tags:       cat_tags, //category_tags
+    //cast_shallow_tags: cast_shallow_tags,
     cat_map:        cat_map, //category //category_tags
     subject_tags:   subject_tags,
     admin_tags:     admin_tags,
@@ -69,10 +72,8 @@ export const create_base_slice = (set,get)=>({
         'guide':        'bi-rulers',
         'auxiliary':    'bi-binoculars',
     },
-    //cat_cast: cat_cast,
-    cast_map: {...cat_map, ...Object.fromEntries([ // cast_tags
-        'matrix', 'inverse_matrix'
-    ].map(t=>[t,true]))},
+    cast_tags: cast_tags,
+    cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
     cast_shallow_map: Object.fromEntries([ // cast_tags
         'public', 'auxiliary'
     ].map(t=>[t,true])),
@@ -85,6 +86,7 @@ export const create_base_slice = (set,get)=>({
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
     base_font: static_url+'font/Inter-Medium.ttf',
+    point_size: 6,
 
     n: {},
     t: {},
@@ -98,7 +100,7 @@ export const create_base_slice = (set,get)=>({
         ready: false,
         mode: 'graph',
         panel: {},
-        grouping: true,
+        grouping: false, // put this in d.design ?!?!?!?!?!
     },
 
     init(d){
@@ -125,7 +127,7 @@ export const create_base_slice = (set,get)=>({
             else                  {func(arg,0)}
         }
     },
-    rnd(v, sigfigs=10000){
+    rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
     // try(...funcs){
