@@ -17,11 +17,11 @@ export function Buttons({t}){
         d.pick.n.forEach(target=> d.remake.split(d, group, target));
     }});
     if(!d.atom_tags.includes(t)) buttons.push({name:'Remove', icon:'bi-x-lg', func(d){
-            [...d.pick.n].forEach(r=>{
-                d.node.get(d,r,t).forEach(n=>{
-                    d.delete.edge_or_node(d,r,n,{t:t});
-                });
+        [...d.pick.n].forEach(r=>{
+            d.node.get(d,r,t).forEach(n=>{
+                d.delete.edge_or_node(d,r,n,{t:t});
             });
+        });
     }});
     return (
         asset && c(Fragment, {}, 

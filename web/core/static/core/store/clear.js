@@ -11,7 +11,7 @@ export const create_clear_slice=(set,get)=>({clear:{
         content_packs.forEach(c=>{
             Object.entries(c.c).forEach(([t,cc])=>{
                 if(d.cast_map[t]) {
-                    if(t=='base_matrix'){
+                    if(t=='base_matrix' && cc){
                         change.matrix = d.reckon.matrix(d, n, c.t, d.pop_nc, cc);
                     // }else if(t=='base_invert'){
                     //     change.invert = d.reckon.invert(d, n, c.t, d.pop_nc, cc);

@@ -40,7 +40,7 @@ export function Design(){
     // },[obj]);
     const d = gs();
     //const component = d.component[gs().n[part].t];
-    console.log('render design');//, obj.current?.children);
+    //console.log('render design');//, obj.current?.children);
     return (
         c('group', {
             name: 'parts',

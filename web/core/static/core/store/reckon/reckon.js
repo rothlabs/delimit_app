@@ -104,11 +104,12 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     point(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
         try{ //if(pos){
             const nn = d.reckon.v(d, n, 'x y z');
-            d.n[n].c.pos = new Vector3(0,0,0); // create vector on make.node so it can just be reused here ?!?!?!?!?!
-            if(nn.x != undefined) d.n[n].c.pos.setX(nn.x);
-            if(nn.y != undefined) d.n[n].c.pos.setY(nn.y);
-            if(nn.z != undefined) d.n[n].c.pos.setZ(nn.z);
-            if(d.n[n].c.matrix) d.n[n].c.pos.applyMatrix4(d.n[n].c.matrix);
+            d.n[n].c.xyz = new Vector3(0,0,0); // create vector on make.node so it can just be reused here ?!?!?!?!?!
+            if(nn.x != undefined) d.n[n].c.xyz.setX(nn.x);
+            if(nn.y != undefined) d.n[n].c.xyz.setY(nn.y);
+            if(nn.z != undefined) d.n[n].c.xyz.setZ(nn.z);
+            d.n[n].c.pos = d.n[n].c.xyz;
+            if(d.n[n].c.matrix) d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].c.matrix);
             d.n[n].ax.pos = d.n[n].c.pos; //new Vector3(nn.x, nn.y, nn.z);
             if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].ax.pos.clone().applyMatrix4(d.n[n].ax.matrix);
         }catch{} //console.error(e)

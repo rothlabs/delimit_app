@@ -1,6 +1,12 @@
-import {Vector3, Vector4, MathUtils, CatmullRomCurve3} from 'three';
+import {Vector3, Vector4, MathUtils, CatmullRomCurve3, Box3} from 'three';
 import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {current} from 'immer';
+
+const v1 = new Vector3();
+const v2 = new Vector3();
+const bb1 = new Box3();
+const bb2 = new Box3();
+
 export const curve = {
     //res: 100,
     curve(d,n){
@@ -60,39 +66,43 @@ export const curve = {
             const mid_res = 200;
             const l1 = d.n[n].n.curve[0];
             const l2 = d.n[n].n.curve[1];
-            if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
-                var pti=d.n[l1].c.curve.getPoints(mid_res).map(p=>({p:p,v:'t'})).concat(
-                        d.n[l2].c.curve.getPoints(mid_res).map(p=>({p:p,v:'s'})));
-            }else if(d.n[l2].c.top_view && (d.n[l1].c.inner_view || d.n[l1].c.outer_view)){
-                var pti=d.n[l2].c.curve.getPoints(mid_res).map(p=>({p:p,v:'t'})).concat(
-                        d.n[l1].c.curve.getPoints(mid_res).map(p=>({p:p,v:'s'})));
+            const ptc1 = d.n[l1].c.curve.getPoints(mid_res);
+            const ptc2 = d.n[l2].c.curve.getPoints(mid_res);
+            bb1.setFromArray(ptc1);
+            bb2.setFromArray(ptc2);
+            if(bb1.getSize(v1).x > bb2.getSize(v2).x){
+                var pti=ptc1.map(p=>({p:p,v:'xz'})).concat(
+                        ptc2.map(p=>({p:p,v:'yz'})));
+            }else{
+                var pti=ptc2.map(p=>({p:p,v:'xz'})).concat(
+                        ptc1.map(p=>({p:p,v:'yz'})));
             }
             if(pti){
                 var pto = [];
-                pti.sort((a,b)=> a.p.x-b.p.x);//(a.p.x<b.p.x ? -1 : 1));
-                var zi = -1;
+                pti.sort((a,b)=> a.p.z-b.p.z);//(a.p.x<b.p.x ? -1 : 1));
+                var xi = -1; // zi
                 var yi = -1;
                 for(var i=0; i<pti.length; i++){
-                    if(pti[i].v == 't'){ var z = -pti[i].p.y; zi=i; 
+                    if(pti[i].v == 'xz'){ var x = pti[i].p.x; xi=i; 
                     }else{ var y = pti[i].p.y; yi=i; }
-                    if(zi>-1 && yi>-1) break;
+                    if(xi>-1 && yi>-1) break;
                 }
                 for(var i=0; i<pti.length; i++){ // interpolate x and y here ?!?!?!?!
-                    if(pti[i].v == 't'){
-                        z = -pti[i].p.y;
-                        for(let k=zi+1; k<i; k++){
-                            let amt = (k-zi)/(i-zi);
-                            pto[k].setZ((1-amt)*pto[zi].z+amt*z);
+                    if(pti[i].v == 'xz'){
+                        x = pti[i].p.x;
+                        for(let k=xi+1; k<i; k++){
+                            let amt = (k-xi)/(i-xi);
+                            pto[k].setX((1-amt)*pto[xi].x+amt*x);
                         }
-                        pto.push(new Vector3(pti[i].p.x, y, z));
-                        zi=i;
+                        pto.push(new Vector3(x, y, pti[i].p.z));
+                        xi=i;
                     }else{
                         y = pti[i].p.y;
                         for(let k=yi+1; k<i; k++){
                             let amt = (k-yi)/(i-yi);
                             pto[k].setY((1-amt)*pto[yi].y+amt*y);
                         }
-                        pto.push(new Vector3(pti[i].p.x, y, z));
+                        pto.push(new Vector3(x, y, pti[i].p.z));
                         yi=i;
                     }
                 }
