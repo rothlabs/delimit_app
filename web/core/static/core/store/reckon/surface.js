@@ -92,7 +92,7 @@ export const surface = {
                 //prfl2.push(r1.at(-1));
                 for(let i=1; i<g1.length-1; i++){
                     var a1 = v1.set(0,r1[0].y,r1[0].z).distanceTo(g1[i]) / v1.set(0,r1[0].y,r1[0].z).distanceTo(v2.set(0,r2[0].y,r2[0].z));
-                    var a2 = v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(g2[i]) / v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(0,r2.at(-1).y,v2.set(r2.at(-1).z));
+                    var a2 = v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(g2[i]) / v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(v2.set(0,r2.at(-1).y,r2.at(-1).z));
                     const endpoint1 = new Vector3(r1[0].x*(1-a1)+r2[0].x*a1, g1[i].y, g1[i].z); 
                     const endpoint2 = new Vector3(r1.at(-1).x*(1-a2)+r2.at(-1).x*a2, g2[i].y, g2[i].z); 
                     //d.n[n].c.pts.push(endpoint1.clone().applyMatrix4(d.n[n].c.matrix));
