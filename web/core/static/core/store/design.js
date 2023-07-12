@@ -46,14 +46,16 @@ export const create_design_slice = (set,get)=>({design:{
     make_point: (d, e)=>{
         const ray = d.design.ray_data(d,e);
         if(!ray.n) return;
-        //var r = d.design.part;
-        //if(d.n[r].t != 'curve'){
-            var r = d.pick.get_if_one(d, ['curve']); //, {one_tag:true}
-            if(!r){
-                r = d.make.part(d, 'curve', {r:ray.n}); // d.design.part
-                d.pick.one(d, r);
-            }
-        //}
+        var r = d.pick.get_if_one(d, ['curve']); //, {one_tag:true}
+        if(!r){
+            r = d.make.part(d, 'curve', {r:ray.n}); // d.design.part
+            d.pick.one(d, r);
+            d.next('design.insert_point', r, ray.pos);
+        }else{
+            d.design.insert_point(d, r, ray.pos);
+        }        
+    },
+    insert_point(d, r, pos){
         var o = undefined;
         if(d.n[r].n.point && d.n[r].n.point.length > 1){
             const test_pos = new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].ax.pos)).getPoints(100); //d.n[r].c.pts.map(p=> p.pos)
@@ -66,7 +68,7 @@ export const create_design_slice = (set,get)=>({design:{
                     o++;
                     prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].ax.pos); //d.n[r].c.pts[o].pos
                 }else{ prev_dist = dist }
-                tests.push({o:o, dist:test_pos[i].distanceTo(ray.pos)});
+                tests.push({o:o, dist:test_pos[i].distanceTo(pos)});
             }
             prev_dist = Infinity;
             for (var i = 0; i < tests.length; i++) { // use .sort here ?!?!?!?!
@@ -77,7 +79,7 @@ export const create_design_slice = (set,get)=>({design:{
                 }
             }
         }
-        const n = d.make.point(d, {pos:ray.pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
+        const n = d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
         d.pick.one(d, n, {t:true});
     },
     update(d){
