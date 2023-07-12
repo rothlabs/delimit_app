@@ -30,7 +30,7 @@ export const surface = {
             //var pts = [];
             const ribs = d.n[n].n.mixed_curve.map(n=>{
                 const points = d.n[n].c.curve.getPoints(this.rib_res-1); //getSpacedPoints
-                if(points[0].x > points.at(-1).x) points.reverse();
+                if(points[0].z > points.at(-1).z) points.reverse();
                 //pts.push(points.map(p=>new Vector4(p.x, p.y, p.z, 1)));
                 //pts.push(points);
                 //console.log('reducer?',points.reduce((a,b)=>a+b.y,0));
@@ -48,9 +48,9 @@ export const surface = {
                 return {
                     pts: pts,
                     sub: [], // sub points between ribs
-                    x: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.x,0)/10,
+                    z: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.z,0)/10,
                 }
-            }).sort((a,b)=>a.x-b.x);
+            }).sort((a,b)=>a.z-b.z);
             var idx1 = 0;
             var idx2 = 0;
             for(let i=1; i<ribs.length; i++){
@@ -91,10 +91,10 @@ export const surface = {
                 //prfl1.push(r1[0]);
                 //prfl2.push(r1.at(-1));
                 for(let i=1; i<g1.length-1; i++){
-                    var a1 = v1.set(r1[0].x,r1[0].y,0).distanceTo(g1[i]) / v1.set(r1[0].x,r1[0].y,0).distanceTo(v2.set(r2[0].x,r2[0].y,0));
-                    var a2 = v1.set(r1.at(-1).x,r1.at(-1).y,0).distanceTo(g2[i]) / v1.set(r1.at(-1).x,r1.at(-1).y,0).distanceTo(v2.set(r2.at(-1).x,r2.at(-1).y,0));
-                    const endpoint1 = new Vector3(g1[i].x, g1[i].y, r1[0].z*(1-a1) + r2[0].z*a1);
-                    const endpoint2 = new Vector3(g2[i].x, g2[i].y, r1.at(-1).z*(1-a2) + r2.at(-1).z*a2);
+                    var a1 = v1.set(0,r1[0].y,r1[0].z).distanceTo(g1[i]) / v1.set(0,r1[0].y,r1[0].z).distanceTo(v2.set(0,r2[0].y,r2[0].z));
+                    var a2 = v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(g2[i]) / v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(0,r2.at(-1).y,v2.set(r2.at(-1).z));
+                    const endpoint1 = new Vector3(r1[0].x*(1-a1)+r2[0].x*a1, g1[i].y, g1[i].z); 
+                    const endpoint2 = new Vector3(r1.at(-1).x*(1-a2)+r2.at(-1).x*a2, g2[i].y, g2[i].z); 
                     //d.n[n].c.pts.push(endpoint1.clone().applyMatrix4(d.n[n].c.matrix));
                     //d.n[n].c.pts.push(endpoint2.clone().applyMatrix4(d.n[n].c.matrix));
 
