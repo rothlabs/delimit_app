@@ -16,7 +16,7 @@ const subject_tags= [
     'mixed_curve', 'surface',
 ];
 const cat_tags=[ //cat_cast_tags=[
-    'public', 'auxiliary', 'top_view', 'inner_view', 'outer_view', 'guide',
+    'public', 'auxiliary', 'top_view', 'side_view', 'front_view', //'guide',
 ];
 const cast_tags = [...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
@@ -63,13 +63,13 @@ export const create_base_slice = (set,get)=>({
         'repeater':     'bi-files',
         'group':        'bi-box-seam',
         'transform':    'bi-arrows-move',
-        'mixed_curve':   'bi-bezier',
+        'mixed_curve':  'bi-bezier',
         'top_view':     'bi-camera-reels',
-        'inner_view':   'bi-camera-reels',
-        'outer_view':   'bi-camera-reels',
+        'side_view':    'bi-camera-reels',
+        'front_view':   'bi-camera-reels',
         'product':      'bi-bag',
         'surface':      'bi-map',
-        'guide':        'bi-rulers',
+        //'guide':        'bi-rulers',
         'auxiliary':    'bi-binoculars',
     },
     cast_tags: cast_tags,

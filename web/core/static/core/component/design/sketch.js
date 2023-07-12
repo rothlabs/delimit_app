@@ -12,10 +12,20 @@ const v2 = new Vector3();
 
 export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
     const obj = useRef();
-    //const color = useS(d=> d.n[n].pick.color); 
     const {camera} = useThree(); // use state selector ?!?!?!?!?! (state)=> state.camera 
     const [offset, set_offset] = useState(0);
     const point_size = useS(d=> d.point_size);
+    const top_view = useS(d=> d.n[n].c.top_view); 
+    const side_view = useS(d=> d.n[n].c.side_view);
+    var plane_rotation = [0,0,0];
+    var grid_rotation  = [Math.PI/2,0,0];
+    if(top_view){
+        plane_rotation = [Math.PI/2,0,0];
+        grid_rotation  = [0,0,0];
+    }else if(side_view){
+        plane_rotation = [0,Math.PI/2,0];
+        grid_rotation  = [0,0,Math.PI/2];
+    }
     useFrame((state)=>{
         if(obj.current){
             state.camera.getWorldDirection(v1);
@@ -31,6 +41,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
         if(c[0]) obj.current.applyMatrix4(c[0]);
         if(c[1]) obj.current.applyMatrix4(c[1]);
     });
+
     //console.log('render surface');
     return(
         c('group', {
@@ -45,30 +56,30 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
                 // ),
                 c('mesh',{
                     name: 'sketch',
-
                     position: [0,0,offset],
-                    visible:false,
+                    rotation: plane_rotation,
+                    //visible:false,
                 },
                     c('planeGeometry', {args:[200,200]}),
                     c('meshBasicMaterial', {
                         color:'yellow', 
                         toneMapped:false, 
                         side: DoubleSide, 
-                        //transparent:true, 
-                        //opacity:.2
+                        transparent:true, 
+                        opacity:.2
                     }),
                 ),
             ),
             c(Grid, {
-                position: [0,0,offset],
-                rotation: [1.5708,0,0],
                 args: [200,200],
+                position: [0,0,offset],
+                rotation: grid_rotation,
                 cellSize: 10,
                 cellThickness: 1,
-                cellColor: '#6f6f6f',
+                cellColor: '#c4c4c4',
                 sectionSize: 100,
                 sectionThickness: 1,
-                sectionColor: '#9d4b4b',
+                sectionColor: '#c77b8e',
                 fadeDistance: 10000,
                 fadeStrength: 0,
                 followCamera: false,
