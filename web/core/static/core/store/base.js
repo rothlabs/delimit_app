@@ -101,6 +101,7 @@ export const create_base_slice = (set,get)=>({
         mode: 'graph',
         panel: {},
         grouping: false, // put this in d.design ?!?!?!?!?!
+        cursor: '',
     },
 
     init(d){

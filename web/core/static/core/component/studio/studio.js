@@ -1,7 +1,7 @@
 import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {Toolbar} from '../toolbar/toolbar.js';
-import {useS, gs, ss, rs, use_query, use_mutation, instance} from '../../app.js';
+import {useS, gs, ss, rs, use_query, use_mutation, instance, static_url} from '../../app.js';
 import {Viewport} from './viewport.js';
 import {Panel} from '../panel/panel.js';
 
@@ -17,10 +17,17 @@ export function Studio(){
             ready && c(Poll), 
             c(Toolbar),
             c(Panel),
-            c('div', {name:'r3f', className:'position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex: -1}},
-                c(Canvas,{orthographic:true, camera:{far:10000}}, //, far:10000 zoom:1    //frameloop:'demand', 
-                    ready && c(Viewport),
-                )
+            c(Canvas_Viewport),
+        )
+    )
+}
+
+export function Canvas_Viewport(){
+    const cursor = useS(d=> d.studio.cursor);
+    return(
+        c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
+            c(Canvas,{orthographic:true, camera:{far:10000}, }, //, far:10000 zoom:1    //frameloop:'demand', 
+                c(Viewport),
             )
         )
     )

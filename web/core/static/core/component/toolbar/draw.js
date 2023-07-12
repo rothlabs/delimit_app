@@ -23,8 +23,10 @@ export function Draw(){
                     onChange:e=> ss(d=>{
                         if(d.design.mode == e.currentTarget.value){
                             d.design.mode = '';
+                            //d.studio.cursor = '';
                         }else{
                             d.design.mode = e.currentTarget.value;
+                            //d.studio.cursor = 'penIcon';
                         }
                     }),
                 })

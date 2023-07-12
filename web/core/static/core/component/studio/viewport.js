@@ -76,7 +76,8 @@ function Viewport_Control(){
             maxDistance: 1000, 
             polarRotateSpeed: (pick_box || studio_mode=='graph' ? 0 : 1), 
             azimuthRotateSpeed: (pick_box || studio_mode=='graph' ? 0 : 1), 
-            draggingSmoothTime: 0.02,
+            draggingSmoothTime: 0.01,
+            dollyToCursor: true,
         }), 
         pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
             style:{

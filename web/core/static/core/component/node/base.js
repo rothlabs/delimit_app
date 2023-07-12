@@ -23,8 +23,14 @@ export function Pickable({n, drawable, children}){
                 d.studio.gizmo_active = false;
             });
         },
-        onPointerOver:e=>{e.stopPropagation();  ss(d=> d.pick.hover(d, n, true));}, // should be something different from recieve state but should not commit state here
-        onPointerOut:e=>  {e.stopPropagation(); ss(d=>d.pick.hover(d,n, false));},
+        onPointerOver:e=>{  e.stopPropagation();  ss(d=>{
+            d.pick.hover(d, n, true);
+            if(d.design.mode == 'draw' && drawable) d.studio.cursor = 'pen_icon';
+        });}, // should be something different from recieve state but should not commit state here
+        onPointerOut:e=>  {e.stopPropagation(); ss(d=>{
+            d.pick.hover(d,n, false);
+            if(drawable) d.studio.cursor = '';
+        });},
         children:children,
     });
 }
