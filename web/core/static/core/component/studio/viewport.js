@@ -5,9 +5,12 @@ import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Design} from '../design/design.js';
 import {Mover} from './mover.js';
-import {useS, ss, theme, gs} from '../../app.js';
+import {useS, ss, theme, gs, rs} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Pickbox} from './pickbox.js'; // selection box
+import {Vector3} from 'three';
+
+const v1 = new Vector3();
 
 // const pointer_start = new Vector2();
 // const pointer_vect = new Vector2();
@@ -44,10 +47,12 @@ function Viewport_Control(){
         //         d.studio.gizmo_active = true;
         //     }
         // }));
-        //d.camera_controls.addEventListener('controlend', ()=>ss(d=>{
-            //d.studio.gizmo_active = false;
-        //}));
-        d.camera_controls.addEventListener('control', ()=>ss(d=>{ // need to remove listener ?!?!?!?!
+        d.camera_controls.addEventListener('controlend', (e)=>rs(d=>{
+            if(d.cam_info.dir.dot(camera.getWorldDirection(v1)) < 1){
+                d.cam_info = {matrix: camera.matrix, dir:camera.getWorldDirection(v1).clone()};
+            }
+        }));
+        d.camera_controls.addEventListener('control', ()=>rs(d=>{ // need to remove listener ?!?!?!?!
             //d.studio.gizmo_active = true;
             //using_camera = 1;
             //used_camera = true;

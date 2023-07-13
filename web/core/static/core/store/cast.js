@@ -28,19 +28,22 @@ export const create_cast_slice=(set,get)=>({cast:{
     base(d,n,c,ax,a={}){
         const change = {};
         const content_packs = [{c:c,t:'c'},{c:ax,t:'ax'}];
-        content_packs.forEach(c=>{
-            Object.entries(c.c).forEach(([t,cc])=>{
+        content_packs.forEach(cp=>{
+            Object.entries(cp.c).forEach(([t,cc])=>{
                 if(d.cast_map[t]) {
                     if(t=='base_matrix'){
-                        d.reckon.matrix(d, n, c.t, d.add_nc, cc);
+                        cc = {...cc, o:cc.o+1};
+                        if(cp.c=='c') c.base_matrix = cc;
+                        else          ax.base_matrix = cc;
+                        d.reckon.matrix(d, n, cp.t, d.add_nc,  cc);
                         change.matrix = true;
                     // }else if(t=='base_invert'){
                     //     d.reckon.invert(d, n, c.t, d.add_nc, cc);
                     //     change.invert = true;
                     }else{
-                        if(d.n[n][c.t][t] != cc){ // !==
+                        if(d.n[n][cp.t][t] != cc){ // !==
                             change[t] = true;
-                            d.n[n][c.t][t] = cc; 
+                            d.n[n][cp.t][t] = cc; 
                         }
                     }
                 }

@@ -60,7 +60,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             delete d.n[n][ct].invert;
             return;
         }
-        d.n[n][ct].matrix = d.n[n][ct].matrix_list.reduce((a,b)=>a.multiply(b.c), new Matrix4());
+        d.n[n][ct].matrix = d.n[n][ct].matrix_list.sort((a,b)=>b.o-a.o).reduce((a,b)=>a.multiply(b.c), new Matrix4());
         d.n[n][ct].invert = d.n[n][ct].matrix.clone().invert();
         return result;
     },
@@ -92,8 +92,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 if(nn.scale_z != undefined) v3.setZ(nn.scale_z);
                 tm.compose(v1, tq, v3);   
                 const c_ax = (d.n[n].c.auxiliary ? 'ax' : 'c');
-                d.n[n][c_ax].base_matrix = {n:n, c:tm.clone()};
+                d.n[n][c_ax].base_matrix = {n:n, o:0, c:tm.clone()};
                 d.reckon.matrix(d, n, c_ax, d.add_nc, d.n[n][c_ax].base_matrix);
+                //d.n[n][c_ax].pos = new Vector3().setFromMatrixPosition(d.n[n].ax.matrix);
                 d.n[n].c.transform = true;
                 d.cast.down(d,n,'base_matrix'); 
                 //console.log('reckon transform!!!!');

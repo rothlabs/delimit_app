@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import { Vector3, Matrix4, CatmullRomCurve3 } from 'three';
+import { Vector3, Euler, Matrix4, CatmullRomCurve3 } from 'three';
 
 const v1 = new Vector3();
 const v2 = new Vector3();
@@ -19,14 +19,14 @@ export const create_design_slice = (set,get)=>({design:{
     //pin_matrix: new Matrix4(),
     moving: false,
     move_mode: '', 
-    mover: {pos: new Vector3(), show:false}, //, rot: new Vector3()
+    mover: {pos: new Vector3(), rot: new Euler(), active_axes:[true, true, false], show:false}, //, rot: new Vector3()
     ray_data(d,e){
         d.camera.getWorldDirection(v1);
         e.intersections[0].object.getWorldDirection(v2);
         if(v1.dot(v2) > 0) v2.negate(); 
-        const p = e.intersections[0].point.add(v2.multiplyScalar(d.point_size / d.camera.zoom / 2));
+        const p = e.intersections[0].point.add(v2.multiplyScalar(d.point_size / d.camera.zoom));
         return {
-            n: e.intersections[0].object.parent?.__r3f.memoizedProps.pickable,
+            n: e.intersections[0].object.parent?.parent?.__r3f.memoizedProps.pickable,
             pos: v3.set(d.rnd(p.x), d.rnd(p.y), d.rnd(p.z)),
         }; 
     },
@@ -50,7 +50,7 @@ export const create_design_slice = (set,get)=>({design:{
         if(!r){
             r = d.make.part(d, 'curve', {r:ray.n}); // d.design.part
             d.pick.one(d, r);
-            d.next('design.insert_point', r, ray.pos);
+            d.next('design.insert_point', r, ray.pos); // wait until next so matrix can cast to curve
         }else{
             d.design.insert_point(d, r, ray.pos);
         }        
@@ -90,12 +90,18 @@ export const create_design_slice = (set,get)=>({design:{
             d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
         }
         d.design.mover.pos.set(0,0,0);
+        d.design.mover.active_axes = [true, true, false];
         var count = 0;
         d.pick.n.forEach(n=>{
             if(d.n[n].ax.pos){
                 d.design.mover.pos.add(d.n[n].ax.pos);
                 count++;
             }
+            if(d.n[n].ax.matrix){
+                d.design.mover.rot.setFromRotationMatrix(d.n[n].ax.matrix);
+            }
+            if(d.n[n].c.top_view) d.design.mover.active_axes = [true, false, true];
+            if(d.n[n].c.side_view) d.design.mover.active_axes = [false, true, true];
         });
         // if(count > 0){ 
         //     d.design.mover = {
@@ -106,15 +112,12 @@ export const create_design_slice = (set,get)=>({design:{
         //if(d.pick.n.length===0) d.design.matrix.identity();
         if(d.studio.mode=='design' && d.design.move_mode=='move' && count > 0){ 
             //d.design.show_mover = true;
-            d.design.mover = {
+            d.design.mover = {...d.design.mover,
                 show:true,
                 pos: d.design.mover.pos.divideScalar(count).applyMatrix4(tm.copy(d.design.matrix).invert()),
             };
         }else{
-            d.design.mover = {
-                show:false,
-                pos: d.design.mover.pos,
-            };
+            d.design.mover = {...d.design.mover, show:false};
             //d.design.show_mover = false;
             //d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};
             d.design.matrix.identity();

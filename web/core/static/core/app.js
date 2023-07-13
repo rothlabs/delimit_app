@@ -40,6 +40,8 @@ export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
 export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
 
+//export const base_font = static_url+'font/Inter-Medium.ttf';
+
 ColorManagement.enabled = true;
 const style = getComputedStyle(document.body);
 export const theme = {
@@ -130,8 +132,9 @@ function ignore_patch(p){
     if(path == 'studio.panel.name') return false;
     if(path == 'design.matrix') return false;
     if(path == 'design.moving') return false;
-    if(path == 'graph.c_c') return false;
-    if(path == 'studio.gizmo_active') return false;
+    //if(path == 'graph.c_c') return false;
+    if(path == 'studio.gizmo_active') return false; 
+    //if(path == 'studio.cam_info') return false;
     //if(path == 'design.n') return false;
     //if(path == 'design.group') return false;
     
@@ -239,6 +242,15 @@ export const mf = func=>{ // watch out for no-change resulting in undefined d!?!
     fork = null;
 }; // merge fork
 
+
+
+
+const v1 = new THREE.Vector3();
+const v2 = new THREE.Vector3();
+const up = new THREE.Vector3(0,1,0);
+const m1 = new THREE.Matrix4();
+
+
 export function undo(){ 
     if(patch > 0){
         patch--;
@@ -248,8 +260,8 @@ export function undo(){
             var d = applyPatches(d, inverse[patch]);
             d.send(d, inverse[patch]);
             d = produce(d, d=>{
+                d.cam_info = {...d.cam_info};
                 d.studio.gizmo_active = false;
-                //d.pick.update(d);
                 d.design.update(d);
                 d.inspect.update(d);
                 d.graph.update(d);
@@ -266,8 +278,8 @@ export function redo(){
             var d = applyPatches(d, patches[patch]);
             d.send(d, patches[patch]);
             d = produce(d, d=>{
+                d.cam_info = {...d.cam_info};
                 d.studio.gizmo_active = false;
-                //d.pick.update(d);
                 d.design.update(d);
                 d.inspect.update(d);
                 d.graph.update(d);

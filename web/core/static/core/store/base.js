@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import {Vector3} from 'three';
+import {Vector3, Matrix4} from 'three';
 import {random_vector, static_url, theme} from '../app.js';
 import lodash from 'lodash';
 //import { Group } from '../component/part/group.js';
@@ -7,6 +7,7 @@ import {Point} from '../component/design/point.js';
 import {Curve} from '../component/design/curve.js';
 import {Surface} from '../component/design/surface.js';
 import {Sketch} from '../component/design/sketch.js';
+import {Transform} from '../component/design/transform.js';
 
 var next_funcs = [];
 var next_ids = [];
@@ -16,7 +17,7 @@ const subject_tags= [
     'mixed_curve', 'surface',
 ];
 const cat_tags=[ //cat_cast_tags=[
-    'public', 'auxiliary', 'top_view', 'side_view', 'front_view', //'guide',
+    'public', 'auxiliary', 'top_view', 'side_view', 'front_view', 'face_camera',
 ];
 const cast_tags = [...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
@@ -26,6 +27,7 @@ const component = {
     'mixed_curve': Curve,
     'surface':     Surface,
     'sketch':      Sketch,
+    'transform':   Transform,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
@@ -67,9 +69,9 @@ export const create_base_slice = (set,get)=>({
         'top_view':     'bi-camera-reels',
         'side_view':    'bi-camera-reels',
         'front_view':   'bi-camera-reels',
+        'face_camera':  'bi-camera-reels',
         'product':      'bi-bag',
         'surface':      'bi-map',
-        //'guide':        'bi-rulers',
         'auxiliary':    'bi-binoculars',
     },
     cast_tags: cast_tags,
@@ -87,6 +89,7 @@ export const create_base_slice = (set,get)=>({
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
     base_font: static_url+'font/Inter-Medium.ttf',
     point_size: 6,
+    cam_info: {matrix: new Matrix4(), dir: new Vector3()},
 
     n: {},
     t: {},
