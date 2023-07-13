@@ -23,147 +23,98 @@ export const surface = {
     //res_h: 10,
     surface(d,n,cause=[]){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         try{//if(cause.includes('curve') || ['make.edge', 'delete.edge'].includes(cause)){ 
-            
 
-            
+            var pts = [];
 
-            //var pts = [];
             const ribs = d.n[n].n.mixed_curve.map(n=>{
                 const points = d.n[n].c.curve.getPoints(this.rib_res-1); //getSpacedPoints
                 if(points[0].z > points.at(-1).z) points.reverse();
-                //pts.push(points.map(p=>new Vector4(p.x, p.y, p.z, 1)));
-                //pts.push(points);
-                //console.log('reducer?',points.reduce((a,b)=>a+b.y,0));
                 return {
-                    //used:false,
-                    //matrix: d.n[n].c.matrix,
                     pts: points,
-                    //curve: new CatmullRomCurve3(pts),
-                    y: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.y,0)/10, // returning NaN ?!?!?!?!
+                    y: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.y,0)/10, 
                 }
             }).sort((a,b)=>a.y-b.y);
-            const guide = d.n[n].n.curve.map(n=>{//.filter(n=> d.n[n].c.guide).map(n=>{
-                const pts = d.n[n].c.curve.getPoints(this.guide_res);
-                if(pts[0].y > pts.at(-1).y) pts.reverse();
-                return {
-                    pts: pts,
-                    sub: [], // sub points between ribs
-                    z: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.z,0)/10,
-                }
-            }).sort((a,b)=>a.z-b.z);
-            var idx1 = 0;
-            var idx2 = 0;
-            for(let i=1; i<ribs.length; i++){
-                const sub_div = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (this.sub_div+1));
 
-                var closest = guide[0].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts[0])-b.distanceTo(ribs[i].pts[0]))[0];
-                var idx = guide[0].pts.indexOf(closest);
-                //pts = pts.concat(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.sub_div+1));
-                //console.log('before error', closest, idx);
-                guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getPoints(sub_div)); 
-                idx1 = idx;
-                closest = guide[1].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts.at(-1))-b.distanceTo(ribs[i].pts.at(-1)))[0];
-                idx = guide[1].pts.indexOf(closest);
-                //pts = pts.concat(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.sub_div+1));
-                guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getPoints(sub_div));
-                idx2 = idx;
-            }
-            
-
-
-            // make extra ribs in between existing ribs
-            var pts = [];
-            
-            const prfl1 = [];
-            const prfl2 = [];
-            //d.n[n].c.pts = [];
-            pts.push(ribs[0].pts);
-            //var first_knots = ribs[0].pts.reduce((a,b)=>a+b.y,0);
-            //console.log('first_knots',first_knots);
-            //var knots1 = [first_knots,first_knots,first_knots];
-            //knots1.push(ribs[0].pts.reduce((a,b)=>a.y+b.y,0));
-            for(let k=0; k<ribs.length-1; k++){
-                var r1 = ribs[k].pts;
-                var r2 = ribs[k+1].pts;
-                var g1 = guide[0].sub[k];
-                var g2 = guide[1].sub[k];
-                
-                //prfl1.push(r1[0]);
-                //prfl2.push(r1.at(-1));
-                for(let i=1; i<g1.length-1; i++){
-                    var a1 = v1.set(0,r1[0].y,r1[0].z).distanceTo(g1[i]) / v1.set(0,r1[0].y,r1[0].z).distanceTo(v2.set(0,r2[0].y,r2[0].z));
-                    var a2 = v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(g2[i]) / v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(v2.set(0,r2.at(-1).y,r2.at(-1).z));
-                    const endpoint1 = new Vector3(r1[0].x*(1-a1)+r2[0].x*a1, g1[i].y, g1[i].z); 
-                    const endpoint2 = new Vector3(r1.at(-1).x*(1-a2)+r2.at(-1).x*a2, g2[i].y, g2[i].z); 
-                    //d.n[n].c.pts.push(endpoint1.clone().applyMatrix4(d.n[n].c.matrix));
-                    //d.n[n].c.pts.push(endpoint2.clone().applyMatrix4(d.n[n].c.matrix));
-
-                    //pts.push(endpoint1);
-                    //pts.push(endpoint2);
-                    //prfl1.push(endpoint1);
-                    //prfl2.push(endpoint2);
-
-                    //if(i%2 == 0) continue;
-
-                    const delta1 = endpoint1.clone().sub(r1[0]);
-	                const delta2 = endpoint2.clone().sub(r1.at(-1));
-                    const delta3 = endpoint1.clone().sub(r2[0]); // don't need to clone here ?!?!?!?
-	                const delta4 = endpoint2.clone().sub(r2.at(-1)); // don't need to clone here ?!?!?!
-	                //const endpoint_dist1 = r1[0].distanceTo(r1.at(-1));
-                    //const endpoint_dist2 = r2[0].distanceTo(r2.at(-1));
-                    
-                    const new_rib = []
-                    for (let j=0; j < r1.length; j++) { // change to rib_res ?!?!?!
-                        var amt = j/r1.length;
-                        var point1 = r1[j].clone();
-                        //var amt = ((point1.distanceTo(r1[0]) - point1.distanceTo(r1.at(-1))) / endpoint_dist1 + 1) / 2;
-                        //var amt = ribs[k].curve.getLengths(this.rib_res)[j] / ribs[k].curve.getLength();
-                        var np1 = point1.add(delta1.clone().multiplyScalar(1-amt)).add(delta2.clone().multiplyScalar(amt));
-                        //d.n[n].c.pts.push(np.clone().applyMatrix4(d.n[n].c.matrix));
-                        //nr.push(np);
-
-                        var point2 = r2[j].clone();
-                        //amt = ((point2.distanceTo(r2[0]) - point2.distanceTo(r2.at(-1))) / endpoint_dist2 + 1) / 2;
-                        //var amt = ribs[k+1].curve.getLengths(this.rib_res)[j] / ribs[k+1].curve.getLength();
-                        
-                        var np2 = point2.add(delta3.clone().multiplyScalar(1-amt)).add(delta4.clone().multiplyScalar(amt));
-                        
-                        amt = i/(g1.length-1);
-                        var np  = np1.multiplyScalar(1-amt).add(np2.multiplyScalar(amt));
-
-                        //d.n[n].c.pts.push(np.clone().applyMatrix4(d.n[n].c.matrix));
-                        new_rib.push(np);
-                        if(j==0) prfl1.push(np);
-                        if(j==r1.length-1) prfl2.push(np);
+            if(d.n[n].n.curve?.length > 1){
+                const guide = d.n[n].n.curve.map(n=>{//.filter(n=> d.n[n].c.guide).map(n=>{
+                    const pts = d.n[n].c.curve.getPoints(this.guide_res);
+                    if(pts[0].y > pts.at(-1).y) pts.reverse();
+                    return {
+                        pts: pts,
+                        sub: [], // sub points between ribs
+                        z: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.z,0)/10,
                     }
-                    pts.push(new_rib);
-                    //knots1.push(new_rib.reduce((a,b)=>a+b.y,0));
-                    
-                    //knots1.push(r2.reduce((a,b)=>a+b.y,0));
-                    
-
-                    //var nr = [];
-                    //for(let k=0; i<this.rib_res; i++){
-
-                    //}
+                }).sort((a,b)=>a.z-b.z);
+                var idx1 = 0;
+                var idx2 = 0;
+                for(let i=1; i<ribs.length; i++){
+                    const sub_div = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (this.sub_div+1));
+                    var closest = guide[0].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts[0])-b.distanceTo(ribs[i].pts[0]))[0];
+                    var idx = guide[0].pts.indexOf(closest);
+                    //pts = pts.concat(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.sub_div+1));
+                    //console.log('before error', closest, idx);
+                    guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getPoints(sub_div)); 
+                    idx1 = idx;
+                    closest = guide[1].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts.at(-1))-b.distanceTo(ribs[i].pts.at(-1)))[0];
+                    idx = guide[1].pts.indexOf(closest);
+                    //pts = pts.concat(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.sub_div+1));
+                    guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getPoints(sub_div));
+                    idx2 = idx;
                 }
-                pts.push(r2);
-                //prfl1.push(r2[0]);
-                //prfl2.push(r2.at(-1));
+                // make extra ribs in between existing ribs
+                pts.push(ribs[0].pts);
+                for(let k=0; k<ribs.length-1; k++){
+                    var r1 = ribs[k].pts;
+                    var r2 = ribs[k+1].pts;
+                    var g1 = guide[0].sub[k];
+                    var g2 = guide[1].sub[k];
+                    for(let i=1; i<g1.length-1; i++){
+                        var a1 = v1.set(0,r1[0].y,r1[0].z).distanceTo(g1[i]) / v1.set(0,r1[0].y,r1[0].z).distanceTo(v2.set(0,r2[0].y,r2[0].z));
+                        var a2 = v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(g2[i]) / v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(v2.set(0,r2.at(-1).y,r2.at(-1).z));
+                        const endpoint1 = new Vector3(r1[0].x*(1-a1)+r2[0].x*a1, g1[i].y, g1[i].z); 
+                        const endpoint2 = new Vector3(r1.at(-1).x*(1-a2)+r2.at(-1).x*a2, g2[i].y, g2[i].z); 
+                        const delta1 = endpoint1.clone().sub(r1[0]);
+                        const delta2 = endpoint2.clone().sub(r1.at(-1));
+                        const delta3 = endpoint1.clone().sub(r2[0]); // don't need to clone here ?!?!?!?
+                        const delta4 = endpoint2.clone().sub(r2.at(-1)); // don't need to clone here ?!?!?!
+                        const new_rib = []
+                        for (let j=0; j < r1.length; j++) { // change to rib_res ?!?!?!
+                            var amt = j/r1.length;
+                            var point1 = r1[j].clone();
+                            var np1 = point1.add(delta1.clone().multiplyScalar(1-amt)).add(delta2.clone().multiplyScalar(amt));
+                            var point2 = r2[j].clone();
+                            var np2 = point2.add(delta3.clone().multiplyScalar(1-amt)).add(delta4.clone().multiplyScalar(amt));
+                            amt = i/(g1.length-1);
+                            var np  = np1.multiplyScalar(1-amt).add(np2.multiplyScalar(amt));
+                            new_rib.push(np);
+                        }
+                        pts.push(new_rib);
+                    }
+                    pts.push(r2);
+                }
+            }else{
+                pts = ribs.map(rib=> rib.pts);
+                if(pts.length < 3) pts.push(ribs.at(-1).pts);
             }
 
-
-            //if(d.n[n].c.matrix) pts = pts.map(p=> p.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix)));
             var degree1 = 2;
             var degree2 = 2;
             //var knots1 = [0, 0, 0, 1, 1, 1];
             var knots1 = [0,0];
+            // if(pts.length < 3){
+            //     degree1 = 1;
+            //     knots1 = [0];
+            // }
             var last_knot = 0;
             pts.forEach((p,i) => {
                 if(i < pts.length-1){
                     knots1.push(i);
                     last_knot = i;
-                }else{knots1.push(last_knot,last_knot)}
+                }else{
+                    knots1.push(last_knot,last_knot);
+                    // if(pts.length < 3) knots1.push(last_knot);
+                    // else knots1.push(last_knot,last_knot);
+                }
             });
             //knots1.push(knots1.at(-1),knots1.at(-1));
             //var knots2 = [0, 0, 0,   1, 2, 3,   4, 4, 4];
@@ -184,7 +135,24 @@ export const surface = {
             d.n[n].c.pts = pts;
             d.n[n].ax.surface = surface;
             d.n[n].ax.pts = pts;
-            //d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
+            
+        }catch(e){
+            delete d.n[n].c.surface;
+            delete d.n[n].ax.surface;
+            //console.log(e);
+        }
+    },
+};
+
+
+//var amt = ((point1.distanceTo(r1[0]) - point1.distanceTo(r1.at(-1))) / endpoint_dist1 + 1) / 2;
+                        //var amt = ribs[k].curve.getLengths(this.rib_res)[j] / ribs[k].curve.getLength();
+                        //amt = ((point2.distanceTo(r2[0]) - point2.distanceTo(r2.at(-1))) / endpoint_dist2 + 1) / 2;
+                        //var amt = ribs[k+1].curve.getLengths(this.rib_res)[j] / ribs[k+1].curve.getLength();
+
+
+
+//d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
             //if(d.n[n].c.inner_view) d.n[n].c.geo.index.array.reverse();
             //d.n[n].c.geo.computeVertexNormals();
 
@@ -272,14 +240,6 @@ export const surface = {
             // d.n[n].c.res_h = res_h-1;
             // //console.log('reckon surf');
             // //console.log('ribs gds', ribs, rails);
-        }catch(e){
-            delete d.n[n].c.surface;
-            delete d.n[n].ax.surface;
-            //console.log(e);
-        }
-    },
-};
-
 
 
 // function transform_points(pts){

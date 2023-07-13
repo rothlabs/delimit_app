@@ -21,7 +21,7 @@ const res = 80;
 export const Surface = memo(({n})=>{ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
-    //const pts = useS(d=> d.n[n].w.pts); 
+    //const pts = useS(d=> d.n[n].ax.pts); 
     const [geo] = useState(new BufferGeometry());
     useSub(d=> d.n[n].ax.surface, surface=>{ 
         if(surface){ // obj.current && 
@@ -35,8 +35,8 @@ export const Surface = memo(({n})=>{
             //     ...pts.map(p=>
             //         c('group', {},
             //             ...p.map(p=>
-            //                 c('group', {name: 'weird', position: [p.x, p.y, p.z]}, 
-            //                 c(Fix_Size, {size:6}, // , props:{position: [p.x, p.y, p.z]}
+            //                 c('group', {name: 'control_points', position: [p.x, p.y, p.z]}, 
+            //                 c(Fix_Size, {size:4}, // , props:{position: [p.x, p.y, p.z]}
             //                     c('mesh', {},
             //                         c('sphereGeometry'),
             //                         c('meshBasicMaterial', {color:'yellow', toneMapped:false}),
