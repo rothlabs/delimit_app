@@ -1,9 +1,8 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
 import {useS, useSubS, useSub, gs} from '../../app.js';
-//import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 import {Grid} from '@react-three/drei/Grid';
 import {Pickable} from '../node/base.js';
-import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, FrontSide, BackSide, CircleGeometry} from 'three';
+import {Vector3, DoubleSide} from 'three';
 import {Fix_Size} from '../base/base.js';
 import {useThree, useFrame} from '@react-three/fiber';
 

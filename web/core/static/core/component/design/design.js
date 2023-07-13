@@ -2,33 +2,8 @@ import {createElement as c, useRef, useEffect, useState} from 'react';
 import {useS, useSS, gs, ss} from '../../app.js';
 import {Fix_Size} from '../base/base.js';
 import {GizmoHelper} from '@react-three/drei/GizmoHelper';
-//import {GizmoViewport} from '@react-three/drei/GizmoViewport';
 import {GizmoViewport} from '../../three/GizmoViewport.js';
 import {Mover} from '../studio/mover.js';
-//import {Line} from './line.js';
-//import {Group} from './group.js';
-// import {Point} from './point.js';
-// import {Curve} from './curve.js';
-// import {Surface} from './surface.js';
-
-
-// export function Part(){ // check if in design mode
-//     const parts = useS(d=> d.design.n);
-//     return (
-//         c(Part_Group)
-//     )
-// }
-
-// const component = {
-//     // 'group':       Group,
-//     // 'product':     Group,
-//     // 'sketch':      Group,
-//     // 'repeater':    Group,
-//     'point':       Point,
-//     'curve':       Curve,
-//     'mixed_curve': Curve,
-//     'surface':     Surface,
-// };
 
 export function Design(){
     //const obj = useRef();
