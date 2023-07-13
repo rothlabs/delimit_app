@@ -12,7 +12,7 @@ export const Transform = memo(({n})=>{//export function Point({n}){
     const face_camera = useS(d=> d.n[n].c.face_camera); 
     useSub(d=> d.cam_info, cam_info=>{
         if(face_camera){
-            rs(d=>{
+            rs(d=>{ // reckons causing a bunch of rerenders?!
                 if(d.n[n].ax.base_matrix){
                     m1.extractRotation(cam_info.matrix);
                     d.n[n].ax.base_matrix = {n:n, o:0, c:m1.clone()};

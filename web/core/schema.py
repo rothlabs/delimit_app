@@ -19,7 +19,7 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'public', 'top_view', 'side_view', 'front_view', 'auxiliary', 'face_camera', #'inner_view', 'outer_view', 'guide',
     'profile',
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
-    'mixed_curve', 'surface',
+    'mixed_curve', 'surface', 'shape',
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z',
     'name', 'story',
 ]}

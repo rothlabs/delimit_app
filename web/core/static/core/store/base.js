@@ -1,10 +1,12 @@
 import {current} from 'immer';
 import {Vector3, Matrix4} from 'three';
+import * as THREE from 'three';
 import {random_vector, static_url, theme} from '../app.js';
 import lodash from 'lodash';
 //import { Group } from '../component/part/group.js';
 import {Point} from '../component/design/point.js';
 import {Curve} from '../component/design/curve.js';
+import {Shape} from '../component/design/shape.js';
 import {Surface} from '../component/design/surface.js';
 import {Sketch} from '../component/design/sketch.js';
 import {Transform} from '../component/design/transform.js';
@@ -14,7 +16,7 @@ var next_ids = [];
 
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
-    'mixed_curve', 'surface',
+    'mixed_curve', 'surface', 'shape',
 ];
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'side_view', 'front_view', 'face_camera',
@@ -25,6 +27,7 @@ const component = {
     'point':       Point,
     'curve':       Curve,
     'mixed_curve': Curve,
+    'shape':     Shape,
     'surface':     Surface,
     'sketch':      Sketch,
     'transform':   Transform,
@@ -38,6 +41,12 @@ const float_tags    = [model_tags['f'], // rename to number_tags
 ];
 const string_tags = [model_tags['s'], 'name', 'story',]; // rename to text_tags
 const atom_tags   = Object.values(model_tags).slice(1);
+
+const base_texture = new THREE.TextureLoader().load(
+    "https://threejs.org/examples/textures/uv_grid_opengl.jpg"
+);
+base_texture.wrapS = base_texture.wrapT = THREE.RepeatWrapping;
+base_texture.anisotropy = 16;
 
 export const create_base_slice = (set,get)=>({
     model_tags:     model_tags,
@@ -72,6 +81,7 @@ export const create_base_slice = (set,get)=>({
         'face_camera':  'bi-camera-reels',
         'product':      'bi-bag',
         'surface':      'bi-map',
+        'shape':        'bi-pentagon',
         'auxiliary':    'bi-binoculars',
     },
     cast_tags: cast_tags,
@@ -90,6 +100,7 @@ export const create_base_slice = (set,get)=>({
     base_font: static_url+'font/Inter-Medium.ttf',
     point_size: 6,
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
+    base_texture: base_texture,
 
     n: {},
     t: {},

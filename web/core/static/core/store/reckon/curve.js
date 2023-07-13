@@ -42,8 +42,8 @@ export const curve = {
 					const knot = ( i + 1 ) / (pts.length - degree);
 					knots.push( MathUtils.clamp( knot, 0, 1 ) );
 				}
-                d.n[n].c.curve = new NURBSCurve(degree, knots, cp);
-                d.n[n].ax.curve = new NURBSCurve(degree, knots, ax_cp);
+                d.n[n].c.curve = new NURBSCurve(degree, knots, cp);//, 2, knots.length-2);
+                d.n[n].ax.curve = new NURBSCurve(degree, knots, ax_cp);//, 2, knots.length-2);
                 d.n[n].c.curve.getPoints(3); // checking if valid curve 
                 
 

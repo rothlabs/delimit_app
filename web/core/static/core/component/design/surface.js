@@ -7,9 +7,11 @@ import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSid
 import {Fix_Size} from '../base/base.js';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 import {BufferGeometry} from 'three';
+import * as THREE from 'three';
+//import {Edges} from '@react-three/drei/Edges';
 //import {LoopSubdivision} from './three/LoopSubdivision.js';
 //import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
-//import {Edges} from '@react-three/drei/Edges';
+
 
 // function make_surface(res_w, res_h){
 //     return new THREE.PlaneGeometry(1, 1, divisions, frames.length + tailfinSlices -1);
@@ -22,7 +24,7 @@ export const Surface = memo(({n})=>{
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
     //const pts = useS(d=> d.n[n].ax.pts); 
-    const [geo] = useState(new BufferGeometry());
+    const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
     useSub(d=> d.n[n].ax.surface, surface=>{ 
         if(surface){ // obj.current && 
             obj.current.geometry.copy(new ParametricGeometry(surface.get_point, res, res));
@@ -52,7 +54,13 @@ export const Surface = memo(({n})=>{
                     ref: obj,
                     geometry:geo,
                 },
-                    c('meshStandardMaterial', {color:color[1], wireframe:false, toneMapped:true, side:DoubleSide,}), //toneMapped:false, side:BackSide
+                    c('meshStandardMaterial', {   //meshLambertMaterial
+                        //map:map,
+                        color:color[1], 
+                        wireframe:false, 
+                        toneMapped:true, 
+                        side:DoubleSide,
+                    }), //toneMapped:false, side:BackSide
                     //c(Edges, {color: color[2]},),
                 ),
             ),
@@ -60,6 +68,25 @@ export const Surface = memo(({n})=>{
     )
 });
 
+
+// let uniforms = {
+//     border: {value: 0.2}
+//   }
+
+// onBeforeCompile: shader => { // !geo.getAttribute('uv') ? ()=>null : 
+//     shader.uniforms.border = uniforms.border;
+//     shader.fragmentShader = `
+//       uniform float border;
+//       ${shader.fragmentShader}
+//     `.replace(
+//       `void main() {`,
+//       `void main() {
+//         vec2 newUv = abs(uv - 0.5);
+//         if (max(newUv.x, newUv.y) > border) discard;
+//       `
+//     );
+//     console.log(shader.fragmentShader);
+// },
 
 // const zp =  new Vector3(0,0,1);
 // const v1 =  new Vector3();
