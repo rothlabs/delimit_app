@@ -1,6 +1,8 @@
 import {current} from 'immer';
 import {Vector3, Shape, CurvePath, ShapeGeometry} from 'three';
 import {LoopSubdivision} from '../../three/LoopSubdivision.js';
+import {TessellateModifier} from 'three/examples/jsm/modifiers/TessellateModifier';
+import {SimplifyModifier} from 'three/examples/jsm/modifiers/SimplifyModifier';
 import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
 //import Delaunator from 'delaunator';
 
@@ -13,6 +15,8 @@ const v3 = new Vector3();
 //const v4 = new Vector3();
 //const v5 = new Vector3();
 //const v6 = new Vector3();
+
+
 
 const params = {
     split:          true,       // optional, default: true
@@ -35,6 +39,14 @@ export const layer = {
             var geo = new ShapeGeometry(shape, shape_res);
             geo = LoopSubdivision.modify(geo, loop_div, params);
             geo = mergeVertices(geo); // try this in progressive stages of greater tolerance ?!?!?!?!
+            //const tessellate = new TessellateModifier(100, 1);
+            //geo = tessellate.modify(geo);
+            //geo = mergeVertices(geo);
+
+            //const count = Math.floor( geo.attributes.position.count * 0.5 );
+            //const simplify = new SimplifyModifier();
+            //geo = simplify.modify(geo, count);
+
             const pts = [];
             const size = this.layer_sketch_size;
             const pba = geo.getAttribute('position');
@@ -54,7 +66,7 @@ export const layer = {
         }catch(e){
             delete d.n[n].c.geo;
             delete d.n[n].ax.geo;
-            //console.log(e);
+            console.log(e);
         }
     },
 };
