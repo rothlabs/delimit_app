@@ -115,8 +115,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             if(nn.z != undefined) d.n[n].c.xyz.setZ(nn.z);
             d.n[n].c.pos = d.n[n].c.xyz;
             if(d.n[n].c.matrix) d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].c.matrix);
-            d.n[n].ax.pos = d.n[n].c.pos; //new Vector3(nn.x, nn.y, nn.z);
-            if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].ax.pos.clone().applyMatrix4(d.n[n].ax.matrix);
+            if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].ax.matrix);
+            else d.n[n].ax.pos = d.n[n].c.pos;
         }catch{} //console.error(e)
     },
 }});

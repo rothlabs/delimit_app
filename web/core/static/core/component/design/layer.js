@@ -1,25 +1,18 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
-import {useS, useSubS, useSub, gs} from '../../app.js';
+import {useS, useSS, useSub, gs} from '../../app.js';
 import {Pickable} from '../node/base.js';
-import {DoubleSide, ShapeGeometry, BufferGeometry} from 'three';
+import {DoubleSide, BufferGeometry} from 'three';
 
 const res = 100;
 
-export const Shape = memo(({n})=>{ 
+export const Layer = memo(({n})=>{ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
     const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
-    useSub(d=> d.n[n].c.shape, shape=>{ 
-        if(shape) obj.current.geometry.copy(new ShapeGeometry(shape, res));
+    useSub(d=> d.n[n].ax.geo, geo=>{ 
+        if(geo) obj.current.geometry.copy(geo);
     });
-    useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], c=>{ 
-        obj.current.position.set( 0, 0, 0 );
-        obj.current.rotation.set( 0, 0, 0 );
-        obj.current.scale.set( 1, 1, 1 );
-        if(c[0]) obj.current.applyMatrix4(c[0]);
-        if(c[1]) obj.current.applyMatrix4(c[1]);
-    });
-    //console.log('render surface');
+    //console.log('render Layer');
     //const d = gs();
     return(
         //c('group', {},

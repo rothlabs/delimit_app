@@ -1,6 +1,5 @@
 import {current} from 'immer';
-import {Vector3, Vector4, CatmullRomCurve3, Shape, CurvePath, BufferGeometry, ShapeGeometry} from 'three';
-import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
+import {Vector3, Shape, CurvePath} from 'three';
 //import Delaunator from 'delaunator';
 //import { closest } from '../../junk/vertex.js';
 
@@ -19,8 +18,10 @@ export const shape = {
             const bndry  = d.n[n].n.curve.map(n=>({
                 used: false,
                 pts: d.n[n].c.curve.getPoints(this.shape_calc_res),
+                //ax_pts: d.n[n].ax.curve.getPoints(this.shape_calc_res),
             }));
             var pts = [...bndry[0].pts];
+            //var ax_pts = [...bndry[0].ax_pts];
             bndry[0].used = true;
             var i = 1;
             while(i < bndry.length){
@@ -28,28 +29,31 @@ export const shape = {
                     if(pts.at(-1).distanceTo(bndry[i].pts[0]) < this.shape_max_dist) {
                         bndry[i].used = true;
                         pts = pts.concat(bndry[i].pts); 
+                        //ax_pts = ax_pts.concat(bndry[i].ax_pts); 
                         i = 0;
                     }else if(pts.at(-1).distanceTo(bndry[i].pts.at(-1)) < this.shape_max_dist){
                         bndry[i].used = true;
                         pts = pts.concat(bndry[i].pts.reverse());
+                        //ax_pts = ax_pts.concat(bndry[i].ax_pts.reverse());
                         i = 0;
                     }
                 }
                 i++;
             }
-            //if(d.n[n].c.matrix) pts = pts.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix));
             d.n[n].c.shape = new Shape(pts);
-            if(d.n[n].ax.matrix) d.n[n].ax.shape = new Shape(pts.map(p=> p.clone().applyMatrix4(d.n[n].ax.matrix)));
-            else d.n[n].ax.shape = d.n[n].c.shape;
-            //console.log('made shape!!!');
         }catch(e){
-            delete d.n[n].c.surface;
-            delete d.n[n].ax.surface;
+            delete d.n[n].c.shape;
+            delete d.n[n].ax.shape;
             //console.log(e);
         }
     },
 };
 
+//if(d.n[n].c.matrix) pts = pts.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix));
+//d.n[n].ax.shape = new Shape(ax_pts);
+            //if(d.n[n].ax.matrix) d.n[n].ax.shape = new Shape(pts.map(p=> p.clone().applyMatrix4(d.n[n].ax.matrix)));
+            //else d.n[n].ax.shape = d.n[n].c.shape;
+            //console.log('made shape!!!');
 
 //var amt = ((point1.distanceTo(r1[0]) - point1.distanceTo(r1.at(-1))) / endpoint_dist1 + 1) / 2;
                         //var amt = ribs[k].curve.getLengths(this.rib_res)[j] / ribs[k].curve.getLength();

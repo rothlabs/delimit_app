@@ -10,13 +10,14 @@ import {Shape} from '../component/design/shape.js';
 import {Surface} from '../component/design/surface.js';
 import {Sketch} from '../component/design/sketch.js';
 import {Transform} from '../component/design/transform.js';
+import {Layer} from '../component/design/layer.js';
 
 var next_funcs = [];
 var next_ids = [];
 
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
-    'mixed_curve', 'surface', 'shape',
+    'mixed_curve', 'surface', 'shape', 'layer',
 ];
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'side_view', 'front_view', 'face_camera',
@@ -27,10 +28,11 @@ const component = {
     'point':       Point,
     'curve':       Curve,
     'mixed_curve': Curve,
-    'shape':     Shape,
+    'shape':       Shape,
     'surface':     Surface,
     'sketch':      Sketch,
     'transform':   Transform,
+    'layer':       Layer,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
@@ -79,10 +81,11 @@ export const create_base_slice = (set,get)=>({
         'side_view':    'bi-camera-reels',
         'front_view':   'bi-camera-reels',
         'face_camera':  'bi-camera-reels',
+        'auxiliary':    'bi-binoculars',
         'product':      'bi-bag',
         'surface':      'bi-map',
         'shape':        'bi-pentagon',
-        'auxiliary':    'bi-binoculars',
+        'layer':        'bi-layers',
     },
     cast_tags: cast_tags,
     cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
