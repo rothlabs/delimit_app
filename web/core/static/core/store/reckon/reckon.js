@@ -3,7 +3,8 @@ import {current} from 'immer';
 import lodash from 'lodash';
 import {curve} from './curve.js';
 import {surface} from './surface.js';
-import { shape } from './shape.js';
+import {shape} from './shape.js';
+import {layer} from './layer.js';
 
 const zero_vector = new Vector3();
 const v1 = new Vector3();
@@ -17,6 +18,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     ...curve,
     ...shape,
     ...surface,
+    ...layer,
     count: 0,
     up(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
         d.reckon.base(d, n, cause);

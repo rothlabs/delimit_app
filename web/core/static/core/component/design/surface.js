@@ -49,21 +49,28 @@ export const Surface = memo(({n})=>{
             //         )
             //     ),
             // ),
+
+            
             c(Pickable, {n:n}, // points && points.length>1 && 
                 c('mesh', {
                     ref: obj,
                     geometry:geo,
+                    visible: true,
                 },
                     c('meshStandardMaterial', {   //meshLambertMaterial
                         //map:map,
-                        color:color[1], 
+                        color:'cyan',//color[1], 
                         wireframe:false, 
                         toneMapped:true, 
                         side:DoubleSide,
+                        transparent:true, 
+                        opacity:.2
                     }), //toneMapped:false, side:BackSide
                     //c(Edges, {color: color[2]},),
                 ),
             ),
+
+
         )
     )
 });

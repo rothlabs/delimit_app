@@ -1,50 +1,58 @@
 import {current} from 'immer';
-import {Vector3, Shape, CurvePath} from 'three';
+import {Vector3, Shape, CurvePath, ShapeGeometry} from 'three';
+import {LoopSubdivision} from '../../three/LoopSubdivision.js';
+import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
 //import Delaunator from 'delaunator';
-//import { closest } from '../../junk/vertex.js';
 
+const v0 = new Vector3();
 const v1 = new Vector3();
 const v2 = new Vector3();
+const v3 = new Vector3();
+//const v4 = new Vector3();
 //const v3 = new Vector3();
 //const v4 = new Vector3();
 //const v5 = new Vector3();
 //const v6 = new Vector3();
 
-export const shape = {
-    shape_calc_res: 200,
-    shape_max_dist: 1,
-    shape(d,n,cause=[]){ 
-        try{
-            const bndry  = d.n[n].n.curve.map(n=>({
-                used: false,
-                pts: d.n[n].c.curve.getSpacedPoints(this.shape_calc_res),
-                //ax_pts: d.n[n].ax.curve.getPoints(this.shape_calc_res),
-            }));
-            var pts = [...bndry[0].pts];
-            //var ax_pts = [...bndry[0].ax_pts];
-            bndry[0].used = true;
-            var i = 1;
-            while(i < bndry.length){
-                if(!bndry[i].used){
-                    if(pts.at(-1).distanceTo(bndry[i].pts[0]) < this.shape_max_dist) {
-                        bndry[i].used = true;
-                        pts = pts.concat(bndry[i].pts); 
-                        //ax_pts = ax_pts.concat(bndry[i].ax_pts); 
-                        i = 0;
-                    }else if(pts.at(-1).distanceTo(bndry[i].pts.at(-1)) < this.shape_max_dist){
-                        bndry[i].used = true;
-                        pts = pts.concat(bndry[i].pts.reverse());
-                        //ax_pts = ax_pts.concat(bndry[i].ax_pts.reverse());
-                        i = 0;
-                    }
-                }
-                i++;
+const params = {
+    split:          true,       // optional, default: true
+    uvSmooth:       false,      // optional, default: false
+    preserveEdges:  false,      // optional, default: false
+    flatOnly:       true,      // optional, default: false
+    maxTriangles:   Infinity,   // optional, default: Infinity
+};
+
+export const layer = {
+    layer_shape_res: 200,
+    layer_div: 3,
+    layer_sketch_size: 400,
+    layer(d,n,cause=[]){ 
+        try{ 
+            const shape  = d.n[d.n[n].n.shape[0]].c.shape;
+            const surface  = d.n[d.n[n].n.surface[0]].c.surface;
+            var geo = new ShapeGeometry(shape, this.layer_shape_res);
+            geo = LoopSubdivision.modify(geo, this.layer_div, params);
+            geo = mergeVertices(geo); // try this in progressive stages of greater tolerance ?!?!?!?!
+            const pts = [];
+            const size = this.layer_sketch_size;
+            const pba = geo.getAttribute('position');
+            for(let i=0; i<pba.count; i++){
+                v0.fromBufferAttribute(pba,i);
+                v0.set(1-(v0.x+size/2)/size, (v0.y+size/2)/size, 0);
+                surface.get_point(v0.y,      v0.x,      v1);
+                surface.get_point(v0.y+.005, v0.x,      v2);
+                surface.get_point(v0.y,      v0.x+.005, v3);
+                pts.push(v1.clone().add(v2.sub(v1).cross(v3.sub(v1)).normalize()));
             }
-            d.n[n].c.shape = new Shape(pts);
+            geo.setFromPoints(pts);
+            geo.computeVertexNormals();
+            d.n[n].c.geo = geo;
+            d.n[n].ax.geo = geo;
+            console.log('made layer!');
         }catch(e){
-            delete d.n[n].c.shape;
-            //delete d.n[n].ax.shape;
-            //console.log(e);
+            delete d.n[n].c.geo;
+            delete d.n[n].ax.geo;
+            console.log(e);
         }
     },
 };
