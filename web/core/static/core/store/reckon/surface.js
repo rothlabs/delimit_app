@@ -12,32 +12,34 @@ const v2 = new Vector3();
 //const v6 = new Vector3();
 
 export const surface = {
-    rib_res: 40,
-    guide_res: 60,
-    boundary_res: 60,
-    //sub_res: 30,
-    sub_div: 12,
-    //tri_res: 80,
-    //max_dist: 40,
-    //res_w: 100,//d.reckon.curve.res,
-    //res_h: 10,
+    surface_rib_res: 40,
+    surface_guide_res: 60, // rail_res
+    surface_loops: 12,
     surface(d,n,cause=[]){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         try{//if(cause.includes('curve') || ['make.edge', 'delete.edge'].includes(cause)){ 
 
-            var pts = [];
+            const pts = [];
 
-            const ribs = d.n[n].n.mixed_curve.map(n=>{
-                const points = d.n[n].c.curve.getPoints(this.rib_res-1); //getSpacedPoints
+            const all_ribs = d.n[n].n.mixed_curve.map(n=>{
+                const points = d.n[n].c.curve.getPoints(this.surface_rib_res-1); //getSpacedPoints
                 if(points[0].z > points.at(-1).z) points.reverse();
+                const tmp_pts = d.n[n].c.curve.getPoints(9);
                 return {
                     pts: points,
-                    y: d.n[n].c.curve.getPoints(9).reduce((a,b)=>a+b.y,0)/10, 
+                    x: tmp_pts.reduce((a,b)=>a+b.x,0)/10,
+                    y: tmp_pts.reduce((a,b)=>a+b.y,0)/10, 
                 }
-            }).sort((a,b)=>a.y-b.y);
+            }).sort((a,b)=> a.x-b.x);
+            const split_idx = Math.ceil(all_ribs.length/2);
+            const io_ribs = [
+                all_ribs.slice(0,split_idx).sort((a,b)=> a.y-b.y),
+                all_ribs.slice(split_idx).sort((a,b)=> a.y-b.y)
+            ];
+
 
             if(d.n[n].n.curve?.length > 1){
                 const guide = d.n[n].n.curve.map(n=>{//.filter(n=> d.n[n].c.guide).map(n=>{
-                    const pts = d.n[n].c.curve.getPoints(this.guide_res);
+                    const pts = d.n[n].c.curve.getPoints(this.surface_guide_res);
                     if(pts[0].y > pts.at(-1).y) pts.reverse();
                     return {
                         pts: pts,
@@ -47,54 +49,66 @@ export const surface = {
                 }).sort((a,b)=>a.z-b.z);
                 var idx1 = 0;
                 var idx2 = 0;
+                const ribs = io_ribs[0];
                 for(let i=1; i<ribs.length; i++){
-                    const sub_div = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (this.sub_div+1));
+                    const surface_loops = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (this.surface_loops+1));
                     var closest = guide[0].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts[0])-b.distanceTo(ribs[i].pts[0]))[0];
                     var idx = guide[0].pts.indexOf(closest);
-                    //pts = pts.concat(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.sub_div+1));
+                    //pts = pts.concat(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.surface_loops+1));
                     //console.log('before error', closest, idx);
-                    guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getPoints(sub_div)); 
+                    guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getPoints(surface_loops)); 
                     idx1 = idx;
                     closest = guide[1].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts.at(-1))-b.distanceTo(ribs[i].pts.at(-1)))[0];
                     idx = guide[1].pts.indexOf(closest);
-                    //pts = pts.concat(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.sub_div+1));
-                    guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getPoints(sub_div));
+                    //pts = pts.concat(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.surface_loops+1));
+                    guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getPoints(surface_loops));
                     idx2 = idx;
                 }
-                // make extra ribs in between existing ribs
-                pts.push(ribs[0].pts);
-                for(let k=0; k<ribs.length-1; k++){
-                    var r1 = ribs[k].pts;
-                    var r2 = ribs[k+1].pts;
-                    var g1 = guide[0].sub[k];
-                    var g2 = guide[1].sub[k];
-                    for(let i=1; i<g1.length-1; i++){
-                        var a1 = v1.set(0,r1[0].y,r1[0].z).distanceTo(g1[i]) / v1.set(0,r1[0].y,r1[0].z).distanceTo(v2.set(0,r2[0].y,r2[0].z));
-                        var a2 = v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(g2[i]) / v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(v2.set(0,r2.at(-1).y,r2.at(-1).z));
-                        const endpoint1 = new Vector3(r1[0].x*(1-a1)+r2[0].x*a1, g1[i].y, g1[i].z); 
-                        const endpoint2 = new Vector3(r1.at(-1).x*(1-a2)+r2.at(-1).x*a2, g2[i].y, g2[i].z); 
-                        const delta1 = endpoint1.clone().sub(r1[0]);
-                        const delta2 = endpoint2.clone().sub(r1.at(-1));
-                        const delta3 = endpoint1.clone().sub(r2[0]); // don't need to clone here ?!?!?!?
-                        const delta4 = endpoint2.clone().sub(r2.at(-1)); // don't need to clone here ?!?!?!
-                        const new_rib = []
-                        for (let j=0; j < r1.length; j++) { // change to rib_res ?!?!?!
-                            var amt = j/r1.length;
-                            var point1 = r1[j].clone();
-                            var np1 = point1.add(delta1.clone().multiplyScalar(1-amt)).add(delta2.clone().multiplyScalar(amt));
-                            var point2 = r2[j].clone();
-                            var np2 = point2.add(delta3.clone().multiplyScalar(1-amt)).add(delta4.clone().multiplyScalar(amt));
-                            amt = i/(g1.length-1);
-                            var np  = np1.multiplyScalar(1-amt).add(np2.multiplyScalar(amt));
-                            new_rib.push(np);
+                var io_pts = [[],[]];
+                io_ribs.forEach((ribs,io)=>{
+                    // make extra ribs in between existing ribs
+                    //if(io==0) io_pts[io].push(ribs[0].pts); else io_pts[io].push(ribs[0].pts.slice().reverse());
+                    io_pts[io].push(ribs[0].pts);
+                    for(let k=0; k<ribs.length-1; k++){
+                        var r1 = ribs[k].pts;
+                        var r2 = ribs[k+1].pts;
+                        var g1 = guide[0].sub[k];
+                        var g2 = guide[1].sub[k];
+                        for(let i=1; i<g1.length-1; i++){
+                            var a1 = v1.set(0,r1[0].y,r1[0].z).distanceTo(g1[i]) / v1.set(0,r1[0].y,r1[0].z).distanceTo(v2.set(0,r2[0].y,r2[0].z));
+                            var a2 = v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(g2[i]) / v1.set(0,r1.at(-1).y,r1.at(-1).z).distanceTo(v2.set(0,r2.at(-1).y,r2.at(-1).z));
+                            const endpoint1 = new Vector3(r1[0].x*(1-a1)+r2[0].x*a1, g1[i].y, g1[i].z); 
+                            const endpoint2 = new Vector3(r1.at(-1).x*(1-a2)+r2.at(-1).x*a2, g2[i].y, g2[i].z); 
+                            const delta1 = endpoint1.clone().sub(r1[0]);
+                            const delta2 = endpoint2.clone().sub(r1.at(-1));
+                            const delta3 = endpoint1.clone().sub(r2[0]); // don't need to clone here ?!?!?!?
+                            const delta4 = endpoint2.clone().sub(r2.at(-1)); // don't need to clone here ?!?!?!
+                            const new_rib = []
+                            for (let j=0; j < r1.length; j++) { // change to surface_rib_res ?!?!?!
+                                var amt = j/r1.length;
+                                var point1 = r1[j].clone();
+                                var np1 = point1.add(delta1.clone().multiplyScalar(1-amt)).add(delta2.clone().multiplyScalar(amt));
+                                var point2 = r2[j].clone();
+                                var np2 = point2.add(delta3.clone().multiplyScalar(1-amt)).add(delta4.clone().multiplyScalar(amt));
+                                amt = i/(g1.length-1);
+                                var np  = np1.multiplyScalar(1-amt).add(np2.multiplyScalar(amt));
+                                new_rib.push(np);
+                            }
+                            //pts.push(new_rib);
+                            //if(io==0) io_pts[io].push(new_rib); else io_pts[io].push(new_rib.reverse());
+                            io_pts[io].push(new_rib);
                         }
-                        pts.push(new_rib);
+                        //pts.push(r2);
+                        //if(io==0) io_pts[io].push(r2); else io_pts[io].push(r2.slice().reverse());
+                        io_pts[io].push(r2);
                     }
-                    pts.push(r2);
+                });
+                for(let i=0; i < io_pts[0].length; i++){
+                    pts.push([...io_pts[1][i], ...io_pts[0][i].reverse()]);
                 }
             }else{
-                pts = ribs.map(rib=> rib.pts);
-                if(pts.length < 3) pts.push(ribs.at(-1).pts);
+                pts = all_ribs.map(rib=> rib.pts);
+                if(pts.length < 3) pts.push(all_ribs.at(-1).pts);
             }
 
             var degree1 = 2;
@@ -151,9 +165,9 @@ export const surface = {
 
 
 //var amt = ((point1.distanceTo(r1[0]) - point1.distanceTo(r1.at(-1))) / endpoint_dist1 + 1) / 2;
-                        //var amt = ribs[k].curve.getLengths(this.rib_res)[j] / ribs[k].curve.getLength();
+                        //var amt = ribs[k].curve.getLengths(this.surface_rib_res)[j] / ribs[k].curve.getLength();
                         //amt = ((point2.distanceTo(r2[0]) - point2.distanceTo(r2.at(-1))) / endpoint_dist2 + 1) / 2;
-                        //var amt = ribs[k+1].curve.getLengths(this.rib_res)[j] / ribs[k+1].curve.getLength();
+                        //var amt = ribs[k+1].curve.getLengths(this.surface_rib_res)[j] / ribs[k+1].curve.getLength();
 
 
 

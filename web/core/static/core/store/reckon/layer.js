@@ -22,16 +22,18 @@ const params = {
     maxTriangles:   Infinity,   // optional, default: Infinity
 };
 
-export const layer = {
+export const layer = { 
     layer_shape_res: 200,
-    layer_div: 3,
+    layer_loop_div: 3,
     layer_sketch_size: 400,
     layer(d,n,cause=[]){ 
         try{ 
+            const shape_res = (d.design.res=='low' ? 100 : this.layer_shape_res);
+            const loop_div = (d.design.res=='low' ? 2 : this.layer_loop_div);
             const shape  = d.n[d.n[n].n.shape[0]].c.shape;
             const surface  = d.n[d.n[n].n.surface[0]].c.surface;
-            var geo = new ShapeGeometry(shape, this.layer_shape_res);
-            geo = LoopSubdivision.modify(geo, this.layer_div, params);
+            var geo = new ShapeGeometry(shape, shape_res);
+            geo = LoopSubdivision.modify(geo, loop_div, params);
             geo = mergeVertices(geo); // try this in progressive stages of greater tolerance ?!?!?!?!
             const pts = [];
             const size = this.layer_sketch_size;
@@ -52,7 +54,7 @@ export const layer = {
         }catch(e){
             delete d.n[n].c.geo;
             delete d.n[n].ax.geo;
-            console.log(e);
+            //console.log(e);
         }
     },
 };

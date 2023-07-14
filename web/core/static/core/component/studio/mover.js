@@ -42,6 +42,7 @@ export function Mover(){
             //autoTransform: false,
             //matrix: mtx,
             onDragStart:e=> fs(d=>{ 
+                d.design.res = 'low';
                 d.design.pin_move(d);
                 d.design.moving = true;
                 d.studio.gizmo_active = true;
@@ -52,8 +53,9 @@ export function Mover(){
                 sf(d=> d.design.move(d,e));
             },
             onDragEnd:()=> mf(d=>{ if(d){
-                    d.design.move(d, matrix); 
-                    d.design.moving = false;
+                d.design.res = 'high';
+                d.design.move(d, matrix); 
+                d.design.moving = false;
             }}),
         })
     )

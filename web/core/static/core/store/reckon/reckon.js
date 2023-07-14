@@ -31,6 +31,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
         }
         d.reckon.base_transform(d,n,cause);
+        // d.reckon[d.n[n].t].node(d,n,cause) (d.reckon.surface.node())
         if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
         d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         d.next('design.update'); 
