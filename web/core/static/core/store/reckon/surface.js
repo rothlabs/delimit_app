@@ -126,18 +126,25 @@ export const surface = {
             const surface = new NURBSSurface(degree1, degree2, knots1, knots2, pts);
             surface.get_point = (u, v, target)=>{
                 surface.getPoint(u, v, target);
-                // override target point here
                 return target;
             }
             d.n[n].c.surface = surface;
             d.n[n].c.pts = pts;
-            d.n[n].ax.surface = surface;
-            d.n[n].ax.pts = pts;
+            if(d.n[n].ax.matrix){
+                const ax_surface = new NURBSSurface(degree1, degree2, knots1, knots2, 
+                    pts.map(p=> p.map(p=> p.clone().applyMatrix4(d.n[n].ax.matrix)))
+                );
+                ax_surface.get_point = (u, v, target)=>{
+                    ax_surface.getPoint(u, v, target);
+                    return target;
+                }  
+                d.n[n].ax.surface = ax_surface;
+            }else{ d.n[n].ax.surface = d.n[n].c.surface; }
             
         }catch(e){
             delete d.n[n].c.surface;
             delete d.n[n].ax.surface;
-            //console.log(e);
+            console.log(e);
         }
     },
 };

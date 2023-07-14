@@ -15,7 +15,7 @@ export const Shape = memo(({n})=>{
         }
     });
     //console.log('render surface');
-    const d = gs();
+    //const d = gs();
     return(
         //c('group', {},
             c(Pickable, {n:n}, 
@@ -24,7 +24,7 @@ export const Shape = memo(({n})=>{
                     geometry:geo,
                 },
                     c('meshStandardMaterial', {   
-                        map: d.base_texture,
+                        //map: d.base_texture,
                         color: color[1], 
                         wireframe: false, 
                         toneMapped: true, 

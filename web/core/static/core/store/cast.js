@@ -33,7 +33,7 @@ export const create_cast_slice=(set,get)=>({cast:{
                 if(d.cast_map[t]) {
                     if(t=='base_matrix'){
                         cc = {...cc, o:cc.o+1};
-                        if(cp.c=='c') c.base_matrix = cc;
+                        if(cp.t=='c') c.base_matrix = cc;
                         else          ax.base_matrix = cc;
                         d.reckon.matrix(d, n, cp.t, d.add_nc,  cc);
                         change.matrix = true;

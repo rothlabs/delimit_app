@@ -14,7 +14,7 @@ const v2 = new Vector3();
 export const shape = {
     shape_calc_res: 100,
     shape_max_dist: 1,
-    surface(d,n,cause=[]){ 
+    shape(d,n,cause=[]){ 
         try{
             const bndry  = d.n[n].n.curve.map(n=>({
                 used: false,
@@ -37,18 +37,15 @@ export const shape = {
                 }
                 i++;
             }
-            if(d.n[n].c.matrix) pts = pts.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix));
+            //if(d.n[n].c.matrix) pts = pts.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix));
             d.n[n].c.shape = new Shape(pts);
-            d.n[n].ax.shape = d.n[n].c.shape;
-            if(d.n[n].ax.matrix){
-                pts = pts.map(p=> p.clone().applyMatrix4(d.n[n].ax.matrix));
-                d.n[n].ax.shape = new Shape(pts);
-            }
-            console.log('made shape!!!');
+            if(d.n[n].ax.matrix) d.n[n].ax.shape = new Shape(pts.map(p=> p.clone().applyMatrix4(d.n[n].ax.matrix)));
+            else d.n[n].ax.shape = d.n[n].c.shape;
+            //console.log('made shape!!!');
         }catch(e){
             delete d.n[n].c.surface;
             delete d.n[n].ax.surface;
-            console.log(e);
+            //console.log(e);
         }
     },
 };
