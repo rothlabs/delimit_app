@@ -2,7 +2,7 @@
 
 // https://github.com/jaydenseric/apollo-upload-client
 
-import {ApolloLink, Observable} from '@apollo/client';//'apollo';
+import {ApolloLink, Observable} from './ApolloClient.js';//'apollo';
 import {
     createSignalIfSupported,
     fallbackHttpConfig,

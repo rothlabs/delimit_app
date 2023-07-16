@@ -58,15 +58,24 @@ export const create_design_slice = (set,get)=>({design:{
     insert_point(d, r, pos){
         var o = undefined;
         if(d.n[r].n.point && d.n[r].n.point.length > 1){
-            const test_pos = new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].ax.pos)).getPoints(100); //d.n[r].c.pts.map(p=> p.pos)
+            const test_pos = new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].ax.pos)).getPoints(100); //spaced points ?!?!?!?!   //d.n[r].c.pts.map(p=> p.pos)
             const tests = [];
             var o = 0;
             var prev_dist = 0;
             for (var i = 0; i < test_pos.length; i++) {
                 const dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].ax.pos); //d.n[r].c.pts[o].pos
                 if(dist > prev_dist){
+                    for (var k = o+1; k < d.n[r].n.point.length; k++) {
+                        prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].ax.pos);
                     o++;
                     prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].ax.pos); //d.n[r].c.pts[o].pos
+                    for (var k = i+1; i=k < test_pos.length; k++) {
+                        if(prev_dist  test_pos[k].distanceTo(d.n[d.n[r].n.point[o]].ax.pos)){
+                            i = k;
+                            break;
+                        }
+                        tests.push({o:o, dist:test_pos[k].distanceTo(pos)});
+                    }
                 }else{ prev_dist = dist }
                 tests.push({o:o, dist:test_pos[i].distanceTo(pos)});
             }

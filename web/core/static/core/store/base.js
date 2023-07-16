@@ -104,6 +104,7 @@ export const create_base_slice = (set,get)=>({
     point_size: 6,
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
     base_texture: base_texture,
+    rapid_res: 0.4,
 
     n: {},
     t: {},

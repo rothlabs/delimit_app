@@ -1,5 +1,6 @@
-import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql} from '@apollo/client'; // apollo // gql  createHttpLink
-import {setContext} from '@apollo/client/link/context';//'aclc';
+//import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql, createHttpLink} from '@apollo/client'; // apollo // gql  createHttpLink
+import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql, createHttpLink} from './apollo/ApolloClient.js';
+import {setContext} from './apollo/ApolloContext.js';//'@apollo/client/link/context';//'aclc';
 //import {createUploadLink} from 'auc';
 import Cookie from "js-cookie";
 import {createElement as r, StrictMode, useEffect, useState, useLayoutEffect} from 'react';
@@ -410,16 +411,19 @@ export function readable(text){
 }
 
 
-import {createUploadLink} from './apollo/upload.js';
+//import {createUploadLink} from './apollo/upload.js';
 const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
     'x-csrftoken': Cookie.get('csrftoken'),
 }}});
-const termination_link = createUploadLink({
+const termination_link = createHttpLink({
     uri: 'https://delimit.art/gql',
-    headers: {
-       'Apollo-Require-Preflight': 'true',
-    },
 });
+// const termination_link = createUploadLink({
+//     uri: 'https://delimit.art/gql',
+//     headers: {
+//        'Apollo-Require-Preflight': 'true',
+//     },
+// });
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},

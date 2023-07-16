@@ -1,6 +1,6 @@
 import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, Row, InputGroup} from 'react-bootstrap';
-import {makeVar, useReactiveVar} from '@apollo/client';
+import {makeVar, useReactiveVar} from '../../apollo/ApolloClient.js';//'@apollo/client';
 import {Logo} from './logo.js';
 import {gs, ss, useS, use_mutation} from '../../app.js';
 import {useNavigate} from 'react-router-dom';
