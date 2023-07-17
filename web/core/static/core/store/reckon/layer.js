@@ -132,7 +132,7 @@ export const layer = {
             geo.attributes.position.needsUpdate = true;
             geo.index.needsUpdate = true;
             
-            console.log('made layer!');
+            console.log('reckon layer!');
         }catch(e){
             delete d.n[n].c.geo;
             delete d.n[n].ax.geo;

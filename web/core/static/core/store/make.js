@@ -73,22 +73,19 @@ export const create_make_slice = (set,get)=>({make:{
         //}
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
 
-        // if(a.r && !d.cast_end[d.n[a.r].t]){  // just reckon a.r directly ?!?!?!?!?! 
-        //     d.cast_tags.forEach(tt=>{
-        //         if(!d.cast_shallow_map[tt]){ // must use matrix list !?!?!?!?!?!
-        //             if(tt=='base_matrix'){
-        //                 //d.reckon.matrix(d, n, 'c', d.add_nc, d.n[a.r].c[tt]);
-        //             }else if(tt=='base_invert'){
+        if(a.r && !d.cast_end[d.n[a.r].t]){
+            const content_packs = [{c:d.n[a.r].c,t:'c'},{c:d.n[a.r].ax,t:'ax'}];
+            content_packs.forEach(cp=>{
+                Object.entries(cp.c).forEach(([t,cc])=>{
+                    if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
+                        d.n[n][cp.t][t] = cc; 
+                        if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
+                    }
+                });
+            });
+        }
 
-        //             }else{
-        //                 if(d.n[a.r].c[tt]) d.n[n].c[tt] = d.n[a.r].c[tt];
-        //                 if(d.n[a.r].ax[tt]) d.n[n].ax[tt] = d.n[a.r].ax[tt];
-        //             }
-        //         }
-        //     });
-        // }
-
-        d.next('reckon.up', n, ['make.node']); // d.reckon.up(d,n,'make.node'); // 
+        //d.next('reckon.up', n, ['make.node']); will this ever be needed ?!?!?!?!
         d.next('graph.update'); // check if in graph_tags 
         return n;
     },
@@ -135,6 +132,23 @@ export const create_make_slice = (set,get)=>({make:{
     // },
 }});
 
+
+
+// if(a.r && !d.cast_end[d.n[a.r].t]){  // just reckon a.r directly ?!?!?!?!?! 
+        //     d.cast_tags.forEach(tt=>{
+        //         if(!d.cast_shallow_map[tt]){ // must use matrix list !?!?!?!?!?!
+        //             if(tt=='base_matrix'){
+        //                 cc = {...cc, o:cc.o+1};
+        //                 if(cp.t=='c') c.base_matrix = cc;
+        //                 else          ax.base_matrix = cc;
+        //                 d.reckon.matrix(d, n, cp.t, d.add_nc,  cc);
+        //             }else{
+        //                 if(d.n[a.r].c[tt]) d.n[n].c[tt] = d.n[a.r].c[tt];
+        //                 if(d.n[a.r].ax[tt]) d.n[n].ax[tt] = d.n[a.r].ax[tt];
+        //             }
+        //         }
+        //     });
+        // }
 
             // if(d.n[a.r].c.matrix){
             //     d.n[n].c.matrix = d.n[a.r].c.matrix;

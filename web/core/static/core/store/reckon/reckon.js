@@ -60,7 +60,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             if(func == d.pop_nc) return false;
             d.n[n][ct].matrix_list = [];
         }
-        const result = func(d.n[n][ct].matrix_list, matrix);
+        const result = false;
+        if(func) func(d.n[n][ct].matrix_list, matrix);
         if(d.n[n][ct].matrix_list.length < 1){
             delete d.n[n][ct].matrix_list;
             delete d.n[n][ct].matrix;
@@ -75,7 +76,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //try{
         if(cause.length < 1) return;
         const sc = cause[0].split('__'); //'make.node',
-        if(['make.edge','delete.edge','auxiliary'].includes(cause[0]) || (sc[0]=='decimal' && sc[1]==n)){ //'make.node',
+        if(['auxiliary'].includes(cause[0]) || (sc[0]=='decimal' && sc[1]==n)){ //'make.edge', 'delete.edge'
             const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
             if(d.n[n].c.transform == true){
                 d.clear.down(d, n, {base_matrix:d.n[n].c.base_matrix}, {base_matrix:d.n[n].ax.base_matrix});
@@ -104,7 +105,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 //d.n[n][c_ax].pos = new Vector3().setFromMatrixPosition(d.n[n].ax.matrix);
                 d.n[n].c.transform = true;
                 d.cast.down(d,n,'base_matrix'); 
-                //console.log('reckon transform!!!!');
+                console.log('reckon transform!!!!');
             }
         }
         //}}catch{} //}catch(e){console.log(e)}
@@ -120,6 +121,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             if(d.n[n].c.matrix) d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].c.matrix);
             if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].ax.matrix);
             else d.n[n].ax.pos = d.n[n].c.pos;
+            console.log('reckon point!!!!');
         }catch{} //console.error(e)
     },
 }});

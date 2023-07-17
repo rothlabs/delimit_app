@@ -37,9 +37,6 @@ export const create_cast_slice=(set,get)=>({cast:{
                         else          ax.base_matrix = cc;
                         d.reckon.matrix(d, n, cp.t, d.add_nc,  cc);
                         change.matrix = true;
-                    // }else if(t=='base_invert'){
-                    //     d.reckon.invert(d, n, c.t, d.add_nc, cc);
-                    //     change.invert = true;
                     }else{
                         if(d.n[n][cp.t][t] != cc){ // !==
                             change[t] = true;
