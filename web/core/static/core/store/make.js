@@ -35,8 +35,23 @@ export const create_make_slice = (set,get)=>({make:{
                             d.make.edge(d, r, n, {src:a.src}); //, e.r 
                         });
                     }
+
+
+                    if(!d.cast_end[d.n[r].t]){
+                        const content_packs = [{c:d.n[r].c,t:'c'},{c:d.n[r].ax,t:'ax'}];
+                        content_packs.forEach(cp=>{
+                            Object.entries(cp.c).forEach(([t,cc])=>{
+                                if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
+                                    d.n[n][cp.t][t] = cc; 
+                                    if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
+                                }
+                            });
+                        });
+                    }
+
+
                     d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
-                    d.next('reckon.up', r, ['make.edge']); 
+                    d.next('reckon.up', r, ['make.edge', t]); 
                     d.next('graph.update');
                     d.next('pick.update');
                     d.next('design.show');
@@ -73,17 +88,17 @@ export const create_make_slice = (set,get)=>({make:{
         //}
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
 
-        if(a.r && !d.cast_end[d.n[a.r].t]){
-            const content_packs = [{c:d.n[a.r].c,t:'c'},{c:d.n[a.r].ax,t:'ax'}];
-            content_packs.forEach(cp=>{
-                Object.entries(cp.c).forEach(([t,cc])=>{
-                    if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
-                        d.n[n][cp.t][t] = cc; 
-                        if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
-                    }
-                });
-            });
-        }
+        // // if(d.node.be(d,a.r) && !d.cast_end[d.n[a.r].t]){
+        // //     const content_packs = [{c:d.n[a.r].c,t:'c'},{c:d.n[a.r].ax,t:'ax'}];
+        // //     content_packs.forEach(cp=>{
+        // //         Object.entries(cp.c).forEach(([t,cc])=>{
+        // //             if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
+        // //                 d.n[n][cp.t][t] = cc; 
+        // //                 if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
+        // //             }
+        // //         });
+        // //     });
+        // // }
 
         //d.next('reckon.up', n, ['make.node']); will this ever be needed ?!?!?!?!
         d.next('graph.update'); // check if in graph_tags 

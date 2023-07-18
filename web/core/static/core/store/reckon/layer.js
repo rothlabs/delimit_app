@@ -18,25 +18,25 @@ const origin = new Vector3();
 const direction = new Vector3(0,0,-200);
 const raycaster = new Raycaster();
 const material = new MeshBasicMaterial();
-const offsets = [{x:0,y:0},{x:-1,y:0},{x:1,y:0},{x:0,y:-1},{x:0,y:1}];
+const offsets = [{x:0,y:0},{x:1,y:0},{x:0,y:1},{x:-1,y:0},{x:0,y:-1}]; // {x:0,y:-1} //{x:-1,y:0}
 const sketch_size = 400;
-const grid_res = 150;
+const res = 140;
 //const plane = new PlaneGeometry(sketch_size, sketch_size, grid_res-1, grid_res-1);
 
 export const layer = { 
-    layer_shape_res: 800,
+    shape_res: 800,
     //layer_loop_div: 3,
-    layer_sketch_size: sketch_size,
-    layer_res: grid_res,
+    sketch_size: sketch_size,
+    res: res,
     //plane: new PlaneGeometry(sketch_size, sketch_size, grid_res*.5-1, grid_res*.5-1),
-    layer(d,n,cause=[]){ 
-        try{
+    node(d,n,cause=[]){ 
+        try{if(cause[0]!='casted_matrix'){ 
             //if(d.studio.mode == 'graph') throw new Error('In graph mode.');
 
-            //const shape_res = (d.design.res=='low' ? 100 : this.layer_shape_res);
+            //const shape_res = (d.design.res=='low' ? 100 : this.shape_res);
             //const loop_div = (d.design.res=='low' ? 2 : this.layer_loop_div);
-            const shape_res = Math.round(d.design.moving ? this.layer_shape_res * d.rapid_res : this.layer_shape_res);
-            const c_pts = d.n[d.n[n].n.shape[0]].c.shape.getSpacedPoints(shape_res);
+            const shape_res = Math.round(d.design.moving ? this.shape_res * d.rapid_res : this.shape_res);
+            const c_pts = d.n[d.n[n].n.shape[0]].c.shape.getSpacedPoints(shape_res); //getSpacedPoints
             
 
             const surface  = d.n[d.n[n].n.surface[0]].c.surface;
@@ -45,8 +45,8 @@ export const layer = {
                 material
             );
 
-            const s = this.layer_sketch_size;
-            const r = Math.round(d.design.moving ? this.layer_res * d.rapid_res : this.layer_res);
+            const s = this.sketch_size;
+            const r = Math.round(d.design.moving ? this.res * d.rapid_res : this.res);
             var geo = d.n[n].c.geo;
             //if(geo && d.design.moving){
             //    let pos = geo.attributes.position.array;
@@ -54,7 +54,7 @@ export const layer = {
             //}else{
                 geo = new PlaneGeometry(s, s, r-1, r-1);
                 d.n[n].c.geo = geo;
-                d.n[n].ax.geo = geo;
+                //d.n[n].ax.geo = geo;
             //}
 
 
@@ -65,9 +65,11 @@ export const layer = {
             c_pts.forEach((p, ci)=>{
                 offsets.forEach(offset=>{ // first run around with center only and then try offsets to catch stragelers if !epts[i] ?!?!?!?!
                     let i = r*Math.round(r*(-p.y+s/2)/s + offset.y) + Math.round(r*(p.x+s/2)/s + offset.x);
-                    pts[i] = 1;
-                    pos[i*3  ] = p.x;
-                    pos[i*3+1] = p.y;
+                    //if(!pts[i]){
+                        pts[i] = 1;
+                        pos[i*3  ] = p.x;
+                        pos[i*3+1] = p.y;
+                    //}
                 });
             });
             for(let y=0; y < r; y++){
@@ -132,11 +134,11 @@ export const layer = {
             geo.attributes.position.needsUpdate = true;
             geo.index.needsUpdate = true;
             
-            console.log('reckon layer!');
-        }catch(e){
+            //console.log('reckon layer!');
+        }}catch(e){
             delete d.n[n].c.geo;
-            delete d.n[n].ax.geo;
-            console.log(e);
+            //delete d.n[n].ax.geo;
+            //console.log(e);
         }
     },
 };
@@ -147,7 +149,7 @@ export const layer = {
 
             // //const idx = [];
             // const index = geo.index.array;
-            // const size = this.layer_sketch_size;
+            // const size = this.sketch_size;
             // const pba = geo.getAttribute('position');//.array;
             // for(let i=0; i<geo.index.count-3; i+=3){
             //     v0.fromBufferAttribute(pba, index[i]);
@@ -194,7 +196,7 @@ export const layer = {
             //geo.setIndex(idx);
 
 
-//const plane = new PlaneGeometry(this.layer_sketch_size, this.layer_sketch_size, this.layer_res-1, this.layer_res-1);
+//const plane = new PlaneGeometry(this.sketch_size, this.sketch_size, this.res-1, this.res-1);
 
 
 // for(let y=0; y < r-1; y++){
@@ -213,7 +215,7 @@ export const layer = {
 
 
             // const pts = [];
-            // const size = this.layer_sketch_size;
+            // const size = this.sketch_size;
             // const pba = geo.getAttribute('position');
             // for(let i=0; i<pba.count; i++){
             //     v0.fromBufferAttribute(pba,i);

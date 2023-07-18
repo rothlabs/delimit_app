@@ -26,7 +26,7 @@ export const create_design_slice = (set,get)=>({design:{
         if(v1.dot(v2) > 0) v2.negate(); 
         const p = e.intersections[0].point.add(v2.multiplyScalar(d.point_size / d.camera.zoom));
         return {
-            n: e.intersections[0].object.parent?.parent?.__r3f.memoizedProps.pickable,
+            n: e.intersections[0].object.parent?.parent?.parent?.__r3f.memoizedProps.pickable,
             pos: v3.set(d.rnd(p.x), d.rnd(p.y), d.rnd(p.z)),
         }; 
     },

@@ -9,7 +9,7 @@ const res = 100;
 export const Layer = memo(({n})=>{ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
-    const geo = useS(d=> d.n[n].ax.geo); 
+    const geo = useS(d=> d.n[n].c.geo); 
     //const ray_pts = useS(d=> d.n[n].c.ray_pts); 
     // const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
 

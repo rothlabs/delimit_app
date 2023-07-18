@@ -26,7 +26,7 @@ export const create_cast_slice=(set,get)=>({cast:{
         d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content,ax,a));
     },
     base(d,n,c,ax,a={}){
-        const change = {};
+        const change = {c:{},ax:{}};
         const content_packs = [{c:c,t:'c'},{c:ax,t:'ax'}];
         content_packs.forEach(cp=>{
             Object.entries(cp.c).forEach(([t,cc])=>{
@@ -36,10 +36,10 @@ export const create_cast_slice=(set,get)=>({cast:{
                         if(cp.t=='c') c.base_matrix = cc;
                         else          ax.base_matrix = cc;
                         d.reckon.matrix(d, n, cp.t, d.add_nc,  cc);
-                        change.matrix = true;
+                        change[cp.t].matrix = true;
                     }else{
                         if(d.n[n][cp.t][t] != cc){ // !==
-                            change[t] = true;
+                            change[cp.t][t] = true;
                             d.n[n][cp.t][t] = cc; 
                         }
                     }
@@ -54,12 +54,27 @@ export const create_cast_slice=(set,get)=>({cast:{
         //         }
         //     }
         // });
-        if(change.auxiliary) d.next('reckon.up', n, ['auxiliary']);
+        if(change.c.auxiliary) d.next('reckon.up', n, ['auxiliary']);
         if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,change); // merge c and ax together here ?!?!?!?!?
         if(a.shallow) return;
         if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c,ax,a));
     },
-    // transform(d,n,c){
+    point(d,n,ch){ 
+        if(ch.c.matrix) d.next('reckon.up', n); // , ['matrix']
+        if(ch.ax.matrix) d.next('reckon.up', n, ['casted_matrix']); // , ['matrix']
+    },
+    mixed_curve(d,n,ch){
+        if(ch.c.matrix) d.next('reckon.up', n); // , ['matrix']
+        if(ch.ax.matrix) d.next('reckon.up', n, ['casted_matrix']); // , ['matrix']
+    },
+    // surface(d,n,ch){
+    //     if(ch.c.matrix) d.next('reckon.up', n); // , ['matrix']
+    //     if(ch.ax.matrix) d.next('reckon.up', n, ['casted_matrix']); // , ['matrix']
+    // },
+}});
+
+
+// transform(d,n,c){
     //     //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
     //     //console.log('try to reckon transform');
     //     if(c.auxiliary) {
@@ -67,15 +82,6 @@ export const create_cast_slice=(set,get)=>({cast:{
     //         d.next('reckon.up', n, ['auxiliary']);
     //     }
     // },
-    point(d,n,c){ 
-        if(c.matrix) d.next('reckon.up', n); // , ['matrix']
-    },
-    mixed_curve(d,n,c){
-        if(c.matrix) d.next('reckon.up', n); // , ['matrix']
-    },
-}});
-
-
 
 //if(d.n[n][c.t].matrix_list == undefined) d.n[n][c.t].matrix_list = [];
                         //d.add_nc(d.n[n][c.t].matrix_list, cc);

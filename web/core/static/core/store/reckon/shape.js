@@ -11,14 +11,14 @@ const v2 = new Vector3();
 //const v6 = new Vector3();
 
 export const shape = {
-    shape_calc_res: 200,
-    shape_max_dist: 1,
-    shape(d,n,cause=[]){ 
+    res: 200,
+    stitch_dist: 1,
+    node(d,n,cause=[]){ 
         try{
             const bndry  = d.n[n].n.curve.map(n=>({
                 used: false,
-                pts: d.n[n].c.curve.getSpacedPoints(this.shape_calc_res),
-                //ax_pts: d.n[n].ax.curve.getPoints(this.shape_calc_res),
+                pts: d.n[n].c.curve.getPoints(this.res),
+                //ax_pts: d.n[n].ax.curve.getPoints(this.res),
             }));
             var pts = [...bndry[0].pts];
             //var ax_pts = [...bndry[0].ax_pts];
@@ -26,12 +26,12 @@ export const shape = {
             var i = 1;
             while(i < bndry.length){
                 if(!bndry[i].used){
-                    if(pts.at(-1).distanceTo(bndry[i].pts[0]) < this.shape_max_dist) {
+                    if(pts.at(-1).distanceTo(bndry[i].pts[0]) < this.stitch_dist) {
                         bndry[i].used = true;
                         pts = pts.concat(bndry[i].pts); 
                         //ax_pts = ax_pts.concat(bndry[i].ax_pts); 
                         i = 0;
-                    }else if(pts.at(-1).distanceTo(bndry[i].pts.at(-1)) < this.shape_max_dist){
+                    }else if(pts.at(-1).distanceTo(bndry[i].pts.at(-1)) < this.stitch_dist){
                         bndry[i].used = true;
                         pts = pts.concat(bndry[i].pts.reverse());
                         //ax_pts = ax_pts.concat(bndry[i].ax_pts.reverse());

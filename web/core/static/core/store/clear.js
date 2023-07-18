@@ -34,7 +34,19 @@ export const create_clear_slice=(set,get)=>({clear:{
         if(d.clear[d.n[n].t]) d.clear[d.n[n].t](d,n,change);
         d.node.for_n(d, n, (r,n)=> d.clear.down(d,n,c,ax));
     },
-    // transform(d,n,c){
+    point(d,n,c){
+        if(c.matrix) d.next('reckon.up', n); 
+    },
+    mixed_curve(d,n,c){
+        if(c.matrix){
+            d.next('reckon.up', n); 
+            console.log('mixed_curve reckon because of matrix clear');
+        }
+    },
+}});
+
+
+// transform(d,n,c){
     //     //console.log('auxiliary check', d.n[n].c.auxiliary, c.auxiliary);
     //     //console.log('try to reckon transform from clear');
     //     if(c.auxiliary) {
@@ -42,12 +54,6 @@ export const create_clear_slice=(set,get)=>({clear:{
     //         d.next('reckon.up', n, ['auxiliary']);
     //     }
     // },
-    point(d,n,c){
-        if(c.matrix) d.next('reckon.up',n); // check if matrix actually changed ?!?!?!?!?!
-    },
-}});
-
-
 // d.cast_tags.forEach(t=>{
 //     if(c[t]!=undefined && d.n[n].c[t] === c[t]) delete d.n[n].c[t]; 
 // });

@@ -50,7 +50,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
             c(Line, {
                 ref: line,
                 points:[[rp.x, rp.y, rp.z+z_pos], [np.x, np.y, np.z+z_pos]],       // Array of points, Array<Vector3 | Vector2 | [number, number, number] | [number, number] | number>
-                color: '#c4c4c4',                   // Default
+                color: '#ffcfe2',                   // Default
                 lineWidth:1,                   // In pixels (default)
                 segments:false,                 // If true, renders a THREE.LineSegments2. Otherwise, renders a THREE.Line2
                 dashed:false,                   // Default

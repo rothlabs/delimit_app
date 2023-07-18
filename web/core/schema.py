@@ -16,15 +16,16 @@ system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'delete_pack', 'clie
 tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [ # put all this in config file
     'user', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time', 'part',  
     'viewable', 'asset',
-    'public', 'top_view', 'side_view', 'front_view', 'auxiliary', 'face_camera', #'inner_view', 'outer_view', 'guide',
+    'public', 'top_view', 'side_view', 'auxiliary', 'face_camera', #'front_view',  'inner_view', 'outer_view', 'guide',
     'profile',
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
+    'vase',
     'mixed_curve', 'surface', 'shape', 'layer',
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z',
     'name', 'story',
 ]}
 cats = tuple(Part.objects.get_or_create(t=tag[t])[0].id for t in [
-    'public', 'top_view', 'side_view', 'front_view', 'auxiliary', 'face_camera',
+    'public', 'top_view', 'side_view', 'auxiliary', 'face_camera', #'front_view',
 ])
 perm_tag = tuple(tag[t].id for t in ['viewable', 'asset',])
 

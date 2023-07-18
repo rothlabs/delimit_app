@@ -2,9 +2,11 @@ import { Matrix4, Vector3, Euler, Quaternion, MathUtils, CatmullRomCurve3 } from
 import {current} from 'immer';
 import lodash from 'lodash';
 import {curve} from './curve.js';
+import {mixed_curve} from './mixed_curve.js';
 import {surface} from './surface.js';
 import {shape} from './shape.js';
 import {layer} from './layer.js';
+import {vase} from './vase.js';
 
 const zero_vector = new Vector3();
 const v1 = new Vector3();
@@ -13,12 +15,16 @@ const v3 = new Vector3();
 const te = new Euler();
 const tq = new Quaternion();
 const tm = new Matrix4();
+const transform_numbers = 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z';
+const transform_numbers_list = transform_numbers.split(' ');
 
 export const create_reckon_slice =(set,get)=>({reckon:{
-    ...curve,
-    ...shape,
-    ...surface,
-    ...layer,
+    curve,
+    mixed_curve,
+    shape,
+    surface,
+    layer,
+    vase,
     count: 0,
     up(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
         d.reckon.base(d, n, cause);
@@ -32,7 +38,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         }
         d.reckon.base_transform(d,n,cause);
         // d.reckon[d.n[n].t].node(d,n,cause) (d.reckon.surface.node())
-        if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t](d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
+        if(d.reckon[d.n[n].t]) d.reckon[d.n[n].t].node(d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
         d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         d.next('design.update'); 
         d.next('inspect.update'); 
@@ -76,8 +82,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         //try{
         if(cause.length < 1) return;
         const sc = cause[0].split('__'); //'make.node',
-        if(['auxiliary'].includes(cause[0]) || (sc[0]=='decimal' && sc[1]==n)){ //'make.edge', 'delete.edge'
-            const nn = d.reckon.v(d, n, 'move_x move_y move_z turn_x turn_y turn_z scale_x scale_y scale_z'); 
+        if(cause[0]=='auxiliary' || (sc[0]=='decimal' && sc[1]==n) || (cause.length>1  
+            && ['make.edge','delete.edge'].includes(cause[0]) && transform_numbers_list.includes(cause[1]))){ 
+            const nn = d.reckon.v(d, n, transform_numbers); 
             if(d.n[n].c.transform == true){
                 d.clear.down(d, n, {base_matrix:d.n[n].c.base_matrix}, {base_matrix:d.n[n].ax.base_matrix});
                 delete d.n[n].c.transform;
@@ -104,25 +111,27 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 d.reckon.matrix(d, n, c_ax, d.add_nc, d.n[n][c_ax].base_matrix);
                 //d.n[n][c_ax].pos = new Vector3().setFromMatrixPosition(d.n[n].ax.matrix);
                 d.n[n].c.transform = true;
-                d.cast.down(d,n,'base_matrix'); 
-                console.log('reckon transform!!!!');
+                if(!d.cast_end[d.n[n].t]) d.cast.down(d,n,'base_matrix'); 
+                //console.log('reckon transform!!!!');
             }
         }
         //}}catch{} //}catch(e){console.log(e)}
     },
-    point(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
-        try{ //if(pos){
-            const nn = d.reckon.v(d, n, 'x y z');
-            d.n[n].c.xyz = new Vector3(0,0,0); // create vector on make.node so it can just be reused here ?!?!?!?!?!
-            if(nn.x != undefined) d.n[n].c.xyz.setX(nn.x);
-            if(nn.y != undefined) d.n[n].c.xyz.setY(nn.y);
-            if(nn.z != undefined) d.n[n].c.xyz.setZ(nn.z);
-            d.n[n].c.pos = d.n[n].c.xyz;
-            if(d.n[n].c.matrix) d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].c.matrix);
-            if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].ax.matrix);
-            else d.n[n].ax.pos = d.n[n].c.pos;
-            console.log('reckon point!!!!');
-        }catch{} //console.error(e)
+    point:{
+        node(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
+            try{ //if(pos){
+                const nn = d.reckon.v(d, n, 'x y z');
+                d.n[n].c.xyz = new Vector3(0,0,0); // create vector on make.node so it can just be reused here ?!?!?!?!?!
+                if(nn.x != undefined) d.n[n].c.xyz.setX(nn.x);
+                if(nn.y != undefined) d.n[n].c.xyz.setY(nn.y);
+                if(nn.z != undefined) d.n[n].c.xyz.setZ(nn.z);
+                d.n[n].c.pos = d.n[n].c.xyz;
+                if(d.n[n].c.matrix) d.n[n].c.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].c.matrix);
+                if(d.n[n].ax.matrix) d.n[n].ax.pos = d.n[n].c.pos.clone().applyMatrix4(d.n[n].ax.matrix);
+                else d.n[n].ax.pos = d.n[n].c.pos;
+                //console.log('reckon point!!!!');
+            }catch{} //console.error(e)
+        },
     },
 }});
 

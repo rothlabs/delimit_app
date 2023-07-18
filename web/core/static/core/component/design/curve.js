@@ -6,7 +6,7 @@ import { Pickable } from '../node/base.js';
 import {CatmullRomCurve3} from 'three';
 import {Point} from './point.js';
 
-const res = 100; // make res dynamic ?!?!?!?!
+const res = 0.4; 
 
 // function interpolate(d,n,a={}){
 //     pts = new CatmullRomCurve3(pts.map(p=>p.pos)).getPoints(res).map(p=> [p.x, p.y, p.z]);
@@ -19,11 +19,14 @@ export const Curve = memo(({n})=>{
     const curve_ref = useRef();
     const segs_ref = useRef();
     const color = useS(d=> d.n[n].pick.color); 
+    const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     const [curve_geo] = useState({pts:[[0,0,0],[0,0,0]]});
     const [segs_geo] = useState({pts:[[0,0,0],[0,0,0]]});
     useSub(d=> d.n[n].ax.curve, curve=>{ // make useSub that includes useEffect
+        //const curve = dd[0];
+        //if(dd[1]) dd=dd[1];
         if(curve){ //curve_ref.current && 
-            curve_geo.pts = curve.getPoints(res).map(p=>[p.x, p.y, p.z]).flat();
+            curve_geo.pts = curve.getPoints(Math.round(curve.getLength()*res)).map(p=>[p.x, p.y, p.z]).flat();
             curve_ref.current.geometry.setPositions(curve_geo.pts);
             const pts = gs().n[n].ax.pts;
             if(pts){
@@ -39,7 +42,7 @@ export const Curve = memo(({n})=>{
                 c(Line, {
                     ref: curve_ref,
                     points: curve_geo.pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
-                    lineWidth: 3,
+                    lineWidth: pick ? 4 : 3,
                     color: color[0],
                 }),
             ),

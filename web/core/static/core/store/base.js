@@ -18,9 +18,10 @@ var next_ids = [];
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
     'mixed_curve', 'surface', 'shape', 'layer',
+    'vase',
 ];
 const cat_tags=[ //cat_cast_tags=[
-    'public', 'auxiliary', 'top_view', 'side_view', 'front_view', 'face_camera',
+    'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', // 'front_view',
 ];
 const cast_tags = [...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
@@ -33,6 +34,7 @@ const component = {
     'sketch':      Sketch,
     'transform':   Transform,
     'layer':       Layer,
+    'vase':        Curve,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
@@ -79,13 +81,14 @@ export const create_base_slice = (set,get)=>({
         'mixed_curve':  'bi-bezier',
         'top_view':     'bi-camera-reels',
         'side_view':    'bi-camera-reels',
-        'front_view':   'bi-camera-reels',
+        //'front_view':   'bi-camera-reels',
         'face_camera':  'bi-camera-reels',
         'auxiliary':    'bi-binoculars',
         'product':      'bi-bag',
         'surface':      'bi-map',
         'shape':        'bi-pentagon',
         'layer':        'bi-layers',
+        'vase':         'bi-rainbow',
     },
     cast_tags: cast_tags,
     cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
@@ -104,7 +107,7 @@ export const create_base_slice = (set,get)=>({
     point_size: 6,
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
     base_texture: base_texture,
-    rapid_res: 0.4,
+    rapid_res: 0.5,
 
     n: {},
     t: {},

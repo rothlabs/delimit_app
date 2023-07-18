@@ -1,5 +1,5 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
-import {useS, useSS, useSub, gs} from '../../app.js';
+import {useS, useSS, useSub, gs, theme} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 //import {Plane} from '@react-three/drei/Plane';
 import {Pickable} from '../node/base.js';
@@ -22,12 +22,16 @@ const res = 80;
 
 export const Surface = memo(({n})=>{ 
     const obj = useRef();
-    const color = useS(d=> d.n[n].pick.color); 
+    //const color = useS(d=> d.n[n].pick.color); 
+    const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     //const pts = useS(d=> d.n[n].ax.pts); 
     const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
-    useSub(d=> d.n[n].ax.surface, surface=>{ 
+    //const surface = useS(d=> d.n[n].ax.surface);
+    //const geo = new ParametricGeometry(surface.get_point, res, res);
+    useSub(d=> d.n[n].c.surface, surface=>{ 
         if(surface){ // obj.current && 
-            obj.current.geometry.copy(new ParametricGeometry(surface.get_point, res, res));
+            let new_geo = new ParametricGeometry(surface.get_point, res, res);
+            if(new_geo) obj.current.geometry.copy(new_geo);
         }
     });
     //console.log('render surface');
@@ -54,17 +58,17 @@ export const Surface = memo(({n})=>{
             c(Pickable, {n:n}, // points && points.length>1 && 
                 c('mesh', {
                     ref: obj,
-                    geometry:geo,
+                    geometry: geo,
                     visible: true,
                 },
                     c('meshStandardMaterial', {   //meshLambertMaterial
                         //map:map,
-                        color:'cyan',//color[1], 
+                        color: theme.primary,//color[2], 
                         wireframe:false, 
                         toneMapped:true, 
                         side:DoubleSide,
                         transparent:true, 
-                        opacity:.2
+                        opacity: pick ? .4 : .2,
                     }), //toneMapped:false, side:BackSide
                     //c(Edges, {color: color[2]},),
                 ),

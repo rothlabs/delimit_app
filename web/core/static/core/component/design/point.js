@@ -8,6 +8,7 @@ import {Fix_Size} from '../base/base.js';
 export const Point = memo(({n})=>{//export function Point({n}){ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
+    const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     const size = useS(d=> d.point_size);
     useSub(d=> d.n[n].ax.pos, pos=>{
         if(pos) obj.current.position.set(pos.x,pos.y,pos.z);
@@ -17,7 +18,7 @@ export const Point = memo(({n})=>{//export function Point({n}){
         c(Fix_Size, { // renamed to Fix_Size or Static_Size
             ref: obj,
             name:'point',
-            size: size, 
+            size: pick ? size*1.2 : size, 
         },
             c(Pickable, {n:n}, 
                 c('mesh', {},

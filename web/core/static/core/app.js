@@ -120,7 +120,7 @@ function next_state(state, func){
     while(result[1].length > 0){
         all_patches = [...all_patches, ...result[1]];
         all_inverse = [...result[2], ...all_inverse];
-        result = produceWithPatches(result[0], d=>{ d.continue(d) }); 
+        result = produceWithPatches(result[0], d=>{ if(d) d.continue(d); }); //result = produceWithPatches(result[0], d=>{ d.continue(d) }); 
     }
     useS.setState(result[0]); 
     return {state:result[0], patches:all_patches, inverse:all_inverse}; // rename state to d
