@@ -21,7 +21,7 @@ const subject_tags= [
     'vase', 'spiral',
 ];
 const cat_tags=[ //cat_cast_tags=[
-    'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', // 'front_view',
+    'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
 ];
 const cast_tags = [...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
@@ -69,7 +69,7 @@ export const create_base_slice = (set,get)=>({
     cast_tags: cast_tags,
     cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
     cast_shallow_map: Object.fromEntries([ // cast_tags
-        'public', 'auxiliary'
+        'public', 'auxiliary', 'manual_compute',
     ].map(t=>[t,true])),
     cast_end:Object.fromEntries([
         'point', 'mixed_curve', 'surface', 'layer',
@@ -94,6 +94,7 @@ export const create_base_slice = (set,get)=>({
         'side_view':    'bi-camera-reels',
         'face_camera':  'bi-camera-reels',
         'auxiliary':    'bi-binoculars',
+        'manual_compute': 'bi-cpu',
         'product':      'bi-bag',
         'surface':      'bi-map',
         'shape':        'bi-pentagon',

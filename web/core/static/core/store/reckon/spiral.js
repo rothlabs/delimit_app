@@ -16,7 +16,7 @@ for(let v=0; v<1/res_v; v++){
 }
 
 export const spiral = {
-    layer_height: .8,
+    layer_height: .8, 
     code_res: .2, // 1mm / code_res = arc length between G1 if constant curve like an arc
     node(d, n){
         try{
