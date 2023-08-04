@@ -18,7 +18,7 @@ var next_ids = [];
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
     'mixed_curve', 'surface', 'shape', 'layer',
-    'vase',
+    'vase', 'spiral',
 ];
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', // 'front_view',
@@ -35,6 +35,7 @@ const component = {
     'transform':   Transform,
     'layer':       Layer,
     'vase':        Curve,
+    'spiral':      Curve,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
@@ -43,7 +44,7 @@ const admin_tags    = ['profile', ...cat_tags]; //category_tags
 const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
 ];
-const string_tags = [model_tags['s'], 'name', 'story',]; // rename to text_tags
+const string_tags = [model_tags['s'], 'name', 'story', 'code']; // rename to text_tags
 const atom_tags   = Object.values(model_tags).slice(1);
 
 const base_texture = new THREE.TextureLoader().load(
@@ -65,6 +66,16 @@ export const create_base_slice = (set,get)=>({
     value_tags:     [...float_tags, ...string_tags],
     node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},
+    cast_tags: cast_tags,
+    cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
+    cast_shallow_map: Object.fromEntries([ // cast_tags
+        'public', 'auxiliary'
+    ].map(t=>[t,true])),
+    cast_end:Object.fromEntries([
+        'point', 'mixed_curve', 'surface', 'layer',
+    ].map(t=>[t,true])),
+    component:component,
+    component_tags:Object.keys(component),
     node_css: {
         'public':       'bi-globe-americas',
         'profile':      'bi-person',
@@ -81,7 +92,6 @@ export const create_base_slice = (set,get)=>({
         'mixed_curve':  'bi-bezier',
         'top_view':     'bi-camera-reels',
         'side_view':    'bi-camera-reels',
-        //'front_view':   'bi-camera-reels',
         'face_camera':  'bi-camera-reels',
         'auxiliary':    'bi-binoculars',
         'product':      'bi-bag',
@@ -89,17 +99,8 @@ export const create_base_slice = (set,get)=>({
         'shape':        'bi-pentagon',
         'layer':        'bi-layers',
         'vase':         'bi-rainbow',
+        'spiral':       'bi-rainbow',
     },
-    cast_tags: cast_tags,
-    cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
-    cast_shallow_map: Object.fromEntries([ // cast_tags
-        'public', 'auxiliary'
-    ].map(t=>[t,true])),
-    cast_end:Object.fromEntries([
-        'point', 'mixed_curve', 'surface', 'layer',
-    ].map(t=>[t,true])),
-    component:component,
-    component_tags:Object.keys(component),
 
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],

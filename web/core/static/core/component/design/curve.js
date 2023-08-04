@@ -6,7 +6,7 @@ import { Pickable } from '../node/base.js';
 import {CatmullRomCurve3} from 'three';
 import {Point} from './point.js';
 
-const res = 0.4; 
+const res = 0.2; 
 
 // function interpolate(d,n,a={}){
 //     pts = new CatmullRomCurve3(pts.map(p=>p.pos)).getPoints(res).map(p=> [p.x, p.y, p.z]);
@@ -26,6 +26,8 @@ export const Curve = memo(({n})=>{
         //const curve = dd[0];
         //if(dd[1]) dd=dd[1];
         if(curve){ //curve_ref.current && 
+            const div = Math.round(curve.getLength()*res);
+            //console.log(div);
             curve_geo.pts = curve.getPoints(Math.round(curve.getLength()*res)).map(p=>[p.x, p.y, p.z]).flat();
             curve_ref.current.geometry.setPositions(curve_geo.pts);
             const pts = gs().n[n].ax.pts;

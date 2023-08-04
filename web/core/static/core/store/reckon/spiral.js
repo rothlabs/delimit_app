@@ -15,9 +15,9 @@ for(let v=0; v<1/res_v; v++){
     }
 }
 
-export const vase = {
+export const spiral = {
     layer_height: .8,
-    code_res: .2, // code_res = arc length between G1 if constant curve like an arc
+    code_res: .2, // 1mm / code_res = arc length between G1 if constant curve like an arc
     node(d, n){
         try{
             if(d.studio.mode == 'graph') return;
@@ -40,7 +40,7 @@ export const vase = {
             for(let i=0; i<10000; i++){
                 for(let v=0; v<1/res_v; v++){
                     ty = start_y - (layer_count * this.layer_height + this.layer_height * v*res_v);
-                    tests[v].sort((a,b)=> Math.abs(a.y-ty)-Math.abs(b.y-ty)); // Don't need to sort this ?!?!?!?!?! instead, just search down u from last time at this v
+                    tests[v].sort((a,b)=> Math.abs(a.y-ty)-Math.abs(b.y-ty));
                     if(Math.abs(tests[v][0].y-ty) < this.layer_height/2){
                         pts.push(tests[v][0].clone());
                         // flag start or stop extrude

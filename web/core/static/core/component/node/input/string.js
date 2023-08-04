@@ -3,7 +3,7 @@ import {Row, Col, Container, Form, InputGroup, Button} from 'react-bootstrap';
 import {useS, ss, gs, readable} from '../../../app.js';
 import {Buttons} from './buttons.js';
 
-const area_tags = ['story',];
+const area_tags = ['story', 'code'];
 
 export function String({t}){
     const content   = useS(d=> d.inspect.content[t]);
