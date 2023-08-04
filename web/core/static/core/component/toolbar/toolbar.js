@@ -17,6 +17,7 @@ export function Toolbar(){
     const mode = useS(d=> d.studio.mode);
     const design_part = useS(d=> d.design.part);
     const design_candidate = useS(d=> d.design.candidate);
+    const reckonable = useS(d=> d.pick.reckonable);
     const mode_buttons = [
         {name:' Design',  icon:'bi-pencil-square',  value:'design', disabled:design_part==null},
         {name:' Graph',   icon:'bi-diagram-3',      value:'graph',  disabled:false},
@@ -47,8 +48,8 @@ export function Toolbar(){
                     ...tools.map(tool => c(tool))
                 ),
             ),
-            mode=='graph' && design_candidate && c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-3 d-grid gap-2 col-6 mx-auto'},
-                c(Button, {
+            c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-3 d-grid gap-2 col-6 mx-auto'},
+                mode=='graph' && design_candidate && c(Button, {
                     size: 'lg', // variant: 'outline-primary',
                     onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
                         d.design.part = design_candidate; 
@@ -57,6 +58,14 @@ export function Toolbar(){
                         d.pick.none(d);
                     }),
                 }, c('i',{className:'bi-pencil-square', style:{fontSize:'24px'}}), ' Edit'),
+                reckonable && c(Button, {
+                    size: 'lg', // variant: 'outline-primary',
+                    onClick:e=> ss(d=>{  // select function does not work inside produce because it has it's own produce 
+                        d.pick.n.forEach(n=> {
+                            if(d.n[n].c.manual_compute) d.reckon.up(d, n, 'manual'); 
+                        });
+                    }),
+                }, c('i',{className:'bi-cpu', style:{fontSize:'24px'}}), ' Compute'),
             ),
             c(Reckon_Count),
         )
