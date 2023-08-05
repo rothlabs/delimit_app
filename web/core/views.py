@@ -1,28 +1,47 @@
+from django.http import HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
 from django.shortcuts import render
 from core.schema import schema
 #from core.models import ntc, ctn
 import json
+from django.contrib.auth.decorators import login_required
 
 from django.utils.functional import cached_property
 from graphene_file_upload.django import FileUploadGraphQLView # from graphene_django.views import GraphQLView
 
 
 @ensure_csrf_cookie
+@login_required
 def home(request):
     context = {'ctx':{'entry':'/'}} #'ntc':ntc, 'ctn':ctn, 
     return render(request, 'core/index.html', context)
 
 @ensure_csrf_cookie
+@login_required
 def catalog(request):
     context = {'ctx':{'entry':'catalog'}}
     return render(request, 'core/index.html', context)
 
 @ensure_csrf_cookie
-def studio(request, pk=0):
+@login_required
+def studio(request):#, pk=0):
     context = {'ctx':{'entry':'studio'}}
     return render(request, 'core/index.html', context)
+
+@ensure_csrf_cookie
+@login_required
+def static_access(request, path):
+    #if access_granted:
+    response = HttpResponse()
+    # Content-type will be detected by nginx
+    del response['Content-Type']
+    response['X-Accel-Redirect'] = '/protected/static/' + path
+    return response
+    #else:
+    #    return HttpResponseForbidden('Not authorized to access this media.')
+    #context = {'ctx':{'entry':'static'}}
+    #return render(request, 'core/index.html', context)
 
 
 

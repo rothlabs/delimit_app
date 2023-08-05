@@ -1,6 +1,14 @@
 # Delimit
 Artistic footwear design web app. Includes computer-aided design and manufacturing (CAx) module. 
 
+## Useful server commands
+```
+sudo nano /etc/nginx/sites-available/delimit
+```
+```
+./dart-sass/sass boot.scss ../core/static/core/css/boot.css --no-source-map
+```
+
 
 ## Bootstrap
 modified variables file under sass: primary color and contrast thrushold

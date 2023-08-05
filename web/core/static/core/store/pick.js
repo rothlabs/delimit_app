@@ -22,6 +22,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     deletable: false,
     transformable: false,
     reckonable: false,
+    visible: false,
     set(d, n, v, a={}){
         //if(a.deep) d.node.for_n(d, n, (r,n)= d.pick.set(d,n,true,a));
         var nodes = n; // this and the next two lines are common so make d.node.for_n with inclusive flag?!?!?!?!?
@@ -51,6 +52,7 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.pick.deletable = d.pick.n.some(n=> d.n[n].asset);
         d.pick.transformable = d.pick.n.some(n=> d.n[n].c.base_matrix);
         d.pick.reckonable = d.pick.n.some(n=> d.n[n].c.manual_compute);
+        d.pick.visible = !d.pick.n.some(n=> !d.n[n].design.vis);
         if(d.pick.n.length > 1){
             d.pick.group = d.pick.n.slice(0,-1);
             d.pick.target = d.pick.n.at(-1); // only set target if length > 1?

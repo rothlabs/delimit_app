@@ -4,6 +4,7 @@ import {useS, useSS, useSub, useSubS, gs} from '../../app.js';
 import {Line} from '@react-three/drei/Line';
 import { Pickable } from '../node/base.js';
 import {CatmullRomCurve3} from 'three';
+import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
 import {Point} from './point.js';
 
 const res = 0.2; 
@@ -22,13 +23,15 @@ export const Curve = memo(({n})=>{
     const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     const [curve_geo] = useState({pts:[[0,0,0],[0,0,0]]});
     const [segs_geo] = useState({pts:[[0,0,0],[0,0,0]]});
+    //const [pt_count, set_pt_count] = useState();
     useSub(d=> d.n[n].ax.curve, curve=>{ // make useSub that includes useEffect
         //const curve = dd[0];
         //if(dd[1]) dd=dd[1];
         if(curve){ //curve_ref.current && 
-            const div = Math.round(curve.getLength()*res);
-            //console.log(div);
-            curve_geo.pts = curve.getPoints(Math.round(curve.getLength()*res)).map(p=>[p.x, p.y, p.z]).flat();
+            var adjusted_res = Math.round(curve.getLength()*res);
+            if(adjusted_res < 100) adjusted_res = 100;
+            curve_geo.pts = curve.getPoints(adjusted_res).map(p=>[p.x, p.y, p.z]).flat();
+            curve_ref.current.geometry = new LineGeometry();
             curve_ref.current.geometry.setPositions(curve_geo.pts);
             const pts = gs().n[n].ax.pts;
             if(pts){

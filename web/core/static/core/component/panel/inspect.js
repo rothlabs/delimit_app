@@ -1,6 +1,7 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, ButtonToolbar, Button} from 'react-bootstrap';
 import {ss, gs, useS, use_window_size} from '../../app.js';
+import {Visible} from '../toolbar/visible.js';
 import {Remake} from '../toolbar/remake.js';
 import {Apply} from '../toolbar/apply.js';
 import {Delete} from '../toolbar/delete.js';
@@ -28,6 +29,7 @@ export function Inspect(){
                 ),
             ),
             limited ? null : c(ButtonToolbar, {className:'gap-2 mb-3'},
+                c(Visible),
                 c(Remake),
                 c(Apply),
                 c(Delete),

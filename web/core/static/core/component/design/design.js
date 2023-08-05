@@ -21,7 +21,7 @@ export function Design(){
             name: 'parts',
         },
             ...parts.map(n=> 
-                c(d.component[d.n[n].t], {n:n, key:n}) // d.node.be(d,n) && 
+                d.n[n].design.vis && c(d.component[d.n[n].t], {n:n, key:n}) // d.node.be(d,n) && 
             ),
             c(Mover),
             c(Fix_Size, {
