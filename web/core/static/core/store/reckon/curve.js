@@ -35,13 +35,15 @@ export const curve = {
                 const ax_cp = [];
 				const knots = [];
 				const degree = 2;
-				for (let i=0; i<=degree; i++) knots.push(0);
+				for (let i=0; i<=degree; i++) knots.push(0);//for (let i=0; i<=degree; i++) knots.push(0);
 				for(let i=0; i < pts.length; i++) {
 					cp.push(new Vector4(pts[i].x, pts[i].y, pts[i].z, 1));
                     ax_cp.push(new Vector4(ax_pts[i].x, ax_pts[i].y, ax_pts[i].z, 1));
 					const knot = ( i + 1 ) / (pts.length - degree);
 					knots.push( MathUtils.clamp( knot, 0, 1 ) );
 				}
+                //knots.push(1);
+                //console.log(knots);
                 d.n[n].c.curve = new NURBSCurve(degree, knots, cp);//, 2, knots.length-2);
                 d.n[n].ax.curve = new NURBSCurve(degree, knots, ax_cp);//, 2, knots.length-2);
                 d.n[n].c.curve.getPoints(3); // checking if valid curve 

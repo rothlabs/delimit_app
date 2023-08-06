@@ -18,9 +18,10 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'viewable', 'asset',
     'public', 'top_view', 'side_view', 'auxiliary', 'face_camera', 'manual_compute', #'front_view',  'inner_view', 'outer_view', 'guide',
     'profile',
-    'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
+    'product', 'point', 'curve', 'ellipse', 'sketch', 'repeater', 'group', 'transform', 
     'mixed_curve', 'surface', 'shape', 'layer',
-    'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z',
+    'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z', 
+    'radius_x', 'radius_y', 'angle_a', 'angle_b',
     'name', 'story',
     'vase', 'spiral',
 ]}

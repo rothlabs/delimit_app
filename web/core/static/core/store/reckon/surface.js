@@ -21,7 +21,11 @@ export const surface = {
 
             var pts = [];
 
-            const all_ribs = d.n[n].n.mixed_curve.map(n=>{
+            var rib_source = [];
+            if(d.n[n].n.mixed_curve) rib_source = rib_source.concat(d.n[n].n.mixed_curve);
+            if(d.n[n].n.ellipse) rib_source = rib_source.concat(d.n[n].n.ellipse);
+
+            const all_ribs = rib_source.map(n=>{
                 const points = d.n[n].c.mixed_curve.getSpacedPoints(this.rib_res-1); //getSpacedPoints
                 if(points[0].z > points.at(-1).z) points.reverse();
                 const tmp_pts = d.n[n].c.mixed_curve.getPoints(9);
@@ -193,7 +197,7 @@ export const surface = {
         }}catch(e){
             //delete d.n[n].c.surface;
             //delete d.n[n].ax.surface;
-            console.log(e);
+            //console.log(e);
         }
     },
 };

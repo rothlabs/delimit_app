@@ -3,6 +3,7 @@ import {current} from 'immer';
 import lodash from 'lodash';
 import {curve} from './curve.js';
 import {mixed_curve} from './mixed_curve.js';
+import {ellipse} from './ellipse.js';
 import {surface} from './surface.js';
 import {shape} from './shape.js';
 import {layer} from './layer.js';
@@ -21,6 +22,7 @@ const transform_numbers_list = transform_numbers.split(' ');
 export const create_reckon_slice =(set,get)=>({reckon:{
     curve,
     mixed_curve,
+    ellipse,
     shape,
     surface,
     layer,

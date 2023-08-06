@@ -17,7 +17,7 @@ var next_ids = [];
 
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
-    'mixed_curve', 'surface', 'shape', 'layer',
+    'mixed_curve', 'ellipse', 'surface', 'shape', 'layer',
     'vase', 'spiral',
 ];
 const cat_tags=[ //cat_cast_tags=[
@@ -36,6 +36,7 @@ const component = {
     'layer':       Layer,
     'vase':        Curve,
     'spiral':      Curve,
+    'ellipse':     Curve,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
@@ -43,6 +44,7 @@ const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 const admin_tags    = ['profile', ...cat_tags]; //category_tags
 const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
+    'radius_x', 'radius_y', 'angle_a', 'angle_b',
 ];
 const string_tags = [model_tags['s'], 'name', 'story', 'code']; // rename to text_tags
 const atom_tags   = Object.values(model_tags).slice(1);
@@ -85,6 +87,7 @@ export const create_base_slice = (set,get)=>({
         'text':         'bi-type',
         'point':        'bi-record-circle',
         'curve':        'bi-bezier2',
+        'ellipse':        'bi-circle',
         'sketch':       'bi-easel2',
         'repeater':     'bi-files',
         'group':        'bi-box-seam',

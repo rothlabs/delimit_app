@@ -129,15 +129,23 @@ export const create_make_slice = (set,get)=>({make:{
     transform(d, a={}){
         return d.make.node(d,'p','transform', {...a, n:{
             //matrix: d.make.part(d,'matrix'),
-            move_x: d.make.atom(d,'f', 0),
-            move_y: d.make.atom(d,'f', 0),
-            move_z: d.make.atom(d,'f', 0),
-            turn_x: d.make.atom(d,'f', 0),
-            turn_y: d.make.atom(d,'f', 0),
-            turn_z: d.make.atom(d,'f', 0),
+            move_x:  d.make.atom(d,'f', 0),
+            move_y:  d.make.atom(d,'f', 0),
+            move_z:  d.make.atom(d,'f', 0),
+            turn_x:  d.make.atom(d,'f', 0),
+            turn_y:  d.make.atom(d,'f', 0),
+            turn_z:  d.make.atom(d,'f', 0),
             scale_x: d.make.atom(d,'f', 1),
             scale_y: d.make.atom(d,'f', 1),
             scale_z: d.make.atom(d,'f', 1),
+        }});
+    },
+    ellipse(d, a={}){
+        return d.make.node(d,'p','ellipse', {...a, n:{
+            radius_x: d.make.atom(d,'f', 10),
+            radius_y: d.make.atom(d,'f', 10),
+            angle_a: d.make.atom(d,'f', 90),
+            angle_b: d.make.atom(d,'f', 270),
         }});
     },
     // matrix(d, a={}){
