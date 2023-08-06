@@ -142,8 +142,14 @@ export const create_make_slice = (set,get)=>({make:{
     },
     ellipse(d, a={}){
         return d.make.node(d,'p','ellipse', {...a, n:{
-            radius_x: d.make.atom(d,'f', 10),
-            radius_y: d.make.atom(d,'f', 10),
+            x: d.make.atom(d,'f', 0),
+            y: d.make.atom(d,'f', 0),
+            z: d.make.atom(d,'f', 0),
+            axis_x: d.make.atom(d,'f', 0),
+            axis_y: d.make.atom(d,'f', 1),
+            axis_z: d.make.atom(d,'f', 0),
+            radius_a: d.make.atom(d,'f', 10),
+            radius_b: d.make.atom(d,'f', 10),
             angle_a: d.make.atom(d,'f', 90),
             angle_b: d.make.atom(d,'f', 270),
         }});

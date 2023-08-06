@@ -44,7 +44,7 @@ const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 const admin_tags    = ['profile', ...cat_tags]; //category_tags
 const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
-    'radius_x', 'radius_y', 'angle_a', 'angle_b',
+    'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
 ];
 const string_tags = [model_tags['s'], 'name', 'story', 'code']; // rename to text_tags
 const atom_tags   = Object.values(model_tags).slice(1);
