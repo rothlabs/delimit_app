@@ -130,17 +130,18 @@ export const surface = {
             }else{
                 //pts = all_ribs.map(rib=> rib.pts);
                 //if(pts.length < 3) pts.push(all_ribs.at(-1).pts);
-                pts.push([...io_ribs[1][0].pts, ...io_ribs[0][0].pts.reverse().slice(1)]);
+                //pts.push([...io_ribs[1][0].pts, ...io_ribs[0][0].pts.reverse().slice(1)]);
                 for(let i=0; i < io_ribs[0].length; i++){
-                    if(i>0) io_ribs[0][i].pts.reverse();
+                    const half = io_ribs[0][i].pts.reverse().slice(1);
+                    //if(i>0) io_ribs[0][i].pts.reverse();
                     //const half = io_ribs[0][i].pts.reverse().slice(1);
-                    pts.push([...io_ribs[1][i].pts, ...io_ribs[0][i].pts.slice(1)]);
-                    // if(double_ribs.includes(i)){
-                    //     //console.log('double loop!!!!');
-                    //     pts.push([...io_pts[1][i], ...half]);
-                    // }
+                    pts.push([...io_ribs[1][i].pts, ...half]);//...io_ribs[0][i].pts.slice(1)]);
+                    //if(double_ribs.includes(i)){
+                        //console.log('double loop!!!!');
+                        pts.push([...io_ribs[1][i].pts, ...half]);//...io_ribs[0][i].pts.slice(1)]);
+                    //}
                 }
-                pts.push([...io_ribs[1].at(-1).pts, ...io_ribs[0].at(-1).pts.slice(1)]);
+                //pts.push([...io_ribs[1].at(-1).pts, ...io_ribs[0].at(-1).pts.slice(1)]);
             }
 
             var degree1 = 2;
@@ -192,7 +193,7 @@ export const surface = {
         }}catch(e){
             //delete d.n[n].c.surface;
             //delete d.n[n].ax.surface;
-            //console.log(e);
+            console.log(e);
         }
     },
 };

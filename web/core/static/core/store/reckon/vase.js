@@ -5,60 +5,26 @@ import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeomet
 
 const v1 = new Vector3();
 const v2 = new Vector3();
-const v3 = new Vector3();
-const z_dir = new Vector3(0,0,1);
 const axis = new Vector3();
 const v_sum = new Vector3();
-
 const l1 = new Line3();
-//const v_count = 0;
-
-const res_v = .002;
-const res_u = .002;
-const tests = [];
-//const u_idx = [];
-for(let v=0; v<1/res_v; v++){
-    tests[v] = [];
-    //u_idx.push(0);
-    for(let u=0; u<1/res_u; u++){
-        tests[v][u] = {p: new Vector3(), n: new Vector3(), u:0, v:0};
-    }
-}
-
-const origin = new Vector3();
-const destination = new Vector3();
-const raycaster = new Raycaster();
-const material = new MeshBasicMaterial();
-
-//const geo_res = 50;
-const rot_res = 100;
-const rot_step = Math.PI*2/rot_res;
-// const target_angles = [];
-// for(let i=0; i<rot_res; i++){
-//     target_angles.push(rot_step*i);
-// }
-// for(let i=rot_res; i>0; i--){
-//     target_angles.push(rot_step*i);
-// }
-// console.log('target_angles');
-// console.log(target_angles);
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const plane = new Plane();
+const origin = new Vector3();
+const destination = new Vector3();
 
-// const local_res = 0.005;
-// const local_size = 40;
-// const local_offset = local_size*local_res/2;
-// const local_points = [];
-// for(let u=0; u<local_size; u++){
-//     local_points[u] = [];
-//     for(let v=0; v<local_size; v++){
-//         local_points[u][v] = {p: new Vector3(10000,10000,10000), u:0, v:0};
+const rot_res = 80;
+const rot_step = Math.PI*2/rot_res;
+const layer_height = 2;
+const surface_res = 200;
+//const res_u = 200;
+// const tests = [];
+// for(let v=0; v<res_v; v++){
+//     tests[v] = [];
+//     for(let u=0; u<res_u; u++){
+//         tests[v][u] = {p: new Vector3(), u:u, v:v, uu:1-u/res_u, vv:v/res_v};
 //     }
 // }
-
-
-
-const layer_height = .5;
 
 export const vase = {
     
@@ -70,89 +36,59 @@ export const vase = {
             delete d.n[n].c.g_code;
             delete d.n[n].c.curve;
             delete d.n[n].ax.curve;
-            const surface  = d.n[d.n[n].n.surface[0]].c.surface;
-            
-            //const start_y = v1.y;
+            //const surface  = d.n[d.n[n].n.surface[0]].c.surface;
+            const surfaces  = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
             const bb1 = new Box3();
-            for(let v=0; v<1/res_v; v++){ 
-                //u_idx[v] = 0;
-                for(let u=0; u<1/res_u; u++){
-                    var uu = 1-u*res_u;
-                    var vv = v*res_v;
-                    tests[v][u].u = uu;
-                    tests[v][u].v = vv;
-                    surface.get_point(uu,      vv,      tests[v][u].p);
-                    //surface.get_point(uu+.005, vv,      v1);
-                    //surface.get_point(uu,      vv+.005, v2);
-                    //tests[v][u].n.copy(tests[v][u].p).add(v1.sub(tests[v][u].p).cross(v2.sub(tests[v][u].p)).normalize());
-                    bb1.expandByPoint(tests[v][u].p);
-                    //surface.get_point(1-u*res_u, v*res_v, tests[v][u].p);
-                    
+            const tests = [];
+            surfaces.forEach((surface, si) => {
+                for(let v=0; v<surface_res; v++){ 
+                    for(let u=0; u<surface_res; u++){
+                        var test = {p: new Vector3(), u:u, v:v, uu:1-u/surface_res, vv:v/surface_res, si:si};
+                        tests.push(test);
+                        surface.get_point(test.uu, test.vv, test.p);
+                        bb1.expandByPoint(test.p);
+                    }
                 }
-            }
-            const test_points = tests.flat();//.sort((a,b)=> a.y-b.y);
+            });
             const tpl = {};
-            // for(let i=-1000; i<1000; i++){
-            //     tpl.push([]);
-            // }
-            for(let i=0; i<test_points.length; i++){
-                var idx = Math.round(test_points[i].p.y*0.5);
-                if(tpl['l'+idx] == undefined) tpl['l'+idx] = [];
-                tpl['l'+idx].push(test_points[i]);
+            for(let i=0; i<tests.length; i++){
+                var idx = Math.round(tests[i].p.y/2);
+                if(tpl['l'+idx] == undefined) tpl['l'+idx] = [];//{pts:[], sort_count:-1};
+                tpl['l'+idx].push(tests[i]);
             }
-            //console.log(tpl);
-
-
-            // const geo_obj = new Mesh(
-            //     new ParametricGeometry(surface.get_point, geo_res, geo_res),
-            //     material
-            // );
             console.log('compute vase phase 2');
             var pts = [];
-            //var u = 1;
-            //var v = 0;
-            surface.get_point(1, 0, v1);
+            surfaces[0].get_point(1, 0, v1);
             var y = v1.y;
-            origin.set(0,y,1000);
+            origin.set(0,y,500);
             destination.set(0,y,0);//.sub(origin);
             axis.set(0,y,0);
             for(let i=0; i<10000; i++){ 
                 v_sum.set(0,0,0);
                 for(let k=0; k<rot_res; k++){ 
                     l1.set(origin, destination);
-                    const ry = Math.round(y*0.5);
-                    var tp = [];
-                    if(tpl['l'+ry]) tp = tpl['l'+ry];
-                    //for(let idx=ry-1; idx<=ry+1; idx++){
-                    //   if(tpl['l'+idx]) tp = tp.concat(tpl['l'+idx]);
-                    //}
-                    //console.log(tp);
-                    if(tp.length < 1){
-                        console.log('no test level found!!!');
-                        break;
-                    }
-
-                    var spt = tp.sort((a,b)=>{
+                    const ry = Math.round(y/2);
+                    if(!tpl['l'+ry]) break;
+                    var spt = null;
+                    spt = tpl['l'+ry].sort((a,b)=>{
                         l1.closestPointToPoint(a.p, true, v1);
                         l1.closestPointToPoint(b.p, true, v2);
                         return v1.distanceTo(a.p)-v2.distanceTo(b.p);
                     });
-                    surface.get_point(spt[0].u+.004, spt[0].v,      v1);
-                    surface.get_point(spt[0].u,      spt[0].v+.004, v2);
+                    tpl['l'+ry].sort_count = 0;
+                    surfaces[spt[0].si].get_point(spt[0].uu+.004, spt[0].vv,      v1);
+                    surfaces[spt[0].si].get_point(spt[0].uu,      spt[0].vv+.004, v2);
                     plane.setFromCoplanarPoints(spt[0].p, v1, v2);
                     if(plane.intersectsLine(l1)) plane.intersectLine(l1, v1)
                     else v1.copy(spt[0].p);
-                    //console.log(pt);
-                    
                     pts.push(v1.clone());
                     v_sum.add(v1);
                     y -= layer_height / rot_res;
-                    //origin.set(axis.x, y, axis.z+1000);
-                    origin.set(0, 0, 1000);
+                    origin.set(0, 0, 500);
                     origin.applyMatrix4(m1.makeRotationY(rot_step*k));
                     origin.add(axis);
                     origin.setY(y);
-                    destination.set(axis.x, y, axis.z);//.sub(origin);
+                    destination.set(axis.x, y, axis.z);
                 }
                 if(y < bb1.min.y) break;
                 v_sum.divideScalar(rot_res);
@@ -180,6 +116,212 @@ export const vase = {
     }, 
 };
 
+
+// const v1 = new Vector3();
+// const v2 = new Vector3();
+// const v3 = new Vector3();
+// const z_dir = new Vector3(0,0,1);
+// const axis = new Vector3();
+// const v_sum = new Vector3();
+
+// const l1 = new Line3();
+// //const v_count = 0;
+
+// const res_v = 300;
+// const res_u = 400;
+// const tests = [];
+// //const coarse_tests = [];
+// //const u_idx = [];
+// for(let v=0; v<res_v; v++){
+//     tests[v] = [];
+//     //if(v%10 == 0) course_tests[v/10] = [];
+//     //u_idx.push(0);
+//     for(let u=0; u<res_u; u++){
+//         tests[v][u] = {p: new Vector3(), u:u, v:v, uu:1-u/res_u, vv:v/res_v};
+//         //if(v%20 == 0 && u%20 == 0) coarse_tests.push(tests[v][u]);//[v/10][u/10] = tests[v][u];
+//     }
+// }
+// //console.log(coarse_tests.length);
+
+// const origin = new Vector3();
+// const destination = new Vector3();
+// //const raycaster = new Raycaster();
+// //const material = new MeshBasicMaterial();
+
+// //const geo_res = 50;
+// const rot_res = 80;
+// const rot_step = Math.PI*2/rot_res;
+// // const target_angles = [];
+// // for(let i=0; i<rot_res; i++){
+// //     target_angles.push(rot_step*i);
+// // }
+// // for(let i=rot_res; i>0; i--){
+// //     target_angles.push(rot_step*i);
+// // }
+// // console.log('target_angles');
+// // console.log(target_angles);
+// const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
+// const plane = new Plane();
+
+// // const local_res = 0.005;
+// // const local_size = 40;
+// // const local_offset = local_size*local_res/2;
+// // const local_points = [];
+// // for(let u=0; u<local_size; u++){
+// //     local_points[u] = [];
+// //     for(let v=0; v<local_size; v++){
+// //         local_points[u][v] = {p: new Vector3(10000,10000,10000), u:0, v:0};
+// //     }
+// // }
+
+
+
+// const layer_height = 2;
+
+// export const vase = {
+    
+//     code_res: .2, // code_res = arc length between G1 if constant curve like an arc
+//     node(d, n){
+//         try{
+//             console.log('compute vase');
+//             //if(d.studio.mode == 'graph') return;
+//             delete d.n[n].c.g_code;
+//             delete d.n[n].c.curve;
+//             delete d.n[n].ax.curve;
+//             const surface  = d.n[d.n[n].n.surface[0]].c.surface;
+            
+//             //const start_y = v1.y;
+//             const bb1 = new Box3();
+//             for(let v=0; v<res_v; v++){ 
+//                 //u_idx[v] = 0;
+//                 for(let u=0; u<res_u; u++){
+//                     //var uu = 1-u/res_u;
+//                     //var vv = v/res_v;
+//                     //tests[v][u].uu = uu;
+//                     //tests[v][u].vv = vv;
+//                     surface.get_point(tests[v][u].uu,      tests[v][u].vv,      tests[v][u].p);
+//                     //surface.get_point(uu+.005, vv,      v1);
+//                     //surface.get_point(uu,      vv+.005, v2);
+//                     //tests[v][u].n.copy(tests[v][u].p).add(v1.sub(tests[v][u].p).cross(v2.sub(tests[v][u].p)).normalize());
+//                     bb1.expandByPoint(tests[v][u].p);
+//                     //surface.get_point(1-u*res_u, v*res_v, tests[v][u].p);
+                    
+//                 }
+//             }
+//             const test_points = tests.flat();//.sort((a,b)=> a.y-b.y);
+//             const tpl = {};
+//             // for(let i=-1000; i<1000; i++){
+//             //     tpl.push([]);
+//             // }
+//             for(let i=0; i<test_points.length; i++){
+//                 var idx = Math.round(test_points[i].p.y/2);
+//                 if(tpl['l'+idx] == undefined) tpl['l'+idx] = [];//{pts:[], sort_count:-1};
+//                 tpl['l'+idx].push(test_points[i]);
+//             }
+//             //console.log(tpl);
+
+
+//             // const geo_obj = new Mesh(
+//             //     new ParametricGeometry(surface.get_point, geo_res, geo_res),
+//             //     material
+//             // );
+//             console.log('compute vase phase 2');
+//             var pts = [];
+//             //var u = 1;
+//             //var v = 0;
+//             surface.get_point(1, 0, v1);
+//             var y = v1.y;
+//             origin.set(0,y,1000);
+//             destination.set(0,y,0);//.sub(origin);
+//             axis.set(0,y,0);
+//             //var prev_level = null;
+//             for(let i=0; i<10000; i++){ 
+//                 v_sum.set(0,0,0);
+//                 for(let k=0; k<rot_res; k++){ 
+//                     l1.set(origin, destination);
+//                     const ry = Math.round(y/2);
+//                     if(!tpl['l'+ry]) break;
+//                     var spt = null;
+//                     //if(tpl['l'+ry].sort_count > 5 || tpl['l'+ry].sort_count == -1 || ry != prev_level){
+//                         spt = tpl['l'+ry].sort((a,b)=>{
+//                             l1.closestPointToPoint(a.p, true, v1);
+//                             l1.closestPointToPoint(b.p, true, v2);
+//                             return v1.distanceTo(a.p)-v2.distanceTo(b.p);
+//                         });
+//                         tpl['l'+ry].sort_count = 0;
+//                     // }else{
+//                     //     spt = tpl['l'+ry].pts.slice(0,100).sort((a,b)=>{
+//                     //         l1.closestPointToPoint(a.p, true, v1);
+//                     //         l1.closestPointToPoint(b.p, true, v2);
+//                     //         return v1.distanceTo(a.p)-v2.distanceTo(b.p);
+//                     //     });
+//                     // }
+//                     // tpl['l'+ry].sort_count += 1;
+//                     // prev_level = ry;
+
+//                     //var fine_test = tests.slice();
+
+//                     surface.get_point(spt[0].uu+.004, spt[0].vv,      v1);
+//                     surface.get_point(spt[0].uu,      spt[0].vv+.004, v2);
+//                     plane.setFromCoplanarPoints(spt[0].p, v1, v2);
+//                     if(plane.intersectsLine(l1)) plane.intersectLine(l1, v1)
+//                     else v1.copy(spt[0].p);
+//                     //console.log(pt);
+                    
+//                     pts.push(v1.clone());
+//                     v_sum.add(v1);
+//                     y -= layer_height / rot_res;
+//                     //origin.set(axis.x, y, axis.z+1000);
+//                     origin.set(0, 0, 1000);
+//                     origin.applyMatrix4(m1.makeRotationY(rot_step*k));
+//                     origin.add(axis);
+//                     origin.setY(y);
+//                     destination.set(axis.x, y, axis.z);//.sub(origin);
+//                 }
+//                 if(y < bb1.min.y) break;
+//                 // Object.entries(tpl).forEach(test_point_level=>{
+//                 //     test_point_level.sort_count = -1;
+//                 // });
+//                 v_sum.divideScalar(rot_res);
+//                 axis.copy(v_sum);
+//             }
+
+//             console.log('compute vase phase 3');
+
+//             const curve = new CatmullRomCurve3(pts);
+//             curve.arcLengthDivisions = 3000;
+            
+//             var code = '';
+//             // pts = curve.getPoints(Math.round(curve.getLength()*this.code_res));
+//             // for(let i=0; i<pts.length; i++){
+//             //     code += 'G0 X'+d.rnd(pts[i].x) + ' Y'+d.rnd(pts[i].y)+ ' Z'+d.rnd(pts[i].z) + '\r\n';
+//             // }
+
+//             d.n[n].c.code = code;
+//             d.n[n].c.curve = curve;
+//             d.n[n].ax.curve = d.n[n].c.curve;
+//             console.log('Reckoned vase!!!');
+//         }catch(e){
+//             console.log(e);
+//         } 
+//     }, 
+// };
+
+
+
+
+
+
+//var tp = [];
+                    //if(tpl['l'+ry]) tp = tpl['l'+ry].points;
+                    //for(let idx=ry-1; idx<=ry+1; idx++){
+                    //   if(tpl['l'+idx]) tp = tp.concat(tpl['l'+idx]);
+                    //}
+                    //console.log(tp);
+                    //if(tp.length < 1){
+                    //    console.log('no test level found!!!');
+                    //    break;
+                    //}
 
 
 //if(a.n.dot(l1.delta(v3)) > 0) l1.closestPointToPoint(a.p, false, v1)
