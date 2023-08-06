@@ -74,7 +74,7 @@ export const create_base_slice = (set,get)=>({
         'public', 'auxiliary', 'manual_compute',
     ].map(t=>[t,true])),
     cast_end:Object.fromEntries([
-        'point', 'mixed_curve', 'surface', 'layer',
+        'point', 'mixed_curve', 'surface', 'layer', 'ellipse', // maybe add ellipse here ?!?!?!?!?!
     ].map(t=>[t,true])),
     component:component,
     component_tags:Object.keys(component),
