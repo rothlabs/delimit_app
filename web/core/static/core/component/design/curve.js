@@ -7,7 +7,7 @@ import {CatmullRomCurve3} from 'three';
 import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
 import {Point} from './point.js';
 
-const res = 0.2; 
+const res = 0.4; 
 
 // function interpolate(d,n,a={}){
 //     pts = new CatmullRomCurve3(pts.map(p=>p.pos)).getPoints(res).map(p=> [p.x, p.y, p.z]);

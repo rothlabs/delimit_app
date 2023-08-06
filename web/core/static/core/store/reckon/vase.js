@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import {Vector3, Matrix4, MathUtils, CatmullRomCurve3, Box3, Raycaster, Mesh, MeshBasicMaterial, Line3} from 'three';
+import {Vector3, Matrix4, MathUtils, CatmullRomCurve3, Box3, Raycaster, Mesh, MeshBasicMaterial, Line3, Plane} from 'three';
 //import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 
@@ -13,15 +13,15 @@ const v_sum = new Vector3();
 const l1 = new Line3();
 //const v_count = 0;
 
-const res_v = .001;
-const res_u = .001;
+const res_v = .002;
+const res_u = .002;
 const tests = [];
 //const u_idx = [];
 for(let v=0; v<1/res_v; v++){
     tests[v] = [];
     //u_idx.push(0);
     for(let u=0; u<1/res_u; u++){
-        tests[v][u] = {p: new Vector3(), n: new Vector3()};
+        tests[v][u] = {p: new Vector3(), n: new Vector3(), u:0, v:0};
     }
 }
 
@@ -30,8 +30,8 @@ const destination = new Vector3();
 const raycaster = new Raycaster();
 const material = new MeshBasicMaterial();
 
-const geo_res = 50;
-const rot_res = 30;
+//const geo_res = 50;
+const rot_res = 100;
 const rot_step = Math.PI*2/rot_res;
 // const target_angles = [];
 // for(let i=0; i<rot_res; i++){
@@ -43,6 +43,7 @@ const rot_step = Math.PI*2/rot_res;
 // console.log('target_angles');
 // console.log(target_angles);
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
+const plane = new Plane();
 
 // const local_res = 0.005;
 // const local_size = 40;
@@ -57,7 +58,7 @@ const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 
 
 
-const layer_height = 1;
+const layer_height = .5;
 
 export const vase = {
     
@@ -78,6 +79,8 @@ export const vase = {
                 for(let u=0; u<1/res_u; u++){
                     var uu = 1-u*res_u;
                     var vv = v*res_v;
+                    tests[v][u].u = uu;
+                    tests[v][u].v = vv;
                     surface.get_point(uu,      vv,      tests[v][u].p);
                     //surface.get_point(uu+.005, vv,      v1);
                     //surface.get_point(uu,      vv+.005, v2);
@@ -93,7 +96,7 @@ export const vase = {
             //     tpl.push([]);
             // }
             for(let i=0; i<test_points.length; i++){
-                var idx = Math.round(test_points[i].p.y);
+                var idx = Math.round(test_points[i].p.y*0.5);
                 if(tpl['l'+idx] == undefined) tpl['l'+idx] = [];
                 tpl['l'+idx].push(test_points[i]);
             }
@@ -117,34 +120,41 @@ export const vase = {
                 v_sum.set(0,0,0);
                 for(let k=0; k<rot_res; k++){ 
                     l1.set(origin, destination);
-                    const ry = Math.round(y);
+                    const ry = Math.round(y*0.5);
                     var tp = [];
                     if(tpl['l'+ry]) tp = tpl['l'+ry];
-                    //for(let idx=ry-4; idx<=ry+4; idx++){
-                    //    if(tpl['l'+idx]) tp = tp.concat(tpl['l'+idx]);
+                    //for(let idx=ry-1; idx<=ry+1; idx++){
+                    //   if(tpl['l'+idx]) tp = tp.concat(tpl['l'+idx]);
                     //}
                     //console.log(tp);
-                    if(tp.length < 1) break;
+                    if(tp.length < 1){
+                        console.log('no test level found!!!');
+                        break;
+                    }
 
-                    var pt = tp.sort((a,b)=>{
-                        //if(a.n.dot(l1.delta(v3)) > 0) l1.closestPointToPoint(a.p, false, v1)
-                        //else return 1;//v1.set(10000,10000,10000);
-                        //if(b.n.dot(l1.delta(v3)) > 0) l1.closestPointToPoint(b.p, false, v2);
-                        //else return -1;//v2.set(10000,10000,10000);
+                    var spt = tp.sort((a,b)=>{
                         l1.closestPointToPoint(a.p, true, v1);
                         l1.closestPointToPoint(b.p, true, v2);
                         return v1.distanceTo(a.p)-v2.distanceTo(b.p);
-                    })[0];
+                    });
+                    surface.get_point(spt[0].u+.004, spt[0].v,      v1);
+                    surface.get_point(spt[0].u,      spt[0].v+.004, v2);
+                    plane.setFromCoplanarPoints(spt[0].p, v1, v2);
+                    if(plane.intersectsLine(l1)) plane.intersectLine(l1, v1)
+                    else v1.copy(spt[0].p);
                     //console.log(pt);
                     
-                    pts.push(pt.p);
-                    v_sum.add(pt.p);
+                    pts.push(v1.clone());
+                    v_sum.add(v1);
                     y -= layer_height / rot_res;
-                    //if(y < bb1.min.y) break;
-                    origin.set(axis.x, y, axis.z+1000);
+                    //origin.set(axis.x, y, axis.z+1000);
+                    origin.set(0, 0, 1000);
                     origin.applyMatrix4(m1.makeRotationY(rot_step*k));
-                    destination.set(axis.x,y,axis.z);//.sub(origin);
+                    origin.add(axis);
+                    origin.setY(y);
+                    destination.set(axis.x, y, axis.z);//.sub(origin);
                 }
+                if(y < bb1.min.y) break;
                 v_sum.divideScalar(rot_res);
                 axis.copy(v_sum);
             }
@@ -152,7 +162,7 @@ export const vase = {
             console.log('compute vase phase 3');
 
             const curve = new CatmullRomCurve3(pts);
-            curve.arcLengthDivisions = 2000;
+            curve.arcLengthDivisions = 3000;
             
             var code = '';
             // pts = curve.getPoints(Math.round(curve.getLength()*this.code_res));
@@ -170,6 +180,12 @@ export const vase = {
     }, 
 };
 
+
+
+//if(a.n.dot(l1.delta(v3)) > 0) l1.closestPointToPoint(a.p, false, v1)
+                        //else return 1;//v1.set(10000,10000,10000);
+                        //if(b.n.dot(l1.delta(v3)) > 0) l1.closestPointToPoint(b.p, false, v2);
+                        //else return -1;//v2.set(10000,10000,10000);
 
 // var pts = [];
 //             //var u = 1;
