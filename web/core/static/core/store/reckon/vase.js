@@ -17,10 +17,10 @@ const origin = new Vector3();
 const destination = new Vector3();
 const back = new Vector3(0,0,-1);
 
-const rot_res = 160;
+const rot_res = 80;
 const rot_step = Math.PI*2/rot_res;
 const layer_height = 5;
-const surface_res = 200;
+const surface_res = 400;
 const code_res = .2; 
 
 export const vase = {
@@ -59,7 +59,7 @@ export const vase = {
             origin.set(0,y,-1000);
             destination.set(0,y,0);//.sub(origin);
             axis.set(0,y,0);
-            const curve = new CurvePath();//new CatmullRomCurve3(pts);
+            var curve = new CurvePath();//new CatmullRomCurve3(pts);
             curve.arcLengthDivisions = 1000;
             for(let i=0; i<10000; i++){ 
                 v_sum.set(0,0,0);
@@ -108,37 +108,44 @@ export const vase = {
 
             var code = '';
             var total_angle_b = 0;
+            const gpts = [];
             for(let i=0; i<pts.length; i++){ 
                 v1.set(nml[i].x, 0, nml[i].z);
                 let angle_b = back.angleTo(v1) * Math.sign(nml[i].x);
                 v1.copy(pts[i]);
                 m1.makeRotationY(angle_b); 
                 pts[i].applyMatrix4(m1); //Vector3.applyAxisAngle 
+                var base_angle_b = total_angle_b;
                 total_angle_b += angle_b;
                 if(i < pts.length-1){
                     m1.makeRotationY(total_angle_b); 
                     pts[i+1].applyMatrix4(m1);
                     nml[i+1].applyMatrix4(m1);
                 }
-                code += 'G1 X'+d.rnd(pts[i].x) + ' Y'+d.rnd(pts[i].y)+ ' Z'+d.rnd(pts[i].z);
-                code += ' A'+0+ ' B'+d.rnd(MathUtils.radToDeg(total_angle_b));
-                code += ' F1000'; // mm per minute
-                code += '\r\n';
+                let step = Math.round(v1.distanceTo(pts[i]) / 1); // fill point every 1 mm
+                if(step < 1) step = 1;
+                //if(step > 1) console.log(step);
+                for(let k=1; k<=step; k++){ 
+                    let step_angle_b = angle_b*(k/step);
+                    m1.makeRotationY(step_angle_b); 
+                    v2.copy(v1).applyMatrix4(m1);
+                    gpts.push(v2.clone());
+                    code += 'G1 X'+d.rnd(v2.x) + ' Y'+d.rnd(v2.y)+ ' Z'+d.rnd(v2.z);
+                    code += ' A'+0+ ' B'+d.rnd(MathUtils.radToDeg(base_angle_b + step_angle_b));
+                    code += ' F1000'; // mm per minute
+                    code += '\r\n';
+                }
+            }
 
-                // let step = Math.round(v1.distanceTo(pts[i]) / 2); // fill point every 2 mm
-                // if(step < 1) step = 1;
-                // for(let k=1; k<=step; k++){ 
-                //     m1.makeRotationY(angle_b*(k/step)); 
-                //     v2.copy(v1).applyMatrix4(m1);
-                    
-                // }
-
+            curve = new CurvePath();
+            for(let i=0; i<gpts.length-1; i++){ 
+                curve.add(new LineCurve3(gpts[i], gpts[i+1]));
             }
 
 
             d.n[n].c.code = code;
             d.n[n].c.curve = curve;
-            d.n[n].ax.curve = d.n[n].c.curve;
+            d.n[n].ax.curve = curve;
             console.log('Reckoned vase!!!');
         }catch(e){
             console.log(e);
