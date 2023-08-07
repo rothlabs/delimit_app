@@ -1,37 +1,32 @@
 import {current} from 'immer';
-import {Vector3, Matrix4, MathUtils, CatmullRomCurve3, Box3, Raycaster, Mesh, MeshBasicMaterial, Line3, Plane} from 'three';
+import {Vector3, Matrix4, MathUtils, CatmullRomCurve3, Box3, Raycaster, Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath} from 'three';
 //import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 
 const v1 = new Vector3();
 const v2 = new Vector3();
+const v3 = new Vector3();
+const v4 = new Vector3();
 const axis = new Vector3();
 const v_sum = new Vector3();
 const l1 = new Line3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
+const m2 = new Matrix4();
 const plane = new Plane();
 const origin = new Vector3();
 const destination = new Vector3();
+const back = new Vector3(0,0,-1);
 
-const rot_res = 80;
+const rot_res = 160;
 const rot_step = Math.PI*2/rot_res;
-const layer_height = 2;
+const layer_height = 5;
 const surface_res = 200;
-//const res_u = 200;
-// const tests = [];
-// for(let v=0; v<res_v; v++){
-//     tests[v] = [];
-//     for(let u=0; u<res_u; u++){
-//         tests[v][u] = {p: new Vector3(), u:u, v:v, uu:1-u/res_u, vv:v/res_v};
-//     }
-// }
+const code_res = .2; 
 
 export const vase = {
-    
-    code_res: .2, // code_res = arc length between G1 if constant curve like an arc
     node(d, n){
         try{
-            console.log('compute vase');
+            console.log('Compute Vase');
             //if(d.studio.mode == 'graph') return;
             delete d.n[n].c.g_code;
             delete d.n[n].c.curve;
@@ -56,13 +51,16 @@ export const vase = {
                 if(tpl['l'+idx] == undefined) tpl['l'+idx] = [];//{pts:[], sort_count:-1};
                 tpl['l'+idx].push(tests[i]);
             }
-            console.log('compute vase phase 2');
+            console.log('Compute Vase Phase 2');
             var pts = [];
+            var nml = [];
             surfaces[0].get_point(1, 0, v1);
             var y = v1.y;
-            origin.set(0,y,500);
+            origin.set(0,y,-1000);
             destination.set(0,y,0);//.sub(origin);
             axis.set(0,y,0);
+            const curve = new CurvePath();//new CatmullRomCurve3(pts);
+            curve.arcLengthDivisions = 1000;
             for(let i=0; i<10000; i++){ 
                 v_sum.set(0,0,0);
                 for(let k=0; k<rot_res; k++){ 
@@ -76,35 +74,69 @@ export const vase = {
                         return v1.distanceTo(a.p)-v2.distanceTo(b.p);
                     });
                     tpl['l'+ry].sort_count = 0;
-                    surfaces[spt[0].si].get_point(spt[0].uu+.004, spt[0].vv,      v1);
-                    surfaces[spt[0].si].get_point(spt[0].uu,      spt[0].vv+.004, v2);
+                    // if(spt[0].uu+.001 > 1) var uuu = spt[0].uu-.001
+                    // else var uuu = spt[0].uu+.001;
+                    // if(spt[0].vv+.001 > 1) var vvv = spt[0].vv-.001
+                    // else var vvv = spt[0].vv+.001;
+                    surfaces[spt[0].si].get_point(spt[0].uu+.001, spt[0].vv,      v1);
+                    surfaces[spt[0].si].get_point(spt[0].uu,      spt[0].vv+.001, v2);
                     plane.setFromCoplanarPoints(spt[0].p, v1, v2);
-                    if(plane.intersectsLine(l1)) plane.intersectLine(l1, v1)
-                    else v1.copy(spt[0].p);
+                    plane.intersectLine(l1, v1);
                     pts.push(v1.clone());
+                    let normal = plane.normal.clone();
+                    if(v3.copy(destination).sub(origin).dot(normal) > 0) normal.negate();
+                    nml.push(normal); // does it need to be clone ?!?!?!?!?!
+                    if(pts.length > 1) curve.add(new LineCurve3(pts.at(-2), pts.at(-1)));
                     v_sum.add(v1);
                     y -= layer_height / rot_res;
-                    origin.set(0, 0, 500);
+                    origin.set(0, 0, -1000);
                     origin.applyMatrix4(m1.makeRotationY(rot_step*k));
                     origin.add(axis);
                     origin.setY(y);
                     destination.set(axis.x, y, axis.z);
                 }
-                if(y < bb1.min.y) break;
+                if(y < bb1.min.y+4) break;
                 v_sum.divideScalar(rot_res);
                 axis.copy(v_sum);
             }
+            console.log('Compute Vase Phase 3');
+            //const curve = new LineCurve3(pts);//new CatmullRomCurve3(pts);
+            //curve.arcLengthDivisions = 1000;
+            //const nml_curve = new CatmullRomCurve3(nml);
+            //nml_curve.arcLengthDivisions = 1000;
+            //pts = pts.map(p=> p.clone());
 
-            console.log('compute vase phase 3');
-
-            const curve = new CatmullRomCurve3(pts);
-            curve.arcLengthDivisions = 3000;
-            
             var code = '';
-            // pts = curve.getPoints(Math.round(curve.getLength()*this.code_res));
-            // for(let i=0; i<pts.length; i++){
-            //     code += 'G0 X'+d.rnd(pts[i].x) + ' Y'+d.rnd(pts[i].y)+ ' Z'+d.rnd(pts[i].z) + '\r\n';
-            // }
+            var total_angle_b = 0;
+            //v2.copy(pts[0]);
+            for(let i=0; i<pts.length; i++){ //pts.length
+                v1.set(nml[i].x, 0, nml[i].z);
+                //console.log(v1.clone());
+                //console.log(back.clone());
+                let angle_b = back.angleTo(v1) * Math.sign(nml[i].x);
+                // if(i < pts.length-1 && angle_b > 0.5){
+                //     pts[i+1].applyMatrix4(m2);
+                //     nml[i+1].applyMatrix4(m2);
+                //     continue;
+                // }
+                total_angle_b += angle_b;
+                //console.log(angle_b);
+                m1.makeRotationY(angle_b); //Vector3.applyAxisAngle 
+                m2.makeRotationY(total_angle_b);
+                pts[i].applyMatrix4(m2);
+                //v2.copy(pts[i]);
+                //v2.applyMatrix4(m1);
+                //nml[i  ].applyMatrix4(m1);
+                if(i < pts.length-1){
+                    //pts[i+1].applyMatrix4(m2);
+                    nml[i+1].applyMatrix4(m2);
+                }
+                code += 'G1 X'+d.rnd(pts[i].x) + ' Y'+d.rnd(pts[i].y)+ ' Z'+d.rnd(pts[i].z);
+                code += ' A'+0+ ' B'+d.rnd(MathUtils.radToDeg(total_angle_b));
+                code += ' F1000'; // mm per minute
+                code += '\r\n';
+            }
+
 
             d.n[n].c.code = code;
             d.n[n].c.curve = curve;
@@ -116,6 +148,22 @@ export const vase = {
     }, 
 };
 
+
+
+//pts = curve.getPoints(Math.round(curve.getLength()*code_res));
+
+
+//if(plane.intersectsLine(l1)) plane.intersectLine(l1, v1)
+                    //else v1.copy(spt[0].p);
+
+//const res_u = 200;
+// const tests = [];
+// for(let v=0; v<res_v; v++){
+//     tests[v] = [];
+//     for(let u=0; u<res_u; u++){
+//         tests[v][u] = {p: new Vector3(), u:u, v:v, uu:1-u/res_u, vv:v/res_v};
+//     }
+// }
 
 // const v1 = new Vector3();
 // const v2 = new Vector3();
