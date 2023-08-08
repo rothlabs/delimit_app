@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import {Vector3, Matrix4, MathUtils, CatmullRomCurve3, Box3, Raycaster, Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath} from 'three';
+import {Vector3, Matrix4, MathUtils, Ray, CatmullRomCurve3, Box3, Raycaster, Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath} from 'three';
 //import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 
@@ -17,11 +17,55 @@ const origin = new Vector3();
 const destination = new Vector3();
 const back = new Vector3(0,0,-1);
 
-const rot_res = 80;
+const rot_res = 360;
 const rot_step = Math.PI*2/rot_res;
 const layer_height = 5;
-const surface_res = 400;
-const code_res = .2; 
+const surface_res = 900;
+//const code_res = .2; 
+
+
+function simplify(curve, points, threshold) {
+    if (curve.length <= 2) return curve;
+  
+  if (curve.length != points.length) {
+  	throw `curve.length=${curve.length} not equals to points.length=${points.length}`;
+  }
+
+	const thresholdSq = threshold * threshold;
+  
+  const result = [curve[0]];
+  
+  simplifySegment(0, curve.length - 1);
+  result.push(curve[curve.length - 1]);
+  
+  return result;
+  
+  function simplifySegment(iLeft, iRight) {
+  	if (iRight - iLeft <= 1) return;
+    
+    const ray = new Ray(
+    	points[iLeft],
+      points[iRight].clone().sub(points[iLeft]).normalize()
+    );
+    
+    let maxDistSq = 0;
+    let maxIndex = iLeft;
+    for (let i = iLeft + 1; i < iRight; i++) {
+    	const distSq = ray.distanceSqToPoint(points[i]);
+      if (distSq > thresholdSq && distSq > maxDistSq) {
+      	maxDistSq = distSq;
+        maxIndex = i;
+      }
+    }
+    
+    if (maxIndex != iLeft) {
+      simplifySegment(iLeft, maxIndex);
+      result.push(curve[maxIndex]);
+      simplifySegment(maxIndex, iRight);
+    }
+  }
+}
+
 
 export const vase = {
     node(d, n){
@@ -47,13 +91,14 @@ export const vase = {
             });
             const tpl = {};
             for(let i=0; i<tests.length; i++){
-                var idx = Math.round(tests[i].p.y/2);
+                var idx = Math.round(tests[i].p.y*3);
                 if(tpl['l'+idx] == undefined) tpl['l'+idx] = [];//{pts:[], sort_count:-1};
                 tpl['l'+idx].push(tests[i]);
             }
             console.log('Compute Vase Phase 2');
             var pts = [];
             var nml = [];
+            var nml2 = [];
             surfaces[0].get_point(1, 0, v1);
             var y = v1.y;
             origin.set(0,y,-1000);
@@ -65,7 +110,7 @@ export const vase = {
                 v_sum.set(0,0,0);
                 for(let k=0; k<rot_res; k++){ 
                     l1.set(origin, destination);
-                    const ry = Math.round(y/2);
+                    const ry = Math.round(y*3);
                     if(!tpl['l'+ry]) break;
                     var spt = null;
                     spt = tpl['l'+ry].sort((a,b)=>{
@@ -86,6 +131,7 @@ export const vase = {
                     let normal = plane.normal.clone();
                     if(v3.copy(destination).sub(origin).dot(normal) > 0) normal.negate();
                     nml.push(normal); // does it need to be clone ?!?!?!?!?!
+                    nml2.push(normal); 
                     if(pts.length > 1) curve.add(new LineCurve3(pts.at(-2), pts.at(-1)));
                     v_sum.add(v1);
                     y -= layer_height / rot_res;
@@ -105,13 +151,22 @@ export const vase = {
             //const nml_curve = new CatmullRomCurve3(nml);
             //nml_curve.arcLengthDivisions = 1000;
             //pts = pts.map(p=> p.clone());
+            var smooth_range = 8;
+            for(let i=smooth_range; i<nml.length-smooth_range*2; i++){ 
+                for(let k=-smooth_range; k<=smooth_range*2; k++){ 
+                    if(k != 0) nml[i].add(nml2[i+k]);
+                }
+                nml[i].divideScalar(smooth_range*2 + 1);
+            }
 
             var code = '';
             var total_angle_b = 0;
-            const gpts = [];
+            //var rpts = [];
+            var gpts = [];
+            var dir = new Vector3(-1,0,0);
             for(let i=0; i<pts.length; i++){ 
                 v1.set(nml[i].x, 0, nml[i].z);
-                let angle_b = back.angleTo(v1) * Math.sign(nml[i].x);
+                let angle_b = back.angleTo(v1) * Math.sign(nml[i].x); // add something factor here ?!?!?!?!?!
                 v1.copy(pts[i]);
                 m1.makeRotationY(angle_b); 
                 pts[i].applyMatrix4(m1); //Vector3.applyAxisAngle 
@@ -122,20 +177,33 @@ export const vase = {
                     pts[i+1].applyMatrix4(m1);
                     nml[i+1].applyMatrix4(m1);
                 }
-                let step = Math.round(v1.distanceTo(pts[i]) / 1); // fill point every 1 mm
-                if(step < 1) step = 1;
-                //if(step > 1) console.log(step);
-                for(let k=1; k<=step; k++){ 
-                    let step_angle_b = angle_b*(k/step);
-                    m1.makeRotationY(step_angle_b); 
-                    v2.copy(v1).applyMatrix4(m1);
-                    gpts.push(v2.clone());
-                    code += 'G1 X'+d.rnd(v2.x) + ' Y'+d.rnd(v2.y)+ ' Z'+d.rnd(v2.z);
-                    code += ' A'+0+ ' B'+d.rnd(MathUtils.radToDeg(base_angle_b + step_angle_b));
-                    code += ' F1000'; // mm per minute
-                    code += '\r\n';
-                }
+                //var add_points = true;
+                // if(gpts.length > 0){
+                //     v3.copy(pts[i]).sub(gpts.at(-1));
+                //     if(dir.dot(v3) < 0.5) add_points = false;
+                //     dir.copy(v3);
+                // }
+                //if(add_points){
+                    let step = Math.round(v1.distanceTo(pts[i]) / 1); // fill point every 1 mm
+                    if(step < 1) step = 1;
+                    //if(step > 1) console.log(step);
+                    for(let k=1; k<=step; k++){ 
+                        let step_angle_b = angle_b*(k/step);
+                        m1.makeRotationY(step_angle_b); 
+                        v2.copy(v1).applyMatrix4(m1);
+                        //rpts.push(v2.clone());
+                        gpts.push(v2.clone());
+                        code += 'G1 X'+d.rnd(v2.x) + ' Y'+d.rnd(v2.y)+ ' Z'+d.rnd(v2.z);
+                        code += ' A'+0+ ' B'+d.rnd(MathUtils.radToDeg(base_angle_b + step_angle_b));
+                        code += ' F1000'; // mm per minute
+                        code += '\r\n';
+                    }
+                //}
             }
+
+
+            //gpts = simplify(gpts, rpts, 0.4); // need to figure out which ones got deleted so they can be removed from g code ?!?!?!?!?!
+
 
             curve = new CurvePath();
             for(let i=0; i<gpts.length-1; i++){ 
@@ -152,6 +220,11 @@ export const vase = {
         } 
     }, 
 };
+
+
+
+
+
 
 
 
