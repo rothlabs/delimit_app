@@ -151,8 +151,8 @@ export const vase = {
             }
 
             var angle_a = -58;
-            var code = 'G21 G90 G93 \r\n';
-            code += 'G92 B0 \r\n';
+            var code = 'G21 G90 G93 \r\n'; // g21=mm g90=absolute g93=inverse-time-feed
+            code += 'G92 B0 \r\n'; // reset B-axis (shoe spinner)
             code += 'G0 X'+hx+' Y-300 A'+angle_a+' \r\n';
             code += 'G0 Z'+(hz-pts[0].z-start_offset)+' \r\n';
             code += 'G0 Y'+hy+' \r\n';
