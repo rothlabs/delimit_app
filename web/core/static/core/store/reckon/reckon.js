@@ -7,7 +7,8 @@ import {ellipse} from './ellipse.js';
 import {surface} from './surface.js';
 import {shape} from './shape.js';
 import {layer} from './layer.js';
-import {vase} from './vase.js';
+import {coil} from './coil.js';
+import {coil_fill} from './coil_fill.js';
 
 const zero_vector = new Vector3();
 const v1 = new Vector3();
@@ -26,7 +27,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     shape,
     surface,
     layer,
-    vase,
+    coil,
+    coil_fill,
     count: 0,
     up(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
         d.reckon.base(d, n, cause);

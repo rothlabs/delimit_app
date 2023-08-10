@@ -15,7 +15,7 @@ for(let v=0; v<1/res_v; v++){
     }
 }
 
-export const spiral = {
+export const coil_fill = {
     layer_height: .8, 
     code_res: .2, // 1mm / code_res = arc length between G1 if constant curve like an arc
     node(d, n){
@@ -61,7 +61,7 @@ export const spiral = {
             d.n[n].c.code = code;
             d.n[n].c.curve = curve;
             d.n[n].ax.curve = d.n[n].c.curve;
-            console.log('Reckoned vase!!!');
+            console.log('Reckoned Coil Fill!!!');
         }catch(e){
             console.log(e);
         } 

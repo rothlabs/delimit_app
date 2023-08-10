@@ -29,10 +29,10 @@ const hy = -5;
 const hz = -674;
 
 
-export const vase = {
+export const coil = {
     node(d, n){
         try{
-            console.log('Compute Vase');
+            console.log('Compute Coil');
             //if(d.studio.mode == 'graph') return;
             delete d.n[n].c.g_code;
             delete d.n[n].c.curve;
@@ -57,7 +57,7 @@ export const vase = {
                 if(tpl['l'+idx] == undefined) tpl['l'+idx] = [];//{pts:[], sort_count:-1};
                 tpl['l'+idx].push(tests[i]);
             }
-            console.log('Compute Vase Phase 2');
+            console.log('Compute Coil Phase 2');
             var pts = [];
             var nml = [];
             var nml2 = [];
@@ -109,7 +109,7 @@ export const vase = {
                 v_sum.divideScalar(rot_res);
                 axis.copy(v_sum);
             }
-            console.log('Compute Vase Phase 3');
+            console.log('Compute Coil Phase 3');
             // var curve = new CatmullRomCurve3(pts);
             // curve.arcLengthDivisions = 2000;
             // var nml_curve = new CatmullRomCurve3(nml);
@@ -224,7 +224,7 @@ export const vase = {
             d.n[n].c.curve = curve;
             d.n[n].ax.curve = curve;
             d.n[n].ax.curve2 = curve2;
-            console.log('Reckoned vase!!!');
+            console.log('Reckoned Coil!!!');
         }catch(e){
             console.log(e);
         } 
@@ -390,12 +390,12 @@ export const vase = {
 
 // const layer_height = 2;
 
-// export const vase = {
+// export const coil = {
     
 //     code_res: .2, // code_res = arc length between G1 if constant curve like an arc
 //     node(d, n){
 //         try{
-//             console.log('compute vase');
+//             console.log('compute coil');
 //             //if(d.studio.mode == 'graph') return;
 //             delete d.n[n].c.g_code;
 //             delete d.n[n].c.curve;
@@ -437,7 +437,7 @@ export const vase = {
 //             //     new ParametricGeometry(surface.get_point, geo_res, geo_res),
 //             //     material
 //             // );
-//             console.log('compute vase phase 2');
+//             console.log('compute coil phase 2');
 //             var pts = [];
 //             //var u = 1;
 //             //var v = 0;
@@ -498,7 +498,7 @@ export const vase = {
 //                 axis.copy(v_sum);
 //             }
 
-//             console.log('compute vase phase 3');
+//             console.log('compute coil phase 3');
 
 //             const curve = new CatmullRomCurve3(pts);
 //             curve.arcLengthDivisions = 3000;
@@ -512,7 +512,7 @@ export const vase = {
 //             d.n[n].c.code = code;
 //             d.n[n].c.curve = curve;
 //             d.n[n].ax.curve = d.n[n].c.curve;
-//             console.log('Reckoned vase!!!');
+//             console.log('Reckoned coil!!!');
 //         }catch(e){
 //             console.log(e);
 //         } 

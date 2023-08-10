@@ -18,7 +18,7 @@ var next_ids = [];
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
     'mixed_curve', 'ellipse', 'surface', 'shape', 'layer',
-    'vase', 'spiral',
+    'coil', 'coil_fill',
 ];
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
@@ -34,8 +34,8 @@ const component = {
     'sketch':      Sketch,
     'transform':   Transform,
     'layer':       Layer,
-    'vase':        Curve,
-    'spiral':      Curve,
+    'coil':        Curve,
+    'coil_fill':   Curve,
     'ellipse':     Curve,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
@@ -102,8 +102,8 @@ export const create_base_slice = (set,get)=>({
         'surface':      'bi-map',
         'shape':        'bi-pentagon',
         'layer':        'bi-layers',
-        'vase':         'bi-rainbow',
-        'spiral':       'bi-rainbow',
+        'coil':         'bi-rainbow',
+        'coil_fill':    'bi-rainbow',
     },
 
     max_click_delta: 7,
