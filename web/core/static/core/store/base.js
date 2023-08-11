@@ -18,7 +18,7 @@ var next_ids = [];
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
     'mixed_curve', 'ellipse', 'surface', 'shape', 'layer',
-    'coil', 'coil_fill',
+    'coil', 'coil_fill', 'post',
 ];
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
@@ -34,9 +34,10 @@ const component = {
     'sketch':      Sketch,
     'transform':   Transform,
     'layer':       Layer,
+    'ellipse':     Curve,
     'coil':        Curve,
     'coil_fill':   Curve,
-    'ellipse':     Curve,
+    'post':        Curve,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
@@ -45,6 +46,7 @@ const admin_tags    = ['profile', ...cat_tags]; //category_tags
 const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
+    'density', 'nozzle_size', 'speed',
 ];
 const string_tags = [model_tags['s'], 'name', 'story', 'code']; // rename to text_tags
 const atom_tags   = Object.values(model_tags).slice(1);
@@ -104,6 +106,7 @@ export const create_base_slice = (set,get)=>({
         'layer':        'bi-layers',
         'coil':         'bi-rainbow',
         'coil_fill':    'bi-rainbow',
+        'post':    'bi-code',
     },
 
     max_click_delta: 7,

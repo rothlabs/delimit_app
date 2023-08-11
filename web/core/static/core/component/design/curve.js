@@ -18,26 +18,26 @@ const res = 1;
 
 export const Curve = memo(({n})=>{ 
     const curve_ref = useRef();
-    const curve_ref2 = useRef();
+    //const curve_ref2 = useRef();
     const segs_ref = useRef();
     const color = useS(d=> d.n[n].pick.color); 
     const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     const [curve_geo] = useState({pts:[[0,0,0],[0,0,0]]});
-    const [curve_geo2] = useState({pts:[[0,0,0],[0,0,0]]});
+    //const [curve_geo2] = useState({pts:[[0,0,0],[0,0,0]]});
     const [segs_geo] = useState({pts:[[0,0,0],[0,0,0]]});
     //const [pt_count, set_pt_count] = useState();
     useSub(d=> d.n[n].ax.curve, curve=>{ // make useSub that includes useEffect
-        const curve2 = gs().n[n].ax.curve2;
-        if(curve2){
-            curve_geo2.pts = curve2.getSpacedPoints(curve2.getLength()*res).map(p=>[p.x, p.y, p.z]).flat(); 
-            curve_ref2.current.geometry = new LineGeometry();
-            curve_ref2.current.geometry.setPositions(curve_geo2.pts);
-        }
+        // const curve2 = gs().n[n].ax.curve2;
+        // if(curve2){
+        //     curve_geo2.pts = curve2.getPoints(curve2.getLength()*res).map(p=>[p.x, p.y, p.z]).flat(); 
+        //     curve_ref2.current.geometry = new LineGeometry();
+        //     curve_ref2.current.geometry.setPositions(curve_geo2.pts);
+        // }
         //if(dd[1]) dd=dd[1];
         if(curve){ //curve_ref.current && 
             var adjusted_res = Math.round(curve.getLength()*res);
             if(adjusted_res < 100) adjusted_res = 100;
-            curve_geo.pts = curve.getSpacedPoints(adjusted_res).map(p=>[p.x, p.y, p.z]).flat();// change back to getPoints !!!!!!!
+            curve_geo.pts = curve.getPoints(adjusted_res).map(p=>[p.x, p.y, p.z]).flat();// change back to getPoints !!!!!!!
             curve_ref.current.geometry = new LineGeometry();
             curve_ref.current.geometry.setPositions(curve_geo.pts);
             const pts = gs().n[n].ax.pts;
@@ -58,12 +58,12 @@ export const Curve = memo(({n})=>{
                     lineWidth: pick ? 4 : 3,
                     color: color[0],
                 }),
-                c(Line, {
-                    ref: curve_ref2,
-                    points: curve_geo2.pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
-                    lineWidth: pick ? 4 : 3,
-                    color: 'green',
-                }),
+                // c(Line, {
+                //     ref: curve_ref2,
+                //     points: curve_geo2.pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
+                //     lineWidth: pick ? 4 : 3,
+                //     color: 'green',
+                // }),
             ),
             c(Line, {
                 ref: segs_ref,
