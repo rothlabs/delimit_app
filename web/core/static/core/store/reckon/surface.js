@@ -1,11 +1,13 @@
 import {current} from 'immer';
-import {Vector3, Vector4, CatmullRomCurve3, Shape, CurvePath, BufferGeometry, ShapeGeometry} from 'three';
+import {Vector3, Vector4, CatmullRomCurve3, Shape, CurvePath, BufferGeometry, ShapeGeometry, Plane} from 'three';
 import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
 //import Delaunator from 'delaunator';
 //import { closest } from '../../junk/vertex.js';
 
 const v1 = new Vector3();
 const v2 = new Vector3();
+const v3 = new Vector3();
+const plane = new Plane();
 //const v3 = new Vector3();
 //const v4 = new Vector3();
 //const v5 = new Vector3();
@@ -181,6 +183,18 @@ export const surface = {
                 surface.getPoint(u, v, target);
                 return target;
             }
+            surface.get_point_normal = (u, v, point, normal)=>{
+                surface.getPoint(u+.010, v,        point); // right most point
+                surface.getPoint(u-.005, v+.00866, v2); // cos(120) sin(120)
+                surface.getPoint(u-.005, v-.00866, v3); // cos(-120) sin(-120)
+                normal.copy(v2).sub(point).cross(v3.sub(point)).normalize();
+            }
+            // surface.get_point_plane = (u, v, point, plane)=>{
+            //     surface.getPoint(u+.010, v,        point); // right most point
+            //     surface.getPoint(u-.005, v+.00866, v2); // cos(120) sin(120)
+            //     surface.getPoint(u-.005, v-.00866, v3); // cos(-120) sin(-120)
+            //     plane.setFromCoplanarPoints(point, v2, v3);
+            // }
             d.n[n].c.surface = surface;
             d.n[n].c.pts = pts;
             // if(d.n[n].ax.matrix){

@@ -154,6 +154,13 @@ export const create_make_slice = (set,get)=>({make:{
             angle_b: d.make.atom(d,'f', 270),
         }});
     },
+    coil(d, a={}){ // add manual_compute !!!!!!!!!
+        return d.make.node(d,'p','coil', {...a, n:{
+            axis_x: d.make.atom(d,'f', 0),
+            axis_y: d.make.atom(d,'f', 1),
+            axis_z: d.make.atom(d,'f', 0),
+        }});
+    },
     // matrix(d, a={}){
     //     if(a.matrix == undefined) a.matrix = new Matrix4();
     //     return d.make.node(d,'p','matrix', {...a, n:{
