@@ -12,7 +12,6 @@ const v6 = new Vector3();
 const v7 = new Vector3();
 const v8 = new Vector3();
 const v9 = new Vector3();
-const origin = new Vector3();
 const axis = new Vector3();
 const ortho1 = new Vector3();
 const ortho2 = new Vector3();
@@ -21,18 +20,14 @@ const l1 = new Line3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const m2 = new Matrix4();
 const pl1 = new Plane();
-//const origin = new Vector3();
-//const direction = new Vector3();
 const back = new Vector3(0,0,-1);
 
-const rot_res = 200;
-const rot_step = Math.PI*2/rot_res;
+//const rot_res = 200;
+//const rot_step = Math.PI*2/rot_res;
 const span = 5; 
-//const origin_res = 100;
 const origin_surface_res = 400;
 const surface_res = 900;
 const max_shift = 0.1;
-//const code_res = 1; 
 
 const min_point_span = 1;
 
@@ -57,28 +52,14 @@ export const coil = {
     node(d, n){
         try{
             console.log('Compute Coil');
-            //if(d.studio.mode == 'graph') return;
             delete d.n[n].c.g_code;
             delete d.n[n].c.curve;
             delete d.n[n].ax.curve;
-            
             const c = d.reckon.v(d, n, 'axis_x axis_y axis_z');
             axis.set(c.axis_x, c.axis_y, c.axis_z);
             ortho1.set(c.axis_z, c.axis_x, c.axis_y);
             ortho2.copy(axis).cross(ortho1);
-            //const surface  = d.n[d.n[n].n.surface[0]].c.surface;
             const surfaces  = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
-            //const bb1 = new Box3();
-            // surfaces.forEach((surface, si) => {
-            //     for(let u=0; u<bb_surface_Res; u++){
-            //         for(let v=0; v<bb_surface_Res; v++){ 
-            //             surface.get_point(u/bb_surface_Res, v/bb_surface_Res, v1);
-            //             bb1.expandByPoint(v1);
-            //         }
-            //     }
-            // });
-
-            //let i = 0;
             const pivots = {};
             surfaces.forEach((surface, si) => {
                 for(let u=0; u<origin_surface_res; u++){
@@ -95,40 +76,20 @@ export const coil = {
                     }
                 }
             });
-            //var pa = [];
-            Object.values(pivots).forEach(pivot=>{
-                //pivot.v.divideScalar(pivot.c);
-                pivot.b.getCenter(pivot.v);
-                //pa.push(pivot.v);
-            });
-            //pa.sort((a,b)=> a.y-b.y);
-            // Object.entries(pivots).forEach((key,val)=>{
-            //     pivots[key].v = val.v.divideScalar(val.c);
-            // });
-            //let i = 0;
-            //console.log(pa);
-
+            Object.values(pivots).forEach(pivot=> pivot.b.getCenter(pivot.v));
             const surf_data = [];
             surfaces.forEach(surface => {
                 for(let u=0; u<surface_res; u++){
                     for(let v=0; v<surface_res; v++){ 
                         surface.get_point_normal(u/surface_res, v/surface_res, v1, v9);
                         v2.copy(v1).projectOnVector(axis); // axis point
-                        //v3.copy(v1).sub(v2); // vector from axis point to surface point
                         let axis_pos = v2.length()*Math.sign(v2.dot(axis));
                         let pivot = pivots['k'+Math.round(axis_pos)].v;  // get pivot
                         v4.copy(v1).sub(pivot); // vector from pivot to surface point
-                        //v5.copy(ortho1).sub(pivot) // vector from pivot to ortho1
-                        //v6.copy(ortho2).sub(pivot) // vector from pivot to ortho2
                         var angle = v4.angleTo(ortho1) * Math.sign(v4.dot(ortho2)); 
                         if(angle < 0) angle += Math.PI*2;
-                        var shift0 = (angle/(Math.PI*2))*span;
-                        //shift0 = Math.random() * span;
-                        //console.log(shift0);
-                        var shift = -((axis_pos + shift0) % span); // remainder
-                        //let axis_pos = v2.length() - remainder; // target on axis
+                        var shift = -((axis_pos + (angle/(Math.PI*2))*span) % span); // remainder
                         if (shift < -span/2) shift += span;
-                        //let shift = axis_pos - v2.length();
                         if(Math.abs(shift) < max_shift){
                             v7.copy(axis).multiplyScalar(shift); // shift along axis vector to align with coil
                             v8.copy(v1).add(v7); // new surface point
@@ -147,33 +108,22 @@ export const coil = {
             //curve2.arcLengthDivisions = 2000;
             var pts = [surf_data[0].v];
             var nml = [surf_data[0].n];
+            var nml2 = [surf_data[0].n];
             var surface_dists = [0];
             var last_point = surf_data[0].v;
-            //console.log(surf_data.length); 
             for(let i=0; i<surf_data.length; i++){ 
                 let dist = last_point.distanceTo(surf_data[i].v);
                 if(dist > min_point_span){
-                    //console.log(surf_data[i].v);
                     pts.push(surf_data[i].v);
                     nml.push(surf_data[i].n);
+                    nml2.push(surf_data[i].n.clone());
                     surface_dists.push(dist);
                     curve.add(new LineCurve3(last_point, surf_data[i].v));
                     last_point = surf_data[i].v;
                     //curve2.add(new LineCurve3(surf_data[i].v, surf_data[i+1].v)); 
                 } 
             }
-            // last_point = pa[0];
-            // for(let i=0; i<pa.length; i++){ 
-            //     //let dist = last_point.distanceTo(pivots[i].v);
-            //     //if(dist > min_point_span){
-            //         //console.log(surf_data[i].v);
-            //         curve.add(new LineCurve3(last_point, pa[i]));
-            //         last_point = pa[i];
-            //         //curve2.add(new LineCurve3(surf_data[i].v, surf_data[i+1].v)); 
-            //     //} 
-            // }
 
-            console.log(curve);
             console.log('Compute Coil Phase 4');
 
 
@@ -269,71 +219,71 @@ export const coil = {
             // }
 
             // /////////////////////////////// TRANSFORM TO 5-AXIS /////////////////////////////////////////////////////
-            // var smooth_range = 8;
-            // for(let i=smooth_range; i<nml.length-smooth_range; i++){ 
-            //     for(let k=-smooth_range; k<=smooth_range; k++){ 
-            //         if(k != 0) nml[i].add(nml2[i+k]);
-            //     }
-            //     nml[i].divideScalar(smooth_range*2 + 1);
-            // }
-            // var angle_a = -58;
+            var smooth_range = 8;
+            for(let i=smooth_range; i<nml.length-smooth_range; i++){ 
+                for(let k=-smooth_range; k<=smooth_range; k++){ 
+                    if(k != 0) nml[i].add(nml2[i+k]);
+                }
+                nml[i].divideScalar(smooth_range*2 + 1);
+            }
+            var angle_a = -58;
             var code = 'G21 G90 G93 \r\n'; // g21=mm g90=absolute g93=inverse-time-feed
-            // code += 'G92 B0 \r\n'; // reset B-axis (shoe spinner)
-            // code += 'G0 X'+hx+' Y-300 A'+angle_a+' \r\n';
-            // code += 'G0 Z'+(hz-pts[0].z-start_offset)+' \r\n';
-            // code += 'G0 Y'+hy+' \r\n';
-            // code += 'G1 Z'+(hz-pts[0].z)+' F30 \r\n \r\n';
-            // var total_angle_b = 0;
-            // //var rpts = [];
-            // //var gpts = [];
-            // //var dir = new Vector3(-1,0,0);
-            // for(let i=1; i<pts.length; i++){ 
-            //     //let surface_dist = 
-            //     v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
-            //     let angle_b = back.angleTo(v1) * Math.sign(nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
-            //     //v1.copy(pts[i]);
-            //     m1.makeRotationY(angle_b); 
-            //     pts[i].applyMatrix4(m1); //Vector3.applyAxisAngle 
-            //     //var base_angle_b = total_angle_b;
-            //     total_angle_b += angle_b;
-            //     if(i < pts.length-1){
-            //         m1.makeRotationY(total_angle_b);
-            //         pts[i+1].applyMatrix4(m1);
-            //         nml[i+1].applyMatrix4(m1);
-            //     }
-            //     //var add_points = true;
-            //     // if(gpts.length > 0){
-            //     //     v3.copy(pts[i]).sub(gpts.at(-1));
-            //     //     if(dir.dot(v3) < 0.5) add_points = false;
-            //     //     dir.copy(v3);
-            //     // }
-            //     //if(add_points){
-            //         //gpts.push(pts[i]);
-            //         //let gantry_dist = Math.round(pts[i-1].distanceTo(pts[i]));
-            //         // home is -1000 for X and Z //home is 0 for Y !!!!!!
-            //         //For tool +Z at center top of rod: X:-835, Y:-5, Z:-674, A:-58, B:0
-            //         if(surface_dists[i] == 0) continue;
-            //         code += 'G1 X'+d.rnd(hx+pts[i].x, 1000) + ' Y'+d.rnd(hy-pts[0].y+pts[i].y, 1000)+ ' Z'+d.rnd(hz-pts[i].z, 1000);
-            //         //-58 points tool to +Z //-148 tool points +Y //-238 points tool to -Z //0 is limit switch  //positive moves in clockwize if looking along +x
-            //         code += ' A'+d.rnd(angle_a, 1000); 
-            //         code += ' B'+d.rnd(MathUtils.radToDeg(-total_angle_b), 1000);
-            //         code += ' F'+d.rnd(feed/surface_dists[i]*60, 1000); 
-            //         code += '\r\n';
-            //         // let step = Math.round(v1.distanceTo(pts[i]) / 1); // fill point every 1 mm
-            //         // if(step < 1) step = 1;
-            //         // for(let k=1; k<=step; k++){ 
-            //         //     let step_angle_b = angle_b*(k/step);
-            //         //     m1.makeRotationY(step_angle_b); 
-            //         //     v2.copy(v1).applyMatrix4(m1);
-            //         //     //rpts.push(v2.clone());
-            //         //     gpts.push(v2.clone());
-            //         //     code += 'G1 X'+d.rnd(v2.x) + ' Y'+d.rnd(v2.y)+ ' Z'+d.rnd(v2.z);
-            //         //     code += ' A'+0+ ' B'+d.rnd(MathUtils.radToDeg(base_angle_b + step_angle_b));
-            //         //     code += ' F1000'; // mm per minute
-            //         //     code += '\r\n';
-            //         // }
-            //     //}
-            // }
+            code += 'G92 B0 \r\n'; // reset B-axis (shoe spinner)
+            code += 'G0 X'+hx+' Y-300 A'+angle_a+' \r\n';
+            code += 'G0 Z'+(hz-pts[0].z-start_offset)+' \r\n';
+            code += 'G0 Y'+hy+' \r\n';
+            code += 'G1 Z'+(hz-pts[0].z)+' F30 \r\n \r\n';
+            var total_angle_b = 0;
+            //var rpts = [];
+            //var gpts = [];
+            //var dir = new Vector3(-1,0,0);
+            for(let i=1; i<pts.length; i++){ 
+                //let surface_dist = 
+                v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
+                let angle_b = back.angleTo(v1) * Math.sign(nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
+                //v1.copy(pts[i]);
+                m1.makeRotationY(angle_b); 
+                pts[i].applyMatrix4(m1); //Vector3.applyAxisAngle 
+                //var base_angle_b = total_angle_b;
+                total_angle_b += angle_b;
+                if(i < pts.length-1){
+                    m1.makeRotationY(total_angle_b);
+                    pts[i+1].applyMatrix4(m1);
+                    nml[i+1].applyMatrix4(m1);
+                }
+                //var add_points = true;
+                // if(gpts.length > 0){
+                //     v3.copy(pts[i]).sub(gpts.at(-1));
+                //     if(dir.dot(v3) < 0.5) add_points = false;
+                //     dir.copy(v3);
+                // }
+                //if(add_points){
+                    //gpts.push(pts[i]);
+                    //let gantry_dist = Math.round(pts[i-1].distanceTo(pts[i]));
+                    // home is -1000 for X and Z //home is 0 for Y !!!!!!
+                    //For tool +Z at center top of rod: X:-835, Y:-5, Z:-674, A:-58, B:0
+                    if(surface_dists[i] == 0) continue;
+                    code += 'G1 X'+d.rnd(hx+pts[i].x, 1000) + ' Y'+d.rnd(hy-pts[0].y+pts[i].y, 1000)+ ' Z'+d.rnd(hz-pts[i].z, 1000);
+                    //-58 points tool to +Z //-148 tool points +Y //-238 points tool to -Z //0 is limit switch  //positive moves in clockwize if looking along +x
+                    code += ' A'+d.rnd(angle_a, 1000); 
+                    code += ' B'+d.rnd(MathUtils.radToDeg(-total_angle_b), 1000);
+                    code += ' F'+d.rnd(feed/surface_dists[i]*60, 1000); 
+                    code += '\r\n';
+                    // let step = Math.round(v1.distanceTo(pts[i]) / 1); // fill point every 1 mm
+                    // if(step < 1) step = 1;
+                    // for(let k=1; k<=step; k++){ 
+                    //     let step_angle_b = angle_b*(k/step);
+                    //     m1.makeRotationY(step_angle_b); 
+                    //     v2.copy(v1).applyMatrix4(m1);
+                    //     //rpts.push(v2.clone());
+                    //     gpts.push(v2.clone());
+                    //     code += 'G1 X'+d.rnd(v2.x) + ' Y'+d.rnd(v2.y)+ ' Z'+d.rnd(v2.z);
+                    //     code += ' A'+0+ ' B'+d.rnd(MathUtils.radToDeg(base_angle_b + step_angle_b));
+                    //     code += ' F1000'; // mm per minute
+                    //     code += '\r\n';
+                    // }
+                //}
+            }
             // //////////////////////////////////////
 
             //gpts = simplify(gpts, rpts, 0.4); // need to figure out which ones got deleted so they can be removed from g code ?!?!?!?!?!
