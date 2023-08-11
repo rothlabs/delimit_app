@@ -15,7 +15,7 @@ import {Vector3, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
 const v1 = new Vector3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const back = new Vector3(0,0,-1);
-const nml_smooth_range = 4;
+const nml_smooth_range = 12;
 const feed = 30; // mm per second
 const start_offset = -10;
 const hx = -835;
@@ -56,22 +56,30 @@ export const post = {
                     }
                 });
             });
-            for(let i=nml_smooth_range; i<nml.length-nml_smooth_range; i++){ // not smoothing front and end !!!!!!
+            //for(let i=nml_smooth_range; i<nml.length-nml_smooth_range; i++){ // not smoothing front and end !!!!!!
+            for(let i=0; i<nml.length; i++){ 
+                var vc = 1;
                 for(let k=-nml_smooth_range; k<=nml_smooth_range; k++){ 
-                    if(k != 0) nml[i].add(n_ref[i+k]);
+                    if(k != 0 && n_ref[i+k]){
+                        nml[i].add(n_ref[i+k]);
+                        vc++;
+                    }
                 }
-                nml[i].divideScalar(nml_smooth_range*2 + 1);
+                nml[i].divideScalar(vc);
+                //nml[i].divideScalar(nml_smooth_range*2 + 1);
             }
 
             var angle_a = -58; 
-            var angle_b = 0;
+            //v1.set(nml[0].x, 0, nml[0].z);
+            //let shift_angle_b = back.angleTo(v1) * Math.sign(nml[0].x);
+            var angle_b = 0; // need to set to start of path 
             var code = 'G21 G90 G93 \r\n'; // g21=mm g90=absolute g93=inverse-time-feed
             code += 'G92 B0 \r\n'; // reset B-axis (shoe spinner)
             code += 'G0 X'+hx+' Y-300 A'+angle_a+' \r\n';
             code += 'G0 Z'+(hz-pts[0].z-start_offset)+' \r\n';
             code += 'G0 Y'+hy+' \r\n';
             code += 'G1 Z'+(hz-pts[0].z)+' F30 \r\n \r\n';
-            for(let i=1; i<pts.length; i++){ 
+            for(let i=0; i<pts.length; i++){ 
                 v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
                 let shift_angle_b = back.angleTo(v1) * Math.sign(nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
                 m1.makeRotationY(shift_angle_b); 

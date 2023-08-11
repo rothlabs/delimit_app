@@ -12,6 +12,7 @@ const v6 = new Vector3();
 const v7 = new Vector3();
 const v8 = new Vector3();
 const v9 = new Vector3();
+const m1 = new Matrix4();
 const axis = new Vector3();
 const ortho1 = new Vector3();
 const ortho2 = new Vector3();
@@ -19,8 +20,9 @@ const ortho2 = new Vector3();
 const span = 5; 
 const origin_surface_res = 400;
 const surface_res = 900;
-const max_shift = 0.1;
+const max_shift = .1;
 const min_point_dist = 1;
+const end_clip = 4;
 
 
 export const coil = {
@@ -35,28 +37,34 @@ export const coil = {
             ortho2.copy(axis).cross(ortho1);
             const surfaces  = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
             const pivots = {};
+            var first_pivot = 0;
+            var last_pivot = 0;
             surfaces.forEach((surface, si) => {
                 for(let u=0; u<origin_surface_res; u++){
                     for(let v=0; v<origin_surface_res; v++){ 
                         surface.get_point(u/origin_surface_res, v/origin_surface_res, v1);
                         v2.copy(v1).projectOnVector(axis);
-                        let k = 'k'+Math.round(v2.length()*Math.sign(v2.dot(axis)));
-                        if(!pivots[k]) pivots[k] = {b:new Box3(), v: new Vector3()};
-                        pivots[k].b.expandByPoint(v1);
+                        let k = Math.round(v2.length()*Math.sign(v2.dot(axis)));
+                        if(!pivots['k'+k]) pivots['k'+k] = {b:new Box3(), v: new Vector3()};
+                        pivots['k'+k].b.expandByPoint(v1);
+                        if(k < first_pivot) first_pivot = k;
+                        if(k > last_pivot) last_pivot = k;
                     }
                 }
             });
             Object.values(pivots).forEach(pivot=> pivot.b.getCenter(pivot.v));
             console.log('Compute Coil - points');
             const surf_data = [];
+            var big_moves = 0;
             surfaces.forEach(surface => {
                 for(let u=0; u<surface_res; u++){
                     for(let v=0; v<surface_res; v++){ 
                         surface.get_point_normal(u/surface_res, v/surface_res, v1, v9);
                         v2.copy(v1).projectOnVector(axis); // axis point
                         let axis_pos = v2.length()*Math.sign(v2.dot(axis));
-                        let remainder = axis_pos % 1;
+                        //let remainder = axis_pos % 1;
                         let kn = Math.round(axis_pos);
+                        if(kn < first_pivot + end_clip || kn > last_pivot - end_clip) continue;
                         let pivot = pivots['k'+kn].v;  // get pivot1
                         // let alpha = Math.abs(axis_pos % 1);
                         // if(alpha < 0.5){ 
@@ -72,7 +80,10 @@ export const coil = {
                         var angle = v4.angleTo(ortho1) * Math.sign(v4.dot(ortho2)); 
                         if(angle < 0) angle += Math.PI*2;
                         var shift = -((axis_pos + (angle/(Math.PI*2))*span) % span); // remainder
-                        if (shift < -span/2) shift += span; // need Math.abs(shift) here ?!?!?!??!?!?!
+                        if (Math.abs(shift) > span/2){ // need Math.abs(shift) here ?!?!?!??!?!?!
+                            shift = -(span-Math.abs(shift))*Math.sign(shift);
+                            //big_moves++;
+                        }
                         if(Math.abs(shift) < max_shift){
                             v7.copy(axis).multiplyScalar(shift); // shift along axis vector to align with coil
                             v8.copy(v1).add(v7); // new surface point
@@ -81,6 +92,7 @@ export const coil = {
                     }
                 }
             });
+            console.log('big moves: '+big_moves);
             console.log('Compute Coil - sort');
             surf_data.sort((a,b)=> a.o-b.o);
             console.log('Compute Coil - path');

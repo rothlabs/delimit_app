@@ -183,10 +183,14 @@ export const surface = {
                 surface.getPoint(u, v, target);
                 return target;
             }
+            const nss = .001; // normal sample span
             surface.get_point_normal = (u, v, point, normal)=>{
-                surface.getPoint(u+.010, v,        point); // right most point
-                surface.getPoint(u-.005, v+.00866, v2); // cos(120) sin(120)
-                surface.getPoint(u-.005, v-.00866, v3); // cos(-120) sin(-120)
+                surface.getPoint(u+nss, v,        point); // right most point
+                surface.getPoint(u-(nss*0.5), v+(nss*0.866025), v2); // cos(120) sin(120)
+                surface.getPoint(u-(nss*0.5), v-(nss*0.866025), v3); // cos(-120) sin(-120)
+                // surface.getPoint(u+.010, v,        point); // right most point
+                // surface.getPoint(u-.005, v+.00866, v2); // cos(120) sin(120)
+                // surface.getPoint(u-.005, v-.00866, v3); // cos(-120) sin(-120)
                 normal.copy(v2).sub(point).cross(v3.sub(point)).normalize();
             }
             // surface.get_point_plane = (u, v, point, plane)=>{
