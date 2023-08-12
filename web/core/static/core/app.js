@@ -306,7 +306,7 @@ export function use_window_size() {
 }
 
 export const random=(min, max)=> Math.random() * (max - min) + min;
-export function random_vector({min, max, x, y, z}){
+export function random_vector({min, max, x, y, z}){ // just use vector3.randomDirection !!!!!!!!!
     const vect = new THREE.Vector3(random(-1,1),random(-1,1),random(-1,1)).normalize().multiplyScalar(random(min,max));
     x!=undefined && vect.setX(x);
     y!=undefined && vect.setY(y);

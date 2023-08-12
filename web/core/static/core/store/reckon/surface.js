@@ -184,7 +184,7 @@ export const surface = {
                 return target;
             }
             const nss = .001; // normal sample span
-            surface.get_point_normal = (u, v, point, normal)=>{
+            surface.set_point_normal = (u, v, point, normal)=>{
                 surface.getPoint(u+nss, v,        point); // right most point
                 surface.getPoint(u-(nss*0.5), v+(nss*0.866025), v2); // cos(120) sin(120)
                 surface.getPoint(u-(nss*0.5), v-(nss*0.866025), v3); // cos(-120) sin(-120)

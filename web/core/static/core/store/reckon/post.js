@@ -15,7 +15,7 @@ import {Vector3, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
 const v1 = new Vector3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const back = new Vector3(0,0,-1);
-const nml_smooth_range = 12;
+const nml_smooth_range = 6;
 const feed = 30; // mm per second
 const start_offset = -10;
 const hx = -835;

@@ -155,11 +155,13 @@ export const create_make_slice = (set,get)=>({make:{
         }});
     },
     coil(d, a={}){ // add manual_compute !!!!!!!!!
-        return d.make.node(d,'p','coil', {...a, n:{
+        var n = d.make.node(d,'p','coil', {...a, n:{
             axis_x: d.make.atom(d,'f', 0),
-            axis_y: d.make.atom(d,'f', 1),
+            axis_y: d.make.atom(d,'f', -1),
             axis_z: d.make.atom(d,'f', 0),
         }});
+        d.make.edge(d, d.cats['manual_compute'], n);
+        return n;
     },
     // matrix(d, a={}){
     //     if(a.matrix == undefined) a.matrix = new Matrix4();
