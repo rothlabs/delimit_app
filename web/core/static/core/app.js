@@ -32,6 +32,7 @@ import {create_delete_slice} from './store/delete.js';
 import {create_action_slice} from './store/action.js';
 import {create_cast_slice} from './store/cast.js';
 import {create_clear_slice} from './store/clear.js';
+import {create_geo_slice} from './store/geo.js';
 
 enablePatches();
 
@@ -97,6 +98,7 @@ export const useS = create(
         ...create_action_slice(...a),
         ...create_cast_slice(...a),
         ...create_clear_slice(...a),
+        ...create_geo_slice(...a),
     }))
 );
 useS.setState(d=>{  d.init(d); return d;  });

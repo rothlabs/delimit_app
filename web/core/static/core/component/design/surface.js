@@ -18,7 +18,7 @@ import * as THREE from 'three';
 // }
 
 //const circle_geometry = new CircleGeometry(1,12);
-const res = 80;
+const span = 2;
 
 export const Surface = memo(({n})=>{ 
     const obj = useRef();
@@ -30,7 +30,18 @@ export const Surface = memo(({n})=>{
     //const geo = new ParametricGeometry(surface.get_point, res, res);
     useSub(d=> d.n[n].c.surface, surface=>{ 
         if(surface){ // obj.current && 
-            let new_geo = new ParametricGeometry(surface.get_point, res, res);
+            // var u_res = res;
+            // var v_res = res;
+            // const pts = gs().n[n].c.pts;
+            // if(pts){
+            //u_res = pts.length;
+            //v_res = pts[0].length;
+            //}
+            let new_geo = new ParametricGeometry(
+                surface.get_point, 
+                Math.round(surface.length_u/span), 
+                Math.round(surface.length_v/span)
+            );
             if(new_geo) obj.current.geometry.copy(new_geo);
         }
     });
@@ -62,7 +73,7 @@ export const Surface = memo(({n})=>{
                     visible: true,
                 },
                     c('meshStandardMaterial', {   //meshLambertMaterial
-                        //map:map,
+                        map:gs().base_texture,
                         color: theme.primary,//color[2], 
                         wireframe:false, 
                         toneMapped:true, 

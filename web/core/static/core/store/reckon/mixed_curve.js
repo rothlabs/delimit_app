@@ -7,11 +7,13 @@ const v2 = new Vector3();
 const bb1 = new Box3();
 const bb2 = new Box3();
 
-export const mixed_curve = {
+const mid_res = 200;
+
+export const mixed_curve = { // being recomputed just for ax changes of source curves !!!!!!!!! ?!?!?!?!?!
     node(d,n,cause=[]){ // needs to figure if pos or pos_l results in better match !!!!!!
         try{//if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause[0])){ 
             //delete d.n[n].w.curve;
-            const mid_res = 200;
+            
             const l1 = d.n[n].n.curve[0];
             const l2 = d.n[n].n.curve[1];
             const ptc1 = d.n[l1].c.curve.getPoints(mid_res);

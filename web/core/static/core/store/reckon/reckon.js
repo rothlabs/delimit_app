@@ -37,21 +37,27 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
-        d.reckon.v(d, n, 'name story'); // make this loop to do all string_tags except text
+        d.reckon.props(d, n, 'name story'); // make this loop to do all string_tags except text
         if(d.cast_map[d.n[n].t]){ // it is a category node if its tag is in the cast map
             d.n[n].c[d.n[n].t] = true;
             d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
         }
         d.reckon.base_transform(d,n,cause);
         // d.reckon[d.n[n].t].node(d,n,cause) (d.reckon.surface.node())
-        if(d.reckon[d.n[n].t] && !(d.n[n].c.manual_compute && !cause.includes('manual'))){
-            d.reckon[d.n[n].t].node(d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
+
+        if(d.reckon[d.n[n].t] && d.reckon[d.n[n].t].props){
+            d.reckon.props(d, n, d.reckon[d.n[n].t].props);
         }
-        d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
+        if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
+            if(d.reckon[d.n[n].t]){// && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
+                d.reckon[d.n[n].t].node(d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
+            }
+            d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
+        }
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
-    v(d, n, t){
+    props(d, n, t){ // rename to props ?!?!?!?!
         const result = {};
         t.split(' ').forEach(t=>{
             if(d.n[n].n && d.n[n].n[t]){ //  && d.node.be(d,d.n[n].n[t][0])
@@ -92,7 +98,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         const sc = cause[0].split('__'); //'make.node',
         if(cause[0]=='auxiliary' || (sc[0]=='decimal' && sc[1]==n) || (cause.length>1  
             && ['make.edge','delete.edge'].includes(cause[0]) && transform_numbers_list.includes(cause[1]))){ 
-            const nn = d.reckon.v(d, n, transform_numbers); 
+            const nn = d.reckon.props(d, n, transform_numbers); 
             if(d.n[n].c.transform == true){
                 d.clear.down(d, n, {base_matrix:d.n[n].c.base_matrix}, {base_matrix:d.n[n].ax.base_matrix});
                 delete d.n[n].c.transform;
@@ -128,7 +134,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     point:{
         node(d, n, cause=[]){ // make big list of vector3 that can be assigned and released to improve performance (not creating new vector3 constantly)
             try{ //if(pos){
-                const nn = d.reckon.v(d, n, 'x y z');
+                const nn = d.reckon.props(d, n, 'x y z');
                 d.n[n].c.xyz = new Vector3(0,0,0); // create vector on make.node so it can just be reused here ?!?!?!?!?!
                 if(nn.x != undefined) d.n[n].c.xyz.setX(nn.x);
                 if(nn.y != undefined) d.n[n].c.xyz.setY(nn.y);
@@ -142,6 +148,24 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         },
     },
 }});
+
+
+// base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
+//     d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
+//     d.reckon.props(d, n, 'name story'); // make this loop to do all string_tags except text
+//     if(d.cast_map[d.n[n].t]){ // it is a category node if its tag is in the cast map
+//         d.n[n].c[d.n[n].t] = true;
+//         d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
+//     }
+//     d.reckon.base_transform(d,n,cause);
+//     // d.reckon[d.n[n].t].node(d,n,cause) (d.reckon.surface.node())
+//     if(d.reckon[d.n[n].t] && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
+//         d.reckon[d.n[n].t].node(d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
+//     }
+//     d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
+//     d.next('design.update'); 
+//     d.next('inspect.update'); 
+// },
 
 
 
@@ -275,11 +299,11 @@ export const create_reckon_slice =(set,get)=>({reckon:{
 
 
 // matrix(d,n){
-    //     const matrix = d.reckon.v(d, n, 'element');
+    //     const matrix = d.reckon.props(d, n, 'element');
     //     if(matrix) d.n[n].c.matrix = new Matrix4(...matrix.element).transpose();
     // },
 
-// const scale = d.reckon.v(d, n, 'scale_x scale_y scale_z');
+// const scale = d.reckon.props(d, n, 'scale_x scale_y scale_z');
 //         //if(scale) d.n[n].c.scale = new Vector3(scale.x, scale.y, scale.z);
 //         if(d.n[n].n.matrix){
 //             const nn = d.n[n].n.matrix[0];

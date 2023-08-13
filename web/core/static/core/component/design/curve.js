@@ -7,7 +7,7 @@ import {CatmullRomCurve3} from 'three';
 import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
 import {Point} from './point.js';
 
-const res = 1; 
+const span = 1; 
 
 // function interpolate(d,n,a={}){
 //     pts = new CatmullRomCurve3(pts.map(p=>p.pos)).getPoints(res).map(p=> [p.x, p.y, p.z]);
@@ -35,9 +35,9 @@ export const Curve = memo(({n})=>{
         // }
         //if(dd[1]) dd=dd[1];
         if(curve){ //curve_ref.current && 
-            var adjusted_res = Math.round(curve.getLength()*res);
-            if(adjusted_res < 100) adjusted_res = 100;
-            curve_geo.pts = curve.getPoints(adjusted_res).map(p=>[p.x, p.y, p.z]).flat();// change back to getPoints !!!!!!!
+            var div = Math.round(curve.getLength()/span);
+            if(div < 100) div = 100;
+            curve_geo.pts = curve.getSpacedPoints(div).map(p=>[p.x, p.y, p.z]).flat();// change back to getPoints !!!!!!!
             curve_ref.current.geometry = new LineGeometry();
             curve_ref.current.geometry.setPositions(curve_geo.pts);
             const pts = gs().n[n].ax.pts;

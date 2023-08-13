@@ -159,6 +159,9 @@ export const create_make_slice = (set,get)=>({make:{
             axis_x: d.make.atom(d,'f', 0),
             axis_y: d.make.atom(d,'f', -1),
             axis_z: d.make.atom(d,'f', 0),
+            density: d.make.atom(d,'f', 0.1),
+            nozzle_diameter: d.make.atom(d,'f', 0.4),
+            speed: d.make.atom(d,'f', 50),
         }});
         d.make.edge(d, d.cats['manual_compute'], n);
         return n;

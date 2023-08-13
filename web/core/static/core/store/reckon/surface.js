@@ -128,10 +128,10 @@ export const surface = {
                 for(let i=0; i < io_pts[0].length; i++){
                     const half = io_pts[0][i].reverse().slice(1);
                     pts.push([...io_pts[1][i], ...half]);
-                    if(double_ribs.includes(i)){
-                        //console.log('double loop!!!!');
-                        pts.push([...io_pts[1][i], ...half]);
-                    }
+                    // if(double_ribs.includes(i)){
+                    //     //console.log('double loop!!!!');
+                    //     pts.push([...io_pts[1][i], ...half]);
+                    // }
                 }
             }else{
                 //pts = all_ribs.map(rib=> rib.pts);
@@ -144,62 +144,15 @@ export const surface = {
                     pts.push([...io_ribs[1][i].pts, ...half]);//...io_ribs[0][i].pts.slice(1)]);
                     //if(double_ribs.includes(i)){
                         //console.log('double loop!!!!');
-                        pts.push([...io_ribs[1][i].pts, ...half]);//...io_ribs[0][i].pts.slice(1)]);
+                        //pts.push([...io_ribs[1][i].pts, ...half]);//...io_ribs[0][i].pts.slice(1)]);
                     //}
                 }
                 //pts.push([...io_ribs[1].at(-1).pts, ...io_ribs[0].at(-1).pts.slice(1)]);
             }
 
-            var degree1 = 2;
-            var degree2 = 2;
-            //var knots1 = [0, 0, 0, 1, 1, 1];
-            var knots1 = [0,0];
-            // if(pts.length < 3){
-            //     degree1 = 1;
-            //     knots1 = [0];
-            // }
-            var last_knot = 0;
-            pts.forEach((p,i) => {
-                if(i < pts.length-1){
-                    knots1.push(i);
-                    last_knot = i;
-                }else{
-                    knots1.push(last_knot,last_knot);
-                    // if(pts.length < 3) knots1.push(last_knot);
-                    // else knots1.push(last_knot,last_knot);
-                }
-            });
-            //knots1.push(knots1.at(-1),knots1.at(-1));
-            //var knots2 = [0, 0, 0,   1, 2, 3,   4, 4, 4];
-            var knots2 = [0,0];
-            pts[0].forEach((p,i) => {
-                if(i < pts[0].length-1) knots2.push(i);
-            });
-            knots2 = knots2.concat([pts[0].length-2, pts[0].length-2]);
-
             if(d.n[n].c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix))); // does not need to clone ?!?!?!?!
-            const surface = new NURBSSurface(degree1, degree2, knots1, knots2, pts);
-            surface.get_point = (u, v, target)=>{
-                surface.getPoint(u, v, target);
-                return target;
-            }
-            const nss = .001; // normal sample span
-            surface.set_point_normal = (u, v, point, normal)=>{
-                surface.getPoint(u+nss, v,        point); // right most point
-                surface.getPoint(u-(nss*0.5), v+(nss*0.866025), v2); // cos(120) sin(120)
-                surface.getPoint(u-(nss*0.5), v-(nss*0.866025), v3); // cos(-120) sin(-120)
-                // surface.getPoint(u+.010, v,        point); // right most point
-                // surface.getPoint(u-.005, v+.00866, v2); // cos(120) sin(120)
-                // surface.getPoint(u-.005, v-.00866, v3); // cos(-120) sin(-120)
-                normal.copy(v2).sub(point).cross(v3.sub(point)).normalize();
-            }
-            // surface.get_point_plane = (u, v, point, plane)=>{
-            //     surface.getPoint(u+.010, v,        point); // right most point
-            //     surface.getPoint(u-.005, v+.00866, v2); // cos(120) sin(120)
-            //     surface.getPoint(u-.005, v-.00866, v3); // cos(-120) sin(-120)
-            //     plane.setFromCoplanarPoints(point, v2, v3);
-            // }
-            d.n[n].c.surface = surface;
+
+            d.n[n].c.surface = d.geo.surface(d, pts);
             d.n[n].c.pts = pts;
             // if(d.n[n].ax.matrix){
             //     const ax_surface = new NURBSSurface(degree1, degree2, knots1, knots2, 
@@ -213,9 +166,7 @@ export const surface = {
             // }else{ d.n[n].ax.surface = d.n[n].c.surface; }
             //console.log('reckon surface!!!');
         }}catch(e){
-            //delete d.n[n].c.surface;
-            //delete d.n[n].ax.surface;
-            //console.log(e);
+            console.log(e);
         }
     },
 };

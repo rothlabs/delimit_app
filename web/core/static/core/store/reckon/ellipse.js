@@ -13,7 +13,7 @@ export const ellipse = {
             delete d.n[n].c.curve;
             delete d.n[n].c.mixed_curve; // rename to fixed_curve ?!?!?!?!?! because it is not rotated
             delete d.n[n].ax.curve;
-            const c = d.reckon.v(d, n, 'x y z axis_x axis_y axis_z radius_a radius_b angle_a angle_b'); // rename to radius_a and radius_b ?!?!?!?!?!
+            const c = d.reckon.props(d, n, 'x y z axis_x axis_y axis_z radius_a radius_b angle_a angle_b'); // rename to radius_a and radius_b ?!?!?!?!?!
             const curve = new EllipseCurve(
                 0,  0,            // ax, aY
                 c.radius_a, c.radius_b,           // xRadius, yRadius

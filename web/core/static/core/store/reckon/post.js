@@ -15,12 +15,15 @@ import {Vector3, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
 const v1 = new Vector3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const back = new Vector3(0,0,-1);
-const nml_smooth_range = 6;
+const nml_smooth_range = 5;
 const feed = 30; // mm per second
 const start_offset = -10;
 const hx = -835;
 const hy = -5;
 const hz = -674;
+
+const span = 2;
+
 
 export const post = {
     node(d, n){
@@ -46,28 +49,30 @@ export const post = {
             const n_ref = [];
             const dis = [0];
             paths.forEach(path=>{
-                path.forEach(pn=>{
-                    pts.push(pn.p.clone());
-                    nml.push(pn.n.clone());
-                    n_ref.push(pn.n.clone());
+                var res = path.curve.getLength()/span;
+                for(let v=0; v<res; v++){
+                    pts.push(new Vector3());
+                    nml.push(new Vector3());
+                    path.surface.get_point(0, v/res, pts.at(-1));
+                    path.surface.get_point(1, v/res, nml.at(-1));
+                    nml.at(-1).sub(pts.at(-1));
+                    n_ref.push(nml.at(-1).clone());
                     if(pts.length > 1){
                         curve.add(new LineCurve3(pts.at(-2), pts.at(-1)));
                         dis.push(pts.at(-2).distanceTo(pts.at(-1)));
                     }
-                });
-            });
-            //for(let i=nml_smooth_range; i<nml.length-nml_smooth_range; i++){ // not smoothing front and end !!!!!!
-            for(let i=0; i<nml.length; i++){ 
-                var vc = 1;
-                for(let k=-nml_smooth_range; k<=nml_smooth_range; k++){ 
-                    if(k != 0 && n_ref[i+k]){
-                        nml[i].add(n_ref[i+k]);
-                        vc++;
-                    }
                 }
-                nml[i].divideScalar(vc);
-                //nml[i].divideScalar(nml_smooth_range*2 + 1);
-            }
+            });
+            // for(let i=0; i<nml.length; i++){ 
+            //     var vc = 1;
+            //     for(let k=-nml_smooth_range; k<=nml_smooth_range; k++){ 
+            //         if(k != 0 && n_ref[i+k]){
+            //             nml[i].add(n_ref[i+k]);
+            //             vc++;
+            //         }
+            //     }
+            //     nml[i].divideScalar(vc);      
+            // }
 
             var angle_a = -58; 
             //v1.set(nml[0].x, 0, nml[0].z);
@@ -103,6 +108,20 @@ export const post = {
         } 
     }, 
 };
+
+
+//for(let i=nml_smooth_range; i<nml.length-nml_smooth_range; i++){ // not smoothing front and end !!!!!!
+//nml[i].divideScalar(nml_smooth_range*2 + 1);
+
+// path.forEach(np=>{
+//     pts.push(pn.p.clone());
+//     nml.push(pn.n.clone());
+//     n_ref.push(pn.n.clone());
+//     if(pts.length > 1){
+//         curve.add(new LineCurve3(pts.at(-2), pts.at(-1)));
+//         dis.push(pts.at(-2).distanceTo(pts.at(-1)));
+//     }
+// });
 
 //if(dis[i] == 0) continue;
 
