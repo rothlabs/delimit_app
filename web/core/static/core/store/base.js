@@ -35,7 +35,7 @@ const component = {
     'transform':   Transform,
     'layer':       Layer,
     'ellipse':     Curve,
-    'coil':        Surface,
+    'coil':        Curve,
     'coil_fill':   Curve,
     'post':        Curve,
 };

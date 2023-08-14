@@ -3,7 +3,7 @@ import {useS, useSS, useSub, gs, theme} from '../../app.js';
 //import {CatmullRomLine} from '@react-three/drei/CatmullRomLine';
 //import {Plane} from '@react-three/drei/Plane';
 import {Pickable} from '../node/base.js';
-import {ShapeGeometry, Float32BufferAttribute, PlaneGeometry, Vector3, DoubleSide, FrontSide, BackSide, CircleGeometry} from 'three';
+import {ShapeGeometry, MathUtils, PlaneGeometry, Vector3, DoubleSide, FrontSide, BackSide, CircleGeometry} from 'three';
 import {Fix_Size} from '../base/base.js';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 import {BufferGeometry} from 'three';
@@ -39,8 +39,8 @@ export const Surface = memo(({n})=>{
             //}
             let new_geo = new ParametricGeometry(
                 surface.get_point, 
-                Math.round(surface.length_u/span), 
-                Math.round(surface.length_v/span)
+                MathUtils.clamp(Math.round(surface.length_u/span), 2, 10000), 
+                MathUtils.clamp(Math.round(surface.length_v/span), 2, 10000),
             );
             if(new_geo) obj.current.geometry.copy(new_geo);
         }

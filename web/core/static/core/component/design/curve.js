@@ -37,7 +37,7 @@ export const Curve = memo(({n})=>{
         if(curve){ //curve_ref.current && 
             var div = Math.round(curve.getLength()/span);
             if(div < 100) div = 100;
-            curve_geo.pts = curve.getSpacedPoints(div).map(p=>[p.x, p.y, p.z]).flat();// change back to getPoints !!!!!!!
+            curve_geo.pts = curve.getPoints(div).map(p=>[p.x, p.y, p.z]).flat();// change back to getPoints !!!!!!!
             curve_ref.current.geometry = new LineGeometry();
             curve_ref.current.geometry.setPositions(curve_geo.pts);
             const pts = gs().n[n].ax.pts;

@@ -15,7 +15,7 @@ import {Vector3, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
 const v1 = new Vector3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const back = new Vector3(0,0,-1);
-const nml_smooth_range = 5;
+const smooth = 10; // over mm
 const feed = 30; // mm per second
 const start_offset = -10;
 const hx = -835;
@@ -45,8 +45,8 @@ export const post = {
             var curve = new CurvePath();
             curve.arcLengthDivisions = 2000;
             const pts = [];
-            const nml = [];
-            const n_ref = [];
+            var nml = [];
+            //const n_ref = [];
             const dis = [0];
             paths.forEach(path=>{
                 var res = path.curve.getLength()/span;
@@ -56,13 +56,14 @@ export const post = {
                     path.surface.get_point(0, v/res, pts.at(-1));
                     path.surface.get_point(1, v/res, nml.at(-1));
                     nml.at(-1).sub(pts.at(-1));
-                    n_ref.push(nml.at(-1).clone());
+                    //n_ref.push(nml.at(-1).clone());
                     if(pts.length > 1){
                         curve.add(new LineCurve3(pts.at(-2), pts.at(-1)));
                         dis.push(pts.at(-2).distanceTo(pts.at(-1)));
                     }
                 }
             });
+            nml = d.geo.smooth(d, nml, smooth);
             // for(let i=0; i<nml.length; i++){ 
             //     var vc = 1;
             //     for(let k=-nml_smooth_range; k<=nml_smooth_range; k++){ 

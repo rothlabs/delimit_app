@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import {Vector3} from 'three';
+import {Vector3, CatmullRomCurve3} from 'three';
 import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
 //import Delaunator from 'delaunator';
 //import { closest } from '../../junk/vertex.js';
@@ -11,6 +11,25 @@ const degree_v = 2;
 const nsr = .001; // normal sample radius
 
 export const create_geo_slice = (set,get)=>({geo:{
+    smooth_catmullrom(d, pts, span){
+        const smt = pts.map(p=> p.clone());
+        const curve = new CatmullRomCurve3(smt);
+        curve.arcLengthDivisions = 2000; // need to make proportional to length of curve!!!
+        const pt_span = curve.getLength() / smt.length;
+        const range = Math.round(span / pt_span) + 1; // +1 here ?!?!?!?!?!
+        for(let i=1; i<smt.length-1; i++){ 
+            var vc = 1;
+            for(let k=-range; k<=range; k++){ 
+                if(k != 0 && pts[i+k]){
+                    smt.at(-1).add(pts[i+k]);
+                    vc++;
+                }
+            }
+            smt.at(-1).divideScalar(vc);      
+        }
+        //smt.push(pts.at(-1).clone());
+        return curve;
+    },
     surface(d,pts){
         try{
             const knots_u = [0,0,0];
