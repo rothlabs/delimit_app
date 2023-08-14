@@ -145,7 +145,7 @@ export const coil = {
             const surface = d.geo.surface(d, pts, {length_v:curve.getLength()});
 
             c.paths = [{surface:surface, curve:curve}];  //paths;//{pts:pts, nml:nml};
-            c.surface = surface;
+            //c.surface = surface;
             ax.curve = curve; // make curve an array of auxiliary curves ?!?!?!?!?!
             ax.pts = pvt.map(p=> p.v);
             console.log('Reckoned Coil!!!');
