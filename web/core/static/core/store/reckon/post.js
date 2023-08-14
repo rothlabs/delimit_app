@@ -17,7 +17,7 @@ const v2 = new Vector3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const back = new Vector3(0,0,-1);
 
-const ribbon_div = 2;
+const ribbon_div = 1;
 const normal_smooth_span = 8; // over mm
 
 const feed = 30; // mm per second
@@ -54,8 +54,11 @@ export const post = {
             var nml = [];
             var n_ref = [];
             const dis = [0];
+            var total_length = 0;
             paths.forEach(path=>{
-                var res = path.curve.getLength() / ribbon_div; // path.surface.length_v / span;
+                var length = path.curve.getLength();
+                total_length += length;
+                var res = length / ribbon_div; // path.surface.length_v / span;
                 for(let v=0; v<res; v++){
                     pts.push(new Vector3());
                     nml.push(new Vector3());
@@ -106,7 +109,7 @@ export const post = {
                 }
             }
 
-            const surface = d.geo.surface(d, pts_ribbon);
+            const surface = d.geo.surface(d, pts_ribbon, {length_v:total_length});
 
 
 

@@ -34,7 +34,7 @@ export const create_geo_slice = (set,get)=>({geo:{
         //smt.push(pts.at(-1).clone());
         return [smt, curve];
     },
-    surface(d,pts){
+    surface(d, pts, a={}){
         try{
             var length_u = 0;
             var length_v = 0;
@@ -59,7 +59,6 @@ export const create_geo_slice = (set,get)=>({geo:{
             knots_u.push(knots_u.at(-1), knots_u.at(-1));
             knots_v.push(knots_v.at(-1), knots_v.at(-1));
 
-
             const surface = new NURBSSurface(degree_u, degree_v, knots_u, knots_v, pts);
 
             surface.get_point = (u, v, target)=>{
@@ -72,8 +71,11 @@ export const create_geo_slice = (set,get)=>({geo:{
                 surface.getPoint(u-(nsr*0.5), v-(nsr*0.866025), v3); // cos(-120) sin(-120)
                 normal.copy(v2).sub(point).cross(v3.sub(point)).normalize();
             }
+
             surface.length_u = length_u;
             surface.length_v = length_v;
+            if(a.length_u) surface.length_u = a.length_u;
+            if(a.length_v) surface.length_v = a.length_v;
 
             return surface;
         }catch(e){

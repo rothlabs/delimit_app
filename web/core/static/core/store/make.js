@@ -154,6 +154,11 @@ export const create_make_slice = (set,get)=>({make:{
             angle_b: d.make.atom(d,'f', 270),
         }});
     },
+    surface(d, a={}){
+        return d.make.node(d,'p','surface', {...a, n:{
+            layer: d.make.atom(d,'f', 0),
+        }});
+    },
     coil(d, a={}){ // add manual_compute !!!!!!!!!
         var n = d.make.node(d,'p','coil', {...a, n:{
             axis_x: d.make.atom(d,'f', 0),

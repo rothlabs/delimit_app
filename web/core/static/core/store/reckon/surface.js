@@ -6,17 +6,15 @@ import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
 
 const v1 = new Vector3();
 const v2 = new Vector3();
-const v3 = new Vector3();
-const plane = new Plane();
-//const v3 = new Vector3();
-//const v4 = new Vector3();
-//const v5 = new Vector3();
-//const v6 = new Vector3();
+
+const rib_res = 40;
+const rail_res = 60;
+const loop_res = 12;
+
+
 
 export const surface = {
-    rib_res: 40,
-    rail_res: 60, // rail_res
-    loop_res: 12,
+    props: 'layer',
     node(d,n,cause=[]){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         try{if(cause[0]!='casted_matrix'){ 
             delete d.n[n].c.surface;
@@ -28,7 +26,7 @@ export const surface = {
             if(d.n[n].n.ellipse) rib_source = rib_source.concat(d.n[n].n.ellipse);
 
             const all_ribs = rib_source.map(n=>{
-                const points = d.n[n].c.mixed_curve.getSpacedPoints(this.rib_res-1); //getSpacedPoints
+                const points = d.n[n].c.mixed_curve.getSpacedPoints(rib_res-1); //getSpacedPoints
                 if(points[0].z > points.at(-1).z) points.reverse();
                 const tmp_pts = d.n[n].c.mixed_curve.getPoints(9);
                 return {
@@ -47,7 +45,7 @@ export const surface = {
 
             if(d.n[n].n.curve?.length > 1){
                 const guide = d.n[n].n.curve.map(n=>{//.filter(n=> d.n[n].c.guide).map(n=>{
-                    const pts = d.n[n].c.curve.getPoints(this.rail_res);
+                    const pts = d.n[n].c.curve.getPoints(rail_res);
                     if(pts[0].y > pts.at(-1).y) pts.reverse();
                     return {
                         pts: pts,
@@ -59,21 +57,21 @@ export const surface = {
                 var idx2 = 0;
                 const ribs = io_ribs[0];
                 for(let i=1; i<ribs.length; i++){
-                    const loop_res = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (this.loop_res+1));
+                    const loop_res_adj = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (loop_res+1));
                     var closest = guide[0].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts[0])-b.distanceTo(ribs[i].pts[0]))[0];
                     var idx = guide[0].pts.indexOf(closest);
                     //pts = pts.concat(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.loop_res+1));
                     //console.log('before error', closest, idx);
                     //if(idx1==idx) slice = guide[0].sub.push([guide[0].pts[idx], guide[0].pts[idx]]);
                     if(idx1==idx) guide[0].sub.push([]);
-                    else guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(loop_res)); 
+                    else guide[0].sub.push(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(loop_res_adj)); 
                     idx1 = idx;
                     closest = guide[1].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts.at(-1))-b.distanceTo(ribs[i].pts.at(-1)))[0];
                     idx = guide[1].pts.indexOf(closest);
                     //pts = pts.concat(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(this.loop_res+1));
                     //if(idx2==idx) slice = guide[1].sub.push([guide[1].pts[idx], guide[1].pts[idx]]);
                     if(idx2==idx) guide[1].sub.push([]);
-                    else guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(loop_res));
+                    else guide[1].sub.push(new CatmullRomCurve3(guide[1].pts.slice(idx2,idx)).getSpacedPoints(loop_res_adj));
                     idx2 = idx;
                 }
                 var io_pts = [[],[]];

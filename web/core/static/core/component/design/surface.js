@@ -18,7 +18,7 @@ import * as THREE from 'three';
 // }
 
 //const circle_geometry = new CircleGeometry(1,12);
-const span = 2;
+const div = 2;
 
 export const Surface = memo(({n})=>{ 
     const obj = useRef();
@@ -37,10 +37,11 @@ export const Surface = memo(({n})=>{
             //u_res = pts.length;
             //v_res = pts[0].length;
             //}
+            console.log(surface.length_v);
             let new_geo = new ParametricGeometry(
                 surface.get_point, 
-                MathUtils.clamp(Math.round(surface.length_u/span), 2, 10000), 
-                MathUtils.clamp(Math.round(surface.length_v/span), 2, 10000),
+                MathUtils.clamp(Math.round(surface.length_u/div), 2, 10000), 
+                MathUtils.clamp(Math.round(surface.length_v/div), 2, 10000),
             );
             if(new_geo) obj.current.geometry.copy(new_geo);
         }
