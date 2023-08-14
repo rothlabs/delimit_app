@@ -150,6 +150,8 @@ export const surface = {
                 //pts.push([...io_ribs[1].at(-1).pts, ...io_ribs[0].at(-1).pts.slice(1)]);
             }
 
+            if(pts.length < 3) pts.push(pts.at(-1));
+
             if(d.n[n].c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix))); // does not need to clone ?!?!?!?!
 
             d.n[n].c.surface = d.geo.surface(d, pts);

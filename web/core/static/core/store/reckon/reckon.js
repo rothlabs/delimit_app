@@ -8,7 +8,6 @@ import {surface} from './surface.js';
 import {shape} from './shape.js';
 import {layer} from './layer.js';
 import {coil} from './coil.js';
-import {coil_fill} from './coil_fill.js';
 import {post} from './post.js';
 
 const zero_vector = new Vector3();
@@ -29,7 +28,6 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     surface,
     layer,
     coil,
-    coil_fill,
     post,
     count: 0,
     up(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
@@ -53,6 +51,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 d.reckon[d.n[n].t].node(d,n,cause); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
             }
             d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
+        }
+        if(d.reckon[d.n[n].t] && d.reckon[d.n[n].t].display){
+            d.reckon[d.n[n].t].display();
         }
         d.next('design.update'); 
         d.next('inspect.update'); 

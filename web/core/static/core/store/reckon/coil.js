@@ -29,17 +29,26 @@ const end_clip = 20;
 
 export const coil = {
     props: 'axis_x axis_y axis_z density nozzle_diameter',
+    display(){ // will run regardless of manual_compute tag 
+        // set which layer to show
+    },
     node(d, n, cause=[]){
         try{
             console.log('Compute Coil - pivots');
-            delete d.n[n].c.paths;
-            delete d.n[n].ax.curve;
             const c = d.n[n].c;//d.reckon.props(d, n, 'axis_x axis_y axis_z density nozzle_diameter');
+            const ax = d.n[n].ax;
+
+            delete c.paths;
+            delete ax.curve;
+            
             const loop_span = c.nozzle_diameter / c.density; 
             axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
             ortho1.randomDirection().cross(axis).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
             ortho2.copy(ortho1).cross(axis).normalize();
+
+            
             const surfaces  = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
+
             const pivots = {};
             var first_pivot = 0;
             var last_pivot = 0;
@@ -118,7 +127,7 @@ export const coil = {
                     //     n: surf_data[i].n,
                     // });
                     pts[0].push(surf_data[i].p);
-                    pts[1].push(surf_data[i].p.clone().add(v1.copy(surf_data[i].n).divideScalar(2)));
+                    pts[1].push(surf_data[i].p.clone().add(v1.copy(surf_data[i].n).divideScalar(2))); 
                     pts[2].push(surf_data[i].p.clone().add(surf_data[i].n));
                     // const normal_point = surf_data[i].p.clone().add(surf_data[i].n);
                     // pts.push([
@@ -139,11 +148,10 @@ export const coil = {
 
             const surface = d.geo.surface(d, pts);
 
-            d.n[n].c.paths = [{surface:surface, curve:curve}];//paths;//{pts:pts, nml:nml};
-            d.n[n].c.surface = surface;
-            //d.n[n].c.pts = pts;
-            d.n[n].ax.curve = curve; // make curve an array of auxiliary curves ?!?!?!?!?!
-            d.n[n].ax.pts = pvt.map(p=> p.v);
+            c.paths = [{surface:surface, curve:curve}];//paths;//{pts:pts, nml:nml};
+            c.surface = surface;
+            ax.curve = curve; // make curve an array of auxiliary curves ?!?!?!?!?!
+            ax.pts = pvt.map(p=> p.v);
             console.log('Reckoned Coil!!!');
         }catch(e){
             console.log(e);

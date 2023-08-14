@@ -13,10 +13,11 @@ import {Vector3, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
 /////////////////////////////////////////////////////////////////////
 
 const v1 = new Vector3();
+const v2 = new Vector3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const back = new Vector3(0,0,-1);
 
-const span = 2;
+const ribbon_div = 2;
 const normal_smooth_span = 8; // over mm
 
 const feed = 30; // mm per second
@@ -29,10 +30,12 @@ const hz = -674;
 
 
 export const post = {
-    node(d, n){
+    node(d, n, cause=[]){ // make wrapper function to inser c and ax on every node reckon function ?!?!?!?!?! 
         try{
-            delete d.n[n].c.code;
-            delete d.n[n].ax.curve;
+            const c = d.n[n].c;
+            const ax = d.n[n].ax;
+            delete c.code;
+            delete ax.curve;
             var paths = [];
             function get_paths(nn){
                 const path_nodes = [];
@@ -49,10 +52,10 @@ export const post = {
             curve.arcLengthDivisions = 2000;
             const pts = [];
             var nml = [];
-            const n_ref = [];
+            var n_ref = [];
             const dis = [0];
             paths.forEach(path=>{
-                var res = path.curve.getLength() / span;
+                var res = path.curve.getLength() / ribbon_div; // path.surface.length_v / span;
                 for(let v=0; v<res; v++){
                     pts.push(new Vector3());
                     nml.push(new Vector3());
@@ -83,40 +86,113 @@ export const post = {
                 nml[i].divideScalar(vc);      
             }
 
-            var angle_a = -58; 
-            //v1.set(nml[0].x, 0, nml[0].z);
-            //let shift_angle_b = back.angleTo(v1) * Math.sign(nml[0].x);
-            var angle_b = 0; // need to set to start of path 
-            var code = 'G21 G90 G93 \r\n'; // g21=mm g90=absolute g93=inverse-time-feed
-            code += 'G92 B0 \r\n'; // reset B-axis (shoe spinner)
-            code += 'G0 X'+hx+' Y-300 A'+angle_a+' \r\n';
-            code += 'G0 Z'+(hz-pts[0].z-start_offset)+' \r\n';
-            code += 'G0 Y'+hy+' \r\n';
-            code += 'G1 Z'+(hz-pts[0].z)+' F30 \r\n \r\n';
+            var n_ref = nml[0].clone();
+            var pts_ribbon = [[],[],[]];
+            var angle_b = 0;
             for(let i=0; i<pts.length; i++){ 
                 v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
                 let shift_angle_b = back.angleTo(v1) * Math.sign(nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
                 m1.makeRotationY(shift_angle_b); 
                 pts[i].applyMatrix4(m1); //Vector3.applyAxisAngle 
+                pts_ribbon[0].push(pts[i]);
+                pts_ribbon[1].push(pts[i].clone().add(v1.copy(n_ref).divideScalar(2)));
+                pts_ribbon[2].push(pts[i].clone().add(n_ref));
                 angle_b += shift_angle_b;
                 if(i < pts.length-1){
+                    n_ref.copy(nml[i+1]);
                     m1.makeRotationY(angle_b);
                     pts[i+1].applyMatrix4(m1);
                     nml[i+1].applyMatrix4(m1);
                 }
-                code += 'G1 X'+d.rnd(hx+pts[i].x, 1000) + ' Y'+d.rnd(hy-pts[0].y+pts[i].y, 1000)+ ' Z'+d.rnd(hz-pts[i].z, 1000);
-                code += ' A'+d.rnd(angle_a, 1000); 
-                code += ' B'+d.rnd(MathUtils.radToDeg(-angle_b), 1000);
-                code += ' F'+d.rnd(feed/dis[i]*60, 1000); 
-                code += '\r\n';
             }
-            d.n[n].c.code = code;
-            d.n[n].ax.curve = curve;
+
+            const surface = d.geo.surface(d, pts_ribbon);
+
+
+
+            // var angle_a = -58; 
+            // //v1.set(nml[0].x, 0, nml[0].z);
+            // //let shift_angle_b = back.angleTo(v1) * Math.sign(nml[0].x);
+            // var angle_b = 0; // need to set to start of path 
+            var code = 'G21 G90 G93 \r\n'; // g21=mm g90=absolute g93=inverse-time-feed
+            // code += 'G92 B0 \r\n'; // reset B-axis (shoe spinner)
+            // code += 'G0 X'+hx+' Y-300 A'+angle_a+' \r\n';
+            // code += 'G0 Z'+(hz-pts[0].z-start_offset)+' \r\n';
+            // code += 'G0 Y'+hy+' \r\n';
+            // code += 'G1 Z'+(hz-pts[0].z)+' F30 \r\n \r\n';
+            // for(let i=0; i<pts.length; i++){ 
+            //     v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
+            //     let shift_angle_b = back.angleTo(v1) * Math.sign(nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
+            //     m1.makeRotationY(shift_angle_b); 
+            //     pts[i].applyMatrix4(m1); //Vector3.applyAxisAngle 
+            //     angle_b += shift_angle_b;
+            //     if(i < pts.length-1){
+            //         m1.makeRotationY(angle_b);
+            //         pts[i+1].applyMatrix4(m1);
+            //         nml[i+1].applyMatrix4(m1);
+            //     }
+            //     code += 'G1 X'+d.rnd(hx+pts[i].x, 1000) + ' Y'+d.rnd(hy-pts[0].y+pts[i].y, 1000)+ ' Z'+d.rnd(hz-pts[i].z, 1000);
+            //     code += ' A'+d.rnd(angle_a, 1000); 
+            //     code += ' B'+d.rnd(MathUtils.radToDeg(-angle_b), 1000);
+            //     code += ' F'+d.rnd(feed/dis[i]*60, 1000); 
+            //     code += '\r\n';
+            // }
+
+
+            c.code = code;
+            c.surface = surface;
+            //ax.curve = curve;
         }catch(e){
             console.log(e);
         } 
     }, 
 };
+
+
+
+
+            // var angle_a = -58; 
+            // //v1.set(nml[0].x, 0, nml[0].z);
+            // //let shift_angle_b = back.angleTo(v1) * Math.sign(nml[0].x);
+            // var angle_b = 0; // need to set to start of path 
+            // var code = 'G21 G90 G93 \r\n'; // g21=mm g90=absolute g93=inverse-time-feed
+            // code += 'G92 B0 \r\n'; // reset B-axis (shoe spinner)
+            // code += 'G0 X'+hx+' Y-300 A'+angle_a+' \r\n';
+            // code += 'G0 Z'+(hz-pts[0].z-start_offset)+' \r\n';
+            // code += 'G0 Y'+hy+' \r\n';
+            // code += 'G1 Z'+(hz-pts[0].z)+' F30 \r\n \r\n';
+            // for(let i=0; i<pts.length; i++){ 
+            //     v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
+            //     let shift_angle_b = back.angleTo(v1) * Math.sign(nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
+            //     m1.makeRotationY(shift_angle_b); 
+            //     pts[i].applyMatrix4(m1); //Vector3.applyAxisAngle 
+            //     angle_b += shift_angle_b;
+            //     if(i < pts.length-1){
+            //         m1.makeRotationY(angle_b);
+            //         pts[i+1].applyMatrix4(m1);
+            //         nml[i+1].applyMatrix4(m1);
+            //     }
+            //     code += 'G1 X'+d.rnd(hx+pts[i].x, 1000) + ' Y'+d.rnd(hy-pts[0].y+pts[i].y, 1000)+ ' Z'+d.rnd(hz-pts[i].z, 1000);
+            //     code += ' A'+d.rnd(angle_a, 1000); 
+            //     code += ' B'+d.rnd(MathUtils.radToDeg(-angle_b), 1000);
+            //     code += ' F'+d.rnd(feed/dis[i]*60, 1000); 
+            //     code += '\r\n';
+            // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
             // for(let i=0; i<nml.length; i++){ 

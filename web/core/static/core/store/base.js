@@ -18,10 +18,11 @@ var next_ids = [];
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
     'mixed_curve', 'ellipse', 'surface', 'shape', 'layer',
-    'coil', 'coil_fill', 'post',
+    'coil', 'post',
 ];
 const cat_tags=[ //cat_cast_tags=[
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
+    'fill',
 ];
 const cast_tags = [...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
@@ -37,7 +38,7 @@ const component = {
     'ellipse':     Curve,
     'coil':        Curve,
     'coil_fill':   Curve,
-    'post':        Curve,
+    'post':        Surface,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
@@ -74,6 +75,7 @@ export const create_base_slice = (set,get)=>({
     cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
     cast_shallow_map: Object.fromEntries([ // cast_tags
         'public', 'auxiliary', 'manual_compute',
+        'fill',
     ].map(t=>[t,true])),
     cast_end:Object.fromEntries([
         'point', 'mixed_curve', 'surface', 'layer', 'ellipse', // maybe add ellipse here ?!?!?!?!?!
@@ -81,32 +83,32 @@ export const create_base_slice = (set,get)=>({
     component:component,
     component_tags:Object.keys(component),
     node_css: {
-        'public':       'bi-globe-americas',
-        'profile':      'bi-person',
-        'switch':       'bi-bezier2',
-        'integer':      'bi-123',
-        'decimal':      'bi-123',
-        'text':         'bi-type',
-        'point':        'bi-record-circle',
-        'curve':        'bi-bezier2',
+        'public':         'bi-globe-americas',
+        'profile':        'bi-person',
+        'switch':         'bi-bezier2', // bi-123 // delete switch
+        'integer':        'bi-123',
+        'decimal':        'bi-123',
+        'text':           'bi-type',
+        'point':          'bi-record-circle',
+        'curve':          'bi-bezier2',
         'ellipse':        'bi-circle',
-        'sketch':       'bi-easel2',
-        'repeater':     'bi-files',
-        'group':        'bi-box-seam',
-        'transform':    'bi-arrows-move',
-        'mixed_curve':  'bi-bezier',
-        'top_view':     'bi-camera-reels',
-        'side_view':    'bi-camera-reels',
-        'face_camera':  'bi-camera-reels',
-        'auxiliary':    'bi-binoculars',
+        'sketch':         'bi-easel2',
+        'repeater':       'bi-files',
+        'group':          'bi-box-seam',
+        'transform':      'bi-arrows-move',
+        'mixed_curve':    'bi-bezier',
+        'top_view':       'bi-camera-reels',
+        'side_view':      'bi-camera-reels',
+        'face_camera':    'bi-camera-reels',
+        'auxiliary':      'bi-binoculars',
         'manual_compute': 'bi-cpu',
-        'product':      'bi-bag',
-        'surface':      'bi-map',
-        'shape':        'bi-pentagon',
-        'layer':        'bi-layers',
-        'coil':         'bi-rainbow',
-        'coil_fill':    'bi-rainbow',
-        'post':    'bi-code',
+        'product':        'bi-bag',
+        'surface':        'bi-map',
+        'shape':          'bi-pentagon',
+        'layer':          'bi-layers',
+        'coil':           'bi-rainbow',
+        'fill':           'bi-cloud-fog2-fill',
+        'post':           'bi-code',
     },
 
     max_click_delta: 7,
