@@ -14,45 +14,51 @@ export const create_geo_slice = (set,get)=>({geo:{
     smooth_catmullrom(d, pts, span){
         const smt = pts.map(p=> p.clone());
         const curve = new CatmullRomCurve3(smt);
-        curve.arcLengthDivisions = 2000; // need to make proportional to length of curve!!!
+        //curve.arcLengthDivisions = 2000; // need to make proportional to length of curve! ?!?!?!?!?!?!
         const pt_span = curve.getLength() / smt.length;
-        const range = Math.round(span / pt_span) + 1; // +1 here ?!?!?!?!?!
+        const range = Math.round(span / pt_span / 2) + 1; // +1 here ?!?!?!?!?!
+        //console.log('smooth range: '+range);
         for(let i=1; i<smt.length-1; i++){ 
             var vc = 1;
-            for(let k=-range; k<=range; k++){ 
+            var rng = range;
+            if(rng > i) rng = i;
+            if(rng > smt.length-1-i) rng = smt.length-1-i;
+            for(let k=-rng; k<=rng; k++){ 
                 if(k != 0 && pts[i+k]){
-                    smt.at(-1).add(pts[i+k]);
+                    smt[i].add(pts[i+k]);
                     vc++;
                 }
             }
-            smt.at(-1).divideScalar(vc);      
+            smt[i].divideScalar(vc);      
         }
         //smt.push(pts.at(-1).clone());
-        return curve;
+        return [smt, curve];
     },
     surface(d,pts){
         try{
-            const knots_u = [0,0,0];
-            const knots_v = [0,0,0];
-
+            var length_u = 0;
+            var length_v = 0;
+            var knots_u = [0,0,0];
+            var knots_v = [0,0,0];
             for(let u=1; u<pts.length-1; u++){
                 var dist = 0;
                 for(let v=0; v<pts[0].length; v++){
                     dist += pts[u][v].distanceTo(pts[u-1][v]);
                 }
-                knots_u.push(knots_u.at(-1) + (dist/(pts[0].length)));
+                length_u += (dist/(pts[0].length));
+                knots_u.push(u);
             }
             for(let v=1; v<pts[0].length-1; v++){
                 var dist = 0;
                 for(let u=0; u<pts.length; u++){
                     dist += pts[u][v].distanceTo(pts[u][v-1]);
                 }
-                knots_v.push(knots_v.at(-1) + (dist/(pts.length)));
+                length_v += (dist/(pts.length));
+                knots_v.push(v);
             }
-            const length_u = knots_u.at(-1);
-            const length_v = knots_v.at(-1);
-            knots_u.push(length_u,length_u);
-            knots_v.push(length_v,length_v);
+            knots_u.push(knots_u.at(-1), knots_u.at(-1));
+            knots_v.push(knots_v.at(-1), knots_v.at(-1));
+
 
             const surface = new NURBSSurface(degree_u, degree_v, knots_u, knots_v, pts);
 
@@ -75,6 +81,56 @@ export const create_geo_slice = (set,get)=>({geo:{
         }
     }
 }});
+
+
+
+            //var max_range = i;
+            //if(smt.length-1-i < max_range) max_range = smt.length-1-i;
+            //if(rng > max_range) rng = max_range;
+
+
+// KNOTS BY DISTANCE
+// var knots_u = [0,0,0];
+// var knots_v = [0,0,0];
+// for(let u=1; u<pts.length-1; u++){
+//     var dist = 0;
+//     for(let v=0; v<pts[0].length; v++){
+//         dist += pts[u][v].distanceTo(pts[u-1][v]);
+//     }
+//     knots_u.push(knots_u.at(-1) + (dist/(pts[0].length)));
+// }
+// for(let v=1; v<pts[0].length-1; v++){
+//     var dist = 0;
+//     for(let u=0; u<pts.length; u++){
+//         dist += pts[u][v].distanceTo(pts[u][v-1]);
+//     }
+//     knots_v.push(knots_v.at(-1) + (dist/(pts.length)));
+// }
+// const length_u = knots_u.at(-1);
+// const length_v = knots_v.at(-1);
+// knots_u.push(length_u,length_u);
+// knots_v.push(length_v,length_v);
+
+
+
+// KNOTS BY INDEX
+// var knots_u = [0,0];
+// var knots_v = [0,0];
+// for(let i=0; i<pts.length-1; i++){
+//         knots_u.push(i);
+// }
+// knots_u.push(knots_u.at(-1), knots_u.at(-1));
+
+// for(let i=0; i<pts[0].length-1; i++){
+//     knots_v.push(i);
+// }
+// knots_v.push(knots_v.at(-1), knots_v.at(-1));
+
+
+
+
+
+
 
 
             // for(let i=0; i<knots_u.length; i++){

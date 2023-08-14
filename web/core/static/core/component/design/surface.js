@@ -74,7 +74,7 @@ export const Surface = memo(({n})=>{
                 },
                     c('meshStandardMaterial', {   //meshLambertMaterial
                         map:gs().base_texture,
-                        color: theme.primary,//color[2], 
+                        color: 'white',//theme.primary,//color[2], 
                         wireframe:false, 
                         toneMapped:true, 
                         side:DoubleSide,

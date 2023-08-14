@@ -9,6 +9,7 @@ const bb2 = new Box3();
 
 const mid_res = 500;
 const span = 1;
+const smooth_span = 6;
 
 export const mixed_curve = { // being recomputed just for ax changes of source curves !!!!!!!!! ?!?!?!?!?!
     node(d,n,cause=[]){ // needs to figure if pos or pos_l results in better match !!!!!!
@@ -24,6 +25,8 @@ export const mixed_curve = { // being recomputed just for ax changes of source c
             //const div2 = Math.round(d.n[l2].c.curve.getLength()/span);
             const ptc1 = d.n[l1].c.curve.getPoints(mid_res);
             const ptc2 = d.n[l2].c.curve.getPoints(mid_res);
+            if(ptc1[0].z > ptc1.at(-1).z) ptc1.reverse();
+            if(ptc2[0].z > ptc2.at(-1).z) ptc2.reverse();
             bb1.setFromArray(ptc1.map(p=>[p.x, p.y, p.z]).flat());
             bb2.setFromArray(ptc2.map(p=>[p.x, p.y, p.z]).flat());
             if(bb1.getSize(v1).x > bb2.getSize(v2).x){
@@ -92,41 +95,50 @@ export const mixed_curve = { // being recomputed just for ax changes of source c
                         yi=i;
                     }
                 }
-                pto = pto.sort((a,b)=> (a.oxi*a.oyi) - (b.oxi*b.oyi)).map(p=> p.p);
+                pto = pto.sort((a,b)=> (a.oxi+a.oyi) - (b.oxi+b.oyi)).map(p=> p.p);
                 pto.shift();
-
-                const curve = d.geo.smooth_catmullrom(d, pto, .01);
-                c.mixed_curve = curve;
                 
+
+                var [pts, curve] = d.geo.smooth_catmullrom(d, pto, smooth_span);//var pts = pto;
+
+                c.mixed_curve = curve;//c.mixed_curve = new CatmullRomCurve3(pts);
+                c.curve = c.mixed_curve;
                 if(c.matrix){
-                    const special = c.mixed_curve.clone();
-                    special.get_points = (div)=>{
-                        return special.getPoints(div).map(p=> p.applyMatrix4(c.matrix));
-                    };
-                    c.curve = special;
-                    //pts = pts.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix));
-                }else{
-                    c.curve = c.mixed_curve;
+                    pts = pts.map(p=> p.clone().applyMatrix4(c.matrix));
+                    c.curve = new CatmullRomCurve3(pts);
                 }
-                if(ax.matrix){
-                    ax.curve = c.curve.clone();
-                    ax.curve.get_points = (div)=>{
-                        return c.curve.get_points(div).map(p=> p.applyMatrix4(ax.matrix));
-                    };
-                    //d.n[n].ax.curve = new CatmullRomCurve3(pts.map(p=>p.clone().applyMatrix4(d.n[n].ax.matrix)));
-                }else{
-                    ax.curve = c.curve;
-                }
+                ax.curve = c.curve;
+                if(ax.matrix) ax.curve = new CatmullRomCurve3(pts.map(p=>p.clone().applyMatrix4(ax.matrix)));
             }
             //console.log('Reckon mixed curve!!!');
         }catch(e){
             delete d.n[n].c.curve;
             delete d.n[n].ax.curve;
-            console.log(e);
+            //console.log(e);
         }
     },
 };
 
+
+// if(c.matrix){
+//     const special = c.mixed_curve.clone();
+//     special.get_points = (div)=>{
+//         return special.getPoints(div).map(p=> p.applyMatrix4(c.matrix));
+//     };
+//     c.curve = special;
+//     //pts = pts.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix));
+// }else{
+//     c.curve = c.mixed_curve;
+// }
+// if(ax.matrix){
+//     ax.curve = c.curve.clone();
+//     ax.curve.get_points = (div)=>{
+//         return c.curve.get_points(div).map(p=> p.applyMatrix4(ax.matrix));
+//     };
+//     //d.n[n].ax.curve = new CatmullRomCurve3(pts.map(p=>p.clone().applyMatrix4(d.n[n].ax.matrix)));
+// }else{
+//     ax.curve = c.curve;
+// }
 
 
                 ///pto.push(last_point);

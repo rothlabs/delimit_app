@@ -166,7 +166,7 @@ export const surface = {
             // }else{ d.n[n].ax.surface = d.n[n].c.surface; }
             //console.log('reckon surface!!!');
         }}catch(e){
-            console.log(e);
+            //console.log(e);
         }
     },
 };
