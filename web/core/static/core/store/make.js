@@ -161,12 +161,16 @@ export const create_make_slice = (set,get)=>({make:{
     },
     coil(d, a={}){ // add manual_compute !!!!!!!!!
         var n = d.make.node(d,'p','coil', {...a, n:{
-            axis_x: d.make.atom(d,'f', 0),
-            axis_y: d.make.atom(d,'f', -1),
-            axis_z: d.make.atom(d,'f', 0),
-            density: d.make.atom(d,'f', 0.1),
+            axis_x:      d.make.atom(d,'f', 0),
+            axis_y:      d.make.atom(d,'f', -1),
+            axis_z:      d.make.atom(d,'f', 0),
+            density:     d.make.atom(d,'f', 0.1),
             nozzle_diameter: d.make.atom(d,'f', 0.4),
-            speed: d.make.atom(d,'f', 50),
+            speed:       d.make.atom(d,'f', 50),
+            flow:        d.make.atom(d,'f', 1),
+            layer_count: d.make.atom(d,'f', 1),
+            axis_count:  d.make.atom(d,'f', 1),
+            axis_angle:  d.make.atom(d,'f', 20),
         }});
         d.make.edge(d, d.cats['manual_compute'], n);
         return n;

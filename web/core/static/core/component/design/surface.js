@@ -40,8 +40,8 @@ export const Surface = memo(({n})=>{
             //console.log(surface.length_v);
             let new_geo = new ParametricGeometry(
                 surface.get_point, 
-                MathUtils.clamp(Math.round(surface.length_u/div), 2, 10000), 
-                MathUtils.clamp(Math.round(surface.length_v/div), 2, 10000),
+                MathUtils.clamp(Math.round(surface.length_u/div), 2, 100000), 
+                MathUtils.clamp(Math.round(surface.length_v/div), 2, 100000),
             );
             if(new_geo) obj.current.geometry.copy(new_geo);
         }

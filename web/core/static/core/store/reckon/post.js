@@ -62,8 +62,8 @@ export const post = {
                 for(let v=0; v<res; v++){
                     pts.push(new Vector3());
                     nml.push(new Vector3());
-                    path.surface.get_point(0, v/res, pts.at(-1));
-                    path.surface.get_point(1, v/res, nml.at(-1));
+                    path.ribbon.get_point(0, v/res, pts.at(-1));
+                    path.ribbon.get_point(1, v/res, nml.at(-1));
                     nml.at(-1).sub(pts.at(-1));
                     n_ref.push(nml.at(-1).clone());
                     if(pts.length > 1){
@@ -109,7 +109,7 @@ export const post = {
                 }
             }
 
-            const surface = d.geo.surface(d, pts_ribbon, {length_v:total_length});
+            const ribbon = d.geo.surface(d, pts_ribbon, {length_v:total_length});
 
 
 
@@ -143,7 +143,7 @@ export const post = {
 
 
             c.code = code;
-            c.surface = surface;
+            c.surface = ribbon;
             //ax.curve = curve;
         }catch(e){
             console.log(e);

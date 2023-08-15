@@ -27,16 +27,16 @@ const end_box_size = 2;
 const max_shift = .1;
 const min_span = 1; 
 const max_span = 2;
-const axis_tilt = 20; // degrees
+//const axis_tilt = 20; // degrees
 const min_size = 10;
-const clip_u = 5;
+const clip_u = 2;
 //const start_clip = 50;
 //const end_clip = 20;
 //const pivot_smooth = 8;
 
 
 export const coil = {
-    props: 'axis_x axis_y axis_z density nozzle_diameter',
+    props: 'axis_x axis_y axis_z density speed flow nozzle_diameter layer_count axis_count axis_angle',
     display(){ // will run regardless of manual_compute tag 
         // set which layer to show
     },
@@ -53,7 +53,7 @@ export const coil = {
 
             var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
             const end_surf = {};
-            var axis_count = 1;
+            //var axis_count = 1;
             if(c.fill){
                 var sn = d.n[n].n.surface; // surface nodes
                 var aln = sn.reduce((sum, sn)=> sum + d.n[sn].c.layer, 0) / sn.length; // average layer number
@@ -64,7 +64,7 @@ export const coil = {
                     if(d.n[sn].c.layer < aln) surfaces.push(d.n[sn].c.surface)
                     else end_surfaces.push(d.n[sn].c.surface);
                 });
-                axis_count = 3;
+                //axis_count = 3;
                 console.log('Compute Coil - end_surf');
                 end_surfaces.forEach(surface => {
                     for(let u=0; u<end_surface_res; u++){ // make this res relative to size of surface #1
@@ -90,16 +90,16 @@ export const coil = {
             }
             axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
             axis_t.copy(axis);
-            if(axis_count > 1){
+            if(c.axis_count > 1){
                 ortho1.randomDirection().cross(axis).normalize();
-                axis_t.applyAxisAngle(ortho1, MathUtils.degToRad(axis_tilt));
+                axis_t.applyAxisAngle(ortho1, MathUtils.degToRad(c.axis_angle));
             }
             const axes = [];
-            for(let i=0; i<axis_count; i++){
+            for(let i=0; i<c.axis_count; i++){
                 ortho1.randomDirection().cross(axis_t).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
                 ortho2.copy(ortho1).cross(axis_t).normalize();
                 axes.push({axis:axis_t.clone(), ortho1:ortho1.clone(), ortho2:ortho2.clone()});
-                axis_t.applyAxisAngle(axis, Math.PI*2 / axis_count);
+                axis_t.applyAxisAngle(axis, Math.PI*2 / c.axis_count);
             }
 
             console.log('Compute Coil - raw_surf');
@@ -145,7 +145,7 @@ export const coil = {
                     if(Math.abs(shift) < max_shift){
                         v7.copy(axis.axis).multiplyScalar(shift); // shift along axis vector to align with coil
                         v8.copy(rs.p).add(v7); // new surface point
-                        v5.copy(v8).add(v3.copy(rs.n).multiplyScalar(c.nozzle_diameter * l * 0.8));
+                        v5.copy(v8);//.add(v3.copy(rs.n).multiplyScalar(c.nozzle_diameter * l));
                         surf_data.push({p:v5.clone(), n:rs.n.clone(), o:axis_pos+shift, sp:v8.clone()}); // don't need to clone rs.n ?!?!?!?!?!
                     }
                 });
@@ -157,7 +157,7 @@ export const coil = {
             const paths = []; 
             const curves = [];
             var surf_data = axes[ai].surf_data;
-            for(let l=0; l<40; l++){ 
+            for(let l=0; l<Math.ceil(c.layer_count/c.axis_count); l++){ 
                 var point_ref = surf_data[0].p;//paths[0][0].p;
                 var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
                 var box = new Box3();
@@ -181,7 +181,7 @@ export const coil = {
                             if(!hit_inside){
                                 v1.copy(surf_data[start_i].sp).sub(surf_data[start_i].p);
                                 v2.copy(v1).normalize();
-                                for(let j=0; j < v1.length(); j += end_box_size/6){
+                                for(let j=0; j < v1.length(); j += end_box_size/4){
                                     v3.copy(surf_data[start_i].p).add(v4.copy(v2).multiplyScalar(j));
                                     var k = 'x'+Math.round(v3.x/end_box_size) 
                                             + 'y'+Math.round(v3.y/end_box_size) 
@@ -195,8 +195,8 @@ export const coil = {
                             if(make_path){
                                 var curve = new CatmullRomCurve3(pts[0]);
                                 curve.arcLengthDivisions = 2000;
-                                var surface = d.geo.surface(d, pts, {length_v:curve.getLength()});
-                                paths.push({surface:surface, curve:curve});
+                                var ribbon = d.geo.surface(d, pts, {length_v:curve.getLength()});
+                                paths.push({ribbon:ribbon, curve:curve, speed:c.speed, flow:c.flow});
                                 curves.push(curve);
                             }
                         }
@@ -221,7 +221,7 @@ export const coil = {
                     for(let ll=0; ll<axes.length; ll++){ 
                         var surf_data = axes[ll].surf_data;
                         for(let i=0; i<surf_data.length; i++){ 
-                            surf_data[i].p.add(v1.copy(surf_data[i].n).multiplyScalar(c.nozzle_diameter * axes.length * 0.8));
+                            surf_data[i].p.add(v1.copy(surf_data[i].n).multiplyScalar(c.nozzle_diameter));//(c.nozzle_diameter * axes.length));
                         }
                     }
                 }
