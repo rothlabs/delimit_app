@@ -40,7 +40,7 @@ export const create_geo_slice = (set,get)=>({geo:{
             var length_v = 0;
             var knots_u = [0,0,0];
             var knots_v = [0,0,0];
-            for(let u=1; u<pts.length-1; u++){
+            for(let u=1; u<pts.length-1; u++){ // build curves to get more accurate arc length ?!?!?!?!?!?!
                 var dist = 0;
                 for(let v=0; v<pts[0].length; v++){
                     dist += pts[u][v].distanceTo(pts[u-1][v]);

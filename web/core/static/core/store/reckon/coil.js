@@ -20,12 +20,16 @@ const ortho1 = new Vector3();
 const ortho2 = new Vector3();
 
 //const loop_span = 5; 
-const origin_surface_res = 800;
+//const origin_surface_res = 800;
 const surface_res = 900;
+const end_surface_res = 600;
+const end_box_size = 2;
 const max_shift = .1;
 const min_span = 1; 
-const max_span = 10;
+const max_span = 2;
 const axis_tilt = 20; // degrees
+const min_size = 10;
+const clip_u = 5;
 //const start_clip = 50;
 //const end_clip = 20;
 //const pivot_smooth = 8;
@@ -38,7 +42,6 @@ export const coil = {
     },
     node(d, n, cause=[]){
         try{
-            console.log('Compute Coil - pivots');
             const c = d.n[n].c;//d.reckon.props(d, n, 'axis_x axis_y axis_z density nozzle_diameter');
             const ax = d.n[n].ax;
 
@@ -49,7 +52,8 @@ export const coil = {
             const loop_span = c.nozzle_diameter / c.density; 
 
             var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
-            var axes_count = 1;
+            const end_surf = {};
+            var axis_count = 1;
             if(c.fill){
                 var sn = d.n[n].n.surface; // surface nodes
                 var aln = sn.reduce((sum, sn)=> sum + d.n[sn].c.layer, 0) / sn.length; // average layer number
@@ -60,115 +64,176 @@ export const coil = {
                     if(d.n[sn].c.layer < aln) surfaces.push(d.n[sn].c.surface)
                     else end_surfaces.push(d.n[sn].c.surface);
                 });
-                axes_count = 3;
+                axis_count = 3;
+                console.log('Compute Coil - end_surf');
+                end_surfaces.forEach(surface => {
+                    for(let u=0; u<end_surface_res; u++){ // make this res relative to size of surface #1
+                        for(let v=0; v<end_surface_res; v++){ 
+                            surface.get_point_normal(u/end_surface_res, v/end_surface_res, v1, v2);
+                            var k = 'x'+Math.round(v1.x/end_box_size) 
+                                  + 'y'+Math.round(v1.y/end_box_size) 
+                                  + 'z'+Math.round(v1.z/end_box_size) 
+                            if(!end_surf[k]) end_surf[k] = {b:new Box3(), nml:[], p:new Plane()};
+                            end_surf[k].b.expandByPoint(v1);
+                            end_surf[k].nml.push(v2.clone());
+                        }
+                    }
+                });
+                Object.values(end_surf).forEach(es=>{
+                    v1.set(0,0,0);
+                    es.nml.forEach(nml=> v1.add(nml));
+                    v1.divideScalar(es.nml.length);
+                    es.b.getCenter(v2);
+                    es.p.setFromNormalAndCoplanarPoint(v1, v2);//*Math.sign(v1.dot(v2))); // do I need to clone v1? #1
+                    //console.log(es.p);
+                });
             }
             axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
             axis_t.copy(axis);
-            if(axes_count > 1){
+            if(axis_count > 1){
                 ortho1.randomDirection().cross(axis).normalize();
                 axis_t.applyAxisAngle(ortho1, MathUtils.degToRad(axis_tilt));
             }
             const axes = [];
-            for(let i=0; i<axes_count; i++){
+            for(let i=0; i<axis_count; i++){
                 ortho1.randomDirection().cross(axis_t).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
                 ortho2.copy(ortho1).cross(axis_t).normalize();
                 axes.push({axis:axis_t.clone(), ortho1:ortho1.clone(), ortho2:ortho2.clone()});
-                axis_t.applyAxisAngle(axis, Math.PI*2 / axes_count);
+                axis_t.applyAxisAngle(axis, Math.PI*2 / axis_count);
             }
 
+            console.log('Compute Coil - raw_surf');
             const raw_surf = [];
-            const pivots = {};
-            //var first_pivot = 0;
-            //var last_pivot = 0;
-            surfaces.forEach((surface, si) => {
-                for(let u=0; u<origin_surface_res; u++){
-                    for(let v=0; v<origin_surface_res; v++){ 
-                        surface.get_point(u/origin_surface_res, v/origin_surface_res, v1);
-                        v2.copy(v1).projectOnVector(axis);
-                        let k = Math.round(v2.length()*Math.sign(v2.dot(axis))*4);
-                        if(!pivots['k'+k]) pivots['k'+k] = {b:new Box3(), v: new Vector3()};
-                        pivots['k'+k].b.expandByPoint(v1);
-                        //if(k < first_pivot) first_pivot = k;
-                        //if(k > last_pivot) last_pivot = k;
-                    }
-                }
-            });
-            Object.values(pivots).forEach(pivot=> pivot.b.getCenter(pivot.v));
-            console.log('Compute Coil - points');
-            const surf_data = [];
             surfaces.forEach(surface => {
-                for(let u=0; u<surface_res; u++){
+                for(let u=clip_u; u<surface_res-clip_u; u++){ // make this res relative to size of surface !!!!!!!
                     for(let v=0; v<surface_res; v++){ 
-                        surface.get_point_normal(u/surface_res, v/surface_res, v1, v9);
-                        v2.copy(v1).projectOnVector(axis); // axis point
-                        let axis_pos = v2.length()*Math.sign(v2.dot(axis));
-                        let pivot = pivots['k'+Math.round(axis_pos*4)].v;
-                        v4.copy(v1).sub(pivot); // vector from pivot to surface point
-                        var angle = v4.angleTo(ortho1) * Math.sign(v4.dot(ortho2)); 
-                        if(angle < 0) angle += Math.PI*2;
-                        var shift = -((axis_pos + (angle/(Math.PI*2))*loop_span) % loop_span); // remainder
-                        if (Math.abs(shift) > loop_span/2){ // need Math.abs(shift) here ?!?!?!??!?!?!
-                            shift = -(loop_span-Math.abs(shift))*Math.sign(shift);
-                        }
-                        if(Math.abs(shift) < max_shift){
-                            v7.copy(axis).multiplyScalar(shift); // shift along axis vector to align with coil
-                            v8.copy(v1).add(v7); // new surface point
-                            surf_data.push({p:v8.clone(), n:v9.clone(), o:axis_pos+shift});
-                        }
+                        surface.get_point_normal(u/surface_res, v/surface_res, v1, v2);
+                        raw_surf.push({p:v1.clone(), n:v2.clone()});
                     }
                 }
             });
-            console.log('Compute Coil - sort');
-            surf_data.sort((a,b)=> a.o-b.o);
-            console.log('Compute Coil - path');
-            //var curve = new CurvePath();
-            //curve.arcLengthDivisions = 2000;
-            // var paths = [[{
-            //     p: surf_data[0].p,
-            //     n: surf_data[0].n,
-            // }]];
 
+            var sorted_pivots = [];
+            axes.forEach((axis, l)=>{
+                console.log('Compute Coil - pivots');
+                const pivots = {};
+                raw_surf.forEach(rs=>{
+                    v2.copy(rs.p).projectOnVector(axis.axis);
+                    let k = Math.round(v2.length()*Math.sign(v2.dot(axis.axis))*4);
+                    if(!pivots['k'+k]) pivots['k'+k] = {b:new Box3(), v: new Vector3()};
+                    pivots['k'+k].b.expandByPoint(rs.p);
+                });
+                Object.values(pivots).forEach(pivot=> pivot.b.getCenter(pivot.v));
+                var pvt = Object.entries(pivots).map(([k,v],i)=> ({k: parseInt(k.slice(1)), v:v.v}));
+                pvt.sort((a,b)=> a.k-b.k);
+                sorted_pivots = sorted_pivots.concat(pvt);
 
-            
+                //axis.pivots = pivots;
+                console.log('Compute Coil - surf_data');
+                var surf_data = [];
+                raw_surf.forEach(rs=>{
+                    v2.copy(rs.p).projectOnVector(axis.axis); // axis point
+                    let axis_pos = v2.length()*Math.sign(v2.dot(axis.axis));
+                    let pivot = pivots['k'+Math.round(axis_pos*4)].v;
+                    v4.copy(rs.p).sub(pivot); // vector from pivot to surface point
+                    var angle = v4.angleTo(axis.ortho1) * Math.sign(v4.dot(axis.ortho2)); 
+                    if(angle < 0) angle += Math.PI*2;
+                    var shift = -((axis_pos + (angle/(Math.PI*2))*loop_span) % loop_span); // remainder
+                    if (Math.abs(shift) > loop_span/2){ // need Math.abs(shift) here ?!?!?!??!?!?!
+                        shift = -(loop_span-Math.abs(shift))*Math.sign(shift);
+                    }
+                    if(Math.abs(shift) < max_shift){
+                        v7.copy(axis.axis).multiplyScalar(shift); // shift along axis vector to align with coil
+                        v8.copy(rs.p).add(v7); // new surface point
+                        v5.copy(v8).add(v3.copy(rs.n).multiplyScalar(c.nozzle_diameter * l * 0.8));
+                        surf_data.push({p:v5.clone(), n:rs.n.clone(), o:axis_pos+shift, sp:v8.clone()}); // don't need to clone rs.n ?!?!?!?!?!
+                    }
+                });
+                surf_data.sort((a,b)=> a.o-b.o);
+                axis.surf_data = surf_data;
+            });
+
+            var ai = 0; // axis index
             const paths = []; 
             const curves = [];
-            for(let l=1; l<3; l++){ 
+            var surf_data = axes[ai].surf_data;
+            for(let l=0; l<40; l++){ 
                 var point_ref = surf_data[0].p;//paths[0][0].p;
                 var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
+                var box = new Box3();
+                var hit_inside = false;
+                var hit_outside = false;
+                var start_i = 0;
                 for(let i=1; i<surf_data.length; i++){ 
-                    let dist = point_ref.distanceTo(surf_data[i].p);
-                    if(dist > max_span || i == surf_data.length-1){ // check for end_surface !!!!!!!
-                        if(pts[0].length > 2){
-                            var curve = new CatmullRomCurve3(pts[0]);
-                            curve.arcLengthDivisions = 2000;
-                            var surface = d.geo.surface(d, pts, {length_v:curve.getLength()});
-                            paths.push({surface:surface, curve:curve});
-                            curves.push(curve);
+                    let dist = point_ref.distanceTo(surf_data[i].p);   
+                    if(c.fill){
+                        var k = 'x'+Math.round(surf_data[i].p.x/end_box_size) 
+                              + 'y'+Math.round(surf_data[i].p.y/end_box_size) 
+                              + 'z'+Math.round(surf_data[i].p.z/end_box_size);
+                        if(end_surf[k]){
+                            if(end_surf[k].p.distanceToPoint(surf_data[i].p) < 0) hit_inside = true
+                            else hit_outside = true;
                         }
-                        var pts = [[],[],[]];
+                    }
+                    if(dist > max_span || i == surf_data.length-1 || hit_outside){ // check for end_surface !!!!!!!
+                        if(pts[0].length > 2 && box.getSize(v1).length() > min_size && !(!hit_inside && hit_outside)){
+                            var make_path = true;
+                            if(!hit_inside){
+                                v1.copy(surf_data[start_i].sp).sub(surf_data[start_i].p);
+                                v2.copy(v1).normalize();
+                                for(let j=0; j < v1.length(); j += end_box_size/6){
+                                    v3.copy(surf_data[start_i].p).add(v4.copy(v2).multiplyScalar(j));
+                                    var k = 'x'+Math.round(v3.x/end_box_size) 
+                                            + 'y'+Math.round(v3.y/end_box_size) 
+                                            + 'z'+Math.round(v3.z/end_box_size);
+                                    if(end_surf[k] && end_surf[k].p.distanceToPoint(surf_data[start_i].p) > 0){
+                                        make_path = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(make_path){
+                                var curve = new CatmullRomCurve3(pts[0]);
+                                curve.arcLengthDivisions = 2000;
+                                var surface = d.geo.surface(d, pts, {length_v:curve.getLength()});
+                                paths.push({surface:surface, curve:curve});
+                                curves.push(curve);
+                            }
+                        }
+                        pts = [[],[],[]];
+                        box = new Box3(); // .makeEmpty() #2
+                        hit_inside = false;
+                        hit_outside = false;
+                        start_i = 0;
                     }
                     if(dist > min_span){ // check for end_surface !!!!!!!
-                        pts[0].push(surf_data[i].p.clone());
+                        if(pts[0].length < 1) start_i = i;
+                        point_ref = surf_data[i].p.clone();
+                        box.expandByPoint(point_ref);
+                        pts[0].push(point_ref);
                         pts[1].push(surf_data[i].p.clone().add(v1.copy(surf_data[i].n).divideScalar(2))); 
                         pts[2].push(surf_data[i].p.clone().add(surf_data[i].n));
-                        point_ref = surf_data[i].p;
                     } 
                 }
-                for(let i=0; i<surf_data.length; i++){ 
-                    surf_data[i].p.add(v1.copy(surf_data[i].n).multiplyScalar(l * c.nozzle_diameter*0.8));
+                ai++;
+                if(ai > axes.length-1){
+                    ai = 0;
+                    for(let ll=0; ll<axes.length; ll++){ 
+                        var surf_data = axes[ll].surf_data;
+                        for(let i=0; i<surf_data.length; i++){ 
+                            surf_data[i].p.add(v1.copy(surf_data[i].n).multiplyScalar(c.nozzle_diameter * axes.length * 0.8));
+                        }
+                    }
                 }
+                surf_data = axes[ai].surf_data;
             }
             
-
-
-            var pvt = Object.entries(pivots).map(([k,v],i)=> ({k: parseInt(k.slice(1)), v:v.v}));
-            pvt.sort((a,b)=> a.k-b.k);
 
             //c.surface = surface;
             //console.log(paths);
             c.paths = paths;  // rename to ribbons ?!?!?!?!?!?!
             ax.curve = curves; // make curve an array of auxiliary curves ?!?!?!?!?!
-            ax.pts = pvt.map(p=> p.v);
+            ax.pts = sorted_pivots.map(p=> p.v);
             console.log('Reckoned Coil!!!');
         }catch(e){
             console.log(e);

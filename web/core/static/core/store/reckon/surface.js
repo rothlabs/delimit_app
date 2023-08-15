@@ -7,11 +7,9 @@ import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
 const v1 = new Vector3();
 const v2 = new Vector3();
 
-const rib_res = 40;
-const rail_res = 60;
-const loop_res = 12;
-
-
+const rib_res = 40; // 40
+const rail_res = 60; // 60
+const loop_res = 12; // how many extra ribs to make between given ribs
 
 export const surface = {
     props: 'layer',
@@ -148,7 +146,15 @@ export const surface = {
                 //pts.push([...io_ribs[1].at(-1).pts, ...io_ribs[0].at(-1).pts.slice(1)]);
             }
 
-            if(pts.length < 3) pts.push(pts.at(-1));
+            if(pts.length < 3){
+                var mid_pts = [];
+                var last_pts = pts.pop();
+                for(let i=0; i < pts[0].length; i++){
+                    mid_pts.push(pts[0][i].clone().add(last_pts[i]).divideScalar(2));
+                }
+                pts.push(mid_pts);
+                pts.push(last_pts);
+            }
 
             if(d.n[n].c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix))); // does not need to clone ?!?!?!?!
 
