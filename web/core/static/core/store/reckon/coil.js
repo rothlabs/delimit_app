@@ -12,8 +12,10 @@ const v6 = new Vector3();
 const v7 = new Vector3();
 const v8 = new Vector3();
 const v9 = new Vector3();
-//const m1 = new Matrix4();
+const m1 = new Matrix4();
+
 const axis = new Vector3();
+const axis_t = new Vector3();
 const ortho1 = new Vector3();
 const ortho2 = new Vector3();
 
@@ -22,7 +24,8 @@ const origin_surface_res = 800;
 const surface_res = 900;
 const max_shift = .1;
 const min_span = 1; 
-const max_span = 2;
+const max_span = 10;
+const axis_tilt = 20; // degrees
 //const start_clip = 50;
 //const end_clip = 20;
 //const pivot_smooth = 8;
@@ -41,26 +44,39 @@ export const coil = {
 
             delete c.paths;
             delete ax.curve;
+            delete ax.pts;
             
             const loop_span = c.nozzle_diameter / c.density; 
-            axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
-            ortho1.randomDirection().cross(axis).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
-            ortho2.copy(ortho1).cross(axis).normalize();
 
+            var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
+            var axes_count = 1;
             if(c.fill){
                 var sn = d.n[n].n.surface; // surface nodes
                 var aln = sn.reduce((sum, sn)=> sum + d.n[sn].c.layer, 0) / sn.length; // average layer number
-                var surfaces = [];
+                surfaces = [];
                 var end_surfaces = [];
                 console.log(aln);
                 sn.forEach(sn=> {
                     if(d.n[sn].c.layer < aln) surfaces.push(d.n[sn].c.surface)
                     else end_surfaces.push(d.n[sn].c.surface);
                 });
-            }else{
-                var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
+                axes_count = 3;
+            }
+            axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
+            axis_t.copy(axis);
+            if(axes_count > 1){
+                ortho1.randomDirection().cross(axis).normalize();
+                axis_t.applyAxisAngle(ortho1, MathUtils.degToRad(axis_tilt));
+            }
+            const axes = [];
+            for(let i=0; i<axes_count; i++){
+                ortho1.randomDirection().cross(axis_t).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
+                ortho2.copy(ortho1).cross(axis_t).normalize();
+                axes.push({axis:axis_t.clone(), ortho1:ortho1.clone(), ortho2:ortho2.clone()});
+                axis_t.applyAxisAngle(axis, Math.PI*2 / axes_count);
             }
 
+            const raw_surf = [];
             const pivots = {};
             //var first_pivot = 0;
             //var last_pivot = 0;
@@ -111,42 +127,47 @@ export const coil = {
             //     p: surf_data[0].p,
             //     n: surf_data[0].n,
             // }]];
-            var last_point = surf_data[0].p;//paths[0][0].p;
-            const pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
-            for(let i=1; i<surf_data.length; i++){ 
-                let dist = last_point.distanceTo(surf_data[i].p);
-                if(dist > min_span){
 
-                    //curve.add(new LineCurve3(last_point, surf_data[i].p)); // just add points for continuous curve
-                    // paths[0].push({
-                    //     p: surf_data[i].p,
-                    //     n: surf_data[i].n,
-                    // });
-                    pts[0].push(surf_data[i].p);
-                    pts[1].push(surf_data[i].p.clone().add(v1.copy(surf_data[i].n).divideScalar(2))); 
-                    pts[2].push(surf_data[i].p.clone().add(surf_data[i].n));
-                    // const normal_point = surf_data[i].p.clone().add(surf_data[i].n);
-                    // pts.push([
-                    //     surf_data[i].p,
-                    //     surf_data[i].p,
-                    //     normal_point,
-                    //     normal_point
-                    // ]);
-                    last_point = surf_data[i].p;
-                } 
+
+            
+            const paths = []; 
+            const curves = [];
+            for(let l=1; l<3; l++){ 
+                var point_ref = surf_data[0].p;//paths[0][0].p;
+                var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
+                for(let i=1; i<surf_data.length; i++){ 
+                    let dist = point_ref.distanceTo(surf_data[i].p);
+                    if(dist > max_span || i == surf_data.length-1){ // check for end_surface !!!!!!!
+                        if(pts[0].length > 2){
+                            var curve = new CatmullRomCurve3(pts[0]);
+                            curve.arcLengthDivisions = 2000;
+                            var surface = d.geo.surface(d, pts, {length_v:curve.getLength()});
+                            paths.push({surface:surface, curve:curve});
+                            curves.push(curve);
+                        }
+                        var pts = [[],[],[]];
+                    }
+                    if(dist > min_span){ // check for end_surface !!!!!!!
+                        pts[0].push(surf_data[i].p.clone());
+                        pts[1].push(surf_data[i].p.clone().add(v1.copy(surf_data[i].n).divideScalar(2))); 
+                        pts[2].push(surf_data[i].p.clone().add(surf_data[i].n));
+                        point_ref = surf_data[i].p;
+                    } 
+                }
+                for(let i=0; i<surf_data.length; i++){ 
+                    surf_data[i].p.add(v1.copy(surf_data[i].n).multiplyScalar(l * c.nozzle_diameter*0.8));
+                }
             }
-            var curve = new CatmullRomCurve3(pts[0]);
-            curve.arcLengthDivisions = 2000;
+            
+
 
             var pvt = Object.entries(pivots).map(([k,v],i)=> ({k: parseInt(k.slice(1)), v:v.v}));
             pvt.sort((a,b)=> a.k-b.k);
-            //console.log(pvt);
 
-            const surface = d.geo.surface(d, pts, {length_v:curve.getLength()});
-
-            c.paths = [{surface:surface, curve:curve}];  //paths;//{pts:pts, nml:nml};
             //c.surface = surface;
-            ax.curve = curve; // make curve an array of auxiliary curves ?!?!?!?!?!
+            //console.log(paths);
+            c.paths = paths;  // rename to ribbons ?!?!?!?!?!?!
+            ax.curve = curves; // make curve an array of auxiliary curves ?!?!?!?!?!
             ax.pts = pvt.map(p=> p.v);
             console.log('Reckoned Coil!!!');
         }catch(e){
@@ -156,8 +177,19 @@ export const coil = {
 };
 
 
+                    //curve.add(new LineCurve3(point_ref, surf_data[i].p)); // just add points for continuous curve
+                    // paths[0].push({
+                    //     p: surf_data[i].p,
+                    //     n: surf_data[i].n,
+                    // });
 
-
+                    // const normal_point = surf_data[i].p.clone().add(surf_data[i].n);
+                    // pts.push([
+                    //     surf_data[i].p,
+                    //     surf_data[i].p,
+                    //     normal_point,
+                    //     normal_point
+                    // ]);
 
 
 
