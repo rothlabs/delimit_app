@@ -37,8 +37,7 @@ const component = {
     'layer':       Layer,
     'ellipse':     Curve,
     'coil':        Curve,
-    'coil_fill':   Curve,
-    'post':        Surface,
+    'post':        Curve,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags

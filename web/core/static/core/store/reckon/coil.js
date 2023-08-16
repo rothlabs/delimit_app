@@ -21,13 +21,12 @@ const ortho2 = new Vector3();
 
 //const loop_span = 5; 
 //const origin_surface_res = 800;
-const surface_res = 900;
-const end_surface_res = 600;
+const surface_div = 1000;
+const end_surface_div = 900;
 const end_box_size = 2;
 const max_shift = .1;
-const min_span = 1; 
-const max_span = 2;
-//const axis_tilt = 20; // degrees
+const min_span = .5; 
+const max_span = 8;
 const min_size = 10;
 const clip_u = 2;
 //const start_clip = 50;
@@ -67,9 +66,9 @@ export const coil = {
                 //axis_count = 3;
                 console.log('Compute Coil - end_surf');
                 end_surfaces.forEach(surface => {
-                    for(let u=0; u<end_surface_res; u++){ // make this res relative to size of surface #1
-                        for(let v=0; v<end_surface_res; v++){ 
-                            surface.get_point_normal(u/end_surface_res, v/end_surface_res, v1, v2);
+                    for(let u=0; u<end_surface_div; u++){ // make this res relative to size of surface #1
+                        for(let v=0; v<end_surface_div; v++){ 
+                            surface.get_point_normal(u/end_surface_div, v/end_surface_div, v1, v2);
                             var k = 'x'+Math.round(v1.x/end_box_size) 
                                   + 'y'+Math.round(v1.y/end_box_size) 
                                   + 'z'+Math.round(v1.z/end_box_size) 
@@ -88,6 +87,20 @@ export const coil = {
                     //console.log(es.p);
                 });
             }
+
+            
+            console.log('Compute Coil - raw_surf');
+            const raw_surf = [];
+            surfaces.forEach(surface => {
+                for(let u=clip_u; u<surface_div-clip_u; u++){ // make this res relative to size of surface !!!!!!!
+                    for(let v=0; v<surface_div; v++){ 
+                        surface.get_point_normal(u/surface_div, v/surface_div, v1, v2);
+                        raw_surf.push({p:v1.clone(), n:v2.clone()});
+                    }
+                }
+            });
+            
+
             axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
             axis_t.copy(axis);
             if(c.axis_count > 1){
@@ -101,17 +114,6 @@ export const coil = {
                 axes.push({axis:axis_t.clone(), ortho1:ortho1.clone(), ortho2:ortho2.clone()});
                 axis_t.applyAxisAngle(axis, Math.PI*2 / c.axis_count);
             }
-
-            console.log('Compute Coil - raw_surf');
-            const raw_surf = [];
-            surfaces.forEach(surface => {
-                for(let u=clip_u; u<surface_res-clip_u; u++){ // make this res relative to size of surface !!!!!!!
-                    for(let v=0; v<surface_res; v++){ 
-                        surface.get_point_normal(u/surface_res, v/surface_res, v1, v2);
-                        raw_surf.push({p:v1.clone(), n:v2.clone()});
-                    }
-                }
-            });
 
             var sorted_pivots = [];
             axes.forEach((axis, l)=>{
@@ -181,39 +183,48 @@ export const coil = {
                             if(!hit_inside){
                                 v1.copy(surf_data[start_i].sp).sub(surf_data[start_i].p);
                                 v2.copy(v1).normalize();
-                                for(let j=0; j < v1.length(); j += end_box_size/4){
+                                for(let j=0; j < v1.length(); j += end_box_size/6){
                                     v3.copy(surf_data[start_i].p).add(v4.copy(v2).multiplyScalar(j));
                                     var k = 'x'+Math.round(v3.x/end_box_size) 
                                             + 'y'+Math.round(v3.y/end_box_size) 
                                             + 'z'+Math.round(v3.z/end_box_size);
-                                    if(end_surf[k] && end_surf[k].p.distanceToPoint(surf_data[start_i].p) > 0){
+                                    if(end_surf[k]){// && end_surf[k].p.distanceToPoint(surf_data[start_i].p) > 0){
                                         make_path = false;
                                         break;
                                     }
                                 }
                             }
                             if(make_path){
+                                if(hit_outside && dist <= max_span){
+                                    point_ref = surf_data[i].p.clone();
+                                    end_surf[k].p.projectPoint(surf_data[i].p, point_ref);
+                                    pts[0].push(point_ref);
+                                    pts[1].push(point_ref.clone().add(v1.copy(surf_data[i].n).divideScalar(2))); 
+                                    pts[2].push(point_ref.clone().add(surf_data[i].n));
+                                }
                                 var curve = new CatmullRomCurve3(pts[0]);
                                 curve.arcLengthDivisions = 2000;
                                 var ribbon = d.geo.surface(d, pts, {length_v:curve.getLength()});
-                                paths.push({ribbon:ribbon, curve:curve, speed:c.speed, flow:c.flow});
+                                paths.push({ribbon:ribbon, speed:c.speed, flow:c.flow}); // curve:curve, 
                                 curves.push(curve);
                             }
                         }
                         pts = [[],[],[]];
                         box = new Box3(); // .makeEmpty() #2
                         hit_inside = false;
-                        hit_outside = false;
+                        
                         start_i = 0;
                     }
                     if(dist > min_span){ // check for end_surface !!!!!!!
                         if(pts[0].length < 1) start_i = i;
                         point_ref = surf_data[i].p.clone();
+                        if(hit_outside) end_surf[k].p.projectPoint(surf_data[i].p, point_ref);
                         box.expandByPoint(point_ref);
                         pts[0].push(point_ref);
-                        pts[1].push(surf_data[i].p.clone().add(v1.copy(surf_data[i].n).divideScalar(2))); 
-                        pts[2].push(surf_data[i].p.clone().add(surf_data[i].n));
+                        pts[1].push(point_ref.clone().add(v1.copy(surf_data[i].n).divideScalar(2))); 
+                        pts[2].push(point_ref.clone().add(surf_data[i].n));
                     } 
+                    hit_outside = false;
                 }
                 ai++;
                 if(ai > axes.length-1){
