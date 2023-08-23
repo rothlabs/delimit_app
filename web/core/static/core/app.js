@@ -113,7 +113,7 @@ export const useSubS = (selector, callback)=> useEffect(()=>useS.subscribe(selec
 var patch = 0;
 var patches = [];
 var inverse = [];
-var fork = null; // for dragging and stuff like that 
+var fork = null; // state fork for interactive stuff like dragging 
 
 function next_state(state, func){
     var all_patches = [];
@@ -232,7 +232,7 @@ export const ss = func=> {
     //console.trace();
     commit_state(next_state(gs(), func)); 
 }// rename to commit state?
-export const fs = func=>{ 
+export const fs = func=>{                 // this might be the secret sauce to async functions! #1
     //console.log('fork state');
     fork=next_state(gs(), func).state;
 }; // fork state
