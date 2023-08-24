@@ -29,8 +29,8 @@ export const layer = {
     sketch_size: sketch_size,
     res: res,
     //plane: new PlaneGeometry(sketch_size, sketch_size, grid_res*.5-1, grid_res*.5-1),
-    node(d,n,cause=[]){ 
-        try{if(cause[0]!='casted_matrix'){ 
+    node(d, n, a={}){ 
+        try{if(!(a.cause && a.cause[0]=='casted_matrix')){ 
             //if(d.studio.mode == 'graph') throw new Error('In graph mode.');
 
             //const shape_res = (d.design.res=='low' ? 100 : this.shape_res);

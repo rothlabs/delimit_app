@@ -13,8 +13,8 @@ const loop_res = 12; // how many extra ribs to make between given ribs
 
 export const surface = {
     props: 'layer',
-    node(d,n,cause=[]){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
-        try{if(cause[0]!='casted_matrix'){ 
+    node(d,n,a={}){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
+        try{if(!(a.cause && a.cause[0]=='casted_matrix')){ 
             delete d.n[n].c.surface;
 
             var pts = [];

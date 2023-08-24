@@ -7,7 +7,7 @@ const up = new Vector3(0,1,0);
 
 export const ellipse = {
     //res: 100,
-    node(d,n){
+    node(d, n, a={}){
         //d.n[n].c.pts = [];
         try{
             delete d.n[n].c.curve;

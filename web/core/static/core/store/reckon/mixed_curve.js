@@ -12,7 +12,7 @@ const span = 1;
 const smooth_span = 6;
 
 export const mixed_curve = { // being recomputed just for ax changes of source curves !!!!!!!!! ?!?!?!?!?!
-    node(d,n,cause=[]){ // needs to figure if pos or pos_l results in better match !!!!!!
+    node(d, n, a={}){ // needs to figure if pos or pos_l results in better match !!!!!!
         try{//if(cause.includes('curve') || cause.includes('matrix') || ['make.edge', 'delete.edge'].includes(cause[0])){ 
             //delete d.n[n].w.curve;
             const c = d.n[n].c;

@@ -13,7 +13,7 @@ const v2 = new Vector3();
 export const shape = {
     res: 200,
     stitch_dist: 1,
-    node(d,n,cause=[]){ 
+    node(d,n,a={}){ 
         try{
             const bndry  = d.n[n].n.curve.map(n=>({
                 used: false,

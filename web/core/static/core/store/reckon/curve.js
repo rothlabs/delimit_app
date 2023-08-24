@@ -11,7 +11,7 @@ const degree = 2;
 
 export const curve = {
     //res: 100,
-    node(d,n){
+    node(d, n, a={}){
         //d.n[n].c.pts = [];
         try{
 
