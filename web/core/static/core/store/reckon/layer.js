@@ -31,6 +31,9 @@ export const layer = {
     //plane: new PlaneGeometry(sketch_size, sketch_size, grid_res*.5-1, grid_res*.5-1),
     node(d, n, a={}){ 
         try{if(!(a.cause && a.cause[0]=='casted_matrix')){ 
+
+            delete d.n[n].c.geo;
+
             //if(d.studio.mode == 'graph') throw new Error('In graph mode.');
 
             //const shape_res = (d.design.res=='low' ? 100 : this.shape_res);
@@ -47,13 +50,13 @@ export const layer = {
 
             const s = this.sketch_size;
             const r = Math.round(d.design.moving ? this.res * d.rapid_res : this.res);
-            var geo = d.n[n].c.geo;
+            //var geo = d.n[n].c.geo;
             //if(geo && d.design.moving){
             //    let pos = geo.attributes.position.array;
             //    for(let i=0; i<pos.length; i++) pos[i] = this.plane.attributes.position.array[i];
             //}else{
-                geo = new PlaneGeometry(s, s, r-1, r-1);
-                d.n[n].c.geo = geo;
+                var geo = new PlaneGeometry(s, s, r-1, r-1);
+                //d.n[n].c.geo = geo;
                 //d.n[n].ax.geo = geo;
             //}
 
@@ -99,11 +102,16 @@ export const layer = {
             const fpos = pos.slice();
             function map_to_surface(...indices){
                 indices.forEach(k=>{
-                    v0.set(1-(fpos[k*3]+s/2)/s, (fpos[k*3+1]+s/2)/s, 0);
-                    surface.get_point(v0.y,      v0.x,      v1);
-                    surface.get_point(v0.y+.005, v0.x,      v2);
-                    surface.get_point(v0.y,      v0.x+.005, v3);
-                    v1.add(v2.sub(v1).cross(v3.sub(v1)).normalize());
+                    //v0.set(1-(fpos[k*3]+s/2)/s, (fpos[k*3+1]+s/2)/s, 0);
+
+                    surface.get_point_normal((fpos[k*3+1]+s/2)/s, 1-(fpos[k*3]+s/2)/s, v0, v1);
+                    v1.add(v0);
+
+                    // surface.get_point(v0.y,      v0.x,      v1);
+                    // surface.get_point(v0.y+.005, v0.x,      v2);
+                    // surface.get_point(v0.y,      v0.x+.005, v3);
+                    // v1.add(v2.sub(v1).cross(v3.sub(v1)).normalize());
+
                     pos[k*3] = v1.x;   pos[k*3+1] = v1.y;   pos[k*3+2] = v1.z;
                 });
             }
@@ -134,9 +142,10 @@ export const layer = {
             geo.attributes.position.needsUpdate = true;
             geo.index.needsUpdate = true;
             
+            d.n[n].c.geo = geo;
             //console.log('reckon layer!');
         }}catch(e){
-            delete d.n[n].c.geo;
+            //delete d.n[n].c.geo;
             //delete d.n[n].ax.geo;
             //console.log(e);
         }
