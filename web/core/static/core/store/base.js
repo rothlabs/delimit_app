@@ -16,8 +16,8 @@ var next_funcs = [];
 var next_ids = [];
 
 const subject_tags= [
-    'product', 'point', 'curve', 'sketch', 'repeater', 'group', 'transform', 
-    'mixed_curve', 'ellipse', 'surface', 'shape', 'layer',
+    'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
+    'mixed_curve', 'ellipse', 'surface', 'shape', 'layer', 'image',
     'coil', 'post',
 ];
 const cat_tags=[ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
@@ -46,10 +46,13 @@ const admin_tags    = ['profile', ...cat_tags]; //category_tags
 const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
+    'width', 'height',
     'layer',
     'density', 'axis_count', 'axis_angle', 'layer_count', 'speed', 'flow', 'nozzle_diameter', 
 ];
-const string_tags = [model_tags['s'], 'name', 'story', 'code']; // rename to text_tags
+const string_tags = [model_tags['s'], // rename to text_tags
+    'name', 'story', 'code', 'image_code',
+]; 
 const atom_tags   = Object.values(model_tags).slice(1);
 
 const base_texture = new THREE.TextureLoader().load(
@@ -93,8 +96,8 @@ export const create_base_slice = (set,get)=>({
         'curve':          'bi-bezier2',
         'ellipse':        'bi-circle',
         'sketch':         'bi-easel2',
-        'repeater':       'bi-files',
-        'group':          'bi-box-seam',
+        //'repeater':       'bi-files',
+        //'group':          'bi-box-seam',
         'transform':      'bi-arrows-move',
         'mixed_curve':    'bi-bezier',
         'top_view':       'bi-camera-reels',
@@ -106,6 +109,7 @@ export const create_base_slice = (set,get)=>({
         'surface':        'bi-map',
         'shape':          'bi-pentagon',
         'layer':          'bi-layers',
+        'image':          'bi-image',
         'coil':           'bi-rainbow',
         'fill':           'bi-cloud-fog2-fill',
         'post':           'bi-code',

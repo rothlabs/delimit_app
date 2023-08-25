@@ -38,10 +38,8 @@ const pulloff = 50; // along surface normal
 
 
 export const post = {
-    node(d, n, a={}){ // make wrapper function to inser c and ax on every node reckon function ?!?!?!?!?! 
+    node(d, n, c, ax, a={}){ // make wrapper function to inser c and ax on every node reckon function ?!?!?!?!?! 
         try{
-            const c = d.n[n].c;
-            const ax = d.n[n].ax;
             delete c.code;
             delete c.surface;
             delete ax.curve;

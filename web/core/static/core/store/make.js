@@ -159,6 +159,13 @@ export const create_make_slice = (set,get)=>({make:{
             layer: d.make.atom(d,'f', 0),
         }});
     },
+    image(d, a={}){
+        return d.make.node(d,'p','image', {...a, n:{
+            width:      d.make.atom(d,'f', 100),
+            height:     d.make.atom(d,'f', 100),
+            image_code: d.make.atom(d,'s', 'abc'),
+        }});
+    },
     coil(d, a={}){ // add manual_compute !!!!!!!!!
         var n = d.make.node(d,'p','coil', {...a, n:{
             axis_x:      d.make.atom(d,'f', 0),

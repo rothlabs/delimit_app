@@ -11,17 +11,17 @@ const degree = 2;
 
 export const curve = {
     //res: 100,
-    node(d, n, a={}){
-        //d.n[n].c.pts = [];
+    node(d, n, c, ax, a={}){
+        //c.pts = [];
         try{
 
             if(d.n[n].n.point?.length > 1){ 
                 //d.n[n].w.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].w.pos));
                 //d.n[n].l.curve = new CatmullRomCurve3(d.n[n].n.point.map(n=>d.n[n].l.pos));
                 const pts = d.n[n].n.point.map(n=>d.n[n].c.pos);    // rename so this is pos_a ?!?!?! (absolute or g for global)
-                d.n[n].c.pts = pts;
+                c.pts = pts;
                 const ax_pts = d.n[n].n.point.map(n=>d.n[n].ax.pos); // rename so this is pos ?!?!?!?!
-                d.n[n].ax.pts = ax_pts;
+                ax.pts = ax_pts;
                 // var knots = [0,0];
                 // var last_knot = 0;
                 // pts.forEach((p,i) => {
@@ -48,9 +48,9 @@ export const curve = {
 				// }
                 // knots.push(knots.at(-1),knots.at(-1));
                 //console.log(knots);
-                d.n[n].c.curve = new NURBSCurve(degree, knots, cp);//, 2, knots.length-2);
-                d.n[n].ax.curve = new NURBSCurve(degree, knots, ax_cp);//, 2, knots.length-2);
-                d.n[n].c.curve.getPoints(3); // checking if valid curve 
+                c.curve = new NURBSCurve(degree, knots, cp);//, 2, knots.length-2);
+                ax.curve = new NURBSCurve(degree, knots, ax_cp);//, 2, knots.length-2);
+                c.curve.getPoints(3); // checking if valid curve 
                 
 
 
@@ -59,10 +59,10 @@ export const curve = {
             //    delete d.n[n].w.curve;
             //    delete d.n[n].l.curve;
             }
-            //d.n[n].c.pts = d.n[n].w.curve.getPoints(this.res);
+            //c.pts = d.n[n].w.curve.getPoints(this.res);
         }catch(e){
-            delete d.n[n].c.curve;
-            delete d.n[n].ax.curve;
+            delete c.curve;
+            delete ax.curve;
             //console.log('CURVE ERROR',e);
         } // make switch so easy to view reckon errors for different types of nodes ?!?!?!?!
     }, 
@@ -81,15 +81,15 @@ export const curve = {
 // }
 // //knots.push(1);
 // //console.log(knots);
-// d.n[n].c.curve = new NURBSCurve(degree, knots, cp);//, 2, knots.length-2);
-// d.n[n].ax.curve = new NURBSCurve(degree, knots, ax_cp);//, 2, knots.length-2);
-// d.n[n].c.curve.getPoints(3); // checking if valid curve 
+// c.curve = new NURBSCurve(degree, knots, cp);//, 2, knots.length-2);
+// ax.curve = new NURBSCurve(degree, knots, ax_cp);//, 2, knots.length-2);
+// c.curve.getPoints(3); // checking if valid curve 
 
 
-//if(d.n[n].c.matrix) pto2 = pto2.map(p=>p.clone().applyMatrix4(d.n[n].c.matrix));
+//if(c.matrix) pto2 = pto2.map(p=>p.clone().applyMatrix4(c.matrix));
 
-// d.n[n].c.pts = new CatmullRomCurve3(pto2).getPoints(this.res);
-// if(d.n[n].c.matrix) d.n[n].c.pts = d.n[n].c.pts.map(p=>p.applyMatrix4(d.n[n].c.matrix)); 
+// c.pts = new CatmullRomCurve3(pto2).getPoints(this.res);
+// if(c.matrix) c.pts = c.pts.map(p=>p.applyMatrix4(c.matrix)); 
 
 // if(d.n[l1].c.top_view && (d.n[l2].c.inner_view || d.n[l2].c.outer_view)){
 //     var pti=new CatmullRomCurve3(d.n[l1].n.point.map(n=>d.n[n].l.pos)).getPoints(res_i).map(p=>({p:p,v:'t'})).concat(

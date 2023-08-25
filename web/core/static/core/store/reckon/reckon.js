@@ -7,6 +7,7 @@ import {ellipse} from './ellipse.js';
 import {surface} from './surface.js';
 import {shape} from './shape.js';
 import {layer} from './layer.js';
+import {image} from './image.js';
 import {coil} from './coil.js';
 import {post} from './post.js';
 
@@ -27,6 +28,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     shape,
     surface,
     layer,
+    image,
     coil,
     post,
     count: 0,
@@ -48,7 +50,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         }
         if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
             if(d.reckon[d.n[n].t]){// && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
-                d.reckon[d.n[n].t].node(d,n,{cause:cause}); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
+                d.reckon[d.n[n].t].node(d, n, d.n[n].c, d.n[n].ax, {cause:cause}); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
             }
             d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         }

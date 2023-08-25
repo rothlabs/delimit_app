@@ -13,9 +13,9 @@ const loop_res = 12; // how many extra ribs to make between given ribs
 
 export const surface = {
     props: 'layer',
-    node(d,n,a={}){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
+    node(d, n, c, ax, a={}){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         try{if(!(a.cause && a.cause[0]=='casted_matrix')){ 
-            delete d.n[n].c.surface;
+            delete c.surface;
 
             var pts = [];
 
@@ -42,7 +42,7 @@ export const surface = {
             //console.log(io_ribs);
 
             if(d.n[n].n.curve?.length > 1){
-                const guide = d.n[n].n.curve.map(n=>{//.filter(n=> d.n[n].c.guide).map(n=>{
+                const guide = d.n[n].n.curve.map(n=>{//.filter(n=> c.guide).map(n=>{
                     const pts = d.n[n].c.curve.getPoints(rail_res);
                     if(pts[0].y > pts.at(-1).y) pts.reverse();
                     return {
@@ -156,20 +156,20 @@ export const surface = {
                 pts.push(last_pts);
             }
 
-            if(d.n[n].c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(d.n[n].c.matrix))); // does not need to clone ?!?!?!?!
+            if(c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(c.matrix))); // does not need to clone ?!?!?!?!
 
-            d.n[n].c.surface = d.geo.surface(d, pts);
-            d.n[n].c.pts = pts;
-            // if(d.n[n].ax.matrix){
+            c.surface = d.geo.surface(d, pts);
+            c.pts = pts;
+            // if(ax.matrix){
             //     const ax_surface = new NURBSSurface(degree1, degree2, knots1, knots2, 
-            //         pts.map(p=> p.map(p=> p.clone().applyMatrix4(d.n[n].ax.matrix)))
+            //         pts.map(p=> p.map(p=> p.clone().applyMatrix4(ax.matrix)))
             //     );
             //     ax_surface.get_point = (u, v, target)=>{
             //         ax_surface.getPoint(u, v, target);
             //         return target;
             //     }  
-            //     d.n[n].ax.surface = ax_surface;
-            // }else{ d.n[n].ax.surface = d.n[n].c.surface; }
+            //     ax.surface = ax_surface;
+            // }else{ ax.surface = c.surface; }
             //console.log('reckon surface!!!');
         }}catch(e){
             //console.log(e);
@@ -185,9 +185,9 @@ export const surface = {
 
 
 
-//d.n[n].c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
-            //if(d.n[n].c.inner_view) d.n[n].c.geo.index.array.reverse();
-            //d.n[n].c.geo.computeVertexNormals();
+//c.geo = new ParametricGeometry(getSurfacePoint, this.tri_res, this.tri_res);
+            //if(c.inner_view) c.geo.index.array.reverse();
+            //c.geo.computeVertexNormals();
 
 
 
@@ -196,7 +196,7 @@ export const surface = {
             //     pts = pts.concat(ribs[i].pts);
             // };
             // var geo = new BufferGeometry().setFromPoints(pts);
-            // if(d.n[n].c.matrix) geo.applyMatrix4(d.n[n].c.matrix);
+            // if(c.matrix) geo.applyMatrix4(c.matrix);
             // var tri = Delaunator.from(pts.map(v=> [v.x, v.y])).triangles;
             // var idx = []; 
             // for (let i = 0; i < tri.length-3; i+=3){
@@ -208,7 +208,7 @@ export const surface = {
             // }
             // geo.setIndex(idx);
             // geo.computeVertexNormals();
-            // d.n[n].c.geo = geo;
+            // c.geo = geo;
 
 
 
@@ -234,23 +234,23 @@ export const surface = {
             //     i++;
             // }
             // var geo2 = new ShapeGeometry(new Shape(pts));
-            // if(d.n[n].c.matrix) geo2.applyMatrix4(d.n[n].c.matrix);
-            // d.n[n].c.geo2 = geo2;
+            // if(c.matrix) geo2.applyMatrix4(c.matrix);
+            // c.geo2 = geo2;
 
 
                     
             
 
 
-            //d.n[n].c.shape = new Shape(pts);
-            // console.log(d.n[n].c.shape);
+            //c.shape = new Shape(pts);
+            // console.log(c.shape);
 
             //console.log(curves);
             //const curve_path = new CurvePath(curves);
             //console.log(curve_path);
             //const points = curve_path.getPoints(this.profile_res);
             //console.log(points);
-            //d.n[n].c.shape = new Shape(new CurvePath(curves).getPoints(this.profile_res));
+            //c.shape = new Shape(new CurvePath(curves).getPoints(this.profile_res));
 
             // var pts = [];
             // var res_h = 0;
@@ -259,8 +259,8 @@ export const surface = {
             //     let pts = d.n[n].w.curve.getPoints();
             //     return {
             //         n: n,
-            //         pts: d.n[n].c.pts,
-            //         h: d.n[n].c.pts.reduce((a,b)=>a.y+b.y,0),
+            //         pts: c.pts,
+            //         h: c.pts.reduce((a,b)=>a.y+b.y,0),
             //     }
             // }).sort((a,b)=>a.h-b.h);
             // // build pts list for surface
@@ -268,9 +268,9 @@ export const surface = {
             //     pts = pts.concat(ribs[i].pts);
             //     res_h++;
             // };
-            // d.n[n].c.pts = pts;
-            // d.n[n].c.res_w = d.n[ribs[0].n].c.pts.length-1;
-            // d.n[n].c.res_h = res_h-1;
+            // c.pts = pts;
+            // c.res_w = d.n[ribs[0].n].c.pts.length-1;
+            // c.res_h = res_h-1;
             // //console.log('reckon surf');
             // //console.log('ribs gds', ribs, rails);
 
@@ -285,8 +285,8 @@ export const surface = {
 //     res_h: 10,
 //     surface(d,n,cause=''){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
 //         try{//if(cause.includes('curve') || ['make.edge', 'delete.edge'].includes(cause)){ 
-//             //const ribs = d.n[n].n.mixed_curve;//.filter(n=> !d.n[n].c.guide);
-//             const rail  = d.n[n].n.curve;//.filter(n=>  d.n[n].c.guide);
+//             //const ribs = d.n[n].n.mixed_curve;//.filter(n=> !c.guide);
+//             const rail  = d.n[n].n.curve;//.filter(n=>  c.guide);
 //             var pts = [];
 //             var res_h = 0;
 //             // sort ribs by Y
@@ -294,8 +294,8 @@ export const surface = {
 //                 let pts = d.n[n].w.curve.getPoints();
 //                 return {
 //                     n: n,
-//                     pts: d.n[n].c.pts,
-//                     h: d.n[n].c.pts.reduce((a,b)=>a.y+b.y,0),
+//                     pts: c.pts,
+//                     h: c.pts.reduce((a,b)=>a.y+b.y,0),
 //                 }
 //             }).sort((a,b)=>a.h-b.h);
 //             // build pts list for surface
@@ -303,9 +303,9 @@ export const surface = {
 //                 pts = pts.concat(ribs[i].pts);
 //                 res_h++;
 //             };
-//             d.n[n].c.pts = pts;
-//             d.n[n].c.res_w = d.n[ribs[0].n].c.pts.length-1;
-//             d.n[n].c.res_h = res_h-1;
+//             c.pts = pts;
+//             c.res_w = d.n[ribs[0].n].c.pts.length-1;
+//             c.res_h = res_h-1;
 //             //console.log('reckon surf');
 //             //console.log('ribs gds', ribs, rails);
 //         }catch(e){console.log(e)}

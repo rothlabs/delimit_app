@@ -39,10 +39,10 @@ export const coil = {
     display(){ // will run regardless of manual_compute tag 
         // set which layer to show
     },
-    node(d, n, a={}){
+    node(d, n, c, ax, a={}){
         try{
-            const c = d.n[n].c;//d.reckon.props(d, n, 'axis_x axis_y axis_z density nozzle_diameter');
-            const ax = d.n[n].ax;
+            //const c = d.n[n].c;//d.reckon.props(d, n, 'axis_x axis_y axis_z density nozzle_diameter');
+            //const ax = d.n[n].ax;
 
             delete c.paths;
             delete ax.curve;
