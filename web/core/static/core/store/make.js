@@ -163,7 +163,7 @@ export const create_make_slice = (set,get)=>({make:{
         return d.make.node(d,'p','image', {...a, n:{
             width:      d.make.atom(d,'f', 100),
             height:     d.make.atom(d,'f', 100),
-            image_code: d.make.atom(d,'s', 'abc'),
+            data: d.make.atom(d,'s', 'abc'),
         }});
     },
     coil(d, a={}){ // add manual_compute !!!!!!!!!

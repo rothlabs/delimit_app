@@ -10,9 +10,9 @@ const tm = new Matrix4();
 //const tm1 = new Matrix4();
 //const tm2 = new Matrix4();
 
-const canvas = document.createElement("canvas");
-const cctx = canvas.getContext("2d");
-const img = new Image();
+// const canvas = document.createElement("canvas");
+// const cctx = canvas.getContext("2d");
+// const img = new Image();
 
 const brush_radius = 50;
 
@@ -44,29 +44,38 @@ export const create_design_slice = (set,get)=>({design:{
         const n = ray.n1;
         if(!n) return;
         
-        canvas.width = d.n[d.n[n].n.width[0]].v;//d.node.get(d, n, 'width')[0];
-        canvas.height = d.n[d.n[n].n.height[0]].v;
+        var canvas = d.n[n].c.canvas;
+        var cctx = canvas.getContext("2d");
+        var width = d.n[d.n[n].n.width[0]].v;//canvas.width = d.n[d.n[n].n.width[0]].v; //d.node.get(d, n, 'width')[0];
+        var height = d.n[d.n[n].n.height[0]].v;//canvas.height = d.n[d.n[n].n.height[0]].v;
+
         if(d.n[n].ax.invert) ray.pos.applyMatrix4(d.n[n].ax.invert);
         if(d.n[n].c.invert) ray.pos.applyMatrix4(d.n[n].c.invert);
-        var x = Math.round(( ray.pos.x + 200) / 400 * canvas.width);
-        var y = Math.round((-ray.pos.y + 200) / 400 * canvas.height);
+        var x = Math.round(( ray.pos.x + 200) / 400 * width);
+        var y = Math.round((-ray.pos.y + 200) / 400 * height);
 
-        img.onload = function() {
-            cctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        //img.onload = function() {
+            //cctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
             grd.addColorStop(0, "red");
             grd.addColorStop(1, "rgba(255, 0, 0, 0)");
             cctx.fillStyle = grd;
             cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
-            console.log('new image load!');
-            rs(d=>{
-                d.node.set(d, n, {image_code:canvas.toDataURL()});
-                console.log('saved to image_code!');
-            });
-        };
-        img.src = d.n[n].c.image_code;
-        console.log('paint!!!', d.n[n].t);
+            d.node.set(d, n, {data:'live'}); //canvas.toDataURL()
+            //console.log('new image load!');
+            //rs(d=>{
+                
+                //console.log('saved to data!');
+            //});
+        //};
+        //img.src = d.n[n].c.data;
+        //console.log('paint!!!', d.n[n].t);
     },
+    // end_paint(d, n){
+    //     d.design.painting = false;
+    //     d.node.set(d, n, {data:canvas.toDataURL()}); //canvas.toDataURL()
+    // },
     pin_move(d){ // make drag slice?
         //d.design.pin_matrix.copy(d.design.matrix).invert();
         d.pick.n.forEach(n => d.node.pin_pos(d, n, d.design.matrix)); //d.design.matrix
@@ -193,6 +202,27 @@ export const create_design_slice = (set,get)=>({design:{
         }
     }
 }});
+
+
+
+
+// img.onload = function() {
+//     cctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+//     const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
+//     grd.addColorStop(0, "red");
+//     grd.addColorStop(1, "rgba(255, 0, 0, 0)");
+//     cctx.fillStyle = grd;
+//     cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
+//     console.log('new image load!');
+//     rs(d=>{
+//         d.node.set(d, n, {data:canvas.toDataURL()});
+//         console.log('saved to data!');
+//     });
+// };
+// img.src = d.n[n].c.data;
+
+
+
 
 
 // o++;

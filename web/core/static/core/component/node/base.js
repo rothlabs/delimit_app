@@ -8,7 +8,9 @@ export function Pickable({n, drawable, paintable, children}){
         if(paintable && d.design.painting && d.design.mode == 'draw'){
             mf(d=>{
                 d.design.painting = false;
-                console.log('stopped painting!!!');
+                d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
+                //d.design.end_painting(d, n);
+                //console.log('stopped painting!!!');
             });
         }
     }

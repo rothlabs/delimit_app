@@ -5,24 +5,51 @@ import { rs } from '../../app.js';
 const v1 = new Vector3();
 
 export const image = {
-    props: 'width height image_code', // rename image_code to data_url #1
+    props: 'width height data', // rename data to data_url #1
     node(d, n, c, ax, a={}){ 
         try{
-            var img = new Image();
-            img.onload = function(){
-                var map = new CanvasTexture(img);
-                map.encoding = sRGBEncoding;
-                rs(d=>{
-                    d.n[n].c.map = map;
-                });
+            if(d.n[n].c.texture){
+                d.n[n].c.texture.needsUpdate = true;
+            }else{
+                var img = new Image();
+                img.onload = function(){
+                    rs(d=>{
+                        //if(!d.n[n].c.canvas){
+                            d.n[n].c.canvas = document.createElement("canvas");
+                            d.n[n].c.canvas.width = d.n[n].c.width;
+                            d.n[n].c.canvas.height = d.n[n].c.height;
+                            d.n[n].c.canvas.getContext("2d").drawImage(img, 0, 0, d.n[n].c.width, d.n[n].c.height);
+                            var texture = new CanvasTexture(d.n[n].c.canvas);
+                            texture.encoding = sRGBEncoding;
+                            d.n[n].c.texture = texture;
+                        //}
+                    });
+                }
+                img.src = c.data; //canvas.toDataURL();
             }
-            img.src = c.image_code; //canvas.toDataURL();
-            console.log('reckon image');
+            //console.log('reckon image');
         }catch(e){
             console.log('IMAGE ERROR', e);
         }
     },
 };
+
+
+// var img = new Image();
+// img.onload = function(){
+//     var map = new CanvasTexture(img);
+//     map.encoding = sRGBEncoding;
+//     rs(d=>{
+//         d.n[n].c.map = map;
+//         if(!d.n[n].c.canvas){
+//             d.n[n].c.canvas = document.createElement("canvas");
+//             d.n[n].c.canvas.width = d.n[n].c.width;
+//             d.n[n].c.canvas.height = d.n[n].c.height;
+//             d.n[n].c.canvas.getContext("2d").drawImage(img, 0, 0, d.n[n].c.width, d.n[n].c.height);
+//         }
+//     });
+// }
+// img.src = c.data; //canvas.toDataURL();
 
 
 // var image = new Image();

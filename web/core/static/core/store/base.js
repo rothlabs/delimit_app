@@ -53,7 +53,7 @@ const float_tags    = [model_tags['f'], // rename to number_tags
     'density', 'axis_count', 'axis_angle', 'layer_count', 'speed', 'flow', 'nozzle_diameter', 
 ];
 const string_tags = [model_tags['s'], // rename to text_tags
-    'name', 'story', 'code', 'image_code',
+    'name', 'story', 'code', 'data',
 ]; 
 const atom_tags   = Object.values(model_tags).slice(1);
 

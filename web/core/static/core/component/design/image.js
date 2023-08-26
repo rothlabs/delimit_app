@@ -14,10 +14,10 @@ export const Image = memo(({n})=>{
     //const color = useS(d=> d.n[n].pick.color); 
     const [geo] = useState(new PlaneGeometry(400, 400, 1, 1)); //new BufferGeometry()
     const [map] = useState(base_texture);
-    useSub(d=> d.n[n].c.map, map=>{ // set material map here
-        if(map){
+    useSub(d=> d.n[n].c.texture, texture=>{ // set material map here
+        if(texture){
             //console.log('new map in image component');
-            mesh.current.material.map = map;
+            mesh.current.material.map = texture;
         }
     });
     useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], c=>{ 

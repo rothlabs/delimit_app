@@ -22,7 +22,7 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'mixed_curve', 'surface', 'shape', 'layer', 'image',
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z', 
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
-    'width', 'height', 'image_code',
+    'width', 'height', 'data',
     'name', 'story',
     'coil', 'post',
     'fill',
