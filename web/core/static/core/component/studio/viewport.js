@@ -26,6 +26,7 @@ var used_camera = false;
 function Viewport_Control(){
     const camera_controls = useRef();
     const pick_box = useS(d=> d.pick.box);
+    const painting = useS(d=> d.design.painting);
     const studio_mode = useS(d=> d.studio.mode);
     const {camera} = useThree(); 
     // useFrame((state, delta)=>{
@@ -79,8 +80,8 @@ function Viewport_Control(){
             makeDefault: true,
             minDistance: 1000, 
             maxDistance: 1000, 
-            polarRotateSpeed: (pick_box || studio_mode=='graph' ? 0 : 1), 
-            azimuthRotateSpeed: (pick_box || studio_mode=='graph' ? 0 : 1), 
+            polarRotateSpeed: (painting || pick_box || studio_mode=='graph' ? 0 : 1), 
+            azimuthRotateSpeed: (painting || pick_box || studio_mode=='graph' ? 0 : 1), 
             draggingSmoothTime: 0.01,
             dollyToCursor: true,
         }), 

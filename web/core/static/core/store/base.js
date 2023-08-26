@@ -11,6 +11,7 @@ import {Surface} from '../component/design/surface.js';
 import {Sketch} from '../component/design/sketch.js';
 import {Transform} from '../component/design/transform.js';
 import {Layer} from '../component/design/layer.js';
+import {Image} from '../component/design/image.js';
 
 var next_funcs = [];
 var next_ids = [];
@@ -35,6 +36,7 @@ const component = {
     'sketch':      Sketch,
     'transform':   Transform,
     'layer':       Layer,
+    'image':       Image,
     'ellipse':     Curve,
     'coil':        Curve,
     'post':        Curve,

@@ -41,6 +41,7 @@ extend({Text});
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
 export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
+//export const canvas = document.getElementById('buffer_canvas');
 
 //export const base_font = static_url+'font/Inter-Medium.ttf';
 

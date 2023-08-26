@@ -1,5 +1,6 @@
 import {current} from 'immer';
 import { Vector3, Euler, Matrix4, CatmullRomCurve3 } from 'three';
+import { rs } from '../app.js';
 
 const v1 = new Vector3();
 const v2 = new Vector3();
@@ -8,6 +9,12 @@ const v3 = new Vector3();
 const tm = new Matrix4();
 //const tm1 = new Matrix4();
 //const tm2 = new Matrix4();
+
+const canvas = document.createElement("canvas");
+const cctx = canvas.getContext("2d");
+const img = new Image();
+
+const brush_radius = 50;
 
 export const create_design_slice = (set,get)=>({design:{ 
     //tags: ['curve', 'mixed_curve', 'sketch'],
@@ -18,6 +25,7 @@ export const create_design_slice = (set,get)=>({design:{
     matrix: new Matrix4(), // not following wrapper rule!!!
     //pin_matrix: new Matrix4(),
     moving: false,
+    painting: false,
     move_mode: '', 
     mover: {pos: new Vector3(), rot: new Euler(), active_axes:[true, true, false], show:false}, //, rot: new Vector3()
     ray_data(d,e){
@@ -26,9 +34,38 @@ export const create_design_slice = (set,get)=>({design:{
         if(v1.dot(v2) > 0) v2.negate(); 
         const p = e.intersections[0].point.add(v2.multiplyScalar(d.point_size / d.camera.zoom));
         return {
-            n: e.intersections[0].object.parent?.parent?.parent?.__r3f.memoizedProps.pickable,
+            n1: e.intersections[0].object.parent?.__r3f.memoizedProps.pickable,
+            n3: e.intersections[0].object.parent?.parent?.parent?.__r3f.memoizedProps.pickable,
             pos: v3.set(d.rnd(p.x), d.rnd(p.y), d.rnd(p.z)),
         }; 
+    },
+    paint(d, e){ // on image
+        const ray = d.design.ray_data(d,e);
+        const n = ray.n1;
+        if(!n) return;
+        
+        canvas.width = d.n[d.n[n].n.width[0]].v;//d.node.get(d, n, 'width')[0];
+        canvas.height = d.n[d.n[n].n.height[0]].v;
+        if(d.n[n].ax.invert) ray.pos.applyMatrix4(d.n[n].ax.invert);
+        if(d.n[n].c.invert) ray.pos.applyMatrix4(d.n[n].c.invert);
+        var x = Math.round(( ray.pos.x + 200) / 400 * canvas.width);
+        var y = Math.round((-ray.pos.y + 200) / 400 * canvas.height);
+
+        img.onload = function() {
+            cctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
+            grd.addColorStop(0, "red");
+            grd.addColorStop(1, "rgba(255, 0, 0, 0)");
+            cctx.fillStyle = grd;
+            cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
+            console.log('new image load!');
+            rs(d=>{
+                d.node.set(d, n, {image_code:canvas.toDataURL()});
+                console.log('saved to image_code!');
+            });
+        };
+        img.src = d.n[n].c.image_code;
+        console.log('paint!!!', d.n[n].t);
     },
     pin_move(d){ // make drag slice?
         //d.design.pin_matrix.copy(d.design.matrix).invert();
@@ -45,17 +82,17 @@ export const create_design_slice = (set,get)=>({design:{
     },
     make_point: (d, e)=>{
         const ray = d.design.ray_data(d,e);
-        if(!ray.n) return;
+        if(!ray.n3) return;
         var r = d.pick.get_if_one(d, ['curve']); //, {one_tag:true}
         if(!r){
-            r = d.make.part(d, 'curve', {r:ray.n}); // d.design.part
+            r = d.make.part(d, 'curve', {r:ray.n3}); // d.design.part
             d.pick.one(d, r);
             d.next('design.insert_point', r, ray.pos); // wait until next so matrix can cast to curve
         }else{
             d.design.insert_point(d, r, ray.pos);
         }        
     },
-    insert_point(d, r, pos){
+    insert_point(d, r, pos){ // in between points for a curve
         var o = undefined;
         if(d.n[r].n.point && d.n[r].n.point.length > 2){ // check for d.n[r].ax.curve ?!?!?!?!
             const test_pos = d.n[r].ax.curve.getPoints(200);//new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].ax.pos)).getPoints(200); //spaced points ?!?!?!?!   //d.n[r].c.pts.map(p=> p.pos)

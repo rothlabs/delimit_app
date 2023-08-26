@@ -1,8 +1,17 @@
 import {createElement as c} from 'react';
 import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
-import {useS, ss, gs} from '../../app.js';
+import {useS, ss, gs, fs, sf, mf} from '../../app.js';
 
-export function Pickable({n, drawable, children}){
+export function Pickable({n, drawable, paintable, children}){
+    function end_painting(e){
+        const d = gs();
+        if(paintable && d.design.painting && d.design.mode == 'draw'){
+            mf(d=>{
+                d.design.painting = false;
+                console.log('stopped painting!!!');
+            });
+        }
+    }
     return c('group', {
         name: 'pickable',
         pickable: n, // for accessing via three_object.__r3f.memoizedProps.pickable
@@ -23,14 +32,38 @@ export function Pickable({n, drawable, children}){
                 d.studio.gizmo_active = false;
             });
         },
-        onPointerOver:e=>{  e.stopPropagation();  ss(d=>{
+        onPointerOver(e){ e.stopPropagation();  ss(d=>{
             d.pick.hover(d, n, true);
-            if(d.design.mode == 'draw' && drawable) d.studio.cursor = 'pen_icon';
+            if(d.design.mode == 'draw' && (drawable || paintable)) d.studio.cursor = 'pen_icon';
         });}, // should be something different from recieve state but should not commit state here
-        onPointerOut:e=>  {e.stopPropagation(); ss(d=>{
+        onPointerOut(e){ e.stopPropagation(); ss(d=>{
             d.pick.hover(d,n, false);
-            if(drawable) d.studio.cursor = '';
+            if(drawable || paintable) d.studio.cursor = '';
         });},
+        onPointerDown(e){ e.stopPropagation(); 
+            if([0,1].includes(e.which) && paintable && gs().design.mode == 'draw'){
+                fs(d=>{
+                    d.design.painting = true;
+                    d.studio.gizmo_active = true;
+                    d.design.paint(d,e);
+                    //console.log('painting!!!');
+                });
+            }
+        },
+        onPointerMove(e){ e.stopPropagation(); 
+            if(paintable && gs().design.painting){
+                sf(d=>{
+                    d.design.paint(d,e);
+                    //console.log('painting!!!');
+                });
+            }
+        },
+        onPointerUp(e){ e.stopPropagation(); 
+            end_painting(e);
+        },
+        onPointerLeave(e){ e.stopPropagation(); 
+            end_painting(e);
+        },
         children:children,
     });
 }

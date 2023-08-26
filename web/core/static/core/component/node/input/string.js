@@ -3,7 +3,7 @@ import {Row, Col, Container, Form, InputGroup, Button} from 'react-bootstrap';
 import {useS, ss, gs, readable} from '../../../app.js';
 import {Buttons} from './buttons.js';
 
-const area_tags = ['story', 'code'];
+const area_tags = ['story', 'code', 'image_code'];
 
 export function String({t}){
     const content   = useS(d=> d.inspect.content[t]);
@@ -14,7 +14,7 @@ export function String({t}){
             c(InputGroup.Text, {}, readable(t)),
             c(Form.Control, {
                 as:area_tags.includes(t)?'textarea':'input', 
-                maxLength:64, 
+                ///////// maxLength:64, 
                 value:content, 
                 placeholder:placeholder, 
                 disabled:!asset, 

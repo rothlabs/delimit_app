@@ -25,7 +25,8 @@ const getCoords = (clientX, clientY) => [
 //}
 
 export const Pickbox = ({ style, onSelectionChanged }) => {
-  const moving = useS(d=> d.design.moving);
+  const moving = useS(d=> (d.design.moving || d.design.painting));
+  //const painting = useS(d=> d.design.painting);
   //const multi = useS(d=> d.pick.multi);
 
   const { camera, scene, gl } = useThree()
