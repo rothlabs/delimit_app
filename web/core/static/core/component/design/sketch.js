@@ -1,9 +1,8 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
 import {useS, useSubS, useSub, gs} from '../../app.js';
 import {Grid} from '@react-three/drei/Grid';
-import {Pickable} from '../node/base.js';
+import {Pickable, Root_Transform, View_Transform} from '../node/base.js';
 import {Vector3, DoubleSide} from 'three';
-import {Fix_Size} from '../base/base.js';
 import {useThree, useFrame} from '@react-three/fiber';
 
 const v1 = new Vector3();
@@ -12,7 +11,7 @@ const v2 = new Vector3();
 
 
 export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
-    const obj = useRef();
+    //const obj = useRef();
     //const plane = useRef();
     const {camera} = useThree(); // use state selector ?!?!?!?!?! (state)=> state.camera 
     //const [offset, set_offset] = useState(0);
@@ -39,13 +38,13 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
     //         else             set_offset(-point_size / camera.zoom);
     //     }
     // });
-    useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], c=>{ // this won't work because cast down matrix is not replaced on reckon ?!?!?!?!?!
-        obj.current.position.set( 0, 0, 0 );
-        obj.current.rotation.set(...rotation);
-        obj.current.scale.set( 1, 1, 1 );
-        if(c[0]) obj.current.applyMatrix4(c[0]);
-        if(c[1]) obj.current.applyMatrix4(c[1]);
-    });
+    // useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], c=>{ // this won't work because cast down matrix is not replaced on reckon ?!?!?!?!?!
+    //     obj.current.position.set( 0, 0, 0 );
+    //     obj.current.rotation.set(...rotation);
+    //     obj.current.scale.set( 1, 1, 1 );
+    //     if(c[0]) obj.current.applyMatrix4(c[0]);
+    //     if(c[1]) obj.current.applyMatrix4(c[1]);
+    // });
     //const d = gs();
     const text_material = {color: color[0], toneMapped:false,};
     const text_args = {
@@ -58,13 +57,14 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
     };
     //console.log('render surface');
     return(
-        c('group', {
-            ref:obj,
-            rotation: rotation,
-        },
+        // c('group', {
+        //     ref:obj,
+        //     rotation: rotation,
+        // },
+        c(Root_Transform, {n:n, rotation:rotation},
             c(Pickable, {n:n, drawable:true}, // points && points.length>1 && 
                 c('group', {name: 'sketch'}, 
-                    c(Fix_Size, {offset_z:point_size},
+                    c(View_Transform, {offset_z:point_size},
                         c('mesh',{
                             //position: [0,0,offset],
                             visible:false,
@@ -79,7 +79,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
                             }),
                         ),
                     ),
-                    c(Fix_Size, {
+                    c(View_Transform, {
                         size: 30, 
                         position: [200, 0, 0],
                     },
@@ -90,7 +90,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
                             c('meshBasicMaterial', text_material), // causing unsupported texture colorspace: undefined
                         ),
                     ),
-                    c(Fix_Size, {
+                    c(View_Transform, {
                         size: 30, 
                         position: [0, 200, 0],
                     },
@@ -104,13 +104,13 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
                 )
             ),
             //c(Offset_Z, {dist:point_size}
-            c(Fix_Size, {size:point_size, offset_z:point_size},//, position: [0,0,offset]}, 
+            c(View_Transform, {size:point_size, offset_z:point_size},//, position: [0,0,offset]}, 
                 c('mesh', {raycast:()=>null,},
                     c('sphereGeometry'),
                     c('meshBasicMaterial', {color:'yellow', toneMapped:false, opacity:.75, transparent:true}),
                 )
             ),
-            c(Fix_Size, {offset_z:point_size},
+            c(View_Transform, {offset_z:point_size},
                 c(Grid, {
                     args: [400,400],
                     //position: [0,0,offset],

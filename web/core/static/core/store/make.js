@@ -1,4 +1,4 @@
-import {make_id, random_vector, theme} from '../app.js';
+import {make_id, theme} from '../app.js';
 import {Vector3, Matrix4} from 'three';
 import {current} from 'immer';
 

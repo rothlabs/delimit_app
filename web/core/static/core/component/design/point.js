@@ -3,7 +3,7 @@ import {gs, useS, useSub, ss} from '../../app.js';
 import {Pickable} from '../node/base.js';
 //import {SphereGeometry, CircleGeometry, DoubleSide} from 'three';
 //import {useThree} from '@react-three/fiber';
-import {Fix_Size} from '../base/base.js';
+import {View_Transform} from '../node/base.js';
 
 export const Point = memo(({n})=>{//export function Point({n}){ 
     const obj = useRef();
@@ -15,7 +15,7 @@ export const Point = memo(({n})=>{//export function Point({n}){
     });
     //console.log('render point', n, deleted);
     return(
-        c(Fix_Size, { // renamed to Fix_Size or Static_Size
+        c(View_Transform, { // renamed to View_Transform or Static_Size
             ref: obj,
             name:'point',
             size: pick ? size*1.2 : size, 

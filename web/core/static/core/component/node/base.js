@@ -1,14 +1,20 @@
-import {createElement as c} from 'react';
+import {createElement as c, useRef, forwardRef, useState} from 'react';
 import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
-import {useS, ss, gs, fs, sf, mf} from '../../app.js';
+import {useS, useSubS, ss, gs, fs, sf, mf} from '../../app.js';
+//import {createElement as c, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
+import {useFrame, useThree} from '@react-three/fiber';
+import {Vector3} from 'three';
+
+const v1 = new Vector3();
+const v2 = new Vector3();
 
 export function Pickable({n, drawable, paintable, children}){
     function pointer_up_or_leave(e){ e.stopPropagation(); 
-        mf(d=>{
-            if(paintable && d.design.painting && d.design.mode == 'draw'){
+        if(paintable && gs().design.painting && gs().design.mode == 'draw'){
+            mf(d=>{
                 d.design.end_paint(d, n);
-            }
-        });
+            });
+        }
     }
     return c('group', {
         name: 'pickable',
@@ -47,11 +53,11 @@ export function Pickable({n, drawable, paintable, children}){
             }
         },
         onPointerMove(e){ e.stopPropagation(); 
-            sf(d=>{
-                if(paintable && d.design.painting){
+            if(paintable && gs().design.painting){
+                sf(d=>{
                     d.design.paint(d, n, e);
-                }
-            });
+                });
+            }
         },
         onPointerUp(e){ 
             pointer_up_or_leave(e);
@@ -63,6 +69,45 @@ export function Pickable({n, drawable, paintable, children}){
     });
 }
 
+export function Root_Transform({n, rotation, children}){
+    const obj = useRef();
+    useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], ([c_mat, ax_mat])=>{ 
+        obj.current.position.set( 0, 0, 0 );
+        if(rotation) obj.current.rotation.set(...rotation)
+        else obj.current.rotation.set( 0, 0, 0 );
+        obj.current.scale.set( 1, 1, 1 );
+        if(c_mat) obj.current.applyMatrix4(c_mat);
+        if(ax_mat) obj.current.applyMatrix4(ax_mat);
+    });
+    return(
+        c('group', {
+            ref: obj,
+            children:children,
+        })
+    )
+}
+
+export const View_Transform = forwardRef((props, ref)=>{ 
+    var obj = null;
+    //const {camera} = useThree();
+    useFrame((state) => { // use d.cam_info here? #1
+        if(props.size){
+            var factor = props.size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!
+            obj.scale.set(factor,factor,factor);
+        }
+        if(props.offset_z){
+            state.camera.getWorldDirection(v1);
+            obj.getWorldDirection(v2);
+            if(v1.dot(v2)>0) obj.position.set(0, 0, props.offset_z / state.camera.zoom);
+            else             obj.position.set(0, 0, -props.offset_z / state.camera.zoom);
+        }
+    });
+    return (c('group', {...props, ref:r=>{
+        obj = r; 
+        if(ref) ref.current = r; 
+    }}))
+});
+
 export function Badge({n}){ // more than one reason to change but okay because it's so simple?
     const name = useS(d=> d.n[n].c.name);
     const color = useS(d=> d.n[n].pick.color);
@@ -73,6 +118,20 @@ export function Badge({n}){ // more than one reason to change but okay because i
         c(Boot_Badge, {className:d.node.meta[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node.meta[t].tag+')')
     )
 }
+
+export const Spinner = forwardRef((props, ref)=>{
+    var obj = null;
+    const [dir, set_dir] = useState(new Vector3().random());//random_vector({min:0.5, max:0.5}));
+    useFrame((state, delta) => {
+        obj.rotateX(delta * dir.x);
+        obj.rotateY(delta * dir.y);
+        obj.rotateZ(delta * dir.z);
+    });
+    return (c('group', {...props, ref:r=>{
+        obj = r; 
+        if(ref) ref.current = r; 
+    }}))
+});
 
 
 // if(d.studio.mode=='design' && d.design.mode == 'erase'){

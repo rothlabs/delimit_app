@@ -142,7 +142,7 @@ export const Curve = memo(({n})=>{
                 //     //segments: true, 
                 // }),
 
-// c(Fix_Size, { // renamed to Fix_Size or Static_Size
+// c(View_Transform, { // renamed to View_Transform or Static_Size
                     //     size: 7, // 1.5 : 1, adjust size of other items
                     //     props:{position: [p.pos.x, p.pos.y, p.pos.z+100],}
                     // },

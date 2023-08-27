@@ -4,7 +4,7 @@ import {useS, useSS, useSub, gs, theme} from '../../app.js';
 //import {Plane} from '@react-three/drei/Plane';
 import {Pickable} from '../node/base.js';
 import {ShapeGeometry, MathUtils, PlaneGeometry, Vector3, DoubleSide, FrontSide, BackSide, CircleGeometry} from 'three';
-import {Fix_Size} from '../base/base.js';
+import {View_Transform} from '../node/base.js';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 import {BufferGeometry} from 'three';
 import * as THREE from 'three';
@@ -54,7 +54,7 @@ export const Surface = memo(({n})=>{
             //         c('group', {},
             //             ...p.map(p=>
             //                 c('group', {name: 'control_points', position: [p.x, p.y, p.z]}, 
-            //                 c(Fix_Size, {size:4}, // , props:{position: [p.x, p.y, p.z]}
+            //                 c(View_Transform, {size:4}, // , props:{position: [p.x, p.y, p.z]}
             //                     c('mesh', {},
             //                         c('sphereGeometry'),
             //                         c('meshBasicMaterial', {color:'yellow', toneMapped:false}),
@@ -270,7 +270,7 @@ export const Surface = memo(({n})=>{
                 //     //segments: true, 
                 // }),
 
-// c(Fix_Size, { // renamed to Fix_Size or Static_Size
+// c(View_Transform, { // renamed to View_Transform or Static_Size
                     //     size: 7, // 1.5 : 1, adjust size of other items
                     //     props:{position: [p.pos.x, p.pos.y, p.pos.z+100],}
                     // },

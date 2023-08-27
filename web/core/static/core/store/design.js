@@ -1,6 +1,6 @@
 import {current} from 'immer';
 import { Vector3, Euler, Matrix4, CatmullRomCurve3 } from 'three';
-import { rs } from '../app.js';
+import { rs, theme } from '../app.js';
 
 const v1 = new Vector3();
 const v2 = new Vector3();
@@ -41,7 +41,7 @@ export const create_design_slice = (set,get)=>({design:{
     },
     paint(d, n, e){ // on image
         d.design.painting = true;
-        d.studio.gizmo_active = true;
+        d.studio.gizmo_active = true; // this might not be needed? #1
         const ray = d.design.ray_data(d,e);
         //const n = ray.n1;
         //if(!n) return;
@@ -54,8 +54,8 @@ export const create_design_slice = (set,get)=>({design:{
         var x = Math.round(( ray.pos.x + 200) / 400 * width);
         var y = Math.round((-ray.pos.y + 200) / 400 * height);
         const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
-        grd.addColorStop(0, "red");
-        grd.addColorStop(1, "rgba(255, 0, 0, 0)");
+        grd.addColorStop(0, '#20c9b2');
+        grd.addColorStop(1, 'rgba(32, 201, 178, 0)');//"rgba(32, 201, 178, 0)");
         cctx.fillStyle = grd;
         cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
         d.node.set(d, n, {data:'live'}); //canvas.toDataURL()
@@ -65,7 +65,13 @@ export const create_design_slice = (set,get)=>({design:{
         d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
     },
     fill(d, n){
-        console.log('fill!!!');
+        var canvas = d.n[n].c.canvas;
+        var cctx = canvas.getContext("2d");
+        var width = d.n[d.n[n].n.width[0]].v;
+        var height = d.n[d.n[n].n.height[0]].v;
+        cctx.fillStyle = '#d63384';
+        cctx.fillRect(0, 0, width, height);
+        d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
     },
     pin_move(d){ // make drag slice?
         //d.design.pin_matrix.copy(d.design.matrix).invert();
@@ -180,7 +186,7 @@ export const create_design_slice = (set,get)=>({design:{
             d.design.matrix.identity();
         }
     },
-    show(d){
+    show(d){ // load root transforms that are above!! #1
         //console.log('show');
         //console.trace();
         if(d.design.part){

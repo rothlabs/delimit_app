@@ -5,7 +5,7 @@ import {useS, gs, useSubS, theme, static_url, readable} from '../../app.js';
 //import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 import {Line} from '@react-three/drei/Line';
-import {Fix_Size} from '../base/base.js';
+import {View_Transform} from '../node/base.js';
 
 const tv = new Vector3();
 const z_pos = -1;
@@ -67,7 +67,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
             //     }), 
             //     c('meshLineMaterial', {ref:meshline_material, color:active||hover? theme.primary_s : theme.secondary_s}),
             // ),
-            d.n[r].t!=t && d.n[n].t!=t && c(Fix_Size, {
+            d.n[r].t!=t && d.n[n].t!=t && c(View_Transform, {
                 ref: text,
                 size: active ? 1.25 : 1,
             },
@@ -83,7 +83,7 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
                     c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),
             ),
-            // c(Fix_Size, {
+            // c(View_Transform, {
             //     ref: arrow,
             //     size: active ? 1.5 : 1,
             // },

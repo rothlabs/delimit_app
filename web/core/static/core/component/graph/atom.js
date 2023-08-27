@@ -4,7 +4,7 @@ import {useS, useSub, gs, static_url, readable} from '../../app.js';
 import {Edges} from '@react-three/drei/Edges';
 import * as THREE from 'three';
 import { Pickable } from '../node/base.js';
-import {Spinner, Fix_Size} from '../base/base.js';
+import {Spinner, View_Transform} from '../node/base.js';
 
 const circle_geometry = new THREE.CircleGeometry(1.8,16); // do this for the other geometries as well for reuse
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
@@ -31,7 +31,7 @@ export const Atom = memo(function Atom({n}){
     //console.log('render atom');
     return(
         c('group', {name: 'atom'}, 
-            c(Fix_Size, {
+            c(View_Transform, {
                 ref: obj,
                 size: pick ? 25 : 20,
             },

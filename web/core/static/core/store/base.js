@@ -1,7 +1,7 @@
 import {current} from 'immer';
 import {Vector3, Matrix4} from 'three';
 import * as THREE from 'three';
-import {random_vector, static_url, theme} from '../app.js';
+import {static_url, theme} from '../app.js';
 import lodash from 'lodash';
 //import { Group } from '../component/part/group.js';
 import {Point} from '../component/design/point.js';
@@ -87,7 +87,7 @@ export const create_base_slice = (set,get)=>({
     ].map(t=>[t,true])),
     component:component,
     component_tags:Object.keys(component),
-    node_css: {
+    node_css:{
         'public':         'bi-globe-americas',
         'profile':        'bi-person',
         'switch':         'bi-bezier2', // bi-123 // delete switch
@@ -125,8 +125,8 @@ export const create_base_slice = (set,get)=>({
     base_texture: base_texture,
     rapid_res: 0.5,
 
-    n: {},
-    t: {},
+    n:    {}, // all nodes stored here by ID 
+    t:    {},
     t_id: {},
     cats: {},
     user: 0,

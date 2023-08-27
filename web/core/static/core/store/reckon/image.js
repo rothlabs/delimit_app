@@ -8,24 +8,22 @@ export const image = {
     props: 'width height data', // rename data to data_url #1
     node(d, n, c, ax, a={}){ 
         try{
-            if(d.n[n].c.texture){
-                d.n[n].c.texture.needsUpdate = true;
+            if(c.texture && c.canvas.width == c.width && c.canvas.height == c.height){
+                c.texture.needsUpdate = true;
             }else{
                 var img = new Image();
                 img.onload = function(){
                     rs(d=>{
-                        //if(!d.n[n].c.canvas){
-                            d.n[n].c.canvas = document.createElement("canvas");
-                            d.n[n].c.canvas.width = d.n[n].c.width;
-                            d.n[n].c.canvas.height = d.n[n].c.height;
-                            d.n[n].c.canvas.getContext("2d").drawImage(img, 0, 0, d.n[n].c.width, d.n[n].c.height);
-                            var texture = new CanvasTexture(d.n[n].c.canvas);
-                            texture.encoding = sRGBEncoding;
-                            d.n[n].c.texture = texture;
-                        //}
+                        d.n[n].c.canvas = document.createElement("canvas");
+                        d.n[n].c.canvas.width = d.n[n].c.width;
+                        d.n[n].c.canvas.height = d.n[n].c.height;
+                        d.n[n].c.canvas.getContext("2d").drawImage(img, 0, 0, d.n[n].c.width, d.n[n].c.height);
+                        var texture = new CanvasTexture(d.n[n].c.canvas);
+                        texture.encoding = sRGBEncoding;
+                        d.n[n].c.texture = texture;
                     });
                 }
-                img.src = c.data; //canvas.toDataURL();
+                img.src = c.data; 
             }
             //console.log('reckon image');
         }catch(e){

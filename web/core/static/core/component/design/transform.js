@@ -1,5 +1,5 @@
 import {createElement as c, useRef, memo, useEffect} from 'react';
-import {gs, useS, useSub, ss, fs, rs} from '../../app.js';
+import {gs, useS, useSub, useSubS, ss, fs, rs} from '../../app.js';
 import {Pickable} from '../node/base.js';
 import {Matrix4, Vector3} from 'three';
 
@@ -8,9 +8,9 @@ import {Matrix4, Vector3} from 'three';
 // const up = new Vector3(0,1,0);
 const m1 = new Matrix4();
 
-export const Transform = memo(({n})=>{//export function Point({n}){ 
+export const Transform = memo(({n})=>{ 
     const face_camera = useS(d=> d.n[n].c.face_camera); 
-    useSub(d=> d.cam_info, cam_info=>{
+    useSub(d=> d.cam_info, cam_info=>{//[d.cam_info, d.studio.mode], ([cam_info, studio_mode])=>{ // also check studio mode ?!?! #1
         if(face_camera){
             rs(d=>{ // reckons causing a bunch of rerenders?!
                 if(d.n[n].ax.base_matrix){
@@ -22,7 +22,7 @@ export const Transform = memo(({n})=>{//export function Point({n}){
             });
         }
     });
-    //console.log('render point', n, deleted);
+    console.log('render transform');
     return(
         null
     )

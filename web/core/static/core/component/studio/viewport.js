@@ -5,7 +5,7 @@ import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
 import {Design} from '../design/design.js';
 import {Mover} from './mover.js';
-import {useS, ss, theme, gs, rs} from '../../app.js';
+import {useS, ss, useSub, theme, gs, rs} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';
 import {Pickbox} from './pickbox.js'; // selection box
 import {Vector3} from 'three';
@@ -39,7 +39,17 @@ function Viewport_Control(){
     //         }
     //     }
     // });
-    useEffect(()=>ss(d=>{
+
+    // useSub(d=> d.studio.mode, studio_mode=>{
+    //     rs(d=>{
+    //         //if(d.cam_info.dir.dot(camera.getWorldDirection(v1)) < 1){
+    //             console.log('set camera info!!!');
+    //             d.cam_info = {matrix: camera.matrix, dir:camera.getWorldDirection(v1).clone()};
+    //         //}
+    //     });
+    // });
+
+    useEffect(()=>rs(d=>{//ss(d=>{ // this was ss instead of rs #1
         d.camera_controls = camera_controls.current;
         d.camera = camera;
         // d.camera_controls.addEventListener('update', (e)=>ss(d=>{
@@ -63,6 +73,8 @@ function Viewport_Control(){
                     polar: d.camera_controls.polarAngle,
                     pos: d.camera_controls.getTarget(),
                     zoom: camera.zoom,
+                    matrix: camera.matrix.clone(),
+                    dir: camera.getWorldDirection(v1).clone(),
                 };
             }else if(d.studio.mode=='design'){
                 d.n[d.design.part].c_c = {
@@ -70,6 +82,8 @@ function Viewport_Control(){
                     polar: d.camera_controls.polarAngle,
                     pos: d.camera_controls.getTarget(),
                     zoom: camera.zoom,
+                    matrix: camera.matrix.clone(),
+                    dir: camera.getWorldDirection(v1).clone(),
                 };
             }
         }));
@@ -120,22 +134,30 @@ export function Viewport(){ // for some reason this renders 5 times on load
     const studio_mode = useS(d=> d.studio.mode);
 
     useEffect(()=>{
-        const d = gs();
-        if(d.camera_controls){
-            var cc = null;
-            if(studio_mode=='graph'){ cc = d.graph.c_c }
-            else if(studio_mode=='design'){ cc = d.n[d.design.part].c_c }
-            if(cc){
-                d.camera_controls.rotateTo(cc.azimuth, cc.polar);
-                d.camera_controls.moveTo(cc.pos.x, cc.pos.y, cc.pos.z);
-                d.camera_controls.zoomTo(cc.zoom);
-            }else{
-                d.camera_controls.rotateTo(0,Math.PI/2);
-                d.camera_controls.moveTo(0,0,0);
-                d.camera_controls.zoomTo(1);
+        //const d = gs();
+        rs(d=>{
+            if(d.camera_controls){
+                var cc = null;
+                if(studio_mode=='graph'){ cc = d.graph.c_c }
+                else if(studio_mode=='design'){ cc = d.n[d.design.part].c_c }
+                if(cc){
+                    d.camera_controls.rotateTo(cc.azimuth, cc.polar);
+                    d.camera_controls.moveTo(cc.pos.x, cc.pos.y, cc.pos.z);
+                    d.camera_controls.zoomTo(cc.zoom);
+                    d.cam_info = {matrix: cc.matrix, dir:cc.dir};
+                }else{
+                    d.camera_controls.rotateTo(0,Math.PI/2);
+                    d.camera_controls.moveTo(0,0,0);
+                    d.camera_controls.zoomTo(1);
+                }
+                d.camera_controls.dollyTo(1000);
+
+                //rs(d=>{
+                    
+                //});
+
             }
-            d.camera_controls.dollyTo(1000);
-        }
+        });
     },[studio_mode]);
 
     useEffect(()=>{

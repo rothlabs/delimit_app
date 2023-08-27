@@ -239,13 +239,14 @@ export const fs = func=>{                 // this might be the secret sauce to a
 }; // fork state
 export const sf = func=>{
     //console.log('set fork');
-    if(fork) next_state(fork, func);
+    //if(fork != null) next_state(fork, func);
+    next_state(fork, func);
 }; // set fork
 export const mf = func=>{ // watch out for no-change resulting in undefined d!?!?!
-    if(fork){
+    //if(fork != null){
         commit_state(next_state(fork, func));
         fork = null;
-    }
+    //}
 }; // merge fork
 
 
@@ -310,14 +311,14 @@ export function use_window_size() {
     return {width:size[0], height:size[1]};
 }
 
-export const random=(min, max)=> Math.random() * (max - min) + min;
-export function random_vector({min, max, x, y, z}){ // just use vector3.randomDirection !!!!!!!!!
-    const vect = new THREE.Vector3(random(-1,1),random(-1,1),random(-1,1)).normalize().multiplyScalar(random(min,max));
-    x!=undefined && vect.setX(x);
-    y!=undefined && vect.setY(y);
-    z!=undefined && vect.setZ(z);
-    return vect;
-}
+//export const random=(min, max)=> Math.random() * (max - min) + min;
+// export function random_vector({min, max, x, y, z}){ // just use vector3.randomDirection !!!!!!!!!
+//     const vect = new THREE.Vector3(random(-1,1),random(-1,1),random(-1,1)).normalize().multiplyScalar(random(min,max));
+//     x!=undefined && vect.setX(x);
+//     y!=undefined && vect.setY(y);
+//     z!=undefined && vect.setZ(z);
+//     return vect;
+// }
 
 
 

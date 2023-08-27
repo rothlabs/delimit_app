@@ -1,6 +1,6 @@
 import {createElement as c, useRef, useEffect, useState} from 'react';
 import {useS, useSS, gs, ss} from '../../app.js';
-import {Fix_Size} from '../base/base.js';
+import {View_Transform} from '../node/base.js';
 import {GizmoHelper} from '@react-three/drei/GizmoHelper';
 import {GizmoViewport} from '../../three/GizmoViewport.js';
 import {Mover} from '../studio/mover.js';
@@ -24,7 +24,7 @@ export function Design(){
                 d.n[n].design.vis && c(d.component[d.n[n].t], {n:n, key:n}) // d.node.be(d,n) && 
             ),
             c(Mover),
-            c(Fix_Size, {
+            c(View_Transform, {
                 name:'center_point',
                 size:6,
             },

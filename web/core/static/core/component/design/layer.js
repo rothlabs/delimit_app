@@ -2,7 +2,7 @@ import {createElement as c, useRef, memo, useState, useEffect} from 'react';
 import {useS, useSS, useSub, gs} from '../../app.js';
 import {Pickable} from '../node/base.js';
 import {DoubleSide, BufferGeometry} from 'three';
-import {Fix_Size} from '../base/base.js';
+import {View_Transform} from '../node/base.js';
 
 const res = 100;
 
@@ -23,7 +23,7 @@ export const Layer = memo(({n})=>{
         c('group', {},
             // ray_pts && c('group', {},
             //     ...ray_pts.map(p=>
-            //         c(Fix_Size, {size:4, position: [p.pos.x, p.pos.y, p.pos.z]}, // , props:{position: [p.x, p.y, p.z]}
+            //         c(View_Transform, {size:4, position: [p.pos.x, p.pos.y, p.pos.z]}, // , props:{position: [p.x, p.y, p.z]}
             //             c('mesh', {},
             //                 c('sphereGeometry'),
             //                 c('meshBasicMaterial', {color: p.hit ? 'yellow' : 'grey', toneMapped:false}),

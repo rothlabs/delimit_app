@@ -6,7 +6,7 @@ import {useS, gs, useSub, readable} from '../../app.js';
 import * as THREE from 'three';
 import { Pickable } from '../node/base.js';
 import {Svg} from '@react-three/drei/Svg';
-import {Fix_Size} from '../base/base.js';
+import {View_Transform} from '../node/base.js';
 
 export const circle_size = 1.25;
 const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
@@ -35,7 +35,7 @@ export const Part = memo(function Part({n}){
     const material = {color: color[0], toneMapped:false};
     return(
         r('group', {name: 'part'}, 
-            r(Fix_Size, {
+            r(View_Transform, {
                 ref: obj,
                 size: pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             },
