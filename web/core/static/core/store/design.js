@@ -34,48 +34,39 @@ export const create_design_slice = (set,get)=>({design:{
         if(v1.dot(v2) > 0) v2.negate(); 
         const p = e.intersections[0].point.add(v2.multiplyScalar(d.point_size / d.camera.zoom));
         return {
-            n1: e.intersections[0].object.parent?.__r3f.memoizedProps.pickable,
-            n3: e.intersections[0].object.parent?.parent?.parent?.__r3f.memoizedProps.pickable,
+            //n1: e.intersections[0].object.parent?.__r3f.memoizedProps.pickable,
+            //n3: e.intersections[0].object.parent?.parent?.parent?.__r3f.memoizedProps.pickable,
             pos: v3.set(d.rnd(p.x), d.rnd(p.y), d.rnd(p.z)),
         }; 
     },
-    paint(d, e){ // on image
+    paint(d, n, e){ // on image
+        d.design.painting = true;
+        d.studio.gizmo_active = true;
         const ray = d.design.ray_data(d,e);
-        const n = ray.n1;
-        if(!n) return;
-        
+        //const n = ray.n1;
+        //if(!n) return;
         var canvas = d.n[n].c.canvas;
         var cctx = canvas.getContext("2d");
         var width = d.n[d.n[n].n.width[0]].v;//canvas.width = d.n[d.n[n].n.width[0]].v; //d.node.get(d, n, 'width')[0];
         var height = d.n[d.n[n].n.height[0]].v;//canvas.height = d.n[d.n[n].n.height[0]].v;
-
         if(d.n[n].ax.invert) ray.pos.applyMatrix4(d.n[n].ax.invert);
         if(d.n[n].c.invert) ray.pos.applyMatrix4(d.n[n].c.invert);
         var x = Math.round(( ray.pos.x + 200) / 400 * width);
         var y = Math.round((-ray.pos.y + 200) / 400 * height);
-
-
-        //img.onload = function() {
-            //cctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
-            grd.addColorStop(0, "red");
-            grd.addColorStop(1, "rgba(255, 0, 0, 0)");
-            cctx.fillStyle = grd;
-            cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
-            d.node.set(d, n, {data:'live'}); //canvas.toDataURL()
-            //console.log('new image load!');
-            //rs(d=>{
-                
-                //console.log('saved to data!');
-            //});
-        //};
-        //img.src = d.n[n].c.data;
-        //console.log('paint!!!', d.n[n].t);
+        const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
+        grd.addColorStop(0, "red");
+        grd.addColorStop(1, "rgba(255, 0, 0, 0)");
+        cctx.fillStyle = grd;
+        cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
+        d.node.set(d, n, {data:'live'}); //canvas.toDataURL()
     },
-    // end_paint(d, n){
-    //     d.design.painting = false;
-    //     d.node.set(d, n, {data:canvas.toDataURL()}); //canvas.toDataURL()
-    // },
+    end_paint(d, n){
+        d.design.painting = false;
+        d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
+    },
+    fill(d, n){
+        console.log('fill!!!');
+    },
     pin_move(d){ // make drag slice?
         //d.design.pin_matrix.copy(d.design.matrix).invert();
         d.pick.n.forEach(n => d.node.pin_pos(d, n, d.design.matrix)); //d.design.matrix
@@ -89,12 +80,12 @@ export const create_design_slice = (set,get)=>({design:{
             }
         });
     },
-    make_point: (d, e)=>{
+    make_point:(d, n, e)=>{
         const ray = d.design.ray_data(d,e);
-        if(!ray.n3) return;
+        //if(!ray.n3) return;
         var r = d.pick.get_if_one(d, ['curve']); //, {one_tag:true}
         if(!r){
-            r = d.make.part(d, 'curve', {r:ray.n3}); // d.design.part
+            r = d.make.part(d, 'curve', {r:n});//{r:ray.n3}); // d.design.part
             d.pick.one(d, r);
             d.next('design.insert_point', r, ray.pos); // wait until next so matrix can cast to curve
         }else{
@@ -203,6 +194,42 @@ export const create_design_slice = (set,get)=>({design:{
     }
 }});
 
+
+
+
+// paint(d, e){ // on image
+//     const ray = d.design.ray_data(d,e);
+//     const n = ray.n1;
+//     if(!n) return;
+    
+//     var canvas = d.n[n].c.canvas;
+//     var cctx = canvas.getContext("2d");
+//     var width = d.n[d.n[n].n.width[0]].v;//canvas.width = d.n[d.n[n].n.width[0]].v; //d.node.get(d, n, 'width')[0];
+//     var height = d.n[d.n[n].n.height[0]].v;//canvas.height = d.n[d.n[n].n.height[0]].v;
+
+//     if(d.n[n].ax.invert) ray.pos.applyMatrix4(d.n[n].ax.invert);
+//     if(d.n[n].c.invert) ray.pos.applyMatrix4(d.n[n].c.invert);
+//     var x = Math.round(( ray.pos.x + 200) / 400 * width);
+//     var y = Math.round((-ray.pos.y + 200) / 400 * height);
+
+
+//     //img.onload = function() {
+//         //cctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+//         const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
+//         grd.addColorStop(0, "red");
+//         grd.addColorStop(1, "rgba(255, 0, 0, 0)");
+//         cctx.fillStyle = grd;
+//         cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
+//         d.node.set(d, n, {data:'live'}); //canvas.toDataURL()
+//         //console.log('new image load!');
+//         //rs(d=>{
+            
+//             //console.log('saved to data!');
+//         //});
+//     //};
+//     //img.src = d.n[n].c.data;
+//     //console.log('paint!!!', d.n[n].t);
+// },
 
 
 

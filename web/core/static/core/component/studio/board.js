@@ -30,8 +30,8 @@ export function Board(){
     //const [dragging, set_dragging] = useState();
     //const board = useRef();
     //const draw_line = useRef();
-    const studio_mode = useS(d=> d.studio.mode);
-    const design_mode = useS(d=> d.design.mode);
+    ////const studio_mode = useS(d=> d.studio.mode);
+    ////const design_mode = useS(d=> d.design.mode);
     //const pointers = useS(d=> d.board.pointers);
     //const selection = useReactiveVar(selection_rv);
     ////////useFrame(()=>raycaster.params.Points.threshold = 10/camera.zoom); < ----- needed for point clicking!

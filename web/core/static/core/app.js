@@ -235,15 +235,17 @@ export const ss = func=> {
 }// rename to commit state?
 export const fs = func=>{                 // this might be the secret sauce to async functions! #1
     //console.log('fork state');
-    fork=next_state(gs(), func).state;
+    fork = next_state(gs(), func).state;
 }; // fork state
 export const sf = func=>{
     //console.log('set fork');
-    next_state(fork, func);
+    if(fork) next_state(fork, func);
 }; // set fork
 export const mf = func=>{ // watch out for no-change resulting in undefined d!?!?!
-    commit_state(next_state(fork, func));
-    fork = null;
+    if(fork){
+        commit_state(next_state(fork, func));
+        fork = null;
+    }
 }; // merge fork
 
 

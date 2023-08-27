@@ -3,26 +3,23 @@ import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
 import {useS, ss, gs, fs, sf, mf} from '../../app.js';
 
 export function Pickable({n, drawable, paintable, children}){
-    function end_painting(e){
-        const d = gs();
-        if(paintable && d.design.painting && d.design.mode == 'draw'){
-            mf(d=>{
-                d.design.painting = false;
-                d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
-                //d.design.end_painting(d, n);
-                //console.log('stopped painting!!!');
-            });
-        }
+    function pointer_up_or_leave(e){ e.stopPropagation(); 
+        mf(d=>{
+            if(paintable && d.design.painting && d.design.mode == 'draw'){
+                d.design.end_paint(d, n);
+            }
+        });
     }
     return c('group', {
         name: 'pickable',
         pickable: n, // for accessing via three_object.__r3f.memoizedProps.pickable
-        onClick(e){ // onClick //onPointerDown
-            e.stopPropagation();//e.stopPropagation?.call(); 
+        onClick(e){ e.stopPropagation();//e.stopPropagation?.call(); 
             ss(d=>{
                 if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
                     if(drawable && d.design.mode == 'draw'){
-                        d.design.make_point(d, e);
+                        d.design.make_point(d, n, e);
+                    }else if(paintable && d.design.mode == 'fill'){
+                        d.design.fill(d, n);
                     }else if(d.studio.mode=='design' && d.design.mode == 'erase'){
                         d.delete.node(d, n, {deep:true});
                     }else{
@@ -45,26 +42,22 @@ export function Pickable({n, drawable, paintable, children}){
         onPointerDown(e){ e.stopPropagation(); 
             if([0,1].includes(e.which) && paintable && gs().design.mode == 'draw'){
                 fs(d=>{
-                    d.design.painting = true;
-                    d.studio.gizmo_active = true;
-                    d.design.paint(d,e);
-                    //console.log('painting!!!');
+                    d.design.paint(d, n, e);
                 });
             }
         },
         onPointerMove(e){ e.stopPropagation(); 
-            if(paintable && gs().design.painting){
-                sf(d=>{
-                    d.design.paint(d,e);
-                    //console.log('painting!!!');
-                });
-            }
+            sf(d=>{
+                if(paintable && d.design.painting){
+                    d.design.paint(d, n, e);
+                }
+            });
         },
-        onPointerUp(e){ e.stopPropagation(); 
-            end_painting(e);
+        onPointerUp(e){ 
+            pointer_up_or_leave(e);
         },
-        onPointerLeave(e){ e.stopPropagation(); 
-            end_painting(e);
+        onPointerLeave(e){ 
+            pointer_up_or_leave(e);
         },
         children:children,
     });
