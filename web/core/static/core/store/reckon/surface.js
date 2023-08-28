@@ -167,15 +167,22 @@ export const surface = {
             //if(displacement_map){
             //    c.surface = d.geo.surface(d, pts, {displacement_map:displacement_map[0]});
             //}else{
-                c.surface = d.geo.surface(d, pts);
+                //c.surface = d.geo.surface(d, pts);
             //}
             c.pts = pts;
-
-            if(d.n[n].n.image != undefined){ //  && !['painting','erasing'].includes(d.design.act)
-                c.displacement_map = d.n[d.n[n].n.image[0]].c.texture;
+            if(d.n[n].n.image != undefined && d.n[d.n[n].n.image[0]].c.canvas){ //  && !['painting','erasing'].includes(d.design.act)
+                //c.shift_map = d.n[d.n[n].n.image[0]].c.texture;
+                var width = d.n[d.n[n].n.image[0]].c.canvas.width;
+                var height = d.n[d.n[n].n.image[0]].c.canvas.height;
+                c.surface = d.geo.surface(d, pts, {
+                    shift_map_width: width,
+                    shift_map_height: height,
+                    shift_map: d.n[d.n[n].n.image[0]].c.canvas.getContext('2d').getImageData(0,0,width,height).data,
+                });
             }else{
-                //c.surface = d.geo.surface(d, pts);
+                c.surface = d.geo.surface(d, pts);
             }
+            
 
             // if(ax.matrix){
             //     const ax_surface = new NURBSSurface(degree1, degree2, knots1, knots2, 

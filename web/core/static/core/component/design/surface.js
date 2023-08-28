@@ -23,7 +23,8 @@ const div = 2;
 export const Surface = memo(({n})=>{ 
     const obj = useRef();
     //const color = useS(d=> d.n[n].pick.color); 
-    const displacement_map = useS(d=> d.n[n].c.displacement_map);
+    //const shift_map = useS(d=> d.n[n].c.shift_map);
+    //const design_act = useS(d=> d.design.act); // if no shift_map, don't render if design.act changes!!! #1
     const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     //const pts = useS(d=> d.n[n].ax.pts); 
     const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
@@ -76,8 +77,8 @@ export const Surface = memo(({n})=>{
                 },
                     c('meshStandardMaterial', {   //meshLambertMaterial
                         map:gs().base_texture,
-                        displacementMap: displacement_map,
-                        displacementScale: 10,
+                        //displacementMap: design_act ? shift_map : null,
+                        //displacementScale: 10,
                         color: 'white',//theme.primary,//color[2], 
                         wireframe: false, 
                         toneMapped: true, 

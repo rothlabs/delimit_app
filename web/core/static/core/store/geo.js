@@ -4,6 +4,7 @@ import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
 //import Delaunator from 'delaunator';
 //import { closest } from '../../junk/vertex.js';
 
+const v1 = new Vector3();
 const v2 = new Vector3();
 const v3 = new Vector3();
 const degree_u = 2;
@@ -61,9 +62,25 @@ export const create_geo_slice = (set,get)=>({geo:{
 
             const surface = new NURBSSurface(degree_u, degree_v, knots_u, knots_v, pts);
 
-            surface.get_point = (u, v, target)=>{
-                surface.getPoint(u, v, target);
-                return target;
+            surface.get_point = (u, v, point)=>{
+                if(a.shift_map){
+                    //var cctx = a.shift_map.getContext("2d");
+                    //var w = a.shift_map.width; 
+                    //var h = a.shift_map.height;
+                    //var x = Math.round(u * a.shift_map.width); // u*w-w/2 // need to make common function to for this formula #1
+                    //var y = Math.round(v * a.shift_map.height);
+                    //var shift = a.shift_map_ctx.getImageData(x, y, 1, 1).data[0]/255; // red channel normalized
+                    var x = Math.round((1-v) * a.shift_map_width);
+                    var y = Math.round((1-u) * a.shift_map_height);
+                    if(x > a.shift_map_width-1) x = a.shift_map_width-1;
+                    if(y > a.shift_map_height-1) y = a.shift_map_height-1;
+                    var i = (x + y * a.shift_map_width) * 4;
+                    surface.get_point_normal(u, v, point, v1);
+                    point.add(v1.multiplyScalar(a.shift_map[i]/255*10));
+                }else{
+                    surface.getPoint(u, v, point);
+                }
+                return point;
             }
             surface.get_point_normal = (u, v, point, normal)=>{
                 surface.getPoint(u+nsr, v,                      point); // right most point
