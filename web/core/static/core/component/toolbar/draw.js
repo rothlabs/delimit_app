@@ -7,9 +7,9 @@ export function Draw(){
     const design_mode = useS(d=> d.design.mode);
     const buttons = [
         {name:'Pen',  icon:'bi bi-vector-pen', value:'pen'},
-        //{name:'Paint', icon:'bi bi-paint-bucket', value:'paint'},
+        {name:'Brush', icon:'bi bi-brush', value:'brush'},
         {name:'Fill',  icon:'bi bi-paint-bucket', value:'fill'},
-        {name:'Erase', icon:'bi bi-eraser', value:'erase'},
+        {name:'Eraser', icon:'bi bi-eraser', value:'eraser'},
         //{name:'Move', icon:'bi-arrows-move', value:'move'},
     ];
     return(
@@ -39,4 +39,4 @@ export function Draw(){
 
 
 //if(d.design.mode=='erase') d.pick.mode = '';
-                        //if(['draw','erase'].includes(d.design.mode)) d.pick.mode = '';
+                        //if(['pen','erase'].includes(d.design.mode)) d.pick.mode = '';

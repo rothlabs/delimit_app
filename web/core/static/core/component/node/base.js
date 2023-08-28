@@ -1,6 +1,6 @@
 import {createElement as c, useRef, forwardRef, useState} from 'react';
 import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
-import {useS, useSubS, ss, gs, fs, sf, mf} from '../../app.js';
+import {useS, useSubS, ss, gs, fs, sf, mf, rs} from '../../app.js';
 //import {createElement as c, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
 import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
@@ -8,9 +8,9 @@ import {Vector3} from 'three';
 const v1 = new Vector3();
 const v2 = new Vector3();
 
-export function Pickable({n, drawable, paintable, children}){
+export function Pickable({n, penable, brushable, children}){
     function pointer_up_or_leave(e){ e.stopPropagation(); 
-        if(paintable && gs().design.painting && gs().design.mode == 'draw'){
+        if(brushable && gs().design.painting && gs().design.mode == 'brush'){
             mf(d=>{
                 d.design.end_paint(d, n);
             });
@@ -22,9 +22,9 @@ export function Pickable({n, drawable, paintable, children}){
         onClick(e){ e.stopPropagation();//e.stopPropagation?.call(); 
             ss(d=>{
                 if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
-                    if(drawable && d.design.mode == 'draw'){
+                    if(penable && d.design.mode == 'pen'){
                         d.design.make_point(d, n, e);
-                    }else if(paintable && d.design.mode == 'fill'){
+                    }else if(brushable && d.design.mode == 'fill'){
                         d.design.fill(d, n);
                     }else if(d.studio.mode=='design' && d.design.mode == 'erase'){
                         d.delete.node(d, n, {deep:true});
@@ -37,23 +37,26 @@ export function Pickable({n, drawable, paintable, children}){
                 d.studio.gizmo_active = false;
             });
         },
-        onPointerOver(e){ e.stopPropagation();  ss(d=>{
+        onPointerOver(e){ e.stopPropagation();  rs(d=>{
             d.pick.hover(d, n, true);
-            if(d.design.mode == 'draw' && (drawable || paintable)) d.studio.cursor = 'pen_icon';
+            if(penable && d.design.mode == 'pen') d.studio.cursor = 'pen_icon';
+            if(brushable && d.design.mode == 'brush') d.studio.cursor = 'brush_icon';
+            if(brushable && d.design.mode == 'eraser') d.studio.cursor = 'eraser_icon';
         });}, // should be something different from recieve state but should not commit state here
-        onPointerOut(e){ e.stopPropagation(); ss(d=>{
+        onPointerOut(e){ e.stopPropagation(); rs(d=>{
             d.pick.hover(d,n, false);
-            if(drawable || paintable) d.studio.cursor = '';
+            if(penable || brushable) d.studio.cursor = '';
         });},
         onPointerDown(e){ e.stopPropagation(); 
-            if([0,1].includes(e.which) && paintable && gs().design.mode == 'draw'){
+            if([0,1].includes(e.which) && brushable && ['brush','eraser'].includes(gs().design.mode)){
                 fs(d=>{
-                    d.design.paint(d, n, e);
+                    if(d.design.mode == 'brush')  d.design.paint(d, n, e);
+                    if(d.design.mode == 'eraser') d.design.erase(d, n, e);
                 });
             }
         },
         onPointerMove(e){ e.stopPropagation(); 
-            if(paintable && gs().design.painting){
+            if(brushable && gs().design.painting){
                 sf(d=>{
                     d.design.paint(d, n, e);
                 });

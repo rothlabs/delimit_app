@@ -10,7 +10,7 @@ export const Image = memo(({n})=>{
     //console.log('render image');
     return(
         c(Root_Transform, {n:n},
-            c(Pickable, {n:n, paintable:true}, 
+            c(Pickable, {n:n, brushable:true}, 
                 c('mesh', {},
                     c('planeGeometry', {args:[400, 400, 1, 1]},),
                     c('meshBasicMaterial', {   

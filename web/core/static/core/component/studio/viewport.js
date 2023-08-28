@@ -190,7 +190,7 @@ export function Viewport(){ // for some reason this renders 5 times on load
             //             if(name(e) == 'board') selection_rv(null);
             //             if(draw_mode == 'delete' && name(e) == 'points')
             //                 //project.current.mutate({selection:select(e), record:true});
-            //             if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
+            //             if(draw_mode == 'pen' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
             //                 selection_rv(select(e));
             //         }
             //     },

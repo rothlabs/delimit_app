@@ -47,4 +47,4 @@ export function Pick(){
                     //     if(d.design.mode == 'erase') d.design.mode = '';
                     // }), 
 
-//if(['draw','erase'].includes(d.design.mode)) d.design.mode = '';
+//if(['pen','erase'].includes(d.design.mode)) d.design.mode = '';

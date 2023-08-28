@@ -55,7 +55,7 @@ export function Board(){
                     if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
                             //const p = point(e);
                             // // // if(studio_mode=='design'){
-                            // // //     if(design_mode=='draw'){
+                            // // //     if(design_mode=='pen'){
                             // // //         d.design.make_point(d, pos(e));
                             // // //         //ss(d=> d.design.make_point(d, pos(e)));  //{x:p.x, y:p.y, z:0}
                             // // //         return
@@ -67,7 +67,7 @@ export function Board(){
                             //if(name(e) == 'board') selection_rv(null);
                             //if(draw_mode == 'erase' && name(e) == 'points')
                                 //project.current.mutate({selection:select(e), record:true});
-                            //if(draw_mode == 'draw' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
+                            //if(draw_mode == 'pen' && name(e) == 'meshline') //if(event.delta < 5 && event.intersections[0].object.name != 'endpoints'){
                             //    selection_rv(select(e));
                     }
                     d.studio.gizmo_active = false;

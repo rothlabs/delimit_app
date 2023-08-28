@@ -62,7 +62,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
         //     rotation: rotation,
         // },
         c(Root_Transform, {n:n, rotation:rotation},
-            c(Pickable, {n:n, drawable:true}, // points && points.length>1 && 
+            c(Pickable, {n:n, penable:true}, // points && points.length>1 && 
                 c('group', {name: 'sketch'}, 
                     c(View_Transform, {offset_z:point_size},
                         c('mesh',{
