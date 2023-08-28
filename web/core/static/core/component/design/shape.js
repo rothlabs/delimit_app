@@ -9,7 +9,6 @@ const res = 100;
 export const Shape = memo(({n})=>{ 
     //const obj = useRef();
     const mesh = useRef();
-    const point_size = useS(d=> d.point_size);
     const color = useS(d=> d.n[n].pick.color); 
     const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
     useSub(d=> d.n[n].c.shape, shape=>{ 
@@ -30,7 +29,7 @@ export const Shape = memo(({n})=>{
         // },
         c(Root_Transform, {n:n},
             c(Pickable, {n:n}, 
-                c(View_Transform, {offset_z:point_size/2},
+                c(View_Transform, {offset_z:.5},
                     c('mesh', {
                         ref: mesh,
                         geometry:geo,

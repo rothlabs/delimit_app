@@ -15,6 +15,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
     //const plane = useRef();
     const {camera} = useThree(); // use state selector ?!?!?!?!?! (state)=> state.camera 
     //const [offset, set_offset] = useState(0);
+    const easel_size = useS(d=> d.easel_size); 
     const point_size = useS(d=> d.point_size);
     const color = useS(d=> d.n[n].pick.color); 
     const top_view = useS(d=> d.n[n].c.top_view); 
@@ -64,12 +65,12 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
         c(Root_Transform, {n:n, rotation:rotation},
             c(Pickable, {n:n, penable:true}, // points && points.length>1 && 
                 c('group', {name: 'sketch'}, 
-                    c(View_Transform, {offset_z:point_size},
+                    c(View_Transform, {offset_z:1},
                         c('mesh',{
                             //position: [0,0,offset],
                             visible:false,
                         },
-                            c('planeGeometry', {args:[400,400]}),
+                            c('planeGeometry', {args:[easel_size,easel_size]}),
                             c('meshBasicMaterial', {
                                 color:'yellow', 
                                 toneMapped:false, 
@@ -104,15 +105,15 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
                 )
             ),
             //c(Offset_Z, {dist:point_size}
-            c(View_Transform, {size:point_size, offset_z:point_size},//, position: [0,0,offset]}, 
+            c(View_Transform, {size:point_size, offset_z:1},//, position: [0,0,offset]}, 
                 c('mesh', {raycast:()=>null,},
                     c('sphereGeometry'),
                     c('meshBasicMaterial', {color:'yellow', toneMapped:false, opacity:.75, transparent:true}),
                 )
             ),
-            c(View_Transform, {offset_z:point_size},
+            c(View_Transform, {offset_z:1},
                 c(Grid, {
-                    args: [400,400],
+                    args: [easel_size, easel_size],
                     //position: [0,0,offset],
                     rotation: [Math.PI/2,0,0],//grid_rotation,
                     cellSize: 10,

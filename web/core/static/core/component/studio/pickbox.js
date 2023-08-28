@@ -25,7 +25,7 @@ const getCoords = (clientX, clientY) => [
 //}
 
 export const Pickbox = ({ style, onSelectionChanged }) => {
-  const moving = useS(d=> (d.design.moving || d.design.painting));
+  const moving = useS(d=> (d.design.moving || d.design.act)); // (d.design.act==null ? false:true)
   //const painting = useS(d=> d.design.painting);
   //const multi = useS(d=> d.pick.multi);
 

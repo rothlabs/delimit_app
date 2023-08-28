@@ -11,19 +11,21 @@ export const image = {
             if(c.texture && c.canvas.width == c.width && c.canvas.height == c.height){
                 c.texture.needsUpdate = true;
             }else{
-                var img = new Image();
-                img.onload = function(){
-                    rs(d=>{
-                        d.n[n].c.canvas = document.createElement("canvas");
-                        d.n[n].c.canvas.width = d.n[n].c.width;
-                        d.n[n].c.canvas.height = d.n[n].c.height;
-                        d.n[n].c.canvas.getContext("2d").drawImage(img, 0, 0, d.n[n].c.width, d.n[n].c.height);
-                        var texture = new CanvasTexture(d.n[n].c.canvas);
-                        texture.encoding = sRGBEncoding;
-                        d.n[n].c.texture = texture;
-                    });
+                if(c.data != undefined){
+                    var img = new Image();
+                    img.onload = function(){
+                        rs(d=>{
+                            d.n[n].c.canvas = document.createElement("canvas");
+                            d.n[n].c.canvas.width = d.n[n].c.width;
+                            d.n[n].c.canvas.height = d.n[n].c.height;
+                            d.n[n].c.canvas.getContext("2d").drawImage(img, 0, 0, d.n[n].c.width, d.n[n].c.height);
+                            var texture = new CanvasTexture(d.n[n].c.canvas);
+                            texture.encoding = sRGBEncoding;
+                            d.n[n].c.texture = texture;
+                        });
+                    }
+                    img.src = c.data; 
                 }
-                img.src = c.data; 
             }
             //console.log('reckon image');
         }catch(e){

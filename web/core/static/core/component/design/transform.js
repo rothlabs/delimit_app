@@ -22,7 +22,7 @@ export const Transform = memo(({n})=>{
             });
         }
     });
-    console.log('render transform');
+    //console.log('render transform');
     return(
         null
     )

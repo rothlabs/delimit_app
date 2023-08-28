@@ -26,6 +26,7 @@ export const create_design_slice = (set,get)=>({design:{
     //pin_matrix: new Matrix4(),
     moving: false,
     painting: false,
+    act: null,
     move_mode: '', 
     mover: {pos: new Vector3(), rot: new Euler(), active_axes:[true, true, false], show:false}, //, rot: new Vector3()
     ray_data(d,e){
@@ -40,7 +41,6 @@ export const create_design_slice = (set,get)=>({design:{
         }; 
     },
     paint(d, n, e){ // on image
-        d.design.painting = true;
         d.studio.gizmo_active = true; // this might not be needed? #1
         const ray = d.design.ray_data(d,e);
         //const n = ray.n1;
@@ -51,25 +51,31 @@ export const create_design_slice = (set,get)=>({design:{
         var height = d.n[d.n[n].n.height[0]].v;//canvas.height = d.n[d.n[n].n.height[0]].v;
         if(d.n[n].ax.invert) ray.pos.applyMatrix4(d.n[n].ax.invert);
         if(d.n[n].c.invert) ray.pos.applyMatrix4(d.n[n].c.invert);
-        var x = Math.round(( ray.pos.x + 200) / 400 * width);
-        var y = Math.round((-ray.pos.y + 200) / 400 * height);
+        var x = Math.round(( ray.pos.x + 200) / d.easel_size * width);
+        var y = Math.round((-ray.pos.y + 200) / d.easel_size * height);
         const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
-        grd.addColorStop(0, '#20c9b2');
-        grd.addColorStop(1, 'rgba(32, 201, 178, 0)');//"rgba(32, 201, 178, 0)");
+        if(d.design.act == 'painting'){
+            grd.addColorStop(0, 'rgba(255, 255, 255, 1)');//'rgba(32, 201, 178, 1)');
+            grd.addColorStop(1, 'rgba(255, 255, 255, 0)');//'rgba(32, 201, 178, 0)');//"rgba(32, 201, 178, 0)");
+        }else{
+            grd.addColorStop(0, 'rgba(0, 0, 0, 1)');//'rgba(214, 51, 132, 1)');
+            grd.addColorStop(1, 'rgba(0, 0, 0, 0)');//'rgba(214, 51, 132, 0)');//"rgba(32, 201, 178, 0)");
+        }
         cctx.fillStyle = grd;
         cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
         d.node.set(d, n, {data:'live'}); //canvas.toDataURL()
     },
     end_paint(d, n){
-        d.design.painting = false;
+        d.design.act = null;
         d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
+        d.studio.gizmo_active = false; // this might not be needed? #1
     },
     fill(d, n){
         var canvas = d.n[n].c.canvas;
         var cctx = canvas.getContext("2d");
         var width = d.n[d.n[n].n.width[0]].v;
         var height = d.n[d.n[n].n.height[0]].v;
-        cctx.fillStyle = '#d63384';
+        cctx.fillStyle = 'black';//'#d63384';
         cctx.fillRect(0, 0, width, height);
         d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
     },

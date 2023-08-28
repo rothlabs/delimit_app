@@ -121,6 +121,7 @@ export const create_base_slice = (set,get)=>({
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
     base_font: static_url+'font/Inter-Medium.ttf',
     point_size: 6,
+    easel_size: 400,
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
     base_texture: base_texture,
     rapid_res: 0.5,

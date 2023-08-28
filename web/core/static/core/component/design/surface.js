@@ -23,6 +23,7 @@ const div = 2;
 export const Surface = memo(({n})=>{ 
     const obj = useRef();
     //const color = useS(d=> d.n[n].pick.color); 
+    ///const displacement_map = useS(d=> d.n[n].c.displacement_map);
     const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     //const pts = useS(d=> d.n[n].ax.pts); 
     const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
@@ -46,7 +47,7 @@ export const Surface = memo(({n})=>{
             if(new_geo) obj.current.geometry.copy(new_geo);
         }
     });
-    //console.log('render surface');
+    console.log('render surface');
     return(
         c('group', {},
             // pts && c('group', {},
@@ -75,11 +76,13 @@ export const Surface = memo(({n})=>{
                 },
                     c('meshStandardMaterial', {   //meshLambertMaterial
                         map:gs().base_texture,
+                        //displacementMap: displacement_map,
+                        //displacementScale: 10,
                         color: 'white',//theme.primary,//color[2], 
-                        wireframe:false, 
-                        toneMapped:true, 
-                        side:DoubleSide,
-                        transparent:true, 
+                        wireframe: false, 
+                        toneMapped: true, 
+                        side: DoubleSide,
+                        transparent: true, 
                         opacity: pick ? .4 : .2,
                     }), //toneMapped:false, side:BackSide
                     //c(Edges, {color: color[2]},),

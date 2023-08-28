@@ -9,7 +9,7 @@ export function Draw(){
         {name:'Pen',  icon:'bi bi-vector-pen', value:'pen'},
         {name:'Brush', icon:'bi bi-brush', value:'brush'},
         {name:'Fill',  icon:'bi bi-paint-bucket', value:'fill'},
-        {name:'Eraser', icon:'bi bi-eraser', value:'eraser'},
+        {name:'Eraser', icon:'bi bi-eraser', value:'erase'},
         //{name:'Move', icon:'bi-arrows-move', value:'move'},
     ];
     return(

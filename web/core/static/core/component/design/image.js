@@ -1,24 +1,35 @@
 import {createElement as c, memo} from 'react';
 import {useS} from '../../app.js';
-import {Root_Transform, Pickable} from '../node/base.js';
+import {Root_Transform, View_Transform, Pickable} from '../node/base.js';
 import {DoubleSide} from 'three';
+import {Line} from '@react-three/drei/Line';
 
 const res = 1;
 
 export const Image = memo(({n})=>{ 
+    const color = useS(d=> d.n[n].pick.color); 
+    const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
+    const es = useS(d=> d.easel_size); 
     const texture = useS(d=> d.n[n].c.texture);
     //console.log('render image');
     return(
         c(Root_Transform, {n:n},
             c(Pickable, {n:n, brushable:true}, 
-                c('mesh', {},
-                    c('planeGeometry', {args:[400, 400, 1, 1]},),
-                    c('meshBasicMaterial', {   
-                        map: texture,
-                        toneMapped: false, 
-                        side: DoubleSide,
-                    }), 
+                c(View_Transform, {offset_z:1},
+                    c('mesh', {},
+                        c('planeGeometry', {args:[es, es, 1, 1]},),
+                        c('meshBasicMaterial', {   
+                            map: texture,
+                            toneMapped: false, 
+                            side: DoubleSide,
+                        }), 
+                    ),
                 ),
+                c(Line, {
+                    points: [-es/2,-es/2,0, es/2,-es/2,0, es/2,es/2,0, -es/2,es/2,0, -es/2,-es/2,0],
+                    lineWidth: pick ? 4 : 3,
+                    color: color[0],
+                })
             )
         )
     )

@@ -19,14 +19,14 @@ const direction = new Vector3(0,0,-200);
 const raycaster = new Raycaster();
 const material = new MeshBasicMaterial();
 const offsets = [{x:0,y:0},{x:1,y:0},{x:0,y:1},{x:-1,y:0},{x:0,y:-1}]; // {x:0,y:-1} //{x:-1,y:0}
-const sketch_size = 400;
+//const sketch_size = 400;
 const res = 140;
 //const plane = new PlaneGeometry(sketch_size, sketch_size, grid_res-1, grid_res-1);
 
 export const layer = { 
     shape_res: 800,
     //layer_loop_div: 3,
-    sketch_size: sketch_size,
+    //sketch_size: sketch_size,
     res: res,
     //plane: new PlaneGeometry(sketch_size, sketch_size, grid_res*.5-1, grid_res*.5-1),
     node(d, n, c, ax, a={}){ 
@@ -48,7 +48,7 @@ export const layer = {
                 material
             );
 
-            const s = this.sketch_size;
+            const s = d.easel_size;//this.sketch_size;
             const r = Math.round(d.design.moving ? this.res * d.rapid_res : this.res);
             //var geo = c.geo;
             //if(geo && d.design.moving){

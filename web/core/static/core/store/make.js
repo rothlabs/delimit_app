@@ -160,10 +160,17 @@ export const create_make_slice = (set,get)=>({make:{
         }});
     },
     image(d, a={}){
+        var size = 1024;
+        var canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        var cctx = canvas.getContext("2d");
+        cctx.fillStyle = 'black';//'#d63384';
+        cctx.fillRect(0, 0, size, size);
         return d.make.node(d,'p','image', {...a, n:{
-            width:      d.make.atom(d,'f', 100),
-            height:     d.make.atom(d,'f', 100),
-            data: d.make.atom(d,'s', 'abc'),
+            width:      d.make.atom(d,'f', size),
+            height:     d.make.atom(d,'f', size),
+            data: d.make.atom(d,'s', canvas.toDataURL()),
         }});
     },
     coil(d, a={}){ // add manual_compute !!!!!!!!!

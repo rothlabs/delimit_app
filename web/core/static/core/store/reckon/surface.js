@@ -16,6 +16,7 @@ export const surface = {
     node(d, n, c, ax, a={}){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         try{if(!(a.cause && a.cause[0]=='casted_matrix')){ 
             delete c.surface;
+            delete c.displacement_map;
 
             var pts = [];
 
@@ -158,8 +159,19 @@ export const surface = {
 
             if(c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(c.matrix))); // does not need to clone ?!?!?!?!
 
-            c.surface = d.geo.surface(d, pts);
+            
+            //const displacement_map = d.node.get(d, n, 'image');
+            //if(displacement_map){
+            //    c.surface = d.geo.surface(d, pts, {displacement_map:displacement_map[0]});
+            //}else{
+                c.surface = d.geo.surface(d, pts);
+            //}
             c.pts = pts;
+
+            if(d.n[n].n.image != undefined){ //  && !['painting','erasing'].includes(d.design.act)
+                c.displacement_map = d.n[d.n[n].n.image[0]].c.texture;
+            }
+
             // if(ax.matrix){
             //     const ax_surface = new NURBSSurface(degree1, degree2, knots1, knots2, 
             //         pts.map(p=> p.map(p=> p.clone().applyMatrix4(ax.matrix)))
