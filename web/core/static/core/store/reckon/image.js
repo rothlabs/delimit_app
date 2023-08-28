@@ -22,6 +22,7 @@ export const image = {
                             var texture = new CanvasTexture(d.n[n].c.canvas);
                             texture.encoding = sRGBEncoding;
                             d.n[n].c.texture = texture;
+                            d.reckon.up(d, n);
                         });
                     }
                     img.src = c.data; 

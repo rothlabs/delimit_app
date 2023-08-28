@@ -25,7 +25,7 @@ const getCoords = (clientX, clientY) => [
 //}
 
 export const Pickbox = ({ style, onSelectionChanged }) => {
-  const moving = useS(d=> (d.design.moving || d.design.act)); // (d.design.act==null ? false:true)
+  const design_act = useS(d=> d.design.act); // (d.design.moving || d.design.act) (d.design.act==null ? false:true)
   //const painting = useS(d=> d.design.painting);
   //const multi = useS(d=> d.pick.multi);
 
@@ -62,7 +62,7 @@ export const Pickbox = ({ style, onSelectionChanged }) => {
 
   useEffect(() => {
     //mouse_vector.set(mouse[0],mouse[1]);
-    if (isSelecting && start && mouse && !moving && isSelecting2) { 
+    if (isSelecting && start && mouse && !design_act && isSelecting2) { 
       gl.domElement.parentElement?.append(selectRectangle.current)
 
       const topLeft = {
@@ -83,7 +83,7 @@ export const Pickbox = ({ style, onSelectionChanged }) => {
         selectRectangle.current
       )
     }
-  }, [isSelecting, gl, start, mouse, selectRectangle, moving, isSelecting2])
+  }, [isSelecting, gl, start, mouse, selectRectangle, design_act, isSelecting2])
 
   const selectionBox = useMemo(() => new SelectionBox(camera, scene), [
     scene,
@@ -101,7 +101,7 @@ export const Pickbox = ({ style, onSelectionChanged }) => {
     e => {
       const event = e
       const { clientX, clientY, altKey, ctrlKey, button } = event
-      if (!isSelecting && !button && !moving) { //if (!altKey && !isSelecting && !button) {
+      if (!isSelecting && !button && !design_act) { //if (!altKey && !isSelecting && !button) {
         const [startX, startY] = getCoords(clientX, clientY)
         setStart(new Vector2(clientX, clientY))
         //setMouse([clientX, clientY]); //////// don't need this ?!?!?!
@@ -114,19 +114,19 @@ export const Pickbox = ({ style, onSelectionChanged }) => {
         //set_can_start(true);
       }
     },
-    [selection, moving]
+    [selection, design_act]
   )
 
   const onPointerMove = useCallback(
     e => {
-      if(moving){
+      if(design_act){
         setMouse(undefined);
         setStart(undefined);
         setIsSelecting(false);
         setIsSelecting2(false);
       }
-      if (!isSelecting || moving) return
-      //if(isSelecting && !moving){
+      if (!isSelecting || design_act) return
+      //if(isSelecting && !design_act){
         const { clientX, clientY } = e
         const [endX, endY] = getCoords(clientX, clientY)
         setMouse([clientX, clientY])
@@ -143,14 +143,14 @@ export const Pickbox = ({ style, onSelectionChanged }) => {
         //console.log(start, end_vector);
       //}
     },
-    [isSelecting, moving]
+    [isSelecting, design_act]
   )
 
   const onPointerUp = useCallback(
     e => {
       const {clientX, clientY, button} = e; // const { ctrlKey, clientX, clientY, button } = e
 
-      if (isSelecting2 && !button && !moving) { // || !button
+      if (isSelecting2 && !button && !design_act) { // || !button
         //setIsSelecting(false)
 
         const [endX, endY] = getCoords(clientX, clientY)
@@ -158,11 +158,11 @@ export const Pickbox = ({ style, onSelectionChanged }) => {
         const curSelected = selectionBox.select()
 
         //if(!(start && start.distanceTo(mouse_vector.set(clientX,clientY))>10)){
-        //if(!moving && delta > min_delta){
+        //if(!design_act && delta > min_delta){
           //if(multi){//if (ctrlKey) {
           //  appendSelection(curSelected)
           //} else {
-        //if(!moving) 
+        //if(!design_act) 
         setSelection(curSelected);
           //}
         //}
@@ -176,7 +176,7 @@ export const Pickbox = ({ style, onSelectionChanged }) => {
       setIsSelecting(false);
       setIsSelecting2(false);
     },
-    [isSelecting, isSelecting2, moving]
+    [isSelecting, isSelecting2, design_act]
   )
 
   useEvent("pointerdown", onPointerDown, gl.domElement)

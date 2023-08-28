@@ -44,7 +44,7 @@ export function Mover(){
             onDragStart:e=> fs(d=>{ 
                 //d.design.res = 'low';
                 d.design.pin_move(d);
-                d.design.moving = true;
+                d.design.act = 'moving'; //d.design.moving = true;
                 d.studio.gizmo_active = true;
             }),
             onDrag:e=> {
@@ -55,7 +55,7 @@ export function Mover(){
             onDragEnd:()=> mf(d=>{ if(d){
                 //d.design.res = 'high';
                 d.design.move(d, matrix); 
-                d.design.moving = false;
+                d.design.act = null; //d.design.moving = false;
             }}),
         })
     )

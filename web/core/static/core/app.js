@@ -135,7 +135,7 @@ function ignore_patch(p){
     if(path == 'studio.panel.show') return false;
     if(path == 'studio.panel.name') return false;
     if(path == 'design.matrix') return false;
-    if(path == 'design.moving') return false;
+    if(path == 'design.act') return false; // 'design.moving'
     //if(path == 'graph.c_c') return false;
     if(path == 'studio.gizmo_active') return false; 
     //if(path == 'studio.cam_info') return false;

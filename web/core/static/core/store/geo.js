@@ -1,9 +1,10 @@
 import {current} from 'immer';
-import {Vector3, CatmullRomCurve3} from 'three';
+import {Vector3, CatmullRomCurve3, MathUtils} from 'three';
 import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
 //import Delaunator from 'delaunator';
 //import { closest } from '../../junk/vertex.js';
 
+const v0 = new Vector3();
 const v1 = new Vector3();
 const v2 = new Vector3();
 const v3 = new Vector3();
@@ -64,19 +65,11 @@ export const create_geo_slice = (set,get)=>({geo:{
 
             surface.get_point = (u, v, point)=>{
                 if(a.shift_map){
-                    //var cctx = a.shift_map.getContext("2d");
-                    //var w = a.shift_map.width; 
-                    //var h = a.shift_map.height;
-                    //var x = Math.round(u * a.shift_map.width); // u*w-w/2 // need to make common function to for this formula #1
-                    //var y = Math.round(v * a.shift_map.height);
-                    //var shift = a.shift_map_ctx.getImageData(x, y, 1, 1).data[0]/255; // red channel normalized
-                    var x = Math.round((1-v) * a.shift_map_width);
-                    var y = Math.round((1-u) * a.shift_map_height);
-                    if(x > a.shift_map_width-1) x = a.shift_map_width-1;
-                    if(y > a.shift_map_height-1) y = a.shift_map_height-1;
-                    var i = (x + y * a.shift_map_width) * 4;
-                    surface.get_point_normal(u, v, point, v1);
-                    point.add(v1.multiplyScalar(a.shift_map[i]/255*10));
+                    //var x = MathUtils.clamp(Math.round((1-v) * a.shift_map_width), 0, a.shift_map_width-1);
+                    //var y = MathUtils.clamp(Math.round((1-u) * a.shift_map_height), 0, a.shift_map_height-1);
+                    //var i = (x + y * a.shift_map_width) * 4;
+                    surface.get_point_normal(u, v, point, v0);
+                    //point.add(v1.multiplyScalar(a.shift_map[i]/255*10));
                 }else{
                     surface.getPoint(u, v, point);
                 }
@@ -87,6 +80,13 @@ export const create_geo_slice = (set,get)=>({geo:{
                 surface.getPoint(u-(nsr*0.5), v+(nsr*0.866025), v2); // cos(120) sin(120)
                 surface.getPoint(u-(nsr*0.5), v-(nsr*0.866025), v3); // cos(-120) sin(-120)
                 normal.copy(v2).sub(point).cross(v3.sub(point)).normalize();
+                if(a.shift_map){
+                    var x = MathUtils.clamp(Math.round((1-v) * a.shift_map_width), 0, a.shift_map_width-1);
+                    var y = MathUtils.clamp(Math.round((1-u) * a.shift_map_height), 0, a.shift_map_height-1);
+                    var i = (x + y * a.shift_map_width) * 4;
+                    //surface.get_point_normal(u, v, point, v1);
+                    point.add(v1.copy(normal).multiplyScalar(a.shift_map[i]/255*2));
+                }
             }
 
             surface.length_u = length_u;

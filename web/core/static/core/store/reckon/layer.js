@@ -22,9 +22,10 @@ const offsets = [{x:0,y:0},{x:1,y:0},{x:0,y:1},{x:-1,y:0},{x:0,y:-1}]; // {x:0,y
 //const sketch_size = 400;
 const res = 140;
 //const plane = new PlaneGeometry(sketch_size, sketch_size, grid_res-1, grid_res-1);
+const shape_res = 900;
 
 export const layer = { 
-    shape_res: 800,
+    //shape_res: 800,
     //layer_loop_div: 3,
     //sketch_size: sketch_size,
     res: res,
@@ -39,7 +40,9 @@ export const layer = {
 
             //const shape_res = (d.design.res=='low' ? 100 : this.shape_res);
             //const loop_div = (d.design.res=='low' ? 2 : this.layer_loop_div);
-            const shape_res = Math.round(d.design.moving ? this.shape_res * d.rapid_res : this.shape_res);
+
+            //////const shape_res = Math.round(d.design.act ? this.shape_res * d.rapid_res : this.shape_res); // needed for realtime updates #1
+
             const c_pts = d.n[d.n[n].n.shape[0]].c.shape.getSpacedPoints(shape_res); //getSpacedPoints
             
 
@@ -50,7 +53,7 @@ export const layer = {
             );
 
             const s = d.easel_size;//this.sketch_size;
-            const r = Math.round(d.design.moving ? this.res * d.rapid_res : this.res);
+            const r = Math.round(d.design.act ? this.res * d.rapid_res : this.res);
             //var geo = c.geo;
             //if(geo && d.design.moving){
             //    let pos = geo.attributes.position.array;

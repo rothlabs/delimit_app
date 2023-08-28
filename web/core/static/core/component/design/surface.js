@@ -48,7 +48,7 @@ export const Surface = memo(({n})=>{
             if(new_geo) obj.current.geometry.copy(new_geo);
         }
     });
-    console.log('render surface');
+    //console.log('render surface');
     return(
         c('group', {},
             // pts && c('group', {},

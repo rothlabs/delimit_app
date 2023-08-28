@@ -24,7 +24,7 @@ export const create_design_slice = (set,get)=>({design:{
     candidate: null, 
     matrix: new Matrix4(), // not following wrapper rule!!!
     //pin_matrix: new Matrix4(),
-    moving: false,
+    //moving: false,
     painting: false,
     act: null,
     move_mode: '', 
