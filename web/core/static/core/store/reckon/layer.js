@@ -30,8 +30,9 @@ export const layer = {
     res: res,
     //plane: new PlaneGeometry(sketch_size, sketch_size, grid_res*.5-1, grid_res*.5-1),
     node(d, n, c, ax, a={}){ 
+        if(d.design.act) return;
+        
         try{if(!(a.cause && a.cause[0]=='casted_matrix')){ 
-
             delete c.geo;
 
             //if(d.studio.mode == 'graph') throw new Error('In graph mode.');

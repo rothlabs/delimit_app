@@ -14,7 +14,10 @@ const loop_res = 12; // how many extra ribs to make between given ribs
 export const surface = {
     props: 'layer',
     node(d, n, c, ax, a={}){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
-        try{if(!(a.cause && a.cause[0]=='casted_matrix')){ 
+        if(d.design.act) return;
+        try{if(!(a.cause && a.cause[0]=='casted_matrix')){ // || (a.cause[0].split('__')[0]=='image' && d.design.act)
+             
+
             delete c.surface;
             delete c.displacement_map;
 
@@ -170,6 +173,8 @@ export const surface = {
 
             if(d.n[n].n.image != undefined){ //  && !['painting','erasing'].includes(d.design.act)
                 c.displacement_map = d.n[d.n[n].n.image[0]].c.texture;
+            }else{
+                //c.surface = d.geo.surface(d, pts);
             }
 
             // if(ax.matrix){
@@ -182,7 +187,7 @@ export const surface = {
             //     }  
             //     ax.surface = ax_surface;
             // }else{ ax.surface = c.surface; }
-            //console.log('reckon surface!!!');
+            console.log('reckon surface!!!');
         }}catch(e){
             //console.log(e);
         }
