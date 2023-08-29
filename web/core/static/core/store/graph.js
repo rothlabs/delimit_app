@@ -11,7 +11,7 @@ export const create_graph_slice = (set,get)=>({graph:{
             ...Object.fromEntries(d.node_tags.map(t=>[t,true])),
             switch:false, integer:false, decimal:false, text:false, point:false,//matrix:false, 
             public:false, auxiliary:false, top_view:false, side_view:false, front_view:false, face_camera:false,
-            manual_compute:false, fill: false,
+            manual_compute:false, fill:false, corner:false,
         };
         d.graph.e_vis={ // e_vis
             ...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),

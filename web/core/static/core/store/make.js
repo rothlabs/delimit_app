@@ -119,6 +119,9 @@ export const create_make_slice = (set,get)=>({make:{
         if(a.r){
             if(d.n[a.r].c.invert) a.pos.applyMatrix4(d.n[a.r].c.invert);
             if(d.n[a.r].ax.invert) a.pos.applyMatrix4(d.n[a.r].ax.invert);
+            a.pos.setX(d.rnd(a.pos.x));
+            a.pos.setY(d.rnd(a.pos.y));
+            a.pos.setZ(d.rnd(a.pos.z));
         }
         return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
             x: d.make.atom(d,'f', a.pos.x),

@@ -23,7 +23,7 @@ const subject_tags= [
 ];
 const cat_tags=[ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
-    'fill',
+    'fill', 'corner',
 ];
 const cast_tags = [...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
@@ -114,6 +114,7 @@ export const create_base_slice = (set,get)=>({
         'image':          'bi-image',
         'coil':           'bi-rainbow',
         'fill':           'bi-cloud-fog2-fill',
+        'corner':         'bi-triangle',
         'post':           'bi-code',
     },
 

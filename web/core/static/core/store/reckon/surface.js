@@ -35,6 +35,7 @@ export const surface = {
                     pts: points,
                     x: tmp_pts.reduce((a,b)=>a+b.x,0)/10,
                     y: tmp_pts.reduce((a,b)=>a+b.y,0)/10, 
+                    corner: d.n[n].c.corner,
                 }
             }).sort((a,b)=> a.x-b.x);
             const split_idx = Math.ceil(all_ribs.length/2);
@@ -83,6 +84,7 @@ export const surface = {
                     // make extra ribs in between existing ribs
                     //if(io==0) io_pts[io].push(ribs[0].pts); else io_pts[io].push(ribs[0].pts.slice().reverse());
                     io_pts[io].push(ribs[0].pts);
+                    //if(ribs[0].corner) io_pts[io].push(ribs[0].pts);
                     if(io==0) rib_idx++;
                     for(let k=0; k<ribs.length-1; k++){
                         var r1 = ribs[k].pts;
@@ -118,8 +120,9 @@ export const surface = {
                         //}
                         //pts.push(r2);
                         //if(io==0) io_pts[io].push(r2); else io_pts[io].push(r2.slice().reverse());
-                        io_pts[io].push(r2);
-                        if(io==0){// && k<ribs.length-2){ // this will prevent top from being double loop!!!!
+                        io_pts[io].push(r2); // ribs[k+1].pts
+                        //if(ribs[k+1].corner) io_pts[io].push(r2);
+                        if(io==0 && ribs[k+1].corner){//if(io==0){// && k<ribs.length-2){ // this will prevent top from being double loop!!!!
                             double_ribs.push(rib_idx);
                         }
                         rib_idx++;
@@ -128,10 +131,10 @@ export const surface = {
                 for(let i=0; i < io_pts[0].length; i++){
                     const half = io_pts[0][i].reverse().slice(1);
                     pts.push([...io_pts[1][i], ...half]);
-                    // if(double_ribs.includes(i)){
-                    //     //console.log('double loop!!!!');
-                    //     pts.push([...io_pts[1][i], ...half]);
-                    // }
+                    if(double_ribs.includes(i)){
+                        //console.log('double loop!!!!');
+                        pts.push([...io_pts[1][i], ...half]);
+                    }
                 }
             }else{
                 //pts = all_ribs.map(rib=> rib.pts);

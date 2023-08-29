@@ -37,7 +37,7 @@ export const create_design_slice = (set,get)=>({design:{
         return {
             //n1: e.intersections[0].object.parent?.__r3f.memoizedProps.pickable,
             //n3: e.intersections[0].object.parent?.parent?.parent?.__r3f.memoizedProps.pickable,
-            pos: v3.set(d.rnd(p.x), d.rnd(p.y), d.rnd(p.z)),
+            pos: p//v3.set(d.rnd(p.x), d.rnd(p.y), d.rnd(p.z)), // should be able to remove rnd function #1
         }; 
     },
     paint(d, n, e){ // on image
