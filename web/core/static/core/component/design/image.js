@@ -14,10 +14,12 @@ export const Image = memo(({n})=>{
     //console.log('render image');
     return(
         c(Root_Transform, {n:n},
-            c(Pickable, {n:n, brushable:true}, 
+            c(Pickable, {n:n, brushable:true, penable:true}, 
                 c(View_Transform, {offset_z:1},
-                    c('mesh', {},
-                        c('planeGeometry', {args:[es, es, 1, 1]},),
+                    c('mesh', {
+                        //rotation: [0,0,Math.PI/2],
+                    },
+                        c('planeGeometry', {args:[es, es, 1, 1]}),
                         c('meshBasicMaterial', {   
                             map: texture,
                             toneMapped: false, 

@@ -36,7 +36,7 @@ const clip_u = 2;
 
 export const coil = {
     props: 'axis_x axis_y axis_z density speed flow nozzle_diameter layer_count axis_count axis_angle',
-    display(){ // will run regardless of manual_compute tag 
+    view(){ // will run regardless of manual_compute tag 
         // set which layer to show
     },
     node(d, n, c, ax, a={}){
@@ -55,12 +55,12 @@ export const coil = {
             //var axis_count = 1;
             if(c.fill){
                 var sn = d.n[n].n.surface; // surface nodes
-                var aln = sn.reduce((sum, sn)=> sum + d.n[sn].c.layer, 0) / sn.length; // average layer number
+                var aon = sn.reduce((sum, sn)=> sum + d.n[sn].c.order, 0) / sn.length; // average order number (for surfaces)
                 surfaces = [];
                 var end_surfaces = [];
-                console.log(aln);
+                console.log(aon);
                 sn.forEach(sn=> {
-                    if(d.n[sn].c.layer < aln) surfaces.push(d.n[sn].c.surface)
+                    if(d.n[sn].c.order < aon) surfaces.push(d.n[sn].c.surface)
                     else end_surfaces.push(d.n[sn].c.surface);
                 });
                 //axis_count = 3;

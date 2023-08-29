@@ -49,19 +49,15 @@ const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
     'width', 'height',
-    'layer',
+    'order', 'current_image',
     'density', 'axis_count', 'axis_angle', 'layer_count', 'speed', 'flow', 'nozzle_diameter', 
+    'color_a', 'color_b',
 ];
 const string_tags = [model_tags['s'], // rename to text_tags
     'name', 'story', 'code', 'data',
 ]; 
 const atom_tags   = Object.values(model_tags).slice(1);
 
-const base_texture = new THREE.TextureLoader().load(
-    "https://threejs.org/examples/textures/uv_grid_opengl.jpg"
-);
-base_texture.wrapS = base_texture.wrapT = THREE.RepeatWrapping;
-base_texture.anisotropy = 16;
 
 export const create_base_slice = (set,get)=>({
     model_tags:     model_tags,
@@ -124,8 +120,8 @@ export const create_base_slice = (set,get)=>({
     point_size: 6,
     easel_size: 400,
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
-    base_texture: base_texture,
-    rapid_res: 0.5,
+    //base_texture: base_texture,
+    //rapid_res: 0.5,
 
     n:    {}, // all nodes stored here by ID 
     t:    {},
@@ -144,6 +140,12 @@ export const create_base_slice = (set,get)=>({
     },
 
     init(d){
+        d.base_texture = new THREE.TextureLoader().load(
+            static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
+        );
+        d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
+        d.base_texture.anisotropy = 16;
+        
         d.node.init(d);
         //d.make.init(d);
         d.graph.init(d); //d.node.init(d);

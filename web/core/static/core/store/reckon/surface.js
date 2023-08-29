@@ -8,18 +8,17 @@ const v1 = new Vector3();
 const v2 = new Vector3();
 
 const rib_res = 40; // 40
-const rail_res = 60; // 60
-const loop_res = 12; // how many extra ribs to make between given ribs
+const rail_res = 100; // 60
+const loop_res = 10; // how many extra ribs to make between given ribs
 
 export const surface = {
-    props: 'layer',
+    props: 'order current_image',
     node(d, n, c, ax, a={}){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         if(d.design.act) return;
         try{if(!(a.cause && a.cause[0]=='casted_matrix')){ // || (a.cause[0].split('__')[0]=='image' && d.design.act)
-             
 
             delete c.surface;
-            delete c.displacement_map;
+            delete c.texture;
 
             var pts = [];
 
@@ -44,6 +43,8 @@ export const surface = {
                 all_ribs.slice(split_idx).sort((a,b)=> ((a.x*.1)+a.y)-((b.x*.1)+b.y))//.sort((a,b)=> a.y-b.y)//.sort((a,b)=> a.x-b.x)
             ];
 
+            //io_ribs = io_ribs.reverse();
+
             //console.log(io_ribs);
 
             if(d.n[n].n.curve?.length > 1){
@@ -60,7 +61,9 @@ export const surface = {
                 var idx2 = 0;
                 const ribs = io_ribs[0];
                 for(let i=1; i<ribs.length; i++){
-                    const loop_res_adj = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (loop_res+1));
+                    const loop_res_adj = loop_res;
+                    //const loop_res_adj = Math.round((ribs[i].y - ribs[i-1].y) / (ribs.at(-1).y - ribs[0].y) * (loop_res+1));
+
                     var closest = guide[0].pts.slice().sort((a,b)=> a.distanceTo(ribs[i].pts[0])-b.distanceTo(ribs[i].pts[0]))[0];
                     var idx = guide[0].pts.indexOf(closest);
                     //pts = pts.concat(new CatmullRomCurve3(guide[0].pts.slice(idx1,idx)).getSpacedPoints(this.loop_res+1));
@@ -122,7 +125,7 @@ export const surface = {
                         //if(io==0) io_pts[io].push(r2); else io_pts[io].push(r2.slice().reverse());
                         io_pts[io].push(r2); // ribs[k+1].pts
                         //if(ribs[k+1].corner) io_pts[io].push(r2);
-                        if(io==0 && ribs[k+1].corner){//if(io==0){// && k<ribs.length-2){ // this will prevent top from being double loop!!!!
+                        if(io==0 && k+1<ribs.length-1 && ribs[k+1].corner){//if(io==0){// && k<ribs.length-2){ // this will prevent top from being double loop!!!!
                             double_ribs.push(rib_idx);
                         }
                         rib_idx++;
@@ -131,9 +134,12 @@ export const surface = {
                 for(let i=0; i < io_pts[0].length; i++){
                     const half = io_pts[0][i].reverse().slice(1);
                     pts.push([...io_pts[1][i], ...half]);
+                    //const half = io_pts[1][i].reverse();//.slice(1);
+                    //pts.push([...io_pts[0][i], ...half]);
                     if(double_ribs.includes(i)){
                         //console.log('double loop!!!!');
                         pts.push([...io_pts[1][i], ...half]);
+                        //pts.push([...io_pts[0][i], ...half]);
                     }
                 }
             }else{
@@ -172,8 +178,8 @@ export const surface = {
             //}else{
                 //c.surface = d.geo.surface(d, pts);
             //}
-            c.pts = pts;
-            if(d.n[n].n.image != undefined && d.n[d.n[n].n.image[0]].c.canvas){ //  && !['painting','erasing'].includes(d.design.act)
+            
+            if(d.n[n].n.image && d.n[d.n[n].n.image[0]].c.canvas){ //  && !['painting','erasing'].includes(d.design.act)
                 //c.shift_map = d.n[d.n[n].n.image[0]].c.texture;
                 var width = d.n[d.n[n].n.image[0]].c.canvas.width;
                 var height = d.n[d.n[n].n.image[0]].c.canvas.height;
@@ -185,6 +191,17 @@ export const surface = {
             }else{
                 c.surface = d.geo.surface(d, pts);
             }
+
+
+            if(d.n[n].n.image){
+                d.n[n].n.image.forEach(nn=>{
+                    if(d.n[nn].c.order == c.current_image){// && d.n[nn].c.texture){
+                        c.texture = d.n[nn].c.texture;
+                    }
+                });
+            }
+
+            //c.pts = pts;
             
 
             // if(ax.matrix){

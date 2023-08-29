@@ -25,7 +25,7 @@ export const create_design_slice = (set,get)=>({design:{
     matrix: new Matrix4(), // not following wrapper rule!!!
     //pin_matrix: new Matrix4(),
     //moving: false,
-    painting: false,
+    //painting: false,
     act: null,
     move_mode: '', 
     mover: {pos: new Vector3(), rot: new Euler(), active_axes:[true, true, false], show:false}, //, rot: new Vector3()
@@ -55,11 +55,11 @@ export const create_design_slice = (set,get)=>({design:{
         var y = Math.round((-ray.pos.y + 200) / d.easel_size * height);
         const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
         if(d.design.act == 'painting'){
-            grd.addColorStop(0, 'rgba(255, 255, 255, 1)');//'rgba(32, 201, 178, 1)');
-            grd.addColorStop(1, 'rgba(255, 255, 255, 0)');//'rgba(32, 201, 178, 0)');//"rgba(32, 201, 178, 0)");
-        }else{
             grd.addColorStop(0, 'rgba(0, 0, 0, 1)');//'rgba(214, 51, 132, 1)');
             grd.addColorStop(1, 'rgba(0, 0, 0, 0)');//'rgba(214, 51, 132, 0)');//"rgba(32, 201, 178, 0)");
+        }else{
+            grd.addColorStop(0, 'rgba(255, 255, 255, 1)');//'rgba(32, 201, 178, 1)');
+            grd.addColorStop(1, 'rgba(255, 255, 255, 0)');//'rgba(32, 201, 178, 0)');//"rgba(32, 201, 178, 0)");
         }
         cctx.fillStyle = grd;
         cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
@@ -75,7 +75,7 @@ export const create_design_slice = (set,get)=>({design:{
         var cctx = canvas.getContext("2d");
         var width = d.n[d.n[n].n.width[0]].v;
         var height = d.n[d.n[n].n.height[0]].v;
-        cctx.fillStyle = 'black';//'#d63384';
+        cctx.fillStyle = 'white';//'#d63384';
         cctx.fillRect(0, 0, width, height);
         d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
     },

@@ -81,11 +81,11 @@ export const create_geo_slice = (set,get)=>({geo:{
                 surface.getPoint(u-(nsr*0.5), v-(nsr*0.866025), v3); // cos(-120) sin(-120)
                 normal.copy(v2).sub(point).cross(v3.sub(point)).normalize();
                 if(a.shift_map){
-                    var x = MathUtils.clamp(Math.round((1-v) * a.shift_map_width), 0, a.shift_map_width-1);
-                    var y = MathUtils.clamp(Math.round((1-u) * a.shift_map_height), 0, a.shift_map_height-1);
+                    var x = MathUtils.clamp(Math.round(u * a.shift_map_width), 0, a.shift_map_width-1);
+                    var y = MathUtils.clamp(Math.round((1-v) * a.shift_map_height), 0, a.shift_map_height-1);
                     var i = (x + y * a.shift_map_width) * 4;
                     //surface.get_point_normal(u, v, point, v1);
-                    point.add(v1.copy(normal).multiplyScalar(a.shift_map[i]/255*2));
+                    point.add(v1.copy(normal).multiplyScalar((1-a.shift_map[i]/255)*4));
                 }
             }
 

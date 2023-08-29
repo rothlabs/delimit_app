@@ -22,10 +22,11 @@ const div = 2;
 
 export const Surface = memo(({n})=>{ 
     const obj = useRef();
-    //const color = useS(d=> d.n[n].pick.color); 
+    const color = useS(d=> d.n[n].pick.color); 
+    const texture = useS(d=> d.n[n].c.texture);
     //const shift_map = useS(d=> d.n[n].c.shift_map);
     //const design_act = useS(d=> d.design.act); // if no shift_map, don't render if design.act changes!!! #1
-    const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
+    //const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     //const pts = useS(d=> d.n[n].ax.pts); 
     const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
     //const surface = useS(d=> d.n[n].ax.surface);
@@ -40,6 +41,8 @@ export const Surface = memo(({n})=>{
             //v_res = pts[0].length;
             //}
             //console.log(surface.length_v);
+            console.log(Math.round(surface.length_u/div));
+            console.log(Math.round(surface.length_v/div));
             let new_geo = new ParametricGeometry(
                 surface.get_point, 
                 MathUtils.clamp(Math.round(surface.length_u/div), 2, 100000), 
@@ -76,15 +79,15 @@ export const Surface = memo(({n})=>{
                     visible: true,
                 },
                     c('meshStandardMaterial', {   //meshLambertMaterial
-                        map:gs().base_texture,
+                        map: texture ? texture : gs().base_texture,
                         //displacementMap: design_act ? shift_map : null,
                         //displacementScale: 10,
-                        color: 'white',//theme.primary,//color[2], 
+                        color: color[1],//theme.primary,//color[2], 
                         wireframe: false, 
                         toneMapped: true, 
                         side: DoubleSide,
-                        transparent: true, 
-                        opacity: pick ? .4 : .2,
+                        //transparent: true, 
+                        //opacity: pick ? .4 : .2,
                     }), //toneMapped:false, side:BackSide
                     //c(Edges, {color: color[2]},),
                 ),

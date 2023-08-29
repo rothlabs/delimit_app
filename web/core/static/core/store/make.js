@@ -159,7 +159,8 @@ export const create_make_slice = (set,get)=>({make:{
     },
     surface(d, a={}){
         return d.make.node(d,'p','surface', {...a, n:{
-            layer: d.make.atom(d,'f', 0),
+            order:         d.make.atom(d,'f', 0),
+            current_image: d.make.atom(d,'f', 0), 
         }});
     },
     image(d, a={}){
@@ -171,10 +172,11 @@ export const create_make_slice = (set,get)=>({make:{
         cctx.fillStyle = 'black';//'#d63384';
         cctx.fillRect(0, 0, size, size);
         return d.make.node(d,'p','image', {...a, n:{
-            turn_z:     d.make.atom(d,'f', 90),
-            width:      d.make.atom(d,'f', size),
-            height:     d.make.atom(d,'f', size),
-            data: d.make.atom(d,'s', canvas.toDataURL()),
+            //turn_z: d.make.atom(d,'f', 90),
+            width:  d.make.atom(d,'f', size),
+            height: d.make.atom(d,'f', size),
+            data:   d.make.atom(d,'s', canvas.toDataURL()),
+            order:  d.make.atom(d,'f', 0),
         }});
     },
     coil(d, a={}){ // add manual_compute !!!!!!!!!

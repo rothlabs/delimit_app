@@ -239,14 +239,22 @@ export const fs = func=>{                 // this might be the secret sauce to a
 }; // fork state
 export const sf = func=>{
     //console.log('set fork');
-    //if(fork != null) next_state(fork, func);
-    next_state(fork, func);
+    if(fork != null){
+        next_state(fork, func);
+    }else{
+        //console.log('TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
+        assert(false, 'TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
+    }
+    //next_state(fork, func);
 }; // set fork
 export const mf = func=>{ // watch out for no-change resulting in undefined d!?!?!
-    //if(fork != null){
+    if(fork != null){
         commit_state(next_state(fork, func));
         fork = null;
-    //}
+    }else{
+        //console.log('TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
+        assert(false, 'TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
+    }
 }; // merge fork
 
 

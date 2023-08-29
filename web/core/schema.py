@@ -26,6 +26,8 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'name', 'story',
     'coil', 'post',
     'fill', 'corner',
+    'order', 'current_image',
+    'color_a', 'color_b',
     'density', 'nozzle_diameter', 'speed', 'flow', 'axis_count', 'axis_angle', 'layer_count',
 ]}
 cats = tuple(Part.objects.get_or_create(t=tag[t])[0].id for t in [

@@ -5,7 +5,7 @@ import { rs } from '../../app.js';
 const v1 = new Vector3();
 
 export const image = {
-    props: 'width height data', // rename data to data_url #1
+    props: 'width height data order', // rename data to data_url #1
     node(d, n, c, ax, a={}){ 
         try{
             if(c.texture && c.canvas.width == c.width && c.canvas.height == c.height){

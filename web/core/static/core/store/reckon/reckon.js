@@ -54,8 +54,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             }
             d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         }
-        if(d.reckon[d.n[n].t] && d.reckon[d.n[n].t].display){
-            d.reckon[d.n[n].t].display(); // update rendering relevant stuff only
+        if(d.reckon[d.n[n].t] && d.reckon[d.n[n].t].view){
+            d.reckon[d.n[n].t].view(); // update rendering relevant stuff only
         }
         d.next('design.update'); 
         d.next('inspect.update'); 
