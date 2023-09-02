@@ -10,7 +10,7 @@ const v2 = new Vector3();
 const v3 = new Vector3();
 const degree_u = 2;
 const degree_v = 2;
-const nsr = .001; // normal sample radius
+const nsr = .0001; // normal sample radius
 
 export const create_geo_slice = (set,get)=>({geo:{
     smooth_catmullrom(d, pts, span){

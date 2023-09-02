@@ -52,6 +52,7 @@ export function Pickable({n, penable, brushable, children}){
                 fs(d=>{
                     if(d.design.mode == 'brush') d.design.act = 'painting';  //d.design.paint(d, n, e);
                     if(d.design.mode == 'erase') d.design.act = 'erasing'; //d.design.erase(d, n, e);
+                    d.studio.gizmo_active = true; // this might not be needed? #1
                     d.design.paint(d, n, e);
                 });
             }

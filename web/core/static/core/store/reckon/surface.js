@@ -180,7 +180,6 @@ export const surface = {
             //}
             
             if(d.n[n].n.image && d.n[d.n[n].n.image[0]].c.canvas){ //  && !['painting','erasing'].includes(d.design.act)
-                //c.shift_map = d.n[d.n[n].n.image[0]].c.texture;
                 var width = d.n[d.n[n].n.image[0]].c.canvas.width;
                 var height = d.n[d.n[n].n.image[0]].c.canvas.height;
                 c.surface = d.geo.surface(d, pts, {
@@ -191,6 +190,8 @@ export const surface = {
             }else{
                 c.surface = d.geo.surface(d, pts);
             }
+            //if(d.n[n].n.image) c.shift_map = d.n[d.n[n].n.image[0]].c.texture;
+            //c.surface = d.geo.surface(d, pts);
 
 
             if(d.n[n].n.image){
@@ -214,7 +215,8 @@ export const surface = {
             //     }  
             //     ax.surface = ax_surface;
             // }else{ ax.surface = c.surface; }
-            console.log('reckon surface!!!');
+            
+            //console.log('reckon surface!!!');
         }}catch(e){
             //console.log(e);
         }

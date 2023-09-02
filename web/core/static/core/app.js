@@ -195,6 +195,9 @@ function commit_state(arg){
                     value:true,
                 });
             }
+            //if(p.op=='add' && p.path.length==2 && p.path[0]=='n'){
+
+            //}
             return result;
         });
         const inverse_extras = [];

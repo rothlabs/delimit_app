@@ -80,8 +80,8 @@ export const Surface = memo(({n})=>{
                 },
                     c('meshStandardMaterial', {   //meshLambertMaterial
                         map: texture ? texture : gs().base_texture,
-                        //displacementMap: design_act ? shift_map : null,
-                        //displacementScale: 10,
+                        //displacementMap: shift_map ? shift_map : null,
+                        //displacementScale: 4,
                         color: color[1],//theme.primary,//color[2], 
                         wireframe: false, 
                         toneMapped: true, 

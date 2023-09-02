@@ -41,18 +41,17 @@ export const create_design_slice = (set,get)=>({design:{
         }; 
     },
     paint(d, n, e){ // on image
-        d.studio.gizmo_active = true; // this might not be needed? #1
         const ray = d.design.ray_data(d,e);
         //const n = ray.n1;
         //if(!n) return;
         var canvas = d.n[n].c.canvas;
-        var cctx = canvas.getContext("2d");
+        var cctx = canvas.getContext('2d');
         var width = d.n[d.n[n].n.width[0]].v;//canvas.width = d.n[d.n[n].n.width[0]].v; //d.node.get(d, n, 'width')[0];
         var height = d.n[d.n[n].n.height[0]].v;//canvas.height = d.n[d.n[n].n.height[0]].v;
         if(d.n[n].ax.invert) ray.pos.applyMatrix4(d.n[n].ax.invert);
         if(d.n[n].c.invert) ray.pos.applyMatrix4(d.n[n].c.invert);
-        var x = Math.round(( ray.pos.x + 200) / d.easel_size * width);
-        var y = Math.round((-ray.pos.y + 200) / d.easel_size * height);
+        var x = Math.round(( ray.pos.x + d.easel_size/2) / d.easel_size * width);
+        var y = Math.round((-ray.pos.y + d.easel_size/2) / d.easel_size * height);
         const grd = cctx.createRadialGradient(x, y, 5, x, y, brush_radius);
         if(d.design.act == 'painting'){
             grd.addColorStop(0, 'rgba(0, 0, 0, 1)');//'rgba(214, 51, 132, 1)');
@@ -63,7 +62,8 @@ export const create_design_slice = (set,get)=>({design:{
         }
         cctx.fillStyle = grd;
         cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
-        d.node.set(d, n, {data:'live'}); //canvas.toDataURL()
+        d.n[n].c.texture.needsUpdate = true;
+        //d.node.set(d, n, {data:d.n[n].c.data}); //canvas.toDataURL()
     },
     end_paint(d, n){
         d.design.act = null;

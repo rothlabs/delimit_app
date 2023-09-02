@@ -18,7 +18,7 @@ var next_ids = [];
 
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
-    'mixed_curve', 'ellipse', 'surface', 'shape', 'layer', 'image',
+    'mixed_curve', 'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
     'coil', 'post',
 ];
 const cat_tags=[ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
@@ -51,10 +51,10 @@ const float_tags    = [model_tags['f'], // rename to number_tags
     'width', 'height',
     'order', 'current_image',
     'density', 'axis_count', 'axis_angle', 'layer_count', 'speed', 'flow', 'nozzle_diameter', 
-    'color_a', 'color_b',
 ];
 const string_tags = [model_tags['s'], // rename to text_tags
     'name', 'story', 'code', 'data',
+    'color_a', 'color_b',
 ]; 
 const atom_tags   = Object.values(model_tags).slice(1);
 
@@ -112,6 +112,8 @@ export const create_base_slice = (set,get)=>({
         'fill':           'bi-cloud-fog2-fill',
         'corner':         'bi-triangle',
         'post':           'bi-code',
+        'brush':          'bi-brush',
+        'stroke':         'bi-slash-lg',
     },
 
     max_click_delta: 7,

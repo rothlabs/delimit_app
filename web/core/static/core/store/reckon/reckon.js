@@ -8,6 +8,7 @@ import {surface} from './surface.js';
 import {shape} from './shape.js';
 import {layer} from './layer.js';
 import {image} from './image.js';
+import {brush} from './brush.js';
 import {coil} from './coil.js';
 import {post} from './post.js';
 
@@ -29,6 +30,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     surface,
     layer,
     image,
+    brush,
     coil,
     post,
     count: 0,
