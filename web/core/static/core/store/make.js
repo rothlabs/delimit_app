@@ -193,15 +193,28 @@ export const create_make_slice = (set,get)=>({make:{
             axis_y:      d.make.atom(d,'f', -1),
             axis_z:      d.make.atom(d,'f', 0),
             density:     d.make.atom(d,'f', 0.1),
-            nozzle_diameter: d.make.atom(d,'f', 0.4),
+            cord_radius: d.make.atom(d,'f', 0.4),
             speed:       d.make.atom(d,'f', 50),
             flow:        d.make.atom(d,'f', 1),
-            layer_count: d.make.atom(d,'f', 1),
-            axis_count:  d.make.atom(d,'f', 1),
-            axis_angle:  d.make.atom(d,'f', 20),
+            layers: d.make.atom(d,'f', 1),
+            axes:  d.make.atom(d,'f', 1),
+            spread_angle:  d.make.atom(d,'f', 20),
         }});
         d.make.edge(d, d.cats['manual_compute'], n);
         return n;
+    },
+    machine(d, a={}){
+        return d.make.node(d,'p','machine', {...a, n:{ 
+            origin_x:  d.make.atom(d,'f', 0),
+            origin_y:  d.make.atom(d,'f', 0),
+            origin_z:  d.make.atom(d,'f', 0),
+            origin_a:  d.make.atom(d,'f', 0),
+            holder_y:  d.make.atom(d,'f', 0),
+            holder_x1: d.make.atom(d,'f', 0),
+            holder_x2: d.make.atom(d,'f', 0),
+            holder_x3: d.make.atom(d,'f', 0),
+            holder_x4: d.make.atom(d,'f', 0),
+        }});
     },
     // matrix(d, a={}){
     //     if(a.matrix == undefined) a.matrix = new Matrix4();

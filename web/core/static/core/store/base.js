@@ -19,7 +19,7 @@ var next_ids = [];
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
     'mixed_curve', 'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
-    'coil', 'post',
+    'coil', 'post', 'machine',
 ];
 const cat_tags=[ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
@@ -50,7 +50,9 @@ const float_tags    = [model_tags['f'], // rename to number_tags
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
     'width', 'height',
     'order', 'current_image',
-    'density', 'axis_count', 'axis_angle', 'layer_count', 'speed', 'flow', 'nozzle_diameter', 
+    'density', 'axes', 'spread_angle', 'layers', 'speed', 'flow', 'cord_radius', 
+    'origin_x', 'origin_y', 'origin_z', 'origin_a',
+    'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4',
 ];
 const string_tags = [model_tags['s'], // rename to text_tags
     'name', 'story', 'code', 'data',
@@ -114,6 +116,7 @@ export const create_base_slice = (set,get)=>({
         'post':           'bi-code',
         'brush':          'bi-brush',
         'stroke':         'bi-slash-lg',
+        'machine':        'bi-device-ssd',
     },
 
     max_click_delta: 7,

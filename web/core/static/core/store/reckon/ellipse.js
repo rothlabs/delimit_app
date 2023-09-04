@@ -6,14 +6,14 @@ const v1 = new Vector3(0,0,0);
 const up = new Vector3(0,1,0);
 
 export const ellipse = {
-    props: 'x y z axis_x axis_y axis_z radius_a radius_b angle_a angle_b',
+    props: ['x', 'y', 'z', 'axis_x', 'axis_y', 'axis_z', 'radius_a', 'radius_b', 'angle_a', 'angle_b'],
     node(d, n, c, ax, a={}){
         //c.pts = [];
         try{
             delete c.curve;
             delete c.mixed_curve; // rename to fixed_curve ?!?!?!?!?! because it is not rotated
             delete ax.curve;
-            //const c = d.reckon.props(d, n, 'x y z axis_x axis_y axis_z radius_a radius_b angle_a angle_b'); // rename to radius_a and radius_b ?!?!?!?!?!
+
             const curve = new EllipseCurve(
                 0,  0,            // ax, aY
                 c.radius_a, c.radius_b,           // xRadius, yRadius

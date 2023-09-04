@@ -12,7 +12,7 @@ const rail_res = 100; // 60
 const loop_res = 10; // how many extra ribs to make between given ribs
 
 export const surface = {
-    props: 'order current_image',
+    props: ['order', 'current_image'],
     node(d, n, c, ax, a={}){ // need indicator on how to order ribs ?!?!?!?! (ordering by y right now)
         if(d.design.act) return;
         try{if(!(a.cause && a.cause[0]=='casted_matrix')){ // || (a.cause[0].split('__')[0]=='image' && d.design.act)

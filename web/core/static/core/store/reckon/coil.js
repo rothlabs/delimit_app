@@ -34,25 +34,25 @@ const clip_u = 2;
 //const pivot_smooth = 8;
 
 
-export const coil = {
-    props: 'axis_x axis_y axis_z density speed flow nozzle_diameter layer_count axis_count axis_angle',
+export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
+    props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 'cord_radius', 'layers', 'axes', 'spread_angle'],
     view(){ // will run regardless of manual_compute tag 
         // set which layer to show
     },
     node(d, n, c, ax, a={}){
         try{
-            //const c = d.n[n].c;//d.reckon.props(d, n, 'axis_x axis_y axis_z density nozzle_diameter');
+            //const c = d.n[n].c;//d.reckon.props(d, n, 'axis_x axis_y axis_z density cord_radius');
             //const ax = d.n[n].ax;
 
             delete c.paths;
             delete ax.curve;
             delete ax.pts;
             
-            const loop_span = c.nozzle_diameter / c.density; 
+            const loop_span = c.cord_radius / c.density; 
 
             var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
             const end_surf = {};
-            //var axis_count = 1;
+            //var axes = 1;
             if(c.fill){
                 var sn = d.n[n].n.surface; // surface nodes
                 var aon = sn.reduce((sum, sn)=> sum + d.n[sn].c.order, 0) / sn.length; // average order number (for surfaces)
@@ -63,7 +63,7 @@ export const coil = {
                     if(d.n[sn].c.order < aon) surfaces.push(d.n[sn].c.surface)
                     else end_surfaces.push(d.n[sn].c.surface);
                 });
-                //axis_count = 3;
+                //axes = 3;
                 console.log('Compute Coil - end_surf');
                 end_surfaces.forEach(surface => {
                     for(let u=0; u<end_surface_div; u++){ // make this res relative to size of surface #1
@@ -103,16 +103,16 @@ export const coil = {
 
             axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
             axis_t.copy(axis);
-            if(c.axis_count > 1){
+            if(c.axes > 1){
                 ortho1.randomDirection().cross(axis).normalize();
-                axis_t.applyAxisAngle(ortho1, MathUtils.degToRad(c.axis_angle));
+                axis_t.applyAxisAngle(ortho1, MathUtils.degToRad(c.spread_angle));
             }
             const axes = [];
-            for(let i=0; i<c.axis_count; i++){
+            for(let i=0; i<c.axes; i++){
                 ortho1.randomDirection().cross(axis_t).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
                 ortho2.copy(ortho1).cross(axis_t).normalize();
                 axes.push({axis:axis_t.clone(), ortho1:ortho1.clone(), ortho2:ortho2.clone()});
-                axis_t.applyAxisAngle(axis, Math.PI*2 / c.axis_count);
+                axis_t.applyAxisAngle(axis, Math.PI*2 / c.axes);
             }
 
             var sorted_pivots = [];
@@ -147,7 +147,7 @@ export const coil = {
                     if(Math.abs(shift) < max_shift){
                         v7.copy(axis.axis).multiplyScalar(shift); // shift along axis vector to align with coil
                         v8.copy(rs.p).add(v7); // new surface point
-                        v5.copy(v8);//.add(v3.copy(rs.n).multiplyScalar(c.nozzle_diameter * l));
+                        v5.copy(v8);//.add(v3.copy(rs.n).multiplyScalar(c.cord_radius * l));
                         surf_data.push({p:v5.clone(), n:rs.n.clone(), o:axis_pos+shift, sp:v8.clone()}); // don't need to clone rs.n ?!?!?!?!?!
                     }
                 });
@@ -159,7 +159,7 @@ export const coil = {
             const paths = []; 
             const curves = [];
             var surf_data = axes[ai].surf_data;
-            for(let l=0; l<c.layer_count*c.axis_count; l++){ 
+            for(let l=0; l<c.layers*c.axes; l++){ 
                 var point_ref = surf_data[0].p;//paths[0][0].p;
                 var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
                 var box = new Box3();
@@ -232,7 +232,7 @@ export const coil = {
                     for(let ll=0; ll<axes.length; ll++){ 
                         var surf_data = axes[ll].surf_data;
                         for(let i=0; i<surf_data.length; i++){ 
-                            surf_data[i].p.add(v1.copy(surf_data[i].n).multiplyScalar(c.nozzle_diameter));//(c.nozzle_diameter * axes.length));
+                            surf_data[i].p.add(v1.copy(surf_data[i].n).multiplyScalar(c.cord_radius));//(c.cord_radius * axes.length));
                         }
                     }
                 }

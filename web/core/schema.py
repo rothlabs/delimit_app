@@ -29,7 +29,9 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'order', 'current_image',
     'brush', 'color_a', 'color_b',
     'stroke',
-    'density', 'nozzle_diameter', 'speed', 'flow', 'axis_count', 'axis_angle', 'layer_count',
+    'density', 'cord_radius', 'speed', 'flow', 'axes', 'spread_angle', 'layers',
+    'machine', 'origin_x', 'origin_y', 'origin_z', 'origin_a',
+    'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4',
 ]}
 cats = tuple(Part.objects.get_or_create(t=tag[t])[0].id for t in [
     'public', 'top_view', 'side_view', 'auxiliary', 'face_camera', 'manual_compute', #'front_view',

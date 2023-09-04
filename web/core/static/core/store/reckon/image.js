@@ -8,7 +8,7 @@ const curve_div = 2;
 const gradient_res = 10;
 
 export const image = {
-    props: 'width height data order', // rename data to data_url #1
+    props: ['width', 'height', 'data', 'order'], // rename data to data_url #1
     node(d, n, c, ax, a={}){ 
         try{if(!(a.cause && a.cause[0]=='casted_matrix')){
             if(c.canvas && c.canvas.width == c.width && c.canvas.height == c.height && c.canvas.toDataURL()==c.data){
