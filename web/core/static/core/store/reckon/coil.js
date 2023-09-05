@@ -35,7 +35,7 @@ const clip_u = 2;
 
 
 export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
-    props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 'cord_radius', 'layers', 'axes', 'spread_angle'],
+    props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 'cord_radius', 'layers', 'axes', 'spread_angle', 'material'],
     view(){ // will run regardless of manual_compute tag 
         // set which layer to show
     },
@@ -205,7 +205,13 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                                 var curve = new CatmullRomCurve3(pts[0]);
                                 curve.arcLengthDivisions = 2000;
                                 var ribbon = d.geo.surface(d, pts, {length_v:curve.getLength()});
-                                paths.push({ribbon:ribbon, speed:c.speed, flow:c.flow}); // curve:curve, 
+                                paths.push({
+                                    ribbon:   ribbon, 
+                                    speed:    c.speed, 
+                                    flow:     c.flow,
+                                    material: c.material,
+                                    cord_radius: c.cord_radius,
+                                }); // curve:curve, 
                                 curves.push(curve);
                             }
                         }

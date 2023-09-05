@@ -189,16 +189,17 @@ export const create_make_slice = (set,get)=>({make:{
     },
     coil(d, a={}){ // add manual_compute !!!!!!!!!
         var n = d.make.node(d,'p','coil', {...a, n:{
-            axis_x:      d.make.atom(d,'f', 0),
-            axis_y:      d.make.atom(d,'f', -1),
-            axis_z:      d.make.atom(d,'f', 0),
-            density:     d.make.atom(d,'f', 0.1),
-            cord_radius: d.make.atom(d,'f', 0.4),
-            speed:       d.make.atom(d,'f', 50),
-            flow:        d.make.atom(d,'f', 1),
-            layers: d.make.atom(d,'f', 1),
-            axes:  d.make.atom(d,'f', 1),
-            spread_angle:  d.make.atom(d,'f', 20),
+            material:     d.make.atom(d,'s', 'H2O'),
+            axis_x:       d.make.atom(d,'f', 0),
+            axis_y:       d.make.atom(d,'f', -1),
+            axis_z:       d.make.atom(d,'f', 0),
+            density:      d.make.atom(d,'f', 0.1),
+            cord_radius:  d.make.atom(d,'f', 0.4),
+            speed:        d.make.atom(d,'f', 50),
+            flow:         d.make.atom(d,'f', 1),
+            layers:       d.make.atom(d,'f', 1),
+            axes:         d.make.atom(d,'f', 1),
+            spread_angle: d.make.atom(d,'f', 20),
         }});
         d.make.edge(d, d.cats['manual_compute'], n);
         return n;
@@ -214,6 +215,7 @@ export const create_make_slice = (set,get)=>({make:{
             holder_x2: d.make.atom(d,'f', 0),
             holder_x3: d.make.atom(d,'f', 0),
             holder_x4: d.make.atom(d,'f', 0),
+            holder_x5: d.make.atom(d,'f', 0),
         }});
     },
     // matrix(d, a={}){

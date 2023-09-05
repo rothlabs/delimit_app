@@ -5,11 +5,15 @@ import {Vector3, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
 // Home is -1000 for X and Z 
 // Home is 0 for Y
 // For tool +Z at center top of rod: X:-835, Y:-5, Z:-672, A:-58, B:0
+// Y-AXis:
+    // -462 tool clears holder
+    // -504 lined up with holder
 // A-Axis:
-    //0 is limit switch 
-    //-58 aims tool to +Z 
-    //-148 tool aims +Y 
-    //-238 aims tool to -Z  
+    // 0 is limit switch 
+    // -90 carriage can pass tools while moving Y
+    // -105 bar can pass tools while moving Y IF TOOLS LEANING BACK
+    // -108 is almost connecting to tool
+    // -112 bar is in down position (connected to tool)
 /////////////////////////////////////////////////////////////////////
 
 const v1 = new Vector3();
@@ -18,8 +22,9 @@ const v3 = new Vector3();
 const v4 = new Vector3();
 const v5 = new Vector3();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
-const back = new Vector3(0,0,-1);
-const down = new Vector3(0,-1,0);
+const forward = new Vector3(0, 0, 1);
+const back    = new Vector3(0, 0,-1);
+const down    = new Vector3(0,-1, 0);
 
 const ribbon_div = 2;
 const normal_smooth_span = 8; // mm
@@ -36,6 +41,41 @@ const normal_smooth_span = 8; // mm
 //const z_start = -40; 
 const pulloff = 25; // along surface normal
 
+const cmd = {
+    idle:        '000000', // 0
+    air_off_t1:  '100000', // 1
+    heat_off_t2: '010000', // 2
+    heat_off_t3: '110000', // 3
+    heat_off_t4: '001000', // 4
+    air_on_t1:   '101000', // 5
+    heat_on_t2:  '011000', // 6
+    heat_on_t3:  '111000', // 7
+    heat_on_t4:  '000100', // 8
+    flow_t1a:    '100100', // 9,  H2O
+    flow_t1b:    '010100', // 10, PVA
+    flow_t1c:    '110100', // 11, PU
+    step_t2:     '001100', // 12, PLA
+    step_t3:     '101100', // 13, TPU coarse
+    step_t4:     '011100', // 14, TPU fine
+    laser_t5:    '111100', // 15
+    fiber_off_t5:'000010', // 16
+    fiber_on_t5: '100010', // 17
+};
+
+const cmd_interval = 0.01; 
+const approx_rapid_interval = cmd_interval;
+const preheat_interval = 60;
+
+const cord_radius_transition = 0.4;
+
+// const state = {
+//     air: false,
+//     heat_t1: false,
+//     heat_t2: false,
+//     heat_t3: false,
+//     heat_t4: false,
+// };
+
 
 export const post = {
     node(d, n, c, ax, a={}){ // make wrapper function to inser c and ax on every node reckon function ?!?!?!?!?! 
@@ -45,37 +85,49 @@ export const post = {
             delete ax.curve;
             
             const mach = d.n[d.n[n].n.machine[0]].c;
-            const tools = [null,{x:mach.holder_x1},{x:mach.holder_x2},{x:mach.holder_x3},{x:mach.holder_x4}];
-            const meta = [{i:0, time:0}];
-            const code = ['Delimit Slicer', 'G21 G90 G93', 'G92 B0', 'M3 S0'];//g21=mm, g90=absolute, g93=inverse-time-feed, g92=reset-axis
+            const tools = [null,{x:mach.holder_x1},{x:mach.holder_x2},{x:mach.holder_x3},{x:mach.holder_x4},{x:mach.holder_x5}];
+            const code = ['(Delimit Slicer)', 'G21 G90 G93', 'G92 B0', 'M3 S0', ''];//g21=mm, g90=absolute, g93=inverse-time-feed, g92=reset-axis
+            const cmd_slots = [{i:code.length, time:0}]; // rename to cmd_slots? #1
+            const cmds = [];
+            const heat_cmds = [];
             var model_y = null;
             var time = 0;
+            var prev_cmd_time = 0;
             var tool = 0; // no tool
             var axis_a = 0; 
             var axis_b = 0; // need to set to start of path 
 
             function move(a={}){
+                //console.log(cmds);
+                var cl = '';
                 let offset_y = 0;
                 if(a.model) offset_y = model_y;
                 if(a.p){a.x=a.p.x; a.y=a.p.y; a.z=a.p.z}
-                var cl = ' X'+d.rnd(mach.origin_x+a.x, 1000)+' Y'+d.rnd(mach.origin_y+a.y+offset_y, 1000)+' Z'+d.rnd(mach.origin_z-a.z, 1000);
-                if(a.a) cl += ' A'+d.rnd(mach.origin_a+MathUtils.radToDeg(-a.a), 1000);
-                if(a.b) cl += ' B'+d.rnd(MathUtils.radToDeg(-a.b), 1000);
+                if(a.x != undefined) cl += ' X'+d.rnd(mach.origin_x+a.x, 1000);
+                if(a.y != undefined) cl += ' Y'+d.rnd(mach.origin_y+a.y+offset_y, 1000);
+                if(a.z != undefined) cl += ' Z'+d.rnd(mach.origin_z-a.z, 1000);
+                if(a.a != undefined) cl += ' A'+d.rnd(mach.origin_a+MathUtils.radToDeg(-a.a), 1000);
+                if(a.b != undefined) cl += ' B'+d.rnd(MathUtils.radToDeg(-a.b), 1000);
+                if(time - prev_cmd_time > cmd_interval){
+                    if(cmds.length > 0) code.push(...write_cmd(cmds.shift()))
+                    else cmd_slots.push({i:code.length, time:time});
+                    prev_cmd_time = time;
+                }
                 if(a.speed){
                     cl = 'G1' + cl + ' F'+d.rnd((a.speed / a.dist) * 60, 1000);
                     time += a.dist / a.speed;
-                    meta.push({i:code.length, time:time});
                 }else{
                     cl = 'G0' + cl;
+                    if(!a.no_time) time += approx_rapid_interval;
                 }
                 code.push(cl);
             }
             function pick_tool(id){
                 if(tool == id) return;
-                code.push('(Pick Tool '+id+')');
+                code.push('(Tool '+id+')');
                 if(tool > 0){
-                    move({x:tools[tool].x, a:0}); // position above holder
-                    move({y:mach.holder_y}); // move into holder
+                    move({x:tools[tool].x, a:0, abs:true}); // position above holder
+                    move({y:mach.holder_y, abs:true}); // move into holder
                 }
                 move({a:-.2}); // rotate back from holder (radians)
                 if(id > 0){
@@ -86,28 +138,33 @@ export const post = {
                 }
                 move({y: mach.holder_y + 150}); // move to clearance height
                 tool = id;
+                code.push('');
             }
-            function heat(id){
-                code.push('(Heat '+id+')');
-                if(id==1) code.push('M64 P0', 'M65 P1', 'M65 P2', 'M65 P3'); // PVA 
-                if(id==2) code.push('M65 P0', 'M64 P1', 'M65 P2', 'M65 P3'); // PLA
-                if(id==3) code.push('M64 P0', 'M64 P1', 'M65 P2', 'M65 P3'); // TPU
-                //code.push('G4 P0.02'); // delay 20ms so other controller can read
-            }
-            function flow(id){
-                code.push('(Flow '+id+')');
-                if(id==1.1) code.push('M65 P0', 'M65 P1', 'M64 P2', 'M65 P3'); // H2O 
-                if(id==1.2) code.push('M64 P0', 'M65 P1', 'M64 P2', 'M65 P3'); // PVA 
-                if(id==1.3) code.push('M65 P0', 'M64 P1', 'M64 P2', 'M65 P3'); // PU
-                if(id==2)   code.push('M64 P0', 'M64 P1', 'M64 P2', 'M65 P3'); // PLA
-                if(id==3)   code.push('M65 P0', 'M65 P1', 'M65 P2', 'M64 P3'); // TPU
-            }
-            function plug(id){
-                code.push('(Plug '+id+')');
-                if(id==2) code.push('M64 P0', 'M65 P1', 'M65 P2', 'M64 P3'); // PLA 
-                if(id==3) code.push('M65 P0', 'M64 P1', 'M65 P2', 'M64 P3'); // TPU 
+            function write_cmd(id){
+                let bits = id.split('').map(v=> parseInt(v));
+                var bc = ['(Cmd '+(bits[0]+bits[1]*2+bits[2]*4+bits[3]*8+bits[4]*16+bits[5]*32)+')'];
+                bc.push('M9'); // turn off M7 (mist) and M8 (flood)
+                if(bits[0]){ bc.push('M64 P0') }else{ bc.push('M65 P0') } // Aux0
+                if(bits[1]){ bc.push('M64 P1') }else{ bc.push('M65 P1') } // Aux1
+                if(bits[2]){ bc.push('M64 P2') }else{ bc.push('M65 P2') } // Aux2
+                if(bits[3])  bc.push('M7'); // Mist 
+                if(bits[4])  bc.push('M8'); // Flood
+                if(bits[5]){ bc.push('M4') }else{ bc.push('M3') }; // spindle dir
+                bc.push('');
+                return bc;
             }
 
+            function push_cmd(id){
+                if(cmds.at(-1) != id) cmds.push(id);
+            }
+
+            function push_heat_cmd(hc){
+                if(heat_cmds.length > 0){
+                    if(heat_cmds.at(-1).cmd != hc.cmd) heat_cmds.push(hc);
+                }else{
+                    heat_cmds.push(hc);
+                }
+            }
 
             var paths = [];
             function get_paths(nn){ // make this a general recursive func for getting all of some name #1
@@ -122,28 +179,36 @@ export const post = {
             }
             get_paths(n);
 
-        
-            //var total_length = 0;
-            //const paths = [];
-
-            
-            //v1.set(nml[0].x, 0, nml[0].z);
-            //let shift_angle_b = back.angleTo(v1) * Math.sign(nml[0].x);
-            //var axis_a = -58; // tool points Z+
-            //var pos = new Vector3();
-
-
-            // code += 'G1 Z'+(origin_z-pts[0].z)+' F30 \r\n \r\n';
-
-            
-
             const curves = [];
             paths.forEach((path, pi)=>{
-                if(['AIR', 'H2O', 'PVA', 'PU'].includes(path.material)) pick_tool(1);
-                if(path.material == 'PLA') pick_tool(2);
-                if(path.material == 'TPU') pick_tool(3);
-
-                
+                if(path.material == 'AIR'){
+                    pick_tool(1);
+                    push_cmd(cmd.air_on_t1);
+                }else if(path.material == 'H2O'){
+                    pick_tool(1);
+                    push_cmd(cmd.flow_t1a);
+                }else if(path.material == 'PVA'){
+                    pick_tool(1);
+                    push_cmd(cmd.flow_t1b);
+                }else if(path.material == 'PU'){
+                    pick_tool(1);
+                    push_cmd(cmd.flow_t1c);
+                }else if(path.material == 'PLA'){
+                    pick_tool(2);
+                    push_cmd(cmd.step_t2);
+                    push_heat_cmd({time:time, cmd:cmd.heat_on_t2});
+                    code.push('M66 P0 L3', ''); // Hotend ready?
+                }else if(path.material == 'TPU' && path.cord_radius >= cord_radius_transition){
+                    pick_tool(3);
+                    push_cmd(cmd.step_t3);
+                    push_heat_cmd({time:time, cmd:cmd.heat_on_t3});
+                    code.push('M66 P1 L3', ''); // Hotend ready?
+                }else if(path.material == 'TPU' && path.cord_radius < cord_radius_transition){
+                    pick_tool(4);
+                    push_cmd(cmd.step_t4);
+                    push_heat_cmd({time:time, cmd:cmd.heat_on_t4});
+                    code.push('M66 P2 L3', ''); // Hotend ready?
+                }
 
                 var curve = new CurvePath();
                 curve.arcLengthDivisions = 2000;
@@ -155,6 +220,7 @@ export const post = {
 
                 //var length = path.ribbon.length_v; //path.curve.getLength(); 
                 //total_length += length;
+                // Collect point, normal, distance, and normal reference:
                 var res = path.ribbon.length_v / ribbon_div; 
                 for(let v=0; v<res; v++){
                     pts.push(new Vector3());
@@ -169,6 +235,7 @@ export const post = {
                     }
                 }
 
+                // Smooth normals over travel:
                 var pt_span = curve.getLength() / pts.length;
                 var range = Math.round(normal_smooth_span / pt_span / 2) + 1; // remove +1? #2
                 for(let i=0; i<nml.length; i++){ 
@@ -193,24 +260,25 @@ export const post = {
                     nml[i].applyMatrix4(m1);
                 }
 
-                code.push('(Path '+pi+')');
+                // Write tool paths  to gcode:
+                code.push('(Path '+pi+')', '');
                 rotate_point_normal(0, axis_b);
                 for(let i=0; i<pts.length; i++){ 
                     v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
-                    var shift_b = back.angleTo(v1) * Math.sign(nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
+                    var shift_b = forward.angleTo(v1) * Math.sign(-nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
                     rotate_point_normal(i, shift_b);
                     v1.set(0, nml[i].y, nml[i].z); //v1.set(normal.x, 0, normal.z);//
                     axis_a = down.angleTo(v1) * Math.sign(nml[i].z);
                     axis_b += shift_b;
                     if(i == 0){
                         v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
-                        move({p:v2, a:axis_a, b:axis_b, model:true});
-                        move({p:pts[i], model:true});
-                        code += 'S'+Math.round(path.flow * path.speed * 10); // S1000 = 100mm/s 
+                        move({p:v2, a:axis_a, b:axis_b, model:true, no_time:true});
+                        move({p:pts[i], model:true, no_time:true});
+                        code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
                     }else if(i == pts.length-1){
-                        code += 'S0';
+                        code.push('S0');
                         v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
-                        move({p:v2, model:true});
+                        move({p:v2, model:true, no_time:true});
                     }else{
                         move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], model:true});
                     }
@@ -227,16 +295,36 @@ export const post = {
                 // ribbon.get_point(1, 1, v2); v2.sub(v1); // start normal
                 // v3.copy(v1).add(v4.copy(v2).multiplyScalar(pulloff));
                 // move('G0', v3);
-
-
                 //paths.push({ribbon:ribbon, speed:path.speed, flow:path.flow});
+
+                if(pi < paths.length-1){
+                    if(path.material == 'AIR' && paths[pi+1].material != 'AIR'){
+                        push_cmd(cmd.air_off_t1);
+                    }else if(path.material == 'PLA' && paths[pi+1].material != 'PLA'){
+                        push_cmd(cmd.heat_off_t2);
+                    }else if((path.material == 'TPU' && path.cord_radius >= cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius >= cord_radius_transition)){
+                        push_cmd(cmd.heat_off_t3);
+                    }else if((path.material == 'TPU' && path.cord_radius < cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius < cord_radius_transition)){
+                        push_cmd(cmd.heat_off_t4);
+                    }
+                }
+                code.push('');
             });
 
 
+            for(let i = heat_cmds.length-1; i >= 0; i--){
+                for(let k = cmd_slots.length-1; k >= 0; k--){
+                    if(heat_cmds[i].time - cmd_slots[k].time > preheat_interval || k == 0){
+                        code.splice(cmd_slots[k].i, 0, ...write_cmd(heat_cmds[i].cmd));
+                        break;
+                    }
+                    // if(k == 0){
+                    //     code.splice(cmd_slots[k].i, 0, [...write_cmd(heat_cmds[i].cmd), 'M66 P0 L3']); // wait for preheat
+                    // }
+                }
+            }
 
-
-
-
+            code.push(...write_cmd(cmd.idle));
 
             c.code = code.join('\r\n');
             //c.surface = ribbon;
@@ -246,6 +334,85 @@ export const post = {
         } 
     }, 
 };
+
+
+
+
+            //var total_length = 0;
+            //const paths = [];
+            //v1.set(nml[0].x, 0, nml[0].z);
+            //let shift_angle_b = back.angleTo(v1) * Math.sign(nml[0].x);
+            //var axis_a = -58; // tool points Z+
+            //var pos = new Vector3();
+            // code += 'G1 Z'+(origin_z-pts[0].z)+' F30 \r\n \r\n';
+
+
+
+// code.push('G4 P0.02');
+// push_cmd(cmd.idle);
+// code.push('G4 P0.02');
+// push_cmd(cmd.air_off_t1);
+// code.push('G4 P0.02');
+// push_cmd(cmd.heat_off_t2);
+// code.push('G4 P0.02');
+// push_cmd(cmd.heat_off_t3);
+// code.push('G4 P0.02');
+// push_cmd(cmd.heat_off_t4);
+// code.push('G4 P0.02');
+// push_cmd(cmd.air_on_t1);
+// code.push('G4 P0.02');
+// push_cmd(cmd.heat_on_t2);
+// code.push('G4 P0.02');
+// push_cmd(cmd.heat_on_t3);
+// code.push('G4 P0.02');
+// push_cmd(cmd.heat_on_t4);
+// code.push('G4 P0.02');
+// push_cmd(cmd.flow_t1a);
+// code.push('G4 P0.02');
+// push_cmd(cmd.flow_t1b);
+// code.push('G4 P0.02');
+// push_cmd(cmd.flow_t1c);
+// code.push('G4 P0.02');
+// push_cmd(cmd.step_t2);
+// code.push('G4 P0.02');
+// push_cmd(cmd.step_t3);
+// code.push('G4 P0.02');
+// push_cmd(cmd.step_t4);
+// code.push('G4 P0.02');
+// push_cmd(cmd.laser_t5);
+// code.push('G4 P0.02');
+// push_cmd(cmd.fiber_off_t5);
+// code.push('G4 P0.02');
+// push_cmd(cmd.fiber_on_t5);
+// c.code = code.join('\r\n');
+// return
+
+
+
+
+
+// function heat(id){
+//     code.push('(Heat Tool: '+id+')');
+//     code.push('M9'); // turn off M7 and M8
+//     if(id==1) code.push('M64 P0', 'M65 P1', 'M65 P2', 'M65 P3'); // PVA 
+//     if(id==2) code.push('M65 P0', 'M64 P1', 'M65 P2', 'M65 P3'); // PLA
+//     if(id==3) code.push('M64 P0', 'M64 P1', 'M65 P2', 'M65 P3'); // TPU
+//     if(id==4) code.push('M64 P0', 'M64 P1', 'M65 P2', 'M65 P3'); // TPU
+//     //code.push('G4 P0.02'); // delay 20ms so other controller can read
+// }
+// function flow(id){
+//     code.push('(Flow '+id+')');
+//     if(id==1.1) code.push('M65 P0', 'M65 P1', 'M64 P2', 'M65 P3'); // H2O 
+//     if(id==1.2) code.push('M64 P0', 'M65 P1', 'M64 P2', 'M65 P3'); // PVA 
+//     if(id==1.3) code.push('M65 P0', 'M64 P1', 'M64 P2', 'M65 P3'); // PU
+//     if(id==2)   code.push('M64 P0', 'M64 P1', 'M64 P2', 'M65 P3'); // PLA
+//     if(id==3)   code.push('M65 P0', 'M65 P1', 'M65 P2', 'M64 P3'); // TPU
+// }
+// function plug(id){
+//     code.push('(Plug '+id+')');
+//     if(id==2) code.push('M64 P0', 'M65 P1', 'M65 P2', 'M64 P3'); // PLA 
+//     if(id==3) code.push('M65 P0', 'M64 P1', 'M65 P2', 'M64 P3'); // TPU 
+// }
 
 
 
