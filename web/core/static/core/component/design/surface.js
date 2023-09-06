@@ -48,7 +48,11 @@ export const Surface = memo(({n})=>{
                 MathUtils.clamp(Math.round(surface.length_u/div), 2, 100000), 
                 MathUtils.clamp(Math.round(surface.length_v/div), 2, 100000),
             );
-            if(new_geo) obj.current.geometry.copy(new_geo);
+            if(new_geo){
+                console.log('surface geometry');
+                console.log(new_geo);
+                obj.current.geometry.copy(new_geo);
+            }
         }
     });
     //console.log('render surface');

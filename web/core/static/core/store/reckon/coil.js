@@ -78,6 +78,7 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                         }
                     }
                 });
+                console.log('Compute Coil - done end_surf');
                 Object.values(end_surf).forEach(es=>{
                     v1.set(0,0,0);
                     es.nml.forEach(nml=> v1.add(nml));
@@ -99,6 +100,7 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                     }
                 }
             });
+            console.log('Compute Coil - done raw_surf');
             
 
             axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
