@@ -2,6 +2,8 @@ import {current} from 'immer';
 import {Vector3, Matrix4, MathUtils, Ray, CatmullRomCurve3, Box3, Raycaster, Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath} from 'three';
 //import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
+import gpuJs from 'gpu';
+const gpu = new gpuJs.GPU();
 
 const v1 = new Vector3();
 const v2 = new Vector3();
@@ -14,14 +16,17 @@ const v8 = new Vector3();
 const v9 = new Vector3();
 const m1 = new Matrix4();
 
+const point = new Vector3();
+const normal = new Vector3();
+
 const axis = new Vector3();
 const axis_t = new Vector3();
 const ortho1 = new Vector3();
 const ortho2 = new Vector3();
 
 //const loop_span = 5; 
-//const origin_surface_res = 800;
-const surface_div = 1000;
+//const origin_surface_res = 1000;
+const surface_div = 500;
 const end_surface_div = 900;
 const end_box_size = 2;
 const max_shift = .1;
@@ -91,15 +96,37 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
 
             
             console.log('Compute Coil - raw_surf');
-            const raw_surf = [];
-            surfaces.forEach(surface => {
-                for(let u=clip_u; u<surface_div-clip_u; u++){ // make this res relative to size of surface !!!!!!!
-                    for(let v=0; v<surface_div; v++){ 
-                        surface.get_point_normal(u/surface_div, v/surface_div, v1, v2);
-                        raw_surf.push({p:v1.clone(), n:v2.clone()});
-                    }
-                }
-            });
+            //const raw_surf = [];
+            var raw_pts = [];
+            var raw_nml = [];
+            var get_point = surfaces[0].getPoint;
+            console.log(get_point);
+            gpu.addFunction(get_point);
+            const kernel = gpu.createKernel(function() {
+                get_point(this.thread.x/512, this.thread.y/512, point);
+                return point.x;
+                //return this.thread.x + this.thread.y;
+            }).setOutput([512, 512]);
+            console.log(kernel());
+
+
+            //surfaces.forEach(surface => {
+                // let geo = new ParametricGeometry(
+                //     surface.get_point, 
+                //     surface_div, 
+                //     surface_div,
+                // );
+                // raw_pts = raw_pts.concat(geo.attributes.position.array);
+                // raw_nml = raw_nml.concat(geo.attributes.normal.array);
+
+            //     for(let u=clip_u; u<surface_div-clip_u; u++){ // make this res relative to size of surface !!!!!!!
+            //         for(let v=0; v<surface_div; v++){ 
+            //             surface.get_point_normal(u/surface_div, v/surface_div, v1, v2);
+            //             raw_surf.push({p:v1.clone(), n:v2.clone()});
+            //         }
+            //     }
+            //});
+            console.log(raw_pts)
             console.log('Compute Coil - done raw_surf');
             
 
@@ -121,12 +148,16 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
             axes.forEach((axis, l)=>{
                 console.log('Compute Coil - pivots');
                 const pivots = {};
-                raw_surf.forEach(rs=>{
-                    v2.copy(rs.p).projectOnVector(axis.axis);
+                //raw_surf.forEach(rs=>{
+                for(let i=0; i < raw_pts.length-3; i+=3){
+                    //v2.copy(rs.p).projectOnVector(axis.axis);
+                    point.set(raw_pts[i],raw_pts[i+1],raw_pts[i+2]);
+                    v2.copy(point).projectOnVector(axis.axis);
                     let k = Math.round(v2.length()*Math.sign(v2.dot(axis.axis))*4);
                     if(!pivots['k'+k]) pivots['k'+k] = {b:new Box3(), v: new Vector3()};
-                    pivots['k'+k].b.expandByPoint(rs.p);
-                });
+                    pivots['k'+k].b.expandByPoint(point);
+                }
+                //});
                 Object.values(pivots).forEach(pivot=> pivot.b.getCenter(pivot.v));
                 var pvt = Object.entries(pivots).map(([k,v],i)=> ({k: parseInt(k.slice(1)), v:v.v}));
                 pvt.sort((a,b)=> a.k-b.k);
@@ -135,11 +166,14 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                 //axis.pivots = pivots;
                 console.log('Compute Coil - surf_data');
                 var surf_data = [];
-                raw_surf.forEach(rs=>{
-                    v2.copy(rs.p).projectOnVector(axis.axis); // axis point
+                //raw_surf.forEach(rs=>{
+                for(let i=0; i < raw_pts.length-3; i+=3){
+                    point.set(raw_pts[i],raw_pts[i+1],raw_pts[i+2]);
+                    normal.set(raw_nml[i],raw_nml[i+1],raw_nml[i+2]);
+                    v2.copy(point).projectOnVector(axis.axis); // axis point
                     let axis_pos = v2.length()*Math.sign(v2.dot(axis.axis));
                     let pivot = pivots['k'+Math.round(axis_pos*4)].v;
-                    v4.copy(rs.p).sub(pivot); // vector from pivot to surface point
+                    v4.copy(point).sub(pivot); // vector from pivot to surface point
                     var angle = v4.angleTo(axis.ortho1) * Math.sign(v4.dot(axis.ortho2)); 
                     if(angle < 0) angle += Math.PI*2;
                     var shift = -((axis_pos + (angle/(Math.PI*2))*loop_span) % loop_span); // remainder
@@ -150,9 +184,10 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                         v7.copy(axis.axis).multiplyScalar(shift); // shift along axis vector to align with coil
                         v8.copy(rs.p).add(v7); // new surface point
                         v5.copy(v8);//.add(v3.copy(rs.n).multiplyScalar(c.cord_radius * l));
-                        surf_data.push({p:v5.clone(), n:rs.n.clone(), o:axis_pos+shift, sp:v8.clone()}); // don't need to clone rs.n ?!?!?!?!?!
+                        surf_data.push({p:v5.clone(), n:normal.clone(), o:axis_pos+shift, sp:v8.clone()}); // don't need to clone rs.n ?!?!?!?!?!
                     }
-                });
+                }
+                //});
                 surf_data.sort((a,b)=> a.o-b.o);
                 axis.surf_data = surf_data;
             });
