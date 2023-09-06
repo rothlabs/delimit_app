@@ -78,7 +78,6 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                         }
                     }
                 });
-                console.log('Compute Coil - done end_surf');
                 Object.values(end_surf).forEach(es=>{
                     v1.set(0,0,0);
                     es.nml.forEach(nml=> v1.add(nml));
@@ -87,6 +86,7 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                     es.p.setFromNormalAndCoplanarPoint(v1, v2);//*Math.sign(v1.dot(v2))); // do I need to clone v1? #1
                     //console.log(es.p);
                 });
+                console.log('Compute Coil - done end_surf');
             }
 
             
