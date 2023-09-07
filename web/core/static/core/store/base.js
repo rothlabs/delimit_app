@@ -191,6 +191,15 @@ export const create_base_slice = (set,get)=>({
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
+    join_float_32_arrays(arrays){
+        const lengths = arrays.map(v=> v.length);
+        const result = new Float32Array(lengths.reduce((a,b)=>a+b,0));
+        for (let i=0; i<arrays.length; i++){
+            let start = lengths.slice(0,i).reduce((a,b)=>a+b,0);
+            result.set(arrays[i], start); 
+        }
+        return result;
+    },
     // try(...funcs){
     //     const result = null;
     //     for(var i=0; i<funcs.length; i++){
