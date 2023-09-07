@@ -41,15 +41,20 @@ const raw_point_count = surface_div*surface_div;
 
 const gpu = new gpuJs.GPU();
 
-const get_shift_idx = gpu.createKernel(function(points, slice_div, half_slice_count){ // axis_x, axis_y, axis_z, 
-    var yi = this.thread.x*3 + 1;
-    var shift = -(points[yi] % slice_div); 
+//     v2.copy(point).projectOnVector(axis.axis); // axis point
+//     let axis_pos = v2.length()*Math.sign(v2.dot(axis.axis));
+
+const get_shift_idx = gpu.createKernel(function(points, slice_div, half_slice_count, ax, ay, az){ // axis_x, axis_y, axis_z, 
+    var i = this.thread.x*3;
+    var axis_pos = points[i]*ax + points[i+1]*ay + points[i+2]*az;
+    var shift = -(axis_pos % slice_div); //-(points[i+1] % slice_div); 
     var abs_shift = Math.abs(shift);
     if (abs_shift > slice_div/2){ 
         shift = -(slice_div-abs_shift)*Math.sign(shift);
     }
     if(Math.abs(shift) < this.constants.max_shift){
-        var slice = Math.round((points[yi]+shift)/slice_div) + half_slice_count;
+        //var slice = Math.round((points[i+1]+shift)/slice_div) + half_slice_count;
+        var slice = Math.round((axis_pos+shift)/slice_div) + half_slice_count;
         return [slice, shift];
     }else{
         return [-10, 0]; //[0, this.constants.max_shift+1]; 
@@ -170,7 +175,7 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
 
                     console.log('Coil, get_shift_idx');
                     const half_slice_count = Math.round(d.easel_size/slice_div/2);
-                    const shift_idx = get_shift_idx(offset_pts, slice_div, half_slice_count);
+                    const shift_idx = get_shift_idx(offset_pts, slice_div, half_slice_count, axis.axis.x, axis.axis.y, axis.axis.z);
                     //console.log(shift_idx);
                     
                     shifted_pts.set(offset_pts);
@@ -180,7 +185,9 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                         if(k > -1){
                             if(!slice_idx[k]) slice_idx[k] = [];
                             slice_idx[k].push(i);//[i, shift_idx[i][1]]);
-                            shifted_pts[i*3+1] += shift_idx[i][1]; // shift point along y !!!
+                            shifted_pts[i*3]   += axis.axis.x*shift_idx[i][1];
+                            shifted_pts[i*3+1] += axis.axis.y*shift_idx[i][1]; 
+                            shifted_pts[i*3+2] += axis.axis.z*shift_idx[i][1];
                         }
                     }
                     var point_count = 0;
@@ -273,14 +280,14 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
 
 
             var ai = -1; // axis index
-            var raw_path = axes[ai].raw_path;
+            //var raw_path = axes[ai].raw_path;
             for(let l=0; l<c.layers*c.axes; l++){ 
                 ai++; 
                 if(ai > axes.length-1){
                     ai = 0;
                     compute_axes_surf_data({offset:c.cord_radius*(l+1)}); ////////
                 }
-                raw_path = axes[ai].raw_path;
+                var raw_path = axes[ai].raw_path;
 
                 var point_ref = raw_path[0].p;//paths[0][0].p;
                 var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
