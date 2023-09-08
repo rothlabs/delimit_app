@@ -38,7 +38,7 @@ const clip_u = 2;
 
 //const raw_point_count = surface_div*surface_div;
 //const max_slice_count = 100000;
-const axis_ratio = 0.02;
+const axis_ratio = 0.01;
 
 const gpu = new gpuJs.GPU();
 
@@ -159,9 +159,9 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                 var z = 0;
                 for(let i = 0; i < chunk; i++){//for(let i = pi*this.constants.chunk; i < (pi+1)*this.constants.chunk; i++){
                     var ci = ((pi*chunk) + i) * 3;
-                    var tx = src_pts[ci] + (src_nml[ci] * layer_div * li);
-                    var ty = src_pts[ci+1] + (src_nml[ci+1] * layer_div * li);
-                    var tz = src_pts[ci+2] + (src_nml[ci+2] * layer_div * li);
+                    var tx = src_pts[ci]   + (src_nml[ci]   * layer_div * (li+6));
+                    var ty = src_pts[ci+1] + (src_nml[ci+1] * layer_div * (li+6));
+                    var tz = src_pts[ci+2] + (src_nml[ci+2] * layer_div * (li+6));
                     var axis_pos = tx*ax[ai] + ty*ay[ai] + tz*az[ai];
                     var test_shift = -(axis_pos % slice_div); //-(points[i+1] % slice_div); 
                     var abs_shift = Math.abs(test_shift);
@@ -175,7 +175,7 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                         z = tz;
                     }
                 }
-                if(Math.abs(shift) > max_shift) return [-10, -1000, -1000, -1000];
+                if(Math.abs(shift) > max_shift) return [-10, -100, -100, -100];
                 slice = Math.round((slice+shift)/slice_div) + half_slice_cnt;
                 src_idx /= chunk;//this.constants.chunk;
                 x += ax[ai] * shift;
@@ -201,14 +201,14 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                 var li = this.thread.z;
                 var dist = 100000;
                 var link = -1;
-                if(axis_pts[li][ai][pi][0] < 0) return [-10, -10];
+                if(axis_pts[li][ai][pi][0] < 0) return -10;//[-10, -10];
                 var slice = Math.floor(axis_pts[li][ai][pi][0]);
                 var p0x = axis_pts[li][ai][pi][1];
                 var p0y = axis_pts[li][ai][pi][2];
                 var p0z = axis_pts[li][ai][pi][3];
                 //var link2 = -1;
-                if(p0x < -500) return [-10,-10];
-                if(slice < 0) return [-10, -10];
+                if(p0x < -500) return -10;//[-10, -10];
+                if(slice < 0) return -10;//[-10, -10];
                 for(let i = 0; i < axis_pnt_cnt; i++){ //this.thread.x+1
                     if(pi != i){
                         //slice = Math.floor(axis_pts[li][ai][pi][0]);
@@ -240,7 +240,7 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                         }
                     }
                 }
-                return [slice, link];//[link, link2, 0];
+                return link;//[slice, link];//[link, link2, 0];
             },{
                 loopMaxIterations: axis_pnt_cnt,
                 //constants: {axis_pnt_cnt: axis_pnt_cnt},
@@ -252,31 +252,32 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
             console.log('Slice: src_paths');
             const src_paths = [];
             const used = new Array(axis_pnt_cnt).fill(false);
-            for(let li = 0; li < c.layers; li++){
+            function push_src_path_pnt(li, ai, pi){ // could just save list of indices 
+                //if(axis_pts[li][ai][i][1] < -500) return;
+                //console.log(i);
+                //console.log(axis_pts[li][ai]);
+                if(links[li][ai][pi][1] < 0 || links[li][ai][pi][0] < 0){
+                    console.log('links less than zero!');
+                    console.log(links[li][ai][pi]);
+                }
+                v1.set(axis_pts[li][ai][pi][1], axis_pts[li][ai][pi][2], axis_pts[li][ai][pi][3]);
+                //console.log(i);
+                var k = ((pi*chunk + Math.round((axis_pts[li][ai][pi][0] % 1)*chunk))) * 3;
+                //console.log(i);
+                v2.set(src_pts[k], src_pts[k+1], src_pts[k+2]);
+                v3.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
+                src_paths[li][ai].push({
+                    p:       v1.clone(),
+                    src_pnt: v2.clone(),
+                    src_nml: v3.clone(), 
+                });
+            }
+            for(var li = 0; li < c.layers; li++){
                 src_paths.push([]);
-                for(let ai=0; ai < c.axes; ai++){ 
-                    src_paths.at(-1).push([]);
+                for(var ai = 0; ai < c.axes; ai++){ 
+                    src_paths[li].push([]);
                     //links[li][ai].reverse();
-                    function push_src_path_pnt(i){ // could just save list of indices 
-                        if(axis_pts[li][ai][i][1] < -500) return;
-                        //console.log(i);
-                        //console.log(axis_pts[li][ai]);
-                        if(links[li][ai][i][1] < 0 || links[li][ai][i][0] < 0){
-                            console.log('links less than zero!');
-                            console.log(links[li][ai][i]);
-                        }
-                        v1.set(axis_pts[li][ai][i][1], axis_pts[li][ai][i][2], axis_pts[li][ai][i][3]);
-                        //console.log(i);
-                        var k = ((i*chunk + Math.round((axis_pts[li][ai][i][0] % 1)*chunk))) * 3;
-                        //console.log(i);
-                        v2.set(src_pts[k], src_pts[k+1], src_pts[k+2]);
-                        v3.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
-                        src_paths.at(-1).at(-1).push({
-                            p:       v1.clone(),
-                            src_pnt: v2.clone(),
-                            src_nml: v3.clone(), 
-                        });
-                    }
+
                     
                     // var idx = 0;
                     // for(let i=0; i < axis_pnt_cnt; i++){  
@@ -285,23 +286,23 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                     // }
                     //links[li][ai].sort((a,b)=> a[0]-b[0]);
                     used.fill(false);
+                    console.log(used);
                     //for(let s=0; s < half_slice_cnt; s++){  
                         for(let i=0; i < axis_pnt_cnt; i++){ 
-                            var idx = i;  
-                            var l0 = links[li][ai][idx];
-                            if(l0[0] < 0 || l0[1] < 0) continue;
-                            while(!(idx < 0 || used[idx])){
+                            var pi = i;  
+                            if(links[li][ai][pi] < 0) continue; // redundant ?!
+                            while(!(pi < 0 || used[pi])){
                                 //if(axis_pts[li][ai][idx][1] < -400 && links[li][ai][idx]) console.log('oh my fing god');
                                 //if(links[li][ai][idx][1] < 0 || used[links[li][ai][idx][1]]) break;
                                 // }else{
                                 //     if(links[li][ai][links[li][ai][idx]] < 0 || used[links[li][ai][links[li][ai][idx]]]) break;
                                 // }
-                                //if(links[li][ai][idx][0] != s || links[li][ai][idx][1] < 0) break;
+                                //if(links[li][ai][idx][0] != s) break;// || links[li][ai][idx][1] < 0) break;
                                 //console.log(links[li][ai][idx][1]);
                                 //if(axis_pts[li][ai][links[li][ai][idx][1]][1] < 0) console.log('less then zero!!!!!');
-                                push_src_path_pnt(idx);
-                                used[idx] = true;
-                                idx = links[li][ai][idx][1];
+                                push_src_path_pnt(li, ai, pi);
+                                used[pi] = true;
+                                pi = links[li][ai][pi];
                                 //if(idx < 0) break;
                             }
                         }
@@ -354,11 +355,12 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                     // }
 
 
-                    var curve = new CatmullRomCurve3(src_paths.at(-1).at(-1).map(p=> p.p));
+                    var curve = new CatmullRomCurve3(src_paths[li][ai].map(p=> p.p));
                     curve.arcLengthDivisions = 2000;
                     curves.push(curve);
                 }//);
             }
+            console.log(src_paths);
             //compute_axes_surf_data({offset:0});
 
 
