@@ -38,7 +38,7 @@ const clip_u = 2;
 
 //const raw_point_count = surface_div*surface_div;
 //const max_slice_count = 100000;
-const axis_ratio = 0.01;
+const axis_ratio = 0.03;
 
 const gpu = new gpuJs.GPU();
 
@@ -152,20 +152,22 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                 var ai = this.thread.y;
                 var li = this.thread.z;
                 var shift = 1000;
-                var slice = -1;
-                var src_idx = 0;
-                var x = 0;
-                var y = 0;
-                var z = 0;
+                var slice = -5;
+                var src_idx = -5;
+                var x = -500;
+                var y = -500;
+                var z = -500;
                 for(let i = 0; i < chunk; i++){//for(let i = pi*this.constants.chunk; i < (pi+1)*this.constants.chunk; i++){
                     var ci = ((pi*chunk) + i) * 3;
-                    var tx = src_pts[ci]   + (src_nml[ci]   * layer_div * (li+6));
-                    var ty = src_pts[ci+1] + (src_nml[ci+1] * layer_div * (li+6));
-                    var tz = src_pts[ci+2] + (src_nml[ci+2] * layer_div * (li+6));
+                    var tx = src_pts[ci]   + (src_nml[ci]   * layer_div * li);
+                    var ty = src_pts[ci+1] + (src_nml[ci+1] * layer_div * li);
+                    var tz = src_pts[ci+2] + (src_nml[ci+2] * layer_div * li);
                     var axis_pos = tx*ax[ai] + ty*ay[ai] + tz*az[ai];
                     var test_shift = -(axis_pos % slice_div); //-(points[i+1] % slice_div); 
                     var abs_shift = Math.abs(test_shift);
-                    if (abs_shift > slice_div/2) test_shift = -(slice_div-abs_shift)*Math.sign(test_shift);
+                    if (abs_shift > slice_div/2){
+                        test_shift = -(slice_div-abs_shift)*Math.sign(test_shift);
+                    }
                     if(Math.abs(shift) > Math.abs(test_shift)){
                         shift = test_shift;
                         slice = axis_pos;//Math.round((axis_pos+shift)/slice_div) + half_slice_cnt;
@@ -175,18 +177,24 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                         z = tz;
                     }
                 }
-                if(Math.abs(shift) > max_shift) return [-10, -100, -100, -100];
                 slice = Math.round((slice+shift)/slice_div) + half_slice_cnt;
-                src_idx /= chunk;//this.constants.chunk;
-                x += ax[ai] * shift;
-                y += ay[ai] * shift;
-                z += az[ai] * shift;
+                src_idx = src_idx / chunk;//this.constants.chunk;
+                x = x + (ax[ai] * shift);
+                y = y + (ay[ai] * shift);
+                z = z + (az[ai] * shift);
+                if(Math.abs(shift) > max_shift){
+                    slice = -5;
+                    src_idx = -5;
+                    x = -500;
+                    y = -500;
+                    z = -500;
+                }
                 return [slice + src_idx, x, y, z];
             },{
                 //pipeline: true,
                 loopMaxIterations: chunk,
                 //constants: {chunk: chunk},//{max_shift: max_shift},
-                output: [axis_pnt_cnt, c.axes, c.layers], // component list gets switch around?
+                output: {x:axis_pnt_cnt, y:c.axes, z:c.layers}, // component list gets switch around?
             }); 
             const axis_pts = compute_axis_pts(
                 src_pts, src_nml, c.cord_radius*1.6, slice_div, half_slice_cnt, chunk, max_shift,
@@ -194,36 +202,61 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
             );
             console.log(axis_pts);
 
+            const pts_slice = [];
+            const pts_x = []; 
+            const pts_y = [];
+            const pts_z = [];
+            for(var li = 0; li < c.layers; li++){
+                pts_slice.push([]);
+                pts_x.push([]);
+                pts_y.push([]);
+                pts_z.push([]);
+                for(var ai = 0; ai < c.axes; ai++){ 
+                    pts_slice[li].push([]);
+                    pts_x[li].push([]);
+                    pts_y[li].push([]);
+                    pts_z[li].push([]);
+                    for(var pi = 0; pi < axis_pnt_cnt; pi++){ 
+                        pts_slice[li][ai].push(axis_pts[li][ai][pi][0]);
+                        pts_x[li][ai].push(axis_pts[li][ai][pi][1]);
+                        pts_y[li][ai].push(axis_pts[li][ai][pi][2]);
+                        pts_z[li][ai].push(axis_pts[li][ai][pi][3]);
+                    }
+                }
+            }
+
+
             console.log('Slice: links'); 
-            const compute_links = gpu.createKernel(function(axis_pts, src_nml, axis_pnt_cnt, chunk, ax, ay, az){//shifted_pts, slice_idx){ // axis_x, axis_y, axis_z, 
+            //console.log({x:axis_pnt_cnt, y:c.axes, z:c.layers});
+            const compute_links = gpu.createKernel(function(pts_slice, pts_x, pts_y, pts_z, src_nml, axis_pnt_cnt, chunk, ax, ay, az){//shifted_pts, slice_idx){ // axis_x, axis_y, axis_z, 
                 var pi = this.thread.x;
                 var ai = this.thread.y;
                 var li = this.thread.z;
                 var dist = 100000;
-                var link = -1;
-                if(axis_pts[li][ai][pi][0] < 0) return -10;//[-10, -10];
-                var slice = Math.floor(axis_pts[li][ai][pi][0]);
-                var p0x = axis_pts[li][ai][pi][1];
-                var p0y = axis_pts[li][ai][pi][2];
-                var p0z = axis_pts[li][ai][pi][3];
-                //var link2 = -1;
-                if(p0x < -500) return -10;//[-10, -10];
-                if(slice < 0) return -10;//[-10, -10];
+                var link = -10;
+                //if(axis_pts[li][ai][pi][0] < 0) return -10;//[-10, -10];
+                var slice = Math.floor(pts_slice[li][ai][pi]);//axis_pts[li][ai][pi][0]);
+                //if(axis_pts[li][ai][pi][0] < 0) return -10;//[-10, -10];
+                var p0x = pts_x[li][ai][pi];//axis_pts[li][ai][pi][1];
+                var p0y = pts_y[li][ai][pi];//axis_pts[li][ai][pi][2];
+                var p0z = pts_z[li][ai][pi];//axis_pts[li][ai][pi][3];
+                //if(p0x < -500) return -10;//[-10, -10];
+                
                 for(let i = 0; i < axis_pnt_cnt; i++){ //this.thread.x+1
-                    if(pi != i){
+                    //if(axis_pts[li][ai][i][0] < 0) continue;
+                    if(pi != i && pts_slice[li][ai][i] > 0){//axis_pts[li][ai][i][0] > 0){
                         //slice = Math.floor(axis_pts[li][ai][pi][0]);
                         //if(axis_pts[li][ai][i][0] < 0) continue;
-                        if(slice == Math.floor(axis_pts[li][ai][i][0])){
-                            var p1x = axis_pts[li][ai][i][1];
-                            var p1y = axis_pts[li][ai][i][2];
-                            var p1z = axis_pts[li][ai][i][3];
-                            //if(p1x < -500) continue;
+                        if(slice == Math.floor(pts_slice[li][ai][i])){//axis_pts[li][ai][i][0])){
+                            var p1x = pts_x[li][ai][i];//axis_pts[li][ai][i][1];
+                            var p1y = pts_y[li][ai][i];//axis_pts[li][ai][i][2];
+                            var p1z = pts_z[li][ai][i];//axis_pts[li][ai][i][3];
                             var delta_x = p1x - p0x;
                             var delta_y = p1y - p0y;
                             var delta_z = p1z - p0z;
                             var pnt_dist = Math.sqrt(Math.pow(delta_x,2) + Math.pow(delta_y,2) + Math.pow(delta_z,2));
                             if(dist > pnt_dist){
-                                var k = ((pi*chunk + Math.round((axis_pts[li][ai][pi][0] % 1)*chunk))) * 3;
+                                var k = ((pi*chunk + Math.round((pts_slice[li][ai][pi] % 1)*chunk))) * 3; // var k = ((pi*chunk + Math.round((axis_pts[li][ai][pi][0] % 1)*chunk))) * 3;
                                 var cross_x = (ay[ai]*src_nml[k+2]) - (az[ai]*src_nml[k+1]);
                                 var cross_y = (az[ai]*src_nml[k  ]) - (ax[ai]*src_nml[k+2]);
                                 var cross_z = (ax[ai]*src_nml[k+1]) - (ay[ai]*src_nml[k  ]);
@@ -233,43 +266,49 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                                         + ((delta_z/pnt_dist) * (cross_z/crs_dist));
                                 if(dot > 0){
                                     dist = pnt_dist;
-                                    //link2 = link
                                     link = i;
                                 }
                             }
                         }
                     }
                 }
-                return link;//[slice, link];//[link, link2, 0];
+                if(pts_slice[li][ai][pi] < 0){//if(axis_pts[li][ai][pi][0] < 0){
+                    link = -10;
+                }
+                return [link, p0x, p0y, p0z];//[slice, link];//[link, link2, 0];
             },{
                 loopMaxIterations: axis_pnt_cnt,
                 //constants: {axis_pnt_cnt: axis_pnt_cnt},
-                output: [axis_pnt_cnt, c.axes, c.layers], // x y comes out siwtched around for some reason
+                output: {x:axis_pnt_cnt, y:c.axes, z:c.layers}, // x y comes out siwtched around for some reason
             }); 
-            const links = compute_links(axis_pts, src_nml, axis_pnt_cnt, chunk, axes_x, axes_y, axes_z);//shifted_pts, slice_idx);
+            const links = compute_links(pts_slice, pts_x, pts_y, pts_z, src_nml, axis_pnt_cnt, chunk, axes_x, axes_y, axes_z);//shifted_pts, slice_idx);
+
+            // for(let li = 0; li < c.layers; li++){
+            //     links[li].reverse();
+            // }
+
             console.log(links);
 
             console.log('Slice: src_paths');
             const src_paths = [];
             const used = new Array(axis_pnt_cnt).fill(false);
             function push_src_path_pnt(li, ai, pi){ // could just save list of indices 
-                //if(axis_pts[li][ai][i][1] < -500) return;
-                //console.log(i);
-                //console.log(axis_pts[li][ai]);
-                if(links[li][ai][pi][1] < 0 || links[li][ai][pi][0] < 0){
+                if(links[li][ai][pi][0] < 0){
                     console.log('links less than zero!');
                     console.log(links[li][ai][pi]);
                 }
-                v1.set(axis_pts[li][ai][pi][1], axis_pts[li][ai][pi][2], axis_pts[li][ai][pi][3]);
-                //console.log(i);
-                var k = ((pi*chunk + Math.round((axis_pts[li][ai][pi][0] % 1)*chunk))) * 3;
-                //console.log(i);
-                v2.set(src_pts[k], src_pts[k+1], src_pts[k+2]);
-                v3.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
+                // if(axis_pts[li][ai][pi][1] < -400){
+                //     console.log('bad axis_pts!');
+                //     console.log(axis_pts[li][ai][pi]);
+                // }
+                v1.set(links[li][ai][pi][1], links[li][ai][pi][2], links[li][ai][pi][3]);
+                //var k = ((pi*chunk + Math.round((axis_pts[li][ai][pi][0] % 1)*chunk))) * 3;
+                //v2.set(src_pts[k], src_pts[k+1], src_pts[k+2]);
+                //v3.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
                 src_paths[li][ai].push({
                     p:       v1.clone(),
-                    src_pnt: v2.clone(),
-                    src_nml: v3.clone(), 
+                    //src_pnt: v2.clone(),
+                    //src_nml: v3.clone(), 
                 });
             }
             for(var li = 0; li < c.layers; li++){
@@ -285,25 +324,25 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                     //     idx = links[li][ai][idx];
                     // }
                     //links[li][ai].sort((a,b)=> a[0]-b[0]);
-                    used.fill(false);
-                    console.log(used);
+                    
+                    
                     //for(let s=0; s < half_slice_cnt; s++){  
+                        used.fill(false);
                         for(let i=0; i < axis_pnt_cnt; i++){ 
                             var pi = i;  
-                            if(links[li][ai][pi] < 0) continue; // redundant ?!
-                            while(!(pi < 0 || used[pi])){
-                                //if(axis_pts[li][ai][idx][1] < -400 && links[li][ai][idx]) console.log('oh my fing god');
-                                //if(links[li][ai][idx][1] < 0 || used[links[li][ai][idx][1]]) break;
-                                // }else{
-                                //     if(links[li][ai][links[li][ai][idx]] < 0 || used[links[li][ai][links[li][ai][idx]]]) break;
-                                // }
-                                //if(links[li][ai][idx][0] != s) break;// || links[li][ai][idx][1] < 0) break;
-                                //console.log(links[li][ai][idx][1]);
-                                //if(axis_pts[li][ai][links[li][ai][idx][1]][1] < 0) console.log('less then zero!!!!!');
-                                push_src_path_pnt(li, ai, pi);
-                                used[pi] = true;
-                                pi = links[li][ai][pi];
-                                //if(idx < 0) break;
+                            //if(links[li][ai][pi] < 0 || used[pi]) continue; // redundant ?!
+                            while(true){ // !(pi < 0 || used[pi])
+                                if(pi < 0 || links[li][ai][pi][0] < 0 || used[pi]){
+                                    break;
+                                }else{
+                                    // if(axis_pts[li][ai][pi][1] < -400){
+                                    //     console.log('bad axis_pts!');
+                                    //     console.log(axis_pts[li][ai][pi]);
+                                    // }
+                                    push_src_path_pnt(li, ai, pi);
+                                    used[pi] = true;
+                                }
+                                pi = links[li][ai][pi][0];
                             }
                         }
                     //}
@@ -355,9 +394,11 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                     // }
 
 
-                    var curve = new CatmullRomCurve3(src_paths[li][ai].map(p=> p.p));
-                    curve.arcLengthDivisions = 2000;
-                    curves.push(curve);
+                    //if(li == 1){
+                        var curve = new CatmullRomCurve3(src_paths[li][ai].map(p=> p.p));
+                        curve.arcLengthDivisions = 2000;
+                        curves.push(curve);
+                    //}
                 }//);
             }
             console.log(src_paths);
@@ -465,6 +506,16 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
         } 
     }, 
 };
+
+
+                                //if(axis_pts[li][ai][idx][1] < -400 && links[li][ai][idx]) console.log('oh my fing god');
+                                //if(links[li][ai][idx][1] < 0 || used[links[li][ai][idx][1]]) break;
+                                // }else{
+                                //     if(links[li][ai][links[li][ai][idx]] < 0 || used[links[li][ai][links[li][ai][idx]]]) break;
+                                // }
+                                //if(links[li][ai][idx][0] != s) break;// || links[li][ai][idx][1] < 0) break;
+                                //console.log(links[li][ai][idx][1]);
+                                //if(axis_pts[li][ai][links[li][ai][idx][1]][1] < 0) console.log('less then zero!!!!!');
 
 
             //const offset_pts = new Float32Array(src_pts.length);
