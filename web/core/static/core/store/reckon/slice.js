@@ -1,7 +1,8 @@
 import {current} from 'immer';
-import {Vector3, Matrix4, MathUtils, Ray, CatmullRomCurve3, Box3, Raycaster, Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath} from 'three';
+import {Vector3, Vector2, Matrix4, MathUtils, Color, CatmullRomCurve3, Box3, Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath} from 'three';
 //import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
+import {MeshSurfaceSampler} from 'three/examples/jsm/math/MeshSurfaceSampler';
 import gpuJs from 'gpu';
 
 const v1 = new Vector3();
@@ -24,13 +25,14 @@ const ortho1 = new Vector3();
 const ortho2 = new Vector3();
 
 //const slice_div = 5; 
-const surface_div = 900;
+const surface_div = 400;
+const samples_per_mesh = 1000000;
 const end_surface_div = 900;
-const end_box_size = 2;
+const bnd_vox_size = 2;
 const max_shift = .1;
-const min_span = .5; 
-const max_span = 8;
-const min_size = 10;
+const min_div = .5; 
+const max_div = 8; // 8
+const min_length = 4;
 const clip_u = 2;
 //const start_clip = 50;
 //const end_clip = 20;
@@ -38,16 +40,29 @@ const clip_u = 2;
 
 //const raw_point_count = surface_div*surface_div;
 //const max_slice_count = 100000;
-const axis_ratio = 0.03;
+const axis_ratio = 0.032; //1000000 * 0.032 = 32000 texture size. need to divide axis slice images into parts for big objects 
 
 const gpu = new gpuJs.GPU();
 
+const material = new MeshBasicMaterial();
+const color = new Color();
+const vector2 = new Vector2();
 //     v2.copy(point).projectOnVector(axis.axis); // axis point
 //     let axis_pos = v2.length()*Math.sign(v2.dot(axis.axis));
 
+// gpu.addFunction(function dot(ax, ay, az, bx, by, bz) {
+//     return ax*bx + ay*by + az*bz;
+// });
+gpu.addFunction(function crs_vct(ax, ay, az, bx, by, bz) {
+    var x = ay*bz - az*by;
+    var y = az*bx - ax*bz;
+    var z = ax*by - ay*bx;
+    var dist = Math.sqrt(x*x + y*y + z*z);
+    return [x/dist, y/dist, z/dist];
+},{argumentTypes: {ax:'Number', ay:'Number', az:'Number', bx:'Number', by:'Number', bz:'Number'}, returnType:'Array(3)'});
 
 
-export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
+export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
     props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 'cord_radius', 'layers', 'axes', 'spread_angle', 'material'],
     view(){ // will run regardless of manual_compute tag 
         // set which layer to show
@@ -64,7 +79,7 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
             delete ax.pts;
 
             var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
-            const slice_div = c.cord_radius / c.density; 
+            const slice_div = (c.cord_radius*2) / c.density; 
             const half_slice_cnt = Math.round(d.easel_size/slice_div/2);
             const curves = [];
             const paths = []; 
@@ -109,86 +124,110 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                     for(let u=0; u<end_surface_div; u++){ // make this res relative to size of surface #1
                         for(let v=0; v<end_surface_div; v++){ 
                             surface.get_point_normal(u/end_surface_div, v/end_surface_div, v1, v2);
-                            var k = 'x'+Math.round(v1.x/end_box_size) 
-                                  + 'y'+Math.round(v1.y/end_box_size) 
-                                  + 'z'+Math.round(v1.z/end_box_size) 
-                            if(!bnd_vox[k]) bnd_vox[k] = {b:new Box3(), nml:[], p:new Plane()};
-                            bnd_vox[k].b.expandByPoint(v1);
+                            var k = 'x'+Math.round(v1.x/bnd_vox_size) 
+                                  + 'y'+Math.round(v1.y/bnd_vox_size) 
+                                  + 'z'+Math.round(v1.z/bnd_vox_size) 
+                            if(!bnd_vox[k]) bnd_vox[k] = {box:new Box3(), nml:[], pln:new Plane()};
+                            bnd_vox[k].box.expandByPoint(v1);
                             bnd_vox[k].nml.push(v2.clone());
                         }
                     }
                 });
-                Object.values(bnd_vox).forEach(es=>{
+                Object.values(bnd_vox).forEach(bv=>{
                     v1.set(0,0,0);
-                    es.nml.forEach(nml=> v1.add(nml));
-                    v1.divideScalar(es.nml.length);
-                    es.b.getCenter(v2);
-                    es.p.setFromNormalAndCoplanarPoint(v1, v2);//*Math.sign(v1.dot(v2))); // do I need to clone v1? #1
+                    bv.nml.forEach(nml=> v1.add(nml));
+                    v1.divideScalar(bv.nml.length);
+                    bv.box.getCenter(v2);
+                    bv.pln.setFromNormalAndCoplanarPoint(v1, v2);//*Math.sign(v1.dot(v2))); // do I need to clone v1? #1
                 });
             }
             
             console.log('Slice: src_pts'); 
-            var pts_arrays = [];
-            var nml_arrays = [];
+            //var pts_arrays = [];
+            //var nml_arrays = [];
+            const src_pts = [];
+            const src_nml = [];
             surfaces.forEach(surface => {
-                let geo = new ParametricGeometry(
-                    surface.get_point, 
-                    surface_div, 
-                    surface_div,
+                // let geo = new ParametricGeometry(
+                //     surface.get_point, 
+                //     400,//surface_div, 
+                //     400,//surface_div,
+                // );
+                const mesh = new Mesh(
+                    new ParametricGeometry(
+                        surface.get_point, 
+                        surface_div, 
+                        surface_div,
+                    ), 
+                    material,
                 );
-                pts_arrays.push(geo.attributes.position.array);
-                nml_arrays.push(geo.attributes.normal.array);
+                const sampler = new MeshSurfaceSampler(mesh).build();
+                for(let i=0; i < samples_per_mesh; i++){
+                    sampler.sample(v1, v2, color, vector2);
+                    src_pts.push(v1.x, v1.y, v1.z);
+                    src_nml.push(v2.x, v2.y, v2.z);
+                }
+                //pts_arrays.push(geo.attributes.position.array);
+                //nml_arrays.push(geo.attributes.normal.array);
             });
-            const src_pts = d.join_float_32_arrays(pts_arrays);
-            const src_nml = d.join_float_32_arrays(nml_arrays);
+            //const src_pts = d.join_float_32_arrays(pts_arrays);
+            //const src_nml = d.join_float_32_arrays(nml_arrays);
 
             const src_pnt_cnt = src_pts.length/3;
             const axis_pnt_cnt = Math.floor(src_pnt_cnt*axis_ratio);
             const chunk = Math.floor(src_pnt_cnt/axis_pnt_cnt);//*3;
 
             console.log('Slice: axis_pts');
-            const compute_axis_pts = gpu.createKernel(function(src_pts, src_nml, layer_div, slice_div, half_slice_cnt, chunk, max_shift, ax, ay, az){ // axis_x, axis_y, axis_z, 
+            const compute_axis_pts = gpu.createKernel(function(src_pts, src_nml, layer_div, slice_div, half_slice_cnt, chunk, ax, ay, az){ // axis_x, axis_y, axis_z, 
                 var pi = this.thread.x;
                 var ai = this.thread.y;
                 var li = this.thread.z;
+                var axis_shift = 0;
                 var shift = 1000;
-                var slice = -5;
-                var src_idx = -5;
-                var x = -500;
-                var y = -500;
-                var z = -500;
+                var slice = -1;
+                var src_idx = -1;
+                var x = 0;
+                var y = 0;
+                var z = 0;
+                var perp_nml = [0,0,0];
                 for(let i = 0; i < chunk; i++){//for(let i = pi*this.constants.chunk; i < (pi+1)*this.constants.chunk; i++){
-                    var ci = ((pi*chunk) + i) * 3;
-                    var tx = src_pts[ci]   + (src_nml[ci]   * layer_div * li);
-                    var ty = src_pts[ci+1] + (src_nml[ci+1] * layer_div * li);
-                    var tz = src_pts[ci+2] + (src_nml[ci+2] * layer_div * li);
-                    var axis_pos = tx*ax[ai] + ty*ay[ai] + tz*az[ai];
-                    var test_shift = -(axis_pos % slice_div); //-(points[i+1] % slice_div); 
-                    var abs_shift = Math.abs(test_shift);
+                    var k = ((pi*chunk) + i) * 3;
+                    var tx = src_pts[k]   + (src_nml[k]   * layer_div * li);
+                    var ty = src_pts[k+1] + (src_nml[k+1] * layer_div * li);
+                    var tz = src_pts[k+2] + (src_nml[k+2] * layer_div * li);
+                    var axis_pos = tx*ax[ai] + ty*ay[ai] + tz*az[ai]; //dot(ax[ai], ay[ai], az[ai], tx, ty, tz);//
+                    var test_axis_shift = -(axis_pos % slice_div); //-(points[i+1] % slice_div); 
+                    var abs_shift = Math.abs(test_axis_shift);
                     if (abs_shift > slice_div/2){
-                        test_shift = -(slice_div-abs_shift)*Math.sign(test_shift);
+                        test_axis_shift = -(slice_div-abs_shift)*Math.sign(test_axis_shift);
                     }
+                    var crs1 = crs_vct(ax[ai], ay[ai], az[ai], src_nml[k], src_nml[k+1], src_nml[k+2]);
+                    var test_perp_nml = crs_vct(crs1[0], crs1[1], crs1[2], src_nml[k], src_nml[k+1], src_nml[k+2]);
+                    var test_shift = test_axis_shift / (ax[ai]*test_perp_nml[0] + ay[ai]*test_perp_nml[1] + az[ai]*test_perp_nml[2]);
                     if(Math.abs(shift) > Math.abs(test_shift)){
                         shift = test_shift;
+                        perp_nml = test_perp_nml;
+                        axis_shift = test_axis_shift;
                         slice = axis_pos;//Math.round((axis_pos+shift)/slice_div) + half_slice_cnt;
                         src_idx = i;// / this.constants.chunk;
-                        x = tx;
-                        y = ty;
-                        z = tz;
+                        //var crs1 = crs_vct(ax[ai], ay[ai], az[ai], src_nml[k], src_nml[k+1], src_nml[k+2]);
+                        //var perp_nml = crs_vct(crs1[0], crs1[1], crs1[2], src_nml[k], src_nml[k+1], src_nml[k+2]);
+                        //var perp_nml_dist = (test_shift / (ax[ai]*perp_nml[0] + ay[ai]*perp_nml[1] + az[ai]*perp_nml[2]));
+                        x = tx;// + perp_nml[0] * perp_nml_dist;
+                        y = ty;// + perp_nml[1] * perp_nml_dist;
+                        z = tz;// + perp_nml[2] * perp_nml_dist;
                     }
                 }
-                slice = Math.round((slice+shift)/slice_div) + half_slice_cnt;
+                slice = Math.round((slice+axis_shift)/slice_div) + half_slice_cnt;
                 src_idx = src_idx / chunk;//this.constants.chunk;
-                x = x + (ax[ai] * shift);
-                y = y + (ay[ai] * shift);
-                z = z + (az[ai] * shift);
-                if(Math.abs(shift) > max_shift){
-                    slice = -5;
-                    src_idx = -5;
-                    x = -500;
-                    y = -500;
-                    z = -500;
-                }
+                x = x + perp_nml[0]*shift;//(ax[ai] * shift);
+                y = y + perp_nml[1]*shift;//(ay[ai] * shift);
+                z = z + perp_nml[2]*shift;//(az[ai] * shift);
+                // if(Math.abs(shift) > max_shift){
+                //     x = 0;
+                //     y = 0;
+                //     z = 0;
+                // }
                 return [slice + src_idx, x, y, z];
             },{
                 //pipeline: true,
@@ -197,7 +236,7 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                 output: {x:axis_pnt_cnt, y:c.axes, z:c.layers}, // component list gets switch around?
             }); 
             const axis_pts = compute_axis_pts(
-                src_pts, src_nml, c.cord_radius*1.6, slice_div, half_slice_cnt, chunk, max_shift,
+                src_pts, src_nml, c.cord_radius*1.6, slice_div, half_slice_cnt, chunk,
                 axes_x, axes_y, axes_z,
             );
             console.log(axis_pts);
@@ -225,46 +264,35 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                 }
             }
 
-
             console.log('Slice: links'); 
-            //console.log({x:axis_pnt_cnt, y:c.axes, z:c.layers});
             const compute_links = gpu.createKernel(function(pts_slice, pts_x, pts_y, pts_z, src_nml, axis_pnt_cnt, chunk, ax, ay, az){//shifted_pts, slice_idx){ // axis_x, axis_y, axis_z, 
                 var pi = this.thread.x;
                 var ai = this.thread.y;
                 var li = this.thread.z;
                 var dist = 100000;
                 var link = -10;
-                //if(axis_pts[li][ai][pi][0] < 0) return -10;//[-10, -10];
                 var slice = Math.floor(pts_slice[li][ai][pi]);//axis_pts[li][ai][pi][0]);
-                //if(axis_pts[li][ai][pi][0] < 0) return -10;//[-10, -10];
-                var p0x = pts_x[li][ai][pi];//axis_pts[li][ai][pi][1];
-                var p0y = pts_y[li][ai][pi];//axis_pts[li][ai][pi][2];
-                var p0z = pts_z[li][ai][pi];//axis_pts[li][ai][pi][3];
-                //if(p0x < -500) return -10;//[-10, -10];
-                
+                var x = pts_x[li][ai][pi];//axis_pts[li][ai][pi][1];
+                var y = pts_y[li][ai][pi];//axis_pts[li][ai][pi][2];
+                var z = pts_z[li][ai][pi];//axis_pts[li][ai][pi][3];
                 for(let i = 0; i < axis_pnt_cnt; i++){ //this.thread.x+1
-                    //if(axis_pts[li][ai][i][0] < 0) continue;
                     if(pi != i && pts_slice[li][ai][i] > 0){//axis_pts[li][ai][i][0] > 0){
-                        //slice = Math.floor(axis_pts[li][ai][pi][0]);
-                        //if(axis_pts[li][ai][i][0] < 0) continue;
                         if(slice == Math.floor(pts_slice[li][ai][i])){//axis_pts[li][ai][i][0])){
-                            var p1x = pts_x[li][ai][i];//axis_pts[li][ai][i][1];
-                            var p1y = pts_y[li][ai][i];//axis_pts[li][ai][i][2];
-                            var p1z = pts_z[li][ai][i];//axis_pts[li][ai][i][3];
-                            var delta_x = p1x - p0x;
-                            var delta_y = p1y - p0y;
-                            var delta_z = p1z - p0z;
-                            var pnt_dist = Math.sqrt(Math.pow(delta_x,2) + Math.pow(delta_y,2) + Math.pow(delta_z,2));
+                            var dx = pts_x[li][ai][i] - x;
+                            var dy = pts_y[li][ai][i] - y;
+                            var dz = pts_z[li][ai][i] - z;
+                            var pnt_dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
                             if(dist > pnt_dist){
                                 var k = ((pi*chunk + Math.round((pts_slice[li][ai][pi] % 1)*chunk))) * 3; // var k = ((pi*chunk + Math.round((axis_pts[li][ai][pi][0] % 1)*chunk))) * 3;
-                                var cross_x = (ay[ai]*src_nml[k+2]) - (az[ai]*src_nml[k+1]);
-                                var cross_y = (az[ai]*src_nml[k  ]) - (ax[ai]*src_nml[k+2]);
-                                var cross_z = (ax[ai]*src_nml[k+1]) - (ay[ai]*src_nml[k  ]);
-                                var crs_dist = Math.sqrt(Math.pow(cross_x,2) + Math.pow(cross_y,2) + Math.pow(cross_z,2));
-                                var dot = ((delta_x/pnt_dist) * (cross_x/crs_dist)) 
-                                        + ((delta_y/pnt_dist) * (cross_y/crs_dist)) 
-                                        + ((delta_z/pnt_dist) * (cross_z/crs_dist));
-                                if(dot > 0){
+                                var crs = crs_vct(ax[ai], ay[ai], az[ai], src_nml[k], src_nml[k+1], src_nml[k+2]);
+                                // var cross_x = (ay[ai]*src_nml[k+2]) - (az[ai]*src_nml[k+1]);
+                                // var cross_y = (az[ai]*src_nml[k  ]) - (ax[ai]*src_nml[k+2]);
+                                // var cross_z = (ax[ai]*src_nml[k+1]) - (ay[ai]*src_nml[k  ]);
+                                // var crs_dist = Math.sqrt(Math.pow(cross_x,2) + Math.pow(cross_y,2) + Math.pow(cross_z,2));
+                                // var dot = ((delta_x/pnt_dist) * (cross_x/crs_dist)) 
+                                //         + ((delta_y/pnt_dist) * (cross_y/crs_dist)) 
+                                //         + ((delta_z/pnt_dist) * (cross_z/crs_dist));
+                                if(dx*crs[0] + dy*crs[1] + dz*crs[2] > 0){
                                     dist = pnt_dist;
                                     link = i;
                                 }
@@ -275,228 +303,135 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
                 if(pts_slice[li][ai][pi] < 0){//if(axis_pts[li][ai][pi][0] < 0){
                     link = -10;
                 }
-                return [link, p0x, p0y, p0z];//[slice, link];//[link, link2, 0];
+                return link;//[link, p0x, p0y, p0z];//[slice, link];//[link, link2, 0];
             },{
                 loopMaxIterations: axis_pnt_cnt,
                 //constants: {axis_pnt_cnt: axis_pnt_cnt},
                 output: {x:axis_pnt_cnt, y:c.axes, z:c.layers}, // x y comes out siwtched around for some reason
             }); 
             const links = compute_links(pts_slice, pts_x, pts_y, pts_z, src_nml, axis_pnt_cnt, chunk, axes_x, axes_y, axes_z);//shifted_pts, slice_idx);
-
-            // for(let li = 0; li < c.layers; li++){
-            //     links[li].reverse();
-            // }
-
             console.log(links);
 
             console.log('Slice: src_paths');
-            const src_paths = [];
             const used = new Array(axis_pnt_cnt).fill(false);
-            function push_src_path_pnt(li, ai, pi){ // could just save list of indices 
-                if(links[li][ai][pi][0] < 0){
-                    console.log('links less than zero!');
-                    console.log(links[li][ai][pi]);
-                }
-                // if(axis_pts[li][ai][pi][1] < -400){
-                //     console.log('bad axis_pts!');
-                //     console.log(axis_pts[li][ai][pi]);
-                // }
-                v1.set(links[li][ai][pi][1], links[li][ai][pi][2], links[li][ai][pi][3]);
-                //var k = ((pi*chunk + Math.round((axis_pts[li][ai][pi][0] % 1)*chunk))) * 3;
-                //v2.set(src_pts[k], src_pts[k+1], src_pts[k+2]);
-                //v3.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
-                src_paths[li][ai].push({
-                    p:       v1.clone(),
-                    //src_pnt: v2.clone(),
-                    //src_nml: v3.clone(), 
-                });
-            }
-            for(var li = 0; li < c.layers; li++){
+            const src_paths = [];
+            //var path_count = 0;
+            var ref_pnt = v3.set(axis_pts[0][0][0][1], axis_pts[0][0][0][2], axis_pts[0][0][0][3]);
+            for(let li = 0; li < c.layers; li++){
                 src_paths.push([]);
-                for(var ai = 0; ai < c.axes; ai++){ 
+                for(let ai = 0; ai < c.axes; ai++){ 
                     src_paths[li].push([]);
-                    //links[li][ai].reverse();
-
-                    
-                    // var idx = 0;
-                    // for(let i=0; i < axis_pnt_cnt; i++){  
-                    //     push_src_path_pnt(idx);
-                    //     idx = links[li][ai][idx];
-                    // }
-                    //links[li][ai].sort((a,b)=> a[0]-b[0]);
-                    
-                    
-                    //for(let s=0; s < half_slice_cnt; s++){  
-                        used.fill(false);
-                        for(let i=0; i < axis_pnt_cnt; i++){ 
-                            var pi = i;  
-                            //if(links[li][ai][pi] < 0 || used[pi]) continue; // redundant ?!
-                            while(true){ // !(pi < 0 || used[pi])
-                                if(pi < 0 || links[li][ai][pi][0] < 0 || used[pi]){
-                                    break;
-                                }else{
-                                    // if(axis_pts[li][ai][pi][1] < -400){
-                                    //     console.log('bad axis_pts!');
-                                    //     console.log(axis_pts[li][ai][pi]);
-                                    // }
-                                    push_src_path_pnt(li, ai, pi);
-                                    used[pi] = true;
+                    const test_paths = [[]];
+                    var pth = 0;
+                    var slice = -1;
+                    used.fill(false);
+                    for(let i=0; i < axis_pnt_cnt; i++){
+                        var pnt = i;  
+                        while(true){ 
+                            if(pnt < 0 || links[li][ai][pnt] < 0 || used[pnt]){
+                                break;
+                            }else{
+                                v1.set(axis_pts[li][ai][pnt][1], axis_pts[li][ai][pnt][2], axis_pts[li][ai][pnt][3]);
+                                if(v1.length() > 0){
+                                    if(slice != Math.floor(axis_pts[li][ai][pnt][0]) || v1.distanceTo(ref_pnt) > max_div){
+                                        slice = Math.floor(axis_pts[li][ai][pnt][0]);
+                                        test_paths.push([]);
+                                        pth++;
+                                        //path_count++;
+                                    }
+                                    var k = ((pnt*chunk + Math.round((axis_pts[li][ai][pnt][0] % 1)*chunk))) * 3;
+                                    v2.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
+                                    test_paths[pth].push({//src_paths[li][ai][pth].push({
+                                        p: v1.clone(),
+                                        n: v2.clone(), 
+                                    });
+                                    used[pnt] = true;
+                                    ref_pnt = v3.copy(v1);
                                 }
-                                pi = links[li][ai][pi][0];
                             }
+                            pnt = links[li][ai][pnt];
                         }
-                    //}
-
-                    // links[li][ai].sort((a,b)=> a[0]-b[0]);
-                    // //used.fill(false);
-                    // for(let i=0; i < axis_pnt_cnt; i++){   
-                    //     var link = links[li][ai][i];
-                    //     while(idx > -1 && !used[idx]){
-                    //         push_src_path_pnt(idx);
-                    //         used[idx] = true;
-                    //         idx = links[li][ai][idx][2];
-                    //     }
+                    }
+                    for(let pth = 0; pth < test_paths.length; pth++){ 
+                        if(test_paths[pth].length > 8){ // need optimal dynamic cutoff path length #1
+                            src_paths[li][ai].push([...test_paths[pth]]); 
+                        }
+                    }
+                    // for(let pth = 0; pth < src_paths[li][ai].length; pth++){ 
+                    //     //console.log(src_paths[li][ai][pth].length);
+                    //     var curve = new CatmullRomCurve3(src_paths[li][ai][pth].map(p=> p.p));
+                    //     curve.arcLengthDivisions = 2000;
+                    //     curves.push(curve);
                     // }
-
-                    //         var l0 = link_idx[i][k];
-//         //if(l0[1]>-1 && l0[2]>-1 ) console.log(l0);
-//         if(l0[1] > -1 && l0[2] > -1 && l0[3] == 0){  //!used_pts[link_idx[i][k][0]]){
-//             while(l0 != null){
-//                 push_raw_path_point(l0[0]);
-//                 l0[3] = 1;//used_pts[l1[0]] = true;
-//                 var l1 = link_idx[i][l0[1]];
-//                 var l2 = link_idx[i][l0[2]];
-//                 l0 = null;
-//                 if(l1[1] > -1 && l1[2] > -1 && l1[3] == 0){//used_pts[l1[0]]){
-//                     l0 = l1;
-//                 }//else if(l2[1] > -1 && l2[2] > -1 && l2[3] == 0){//used_pts[l1[0]]){
-//                 //    l0 = l2;
-//                 //}
-//             }
-//         }
-
-                    // for(let i=0; i < axis_pnt_cnt; i++){   
-                    //     var l0 = links[li][ai][i];
-                    //     if(l0[0] > -1 && l0[1] > -1 && l0[2] == 0){
-                    //         while(l0 != null){
-                    //             push_src_path_pnt(i);
-                    //             l0[2] = 1;
-                    //             var l1 = links[li][ai][l0[0]];
-                    //             var l2 = links[li][ai][l0[1]];
-                    //             l0 = null;
-                    //             if(l1[0] > -1 && l1[1] > -1 && l1[2] == 0){//used_pts[l1[0]]){
-                    //                 l0 = l1;
-                    //             }else if(l2[0] > -1 && l2[1] > -1 && l2[2] == 0){//used_pts[l1[0]]){
-                    //                 l0 = l2;
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
-
-                    //if(li == 1){
-                        var curve = new CatmullRomCurve3(src_paths[li][ai].map(p=> p.p));
-                        curve.arcLengthDivisions = 2000;
-                        curves.push(curve);
-                    //}
-                }//);
+                }
             }
             console.log(src_paths);
-            //compute_axes_surf_data({offset:0});
+            //console.log(path_count);
 
 
-
-            // console.log('Slice: paths');
-            // for(let li=0; li<c.layers; li++){ 
-            //     for(let ai=0; ai<c.axes; ai++){ 
-                    
-            //         //for(let l=0; l<c.layers*c.axes; l++){ 
-            //         // ai++; 
-            //         // if(ai > axes.length-1){
-            //         //     ai = 0;
-            //         //     compute_axes_surf_data({offset:c.cord_radius*(l+1)}); ////////
-            //         // }
-            //         // var src_path = axes[ai].src_path;
-            //         var src_path = src_paths[li][ai];
-            //         var point_ref = src_path[0].p;//paths[0][0].p;
-            //         var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
-            //         var box = new Box3();
-            //         var hit_inside = false;
-            //         var hit_outside = false;
-            //         var start_i = 0;
-            //         for(let i=1; i<src_path.length; i++){ 
-            //             let dist = point_ref.distanceTo(src_path[i].p);   
-            //             if(c.fill){
-            //                 var k = 'x'+Math.round(src_path[i].p.x/end_box_size) 
-            //                     + 'y'+Math.round(src_path[i].p.y/end_box_size) 
-            //                     + 'z'+Math.round(src_path[i].p.z/end_box_size);
-            //                 if(bnd_vox[k]){
-            //                     if(bnd_vox[k].p.distanceToPoint(src_path[i].p) < 0) hit_inside = true
-            //                     else hit_outside = true;
-            //                 }
-            //             }
-            //             if(dist > max_span || i == src_path.length-1 || hit_outside){ // check for end_surface !!!!!!!
-            //                 if(pts[0].length > 2 && box.getSize(v1).length() > min_size && !(!hit_inside && hit_outside)){
-            //                     var make_path = true;
-            //                     if(!hit_inside){
-            //                         v1.copy(src_path[start_i].src_pnt).sub(src_path[start_i].p);
-            //                         v2.copy(v1).normalize();
-            //                         for(let j=0; j < v1.length(); j += end_box_size/6){
-            //                             v3.copy(src_path[start_i].p).add(v4.copy(v2).multiplyScalar(j));
-            //                             var k = 'x'+Math.round(v3.x/end_box_size) 
-            //                                     + 'y'+Math.round(v3.y/end_box_size) 
-            //                                     + 'z'+Math.round(v3.z/end_box_size);
-            //                             if(bnd_vox[k]){// && bnd_vox[k].p.distanceToPoint(src_path[start_i].p) > 0){
-            //                                 make_path = false;
-            //                                 break;
-            //                             }
-            //                         }
-            //                     }
-            //                     if(make_path){
-            //                         if(hit_outside && dist <= max_span){
-            //                             point_ref = src_path[i].p.clone();
-            //                             bnd_vox[k].p.projectPoint(src_path[i].p, point_ref);
-            //                             pts[0].push(point_ref);
-            //                             pts[1].push(point_ref.clone().add(v1.copy(src_path[i].src_nml).divideScalar(2))); 
-            //                             pts[2].push(point_ref.clone().add(src_path[i].src_nml));
-            //                         }
-            //                         var curve = new CatmullRomCurve3(pts[0]);
-            //                         curve.arcLengthDivisions = 2000;
-            //                         var ribbon = d.geo.surface(d, pts, {length_v:curve.getLength()});
-            //                         paths.push({
-            //                             ribbon:   ribbon, 
-            //                             speed:    c.speed, 
-            //                             flow:     c.flow,
-            //                             material: c.material,
-            //                             cord_radius: c.cord_radius,
-            //                         }); // curve:curve, 
-            //                         curves.push(curve);
-            //                     }
-            //                 }
-            //                 pts = [[],[],[]];
-            //                 box = new Box3(); // .makeEmpty() #2
-            //                 hit_inside = false;
-                            
-            //                 start_i = 0;
-            //             }
-            //             if(dist > min_span){ // check for end_surface !!!!!!!
-            //                 if(pts[0].length < 1) start_i = i;
-            //                 point_ref = src_path[i].p.clone();
-            //                 if(hit_outside) bnd_vox[k].p.projectPoint(src_path[i].p, point_ref);
-            //                 box.expandByPoint(point_ref);
-            //                 pts[0].push(point_ref);
-            //                 pts[1].push(point_ref.clone().add(v1.copy(src_path[i].src_nml).divideScalar(2))); 
-            //                 pts[2].push(point_ref.clone().add(src_path[i].src_nml));
-            //             } 
-            //             hit_outside = false;
-            //         }
-            //     }
-            // }
+            console.log('Slice: paths');
+            var inside = true;
+            var ref_pnt = src_paths[0][0][0][0].p;
+            for(let li=0; li<c.layers; li++){ 
+                for(let ai=0; ai<c.axes; ai++){ 
+                    for(let pth=0; pth < src_paths[li][ai].length; pth++){ 
+                        var src_path = src_paths[li][ai][pth];
+                        var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
+                        for(let i=0; i < src_path.length; i++){  
+                            let dist = ref_pnt.distanceTo(src_path[i].p);
+                            function check_boundary(v){
+                                var k = 'x'+Math.round(v.x / bnd_vox_size) 
+                                      + 'y'+Math.round(v.y / bnd_vox_size) 
+                                      + 'z'+Math.round(v.z / bnd_vox_size);
+                                if(bnd_vox[k]){
+                                    if(bnd_vox[k].pln.distanceToPoint(src_path[i].p) < 0) inside = true
+                                    else inside = false;
+                                }
+                            }
+                            for(let j = 0; j < dist; j += bnd_vox_size/10){
+                                check_boundary(v1.lerpVectors(ref_pnt, src_path[i].p, j/dist));
+                                //check_boundary(v1);
+                            }
+                            check_boundary(src_path[i].p);
+                            if(inside){// && dist > min_div){ // check for end_surface !!!!!!!
+                                //ref_pnt = src_path[i].p.clone();
+                                //if(hit_outside) bnd_vox[k].p.projectPoint(src_path[i].p, ref_pnt);
+                                //box.expandByPoint(ref_pnt);
+                                pts[0].push(src_path[i].p.clone());
+                                pts[1].push(src_path[i].p.clone().add(v1.copy(src_path[i].n).divideScalar(2))); 
+                                pts[2].push(src_path[i].p.clone().add(src_path[i].n));
+                            }
+                            if((!inside || i == src_path.length-1)){// && box.getSize(v1).length() > min_size){
+                                //console.log(pts[0].length);
+                                if(pts[0].length > 2){
+                                    var curve = new CatmullRomCurve3(pts[0]);
+                                    curve.arcLengthDivisions = 2000;
+                                    if(curve.getLength() > min_length){
+                                        curves.push(curve);
+                                        paths.push({
+                                            ribbon:   d.geo.surface(d, pts, {length_v:curve.getLength()}), 
+                                            speed:    c.speed, 
+                                            flow:     c.flow,
+                                            material: c.material,
+                                            cord_radius: c.cord_radius,
+                                        }); 
+                                    }
+                                }
+                                if(pts[0].length > 0) pts = [[],[],[]];
+                            }
+                            ref_pnt = src_path[i].p; // clone? #1
+                        }
+                    }
+                }
+            }
             
 
             //c.surface = surface;
             //console.log(paths);
             console.log('Curves: '+curves.length);
+            //for(let i=0; i < curves.length; i++){  
+            //    console.log(curves[i].getLength());
+            //}
             c.paths = paths;  // rename to ribbons ?!?!?!?!?!?!
             ax.curve = curves; // make curve an array of auxiliary curves ?!?!?!?!?!
             //ax.pts = sorted_pivots.map(p=> p.v);
@@ -507,6 +442,100 @@ export const coil = { // 'density', 'speed', 'flow', 'cord_radius ', should be i
     }, 
 };
 
+
+// const compute_axis_pts = gpu.createKernel(function(src_pts, src_nml, layer_div, slice_div, half_slice_cnt, chunk, max_shift, ax, ay, az){ // axis_x, axis_y, axis_z, 
+//     var pi = this.thread.x;
+//     var ai = this.thread.y;
+//     var li = this.thread.z;
+//     var shift = 1000;
+//     var slice = -1;
+//     var src_idx = -1;
+//     var x = 0;
+//     var y = 0;
+//     var z = 0;
+//     for(let i = 0; i < chunk; i++){//for(let i = pi*this.constants.chunk; i < (pi+1)*this.constants.chunk; i++){
+//         var ci = ((pi*chunk) + i) * 3;
+//         var tx = src_pts[ci]   + (src_nml[ci]   * layer_div * li);
+//         var ty = src_pts[ci+1] + (src_nml[ci+1] * layer_div * li);
+//         var tz = src_pts[ci+2] + (src_nml[ci+2] * layer_div * li);
+//         var axis_pos = tx*ax[ai] + ty*ay[ai] + tz*az[ai];
+//         var test_shift = -(axis_pos % slice_div); //-(points[i+1] % slice_div); 
+//         var abs_shift = Math.abs(test_shift);
+//         if (abs_shift > slice_div/2){
+//             test_shift = -(slice_div-abs_shift)*Math.sign(test_shift);
+//         }
+//         if(Math.abs(shift) > Math.abs(test_shift)){
+//             shift = test_shift;
+//             slice = axis_pos;//Math.round((axis_pos+shift)/slice_div) + half_slice_cnt;
+//             src_idx = i;// / this.constants.chunk;
+//             x = tx;
+//             y = ty;
+//             z = tz;
+//         }
+//     }
+//     slice = Math.round((slice+shift)/slice_div) + half_slice_cnt;
+//     src_idx = src_idx / chunk;//this.constants.chunk;
+//     x = x + (ax[ai] * shift);
+//     y = y + (ay[ai] * shift);
+//     z = z + (az[ai] * shift);
+//     if(Math.abs(shift) > max_shift){
+//         x = 0;
+//         y = 0;
+//         z = 0;
+//     }
+//     return [slice + src_idx, x, y, z];
+// },{
+
+
+
+// if(dist > max_div || i == src_path.length-1){
+//     if(pts[0].length > 2){// && box.getSize(v1).length() > min_length){
+//         var curve = new CatmullRomCurve3(pts[0]);
+//         curve.arcLengthDivisions = 2000;
+//         curves.push(curve);
+//         paths.push({
+//             ribbon:   d.geo.surface(d, pts, {length_v:curve.getLength()}), 
+//             speed:    c.speed, 
+//             flow:     c.flow,
+//             material: c.material,
+//             cord_radius: c.cord_radius,
+//         }); 
+//     }
+//     //ref_pnt = src_path[i].p.clone();
+//     pts = [[],[],[]];
+//     //box = new Box3(); // .makeEmpty() #1
+// }
+
+
+                            // if(dist > max_div || i == src_path.length-1 || hit_outside){ // check for end_surface !!!!!!!
+                            //     if(pts[0].length > 2 && box.getSize(v1).length() > min_length && !(!hit_inside && hit_outside)){
+                            //         var make_path = true;
+                            //         if(!hit_inside){
+                            //             v1.copy(src_path[start_i].src_pnt).sub(src_path[start_i].p);
+                            //             v2.copy(v1).normalize();
+                            //             for(let j=0; j < v1.length(); j += bnd_vox_size/6){
+                            //                 v3.copy(src_path[start_i].p).add(v4.copy(v2).multiplyScalar(j));
+                            //                 var k = 'x'+Math.round(v3.x/bnd_vox_size) 
+                            //                         + 'y'+Math.round(v3.y/bnd_vox_size) 
+                            //                         + 'z'+Math.round(v3.z/bnd_vox_size);
+                            //                 if(bnd_vox[k]){// && bnd_vox[k].p.distanceToPoint(src_path[start_i].p) > 0){
+                            //                     make_path = false;
+                            //                     break;
+                            //                 }
+                            //             }
+                            //         }
+
+                            //     }
+                            // }
+
+
+                                // if(hit_outside && dist <= max_div){
+                                //     point_ref = src_path[i].p.clone();
+                                //     //bnd_vox[k].p.projectPoint(src_path[i].p, point_ref);
+                                //     pts[0].push(point_ref);
+                                //     pts[1].push(point_ref.clone().add(v1.copy(src_path[i].n).divideScalar(2))); 
+                                //     pts[2].push(point_ref.clone().add(src_path[i].n));
+                                // }
 
                                 //if(axis_pts[li][ai][idx][1] < -400 && links[li][ai][idx]) console.log('oh my fing god');
                                 //if(links[li][ai][idx][1] < 0 || used[links[li][ai][idx][1]]) break;

@@ -187,14 +187,14 @@ export const create_make_slice = (set,get)=>({make:{
             radius_b: d.make.atom(d,'f', 8),   
         }});
     },
-    coil(d, a={}){ // add manual_compute !!!!!!!!!
-        var n = d.make.node(d,'p','coil', {...a, n:{
+    slice(d, a={}){ // add manual_compute !!!!!!!!!
+        var n = d.make.node(d,'p','slice', {...a, n:{
             material:     d.make.atom(d,'s', 'H2O'),
             axis_x:       d.make.atom(d,'f', 0),
             axis_y:       d.make.atom(d,'f', -1),
             axis_z:       d.make.atom(d,'f', 0),
             density:      d.make.atom(d,'f', 0.1),
-            cord_radius:  d.make.atom(d,'f', 0.4),
+            cord_radius:  d.make.atom(d,'f', 0.5),
             speed:        d.make.atom(d,'f', 50),
             flow:         d.make.atom(d,'f', 1),
             layers:       d.make.atom(d,'f', 1),

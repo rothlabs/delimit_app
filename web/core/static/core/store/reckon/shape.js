@@ -47,7 +47,7 @@ export const shape = {
         }catch(e){
             //delete c.shape;
             //delete ax.shape;
-            console.log('SHAPE ERROR', e);
+            //console.log('SHAPE ERROR', e);
         }
     },
 };
