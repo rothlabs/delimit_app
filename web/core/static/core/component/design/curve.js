@@ -37,7 +37,7 @@ export const Curve = memo(({n})=>{
             if(!Array.isArray(curve)) curve = [curve];
             //console.log('curve_pts.length: '+curve_pts.length);
             if(curve.length == curve_pts.length){ // using old curve_pts so length always zero !!!!!!!!
-                curve.forEach((curve,i) => {
+                curve.forEach((curve, i) => {
                     var div = Math.round(curve.getLength()/span);
                     if(div < 100) div = 100;
                     curve_pts[i] = curve.getPoints(div).map(p=>[p.x, p.y, p.z]).flat();// change back to getPoints !!!!!!!
@@ -58,11 +58,11 @@ export const Curve = memo(({n})=>{
                 //console.log(new_curve_pts);
             }
             //ss(d=> d.n[n].c.rendered_curves = curve.length);
-            const pts = d.n[n].ax.pts;
-            if(pts){
-                segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
-                segs_ref.current.geometry.setPositions(segs_geo.pts);
-            }
+            // const pts = d.n[n].ax.pts;
+            // if(pts){
+            //     segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
+            //     segs_ref.current.geometry.setPositions(segs_geo.pts);
+            // }
         }
     },[curve_pts]);
     //console.log('render curve');

@@ -24,7 +24,7 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
     'width', 'height', 'data',
     'name', 'story',
-    'coil', 'post',
+    'slice', 'post',
     'fill', 'corner',
     'order', 'current_image',
     'brush', 'color_a', 'color_b',

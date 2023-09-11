@@ -19,7 +19,7 @@ var next_ids = [];
 const subject_tags= [
     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
     'mixed_curve', 'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
-    'coil', 'post', 'machine',
+    'slice', 'post', 'machine',
 ];
 const cat_tags=[ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
@@ -38,7 +38,7 @@ const component = {
     'layer':       Layer,
     'image':       Image,
     'ellipse':     Curve,
-    'coil':        Curve,
+    'slice':        Curve,
     'post':        Curve,
 };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
@@ -111,7 +111,7 @@ export const create_base_slice = (set,get)=>({
         'shape':          'bi-pentagon',
         'layer':          'bi-layers',
         'image':          'bi-image',
-        'coil':           'bi-rainbow',
+        'slice':           'bi-rainbow',
         'fill':           'bi-cloud-fog2-fill',
         'corner':         'bi-triangle',
         'post':           'bi-code',
@@ -190,6 +190,15 @@ export const create_base_slice = (set,get)=>({
     },
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
+    },
+    join_float_32_arrays(arrays){
+        const lengths = arrays.map(v=> v.length);
+        const result = new Float32Array(lengths.reduce((a,b)=>a+b,0));
+        for (let i=0; i<arrays.length; i++){
+            let start = lengths.slice(0,i).reduce((a,b)=>a+b,0);
+            result.set(arrays[i], start); 
+        }
+        return result;
     },
     // try(...funcs){
     //     const result = null;

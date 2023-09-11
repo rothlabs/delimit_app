@@ -41,8 +41,8 @@ export const Surface = memo(({n})=>{
             //v_res = pts[0].length;
             //}
             //console.log(surface.length_v);
-            console.log(Math.round(surface.length_u/div));
-            console.log(Math.round(surface.length_v/div));
+            //console.log(Math.round(surface.length_u/div));
+            //console.log(Math.round(surface.length_v/div));
             let new_geo = new ParametricGeometry(
                 surface.get_point, 
                 MathUtils.clamp(Math.round(surface.length_u/div), 2, 100000), 

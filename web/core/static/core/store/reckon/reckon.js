@@ -9,7 +9,7 @@ import {shape} from './shape.js';
 import {layer} from './layer.js';
 import {image} from './image.js';
 import {brush} from './brush.js';
-import {coil} from './coil.js';
+import {slice} from './slice.js';
 import {post} from './post.js';
 
 const zero_vector = new Vector3();
@@ -31,7 +31,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     layer,
     image,
     brush,
-    coil,
+    slice,
     post,
     count: 0,
     up(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
