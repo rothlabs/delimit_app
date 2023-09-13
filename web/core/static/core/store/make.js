@@ -216,6 +216,11 @@ export const create_make_slice = (set,get)=>({make:{
             holder_x3: d.make.atom(d,'f', 0),
             holder_x4: d.make.atom(d,'f', 0),
             holder_x5: d.make.atom(d,'f', 0),
+            offset_x1: d.make.atom(d,'f', 0),
+            offset_x2: d.make.atom(d,'f', 0),
+            offset_x3: d.make.atom(d,'f', 0),
+            offset_x4: d.make.atom(d,'f', 0),
+            offset_x5: d.make.atom(d,'f', 0),
         }});
     },
     // matrix(d, a={}){

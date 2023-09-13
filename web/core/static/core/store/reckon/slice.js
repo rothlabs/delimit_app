@@ -181,7 +181,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             const compute_axis_pts = gpu.createKernel(function(src_pts, src_nml, layer_div, slice_div, half_slice_cnt, chunk, ax, ay, az){ // axis_x, axis_y, axis_z, 
                 var pi = this.thread.x;
                 var ai = this.thread.y;
-                var li = this.thread.z;
+                var li = this.thread.z+0.25;
                 var axis_shift = 0;
                 var shift = 1000;
                 var slice = -1;
@@ -372,6 +372,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             console.log('Slice: paths');
             var inside = true;
             var ref_pnt = src_paths[0][0][0][0].p;
+            var pva_start_idx = -1;
             for(let li=0; li<c.layers; li++){ 
                 for(let ai=0; ai<c.axes; ai++){ 
                     for(let pth=0; pth < src_paths[li][ai].length; pth++){ 
@@ -408,11 +409,12 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                                     curve.arcLengthDivisions = 2000;
                                     if(curve.getLength() > min_length){
                                         curves.push(curve);
+                                        if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
                                         paths.push({
-                                            ribbon:   d.geo.surface(d, pts, {length_v:curve.getLength()}), 
-                                            speed:    c.speed, 
-                                            flow:     c.flow,
-                                            material: c.material,
+                                            ribbon:      d.geo.surface(d, pts, {length_v:curve.getLength()}), 
+                                            speed:       c.speed, 
+                                            flow:        c.flow,
+                                            material:    c.material,
                                             cord_radius: c.cord_radius,
                                         }); 
                                     }
@@ -422,6 +424,19 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                             ref_pnt = src_path[i].p; // clone? #1
                         }
                     }
+                }
+                if(pva_start_idx > -1){
+                    let end_idx = paths.length;
+                    for(let i = pva_start_idx; i < end_idx; i+=3){
+                        paths.push({
+                            ribbon:      paths[i].ribbon, 
+                            speed:       c.speed, 
+                            flow:        c.flow,
+                            material:    'AIR',
+                            cord_radius: c.cord_radius,
+                        }); 
+                    }
+                    pva_start_idx = -1;
                 }
             }
             

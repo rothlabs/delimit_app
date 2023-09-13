@@ -18,6 +18,8 @@ import {produce, applyPatches, produceWithPatches, enablePatches} from 'immer';
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
 import {shallow} from 'zustand/shallow';//'shallow';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import {create_base_slice} from './store/base.js';
 import {create_graph_slice} from './store/graph.js';
@@ -115,6 +117,7 @@ var patch = 0;
 var patches = [];
 var inverse = [];
 var fork = null; // state fork for interactive stuff like dragging 
+var original_fork = null;
 
 function next_state(state, func){
     var all_patches = [];
@@ -226,39 +229,55 @@ function commit_state(arg){
         patch = patches.length;
     }
 }
+
+// recieve state
 export const rs = func=> {
     //console.log('recieve state');
     const result = next_state(gs(), func); 
-    if(fork) fork = applyPatches(fork, result.patches);
-} // recieve state
+    if(fork){
+        fork = applyPatches(fork, result.patches);
+        original_fork = applyPatches(original_fork, result.patches);
+    }
+} ;
+
+// set state (rename to commit state?)
 export const ss = func=> {
     //console.log('set state');
     //console.trace();
     commit_state(next_state(gs(), func)); 
-}// rename to commit state?
+};
+
+// fork state
 export const fs = func=>{                 // this might be the secret sauce to async functions! #1
     //console.log('fork state');
     fork = next_state(gs(), func).state;
-}; // fork state
+    original_fork = next_state(gs(), func).state;;
+}; 
+
+// set fork
 export const sf = func=>{
     //console.log('set fork');
     if(fork != null){
-        next_state(fork, func);
+        fork = next_state(fork, func).state;
+        //fork = next_state(fork, func).state; 
     }else{
         //console.log('TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
         assert(false, 'TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
     }
     //next_state(fork, func);
-}; // set fork
+}; 
+
+// merge fork
 export const mf = func=>{ // watch out for no-change resulting in undefined d!?!?!
     if(fork != null){
-        commit_state(next_state(fork, func));
+        console.log('merge state!');
+        commit_state(next_state(original_fork, func));
         fork = null;
     }else{
         //console.log('TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
         assert(false, 'TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
     }
-}; // merge fork
+}; 
 
 
 
@@ -443,17 +462,19 @@ const termination_link = createHttpLink({
 // });
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
-    r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
-        r(RouterProvider, {router:createBrowserRouter([
-            {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
-                {path:'',        element:r('p',{}, 'At Home')},
-                {path:'catalog', element:r('p',{}, 'At Catalog')},
-                {path:'studio',  element:r(Studio), errorElement:r(Router_Error)},  // {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
-                    //{path:'',       element:r(Studio_Browser)},
-                    //{path:':id',    element:r(Studio_Editor)},
-                //]},
-            ]},
-        ])}),
+    r(DndProvider, {backend:HTML5Backend},
+        r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
+            r(RouterProvider, {router:createBrowserRouter([
+                {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
+                    {path:'',        element:r('p',{}, 'At Home')},
+                    {path:'catalog', element:r('p',{}, 'At Catalog')},
+                    {path:'studio',  element:r(Studio), errorElement:r(Router_Error)},  // {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
+                        //{path:'',       element:r(Studio_Browser)},
+                        //{path:':id',    element:r(Studio_Editor)},
+                    //]},
+                ]},
+            ])}),
+        )
     )
 )));
 //import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';

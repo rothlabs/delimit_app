@@ -21,6 +21,9 @@ const subject_tags= [
     'mixed_curve', 'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
     'slice', 'post', 'machine',
 ];
+const children_tags = [
+    'boundary', 
+];
 const cat_tags=[ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
     'fill', 'corner',
@@ -53,6 +56,7 @@ const float_tags    = [model_tags['f'], // rename to number_tags
     'density', 'axes', 'spread_angle', 'layers', 'speed', 'flow', 'cord_radius', 
     'origin_x', 'origin_y', 'origin_z', 'origin_a',
     'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
+    'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5',
 ];
 const string_tags = [model_tags['s'], // rename to text_tags
     'name', 'story', 'code', 'data',
@@ -73,6 +77,7 @@ export const create_base_slice = (set,get)=>({
     subject_tags:   subject_tags,
     admin_tags:     admin_tags,
     value_tags:     [...float_tags, ...string_tags],
+    children_tags:  [...subject_tags, ...children_tags],
     node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},
     cast_tags: cast_tags,

@@ -10,6 +10,7 @@ import {Badge} from '../node/base.js'
 //import {Cat_Badge} from '../../node/base.js'
 import {String} from '../node/input/string.js';
 import {Float} from '../node/input/float.js';
+import {Children} from '../node/input/children.js';
 
 
 export function Inspect(){ 
@@ -41,8 +42,11 @@ export function Inspect(){
             ...d.float_tags.map(t=>
                 c(Float, {t:t})
             ),
+            ...d.children_tags.map(t=>
+                c(Children, {t:t})
+            ),
             !cats.length ? null : c(Fragment,{},
-                c('h5',{className:'text-secondary bi-tag mt-4'}, ' Category'),
+                c('h5',{className:'text-secondary bi-tag mt-4'}, ' Tags'),
                 c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
                     ...cats.map(t=>
                         c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 

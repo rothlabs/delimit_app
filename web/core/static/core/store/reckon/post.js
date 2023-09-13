@@ -1,19 +1,19 @@
 import {current} from 'immer';
-import {Vector3, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
+import {Vector3, Vector4, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
 
 ////////////////////////////////  Machine Data //////////////////////
 // Home is -1000 for X and Z 
 // Home is 0 for Y
 // For tool +Z at center top of rod: X:-835, Y:-5, Z:-672, A:-58, B:0
 // Y-AXis:
-    // -462 tool clears holder
+    // -462 tool clears holder (tool)
     // -504 lined up with holder
 // A-Axis:
     // 0 is limit switch 
     // -90 carriage can pass tools while moving Y
     // -105 bar can pass tools while moving Y IF TOOLS LEANING BACK
     // -108 is almost connecting to tool
-    // -112 bar is in down position (connected to tool)
+    // -113 bar is in down position (connected to tool)
 /////////////////////////////////////////////////////////////////////
 
 const v1 = new Vector3();
@@ -21,6 +21,7 @@ const v2 = new Vector3();
 const v3 = new Vector3();
 const v4 = new Vector3();
 const v5 = new Vector3();
+const ref = new Vector4();
 const m1 = new Matrix4();//.makeRotationY(Math.PI*2/rot_res);
 const forward = new Vector3(0, 0, 1);
 const back    = new Vector3(0, 0,-1);
@@ -62,9 +63,17 @@ const cmd = {
     fiber_on_t5: '100010', // 17
 };
 
+const cmd_names = {};
+Object.keys(cmd).forEach(key=>{
+    cmd_names[cmd[key]] = key;
+});
+
+const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
+
 const cmd_interval = 0.01; 
 const approx_rapid_interval = cmd_interval;
 const preheat_interval = 60;
+const flow_off_interval = 0.75;
 
 const cord_radius_transition = 0.4;
 
@@ -85,35 +94,55 @@ export const post = {
             delete ax.curve;
             
             const mach = d.n[d.n[n].n.machine[0]].c;
-            const tools = [null,{x:mach.holder_x1},{x:mach.holder_x2},{x:mach.holder_x3},{x:mach.holder_x4},{x:mach.holder_x5}];
+            const tools = [null,
+                {x:mach.holder_x1, offset_x:mach.offset_x1},
+                {x:mach.holder_x2, offset_x:mach.offset_x2},
+                {x:mach.holder_x3, offset_x:mach.offset_x3},
+                {x:mach.holder_x4, offset_x:mach.offset_x4},
+                {x:mach.holder_x5, offset_x:mach.offset_x5}
+            ];
             const code = ['(Delimit Slicer)', 'G21 G90 G93', 'G92 B0', 'M3 S0', ''];//g21=mm, g90=absolute, g93=inverse-time-feed, g92=reset-axis
             const cmd_slots = [{i:code.length, time:0}]; // rename to cmd_slots? #1
             const cmds = [];
             const heat_cmds = [];
-            var model_y = null;
+            var model_offset_y = null;
             var time = 0;
             var prev_cmd_time = 0;
             var tool = 0; // no tool
             var axis_a = 0; 
             var axis_b = 0; // need to set to start of path 
+            var mode = 'idle';
+            var material = 'none';
 
             function move(a={}){
                 //console.log(cmds);
                 var cl = '';
-                let offset_y = 0;
-                if(a.model) offset_y = model_y;
                 if(a.p){a.x=a.p.x; a.y=a.p.y; a.z=a.p.z}
-                if(a.x != undefined) cl += ' X'+d.rnd(mach.origin_x+a.x, 1000);
-                if(a.y != undefined) cl += ' Y'+d.rnd(mach.origin_y+a.y+offset_y, 1000);
-                if(a.z != undefined) cl += ' Z'+d.rnd(mach.origin_z-a.z, 1000);
-                if(a.a != undefined) cl += ' A'+d.rnd(mach.origin_a+MathUtils.radToDeg(-a.a), 1000);
-                if(a.b != undefined) cl += ' B'+d.rnd(MathUtils.radToDeg(-a.b), 1000);
+                ref.set(0, 0, 0, 0);
+                if(a.ref == 'product'){
+                    if(a.x != undefined){
+                        a.x += tools[tool].offset_x;
+                        if(material == 'AIR') a.x += 50;
+                    }
+                    if(a.y != undefined)  a.y += model_offset_y;
+                    if(a.z != undefined)  a.z  = -a.z;
+                    if(a.a != undefined)  a.a  = MathUtils.radToDeg(-a.a);
+                    if(a.b != undefined)  a.b  = MathUtils.radToDeg(-a.b);
+                }
+                if(a.ref == 'product' || a.ref == 'origin'){
+                    ref.set(mach.origin_x, mach.origin_y, mach.origin_z, mach.origin_a);
+                }
+                if(a.x != undefined) cl += ' X'+d.rnd(ref.x+a.x, 1000);
+                if(a.y != undefined) cl += ' Y'+d.rnd(ref.y+a.y, 1000);
+                if(a.z != undefined) cl += ' Z'+d.rnd(ref.z+a.z, 1000);
+                if(a.a != undefined) cl += ' A'+d.rnd(ref.w+a.a, 1000);
+                if(a.b != undefined) cl += ' B'+d.rnd(      a.b, 1000);
                 if(time - prev_cmd_time > cmd_interval){
                     if(cmds.length > 0) code.push(...write_cmd(cmds.shift()))
                     else cmd_slots.push({i:code.length, time:time});
                     prev_cmd_time = time;
                 }
-                if(a.speed){
+                if(a.speed && a.dist){
                     cl = 'G1' + cl + ' F'+d.rnd((a.speed / a.dist) * 60, 1000);
                     time += a.dist / a.speed;
                 }else{
@@ -126,23 +155,28 @@ export const post = {
                 if(tool == id) return;
                 code.push('(Tool '+id+')');
                 if(tool > 0){
-                    move({x:tools[tool].x, a:0, abs:true}); // position above holder
-                    move({y:mach.holder_y, abs:true}); // move into holder
+                    move({x:tools[tool].x, a:0}); // position above holder
+                    move({y:mach.holder_y}); // move into holder
                 }
-                move({a:-.2}); // rotate back from holder (radians)
+                move({a:23, ref:'origin'}); // rotate back to CARRIAGE CLEARANCE  (degree)
                 if(id > 0){
-                    move({x:tools[id].x, y:mach.holder_y}); // move to new holder
-                    move({a:0});  // rotate forward to grip tool
+                    move({x:tools[id].x, y:mach.holder_y}); 
+                    move({a:0, ref:'origin'});  // rotate forward to grip tool
                     move({y: mach.holder_y + 42}); // pull tool up out of holder
-                    move({a:-.2}); // rotate back from holder (radians)
+                    move({a:8, ref:'origin'}); // rotate back to X-RAIL CLEARANCE
                 }
-                move({y: mach.holder_y + 150}); // move to clearance height
+                move({y:mach.holder_y+100}); // move to clearance height
                 tool = id;
                 code.push('');
             }
             function write_cmd(id){
+                if(modal.includes(cmd_names[id])){
+                    if(mode == cmd_names[id]) return [];
+                    mode = cmd_names[id];
+                }
+                code.push('');
                 let bits = id.split('').map(v=> parseInt(v));
-                var bc = ['(Cmd '+(bits[0]+bits[1]*2+bits[2]*4+bits[3]*8+bits[4]*16+bits[5]*32)+')'];
+                var bc = ['(Cmd '+(bits[0]+bits[1]*2+bits[2]*4+bits[3]*8+bits[4]*16+bits[5]*32)+', '+cmd_names[id]+')'];
                 bc.push('M9'); // turn off M7 (mist) and M8 (flood)
                 if(bits[0]){ bc.push('M64 P0') }else{ bc.push('M65 P0') } // Aux0
                 if(bits[1]){ bc.push('M64 P1') }else{ bc.push('M65 P1') } // Aux1
@@ -181,34 +215,35 @@ export const post = {
 
             const curves = [];
             paths.forEach((path, pi)=>{
-                if(path.material == 'AIR'){
+                if(path.material == 'AIR' && material != 'AIR'){
                     pick_tool(1);
                     push_cmd(cmd.air_on_t1);
-                }else if(path.material == 'H2O'){
+                }else if(path.material == 'H2O' && material != 'H2O'){
                     pick_tool(1);
                     push_cmd(cmd.flow_t1a);
-                }else if(path.material == 'PVA'){
+                }else if(path.material == 'PVA' && material != 'PVA'){
                     pick_tool(1);
                     push_cmd(cmd.flow_t1b);
-                }else if(path.material == 'PU'){
+                }else if(path.material == 'PU' && material != 'PU'){
                     pick_tool(1);
                     push_cmd(cmd.flow_t1c);
-                }else if(path.material == 'PLA'){
+                }else if(path.material == 'PLA' && material != 'PLA'){
                     pick_tool(2);
                     push_cmd(cmd.step_t2);
                     push_heat_cmd({time:time, cmd:cmd.heat_on_t2});
-                    code.push('M66 P0 L3', ''); // Hotend ready?
-                }else if(path.material == 'TPU' && path.cord_radius >= cord_radius_transition){
+                    code.push('', 'M66 P0 L3', ''); // Hotend ready?
+                }else if(path.material == 'TPU' && tool != 3 && path.cord_radius >= cord_radius_transition){
                     pick_tool(3);
                     push_cmd(cmd.step_t3);
                     push_heat_cmd({time:time, cmd:cmd.heat_on_t3});
-                    code.push('M66 P1 L3', ''); // Hotend ready?
-                }else if(path.material == 'TPU' && path.cord_radius < cord_radius_transition){
+                    code.push('', 'M66 P1 L3', ''); // Hotend ready?
+                }else if(path.material == 'TPU' && tool != 4 && path.cord_radius < cord_radius_transition){
                     pick_tool(4);
                     push_cmd(cmd.step_t4);
                     push_heat_cmd({time:time, cmd:cmd.heat_on_t4});
-                    code.push('M66 P2 L3', ''); // Hotend ready?
+                    code.push('', 'M66 P2 L3', ''); // Hotend ready?
                 }
+                material = path.material;
 
                 var curve = new CurvePath();
                 curve.arcLengthDivisions = 2000;
@@ -252,7 +287,7 @@ export const post = {
                     nml[i].divideScalar(vc);      
                 }
 
-                if(model_y == null) model_y = -pts[0].y;
+                if(model_offset_y == null) model_offset_y = -pts[0].y;
 
                 function rotate_point_normal(i, b){
                     m1.makeRotationY(b); // Vector3.applyAxisAngle #2
@@ -261,7 +296,7 @@ export const post = {
                 }
 
                 // Write tool paths  to gcode:
-                code.push('(Path '+pi+')', '');
+                code.push('(Path '+pi+')');
                 rotate_point_normal(0, axis_b);
                 for(let i=0; i<pts.length; i++){ 
                     v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
@@ -272,15 +307,15 @@ export const post = {
                     axis_b += shift_b;
                     if(i == 0){
                         v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
-                        move({p:v2, a:axis_a, b:axis_b, model:true, no_time:true});
-                        move({p:pts[i], model:true, no_time:true});
-                        code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
+                        move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
+                        move({p:pts[i], ref:'product', no_time:true});
+                        if(material != 'AIR') code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
                     }else if(i == pts.length-1){
-                        code.push('S0');
+                        if(material != 'AIR') code.push('S0');
                         v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
-                        move({p:v2, model:true, no_time:true});
+                        move({p:v2, ref:'product', no_time:true});
                     }else{
-                        move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], model:true});
+                        move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
                     }
                     if(i < pts.length-1) rotate_point_normal(i+1, axis_b);
                     // code += 'G1 X'+d.rnd(origin_x+pts[i].x, 1000) + ' Y'+d.rnd(origin_y-pts[0].y+pts[i].y, 1000)+ ' Z'+d.rnd(origin_z-pts[i].z, 1000);
@@ -298,13 +333,13 @@ export const post = {
                 //paths.push({ribbon:ribbon, speed:path.speed, flow:path.flow});
 
                 if(pi < paths.length-1){
-                    if(path.material == 'AIR' && paths[pi+1].material != 'AIR'){
+                    if(material == 'AIR' && paths[pi+1].material != 'AIR'){
                         push_cmd(cmd.air_off_t1);
-                    }else if(path.material == 'PLA' && paths[pi+1].material != 'PLA'){
+                    }else if(material == 'PLA' && paths[pi+1].material != 'PLA'){
                         push_cmd(cmd.heat_off_t2);
-                    }else if((path.material == 'TPU' && path.cord_radius >= cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius >= cord_radius_transition)){
+                    }else if((material == 'TPU' && path.cord_radius >= cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius >= cord_radius_transition)){
                         push_cmd(cmd.heat_off_t3);
-                    }else if((path.material == 'TPU' && path.cord_radius < cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius < cord_radius_transition)){
+                    }else if((material == 'TPU' && path.cord_radius < cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius < cord_radius_transition)){
                         push_cmd(cmd.heat_off_t4);
                     }
                 }

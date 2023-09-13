@@ -90,6 +90,35 @@ export const create_pick_slice = (set,get)=>({pick:{
             });
         }
     },
+    pin_children(d, t){
+        if(d.pick.n.length > 1) return;
+        let n = d.pick.n[0];
+        if(!d.n[n].pin.n) d.n[n].pin.n = {};
+        d.n[n].pin.n[t] = [...d.n[n].n[t]];
+    },
+    flip_children_pin(d, t){
+        if(d.pick.n.length > 1) return;
+        let n = d.pick.n[0];
+        let current_children = d.n[n].n[t];
+        d.n[n].n[t] = d.n[n].pin.n[t];
+        d.n[n].pin.n[t] = current_children;
+    },
+    set_children_from_pin(d, t){
+        if(d.pick.n.length > 1) return;
+        let n = d.pick.n[0];
+        d.n[n].n[t] = [...d.n[n].pin.n[t]]; // new array to be reflected in patches
+        d.inspect.update(d);
+        d.reckon.up(d, n);
+    },
+    set_child_order(d, t, src_idx, new_idx){ // set_children_order
+        if(d.pick.n.length > 1) return;
+        let n = d.pick.n[0];
+        let moved_node = d.n[n].n[t][src_idx];
+        d.n[n].n[t].splice(src_idx, 1);
+        d.n[n].n[t].splice(new_idx, 0, moved_node);
+        d.n[n].n[t] = [...d.n[n].n[t]]; // new array to be reflected in patches
+        d.inspect.update(d);//d.next('inspect.update');
+    },
     hover(d, n, hover){
         if(d.n[n].pick.hover != hover){
             d.n[n].pick.hover = hover;

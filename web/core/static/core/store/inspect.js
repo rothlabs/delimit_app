@@ -1,7 +1,8 @@
 export const create_inspect_slice = (set,get)=>({inspect:{
     cats:[],
     content:{}, 
-    asset:{}, 
+    children:{},
+    asset:{}, // rename to disabled ?! #1
     placeholder:{}, 
     mergeable:{},
     splittable:{},
@@ -29,10 +30,22 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                     d.inspect.placeholder[t] = nc.map(n=>n.c[t]).join(',  ');
                 }
                 d.inspect.asset[t] = nc.some(n=> n.asset);
-            }else{  d.inspect.content[t] = undefined;   }
+            }else{  
+                d.inspect.content[t] = undefined;   
+            }
+        })
+        d.children_tags.forEach(t=>{
+            const nc = node_content.filter(n=> (n.n && n.n[t]!=undefined));
+            d.inspect.children[t] = [];
+            if(nc.length){ 
+                d.inspect.children[t] = nc.map(n=> n.n[t]).flat();
+                d.inspect.asset[t] = nc.some(n=> n.asset);
+            }else{  
+                d.inspect.children[t] = undefined;  
+            }
         })
         Object.entries(d.model_tags).forEach(([m,t],i)=>{
-            const nc = node_content.filter(n=> n.m==m && n.v!=null);
+            const nc = node_content.filter(n=> (n.m==m && n.v!=undefined));
             if(nc.length){  
                 if(nc.every((n,i,nc)=> n.v==nc[0].v)){
                     d.inspect.content[t] = nc[0].v;   // could be content just like part
