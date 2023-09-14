@@ -82,7 +82,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             const slice_div = (c.cord_radius*2) / c.density; 
             const half_slice_cnt = Math.round(d.easel_size/slice_div/2);
             const curves = [];
-            const paths = []; 
+            var paths = []; 
 
             console.log('Slice: axes');
             const axes = [];
@@ -121,17 +121,29 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     else end_surfaces.push(d.n[sn].c.surface);
                 });
                 end_surfaces.forEach(surface => {
-                    for(let u=0; u<end_surface_div; u++){ // make this res relative to size of surface #1
-                        for(let v=0; v<end_surface_div; v++){ 
-                            surface.get_point_normal(u/end_surface_div, v/end_surface_div, v1, v2);
-                            var k = 'x'+Math.round(v1.x/bnd_vox_size) 
-                                  + 'y'+Math.round(v1.y/bnd_vox_size) 
-                                  + 'z'+Math.round(v1.z/bnd_vox_size) 
-                            if(!bnd_vox[k]) bnd_vox[k] = {box:new Box3(), nml:[], pln:new Plane()};
-                            bnd_vox[k].box.expandByPoint(v1);
-                            bnd_vox[k].nml.push(v2.clone());
-                        }
-                    }
+                    //for(let u=0; u<end_surface_div; u++){ // make this res relative to size of surface #1
+                    //    for(let v=0; v<end_surface_div; v++){ 
+                            const mesh = new Mesh(
+                                new ParametricGeometry(
+                                    surface.get_point, 
+                                    surface_div, 
+                                    surface_div,
+                                ), 
+                                material,
+                            );
+                            //surface.get_point_normal(u/end_surface_div, v/end_surface_div, v1, v2);
+                            const sampler = new MeshSurfaceSampler(mesh).build();
+                            for(let i=0; i < samples_per_mesh; i++){
+                                sampler.sample(v1, v2, color, vector2);
+                                var k = 'x'+Math.round(v1.x/bnd_vox_size) 
+                                    + 'y'+Math.round(v1.y/bnd_vox_size) 
+                                    + 'z'+Math.round(v1.z/bnd_vox_size) 
+                                if(!bnd_vox[k]) bnd_vox[k] = {box:new Box3(), nml:[], pln:new Plane()};
+                                bnd_vox[k].box.expandByPoint(v1);
+                                bnd_vox[k].nml.push(v2.clone());
+                            }
+                    //    }
+                    //}
                 });
                 Object.values(bnd_vox).forEach(bv=>{
                     v1.set(0,0,0);
@@ -147,6 +159,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             //var nml_arrays = [];
             const src_pts = [];
             const src_nml = [];
+            const src_data = [];
             surfaces.forEach(surface => {
                 // let geo = new ParametricGeometry(
                 //     surface.get_point, 
@@ -164,12 +177,19 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 const sampler = new MeshSurfaceSampler(mesh).build();
                 for(let i=0; i < samples_per_mesh; i++){
                     sampler.sample(v1, v2, color, vector2);
-                    src_pts.push(v1.x, v1.y, v1.z);
-                    src_nml.push(v2.x, v2.y, v2.z);
+                    src_data.push({p:v1.clone(), n: v2.clone()});
+                    //src_pts.push(v1.x, v1.y, v1.z);
+                    //src_nml.push(v2.x, v2.y, v2.z);
                 }
                 //pts_arrays.push(geo.attributes.position.array);
                 //nml_arrays.push(geo.attributes.normal.array);
             });
+            src_data.sort((a,b)=> a.p.z - b.p.z);
+            for(let i = 0; i < src_data.length; i++){
+                src_pts.push(src_data[i].p.x, src_data[i].p.y, src_data[i].p.z);
+                src_nml.push(src_data[i].n.x, src_data[i].n.y, src_data[i].n.z);
+            }
+
             //const src_pts = d.join_float_32_arrays(pts_arrays);
             //const src_nml = d.join_float_32_arrays(nml_arrays);
 
@@ -255,7 +275,8 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     pts_x[li].push([]);
                     pts_y[li].push([]);
                     pts_z[li].push([]);
-                    for(var pi = 0; pi < axis_pnt_cnt; pi++){ 
+                    //axis_pts[li][ai].sort((a,b)=> a[3]-b[3]); 
+                    for(var pi = 0; pi < axis_pnt_cnt; pi++){  
                         pts_slice[li][ai].push(axis_pts[li][ai][pi][0]);
                         pts_x[li][ai].push(axis_pts[li][ai][pi][1]);
                         pts_y[li][ai].push(axis_pts[li][ai][pi][2]);
@@ -357,6 +378,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                             src_paths[li][ai].push([...test_paths[pth]]); 
                         }
                     }
+                    src_paths[li][ai].sort((a, b)=> b[0].p.y - a[0].p.y);
                     // for(let pth = 0; pth < src_paths[li][ai].length; pth++){ 
                     //     //console.log(src_paths[li][ai][pth].length);
                     //     var curve = new CatmullRomCurve3(src_paths[li][ai][pth].map(p=> p.p));
@@ -368,6 +390,9 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             console.log(src_paths);
             //console.log(path_count);
 
+            //for(let pth = 0; pth < src_paths[li][ai].length; pth++){
+                
+            //}
 
             console.log('Slice: paths');
             var inside = true;
@@ -426,8 +451,10 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     }
                 }
                 if(pva_start_idx > -1){
+                    //const air_paths = [];
                     let end_idx = paths.length;
                     for(let i = pva_start_idx; i < end_idx; i+=3){
+                        curves.push(curves[i]);
                         paths.push({
                             ribbon:      paths[i].ribbon, 
                             speed:       c.speed, 
@@ -436,6 +463,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                             cord_radius: c.cord_radius,
                         }); 
                     }
+                    //paths = [...paths, ...air_paths];
                     pva_start_idx = -1;
                 }
             }
