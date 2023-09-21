@@ -215,8 +215,8 @@ export const post = {
                 if(material == 'PVA') return;
                 code.push('', '(Start PVA)');
                 move({z:-980});
-                code.push(...write_cmd(cmds.open_cap, {no_white_space:true}));
-                code.push(...write_cmd(cmds.flow_t1b, {no_white_space:true}));
+                code.push(...write_cmd(cmd.open_cap, {no_white_space:true}));
+                code.push(...write_cmd(cmd.flow_t1b, {no_white_space:true}));
                 flow_dwell(1);
                 code.push('');
                 material = 'PVA';

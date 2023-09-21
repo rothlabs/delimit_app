@@ -31,9 +31,8 @@ const end_surface_div = 900;
 const bnd_vox_size = 2;
 const max_shift = .1;
 const min_div = .5; 
-const max_div = 8; // 8
+const max_div = 4; // 8
 const min_length = 4;
-const clip_u = 2;
 //const start_clip = 50;
 //const end_clip = 20;
 //const pivot_smooth = 8;
@@ -61,6 +60,10 @@ gpu.addFunction(function crs_vct(ax, ay, az, bx, by, bz) {
     return [x/dist, y/dist, z/dist];
 },{argumentTypes: {ax:'Number', ay:'Number', az:'Number', bx:'Number', by:'Number', bz:'Number'}, returnType:'Array(3)'});
 
+
+
+// should collect random points on sharp edges of meshes too to ensure quality feature definition! #1
+// connect front and back of slice loop
 
 export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
     props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 'cord_radius', 'layers', 'axes', 'spread_angle', 'material'],
@@ -159,8 +162,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             //var nml_arrays = [];
             const src_pts = [];
             const src_nml = [];
-            const src_data = [];
-            //var min_z = 10000;
+            //const src_data = [];
             surfaces.forEach(surface => {
                 // let geo = new ParametricGeometry(
                 //     surface.get_point, 
@@ -178,25 +180,19 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 const sampler = new MeshSurfaceSampler(mesh).build();
                 for(let i=0; i < samples_per_mesh; i++){
                     sampler.sample(v1, v2, color, vector2);
-                    // if(min_z > v1.z){
-                    //     min_z = v1.z;
-                    //     src_pts.unshift(v1.x, v1.y, v1.z);
-                    //     src_nml.unshift(v2.x, v2.y, v2.z);
-                    // }else{
-                    //     src_pts.push(v1.x, v1.y, v1.z);
-                    //     src_nml.push(v2.x, v2.y, v2.z);
-                    // }
-                    src_data.push({p:v1.clone(), n: v2.clone()});
+                    src_pts.push(v1.x, v1.y, v1.z);
+                    src_nml.push(v2.x, v2.y, v2.z);
+                    //src_data.push({p:v1.clone(), n: v2.clone()});
 
                 }
                 //pts_arrays.push(geo.attributes.position.array);
                 //nml_arrays.push(geo.attributes.normal.array);
             });
-            src_data.sort((a,b)=> a.p.z - b.p.z);
-            for(let i = 0; i < src_data.length; i++){
-                src_pts.push(src_data[i].p.x, src_data[i].p.y, src_data[i].p.z);
-                src_nml.push(src_data[i].n.x, src_data[i].n.y, src_data[i].n.z);
-            }
+            //src_data.sort((a,b)=> a.p.z - b.p.z);
+            // for(let i = 0; i < src_data.length; i++){
+            //     src_pts.push(src_data[i].p.x, src_data[i].p.y, src_data[i].p.z);
+            //     src_nml.push(src_data[i].n.x, src_data[i].n.y, src_data[i].n.z);
+            // }
 
             //const src_pts = d.join_float_32_arrays(pts_arrays);
             //const src_nml = d.join_float_32_arrays(nml_arrays);
@@ -264,7 +260,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 output: {x:axis_pnt_cnt, y:c.axes, z:c.layers}, // component list gets switch around?
             }); 
             var offset = 0;
-            if(c.material == 'PVA') offset = -1.5;
+            //if(c.material == 'PVA') offset = -1.5;
             const axis_pts = compute_axis_pts(
                 src_pts, src_nml, c.cord_radius*1.6, slice_div, half_slice_cnt, chunk, offset,
                 axes_x, axes_y, axes_z,
@@ -286,6 +282,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     pts_y[li].push([]);
                     pts_z[li].push([]);
                     //axis_pts[li][ai].sort((a,b)=> a[3]-b[3]); 
+                    //axis_pts[li][ai].sort((a,b)=> Math.floor(a[0]) - Math.floor(b[0]));
                     for(var pi = 0; pi < axis_pnt_cnt; pi++){  
                         pts_slice[li][ai].push(axis_pts[li][ai][pi][0]);
                         pts_x[li][ai].push(axis_pts[li][ai][pi][1]);
@@ -323,7 +320,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                                 // var dot = ((delta_x/pnt_dist) * (cross_x/crs_dist)) 
                                 //         + ((delta_y/pnt_dist) * (cross_y/crs_dist)) 
                                 //         + ((delta_z/pnt_dist) * (cross_z/crs_dist));
-                                if(dx*crs[0] + dy*crs[1] + dz*crs[2] > 0){
+                                if((dx*crs[0] + dy*crs[1] + dz*crs[2]) > 0){ // dot, same direction?
                                     dist = pnt_dist;
                                     link = i;
                                 }
@@ -352,42 +349,70 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 src_paths.push([]);
                 for(let ai = 0; ai < c.axes; ai++){ 
                     src_paths[li].push([]);
-                    const test_paths = [[]];
-                    var pth = 0;
+                    const slice_meta = {};//[[]];
+                    //var pth = 0;
                     var slice = -1;
                     used.fill(false);
-                    for(let i=0; i < axis_pnt_cnt; i++){
+                    
+                    for(let i=0; i < axis_pnt_cnt; i++){ // do it per slice and skip pts not on slice !!!!
                         var pnt = i;  
                         while(true){ 
+                            // if(pnt < 0 || links[li][ai][pnt] < 0){
+                            //     console.log('BROKEN LINK');
+                            // }
                             if(pnt < 0 || links[li][ai][pnt] < 0 || used[pnt]){
                                 break;
                             }else{
                                 v1.set(axis_pts[li][ai][pnt][1], axis_pts[li][ai][pnt][2], axis_pts[li][ai][pnt][3]);
                                 if(v1.length() > 0){
-                                    if(slice != Math.floor(axis_pts[li][ai][pnt][0]) || v1.distanceTo(ref_pnt) > max_div){
-                                        slice = Math.floor(axis_pts[li][ai][pnt][0]);
-                                        test_paths.push([]);
-                                        pth++;
-                                        //path_count++;
-                                    }
+                                    // if(slice != Math.floor(axis_pts[li][ai][pnt][0])){// || v1.distanceTo(ref_pnt) > max_div){ !?!?!?! #1
+                                    //     slice = Math.floor(axis_pts[li][ai][pnt][0]);
+                                    //     test_paths.push([]);
+                                    //     pth++;
+                                    // }
+                                    slice = Math.floor(axis_pts[li][ai][pnt][0]);
+                                    if(slice_meta[slice] == undefined) slice_meta[slice] = {segment:[], path:[]};
+
+                                    //if(slice_meta[slice].ref && v1.distanceTo(slice_meta[slice].ref) > max_div) {
+                                    //    slice_meta[slice].paths.push([]);
+                                    //}
+
                                     var k = ((pnt*chunk + Math.round((axis_pts[li][ai][pnt][0] % 1)*chunk))) * 3;
                                     v2.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
-                                    test_paths[pth].push({//src_paths[li][ai][pth].push({
+                                    slice_meta[slice].segment.push({//src_paths[li][ai][pth].push({
                                         p: v1.clone(),
                                         n: v2.clone(), 
                                     });
+                                    //slice_meta[slice].ref = v3.copy(v1);//ref_pnt = v3.copy(v1);
+                                    //if(used[pnt] && test_paths[pth].length > 1) break;
                                     used[pnt] = true;
-                                    ref_pnt = v3.copy(v1);
                                 }
                             }
                             pnt = links[li][ai][pnt];
                         }
-                    }
-                    for(let pth = 0; pth < test_paths.length; pth++){ 
-                        if(test_paths[pth].length > 8){ // need optimal dynamic cutoff path length #1
-                            src_paths[li][ai].push([...test_paths[pth]]); 
+                        if(slice > -1){
+                            //if(slice_meta[slice].segment.length > 0){
+                                // check distance here !! #1
+                                slice_meta[slice].path = [...slice_meta[slice].segment, ...slice_meta[slice].path];
+                                
+                            //}
+                            slice_meta[slice].segment = [];
                         }
+                        slice = -1;
                     }
+                    src_paths[li][ai] = [];
+                    Object.values(slice_meta).forEach(sm=>{
+                        //for(let pth = 0; pth < sm.path.length; pth++){ 
+                            if(sm.path.length > 2){ // need optimal dynamic cutoff path length #1
+                                src_paths[li][ai].push(sm.path); 
+                            }
+                        //}
+                        // for(let pth = 0; pth < sm.path.length; pth++){ 
+                        //     if(sm.path[pth].length > 2){ // need optimal dynamic cutoff path length #1
+                        //         src_paths[li][ai].push([...sm.path[pth]]); 
+                        //     }
+                        // }
+                    });
                     src_paths[li][ai].sort((a, b)=> b[0].p.y - a[0].p.y);
                     // for(let pth = 0; pth < src_paths[li][ai].length; pth++){ 
                     //     //console.log(src_paths[li][ai][pth].length);
@@ -494,6 +519,66 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
         } 
     }, 
 };
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////
+// for(let ai = 0; ai < c.axes; ai++){ 
+//     src_paths[li].push([]);
+//     const test_paths = [[]];
+//     var pth = 0;
+//     var slice = -1;
+//     used.fill(false);
+    
+//     for(let i=0; i < axis_pnt_cnt; i++){ // do it per slice and skip pts not on slice !!!!
+//         var pnt = i;  
+//         while(true){ 
+//             if(pnt < 0 || links[li][ai][pnt] < 0 || used[pnt]){
+//                 break;
+//             }else{
+//                 v1.set(axis_pts[li][ai][pnt][1], axis_pts[li][ai][pnt][2], axis_pts[li][ai][pnt][3]);
+//                 if(v1.length() > 0){
+//                     if(slice != Math.floor(axis_pts[li][ai][pnt][0])){// || v1.distanceTo(ref_pnt) > max_div){ !?!?!?! #1
+//                         slice = Math.floor(axis_pts[li][ai][pnt][0]);
+//                         test_paths.push([]);
+//                         pth++;
+//                     }
+//                     var k = ((pnt*chunk + Math.round((axis_pts[li][ai][pnt][0] % 1)*chunk))) * 3;
+//                     v2.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
+//                     test_paths[pth].push({//src_paths[li][ai][pth].push({
+//                         p: v1.clone(),
+//                         n: v2.clone(), 
+//                     });
+//                     ref_pnt = v3.copy(v1);
+//                     //if(used[pnt] && test_paths[pth].length > 1) break;
+//                     used[pnt] = true;
+//                 }
+//             }
+//             pnt = links[li][ai][pnt];
+//         }
+//     }
+//     src_paths[li][ai] = [];
+//     for(let pth = 0; pth < test_paths.length; pth++){ 
+//         if(test_paths[pth].length > 2){ // need optimal dynamic cutoff path length #1
+//             src_paths[li][ai].push([...test_paths[pth]]); 
+//         }
+//     }
+//     src_paths[li][ai].sort((a, b)=> b[0].p.y - a[0].p.y);
+//     // for(let pth = 0; pth < src_paths[li][ai].length; pth++){ 
+//     //     //console.log(src_paths[li][ai][pth].length);
+//     //     var curve = new CatmullRomCurve3(src_paths[li][ai][pth].map(p=> p.p));
+//     //     curve.arcLengthDivisions = 2000;
+//     //     curves.push(curve);
+//     // }
+// }
+/////////////////////////////////////////////////////
+
+
+
+
 
 
 // const compute_axis_pts = gpu.createKernel(function(src_pts, src_nml, layer_div, slice_div, half_slice_cnt, chunk, max_shift, ax, ay, az){ // axis_x, axis_y, axis_z, 
