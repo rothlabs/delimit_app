@@ -53,14 +53,17 @@ const cmd = {
     heat_on_t3:  '111000', // 7
     heat_on_t4:  '000100', // 8
     flow_t1a:    '100100', // 9,  H2O
-    flow_t1b:    '010100', // 10, PU
-    flow_t1c:    '110100', // 11, not used
+    flow_t1b:    '010100', // 10, PVA
+    flow_t1c:    '110100', // 11, PU
     step_t2:     '001100', // 12, PLA
     step_t3:     '101100', // 13, TPU coarse
     step_t4:     '011100', // 14, TPU fine
     laser_t5:    '111100', // 15
     fiber_off_t5:'000010', // 16
     fiber_on_t5: '100010', // 17
+    close_cap:   '010010', // 18
+    open_cap:    '110010', // 19
+    open_mixer:  '001010', // 20
 };
 
 const cmd_names = {};
@@ -68,7 +71,7 @@ Object.keys(cmd).forEach(key=>{
     cmd_names[cmd[key]] = key;
 });
 
-const modal = ['idle', 'flow_t1a', 'flow_t1b', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
+const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
 const cmd_dwell = 0.016; // was 0.01
 const approx_rapid_interval = cmd_dwell;
 const preheat_interval = 60;
@@ -76,8 +79,8 @@ const cord_radius_transition = 0.4;
 const max_direct_dist = 4;
 const max_direct_dist_air = 10;
 const tool_offset_a = 35;
-const max_brush_dist = 80;
-const flow_off_interval = 0.75;
+//const max_brush_dist = 80;
+//const flow_off_interval = 0.75;
 
 // const state = {
 //     air: false,
@@ -203,26 +206,30 @@ export const post = {
                 cmd_time = time;
                 return bc;
             }
-            function flush(){
-                code.push('', '(Flush)');
-                code.push(...write_cmd(cmd.flow_t1a, {no_white_space:true}));
-                move({x:-900, z:-900, a:mach.origin_a-90+tool_offset_a});
-                let interval = 3;
-                code.push('S1000', 'G4 P'+interval, 'S0', '');
-                time += cmd_dwell + interval;
-                cmd_time = time;
-                material = 'H2O';
-            }
-            function load_brush(a={}){
-                let interval = 0.75;
-                code.push('', '(Load Brush)');
-                move({x:mach.pva_x, y:mach.pva_y-10, z:-860, a:mach.origin_a + tool_offset_a});
-                move({y:mach.pva_y+9});
-                code.push('G4 P'+interval);
-                move({y:mach.pva_y-10});
+            function flow_dwell(interval){
+                code.push('S1000', 'G4 P'+interval);
                 time += interval;
-                if(a.p) move({p:a.p, a:axis_a, b:axis_b, ref:'product', no_time:true});
+                cmd_time = time;
+            }
+            function start_pva(){
+                if(material == 'PVA') return;
+                code.push('', '(Start PVA)');
+                move({z:-980});
+                code.push(...write_cmd(cmds.open_cap, {no_white_space:true}));
+                code.push(...write_cmd(cmds.flow_t1b, {no_white_space:true}));
+                flow_dwell(1);
                 code.push('');
+                material = 'PVA';
+            }
+            function flush(a={}){
+                code.push('', '(Flush)');
+                move({z:-980}); //move({x:-900, z:-900, a:mach.origin_a-90+tool_offset_a});
+                code.push(...write_cmd(cmd.close_cap, {no_white_space:true}));
+                code.push(...write_cmd(cmd.flow_t1a,  {no_white_space:true}));
+                flow_dwell(1);
+                code.push('S0');
+                code.push('');
+                material = 'H2O';
             }
 
             //function push_cmd(id){
@@ -265,13 +272,13 @@ export const post = {
                 }else if(path.material == 'H2O'){// && material != 'H2O'){
                     pick_tool(1);
                     code.push(...write_cmd(cmd.flow_t1a)); // push_cmd(cmd.flow_t1a);
-                }else if(path.material == 'PVA' && material != 'PVA'){// && material != 'PVA'){
+                }else if(path.material == 'PVA'){// && material != 'PVA'){
                     pick_tool(1);
-                    load_brush();
+                    start_pva();
                     //code.push(...write_cmd(cmd.flow_t1b)); // push_cmd(cmd.flow_t1b);
                 }else if(path.material == 'PU'){// && material != 'PU'){
                     pick_tool(1);
-                    code.push(...write_cmd(cmd.flow_t1b)); // push_cmd(cmd.flow_t1c);
+                    code.push(...write_cmd(cmd.flow_t1c)); // push_cmd(cmd.flow_t1c);
                 }else if(path.material == 'PLA'){// && material != 'PLA'){
                     pick_tool(2);
                     code.push(...write_cmd(cmd.step_t2)); // push_cmd(cmd.step_t2);
@@ -332,7 +339,7 @@ export const post = {
                     nml[i].divideScalar(vc);      
                 }
 
-                if(model_offset_y == null) model_offset_y = -pts[0].y - 10;
+                if(model_offset_y == null) model_offset_y = -pts[0].y;// - 10;
 
                 function rotate_point_normal(i, b){
                     m1.makeRotationY(b); // Vector3.applyAxisAngle #2
@@ -344,50 +351,55 @@ export const post = {
                 code.push('(Path '+pi+')');
                 rotate_point_normal(0, axis_b);
                 for(let i=0; i<pts.length; i++){ 
-                    v1.set(nml[i].x, 0, nml[i].z); //v1.set(normal.x, 0, normal.z);//
+                    if(material == 'PVA'){
+                        v1.copy(pts[i]).sub(v2.set(0, pts[i].y, 0)); // for aligning point on YZ plane
+                    }else{
+                        v1.set(nml[i].x, 0, nml[i].z); // for pointing normal forward
+                        v3.set(0, nml[i].y, nml[i].z); //v1.set(normal.x, 0, normal.z);//
+                        axis_a = down.angleTo(v3) * Math.sign(nml[i].z);
+                    }
                     var shift_b = forward.angleTo(v1) * Math.sign(-nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
                     rotate_point_normal(i, shift_b);
-                    v1.set(0, nml[i].y, nml[i].z); //v1.set(normal.x, 0, normal.z);//
-                    axis_a = down.angleTo(v1) * Math.sign(nml[i].z);
-                    axis_b += shift_b;
-                    if(i == 0){
-                        if(direct < 0){
-                            v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
-                            move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
-                            move({p:pts[i], ref:'product', no_time:true});
-                            if(!['AIR','PVA'].includes(material)) code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
+                    axis_b += shift_b;   
+                                    
+                    if(material == 'PVA'){
+                        if(i == 0){
+                            move({z:pts[i].z+pts[i].y, b:axis_b, ref:'product'});
                         }else{
-                            move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:direct, ref:'product', no_time:true});
-                            direct = -1;
+                            move({z:pts[i].z+pts[i].y, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
                         }
                     }else{
-                        move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
-                        if(material == 'PVA'){
-                            brush_dist += dis[i];
-                            if(brush_dist > max_brush_dist){
-                                load_brush({p:pts[i], a:axis_a, b:axis_b});
-                                brush_dist = 0;
+                        if(i == 0){
+                            if(direct < 0){
+                                v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
+                                move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
+                                move({p:pts[i], ref:'product', no_time:true});
+                                if(material != 'AIR') code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
+                            }else{
+                                move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:direct, ref:'product', no_time:true});
+                                direct = -1;
                             }
                         }else{
-                            brush_dist = 0;
+                            move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
                         }
-                    }
-                    if(i == pts.length-1){
-                        if(pi < paths.length-1){
-                            paths[pi  ].ribbon.get_point(0, 1, v1);
-                            paths[pi+1].ribbon.get_point(0, 0, v2);
-                            let dist = v1.distanceTo(v2);
-                            if(dist < max_direct_dist || (material=='AIR' && dist < max_direct_dist_air)){
-                                direct = dist;
-                                console.log('direct move!!!');
+                        if(i == pts.length-1){
+                            if(pi < paths.length-1){
+                                paths[pi  ].ribbon.get_point(0, 1, v1);
+                                paths[pi+1].ribbon.get_point(0, 0, v2);
+                                let dist = v1.distanceTo(v2);
+                                if(dist < max_direct_dist || (material=='AIR' && dist < max_direct_dist_air)){
+                                    direct = dist;
+                                    console.log('direct move!!!');
+                                }
+                            }
+                            if(direct < 0){
+                                if(material != 'AIR') code.push('S0');
+                                v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
+                                move({p:v2, ref:'product', no_time:true});
                             }
                         }
-                        if(direct < 0){
-                            if(!['AIR','PVA'].includes(material)) code.push('S0');
-                            v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
-                            move({p:v2, ref:'product', no_time:true});
-                        }
                     }
+
                     if(i < pts.length-1) rotate_point_normal(i+1, axis_b);
                     // code += 'G1 X'+d.rnd(origin_x+pts[i].x, 1000) + ' Y'+d.rnd(origin_y-pts[0].y+pts[i].y, 1000)+ ' Z'+d.rnd(origin_z-pts[i].z, 1000);
                     // code += ' A'+d.rnd(angle_a, 1000); 
@@ -406,6 +418,8 @@ export const post = {
                 if(pi < paths.length-1){
                     if(material == 'AIR' && paths[pi+1].material != 'AIR'){
                         code.push(...write_cmd(cmd.air_off_t1)); // push_cmd(cmd.air_off_t1);
+                    }else if(material == 'PVA' && paths[pi+1].material != 'PVA'){
+                        flush();
                     }else if(material == 'PLA' && paths[pi+1].material != 'PLA'){
                         code.push(...write_cmd(cmd.heat_off_t2)); // push_cmd(cmd.heat_off_t2);
                     }else if((material == 'TPU' && path.cord_radius >= cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius >= cord_radius_transition)){
@@ -413,12 +427,8 @@ export const post = {
                     }else if((material == 'TPU' && path.cord_radius < cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius < cord_radius_transition)){
                         code.push(...write_cmd(cmd.heat_off_t4)); // push_cmd(cmd.heat_off_t4);
                     }
-                    if((material == 'AIR' || material == 'PVA') && (paths[pi+1].material != 'AIR' && paths[pi+1].material != 'PVA')){
-                        flush();
-                    }
                 }else{
-                    if(material == 'AIR' || material == 'PVA'){
-                        if(material == 'AIR') code.push(...write_cmd(cmd.air_off_t1));
+                    if(material == 'PVA'){
                         flush();
                     }
                 }
@@ -438,8 +448,8 @@ export const post = {
                 }
             }
 
-            pick_tool(0);
             code.push(...write_cmd(cmd.idle));
+            pick_tool(0);
 
             c.code = code.join('\r\n');
             //c.surface = ribbon;
@@ -450,6 +460,17 @@ export const post = {
     }, 
 };
 
+
+
+// if(material == 'PVA'){
+//     brush_dist += dis[i];
+//     if(brush_dist > max_brush_dist){
+//         load_brush({p:pts[i], a:axis_a, b:axis_b});
+//         brush_dist = 0;
+//     }
+// }else{
+//     brush_dist = 0;
+// }
 
 
 
