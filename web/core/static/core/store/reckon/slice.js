@@ -160,6 +160,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             const src_pts = [];
             const src_nml = [];
             const src_data = [];
+            //var min_z = 10000;
             surfaces.forEach(surface => {
                 // let geo = new ParametricGeometry(
                 //     surface.get_point, 
@@ -177,9 +178,16 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 const sampler = new MeshSurfaceSampler(mesh).build();
                 for(let i=0; i < samples_per_mesh; i++){
                     sampler.sample(v1, v2, color, vector2);
+                    // if(min_z > v1.z){
+                    //     min_z = v1.z;
+                    //     src_pts.unshift(v1.x, v1.y, v1.z);
+                    //     src_nml.unshift(v2.x, v2.y, v2.z);
+                    // }else{
+                    //     src_pts.push(v1.x, v1.y, v1.z);
+                    //     src_nml.push(v2.x, v2.y, v2.z);
+                    // }
                     src_data.push({p:v1.clone(), n: v2.clone()});
-                    //src_pts.push(v1.x, v1.y, v1.z);
-                    //src_nml.push(v2.x, v2.y, v2.z);
+
                 }
                 //pts_arrays.push(geo.attributes.position.array);
                 //nml_arrays.push(geo.attributes.normal.array);
@@ -198,7 +206,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             const chunk = Math.floor(src_pnt_cnt/axis_pnt_cnt);//*3;
 
             console.log('Slice: axis_pts');
-            const compute_axis_pts = gpu.createKernel(function(src_pts, src_nml, layer_div, slice_div, half_slice_cnt, chunk, ax, ay, az){ // axis_x, axis_y, axis_z, 
+            const compute_axis_pts = gpu.createKernel(function(src_pts, src_nml, layer_div, slice_div, half_slice_cnt, chunk, offset, ax, ay, az){ // axis_x, axis_y, axis_z, 
                 var pi = this.thread.x;
                 var ai = this.thread.y;
                 var li = this.thread.z+0.25;
@@ -212,9 +220,9 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 var perp_nml = [0,0,0];
                 for(let i = 0; i < chunk; i++){//for(let i = pi*this.constants.chunk; i < (pi+1)*this.constants.chunk; i++){
                     var k = ((pi*chunk) + i) * 3;
-                    var tx = src_pts[k]   + (src_nml[k]   * layer_div * li);
-                    var ty = src_pts[k+1] + (src_nml[k+1] * layer_div * li);
-                    var tz = src_pts[k+2] + (src_nml[k+2] * layer_div * li);
+                    var tx = src_pts[k]   + (src_nml[k]   * ((layer_div * li) + offset));
+                    var ty = src_pts[k+1] + (src_nml[k+1] * ((layer_div * li) + offset));
+                    var tz = src_pts[k+2] + (src_nml[k+2] * ((layer_div * li) + offset));
                     var axis_pos = tx*ax[ai] + ty*ay[ai] + tz*az[ai]; //dot(ax[ai], ay[ai], az[ai], tx, ty, tz);//
                     var test_axis_shift = -(axis_pos % slice_div); //-(points[i+1] % slice_div); 
                     var abs_shift = Math.abs(test_axis_shift);
@@ -255,8 +263,10 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 //constants: {chunk: chunk},//{max_shift: max_shift},
                 output: {x:axis_pnt_cnt, y:c.axes, z:c.layers}, // component list gets switch around?
             }); 
+            var offset = 0;
+            if(c.material == 'PVA') offset = -1.5;
             const axis_pts = compute_axis_pts(
-                src_pts, src_nml, c.cord_radius*1.6, slice_div, half_slice_cnt, chunk,
+                src_pts, src_nml, c.cord_radius*1.6, slice_div, half_slice_cnt, chunk, offset,
                 axes_x, axes_y, axes_z,
             );
             console.log(axis_pts);
@@ -453,7 +463,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 if(pva_start_idx > -1){
                     //const air_paths = [];
                     let end_idx = paths.length;
-                    for(let i = pva_start_idx; i < end_idx; i+=3){
+                    for(let i = pva_start_idx; i < end_idx; i++){
                         curves.push(curves[i]);
                         paths.push({
                             ribbon:      paths[i].ribbon, 

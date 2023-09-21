@@ -53,8 +53,8 @@ const cmd = {
     heat_on_t3:  '111000', // 7
     heat_on_t4:  '000100', // 8
     flow_t1a:    '100100', // 9,  H2O
-    flow_t1b:    '010100', // 10, PVA
-    flow_t1c:    '110100', // 11, PU
+    flow_t1b:    '010100', // 10, PU
+    flow_t1c:    '110100', // 11, not used
     step_t2:     '001100', // 12, PLA
     step_t3:     '101100', // 13, TPU coarse
     step_t4:     '011100', // 14, TPU fine
@@ -68,13 +68,15 @@ Object.keys(cmd).forEach(key=>{
     cmd_names[cmd[key]] = key;
 });
 
-const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
-const cmd_interval = 0.016; // was 0.01
-const approx_rapid_interval = cmd_interval;
+const modal = ['idle', 'flow_t1a', 'flow_t1b', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
+const cmd_dwell = 0.016; // was 0.01
+const approx_rapid_interval = cmd_dwell;
 const preheat_interval = 60;
 const cord_radius_transition = 0.4;
 const max_direct_dist = 4;
 const max_direct_dist_air = 10;
+const tool_offset_a = 35;
+const max_brush_dist = 80;
 const flow_off_interval = 0.75;
 
 // const state = {
@@ -107,12 +109,13 @@ export const post = {
             const heat_cmds = [];
             var model_offset_y = null;
             var time = 0;
-            var prev_cmd_time = 0;
+            var cmd_time = 0;
             var tool = 0; // no tool
             var axis_a = 0; 
             var axis_b = 0; // need to set to start of path 
             var mode = 'idle';
             var material = 'none';
+            var brush_dist = 0;
 
             function move(a={}){
                 //console.log(cmds);
@@ -129,7 +132,7 @@ export const post = {
                         a.z  = -a.z;
                         if(material == 'AIR') a.z -= 20;
                     }
-                    if(a.a != undefined)  a.a  = MathUtils.radToDeg(-a.a) + mach.offset_a;
+                    if(a.a != undefined)  a.a  = MathUtils.radToDeg(-a.a) + tool_offset_a;//mach.offset_a;
                     if(a.b != undefined)  a.b  = MathUtils.radToDeg(-a.b);
                 }
                 if(a.ref == 'product' || a.ref == 'origin'){
@@ -140,10 +143,11 @@ export const post = {
                 if(a.z != undefined) cl += ' Z'+d.rnd(ref.z+a.z, 1000);
                 if(a.a != undefined) cl += ' A'+d.rnd(ref.w+a.a, 1000);
                 if(a.b != undefined) cl += ' B'+d.rnd(      a.b, 1000);
-                if(time - prev_cmd_time > cmd_interval){
-                    if(cmds.length > 0) code.push(...write_cmd(cmds.shift()))
-                    else cmd_slots.push({i:code.length, time:time});
-                    prev_cmd_time = time;
+                if(time - cmd_time > cmd_dwell){
+                    //if(cmds.length > 0) code.push(...write_cmd(cmds.shift()))
+                    //else cmd_slots.push({i:code.length, time:time});
+                    cmd_slots.push({i:code.length, time:time});
+                    //prev_cmd_time = time;
                 }
                 if(a.speed && a.dist){
                     cl = 'G1' + cl + ' F'+d.rnd((a.speed / a.dist) * 60, 1000);
@@ -174,14 +178,16 @@ export const post = {
                 tool = id;
                 code.push('');
             }
-            function write_cmd(id){ // put same material check here? #1
-                // if(modal.includes(cmd_names[id])){
-                //     if(mode == cmd_names[id]) return [];
-                //     mode = cmd_names[id];
-                // }
-                code.push('');
+            function write_cmd(id, aa={}){ // put same material check here? #1
+                if(modal.includes(cmd_names[id])){
+                    if(mode == cmd_names[id]) return [];
+                    mode = cmd_names[id];
+                }
                 let bits = id.split('').map(v=> parseInt(v));
-                var bc = ['(Cmd '+(bits[0]+bits[1]*2+bits[2]*4+bits[3]*8+bits[4]*16+bits[5]*32)+', '+cmd_names[id]+')'];
+                var bc = [];
+                if(!aa.no_white_space) bc.push('');
+                bc.push('(Cmd '+(bits[0]+bits[1]*2+bits[2]*4+bits[3]*8+bits[4]*16+bits[5]*32)+', '+cmd_names[id]+')');
+                if(!aa.no_dwell) bc.push('G4 P'+cmd_dwell);
                 bc.push('M9'); // turn off M7 (mist) and M8 (flood)
                 if(bits[0]){ bc.push('M64 P0') }else{ bc.push('M65 P0') } // Aux0
                 if(bits[1]){ bc.push('M64 P1') }else{ bc.push('M65 P1') } // Aux1
@@ -189,25 +195,49 @@ export const post = {
                 if(bits[3])  bc.push('M7'); // Mist 
                 if(bits[4])  bc.push('M8'); // Flood
                 if(bits[5]){ bc.push('M4') }else{ bc.push('M3') }; // spindle dir
-                bc.push('');
+                if(!aa.no_dwell) {
+                    bc.push('G4 P'+cmd_dwell);
+                    time += cmd_dwell*2;
+                }
+                if(!aa.no_white_space) bc.push('');
+                cmd_time = time;
                 return bc;
             }
             function flush(){
-                code.push('', '(Flush)', ...write_cmd(cmd.flow_t1a));
-                move({x:-980, z:-700});
-                let interval = 1.5;
-                code.push('S1000', 'G4 P'+interval, 'S0', '')
-                time += interval;
+                code.push('', '(Flush)');
+                code.push(...write_cmd(cmd.flow_t1a, {no_white_space:true}));
+                move({x:-900, z:-900, a:mach.origin_a-90+tool_offset_a});
+                let interval = 3;
+                code.push('S1000', 'G4 P'+interval, 'S0', '');
+                time += cmd_dwell + interval;
+                cmd_time = time;
                 material = 'H2O';
             }
-
-            function push_cmd(id){
-                if(cmds.at(-1) != id) cmds.push(id);
+            function load_brush(a={}){
+                let interval = 0.75;
+                code.push('', '(Load Brush)');
+                move({x:mach.pva_x, y:mach.pva_y-10, z:-860, a:mach.origin_a + tool_offset_a});
+                move({y:mach.pva_y+9});
+                code.push('G4 P'+interval);
+                move({y:mach.pva_y-10});
+                time += interval;
+                if(a.p) move({p:a.p, a:axis_a, b:axis_b, ref:'product', no_time:true});
+                code.push('');
             }
+
+            //function push_cmd(id){
+            //    if(cmds.at(-1) != id) cmds.push(id);
+            //}
 
             function push_heat_cmd(hc){
                 if(heat_cmds.length > 0){
-                    if(heat_cmds.at(-1).cmd != hc.cmd) heat_cmds.push(hc);
+                    if(heat_cmds.at(-1).cmd != hc.cmd){
+                        heat_cmds.push(hc);
+                        code.push('', 'M66 P'+(tool-2)+' L3', '');
+                        //if(tool == 2) code.push('', 'M66 P0 L3', '');
+                        //if(tool == 3) code.push('', 'M66 P1 L3', '');
+                        //if(tool == 4) code.push('', 'M66 P2 L3', '');
+                    }
                 }else{
                     heat_cmds.push(hc);
                 }
@@ -229,33 +259,34 @@ export const post = {
             var direct = -1;
             const curves = [];
             paths.forEach((path, pi)=>{
-                if(path.material == 'AIR' && material != 'AIR'){
+                if(path.material == 'AIR' && material != 'AIR'){// && material != 'AIR'){
                     pick_tool(1);
-                    push_cmd(cmd.air_on_t1);
-                }else if(path.material == 'H2O' && material != 'H2O'){
+                    code.push(...write_cmd(cmd.air_on_t1)); // push_cmd(cmd.air_on_t1);
+                }else if(path.material == 'H2O'){// && material != 'H2O'){
                     pick_tool(1);
-                    push_cmd(cmd.flow_t1a);
-                }else if(path.material == 'PVA' && material != 'PVA'){
+                    code.push(...write_cmd(cmd.flow_t1a)); // push_cmd(cmd.flow_t1a);
+                }else if(path.material == 'PVA' && material != 'PVA'){// && material != 'PVA'){
                     pick_tool(1);
-                    push_cmd(cmd.flow_t1b);
-                }else if(path.material == 'PU' && material != 'PU'){
+                    load_brush();
+                    //code.push(...write_cmd(cmd.flow_t1b)); // push_cmd(cmd.flow_t1b);
+                }else if(path.material == 'PU'){// && material != 'PU'){
                     pick_tool(1);
-                    push_cmd(cmd.flow_t1c);
-                }else if(path.material == 'PLA' && material != 'PLA'){
+                    code.push(...write_cmd(cmd.flow_t1b)); // push_cmd(cmd.flow_t1c);
+                }else if(path.material == 'PLA'){// && material != 'PLA'){
                     pick_tool(2);
-                    push_cmd(cmd.step_t2);
+                    code.push(...write_cmd(cmd.step_t2)); // push_cmd(cmd.step_t2);
                     push_heat_cmd({time:time, cmd:cmd.heat_on_t2});
-                    code.push('', 'M66 P0 L3', ''); // Hotend ready?
-                }else if(path.material == 'TPU' && tool != 3 && path.cord_radius >= cord_radius_transition){
+                    //code.push('', 'M66 P0 L3', ''); // Hotend ready?
+                }else if(path.material == 'TPU' && path.cord_radius >= cord_radius_transition){
                     pick_tool(3);
-                    push_cmd(cmd.step_t3);
+                    code.push(...write_cmd(cmd.step_t3)); // push_cmd(cmd.step_t3);
                     push_heat_cmd({time:time, cmd:cmd.heat_on_t3});
-                    code.push('', 'M66 P1 L3', ''); // Hotend ready?
-                }else if(path.material == 'TPU' && tool != 4 && path.cord_radius < cord_radius_transition){
+                    //code.push('', 'M66 P1 L3', ''); // Hotend ready?
+                }else if(path.material == 'TPU' && path.cord_radius < cord_radius_transition){
                     pick_tool(4);
-                    push_cmd(cmd.step_t4);
+                    code.push(...write_cmd(cmd.step_t4)); // push_cmd(cmd.step_t4);
                     push_heat_cmd({time:time, cmd:cmd.heat_on_t4});
-                    code.push('', 'M66 P2 L3', ''); // Hotend ready?
+                    //code.push('', 'M66 P2 L3', ''); // Hotend ready?
                 }
                 material = path.material;
 
@@ -301,7 +332,7 @@ export const post = {
                     nml[i].divideScalar(vc);      
                 }
 
-                if(model_offset_y == null) model_offset_y = -pts[0].y;
+                if(model_offset_y == null) model_offset_y = -pts[0].y - 10;
 
                 function rotate_point_normal(i, b){
                     m1.makeRotationY(b); // Vector3.applyAxisAngle #2
@@ -324,13 +355,22 @@ export const post = {
                             v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
                             move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
                             move({p:pts[i], ref:'product', no_time:true});
-                            if(material != 'AIR') code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
+                            if(!['AIR','PVA'].includes(material)) code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
                         }else{
                             move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:direct, ref:'product', no_time:true});
                             direct = -1;
                         }
                     }else{
                         move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
+                        if(material == 'PVA'){
+                            brush_dist += dis[i];
+                            if(brush_dist > max_brush_dist){
+                                load_brush({p:pts[i], a:axis_a, b:axis_b});
+                                brush_dist = 0;
+                            }
+                        }else{
+                            brush_dist = 0;
+                        }
                     }
                     if(i == pts.length-1){
                         if(pi < paths.length-1){
@@ -343,7 +383,7 @@ export const post = {
                             }
                         }
                         if(direct < 0){
-                            if(material != 'AIR') code.push('S0');
+                            if(!['AIR','PVA'].includes(material)) code.push('S0');
                             v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
                             move({p:v2, ref:'product', no_time:true});
                         }
@@ -365,15 +405,20 @@ export const post = {
 
                 if(pi < paths.length-1){
                     if(material == 'AIR' && paths[pi+1].material != 'AIR'){
-                        push_cmd(cmd.air_off_t1);
+                        code.push(...write_cmd(cmd.air_off_t1)); // push_cmd(cmd.air_off_t1);
                     }else if(material == 'PLA' && paths[pi+1].material != 'PLA'){
-                        push_cmd(cmd.heat_off_t2);
+                        code.push(...write_cmd(cmd.heat_off_t2)); // push_cmd(cmd.heat_off_t2);
                     }else if((material == 'TPU' && path.cord_radius >= cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius >= cord_radius_transition)){
-                        push_cmd(cmd.heat_off_t3);
+                        code.push(...write_cmd(cmd.heat_off_t3)); // push_cmd(cmd.heat_off_t3);
                     }else if((material == 'TPU' && path.cord_radius < cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius < cord_radius_transition)){
-                        push_cmd(cmd.heat_off_t4);
+                        code.push(...write_cmd(cmd.heat_off_t4)); // push_cmd(cmd.heat_off_t4);
                     }
-                    if((material == 'AIR' || material == 'H2O') && (paths[pi+1].material != 'AIR' && paths[pi+1].material != 'H2O')){
+                    if((material == 'AIR' || material == 'PVA') && (paths[pi+1].material != 'AIR' && paths[pi+1].material != 'PVA')){
+                        flush();
+                    }
+                }else{
+                    if(material == 'AIR' || material == 'PVA'){
+                        if(material == 'AIR') code.push(...write_cmd(cmd.air_off_t1));
                         flush();
                     }
                 }
@@ -382,9 +427,9 @@ export const post = {
 
 
             for(let i = heat_cmds.length-1; i >= 0; i--){
-                for(let k = cmd_slots.length-1; k >= 0; k--){
-                    if(heat_cmds[i].time - cmd_slots[k].time > preheat_interval || k == 0){
-                        code.splice(cmd_slots[k].i, 0, ...write_cmd(heat_cmds[i].cmd));
+                for(let k = cmd_slots.length-2; k >= 0; k--){
+                    if((heat_cmds[i].time - cmd_slots[k].time > preheat_interval && ['G0','G1'].includes(code[k].slice(0,2))) || k == 0){
+                        code.splice(cmd_slots[k].i, 0, ...write_cmd(heat_cmds[i].cmd, {no_dwell:true}));
                         break;
                     }
                     // if(k == 0){

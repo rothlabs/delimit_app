@@ -160,7 +160,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             'origin_x', 'origin_y', 'origin_z', 'origin_a', 'holder_y', 
             'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
             'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5',
-            'offset_a',
+            'pva_x', 'pva_y',
         ],
     }
 }});
