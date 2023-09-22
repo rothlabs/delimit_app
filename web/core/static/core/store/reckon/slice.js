@@ -26,7 +26,8 @@ const ortho2 = new Vector3();
 
 //const slice_div = 5; 
 const surface_div = 400;
-const samples_per_mesh = 1000000;
+const pts_per_mesh    = 1000000;
+const edge_pts_per_mesh = 100000;
 const end_surface_div = 900;
 const bnd_vox_size = 2;
 const max_shift = .1;
@@ -136,7 +137,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                             );
                             //surface.get_point_normal(u/end_surface_div, v/end_surface_div, v1, v2);
                             const sampler = new MeshSurfaceSampler(mesh).build();
-                            for(let i=0; i < samples_per_mesh; i++){
+                            for(let i=0; i < pts_per_mesh; i++){
                                 sampler.sample(v1, v2, color, vector2);
                                 var k = 'x'+Math.round(v1.x/bnd_vox_size) 
                                     + 'y'+Math.round(v1.y/bnd_vox_size) 
@@ -162,6 +163,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             //var nml_arrays = [];
             const src_pts = [];
             const src_nml = [];
+            //const edg_idx = {};
             //const src_data = [];
             surfaces.forEach(surface => {
                 // let geo = new ParametricGeometry(
@@ -169,6 +171,36 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 //     400,//surface_div, 
                 //     400,//surface_div,
                 // );
+                let length = edge_pts_per_mesh / 1;
+                for(let i=0; i <= length; i++){
+                    // surface.get_point_normal(i/length, 0, v1, v2);
+                    // src_pts.push(v1.x, v1.y, v1.z);
+                    // src_nml.push(v2.x, v2.y, v2.z);
+                    // surface.get_point_normal(i/length, 1, v1, v2);
+                    // src_pts.push(v1.x, v1.y, v1.z);
+                    // src_nml.push(v2.x, v2.y, v2.z);
+                    // surface.get_point_normal(0, i/length, v1, v2);
+                    // src_pts.push(v1.x, v1.y, v1.z);
+                    // src_nml.push(v2.x, v2.y, v2.z);
+                    surface.get_point_normal(1, i/length, v1, v2);
+                    src_pts.push(v1.x, v1.y, v1.z);
+                    src_nml.push(v2.x, v2.y, v2.z);
+                }
+                // for(let i=0; i <= length; i++){
+                //     surface.get_point_normal(i/length, 1, v1, v2);
+                //     src_pts.push(v1.x, v1.y, v1.z);
+                //     src_nml.push(v2.x, v2.y, v2.z);
+                // }
+                // for(let i=0; i <= length; i++){
+                //     surface.get_point_normal(0, i/length, v1, v2);
+                //     src_pts.push(v1.x, v1.y, v1.z);
+                //     src_nml.push(v2.x, v2.y, v2.z);
+                // }
+                // for(let i=0; i <= length; i++){
+                //     surface.get_point_normal(1, i/length, v1, v2);
+                //     src_pts.push(v1.x, v1.y, v1.z);
+                //     src_nml.push(v2.x, v2.y, v2.z);
+                // }
                 const mesh = new Mesh(
                     new ParametricGeometry(
                         surface.get_point, 
@@ -178,12 +210,11 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     material,
                 );
                 const sampler = new MeshSurfaceSampler(mesh).build();
-                for(let i=0; i < samples_per_mesh; i++){
+                for(let i=0; i < pts_per_mesh; i++){
                     sampler.sample(v1, v2, color, vector2);
                     src_pts.push(v1.x, v1.y, v1.z);
                     src_nml.push(v2.x, v2.y, v2.z);
                     //src_data.push({p:v1.clone(), n: v2.clone()});
-
                 }
                 //pts_arrays.push(geo.attributes.position.array);
                 //nml_arrays.push(geo.attributes.normal.array);
@@ -198,14 +229,16 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             //const src_nml = d.join_float_32_arrays(nml_arrays);
 
             const src_pnt_cnt = src_pts.length/3;
-            const axis_pnt_cnt = Math.floor(src_pnt_cnt*axis_ratio);
-            const chunk = Math.floor(src_pnt_cnt/axis_pnt_cnt);//*3;
+            const axis_pnt_cnt = Math.round(src_pnt_cnt * axis_ratio); // .floor
+            const chunk = Math.round(src_pnt_cnt / axis_pnt_cnt);//*3; // .floor
+            const edg_pnt_cnt = Math.round(axis_pnt_cnt * (edge_pts_per_mesh / pts_per_mesh)); //0.086956
+            console.log('edg_pnt_cnt', edg_pnt_cnt);
 
             console.log('Slice: axis_pts');
             const compute_axis_pts = gpu.createKernel(function(src_pts, src_nml, layer_div, slice_div, half_slice_cnt, chunk, offset, ax, ay, az){ // axis_x, axis_y, axis_z, 
                 var pi = this.thread.x;
                 var ai = this.thread.y;
-                var li = this.thread.z+0.25;
+                var li = this.thread.z;//+0.25; why was ther +0.25? #1
                 var axis_shift = 0;
                 var shift = 1000;
                 var slice = -1;
@@ -244,6 +277,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 }
                 slice = Math.round((slice+axis_shift)/slice_div) + half_slice_cnt;
                 src_idx = src_idx / chunk;//this.constants.chunk;
+
                 x = x + perp_nml[0]*shift;//(ax[ai] * shift);
                 y = y + perp_nml[1]*shift;//(ay[ai] * shift);
                 z = z + perp_nml[2]*shift;//(az[ai] * shift);
@@ -304,7 +338,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 var y = pts_y[li][ai][pi];//axis_pts[li][ai][pi][2];
                 var z = pts_z[li][ai][pi];//axis_pts[li][ai][pi][3];
                 for(let i = 0; i < axis_pnt_cnt; i++){ //this.thread.x+1
-                    if(pi != i && pts_slice[li][ai][i] > 0){//axis_pts[li][ai][i][0] > 0){
+                    if(pi != i){// && pts_slice[li][ai][i] > 0){//axis_pts[li][ai][i][0] > 0){
                         if(slice == Math.floor(pts_slice[li][ai][i])){//axis_pts[li][ai][i][0])){
                             var dx = pts_x[li][ai][i] - x;
                             var dy = pts_y[li][ai][i] - y;
@@ -328,9 +362,9 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         }
                     }
                 }
-                if(pts_slice[li][ai][pi] < 0){//if(axis_pts[li][ai][pi][0] < 0){
-                    link = -10;
-                }
+                //if(pts_slice[li][ai][pi] < 0){//if(axis_pts[li][ai][pi][0] < 0){
+                //    link = -10;
+                //}
                 return link;//[link, p0x, p0y, p0z];//[slice, link];//[link, link2, 0];
             },{
                 loopMaxIterations: axis_pnt_cnt,
@@ -354,64 +388,85 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     var slice = -1;
                     used.fill(false);
                     
-                    for(let i=0; i < axis_pnt_cnt; i++){ // do it per slice and skip pts not on slice !!!!
+                    for(let i=0; i < edg_pnt_cnt+chunk; i++){//axis_pnt_cnt; i++){ // do it per slice and skip pts not on slice !!!!
                         var pnt = i;  
                         while(true){ 
-                            // if(pnt < 0 || links[li][ai][pnt] < 0){
-                            //     console.log('BROKEN LINK');
-                            // }
-                            if(pnt < 0 || links[li][ai][pnt] < 0 || used[pnt]){
+                            if(pnt < 0){ // || links[li][ai][pnt] < 0
+                                console.log('BROKEN LINK');
+                            }
+                            
+                            if(pnt < 0 || used[pnt]){ //   || links[li][ai][pnt] < 0
+                                //if(slice > -1){
+                                    //slice_meta[slice].tracing = false;
+                                //}
                                 break;
                             }else{
-                                v1.set(axis_pts[li][ai][pnt][1], axis_pts[li][ai][pnt][2], axis_pts[li][ai][pnt][3]);
-                                if(v1.length() > 0){
+                                //v1.set(axis_pts[li][ai][pnt][1], axis_pts[li][ai][pnt][2], axis_pts[li][ai][pnt][3]);
+                                //if(v1.length() > 0){
                                     // if(slice != Math.floor(axis_pts[li][ai][pnt][0])){// || v1.distanceTo(ref_pnt) > max_div){ !?!?!?! #1
                                     //     slice = Math.floor(axis_pts[li][ai][pnt][0]);
                                     //     test_paths.push([]);
                                     //     pth++;
                                     // }
                                     slice = Math.floor(axis_pts[li][ai][pnt][0]);
-                                    if(slice_meta[slice] == undefined) slice_meta[slice] = {segment:[], path:[]};
+                                    if(slice_meta[slice] == undefined) slice_meta[slice] = {tracing:false, paths:[]};
 
-                                    //if(slice_meta[slice].ref && v1.distanceTo(slice_meta[slice].ref) > max_div) {
-                                    //    slice_meta[slice].paths.push([]);
-                                    //}
+                                    if(!slice_meta[slice].tracing && (pnt > edg_pnt_cnt-chunk || links[li][ai][pnt] < edg_pnt_cnt+chunk)){
+                                        break;
+                                    }else{
+                                        //if(slice_meta[slice].ref && v1.distanceTo(slice_meta[slice].ref) > max_div) {
+                                        //    slice_meta[slice].paths.push([]);
+                                        //}
 
-                                    var k = ((pnt*chunk + Math.round((axis_pts[li][ai][pnt][0] % 1)*chunk))) * 3;
-                                    v2.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
-                                    slice_meta[slice].segment.push({//src_paths[li][ai][pth].push({
-                                        p: v1.clone(),
-                                        n: v2.clone(), 
-                                    });
-                                    //slice_meta[slice].ref = v3.copy(v1);//ref_pnt = v3.copy(v1);
-                                    //if(used[pnt] && test_paths[pth].length > 1) break;
-                                    used[pnt] = true;
-                                }
+                                        if(!slice_meta[slice].tracing){
+                                            slice_meta[slice].paths.push([]);
+                                        }
+
+                                        v1.set(axis_pts[li][ai][pnt][1], axis_pts[li][ai][pnt][2], axis_pts[li][ai][pnt][3]);
+                                        var k = ((pnt*chunk + Math.round((axis_pts[li][ai][pnt][0] % 1)*chunk))) * 3;
+                                        v2.set(src_nml[k], src_nml[k+1], src_nml[k+2]);
+                                        slice_meta[slice].paths.at(-1).push({//src_paths[li][ai][pth].push({
+                                            p: v1.clone(),
+                                            n: v2.clone(), 
+                                        });
+                                        //slice_meta[slice].ref = v3.copy(v1);//ref_pnt = v3.copy(v1);
+                                        //if(used[pnt] && test_paths[pth].length > 1) break;
+                                        //used[pnt] = true;
+                                        
+                                        if(slice_meta[slice].tracing && pnt < edg_pnt_cnt-chunk){
+                                            slice_meta[slice].tracing = false;
+                                            break;
+                                        }else{
+                                            slice_meta[slice].tracing = true;
+                                            //used[pnt] = true;
+                                        }
+                                    }
+
+                                    
+                                //}
                             }
                             pnt = links[li][ai][pnt];
                         }
-                        if(slice > -1){
-                            //if(slice_meta[slice].segment.length > 0){
-                                // check distance here !! #1
-                                slice_meta[slice].path = [...slice_meta[slice].segment, ...slice_meta[slice].path];
+                        // if(slice > -1){
+                        //     //if(slice_meta[slice].segment.length > 0){
+                        //         // check distance here !! #1
+                        //         slice_meta[slice].path = [...slice_meta[slice].segment, ...slice_meta[slice].path];
                                 
-                            //}
-                            slice_meta[slice].segment = [];
-                        }
-                        slice = -1;
+                        //     //}
+                        //     slice_meta[slice].segment = [];
+                        // }
+                        // slice = -1;
                     }
                     src_paths[li][ai] = [];
                     Object.values(slice_meta).forEach(sm=>{
-                        //for(let pth = 0; pth < sm.path.length; pth++){ 
-                            if(sm.path.length > 2){ // need optimal dynamic cutoff path length #1
-                                src_paths[li][ai].push(sm.path); 
+                            // if(sm.path.length > 2){ // need optimal dynamic cutoff path length #1
+                            //     src_paths[li][ai].push(sm.path); 
+                            // }
+                        for(let pth = 0; pth < sm.paths.length; pth++){ 
+                            if(sm.paths[pth].length > 2){ // need optimal dynamic cutoff path length #1
+                                src_paths[li][ai].push([...sm.paths[pth]]); 
                             }
-                        //}
-                        // for(let pth = 0; pth < sm.path.length; pth++){ 
-                        //     if(sm.path[pth].length > 2){ // need optimal dynamic cutoff path length #1
-                        //         src_paths[li][ai].push([...sm.path[pth]]); 
-                        //     }
-                        // }
+                        }
                     });
                     src_paths[li][ai].sort((a, b)=> b[0].p.y - a[0].p.y);
                     // for(let pth = 0; pth < src_paths[li][ai].length; pth++){ 
@@ -465,8 +520,8 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                             if((!inside || i == src_path.length-1)){// && box.getSize(v1).length() > min_size){
                                 //console.log(pts[0].length);
                                 if(pts[0].length > 2){
-                                    var curve = new CatmullRomCurve3(pts[0]);
-                                    curve.arcLengthDivisions = 2000;
+                                    var curve = new CatmullRomCurve3(pts[0]); // use nurbs curve?! #1
+                                    curve.arcLengthDivisions = 3000; // make this dynamic #1
                                     if(curve.getLength() > min_length){
                                         curves.push(curve);
                                         if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
