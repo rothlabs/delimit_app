@@ -1,5 +1,4 @@
 import {Vector3, Matrix4, Vector4, MathUtils, Box3, EllipseCurve, CatmullRomCurve3} from 'three';
-import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {current} from 'immer';
 
 const v1 = new Vector3(0,0,0);

@@ -132,6 +132,7 @@ export const create_base_slice = (set,get)=>({
     point_size: 6,
     easel_size: 400,
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
+    scene: null,
     //base_texture: base_texture,
     //rapid_res: 0.5,
 

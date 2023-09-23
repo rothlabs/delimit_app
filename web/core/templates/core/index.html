@@ -24,41 +24,38 @@
   <link href='{% static "core/css/boot.css" %}' rel='stylesheet'>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css' rel='stylesheet'>
   <script type='importmap'>{"imports":{
-    "gpu":                              "https://cdn.jsdelivr.net/npm/gpu.js@2.16.0/+esm",
+    "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
     "lodash":                           "https://cdn.jsdelivr.net/npm/lodash@4.17.21/+esm",
+    "immer":                            "https://cdn.jsdelivr.net/npm/immer@10.0.2/+esm",
+    "zustand":                          "https://cdn.jsdelivr.net/npm/zustand@4.4.1/+esm",
+    "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand@4.4.1/middleware/+esm",
+    "zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand@4.4.1/shallow/+esm",
+    "gpu":                              "https://cdn.jsdelivr.net/npm/gpu.js@2.16.0/+esm",
     "react":                            "https://cdn.jsdelivr.net/npm/react@18.2.0/+esm",  
     "react-dom/client":                 "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client/+esm", 
-    "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
-    "react-router-dom":                 "https://cdn.jsdelivr.net/npm/react-router-dom@6.14.1/+esm",
-    "three":                            "https://cdn.jsdelivr.net/npm/three@0.154.0/+esm",
-    "three/examples/jsm/curves/NURBSCurve":   "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/curves/NURBSCurve/+esm",
-    "three/examples/jsm/curves/NURBSSurface": "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/curves/NURBSSurface/+esm",
-    "three/examples/jsm/geometries/ParametricGeometry": "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/geometries/ParametricGeometry/+esm",
-    "three/examples/jsm/modifiers/TessellateModifier": "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/modifiers/TessellateModifier/+esm",
-    "three/examples/jsm/modifiers/SimplifyModifier": "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/modifiers/SimplifyModifier/+esm",
-    "three/examples/jsm/utils/BufferGeometryUtils": "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/utils/BufferGeometryUtils/+esm",
-    "three/examples/jsm/lines/LineGeometry": "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/lines/LineGeometry/+esm",
-    "three/examples/jsm/math/MeshSurfaceSampler": "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/math/MeshSurfaceSampler/+esm",
-    "@react-three/fiber":               "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.13.5/+esm",
-    "immer":                            "https://cdn.jsdelivr.net/npm/immer@10.0.2/+esm",
-    "zustand":                          "https://cdn.jsdelivr.net/npm/zustand@4.3.8/+esm",
-    "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand@4.3.8/middleware/+esm",
-    "zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand@4.3.8/shallow/+esm",
-    "react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap@2.7.4/+esm",
-    "@react-three/drei/CameraControls": "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/core/CameraControls/+esm",
-    "@react-three/drei/OrbitControls":  "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/core/OrbitControls/+esm",
-    "@react-three/drei/Edges":          "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/core/Edges/+esm",
-    "@react-three/drei/useGLTF":        "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/core/useGLTF/+esm",
-    "@react-three/drei/Line":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/core/Line/+esm",
-    "@react-three/drei/Svg":            "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/core/Svg/+esm",
-    "@react-three/drei/PivotControls":  "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/web/pivotControls/index/+esm",
-    "@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/core/Grid/+esm",
-    "@react-three/drei/GizmoHelper":    "https://cdn.jsdelivr.net/npm/@react-three/drei@9.78.2/core/GizmoHelper/+esm",
+    "react-router-dom":                 "https://cdn.jsdelivr.net/npm/react-router-dom@6.16.0/+esm",
+    "react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap@2.8.0/+esm",
     "react-use":                        "https://cdn.jsdelivr.net/npm/react-use@17.4.0/+esm",
     "react-dnd":                        "https://cdn.jsdelivr.net/npm/react-dnd@16.0.1/+esm",
     "react-dnd-html5-backend":          "https://cdn.jsdelivr.net/npm/react-dnd-html5-backend@16.0.1/+esm",
+    "three":                            "https://cdn.jsdelivr.net/npm/three@0.156.1/+esm",
+    "three/examples/jsm/curves/NURBSCurve":   "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/curves/NURBSCurve/+esm",
+    "three/examples/jsm/curves/NURBSSurface": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/curves/NURBSSurface/+esm",
+    "three/examples/jsm/geometries/ParametricGeometry": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/geometries/ParametricGeometry/+esm",
+    "three/examples/jsm/lines/LineGeometry": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/lines/LineGeometry/+esm",
+    "@react-three/fiber":               "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.14.2/+esm",
+    "three-mesh-bvh":                   "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.6.7/+esm",
+    "@react-three/drei/CameraControls": "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/core/CameraControls/+esm",
+    "@react-three/drei/OrbitControls":  "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/core/OrbitControls/+esm",
+    "@react-three/drei/Edges":          "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/core/Edges/+esm",
+    "@react-three/drei/useGLTF":        "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/core/useGLTF/+esm",
+    "@react-three/drei/Line":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/core/Line/+esm",
+    "@react-three/drei/Svg":            "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/core/Svg/+esm",
+    "@react-three/drei/PivotControls":  "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/web/pivotControls/index/+esm",
+    "@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/core/Grid/+esm",
+    "@react-three/drei/GizmoHelper":    "https://cdn.jsdelivr.net/npm/@react-three/drei@9.84.2/core/GizmoHelper/+esm",
     "webgl-sdf-generator":              "https://cdn.jsdelivr.net/npm/webgl-sdf-generator@1.1.1/+esm",
-    "bidi-js":                          "https://cdn.jsdelivr.net/npm/bidi-js@1.0.2/+esm"
+    "bidi-js":                          "https://cdn.jsdelivr.net/npm/bidi-js@1.0.3/+esm"
   }}</script>
   <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
 </head>
@@ -72,7 +69,19 @@
 </html>
 
 
-<!--
+<!-- 
+      "three/examples/jsm/modifiers/TessellateModifier": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/modifiers/TessellateModifier/+esm",
+    "three/examples/jsm/modifiers/SimplifyModifier": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/modifiers/SimplifyModifier/+esm",
+    "three/examples/jsm/utils/BufferGeometryUtils": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/utils/BufferGeometryUtils/+esm",
+        "three/examples/jsm/math/MeshSurfaceSampler": "https://cdn.jsdelivr.net/npm/three@0.156.1/examples/jsm/math/MeshSurfaceSampler/+esm",
+
+  react bootstrap @2.7.4
+  react router dom @6.14.1
+  zimmer @4.3.8
+  three @0.154.0
+  react three fiber @8.13.5
+  drei @9.78.2 
+
 "@apollo/client":                   "https://cdn.jsdelivr.net/npm/@apollo/client@3.7.15/+esm", 
 "@apollo/client/link/context":      "https://cdn.jsdelivr.net/npm/@apollo/client@3.7.15/link/context/+esm",
 "@apollo/client/link/http":         "https://cdn.jsdelivr.net/npm/@apollo/client@3.7.15/link/http/+esm",

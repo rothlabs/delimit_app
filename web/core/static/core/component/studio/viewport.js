@@ -161,6 +161,7 @@ export function Viewport(){ // for some reason this renders 5 times on load
     },[studio_mode]);
 
     useEffect(()=>{
+        rs(d=> d.scene = scene);
         scene.add(camera);
         camera.add(light.current);
     },[]);

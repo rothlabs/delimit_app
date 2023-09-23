@@ -1,9 +1,9 @@
 import {current} from 'immer';
 import {Vector3, Shape, CurvePath, ShapeGeometry, Raycaster, PlaneGeometry, Mesh, MeshBasicMaterial, Float32BufferAttribute} from 'three';
 import {LoopSubdivision} from '../../three/LoopSubdivision.js';
-import {TessellateModifier} from 'three/examples/jsm/modifiers/TessellateModifier';
-import {SimplifyModifier} from 'three/examples/jsm/modifiers/SimplifyModifier';
-import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
+//import {TessellateModifier} from 'three/examples/jsm/modifiers/TessellateModifier';
+//import {SimplifyModifier} from 'three/examples/jsm/modifiers/SimplifyModifier';
+//import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils';
 //import Delaunator from 'delaunator';
 
 const v0 = new Vector3();
