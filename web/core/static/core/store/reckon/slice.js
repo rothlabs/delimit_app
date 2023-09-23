@@ -189,7 +189,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     );
                     conforms.forEach(conform=>{
                         conform.boundsTree.bvhcast(plane.boundsTree, m1, {
-                            intersectsTriangles( triangle1, triangle2, i1, i2 ){
+                            intersectsTriangles(triangle1, triangle2, i1, i2){
                                 if(triangle1.intersectsTriangle(triangle2, edge)){
                                     src_edges[ai][si].push({
                                         p1: edge.start.clone(),
@@ -207,7 +207,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             console.log('Slice: src_edges done');
             console.log(src_edges);
 
-            
+
 
             console.log('Slice: paths');
             var inside = true;
