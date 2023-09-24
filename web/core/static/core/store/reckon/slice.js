@@ -22,11 +22,13 @@ const v8 = new Vector3();
 const v9 = new Vector3();
 const m1 = new Matrix4();
 const m2 = new Matrix4();
+const m3 = new Matrix4();
 
 const point = new Vector3();
 const normal = new Vector3();
-const origin = new Vector3();
+const origin = new Vector3(0,0,0);
 const up = new Vector3(0,1,0);
+const forward = new Vector3(0,0,1);
 
 const axis = new Vector3();
 const axis_t = new Vector3();
@@ -96,6 +98,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             delete ax.pts;
 
             var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
+            //const slice_cnt = d.easel_size;
             const slice_div = (c.cord_radius*2) / c.density; 
             //const half_slice_cnt = Math.round(d.easel_size/slice_div/2);
             const curves = [];
@@ -172,52 +175,243 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             }
             
 
-            console.log('Slice: src_edges'); 
+            console.log('Slice: segs'); 
+            var max_seg_cnt = 0;
             const plane = new PlaneGeometry(d.easel_size, d.easel_size); //, d.easel_size/2, d.easel_size/2
-            plane.computeBoundsTree( { maxLeafTris: 1, strategy: SAH } );
+            plane.computeBoundsTree({maxLeafTris: 1, strategy: SAH});
             const conforms = [];
-            const src_edges = [];
+            const segs = [];
+            //var src_paths = [[[[]]]];
             surfaces.forEach(surface => {
                 const conform = new ParametricGeometry(surface.get_point, surface_div, surface_div);
-                conform.computeBoundsTree( { maxLeafTris: 1, strategy: SAH } );
                 conforms.push(conform);
             });
-            axes.forEach((axis, ai)=>{
-                for(let si = -d.easel_size/2; si < d.easel_size/2; si += slice_div){
-                    m1.lookAt(origin, axis.v, up).multiply(
-                        m2.makeTranslation(v1.copy(axis.v).multiplyScalar(si))
-                    );
+            for(let ai = 0; ai < c.axes; ai++){//axes.forEach((axis, ai)=>{
+                segs.push([]);
+                console.log('Slice: ai', ai);
+                v1.copy(forward).cross(axes[ai].v).normalize();
+                m1.makeRotationAxis(v1, forward.angleTo(axes[ai].v));
+                m2.copy(m1).invert();
+                conforms.forEach(conform=>{
+                    conform.applyMatrix4(m1);
+                    conform.computeBoundsTree({maxLeafTris: 1, strategy: SAH});
+                });
+                for(let sp = -d.easel_size/2; sp < d.easel_size/2; sp += slice_div){
+                    segs[ai].push([]);
+                    //m1.makeTranslation(v1.copy(axes[ai].v).multiplyScalar(sp + slice_div/2)).multiply(
+                    //   m2.lookAt(origin, axes[ai].v, axes[ai].ortho1)
+                    //);
+                    m3.makeTranslation(0, 0, sp + slice_div/2)
+                    var seg_cnt = 0;
                     conforms.forEach(conform=>{
-                        conform.boundsTree.bvhcast(plane.boundsTree, m1, {
+                        conform.boundsTree.bvhcast(plane.boundsTree, m3, {
                             intersectsTriangles(triangle1, triangle2, i1, i2){
                                 if(triangle1.intersectsTriangle(triangle2, edge)){
-                                    src_edges[ai][si].push({
-                                        p1: edge.start.clone(),
-                                        p2: edge.end.clone(),
-                                        i1: i1,
-                                        i2: i2,
-                                        n:  triangle1.getNormal(v1).clone(),
-                                    });
+                                    triangle1.getNormal(normal);
+                                    edge.applyMatrix4(m2);
+                                    normal.applyMatrix4(m2);
+                                    segs[ai].at(-1).push(
+                                        edge.start.x,
+                                        edge.start.y,
+                                        edge.start.z,
+                                        edge.end.x,
+                                        edge.end.y,
+                                        edge.end.z,
+                                        normal.x,
+                                        normal.y,
+                                        normal.z,
+                                    );
+                                    // src_paths[0][0][0].push({
+                                    //     p:edge.start.clone(),
+                                    //     n:normal.clone(),
+                                    // });
+                                    seg_cnt++;
                                 }
                             }
                         });
                     });
+                    segs[ai].at(-1).unshift(seg_cnt);
+                    if(max_seg_cnt < seg_cnt) max_seg_cnt = seg_cnt;
+                    
                 }
-            });
-            console.log('Slice: src_edges done');
-            console.log(src_edges);
+            }//);
+            console.log('Slice: fill empty');
+            const slice_cnt = segs[0].length;
+            for(let ai = 0; ai < c.axes; ai++){
+                for(let si = 0; si < slice_cnt; si++){
+                    const empty = new Array((max_seg_cnt - segs[ai][si][0])*9 + 1).fill(0);
+                    segs[ai][si] = [...segs[ai][si], ...empty];
+                }
+            }
+            console.log('Slice: segs done');
+            console.log(segs);
 
+            console.log('Slice: links'); 
+            const compute_links = gpu.createKernel(function(segs, ax, ay, az){
+                var max_dist = 0.001;
+                var sme  = -1; // start = 0, middle = 1, end = 2
+                var dir  = -1;
+                var next = -1;
+                var i1 = this.thread.x * 9;
+                var si = this.thread.y;
+                var ai = this.thread.z;
+                if(i1 < segs[ai][si][0] * 9){
+                    var x1 = segs[ai][si][i1+1];
+                    var y1 = segs[ai][si][i1+2];
+                    var z1 = segs[ai][si][i1+3];
+                    var x2 = segs[ai][si][i1+4];
+                    var y2 = segs[ai][si][i1+5];
+                    var z2 = segs[ai][si][i1+6];
+                    var nx = segs[ai][si][i1+7];
+                    var ny = segs[ai][si][i1+8];
+                    var nz = segs[ai][si][i1+9];
+                    var crs = crs_vct(ax[ai], ay[ai], az[ai], nx, ny, nz);
+                    var succeeded = false;
+                    var preceded  = false;
+                    for(let i = 0; i < segs[ai][si][0]; i++){ 
+                        var i2 = i * 9;
+                        if(i1 != i2){
+                            var dx1 = segs[ai][si][i2+1] - x1;
+                            var dy1 = segs[ai][si][i2+2] - y1;
+                            var dz1 = segs[ai][si][i2+3] - z1;
+                            var dx2 = segs[ai][si][i2+4] - x1;
+                            var dy2 = segs[ai][si][i2+5] - y1;
+                            var dz2 = segs[ai][si][i2+6] - z1;
+                            var dx3 = segs[ai][si][i2+1] - x2;
+                            var dy3 = segs[ai][si][i2+2] - y2;
+                            var dz3 = segs[ai][si][i2+3] - z2;
+                            var dx4 = segs[ai][si][i2+4] - x2;
+                            var dy4 = segs[ai][si][i2+5] - y2;
+                            var dz4 = segs[ai][si][i2+6] - z2;
+                            if(Math.sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1) < max_dist){
+                                if((dx2*crs[0] + dy2*crs[1] + dz2*crs[2]) > 0){ // dot product
+                                    next = i;
+                                    succeeded = true;
+                                }else{
+                                    preceded = true;
+                                }
+                            }else if(Math.sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2) < max_dist){
+                                if((dx1*crs[0] + dy1*crs[1] + dz1*crs[2]) > 0){ // dot product
+                                    next = i;
+                                    succeeded = true;
+                                }else{
+                                    preceded = true;
+                                }
+                            }else if(Math.sqrt(dx3*dx3 + dy3*dy3 + dz3*dz3) < max_dist){
+                                if((dx4*crs[0] + dy4*crs[1] + dz4*crs[2]) > 0){ // dot product
+                                    next = i;
+                                    succeeded = true;
+                                }else{
+                                    preceded = true;
+                                }
+                            }else if(Math.sqrt(dx4*dx4 + dy4*dy4 + dz4*dz4) < max_dist){
+                                if((dx3*crs[0] + dy3*crs[1] + dz3*crs[2]) > 0){ // dot product
+                                    next = i;
+                                    succeeded = true;
+                                }else{
+                                    preceded = true;
+                                }
+                            }
+                        }
+                    }
+                    if(succeeded && !preceded){
+                        sme = 0; // start seg
+                    }else if(succeeded && preceded){
+                        sme = 1; // middle seg
+                    }else if(!succeeded && preceded){
+                        sme = 2; // end seg
+                    }
+                    var dx = x2 - x1;
+                    var dy = y2 - y1;
+                    var dz = z2 - z1;
+                    if((dx*crs[0] + dy*crs[1] + dz*crs[2]) > 0){ // dot product
+                        dir = 1;
+                    }
+                }
+                return [sme, dir, next];
+            },{
+                loopMaxIterations: max_seg_cnt,
+                output: {x:max_seg_cnt, y:slice_cnt, z:c.axes}, // order is switched around on output for some reason
+            }); 
+            const links = compute_links(segs, axes_x, axes_y, axes_z);//shifted_pts, slice_idx);
+            console.log(links);
+
+
+            const src_paths = [[]];
+            const seqs = []; 
+            for(let ai = 0; ai < c.axes; ai++){
+                seqs.push([]);
+                for(let si = 0; si < slice_cnt; si++){
+                    seqs[ai].push([]);
+                    const starts = [];
+                    for(let li = 0; li < segs[ai][si][0]; li++){
+                        if(links[ai][si][li][0] < 1) starts.push(li);
+                        if(links[ai][si][li][1] < 1){
+                            const i = li*9;
+                            v1.set(segs[ai][si][i+1], segs[ai][si][i+2], segs[ai][si][i+3]);
+                            segs[ai][si][i+1] = segs[ai][si][i+4];
+                            segs[ai][si][i+2] = segs[ai][si][i+5];
+                            segs[ai][si][i+3] = segs[ai][si][i+6];
+                            segs[ai][si][i+4] = v1.x;
+                            segs[ai][si][i+5] = v1.y;
+                            segs[ai][si][i+6] = v1.z;
+                        } 
+                    }
+                    if(starts.length < 1 && segs[ai][si][0] > 3) starts.push(0);
+                    const used = new Array(segs[ai][si][0]).fill(false);
+                    starts.forEach((i, qi)=>{
+                        src_paths[0].push([]);
+                        seqs[ai][si].push([]);
+                        function insert_sequence_item(k, o){
+                            k *= 9;
+                            seqs[ai][si][qi].push({
+                                p: new Vector3(segs[ai][si][k+o+1], segs[ai][si][k+o+2], segs[ai][si][k+o+3]),
+                                n: new Vector3(segs[ai][si][k+7],   segs[ai][si][k+8],   segs[ai][si][k+9]),
+                            });
+                            src_paths[0].at(-1).push({
+                                p: new Vector3(segs[ai][si][k+o+1], segs[ai][si][k+o+2], segs[ai][si][k+o+3]),
+                                n: new Vector3(segs[ai][si][k+7],   segs[ai][si][k+8],   segs[ai][si][k+9]),
+                            });
+                        }
+                        while(true){
+                            insert_sequence_item(i, 0);
+                            used[i] = true;
+                            //seqs[ai][si][qi].push(new Vector3(segs[ai][si][i+1], segs[ai][si][i+2], segs[ai][si][i+3]));
+                            //console.log(i);
+                            if(used[links[ai][si][i][2]]){
+                                insert_sequence_item(i, 3);
+                                break;
+                            }else{
+                                i = links[ai][si][i][2];
+                                if(links[ai][si][i][0] > 1){
+                                    //seqs[ai][si][qi].push(new Vector3(segs[ai][si][i+4], segs[ai][si][i+5], segs[ai][si][i+6]));
+                                    insert_sequence_item(i, 0);
+                                    insert_sequence_item(i, 3);
+                                    used[i] = true;
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            console.log(seqs);
+            //for(let ai = 0; ai < c.axes; ai++){
+            //    for(let si = 0; si < slice_cnt; si++){
+
+            
 
 
             console.log('Slice: paths');
-            var inside = true;
-            var ref_pnt = src_paths[0][0][0][0].p;
+            //var inside = true;
+            //var ref_pnt = src_paths[0][0][0][0].p;
             var pva_start_idx = -1;
             for(let li=0; li<c.layers; li++){ 
-                for(let ai=0; ai<c.axes; ai++){ 
-                    for(let pth=0; pth < src_paths[li][ai].length; pth++){ 
-                        var src_path = src_paths[li][ai][pth];
+                //for(let ai=0; ai<c.axes; ai++){ 
+                    for(let pth=0; pth < src_paths[li].length; pth++){ 
+                        var src_path = src_paths[li][pth];
                         var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
+                        //if(src_path.length < 3) continue;
                         for(let i=0; i < src_path.length; i++){  
                             //let dist = ref_pnt.distanceTo(src_path[i].p);
                             // function check_boundary(v){
@@ -234,22 +428,24 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                             //     //check_boundary(v1);
                             // }
                             // check_boundary(src_path[i].p);
-                            if(inside){// && dist > min_div){ // check for end_surface !!!!!!!
+                            //if(inside){// && dist > min_div){ // check for end_surface !!!!!!!
                                 //ref_pnt = src_path[i].p.clone();
                                 //if(hit_outside) bnd_vox[k].p.projectPoint(src_path[i].p, ref_pnt);
                                 //box.expandByPoint(ref_pnt);
                                 pts[0].push(src_path[i].p.clone());
                                 pts[1].push(src_path[i].p.clone().add(v1.copy(src_path[i].n).divideScalar(2))); 
                                 pts[2].push(src_path[i].p.clone().add(src_path[i].n));
-                            }
-                            if((!inside || i == src_path.length-1)){// && box.getSize(v1).length() > min_size){
+                            //}
+                            //if((!inside || i == src_path.length-1)){// && box.getSize(v1).length() > min_size){
+                            if(i == src_path.length-1){
                                 //console.log(pts[0].length);
-                                if(pts[0].length > 2){
+                                if(pts[0].length > 3){
                                     var curve = new CatmullRomCurve3(pts[0]); // use nurbs curve?! #1
                                     curve.arcLengthDivisions = 3000; // make this dynamic #1
                                     //if(curve.getLength() > min_length){
                                         curves.push(curve);
-                                        if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
+                                        console.log(curve);
+                                        //if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
                                         paths.push({
                                             ribbon:      d.geo.surface(d, pts, {length_v:curve.getLength()}), 
                                             speed:       c.speed, 
@@ -261,26 +457,26 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                                 }
                                 if(pts[0].length > 0) pts = [[],[],[]];
                             }
-                            ref_pnt = src_path[i].p; // clone? #1
+                            //ref_pnt = src_path[i].p; // clone? #1
                         }
                     }
-                }
-                if(pva_start_idx > -1){
-                    //const air_paths = [];
-                    let end_idx = paths.length;
-                    for(let i = pva_start_idx; i < end_idx; i++){
-                        curves.push(curves[i]);
-                        paths.push({
-                            ribbon:      paths[i].ribbon, 
-                            speed:       c.speed, 
-                            flow:        c.flow,
-                            material:    'AIR',
-                            cord_radius: c.cord_radius,
-                        }); 
-                    }
-                    //paths = [...paths, ...air_paths];
-                    pva_start_idx = -1;
-                }
+                //}
+                // // if(pva_start_idx > -1){
+                // //     //const air_paths = [];
+                // //     let end_idx = paths.length;
+                // //     for(let i = pva_start_idx; i < end_idx; i++){
+                // //         curves.push(curves[i]);
+                // //         paths.push({
+                // //             ribbon:      paths[i].ribbon, 
+                // //             speed:       c.speed, 
+                // //             flow:        c.flow,
+                // //             material:    'AIR',
+                // //             cord_radius: c.cord_radius,
+                // //         }); 
+                // //     }
+                // //     //paths = [...paths, ...air_paths];
+                // //     pva_start_idx = -1;
+                // // }
             }
             
 
