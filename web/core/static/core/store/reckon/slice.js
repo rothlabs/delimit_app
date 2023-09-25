@@ -254,7 +254,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             console.log(segs);
 
             console.log('Slice: links'); 
-            const compute_links = gpu.createKernel(function(segs, ax, ay, az){
+            const compute_links = gpu.createKernel(function(segs, ox, oy, oz){
                 var max_dist = 0.001;
                 var sme  = -1; // start = 0, middle = 1, end = 2
                 var dir  = -1;
@@ -275,8 +275,8 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     var nx = segs[ai][si][i1+7];
                     var ny = segs[ai][si][i1+8];
                     var nz = segs[ai][si][i1+9];
-                    var crs1 = crs_vct(ax[ai], ay[ai], az[ai], nx, ny, nz);
-                    if(dot_vct(dx, dy, dz, crs1) > 0){//if((dx*crs1[0] + dy*crs1[1] + dz*crs1[2]) > 0){ // dot product
+                    //var crs1 = crs_vct(ax[ai], ay[ai], az[ai], nx, ny, nz);
+                    if(dot_vct(dx, dy, dz, ) > 0){//if((dx*crs1[0] + dy*crs1[1] + dz*crs1[2]) > 0){ // dot product
                         dir = 1;
                     }
                     //var crs2 = crs_vct(crs1[0], crs1[1], crs1[2], nx, ny, nz);
