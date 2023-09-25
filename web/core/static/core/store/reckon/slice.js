@@ -74,10 +74,10 @@ gpu.addFunction(function crs_vct(x1, y1, z1, x2, y2, z2) {
     return [x/d, y/d, z/d];
 },{argumentTypes: {x1:'Number', y1:'Number', z1:'Number', x2:'Number', y2:'Number', z2:'Number'}, returnType:'Array(3)'});
 
-gpu.addFunction(function dot_vct(x1, y1, z1, v2) {
+gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
     var d1 = Math.sqrt(x1*x1 + y1*y1 + z1*z1);
-    return (x1/d1)*v2[0] + (y1/d1)*v2[1] + (z1/d1)*v2[2];
-},{argumentTypes: {x1:'Number', y1:'Number', z1:'Number', v2:'Array(3)'}, returnType:'Number'});
+    return ((x1/d1)*x2) + ((y1/d1)*y2) + ((z1/d1)*z2);
+},{argumentTypes: {x1:'Number', y1:'Number', z1:'Number', x2:'Number', y2:'Number', z2:'Number'}, returnType:'Number'});
 
 
 // should collect random points on sharp edges of meshes too to ensure quality feature definition! #1
@@ -254,18 +254,15 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             console.log(segs);
 
             console.log('Slice: links'); 
-            const compute_links = gpu.createKernel(function(segs, ox, oy, oz){
-                var max_dist = 0.001;
+            const compute_links = gpu.createKernel(function(segs, ax, ay, az){
+                var max_dist = 0.0001;
                 var sme  = -1; // start = 0, middle = 1, end = 2
                 var dir  = -1;
                 var next = -1;
-                var i1 = this.thread.x * 9;
                 var si = this.thread.y;
                 var ai = this.thread.z;
-                if(i1 < segs[ai][si][0] * 9){
-                    var dx = x2 - x1;
-                    var dy = y2 - y1;
-                    var dz = z2 - z1;
+                if(this.thread.x < segs[ai][si][0]){
+                    var i1 = this.thread.x * 9;
                     var x1 = segs[ai][si][i1+1];
                     var y1 = segs[ai][si][i1+2];
                     var z1 = segs[ai][si][i1+3];
@@ -275,8 +272,11 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     var nx = segs[ai][si][i1+7];
                     var ny = segs[ai][si][i1+8];
                     var nz = segs[ai][si][i1+9];
-                    //var crs1 = crs_vct(ax[ai], ay[ai], az[ai], nx, ny, nz);
-                    if(dot_vct(dx, dy, dz, ) > 0){//if((dx*crs1[0] + dy*crs1[1] + dz*crs1[2]) > 0){ // dot product
+                    var dx = x2 - x1;
+                    var dy = y2 - y1;
+                    var dz = z2 - z1;
+                    var crs = crs_vct(dx, dy, dz, nx, ny, nz);
+                    if((ax[ai]*crs[0] + ay[ai]*crs[1] + az[ai]*crs[2]) > 0){//if(dot_vct(crs[0], crs[0], crs[0], ax[ai], ay[ai], az[ai]) > 0){//if((dx*crs1[0] + dy*crs1[1] + dz*crs1[2]) > 0){ // dot product
                         dir = 1;
                     }
                     //var crs2 = crs_vct(crs1[0], crs1[1], crs1[2], nx, ny, nz);
@@ -298,31 +298,28 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                             var dy4 = segs[ai][si][i2+5] - y2;
                             var dz4 = segs[ai][si][i2+6] - z2;
                             if(Math.sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1) < max_dist){
-                                if(dot_vct(dx2, dy2, dz2, crs1) > 0){//if((dx2*crs1[0] + dy2*crs1[1] + dz2*crs1[2]) > 0){ // dot product
+                                if(dir < 0){//if(dot_vct(dx2, dy2, dz2, crs1) > 0){//if((dx2*crs1[0] + dy2*crs1[1] + dz2*crs1[2]) > 0){ // dot product
                                     next = i;
                                     succeeded = true;
                                 }else{
                                     preceded = true;
                                 }
-                            }
-                            if(Math.sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2) < max_dist){
-                                if(dot_vct(dx1, dy1, dz1, crs1) > 0){//if((dx1*crs1[0] + dy1*crs1[1] + dz1*crs1[2]) > 0){ // dot product
+                            }else if(Math.sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2) < max_dist){
+                                if(dir < 0){//if(dot_vct(dx1, dy1, dz1, crs1) > 0){//if((dx1*crs1[0] + dy1*crs1[1] + dz1*crs1[2]) > 0){ // dot product
                                     next = i;
                                     succeeded = true;
                                 }else{
                                     preceded = true;
                                 }
-                            }
-                            if(Math.sqrt(dx3*dx3 + dy3*dy3 + dz3*dz3) < max_dist){
-                                if(dot_vct(dx4, dy4, dz4, crs1) > 0){//if((dx4*crs1[0] + dy4*crs1[1] + dz4*crs1[2]) > 0){ // dot product
+                            }else if(Math.sqrt(dx3*dx3 + dy3*dy3 + dz3*dz3) < max_dist){
+                                if(dir > 0){//if(dot_vct(dx4, dy4, dz4, crs1) > 0){//if((dx4*crs1[0] + dy4*crs1[1] + dz4*crs1[2]) > 0){ // dot product
                                     next = i;
                                     succeeded = true;
                                 }else{
                                     preceded = true;
                                 }
-                            }
-                            if(Math.sqrt(dx4*dx4 + dy4*dy4 + dz4*dz4) < max_dist){
-                                if(dot_vct(dx3, dy3, dz3, crs1) > 0){//if((dx3*crs1[0] + dy3*crs1[1] + dz3*crs1[2]) > 0){ // dot product
+                            }else if(Math.sqrt(dx4*dx4 + dy4*dy4 + dz4*dz4) < max_dist){
+                                if(dir > 0){//if(dot_vct(dx3, dy3, dz3, crs1) > 0){//if((dx3*crs1[0] + dy3*crs1[1] + dz3*crs1[2]) > 0){ // dot product
                                     next = i;
                                     succeeded = true;
                                 }else{
@@ -341,6 +338,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 }
                 return [sme, dir, next];
             },{
+                tactic: 'precision',
                 loopMaxIterations: max_seg_cnt,
                 output: {x:max_seg_cnt, y:slice_cnt, z:c.axes}, // order is switched around on output for some reason
             }); 
