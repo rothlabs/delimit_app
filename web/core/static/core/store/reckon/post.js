@@ -265,7 +265,11 @@ export const post = {
 
             var direct = -1;
             const curves = [];
-            paths.forEach((path, pi)=>{
+            for(let pi = 0; pi < paths.length; pi++){ //paths.forEach((path, pi)=>{
+                let path = paths[pi];
+                var res = path.ribbon.length_v / ribbon_div; 
+                if(res < 2) continue;
+
                 if(path.material == 'AIR' && material != 'AIR'){// && material != 'AIR'){
                     pick_tool(1);
                     code.push(...write_cmd(cmd.air_on_t1)); // push_cmd(cmd.air_on_t1);
@@ -308,7 +312,7 @@ export const post = {
                 //var length = path.ribbon.length_v; //path.curve.getLength(); 
                 //total_length += length;
                 // Collect point, normal, distance, and normal reference:
-                var res = path.ribbon.length_v / ribbon_div; 
+                /////////var res = path.ribbon.length_v / ribbon_div; 
                 for(let v=0; v<res; v++){
                     pts.push(new Vector3());
                     nml.push(new Vector3());
@@ -433,7 +437,7 @@ export const post = {
                     }
                 }
                 code.push('');
-            });
+            };//);
 
 
             for(let i = heat_cmds.length-1; i >= 0; i--){

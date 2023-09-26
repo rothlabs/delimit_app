@@ -58,6 +58,8 @@ export const Curve = memo(({n})=>{
                 //console.log(new_curve_pts);
             }
             //ss(d=> d.n[n].c.rendered_curves = curve.length);
+
+
             const pts = d.n[n].ax.pts;
             if(pts){
                 segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
