@@ -1,12 +1,13 @@
 import {current} from 'immer';
-import {Vector3, Vector2, Matrix4, MathUtils, Color, CatmullRomCurve3, Box3, 
-        Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath, BufferGeometry, PlaneGeometry} from 'three';
+import {Vector3, Vector2, Matrix4, MathUtils, Color, CatmullRomCurve3, Box3, DoubleSide, Sphere, Triangle,
+        Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath, Raycaster, BufferGeometry, PlaneGeometry} from 'three';
 //import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
 //import {MeshSurfaceSampler} from 'three/examples/jsm/math/MeshSurfaceSampler';
 import gpuJs from 'gpu';
 
-import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast, SAH, CENTER, AVERAGE } from 'three-mesh-bvh';
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast, MeshBVH, 
+    SAH, CENTER, AVERAGE, NOT_INTERSECTED, INTERSECTED } from 'three-mesh-bvh';
 BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
 BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
 Mesh.prototype.raycast = acceleratedRaycast;
@@ -36,7 +37,8 @@ const axis_t = new Vector3();
 const ortho1 = new Vector3();
 const ortho2 = new Vector3();
 
-const edge = new Line3();
+const seg = new Line3();
+const tri1 = new Triangle();
 
 //const slice_div = 5; 
 const surface_div = 200;
@@ -59,10 +61,11 @@ const axis_ratio = 0.032; //1000000 * 0.032 = 32000 texture size. need to divide
 const gpu = new gpuJs.GPU();
 
 const material = new MeshBasicMaterial(); // const plane_mesh = new Mesh(plane_geo, material);
+material.side = DoubleSide;
 const color = new Color();
 const vector2 = new Vector2();
 
-const raycaster = new THREE.Raycaster();
+const raycaster = new Raycaster();
 raycaster.firstHitOnly = true;
 
 //     v2.copy(point).projectOnVector(axis.axis); // axis point
@@ -116,9 +119,6 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
 
             console.log('Slice: axes');
             const axes = [];
-            const axes_x = [];
-            const axes_y = [];
-            const axes_z = [];
             axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
             axis_t.copy(axis);
             if(c.axes > 1){
@@ -129,58 +129,30 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 ortho1.randomDirection().cross(axis_t).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
                 ortho2.copy(ortho1).cross(axis_t).normalize();
                 axes.push({v:axis_t.clone(), ortho1:ortho1.clone(), ortho2:ortho2.clone()});
-                axes_x.push(axis_t.x);
-                axes_y.push(axis_t.y);
-                axes_z.push(axis_t.z);
                 axis_t.applyAxisAngle(axis, Math.PI*2 / c.axes);
             }
             // const axes_x = axes.map(axis=> axis.axis.x);
             // const axes_y = axes.map(axis=> axis.axis.y);
             // axes.map(axis=> axis.axis.z);
 
-            console.log('Slice: bnd_vox');
-            const bnd_vox = {};
             if(c.fill){
                 var sn = d.n[n].n.surface; // surface nodes
                 var aon = sn.reduce((sum, sn)=> sum + d.n[sn].c.order, 0) / sn.length; // average order number (for surfaces)
                 surfaces = [];
-                var end_surfaces = [];
-                console.log(aon);
+                var bnds = [];
                 sn.forEach(sn=> {
-                    if(d.n[sn].c.order < aon) surfaces.push(d.n[sn].c.surface)
-                    else end_surfaces.push(d.n[sn].c.surface);
-                });
-                end_surfaces.forEach(surface => {
-                    //for(let u=0; u<end_surface_div; u++){ // make this res relative to size of surface #1
-                    //    for(let v=0; v<end_surface_div; v++){ 
-                            const mesh = new Mesh(
-                                new ParametricGeometry(
-                                    surface.get_point, 
-                                    surface_div, 
-                                    surface_div,
-                                ), 
-                                material,
-                            );
-                            //surface.get_point_normal(u/end_surface_div, v/end_surface_div, v1, v2);
-                            const sampler = new MeshSurfaceSampler(mesh).build();
-                            for(let i=0; i < pts_per_mesh; i++){
-                                sampler.sample(v1, v2, color, vector2);
-                                var k = 'x'+Math.round(v1.x/bnd_vox_size) 
-                                    + 'y'+Math.round(v1.y/bnd_vox_size) 
-                                    + 'z'+Math.round(v1.z/bnd_vox_size) 
-                                if(!bnd_vox[k]) bnd_vox[k] = {box:new Box3(), nml:[], pln:new Plane()};
-                                bnd_vox[k].box.expandByPoint(v1);
-                                bnd_vox[k].nml.push(v2.clone());
-                            }
-                    //    }
-                    //}
-                });
-                Object.values(bnd_vox).forEach(bv=>{
-                    v1.set(0,0,0);
-                    bv.nml.forEach(nml=> v1.add(nml));
-                    v1.divideScalar(bv.nml.length);
-                    bv.box.getCenter(v2);
-                    bv.pln.setFromNormalAndCoplanarPoint(v1, v2);//*Math.sign(v1.dot(v2))); // do I need to clone v1? #1
+                    if(d.n[sn].c.order < aon){
+                        surfaces.push(d.n[sn].c.surface)
+                    }else{ 
+                        const geo = new ParametricGeometry(
+                            d.n[sn].c.surface.get_point, 
+                            surface_div, 
+                            surface_div,
+                        );
+                        //geo.computeBoundsTree({maxLeafTris: 1, strategy: SAH});
+                        //bnds.push(new Mesh(geo, material));
+                        bnds.push(new MeshBVH(geo));
+                    }
                 });
             }
             
@@ -213,29 +185,29 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     conforms.forEach(conform=>{
                         conform.boundsTree.bvhcast(plane.boundsTree, m3, {
                             intersectsTriangles(triangle1, triangle2, i1, i2){
-                                if(triangle1.intersectsTriangle(triangle2, edge)){
+                                if(triangle1.intersectsTriangle(triangle2, seg)){
                                     triangle1.getNormal(normal);
-                                    edge.applyMatrix4(m2);
+                                    seg.applyMatrix4(m2);
                                     normal.applyMatrix4(m2);
-                                    dir.copy(edge.end).sub(edge.start).normalize();
+                                    dir.copy(seg.end).sub(seg.start).normalize();
                                     v1.copy(dir).cross(normal).normalize();
                                     if(v1.dot(axes[ai].v) > 0){
                                         segs[ai].at(-1).push(
-                                            edge.start.x,
-                                            edge.start.y,
-                                            edge.start.z,
-                                            edge.end.x,
-                                            edge.end.y,
-                                            edge.end.z,
+                                            seg.start.x,
+                                            seg.start.y,
+                                            seg.start.z,
+                                            seg.end.x,
+                                            seg.end.y,
+                                            seg.end.z,
                                         );
                                     }else{
                                         segs[ai].at(-1).push(
-                                            edge.end.x,
-                                            edge.end.y,
-                                            edge.end.z,
-                                            edge.start.x,
-                                            edge.start.y,
-                                            edge.start.z,
+                                            seg.end.x,
+                                            seg.end.y,
+                                            seg.end.z,
+                                            seg.start.x,
+                                            seg.start.y,
+                                            seg.start.z,
                                         );
                                     }
                                     segs[ai].at(-1).push(
@@ -315,7 +287,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             }); 
             const links = compute_links(segs);
 
-            const src_paths = new Array(c.layers).fill(0).map(()=> []);
+            var src_paths = new Array(c.layers).fill(0).map(()=> []);
             // for(let li = 0; li < c.layers; li++){
             //     src_paths.push([]);
             // }
@@ -369,9 +341,9 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         var path = [];
                         for(let i = 0; i < seq[pi].length; i++){
                             if(i < seq[pi].length-1){
-                                //v1.copy(seq[pi][i+1].p).sub(seq[pi][i].p).negate()
-                                //    .cross(axes[ai].v).normalize().multiplyScalar((li+0.5)*layer_div);
-                                v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
+                                v1.copy(seq[pi][i+1].p).sub(seq[pi][i].p).negate()
+                                    .cross(axes[ai].v).normalize().multiplyScalar((li+0.5)*layer_div);
+                                //v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
                             }
                             path.push({
                                 p: seq[pi][i].p.clone().add(v1),
@@ -389,9 +361,56 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 }
             }
 
-
-
-raycaster.intersectObjects( [ mesh ] );
+            if(c.fill){
+                console.log('Slice: cut to boundary');
+                const trimmed = new Array(c.layers).fill(0).map(()=> []);
+                var pnt = src_paths[0][0][0].p;
+                var inside = true;
+                for(let li=0; li<c.layers; li++){ 
+                    for(let pi=0; pi < src_paths[li].length; pi++){
+                        trimmed[li].push([]);
+                        for(let i=0; i < src_paths[li][pi].length; i++){
+                            dir.copy(src_paths[li][pi][i].p).sub(pnt);
+                            v1.randomDirection().cross(dir).normalize().multiplyScalar(0.00001).add(pnt);
+                            tri1.set(pnt, v1, src_paths[li][pi][i].p);
+                            bnds.forEach(bnd=>{
+                                bnd.shapecast({
+                                    intersectsBounds: ( box, isLeaf, score, depth, nodeIndex ) => {
+                                        if(box.intersectsTriangle(tri1)){
+                                            return INTERSECTED;
+                                        }
+                                        return NOT_INTERSECTED;
+                                    },
+                                    intersectsTriangle(tri0){
+                                        //console.log('hey!!!!');
+                                        if(tri0.intersectsTriangle(tri1, seg)){
+                                            if(trimmed[li].at(-1).at(-1)){
+                                                //console.log('fit to surface!');
+                                                trimmed[li].at(-1).push({
+                                                    p: seg.start.clone(),
+                                                    n: trimmed[li].at(-1).at(-1).n,
+                                                });
+                                            }
+                                            tri0.getNormal(normal);
+                                            if(normal.dot(dir) > 0){
+                                                inside = false;
+                                                trimmed[li].push([]);
+                                            }else{  
+                                                inside = true;
+                                            }
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                });
+                            });
+                            if(inside) trimmed[li].at(-1).push(src_paths[li][pi][i]);
+                            pnt = src_paths[li][pi][i].p;
+                        }
+                    }
+                }
+                src_paths = trimmed;
+            }
 
 
 
@@ -495,6 +514,86 @@ raycaster.intersectObjects( [ mesh ] );
         } 
     }, 
 };
+
+
+
+
+
+
+// if(c.fill){
+//     console.log('Slice: cut to boundary');
+//     const trimmed = new Array(c.layers).fill(0).map(()=> []);
+//     var ref_pnt = src_paths[0][0][0].p;
+//     var last_dist = 0;
+//     var inside = true;
+//     for(let li=0; li<c.layers; li++){ 
+//         for(let pi=2; pi < src_paths[li].length; pi++){
+//             trimmed[li].push([]);
+//             console.log('checking path');
+//             for(let i=1; i < src_paths[li][pi].length; i++){
+                
+//                 //if(i < src_paths[li][pi].length-1){
+                    
+//                     dir.copy(src_paths[li][pi][i].p).sub(ref_pnt);
+//                     var dist = dir.length();
+//                     dir.normalize();
+//                     raycaster.set(ref_pnt, dir);
+//                 //}
+
+//                 //console.log('raycast');
+//                 // bnds.forEach(bnd=>{
+//                 //     var hit = bnd.raycastFirst(raycaster.ray, DoubleSide);
+//                 //     if(hit){
+//                 //         if(hit.point.distanceTo(ref_pnt) <= dist){
+//                 //             console.log(hit.normal.dot(dir));
+//                 //             if(hit.normal.dot(dir) > 0){
+//                 //                 inside = false;
+//                 //             }else{
+//                 //                 inside = true;
+//                 //             }
+//                 //         }
+//                 //     }
+//                 // });
+
+//                 var intersects = raycaster.intersectObjects(bnds);
+//                 if(intersects[0]){
+//                     console.log(intersects[0].normal.dot(dir));
+//                     //if(intersects[0].normal.dot(dir) > 0){
+//                     //    inside = false;
+//                     //}else{
+//                         //inside = true;
+//                         if(intersects[0].point.distanceTo(ref_pnt) <= dist) inside = true;
+//                     //}
+//                 }
+
+//                 //dir.copy(src_paths[li][pi][i-2].p).sub(ref_pnt).normalize();
+//                 //var dist = dir.length();
+//                 dir.negate();
+//                 raycaster.set(ref_pnt, dir);
+//                 //}
+
+//                 //console.log('raycast');
+//                 intersects = raycaster.intersectObjects(bnds);
+//                 if(intersects[0]){
+//                     if(intersects[0].point.distanceTo(ref_pnt) <= last_dist) inside = false;
+//                     //if(intersects[0].normal.dot(dir) > 0){
+//                     //    inside = true;
+//                     //}else{
+//                     //    inside = true;
+//                     //}
+//                 }
+
+//                 if(inside) trimmed[li].at(-1).push(src_paths[li][pi][i]);
+//                 ref_pnt = src_paths[li][pi][i].p;
+//                 last_dist = dist;
+//             }
+//         }
+//     }
+//     src_paths = trimmed;
+// }
+
+
+
 
 
 
