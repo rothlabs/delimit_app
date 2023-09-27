@@ -345,9 +345,9 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         var path = [];
                         for(let i = 0; i < seq[pi].length; i++){
                             if(i < seq[pi].length-1){
-                                //v1.copy(seq[pi][i+1].p).sub(seq[pi][i].p).negate()
-                                //    .cross(axes[ai].v).normalize().multiplyScalar((li+c.offset)*layer_div);
-                                v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
+                                v1.copy(seq[pi][i+1].p).sub(seq[pi][i].p).negate()
+                                    .cross(axes[ai].v).normalize().multiplyScalar((li+c.offset)*layer_div);
+                                //v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
                             }
                             path.push({
                                 p: seq[pi][i].p.clone().add(v1),
@@ -366,6 +366,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             }
 
             if(c.fill){
+                var target0 = {pnt: new Vector3(), idx:-1, geo:null};
                 var target1 = {};
                 var target2 = {};
                 console.log('Slice: cut to boundary');
@@ -376,13 +377,17 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         trimmed[li].push([]);
                         for(let i=0; i < src_paths[li][pi].length; i++){
                             var pnt = src_paths[li][pi][i].p;
+                            //var nml = src_paths[li][pi][i].n;
                             var closest = Infinity;
-                            var target0 = null;
+                            
                             bnds.forEach(bnd=>{
                                 bnd.bvh.closestPointToPoint(pnt, target1, 0, Infinity);
                                 if(closest > target1.distance){
                                     closest = target1.distance;
-                                    target0 = {pnt:target1.point.clone(), idx:target1.faceIndex, geo:bnd.geo};
+                                    target0.pnt.copy(target1.point);
+                                    target0.idx = target1.faceIndex;
+                                    target0.geo = bnd.geo;
+                                    //target0 = {pnt:target1.point.clone(), idx:target1.faceIndex, geo:bnd.geo};
                                 }
                             });
                             dir.copy(target0.pnt).sub(pnt).normalize();

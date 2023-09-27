@@ -247,6 +247,7 @@ export const post = {
                     }
                 }else{
                     heat_cmds.push(hc);
+                    code.push('', 'M66 P'+(tool-2)+' L3', '');
                 }
             }
 
