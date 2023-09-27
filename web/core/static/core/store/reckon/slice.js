@@ -6,8 +6,8 @@ import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeomet
 //import {MeshSurfaceSampler} from 'three/examples/jsm/math/MeshSurfaceSampler';
 import gpuJs from 'gpu';
 
-import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast, MeshBVH, 
-    SAH, CENTER, AVERAGE, NOT_INTERSECTED, INTERSECTED } from 'three-mesh-bvh';
+import {computeBoundsTree, disposeBoundsTree, acceleratedRaycast, MeshBVH, 
+    SAH, CENTER, AVERAGE, NOT_INTERSECTED, INTERSECTED, getTriangleHitPointInfo} from 'three-mesh-bvh';
 BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
 BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
 Mesh.prototype.raycast = acceleratedRaycast;
@@ -93,7 +93,8 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 
 export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
     // should define type as text, decimal, int, bool:
-    props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 'cord_radius', 'layers', 'axes', 'spread_angle', 'material'],
+    props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 
+        'cord_radius', 'layers', 'axes', 'spread_angle', 'material', 'offset'],
     view(d, n, v, a={}){ // will run regardless of manual_compute tag 
         // set which layer to show
     },
@@ -151,7 +152,10 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         );
                         //geo.computeBoundsTree({maxLeafTris: 1, strategy: SAH});
                         //bnds.push(new Mesh(geo, material));
-                        bnds.push(new MeshBVH(geo));
+                        bnds.push({
+                            geo: geo,
+                            bvh: new MeshBVH(geo),
+                        });
                     }
                 });
             }
@@ -341,9 +345,9 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         var path = [];
                         for(let i = 0; i < seq[pi].length; i++){
                             if(i < seq[pi].length-1){
-                                v1.copy(seq[pi][i+1].p).sub(seq[pi][i].p).negate()
-                                    .cross(axes[ai].v).normalize().multiplyScalar((li+0.5)*layer_div);
-                                //v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
+                                //v1.copy(seq[pi][i+1].p).sub(seq[pi][i].p).negate()
+                                //    .cross(axes[ai].v).normalize().multiplyScalar((li+c.offset)*layer_div);
+                                v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
                             }
                             path.push({
                                 p: seq[pi][i].p.clone().add(v1),
@@ -362,50 +366,47 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             }
 
             if(c.fill){
+                var target1 = {};
+                var target2 = {};
                 console.log('Slice: cut to boundary');
                 const trimmed = new Array(c.layers).fill(0).map(()=> []);
-                var pnt = src_paths[0][0][0].p;
                 var inside = true;
                 for(let li=0; li<c.layers; li++){ 
                     for(let pi=0; pi < src_paths[li].length; pi++){
                         trimmed[li].push([]);
                         for(let i=0; i < src_paths[li][pi].length; i++){
-                            dir.copy(src_paths[li][pi][i].p).sub(pnt);
-                            v1.randomDirection().cross(dir).normalize().multiplyScalar(0.00001).add(pnt);
-                            tri1.set(pnt, v1, src_paths[li][pi][i].p);
+                            var pnt = src_paths[li][pi][i].p;
+                            var closest = Infinity;
+                            var target0 = null;
                             bnds.forEach(bnd=>{
-                                bnd.shapecast({
-                                    intersectsBounds: ( box, isLeaf, score, depth, nodeIndex ) => {
-                                        if(box.intersectsTriangle(tri1)){
-                                            return INTERSECTED;
-                                        }
-                                        return NOT_INTERSECTED;
-                                    },
-                                    intersectsTriangle(tri0){
-                                        //console.log('hey!!!!');
-                                        if(tri0.intersectsTriangle(tri1, seg)){
-                                            if(trimmed[li].at(-1).at(-1)){
-                                                //console.log('fit to surface!');
-                                                trimmed[li].at(-1).push({
-                                                    p: seg.start.clone(),
-                                                    n: trimmed[li].at(-1).at(-1).n,
-                                                });
-                                            }
-                                            tri0.getNormal(normal);
-                                            if(normal.dot(dir) > 0){
-                                                inside = false;
-                                                trimmed[li].push([]);
-                                            }else{  
-                                                inside = true;
-                                            }
-                                            return true;
-                                        }
-                                        return false;
-                                    }
-                                });
+                                bnd.bvh.closestPointToPoint(pnt, target1, 0, Infinity);
+                                if(closest > target1.distance){
+                                    closest = target1.distance;
+                                    target0 = {pnt:target1.point.clone(), idx:target1.faceIndex, geo:bnd.geo};
+                                }
                             });
-                            if(inside) trimmed[li].at(-1).push(src_paths[li][pi][i]);
-                            pnt = src_paths[li][pi][i].p;
+                            dir.copy(target0.pnt).sub(pnt).normalize();
+                            getTriangleHitPointInfo(target0.pnt, target0.geo, target0.idx, target2);
+                            // function add_intersection_point(){
+                            //     if(!trimmed[li].at(-1).at(-1)) return;
+                            //     trimmed[li].at(-1).push({
+                            //         p: target0.pnt,
+                            //         n: trimmed[li].at(-1).at(-1).n,
+                            //     });
+                            // }
+                            if(target2.face.normal.dot(dir) > 0){
+                                if(!inside){
+                                    inside = true;
+                                    //add_intersection_point();
+                                }
+                                trimmed[li].at(-1).push(src_paths[li][pi][i]);
+                            }else{
+                                if(inside){
+                                    inside = false;
+                                    //add_intersection_point();
+                                    trimmed[li].push([]);
+                                }
+                            }
                         }
                     }
                 }
@@ -420,9 +421,10 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             //var ref_pnt = src_paths[0][0][0][0].p;
             var pva_start_idx = -1;
             function make_path(src_path){
+                if(src_path.length < 3) return;
                 var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
                 //if(src_path.length < 3) continue;
-                for(let i=0; i < src_path.length; i++){  
+                for(let i=0; i < src_path.length; i++){
                     //let dist = ref_pnt.distanceTo(src_path[i].p);
                     // function check_boundary(v){
                     //     var k = 'x'+Math.round(v.x / bnd_vox_size) 
@@ -447,28 +449,41 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         pts[2].push(src_path[i].p.clone().add(src_path[i].n));
                     //}
                     //if((!inside || i == src_path.length-1)){// && box.getSize(v1).length() > min_size){
-                    if(i == src_path.length-1){
-                        //console.log(pts[0].length);
-                        if(pts[0].length > 1){
-                            var curve = new CatmullRomCurve3(pts[0]); // use nurbs curve?! #1
-                            curve.arcLengthDivisions = 3000; // make this dynamic #1
-                            //if(curve.getLength() > min_length){
-                                curves.push(curve);
-                                //console.log(curve);
-                                //if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
-                                paths.push({
-                                    ribbon:      d.geo.surface(d, pts, {length_v:curve.getLength()}), 
-                                    speed:       c.speed, 
-                                    flow:        c.flow,
-                                    material:    c.material,
-                                    cord_radius: c.cord_radius,
-                                }); 
-                            //}
-                        }
-                        if(pts[0].length > 0) pts = [[],[],[]];
-                    }
+                    // if(i == src_path.length-1){
+                    //     //console.log(pts[0].length);
+                    //     if(pts[0].length > 1){
+                    //         var curve = new CatmullRomCurve3(pts[0]); // use nurbs curve?! #1
+                    //         curve.arcLengthDivisions = 3000; // make this dynamic #1
+                    //         //if(curve.getLength() > min_length){
+                    //             curves.push(curve);
+                    //             //console.log(curve);
+                    //             //if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
+                    //             paths.push({
+                    //                 ribbon:      d.geo.surface(d, pts, {length_v:curve.getLength()}), 
+                    //                 speed:       c.speed, 
+                    //                 flow:        c.flow,
+                    //                 material:    c.material,
+                    //                 cord_radius: c.cord_radius,
+                    //             }); 
+                    //         //}
+                    //     }
+                    //     if(pts[0].length > 0) pts = [[],[],[]];
+                    // }
                     //ref_pnt = src_path[i].p; // clone? #1
                 }
+                var curve = new CatmullRomCurve3(pts[0]); // use nurbs curve?! #1
+                curve.arcLengthDivisions = 3000; // make this dynamic #1
+                //if(curve.getLength() > min_length){
+                curves.push(curve);
+                //console.log(curve);
+                //if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
+                paths.push({
+                    ribbon:      d.geo.surface(d, pts, {length_v:curve.getLength()}), 
+                    speed:       c.speed, 
+                    flow:        c.flow,
+                    material:    c.material,
+                    cord_radius: c.cord_radius,
+                });
             }
             for(let li=0; li<c.layers; li++){ 
                 //for(let ai=0; ai<c.axes; ai++){ 
@@ -517,6 +532,74 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
 
 
 
+
+// if(c.fill){
+//     var target1 = {};
+//     var target2 = {};
+//     console.log('Slice: cut to boundary');
+//     const trimmed = new Array(c.layers).fill(0).map(()=> []);
+//     var inside = true;
+//     for(let li=0; li<c.layers; li++){ 
+//         for(let pi=0; pi < src_paths[li].length; pi++){
+//             trimmed[li].push([]);
+//             for(let i=0; i < src_paths[li][pi].length; i++){
+//                 var pnt = src_paths[li][pi][i].p;
+//                 var closest = Infinity;
+//                 var target0 = null;
+//                 bnds.forEach(bnd=>{
+//                     bnd.bvh.closestPointToPoint(pnt, target1, 0, Infinity);
+//                     if(closest > target1.distance){
+//                         closest = target1.distance;
+//                         target0 = {pnt:target1.point.clone(), idx:target1.faceIndex, geo:bnd.geo};
+//                     }
+//                 });
+//                 dir.copy(target0.pnt).sub(pnt).normalize();
+//                 getTriangleHitPointInfo(target0.pnt, target0.geo, target0.idx, target2);
+//                 if(target2.face.normal.dot(dir) > 0){
+//                     inside = true;
+//                     trimmed[li].at(-1).push(src_paths[li][pi][i]);
+//                 }else{
+//                     if(inside){
+//                         inside = false;
+//                         trimmed[li].push([]);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     src_paths = trimmed;
+// }
+
+
+                                // bnd.shapecast({
+                                //     intersectsBounds: ( box, isLeaf, score, depth, nodeIndex ) => {
+                                //         if(box.intersectsTriangle(tri1)){
+                                //             return INTERSECTED;
+                                //         }
+                                //         return NOT_INTERSECTED;
+                                //     },
+                                //     intersectsTriangle(tri0){
+                                //         //console.log('hey!!!!');
+                                //         if(tri0.intersectsTriangle(tri1, seg)){
+                                //             if(trimmed[li].at(-1).at(-1)){
+                                //                 //console.log('fit to surface!');
+                                //                 trimmed[li].at(-1).push({
+                                //                     p: seg.start.clone(),
+                                //                     n: trimmed[li].at(-1).at(-1).n,
+                                //                 });
+                                //             }
+                                //             tri0.getNormal(normal);
+                                //             if(normal.dot(dir) > 0){
+                                //                 inside = false;
+                                //                 trimmed[li].push([]);
+                                //             }else{  
+                                //                 inside = true;
+                                //             }
+                                //             return true;
+                                //         }
+                                //         return false;
+                                //     }
+                                // });
 
 
 

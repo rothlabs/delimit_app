@@ -193,6 +193,7 @@ export const create_make_slice = (set,get)=>({make:{
             axis_x:       d.make.atom(d,'f', 0),
             axis_y:       d.make.atom(d,'f', -1),
             axis_z:       d.make.atom(d,'f', 0),
+            offset:       d.make.atom(d,'f', 0),
             density:      d.make.atom(d,'f', 0.1),
             cord_radius:  d.make.atom(d,'f', 0.5),
             speed:        d.make.atom(d,'f', 50),
