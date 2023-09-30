@@ -40,6 +40,8 @@ const ortho2 = new Vector3();
 const seg = new Line3();
 const tri1 = new Triangle();
 
+
+
 //const slice_div = 5; 
 const surface_div = 200;
 const pts_per_mesh    = 1000000;
@@ -481,7 +483,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 //if(curve.getLength() > min_length){
                 curves.push(curve);
                 //console.log(curve);
-                //if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
+                if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
                 paths.push({
                     ribbon:      d.geo.surface(d, pts, {length_v:curve.getLength()}), 
                     speed:       c.speed, 
@@ -499,22 +501,22 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         }
                     //}
                 //}
-                // // if(pva_start_idx > -1){
-                // //     //const air_paths = [];
-                // //     let end_idx = paths.length;
-                // //     for(let i = pva_start_idx; i < end_idx; i++){
-                // //         curves.push(curves[i]);
-                // //         paths.push({
-                // //             ribbon:      paths[i].ribbon, 
-                // //             speed:       c.speed, 
-                // //             flow:        c.flow,
-                // //             material:    'AIR',
-                // //             cord_radius: c.cord_radius,
-                // //         }); 
-                // //     }
-                // //     //paths = [...paths, ...air_paths];
-                // //     pva_start_idx = -1;
-                // // }
+                if(pva_start_idx > -1){
+                    //const air_paths = [];
+                    let end_idx = paths.length;
+                    for(let i = pva_start_idx; i < end_idx; i++){
+                        curves.push(curves[i]);
+                        paths.push({
+                            ribbon:      paths[i].ribbon, 
+                            speed:       c.speed / 2, 
+                            flow:        c.flow,
+                            material:    'AIR',
+                            cord_radius: c.cord_radius,
+                        }); 
+                    }
+                    //paths = [...paths, ...air_paths];
+                    pva_start_idx = -1;
+                }
             }
             
 

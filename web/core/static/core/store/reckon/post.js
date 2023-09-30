@@ -43,27 +43,29 @@ const normal_smooth_span = 8; // mm
 const pulloff = 25; // along surface normal
 
 const cmd = {
-    idle:        '000000', // 0
-    air_off_t1:  '100000', // 1
-    heat_off_t2: '010000', // 2
-    heat_off_t3: '110000', // 3
-    heat_off_t4: '001000', // 4
-    air_on_t1:   '101000', // 5
-    heat_on_t2:  '011000', // 6
-    heat_on_t3:  '111000', // 7
-    heat_on_t4:  '000100', // 8
-    flow_t1a:    '100100', // 9,  H2O
-    flow_t1b:    '010100', // 10, PVA
-    flow_t1c:    '110100', // 11, PU
-    step_t2:     '001100', // 12, PLA
-    step_t3:     '101100', // 13, TPU coarse
-    step_t4:     '011100', // 14, TPU fine
-    laser_t5:    '111100', // 15
-    fiber_off_t5:'000010', // 16
-    fiber_on_t5: '100010', // 17
-    close_cap:   '010010', // 18
-    open_cap:    '110010', // 19
-    open_mixer:  '001010', // 20
+    idle:        '00000', // 0
+    air_off_t1:  '10000', // 1
+    heat_off_t2: '01000', // 2
+    heat_off_t3: '11000', // 3
+    heat_off_t4: '00100', // 4
+    air_on_t1:   '10100', // 5
+    heat_on_t2:  '01100', // 6
+    heat_on_t3:  '11100', // 7
+    heat_on_t4:  '00010', // 8
+    flow_t1a:    '10010', // 9,  H2O
+    flow_t1b:    '01010', // 10, PVA
+    flow_t1c:    '11010', // 11, PU
+    step_t2:     '00110', // 12, PLA
+    step_t3:     '10110', // 13, TPU coarse
+    step_t4:     '01110', // 14, TPU fine
+    laser_t5:    '11110', // 15
+    fiber_off_t5:'00001', // 16
+    fiber_on_t5: '10001', // 17
+    close_cap:   '01001', // 18
+    open_cap:    '11001', // 19
+    open_mixer:  '00101', // 20
+    //open_plug:   '101010', // 21
+    //close_plug:  '011010', // 22
 };
 
 const cmd_names = {};
@@ -71,8 +73,8 @@ Object.keys(cmd).forEach(key=>{
     cmd_names[cmd[key]] = key;
 });
 
-const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
-const cmd_dwell = 0.016; // was 0.01
+const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3', 'step_t4', 'laser_t5'];//['idle', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
+const cmd_dwell = 0.02; // was 0.01
 const approx_rapid_interval = cmd_dwell;
 const preheat_interval = 60;
 const cord_radius_transition = 0.4;
@@ -89,6 +91,8 @@ const tool_offset_a = 35;
 //     heat_t3: false,
 //     heat_t4: false,
 // };
+
+const machine_z_y_ratio = 0.75;
 
 
 export const post = {
@@ -118,7 +122,7 @@ export const post = {
             var axis_b = 0; // need to set to start of path 
             var mode = 'idle';
             var material = 'none';
-            var brush_dist = 0;
+            //var brush_dist = 0;
 
             function move(a={}){
                 //console.log(cmds);
@@ -134,12 +138,18 @@ export const post = {
                     if(a.z != undefined){
                         a.z  = -a.z;
                         if(material == 'AIR') a.z -= 20;
+                        if(material == 'PVA') a.z += a.y * machine_z_y_ratio;
                     }
                     if(a.a != undefined)  a.a  = MathUtils.radToDeg(-a.a) + tool_offset_a;//mach.offset_a;
                     if(a.b != undefined)  a.b  = MathUtils.radToDeg(-a.b);
                 }
                 if(a.ref == 'product' || a.ref == 'origin'){
                     ref.set(mach.origin_x, mach.origin_y, mach.origin_z, mach.origin_a);
+                }
+                if(material == 'PVA'){
+                    a.x = undefined;
+                    a.y = undefined;
+                    a.a = undefined;
                 }
                 if(a.x != undefined) cl += ' X'+d.rnd(ref.x+a.x, 1000);
                 if(a.y != undefined) cl += ' Y'+d.rnd(ref.y+a.y, 1000);
@@ -160,22 +170,25 @@ export const post = {
                     if(!a.no_time) time += approx_rapid_interval;
                 }
                 code.push(cl);
+                if(a.back_to_g1){
+                    code.push('G1 Z'+d.rnd(ref.z+a.z, 1000)+' F1000');
+                }
             }
             function pick_tool(id){
                 if(tool == id) return;
                 code.push('(Tool '+id+')');
                 if(tool > 0){
-                    move({x:tools[tool].x, a:mach.origin_a+8}); // position above holder
-                    move({y:mach.holder_y+42}); // move just above holder
-                    move({a:0, ref:'origin'});
+                    move({x:tools[tool].x, a:mach.origin_a+12}); // was 8 // position above holder
+                    move({y:mach.holder_y+60});
+                    move({y:mach.holder_y+40, a:mach.origin_a}); // move just above holder
                     move({y:mach.holder_y}); // move into holder 
                 }
-                move({a:23, ref:'origin'}); // rotate back to CARRIAGE CLEARANCE  (degree)
+                move({a:35, ref:'origin'}); // was 23 // rotate back to CARRIAGE CLEARANCE  (degree)
                 if(id > 0){
                     move({x:tools[id].x, y:mach.holder_y}); 
                     move({a:0, ref:'origin'});  // rotate forward to grip tool
-                    move({y: mach.holder_y+42}); // pull tool up out of holder
-                    move({a:8, ref:'origin'}); // rotate back to X-RAIL CLEARANCE
+                    move({y:mach.holder_y+40}); // pull tool up out of holder
+                    move({y:mach.holder_y+60, a:mach.origin_a+12}); // rotate back to X-RAIL CLEARANCE
                 }
                 move({y:mach.holder_y+150}); // move to clearance height
                 tool = id;
@@ -189,7 +202,7 @@ export const post = {
                 let bits = id.split('').map(v=> parseInt(v));
                 var bc = [];
                 if(!aa.no_white_space) bc.push('');
-                bc.push('(Cmd '+(bits[0]+bits[1]*2+bits[2]*4+bits[3]*8+bits[4]*16+bits[5]*32)+', '+cmd_names[id]+')');
+                bc.push('(Cmd '+(bits[0]+bits[1]*2+bits[2]*4+bits[3]*8+bits[4]*16)+', '+cmd_names[id]+')'); //+bits[5]*32
                 if(!aa.no_dwell) bc.push('G4 P'+cmd_dwell);
                 bc.push('M9'); // turn off M7 (mist) and M8 (flood)
                 if(bits[0]){ bc.push('M64 P0') }else{ bc.push('M65 P0') } // Aux0
@@ -197,7 +210,7 @@ export const post = {
                 if(bits[2]){ bc.push('M64 P2') }else{ bc.push('M65 P2') } // Aux2
                 if(bits[3])  bc.push('M7'); // Mist 
                 if(bits[4])  bc.push('M8'); // Flood
-                if(bits[5]){ bc.push('M4') }else{ bc.push('M3') }; // spindle dir
+                //if(bits[5]){ bc.push('M4') }else{ bc.push('M3') }; // spindle dir
                 if(!aa.no_dwell) {
                     bc.push('G4 P'+cmd_dwell);
                     time += cmd_dwell*2;
@@ -206,27 +219,34 @@ export const post = {
                 cmd_time = time;
                 return bc;
             }
-            function flow_dwell(interval){
-                code.push('S1000', 'G4 P'+interval);
+            function dwell(interval){
+                code.push('G4 P'+interval);//code.push('S1000', 'G4 P'+interval);
                 time += interval;
                 cmd_time = time;
             }
             function start_pva(){
                 if(material == 'PVA') return;
                 code.push('', '(Start PVA)');
-                move({z:-980});
+                move({z:-900, back_to_g1:true});
                 code.push(...write_cmd(cmd.open_cap, {no_white_space:true}));
                 code.push(...write_cmd(cmd.flow_t1b, {no_white_space:true}));
-                flow_dwell(1);
+                code.push('S1000');
+                dwell(8);
                 code.push('');
                 material = 'PVA';
             }
             function flush(a={}){
                 code.push('', '(Flush)');
-                move({z:-980}); //move({x:-900, z:-900, a:mach.origin_a-90+tool_offset_a});
-                code.push(...write_cmd(cmd.close_cap, {no_white_space:true}));
+                move({z:-900, back_to_g1:true}); //move({x:-900, z:-900, a:mach.origin_a-90+tool_offset_a});
                 code.push(...write_cmd(cmd.flow_t1a,  {no_white_space:true}));
-                flow_dwell(1);
+                if(a.hard){
+                    code.push('S1000'); 
+                    dwell(4);
+                }
+                code.push('S1000'); // make this smaller when not hard flush!!!! #1
+                dwell(2);
+                code.push(...write_cmd(cmd.close_cap, {no_white_space:true}));
+                dwell(4);
                 code.push('S0');
                 code.push('');
                 material = 'H2O';
@@ -289,17 +309,18 @@ export const post = {
                     code.push(...write_cmd(cmd.step_t2)); // push_cmd(cmd.step_t2);
                     push_heat_cmd({time:time, cmd:cmd.heat_on_t2});
                     //code.push('', 'M66 P0 L3', ''); // Hotend ready?
-                }else if(path.material == 'TPU' && path.cord_radius >= cord_radius_transition){
+                }else if(path.material == 'TPU'){// && path.cord_radius >= cord_radius_transition){
                     pick_tool(3);
                     code.push(...write_cmd(cmd.step_t3)); // push_cmd(cmd.step_t3);
                     push_heat_cmd({time:time, cmd:cmd.heat_on_t3});
                     //code.push('', 'M66 P1 L3', ''); // Hotend ready?
-                }else if(path.material == 'TPU' && path.cord_radius < cord_radius_transition){
-                    pick_tool(4);
-                    code.push(...write_cmd(cmd.step_t4)); // push_cmd(cmd.step_t4);
-                    push_heat_cmd({time:time, cmd:cmd.heat_on_t4});
-                    //code.push('', 'M66 P2 L3', ''); // Hotend ready?
                 }
+                // else if(path.material == 'TPU' && path.cord_radius < cord_radius_transition){
+                //     pick_tool(4);
+                //     code.push(...write_cmd(cmd.step_t4)); // push_cmd(cmd.step_t4);
+                //     push_heat_cmd({time:time, cmd:cmd.heat_on_t4});
+                //     //code.push('', 'M66 P2 L3', ''); // Hotend ready?
+                // }
                 material = path.material;
 
                 var curve = new CurvePath();
@@ -367,19 +388,20 @@ export const post = {
                     rotate_point_normal(i, shift_b);
                     axis_b += shift_b;   
                                     
-                    if(material == 'PVA'){
-                        if(i == 0){
-                            move({z:pts[i].z+pts[i].y, b:axis_b, ref:'product'});
-                        }else{
-                            move({z:pts[i].z+pts[i].y, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
-                        }
-                    }else{
+                    // if(material == 'PVA'){
+                    //     if(i == 0){
+                    //         move({p:pts[i], b:axis_b, ref:'product'});
+                    //     }else{
+                    //         move({p:pts[i], b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
+                    //     }
+                    // }else{
                         if(i == 0){
                             if(direct < 0){
                                 v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
                                 move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
+                                if(material != 'AIR' && material != 'PVA') code.push('M4');//, 'G4 P0.08'); // open plug
                                 move({p:pts[i], ref:'product', no_time:true});
-                                if(material != 'AIR') code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
+                                if(material != 'AIR' && material != 'PVA') code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
                             }else{
                                 move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:direct, ref:'product', no_time:true});
                                 direct = -1;
@@ -387,12 +409,17 @@ export const post = {
                         }else{
                             move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
                         }
+                        if(i == pts.length-3 && direct < 0){ // path should have exact distance for exact time built into it on end
+                            if(material != 'AIR' && material != 'PVA'){
+                                code.push('M3'); // close plug
+                            }
+                        }
                         if(i == pts.length-1){
                             if(pi < paths.length-1){
                                 paths[pi  ].ribbon.get_point(0, 1, v1);
                                 paths[pi+1].ribbon.get_point(0, 0, v2);
                                 let dist = v1.distanceTo(v2);
-                                if(dist < max_direct_dist || (material=='AIR' && dist < max_direct_dist_air)){
+                                if(dist < max_direct_dist || ((material=='AIR' || material == 'PVA') && dist < max_direct_dist_air)){
                                     direct = dist;
                                     console.log('direct move!!!');
                                 }
@@ -403,7 +430,7 @@ export const post = {
                                 move({p:v2, ref:'product', no_time:true});
                             }
                         }
-                    }
+                    //}
 
                     if(i < pts.length-1) rotate_point_normal(i+1, axis_b);
                     // code += 'G1 X'+d.rnd(origin_x+pts[i].x, 1000) + ' Y'+d.rnd(origin_y-pts[0].y+pts[i].y, 1000)+ ' Z'+d.rnd(origin_z-pts[i].z, 1000);
@@ -418,7 +445,7 @@ export const post = {
                 // ribbon.get_point(1, 1, v2); v2.sub(v1); // start normal
                 // v3.copy(v1).add(v4.copy(v2).multiplyScalar(pulloff));
                 // move('G0', v3);
-                //paths.push({ribbon:ribbon, speed:path.speed, flow:path.flow});
+                // paths.push({ribbon:ribbon, speed:path.speed, flow:path.flow});
 
                 if(pi < paths.length-1){
                     if(material == 'AIR' && paths[pi+1].material != 'AIR'){
@@ -427,11 +454,12 @@ export const post = {
                         flush();
                     }else if(material == 'PLA' && paths[pi+1].material != 'PLA'){
                         code.push(...write_cmd(cmd.heat_off_t2)); // push_cmd(cmd.heat_off_t2);
-                    }else if((material == 'TPU' && path.cord_radius >= cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius >= cord_radius_transition)){
+                    }else if((material == 'TPU' && paths[pi+1].material != 'TPU')){// && path.cord_radius >= cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius >= cord_radius_transition)){
                         code.push(...write_cmd(cmd.heat_off_t3)); // push_cmd(cmd.heat_off_t3);
-                    }else if((material == 'TPU' && path.cord_radius < cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius < cord_radius_transition)){
-                        code.push(...write_cmd(cmd.heat_off_t4)); // push_cmd(cmd.heat_off_t4);
                     }
+                    // else if((material == 'TPU' && path.cord_radius < cord_radius_transition) && !(paths[pi+1].material == 'TPU' && paths[pi+1].cord_radius < cord_radius_transition)){
+                    //     code.push(...write_cmd(cmd.heat_off_t4)); // push_cmd(cmd.heat_off_t4);
+                    // }
                 }else{
                     if(material == 'PVA'){
                         flush();
@@ -464,6 +492,31 @@ export const post = {
         } 
     }, 
 };
+
+
+
+
+// function pick_tool(id){
+//     if(tool == id) return;
+//     code.push('(Tool '+id+')');
+//     if(tool > 0){
+//         move({x:tools[tool].x, a:mach.origin_a+12}); // was 8 // position above holder
+//         //move({y:mach.holder_y+60});
+//         move({y:mach.holder_y+40}); // move just above holder
+//         move({a:0, ref:'origin'});
+//         move({y:mach.holder_y}); // move into holder 
+//     }
+//     move({a:27, ref:'origin'}); // was 23 // rotate back to CARRIAGE CLEARANCE  (degree)
+//     if(id > 0){
+//         move({x:tools[id].x, y:mach.holder_y}); 
+//         move({a:0, ref:'origin'});  // rotate forward to grip tool
+//         move({y: mach.holder_y+40}); // pull tool up out of holder
+//         move({a:12, ref:'origin'}); // rotate back to X-RAIL CLEARANCE
+//     }
+//     move({y:mach.holder_y+150}); // move to clearance height
+//     tool = id;
+//     code.push('');
+// }
 
 
 
