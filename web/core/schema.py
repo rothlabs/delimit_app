@@ -35,7 +35,8 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
     'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', #'offset_a',
     'pva_x', 'pva_y',
-    'offset',
+    'offset', 
+    'coil',
 ]}
 cats = tuple(Part.objects.get_or_create(t=tag[t])[0].id for t in [
     'public', 'top_view', 'side_view', 'auxiliary', 'face_camera', 'manual_compute', #'front_view',
@@ -405,6 +406,10 @@ class Push_Pack(graphene.Mutation):
                     'open_tag':   tag['open_pack'].id,
                     'update_tag': tag['poll_pack'].id,
                     'delete_tag': tag['delete_pack'].id,
+                    'b_id':   ['none'],
+                    'b_v':    [False],
+                    'i_id':   ['none'],
+                    'i_v':    [0],
                     'f_id':   ['none'],
                     'f_v':    [0],
                     's_id':   ['none'],
@@ -414,6 +419,12 @@ class Push_Pack(graphene.Mutation):
                     'p_r_id': ['none'],
                     'p_n_id': ['none'],
                     'p_t_id': ['none'],
+                    'b_r_id': ['none'],
+                    'b_n_id': ['none'],
+                    'b_t_id': ['none'],
+                    'i_r_id': ['none'],
+                    'i_n_id': ['none'],
+                    'i_t_id': ['none'],
                     'f_r_id': ['none'],
                     'f_n_id': ['none'],
                     'f_t_id': ['none'],
@@ -422,6 +433,12 @@ class Push_Pack(graphene.Mutation):
                     's_t_id': ['none'],
                 }
                 if atoms:
+                    if len(atoms[0]) > 0:
+                        params['b_id'] += atoms[0]
+                        params['b_v'] += b 
+                    if len(atoms[1]) > 0:
+                        params['i_id'] += atoms[1]
+                        params['i_v'] += i 
                     if len(atoms[2]) > 0:
                         params['f_id'] += atoms[2]
                         params['f_v'] += f 
@@ -435,6 +452,12 @@ class Push_Pack(graphene.Mutation):
                         params['p_r_id'] += [parts[p][0][0] for n in parts[p][1]] 
                         params['p_n_id'] += parts[p][1] 
                         params['p_t_id'] += t[p][1]
+                        params['b_r_id'] += [parts[p][0][0] for n in parts[p][2]] 
+                        params['b_n_id'] += parts[p][2]
+                        params['b_t_id'] += t[p][2]
+                        params['i_r_id'] += [parts[p][0][0] for n in parts[p][3]] 
+                        params['i_n_id'] += parts[p][3]
+                        params['i_t_id'] += t[p][3]
                         params['f_r_id'] += [parts[p][0][0] for n in parts[p][4]] 
                         params['f_n_id'] += parts[p][4]
                         params['f_t_id'] += t[p][4]
@@ -444,6 +467,30 @@ class Push_Pack(graphene.Mutation):
                 params['r_id_tuple'] = tuple(params['r_id'])
                 with connection.cursor() as cursor: 
                     cursor.execute("""
+                        -- bools
+                        CREATE TEMP TABLE new_bool (id TEXT, v BOOLEAN);
+                        WITH data AS (
+                            INSERT INTO core_bool (id, v) SELECT unnest(%(b_id)s), unnest(%(b_v)s) 
+                                ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
+                                    WHERE EXISTS (SELECT a.id FROM core_part_bool a WHERE a.n_id = core_bool.id AND a.r_id = %(profile)s)  
+                            RETURNING id, v
+                        ) INSERT INTO new_bool (id, v) SELECT * FROM data;
+                        INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_bool ON CONFLICT DO NOTHING;  
+                        INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_bool ON CONFLICT DO NOTHING;
+                        DELETE FROM core_part_bool a USING new_bool WHERE a.n_id = new_bool.id AND a.t_id = %(delete_tag)s;
+
+                        -- ints
+                        CREATE TEMP TABLE new_int (id TEXT, v INTEGER);
+                        WITH data AS (
+                            INSERT INTO core_int (id, v) SELECT unnest(%(i_id)s), unnest(%(i_v)s) 
+                                ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
+                                    WHERE EXISTS (SELECT a.id FROM core_part_int a WHERE a.n_id = core_int.id AND a.r_id = %(profile)s)  
+                            RETURNING id, v
+                        ) INSERT INTO new_int (id, v) SELECT * FROM data;
+                        INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_int ON CONFLICT DO NOTHING;  
+                        INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_int ON CONFLICT DO NOTHING;
+                        DELETE FROM core_part_int a USING new_int WHERE a.n_id = new_int.id AND a.t_id = %(delete_tag)s;
+
                         -- floats
                         CREATE TEMP TABLE new_float (id TEXT, v DOUBLE PRECISION);
                         WITH data AS (
@@ -485,8 +532,9 @@ class Push_Pack(graphene.Mutation):
                             AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
                                 OR EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
                             AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
+                        DELETE FROM core_part_bool a WHERE a.r_id IN %(r_id_tuple)s;
+                        DELETE FROM core_part_int a WHERE a.r_id IN %(r_id_tuple)s;
                         DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s;
-
                         DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s;
 
 
@@ -496,6 +544,22 @@ class Push_Pack(graphene.Mutation):
                         )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data 
                             WHERE (data.r IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s))
                             AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                                ON CONFLICT DO NOTHING;
+
+                        -- bool edges
+                        WITH data AS (
+                            SELECT unnest(%(b_r_id)s) AS r, unnest(%(b_n_id)s) AS n, unnest(%(b_t_id)s) AS t
+                        )INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
+                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
+                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_bool a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                                ON CONFLICT DO NOTHING;
+
+                        -- int edges
+                        WITH data AS (
+                            SELECT unnest(%(i_r_id)s) AS r, unnest(%(i_n_id)s) AS n, unnest(%(i_t_id)s) AS t
+                        )INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
+                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
+                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_int a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
                                 ON CONFLICT DO NOTHING;
 
                         -- float edges
@@ -515,6 +579,12 @@ class Push_Pack(graphene.Mutation):
                                 ON CONFLICT DO NOTHING;
 
                         -- add to open packs
+                        INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT a.r_id, new_bool.id, %(open_tag)s, 0 
+                            FROM core_part_part a JOIN core_part_bool b ON a.n_id = b.r_id JOIN new_bool ON b.n_id = new_bool.id
+                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
+                        INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT a.r_id, new_int.id, %(open_tag)s, 0 
+                            FROM core_part_part a JOIN core_part_int b ON a.n_id = b.r_id JOIN new_int ON b.n_id = new_int.id
+                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
                         INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, new_float.id, %(open_tag)s, 0 
                             FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id JOIN new_float ON b.n_id = new_float.id
                                 WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;

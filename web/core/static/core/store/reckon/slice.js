@@ -96,7 +96,7 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
     // should define type as text, decimal, int, bool:
     props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 
-        'cord_radius', 'layers', 'axes', 'spread_angle', 'material', 'offset'],
+        'cord_radius', 'layers', 'axes', 'spread_angle', 'material', 'offset', 'coil'],
     view(d, n, v, a={}){ // will run regardless of manual_compute tag 
         // set which layer to show
     },

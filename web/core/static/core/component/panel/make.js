@@ -6,13 +6,14 @@ import {Badge} from '../node/base.js'
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
 
 export function Make(){
-    const show = useS(d=> d.studio.panel.show);
+    //const show = useS(d=> d.studio.panel.show);
     const panel = useS(d=> d.studio.panel.name);
     const nodes = useS(d=> d.pick.n);
     const limited = useS(d=> d.pick.limited); 
     const d = gs();
     return(
-        show && panel=='make' && c(Fragment, {},
+        //show && panel=='make' && c(Fragment, {},
+        panel=='make' && c(Fragment, {},
             c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
                 limited ? c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.profile})) :
                 nodes.map(n=>
@@ -24,7 +25,7 @@ export function Make(){
             c(Row, {className:'mb-3 ms-0 me-0'},
                 c(Col, {}, 
                     //c('i', {className:'text-secondary bi-diagram-3', style:{fontSize:'28px'}}, c('h4',{}, 'Subjects')),
-                    c('h5',{className:'text-secondary bi-diagram-3'}, ' Subject'),
+                    c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
                     ...d.subject_tags.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
                         c(Row, {className: 'mt-1 text-left '+(i==d.subject_tags.length-1?'mb-4':'')},
                             c(Button, {

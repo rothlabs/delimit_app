@@ -11,19 +11,21 @@ import {Badge} from '../node/base.js'
 import {String} from '../node/input/string.js';
 import {Float} from '../node/input/float.js';
 import {Children} from '../node/input/children.js';
+import {Bool} from '../node/input/bool.js';
 
 
 export function Inspect(){ 
     const panel = useS(d=> d.studio.panel.name);
-    const show = useS(d=> d.studio.panel.show);
+    //const show = useS(d=> d.studio.panel.show);
     const nodes = useS(d=> d.pick.n); 
     const limited = useS(d=> d.pick.limited); 
     const cats = useS(d=> d.inspect.cats);
     const d = gs();
     return (
-        show && (panel=='inspect_design' || panel=='inspect_nodes') && c(Fragment, {},
+        //show && (panel=='inspect_design' || panel=='inspect_nodes') && 
+        (panel=='inspect_design' || panel=='inspect_nodes') && c(Fragment, {},
             c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
-                ...nodes.map(n=>
+                nodes.map(n=>
                     c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
                         c(Badge, {n:n})
                     ) 
@@ -38,6 +40,9 @@ export function Inspect(){
             ),
             ...d.string_tags.map(t=>
                 c(String, {t:t})
+            ),
+            ...d.bool_tags.map(t=>
+                c(Bool, {t:t})
             ),
             ...d.float_tags.map(t=>
                 c(Float, {t:t})

@@ -7,15 +7,31 @@ import { Visual } from './visual.js';
 
 export function Panel(){ 
     const show = useS(d=> d.studio.panel.show);
+    //const nodes = useS(d=> d.pick.n);
+    //const limited = useS(d=> d.pick.limited); 
     const window_size = use_window_size();
     const [width, set_width] = useState('100vw');
+    const [height, set_height] = useState('75vh');
     useEffect(()=>{
         if(window_size.width <=576) set_width('100vw');
         if(window_size.width > 576) set_width('30vw');
     },[window_size.width])
     return (
-        show && c(Container, {className:'position-absolute start-0 ps-3 pe-3', style:{minWidth:'350px', maxWidth:width,}}, 
-            c(Container, {fluid:true, className:'bg-white pt-3 ps-3 pe-3 border rounded'}, 
+        show && c(Container, {
+            className:'position-absolute start-0 ps-3 pe-3', 
+            style:{
+                minWidth:'350px', 
+                maxWidth: width, 
+            },
+        }, 
+            c(Container, {
+                fluid:true, 
+                className:'bg-white pt-3 ps-3 pe-3 border rounded',
+                style:{
+                    maxHeight: height,
+                    overflow: 'auto',
+                },
+            }, 
                 c(CloseButton, {
                     className:'position-absolute top-0 end-0 mt-2 me-4',
                     onClick:()=>{ss(d=>d.studio.panel.show=false)}

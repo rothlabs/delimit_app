@@ -64,6 +64,9 @@ const string_tags = [model_tags['s'], // rename to text_tags
     'color_a', 'color_b',
     'material', 
 ]; 
+const bool_tags = [
+    'coil',
+];
 const atom_tags   = Object.values(model_tags).slice(1);
 
 
@@ -71,13 +74,14 @@ export const create_base_slice = (set,get)=>({
     model_tags:     model_tags,
     float_tags:     float_tags,
     string_tags:    string_tags,
+    bool_tags:      bool_tags,
     atom_tags:      atom_tags,
     cat_tags:       cat_tags, //category_tags
     //cast_shallow_tags: cast_shallow_tags,
     cat_map:        cat_map, //category //category_tags
     subject_tags:   subject_tags,
     admin_tags:     admin_tags,
-    value_tags:     [...float_tags, ...string_tags],
+    value_tags:     [...float_tags, ...string_tags, ...bool_tags],
     children_tags:  [...subject_tags, ...children_tags],
     node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},
@@ -95,7 +99,7 @@ export const create_base_slice = (set,get)=>({
     node_css:{
         'public':         'bi-globe-americas',
         'profile':        'bi-person',
-        'switch':         'bi-bezier2', // bi-123 // delete switch
+        'switch':         'bi-123', 
         'integer':        'bi-123',
         'decimal':        'bi-123',
         'text':           'bi-type',

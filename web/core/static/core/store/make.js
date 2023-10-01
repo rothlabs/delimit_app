@@ -201,6 +201,7 @@ export const create_make_slice = (set,get)=>({make:{
             layers:       d.make.atom(d,'f', 1),
             axes:         d.make.atom(d,'f', 1),
             spread_angle: d.make.atom(d,'f', 20),
+            coil:         d.make.atom(d,'b', false),
         }});
         d.make.edge(d, d.cats['manual_compute'], n);
         return n;
