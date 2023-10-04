@@ -6,7 +6,7 @@ import {Remake} from '../toolbar/remake.js';
 import {Apply} from '../toolbar/apply.js';
 import {Delete} from '../toolbar/delete.js';
 import {Close} from '../toolbar/close.js';
-import {Badge} from '../node/base.js'
+//import {Badge} from '../node/base.js'
 //import {Cat_Badge} from '../../node/base.js'
 import {String} from '../node/input/string.js';
 import {Float} from '../node/input/float.js';
@@ -17,26 +17,19 @@ import {Bool} from '../node/input/bool.js';
 export function Inspect(){ 
     const panel = useS(d=> d.studio.panel.name);
     //const show = useS(d=> d.studio.panel.show);
-    const nodes = useS(d=> d.pick.n); 
+    //const nodes = useS(d=> d.pick.n); 
     const limited = useS(d=> d.pick.limited); 
     const cats = useS(d=> d.inspect.cats);
     const d = gs();
     return (
         //show && (panel=='inspect_design' || panel=='inspect_nodes') && 
         (panel=='inspect_design' || panel=='inspect_nodes') && c(Fragment, {},
-            c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
-                nodes.map(n=>
-                    c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
-                        c(Badge, {n:n})
-                    ) 
-                ),
-            ),
             limited ? null : c(ButtonToolbar, {className:'gap-2 mb-3'},
                 c(Visible),
                 c(Remake),
-                c(Apply),
                 c(Delete),
                 c(Close),
+                c(Apply),
             ),
             ...d.string_tags.map(t=>
                 c(String, {t:t})
@@ -72,6 +65,14 @@ export function Inspect(){
         )
     )
 }
+
+// c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
+            //     nodes.map(n=>
+            //         c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
+            //             c(Badge, {n:n})
+            //         ) 
+            //     ),
+            // ),
 
 // c(Cat_Badge, {t:t})
 

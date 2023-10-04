@@ -177,12 +177,12 @@ export function Viewport(){ // for some reason this renders 5 times on load
             c('directionalLight', { 
                 ref:light,
                 color: 'white',
-                intensity: 0.8,
+                intensity: 1,
                 position: [0,0,1000],
             }),
             c('ambientLight', {
                color: 'white',
-               intensity: 0.2,
+               intensity: 0.25,
             }),
             // r('mesh', { 
             //     name: 'board',

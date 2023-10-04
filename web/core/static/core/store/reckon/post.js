@@ -76,7 +76,7 @@ Object.keys(cmd).forEach(key=>{
 const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3', 'step_t4', 'laser_t5'];//['idle', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
 const cmd_dwell = 0.02; // was 0.01
 const approx_rapid_interval = cmd_dwell;
-const preheat_interval = 60;
+const preheat_interval = 150;
 const cord_radius_transition = 0.4;
 const max_direct_dist = 4;
 const max_direct_dist_air = 10;
@@ -92,7 +92,8 @@ const tool_offset_a = 35;
 //     heat_t4: false,
 // };
 
-const machine_z_y_ratio = 0.75;
+const machine_z_y_ratio = 0.9;
+const pva_offset_z = 10; // 20
 
 
 export const post = {
@@ -110,7 +111,7 @@ export const post = {
                 {x:mach.holder_x4, offset_x:mach.offset_x4},
                 {x:mach.holder_x5, offset_x:mach.offset_x5}
             ];
-            const code = ['(Delimit Slicer)', 'G21 G90 G93', 'G92 B0', 'M3 S0', ''];//g21=mm, g90=absolute, g93=inverse-time-feed, g92=reset-axis
+            const code = ['(Delimit Slicer)', 'G21 G90 G93', 'G92 B0', 'M5 S0', ''];//g21=mm, g90=absolute, g93=inverse-time-feed, g92=reset-axis
             const cmd_slots = [{i:code.length, time:0}]; // rename to cmd_slots? #1
             const cmds = [];
             const heat_cmds = [];
@@ -122,6 +123,9 @@ export const post = {
             var axis_b = 0; // need to set to start of path 
             var mode = 'idle';
             var material = 'none';
+            var mach_y = mach.holder_y;
+            var mach_a = 0;
+            var tool_aim_z = mach.origin_a + tool_offset_a - 90;
             //var brush_dist = 0;
 
             function move(a={}){
@@ -137,8 +141,8 @@ export const post = {
                     if(a.y != undefined)  a.y += model_offset_y;
                     if(a.z != undefined){
                         a.z  = -a.z;
-                        if(material == 'AIR') a.z -= 20;
-                        if(material == 'PVA') a.z += a.y * machine_z_y_ratio;
+                        //if(material == 'AIR') a.z -= 20;
+                        if(material == 'PVA') a.z += (a.y * machine_z_y_ratio) + pva_offset_z;
                     }
                     if(a.a != undefined)  a.a  = MathUtils.radToDeg(-a.a) + tool_offset_a;//mach.offset_a;
                     if(a.b != undefined)  a.b  = MathUtils.radToDeg(-a.b);
@@ -152,9 +156,19 @@ export const post = {
                     a.a = undefined;
                 }
                 if(a.x != undefined) cl += ' X'+d.rnd(ref.x+a.x, 1000);
-                if(a.y != undefined) cl += ' Y'+d.rnd(ref.y+a.y, 1000);
+                if(a.y != undefined){
+                    mach_y = d.rnd(ref.y+a.y, 1000);
+                    cl += ' Y'+mach_y;
+                }
                 if(a.z != undefined) cl += ' Z'+d.rnd(ref.z+a.z, 1000);
-                if(a.a != undefined) cl += ' A'+d.rnd(ref.w+a.a, 1000);
+                if(a.a != undefined){
+                    mach_a = d.rnd(ref.w+a.a, 1000);
+                    if(mach_y > -120 && mach_a < tool_aim_z){
+                        var diff = tool_aim_z - mach_a;
+                        mach_a = tool_aim_z - (diff*(-mach_y/280));
+                    }
+                    cl += ' A'+mach_a;
+                }
                 if(a.b != undefined) cl += ' B'+d.rnd(      a.b, 1000);
                 if(time - cmd_time > cmd_dwell){
                     //if(cmds.length > 0) code.push(...write_cmd(cmds.shift()))
@@ -230,7 +244,7 @@ export const post = {
                 move({z:-900, back_to_g1:true});
                 code.push(...write_cmd(cmd.open_cap, {no_white_space:true}));
                 code.push(...write_cmd(cmd.flow_t1b, {no_white_space:true}));
-                code.push('S1000');
+                code.push('M3 S1000');
                 dwell(8);
                 code.push('');
                 material = 'PVA';
@@ -240,14 +254,16 @@ export const post = {
                 move({z:-900, back_to_g1:true}); //move({x:-900, z:-900, a:mach.origin_a-90+tool_offset_a});
                 code.push(...write_cmd(cmd.flow_t1a,  {no_white_space:true}));
                 if(a.hard){
-                    code.push('S1000'); 
+                    code.push('M3 S1000'); 
                     dwell(4);
                 }
-                code.push('S1000'); // make this smaller when not hard flush!!!! #1
-                dwell(2);
+                //code.push('S1000'); // make this smaller when not hard flush!!!! #1
+                //dwell(1);
                 code.push(...write_cmd(cmd.close_cap, {no_white_space:true}));
-                dwell(4);
-                code.push('S0');
+                dwell(2);
+                code.push('M3 S1000');
+                dwell(.2);
+                code.push('M5 S0');
                 code.push('');
                 material = 'H2O';
             }
@@ -260,14 +276,14 @@ export const post = {
                 if(heat_cmds.length > 0){
                     if(heat_cmds.at(-1).cmd != hc.cmd){
                         heat_cmds.push(hc);
-                        code.push('', 'M66 P'+(tool-2)+' L3', '');
+                        //code.push('', 'M66 P'+(tool-2)+' L3', '');
                         //if(tool == 2) code.push('', 'M66 P0 L3', '');
                         //if(tool == 3) code.push('', 'M66 P1 L3', '');
                         //if(tool == 4) code.push('', 'M66 P2 L3', '');
                     }
                 }else{
                     heat_cmds.push(hc);
-                    code.push('', 'M66 P'+(tool-2)+' L3', '');
+                    //code.push('', 'M66 P'+(tool-2)+' L3', '');
                 }
             }
 
@@ -289,7 +305,7 @@ export const post = {
             for(let pi = 0; pi < paths.length; pi++){ //paths.forEach((path, pi)=>{
                 let path = paths[pi];
                 var res = path.ribbon.length_v / ribbon_div; 
-                if(res < 2) continue;
+                if(res < 10) continue; // how should min points be decided? #1
 
                 if(path.material == 'AIR' && material != 'AIR'){// && material != 'AIR'){
                     pick_tool(1);
@@ -365,7 +381,7 @@ export const post = {
                     nml[i].divideScalar(vc);      
                 }
 
-                if(model_offset_y == null) model_offset_y = -pts[0].y;// - 10;
+                if(model_offset_y == null) model_offset_y = -pts[0].y - 80; // 95
 
                 function rotate_point_normal(i, b){
                     m1.makeRotationY(b); // Vector3.applyAxisAngle #2
@@ -374,19 +390,24 @@ export const post = {
                 }
 
                 // Write tool paths  to gcode:
-                code.push('(Path '+pi+')');
+                code.push('(Path '+path.name+', '+pi+')');
                 rotate_point_normal(0, axis_b);
                 for(let i=0; i<pts.length; i++){ 
                     if(material == 'PVA'){
                         v1.copy(pts[i]).sub(v2.set(0, pts[i].y, 0)); // for aligning point on YZ plane
                     }else{
                         v1.set(nml[i].x, 0, nml[i].z); // for pointing normal forward
-                        v3.set(0, nml[i].y, nml[i].z); //v1.set(normal.x, 0, normal.z);//
-                        axis_a = down.angleTo(v3) * Math.sign(nml[i].z);
+                        //v3.set(0, nml[i].y, nml[i].z); //v1.set(normal.x, 0, normal.z);//
+                        //axis_a = down.angleTo(v3) * Math.sign(nml[i].z);
                     }
                     var shift_b = forward.angleTo(v1) * Math.sign(-nml[i].x); // Math.sign(normal.x); //// add something factor here ?!?!?!?!?!
                     rotate_point_normal(i, shift_b);
-                    axis_b += shift_b;   
+                    axis_b += shift_b;  
+                    
+                    v3.set(0, nml[i].y, nml[i].z); //v1.set(normal.x, 0, normal.z);//
+                    axis_a = down.angleTo(v3) * Math.sign(nml[i].z); // might need -nml[i].z!!!!!!! #1
+
+
                                     
                     // if(material == 'PVA'){
                     //     if(i == 0){
@@ -399,9 +420,13 @@ export const post = {
                             if(direct < 0){
                                 v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
                                 move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
-                                if(material != 'AIR' && material != 'PVA') code.push('M4');//, 'G4 P0.08'); // open plug
+                                if(material != 'AIR' && material != 'PVA') code.push('M3');//, 'G4 P0.08'); // open plug
                                 move({p:pts[i], ref:'product', no_time:true});
-                                if(material != 'AIR' && material != 'PVA') code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
+                                if(material != 'AIR' && material != 'PVA'){
+                                    //code.push('M4');
+                                    code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
+                                    //code.push('G4 P0.05');
+                                }
                             }else{
                                 move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:direct, ref:'product', no_time:true});
                                 direct = -1;
@@ -409,25 +434,32 @@ export const post = {
                         }else{
                             move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
                         }
-                        if(i == pts.length-3 && direct < 0){ // path should have exact distance for exact time built into it on end
-                            if(material != 'AIR' && material != 'PVA'){
-                                code.push('M3'); // close plug
+                        if(i == pts.length-4){ // path should have exact distance for exact time built into it on end
+                            if(pi < paths.length-1){
+                                if(paths[pi].material == paths[pi+1].material){
+                                    paths[pi  ].ribbon.get_point(0, 1, v1);
+                                    paths[pi+1].ribbon.get_point(0, 0, v2);
+                                    let dist = v1.distanceTo(v2);
+                                    if(dist < max_direct_dist || ((material=='AIR' || material=='PVA') && dist < max_direct_dist_air)){
+                                        direct = dist;
+                                        console.log('direct move!!!');
+                                    }
+                                }
+                            }
+                            if(direct < 0 && material != 'AIR' && material != 'PVA'){
+                                code.push('M5 S0'); //code.push('M5'); // close plug
                             }
                         }
                         if(i == pts.length-1){
-                            if(pi < paths.length-1){
-                                paths[pi  ].ribbon.get_point(0, 1, v1);
-                                paths[pi+1].ribbon.get_point(0, 0, v2);
-                                let dist = v1.distanceTo(v2);
-                                if(dist < max_direct_dist || ((material=='AIR' || material == 'PVA') && dist < max_direct_dist_air)){
-                                    direct = dist;
-                                    console.log('direct move!!!');
-                                }
-                            }
                             if(direct < 0){
-                                if(material != 'AIR') code.push('S0');
-                                v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
-                                move({p:v2, ref:'product', no_time:true});
+                                 //if(material != 'AIR') code.push('S0');
+                                // if(material != 'AIR' && material != 'PVA'){
+                                //     code.push('M3'); // close plug
+                                //     code.push('S0');
+                                //     //code.push('G4 P0.1');
+                                // }
+                                 v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
+                                 move({p:v2, ref:'product', no_time:true});
                             }
                         }
                     //}

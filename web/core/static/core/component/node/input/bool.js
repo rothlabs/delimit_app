@@ -9,7 +9,7 @@ export function Bool({t}){
     return (
         content!=undefined && c(InputGroup, {className:'mb-3'}, 
             c(Form.Check, {
-                className:'mt-2 me-4', 
+                className:'ms-4 mt-2 me-4', 
                 label: readable(t), 
                 disabled:!asset, 
                 checked: content, 

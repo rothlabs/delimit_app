@@ -96,7 +96,7 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
     // should define type as text, decimal, int, bool:
     props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 
-        'cord_radius', 'layers', 'axes', 'spread_angle', 'material', 'offset', 'coil'],
+        'cord_radius', 'layers', 'axes', 'spread_angle', 'material', 'offset', 'coil', 'layer_height'],
     view(d, n, v, a={}){ // will run regardless of manual_compute tag 
         // set which layer to show
     },
@@ -114,7 +114,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
 
             var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
             //const slice_cnt = d.easel_size;
-            const layer_div = (c.cord_radius*2) * 0.8;
+            const layer_div = (c.cord_radius*2) * c.layer_height;
             const slice_div = (c.cord_radius*2) / c.density; 
             //const half_slice_cnt = Math.round(d.easel_size/slice_div/2);
             const curves = [];
@@ -348,7 +348,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                         for(let i = 0; i < seq[pi].length; i++){
                             if(i < seq[pi].length-1){
                                 v1.copy(seq[pi][i+1].p).sub(seq[pi][i].p).negate()
-                                    .cross(axes[ai].v).normalize().multiplyScalar((li+c.offset)*layer_div);
+                                    .cross(axes[ai].v).normalize().multiplyScalar((li*layer_div)+c.offset);
                                 //v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
                             }
                             path.push({
@@ -364,6 +364,26 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             for(let ai = 0; ai < c.axes; ai++){
                 for(let si = 0; si < slice_cnt; si++){
                     if(segs[ai][si][0]) make_slice(ai, si);
+                }
+            }
+
+            if(c.coil){
+                const coil_path = [];
+                for(let li=0; li < c.layers; li++){ 
+                    for(let pi=0; pi < src_paths[li].length-1; pi++){ 
+                        for(let i1=0; i1 < src_paths[li][pi].length; i1++){ 
+                            //var i2 = Math.round(i1 / src_paths[li][pi].length * src_paths[li][pi+1].length);
+                            var i2 = Math.round(MathUtils.clamp(
+                                i1 / src_paths[li][pi].length * src_paths[li][pi+1].length, 0, src_paths[li][pi+1].length-1
+                            ));
+                            var ratio = i1 / (src_paths[li][pi].length);
+                            coil_path.push({
+                                p: v1.lerpVectors(src_paths[li][pi][i1].p, src_paths[li][pi+1][i2].p, ratio).clone(),
+                                n: v1.lerpVectors(src_paths[li][pi][i1].n, src_paths[li][pi+1][i2].n, ratio).clone(),
+                            });
+                        }
+                    }
+                    src_paths[li] = [coil_path];
                 }
             }
 
@@ -428,7 +448,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             //var ref_pnt = src_paths[0][0][0][0].p;
             var pva_start_idx = -1;
             function make_path(src_path){
-                if(src_path.length < 3) return;
+                if(src_path.length < 3) return; // what should min path length be?! #1
                 var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
                 //if(src_path.length < 3) continue;
                 for(let i=0; i < src_path.length; i++){
@@ -490,6 +510,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     flow:        c.flow,
                     material:    c.material,
                     cord_radius: c.cord_radius,
+                    name:        c.name,
                 });
             }
             for(let li=0; li<c.layers; li++){ 
@@ -505,14 +526,17 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     //const air_paths = [];
                     let end_idx = paths.length;
                     for(let i = pva_start_idx; i < end_idx; i++){
-                        curves.push(curves[i]);
-                        paths.push({
-                            ribbon:      paths[i].ribbon, 
-                            speed:       c.speed / 2, 
-                            flow:        c.flow,
-                            material:    'AIR',
-                            cord_radius: c.cord_radius,
-                        }); 
+                        for(let k = 0; k < 3; k++){
+                            curves.push(curves[i]);
+                            paths.push({
+                                ribbon:      paths[i].ribbon, 
+                                speed:       c.speed * (0.4/(1+(k*2))), 
+                                flow:        c.flow,
+                                material:    'AIR',
+                                cord_radius: c.cord_radius,
+                                name:        c.name,
+                            }); 
+                        }
                     }
                     //paths = [...paths, ...air_paths];
                     pva_start_idx = -1;

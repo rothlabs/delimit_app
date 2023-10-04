@@ -1,27 +1,19 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, Button} from 'react-bootstrap';
 import {useS, ss, gs, static_url, readable, theme} from '../../app.js'
-import {Badge} from '../node/base.js'
+//import {Badge} from '../node/base.js'
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
 
 export function Make(){
     //const show = useS(d=> d.studio.panel.show);
     const panel = useS(d=> d.studio.panel.name);
-    const nodes = useS(d=> d.pick.n);
+    //const nodes = useS(d=> d.pick.n);
     const limited = useS(d=> d.pick.limited); 
     const d = gs();
     return(
         //show && panel=='make' && c(Fragment, {},
         panel=='make' && c(Fragment, {},
-            c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
-                limited ? c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.profile})) :
-                nodes.map(n=>
-                    c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
-                        c(Badge, {n:n})
-                    ) 
-                ),
-            ),
             c(Row, {className:'mb-3 ms-0 me-0'},
                 c(Col, {}, 
                     //c('i', {className:'text-secondary bi-diagram-3', style:{fontSize:'28px'}}, c('h4',{}, 'Subjects')),
@@ -61,9 +53,25 @@ export function Make(){
                     ),
                 ),
                 limited ? null : c(Col, {}, 
-                    c('h5',{className:'text-secondary bi-text-left'}, ' Text'),
+                    c('h5',{className:'text-secondary bi-ui-checks'}, ' '+readable(d.model_tags['b'])),
+                    ...d.bool_tags.map((t,i)=>
+                        t==d.model_tags['b'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.bool_tags.length-1?'mb-4':'')},
+                            c(Button, {
+                                id:'make_'+t,
+                                className: 'border-white text-start bi-dot',
+                                variant:'outline-primary', size:'lg',
+                                onClick:e=> ss(d=>{ 
+                                    d.make.atom(d, 'b', false, {r:d.pick.n, t:t});
+                                    d.studio.panel.show = false;
+                                }),
+                            }, 
+                                c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
+                            )
+                        )
+                    ),
+                    c('h5',{className:'text-secondary bi-text-left'}, ' '+readable(d.model_tags['s'])),
                     ...d.string_tags.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
-                        t=='text' ? null : c(Row, {className: 'mb-1 text-left '+(i==d.string_tags.length-1?'mb-4':'')},
+                        t==d.model_tags['s'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.string_tags.length-1?'mb-4':'')},
                             c(Button, {
                                 id:'make_'+t,
                                 className: 'border-white text-start bi-dot',
@@ -77,9 +85,9 @@ export function Make(){
                             )
                         )
                     ),
-                    c('h5',{className:'text-secondary bi-plus-slash-minus'}, ' Quanty'),
+                    c('h5',{className:'text-secondary bi-plus-slash-minus'}, ' '+readable(d.model_tags['f'])),
                     ...d.float_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
-                        t=='decimal' ? null : c(Row, {className: 'mb-1 text-left'}, //['decimal','x','y','z'].includes(t) ?
+                        t==d.model_tags['f'] ? null : c(Row, {className: 'mb-1 text-left'}, //['decimal','x','y','z'].includes(t) ?
                             c(Button, {
                                 id:'make_'+t,
                                 className: 'border-white text-start bi-dot',

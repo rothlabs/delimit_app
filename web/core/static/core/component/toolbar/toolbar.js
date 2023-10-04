@@ -48,7 +48,7 @@ export function Toolbar(){
                     ...tools.map(tool => c(tool))
                 ),
             ),
-            c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-3 d-grid gap-2 col-6 mx-auto'},
+            c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-3 d-grid gap-2 col-4 mx-auto'},
                 mode=='graph' && design_candidate && c(Button, {
                     size: 'lg', // variant: 'outline-primary',
                     onClick:e=>ss(d=>{  // select function does not work inside produce because it has it's own produce 
