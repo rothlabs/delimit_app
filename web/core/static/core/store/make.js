@@ -189,6 +189,8 @@ export const create_make_slice = (set,get)=>({make:{
     },
     slice(d, a={}){ // add manual_compute !!!!!!!!!
         var n = d.make.node(d,'p','slice', {...a, n:{
+            coil:         d.make.atom(d,'b', false),
+            axial:        d.make.atom(d,'b', false),
             material:     d.make.atom(d,'s', 'H2O'),
             axis_x:       d.make.atom(d,'f', 0),
             axis_y:       d.make.atom(d,'f', -1),
@@ -201,7 +203,6 @@ export const create_make_slice = (set,get)=>({make:{
             layers:       d.make.atom(d,'f', 1),
             axes:         d.make.atom(d,'f', 1),
             spread_angle: d.make.atom(d,'f', 20),
-            coil:         d.make.atom(d,'b', false),
             layer_height: d.make.atom(d,'f', 0.8),
         }});
         d.make.edge(d, d.cats['manual_compute'], n);

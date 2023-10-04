@@ -99,12 +99,13 @@ export const mixed_curve = { // being recomputed just for ax changes of source c
 
                 var [pts, curve] = d.geo.smooth_catmullrom(d, pto, smooth_span);//var pts = pto;
 
-                c.mixed_curve = curve;//c.mixed_curve = new CatmullRomCurve3(pts);
-                c.curve = c.mixed_curve;
+                //////// c.mixed_curve = curve;//c.mixed_curve = new CatmullRomCurve3(pts);
+                c.curve = curve; /////// c.curve = c.mixed_curve;
                 if(c.matrix){
                     pts = pts.map(p=> p.clone().applyMatrix4(c.matrix));
                     c.curve = new CatmullRomCurve3(pts);
                 }
+                c.mixed_curve = c.curve; /////
                 ax.curve = c.curve;
                 if(ax.matrix) ax.curve = new CatmullRomCurve3(pts.map(p=>p.clone().applyMatrix4(ax.matrix)));
             }

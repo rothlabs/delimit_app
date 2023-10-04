@@ -76,7 +76,7 @@ Object.keys(cmd).forEach(key=>{
 const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3', 'step_t4', 'laser_t5'];//['idle', 'step_t2', 'step_t3', 'step_t4', 'laser_t5']; 
 const cmd_dwell = 0.02; // was 0.01
 const approx_rapid_interval = cmd_dwell;
-const preheat_interval = 150;
+const preheat_interval = 165;
 const cord_radius_transition = 0.4;
 const max_direct_dist = 4;
 const max_direct_dist_air = 10;
@@ -93,7 +93,7 @@ const tool_offset_a = 35;
 // };
 
 const machine_z_y_ratio = 0.9;
-const pva_offset_z = 10; // 20
+const pva_offset_z = 14; // 20
 
 
 export const post = {
@@ -126,6 +126,7 @@ export const post = {
             var mach_y = mach.holder_y;
             var mach_a = 0;
             var tool_aim_z = mach.origin_a + tool_offset_a - 90;
+            //var tool_aim_y = mach.origin_a + tool_offset_a;
             //var brush_dist = 0;
 
             function move(a={}){
@@ -167,6 +168,11 @@ export const post = {
                         var diff = tool_aim_z - mach_a;
                         mach_a = tool_aim_z - (diff*(-mach_y/280));
                     }
+                    if(mach_y > -100 && mach_a > tool_aim_z+45){
+                        mach_a = tool_aim_z+45;
+                        //var diff = tool_aim_z - mach_a;
+                        //mach_a = tool_aim_z - (diff*(-mach_y/200));
+                    }
                     cl += ' A'+mach_a;
                 }
                 if(a.b != undefined) cl += ' B'+d.rnd(      a.b, 1000);
@@ -191,6 +197,7 @@ export const post = {
             function pick_tool(id){
                 if(tool == id) return;
                 code.push('(Tool '+id+')');
+                move({y:-300, z:-900});
                 if(tool > 0){
                     move({x:tools[tool].x, a:mach.origin_a+12}); // was 8 // position above holder
                     move({y:mach.holder_y+60});
@@ -204,7 +211,7 @@ export const post = {
                     move({y:mach.holder_y+40}); // pull tool up out of holder
                     move({y:mach.holder_y+60, a:mach.origin_a+12}); // rotate back to X-RAIL CLEARANCE
                 }
-                move({y:mach.holder_y+150}); // move to clearance height
+                move({y:-300});//move({y:mach.holder_y+150}); // move to clearance height
                 tool = id;
                 code.push('');
             }
@@ -305,7 +312,7 @@ export const post = {
             for(let pi = 0; pi < paths.length; pi++){ //paths.forEach((path, pi)=>{
                 let path = paths[pi];
                 var res = path.ribbon.length_v / ribbon_div; 
-                if(res < 10) continue; // how should min points be decided? #1
+                if(res < 2) continue; // how should min points be decided? #1
 
                 if(path.material == 'AIR' && material != 'AIR'){// && material != 'AIR'){
                     pick_tool(1);
@@ -434,7 +441,23 @@ export const post = {
                         }else{
                             move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
                         }
-                        if(i == pts.length-4){ // path should have exact distance for exact time built into it on end
+                        // if(i == pts.length-4){ // path should have exact distance for exact time built into it on end
+                        //     if(pi < paths.length-1){
+                        //         if(paths[pi].material == paths[pi+1].material){
+                        //             paths[pi  ].ribbon.get_point(0, 1, v1);
+                        //             paths[pi+1].ribbon.get_point(0, 0, v2);
+                        //             let dist = v1.distanceTo(v2);
+                        //             if(dist < max_direct_dist || ((material=='AIR' || material=='PVA') && dist < max_direct_dist_air)){
+                        //                 direct = dist;
+                        //                 console.log('direct move!!!');
+                        //             }
+                        //         }
+                        //     }
+                        //     if(direct < 0 && material != 'AIR' && material != 'PVA'){
+                        //         code.push('M5 S0'); //code.push('M5'); // close plug
+                        //     }
+                        // }
+                        if(i == pts.length-1){
                             if(pi < paths.length-1){
                                 if(paths[pi].material == paths[pi+1].material){
                                     paths[pi  ].ribbon.get_point(0, 1, v1);
@@ -446,20 +469,10 @@ export const post = {
                                     }
                                 }
                             }
-                            if(direct < 0 && material != 'AIR' && material != 'PVA'){
-                                code.push('M5 S0'); //code.push('M5'); // close plug
-                            }
-                        }
-                        if(i == pts.length-1){
                             if(direct < 0){
-                                 //if(material != 'AIR') code.push('S0');
-                                // if(material != 'AIR' && material != 'PVA'){
-                                //     code.push('M3'); // close plug
-                                //     code.push('S0');
-                                //     //code.push('G4 P0.1');
-                                // }
-                                 v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
-                                 move({p:v2, ref:'product', no_time:true});
+                                if(material != 'AIR' && material != 'PVA') code.push('M5 S0');
+                                v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
+                                move({p:v2, ref:'product', no_time:true});
                             }
                         }
                     //}

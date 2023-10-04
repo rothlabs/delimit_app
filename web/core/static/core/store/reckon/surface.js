@@ -29,18 +29,18 @@ export const surface = {
             const all_ribs = rib_source.map(n=>{
                 const points = d.n[n].c.mixed_curve.getSpacedPoints(rib_res-1); //getSpacedPoints
                 if(points[0].z > points.at(-1).z) points.reverse();
-                const tmp_pts = d.n[n].c.mixed_curve.getPoints(9);
+                const tmp_pts = d.n[n].c.mixed_curve.getPoints(29);
                 return {
                     pts: points,
-                    x: tmp_pts.reduce((a,b)=>a+b.x,0)/10,
-                    y: tmp_pts.reduce((a,b)=>a+b.y,0)/10, 
+                    x: tmp_pts.reduce((a,b)=>a+b.x,0)/30,
+                    y: tmp_pts.reduce((a,b)=>a+b.y,0)/30, 
                     corner: d.n[n].c.corner,
                 }
             }).sort((a,b)=> a.x-b.x);
             const split_idx = Math.ceil(all_ribs.length/2);
             const io_ribs = [
-                all_ribs.slice(0,split_idx).sort((a,b)=> ((-a.x*.1)+a.y)-((-b.x*.1)+b.y)),//.sort((a,b)=> a.y-b.y),
-                all_ribs.slice(split_idx).sort((a,b)=> ((a.x*.1)+a.y)-((b.x*.1)+b.y))//.sort((a,b)=> a.y-b.y)//.sort((a,b)=> a.x-b.x)
+                all_ribs.slice(0,split_idx).sort((a,b)=> ((-a.x*.2)+a.y)-((-b.x*.2)+b.y)),//.sort((a,b)=> a.y-b.y),
+                all_ribs.slice(split_idx).sort((a,b)=> ((a.x*.2)+a.y)-((b.x*.2)+b.y))//.sort((a,b)=> a.y-b.y)//.sort((a,b)=> a.x-b.x)
             ];
 
             //io_ribs = io_ribs.reverse();
@@ -49,8 +49,9 @@ export const surface = {
 
             if(d.n[n].n.curve?.length > 1){
                 const guide = d.n[n].n.curve.map(n=>{//.filter(n=> c.guide).map(n=>{
-                    const pts = d.n[n].c.curve.getPoints(rail_res);
+                    var pts = d.n[n].c.curve.getPoints(rail_res);
                     if(pts[0].y > pts.at(-1).y) pts.reverse();
+                    if(c.matrix) pts = pts.map(p=> p.applyMatrix4(c.matrix)); //////////////////////
                     return {
                         pts: pts,
                         sub: [], // sub points between ribs
@@ -87,7 +88,7 @@ export const surface = {
                     // make extra ribs in between existing ribs
                     //if(io==0) io_pts[io].push(ribs[0].pts); else io_pts[io].push(ribs[0].pts.slice().reverse());
                     io_pts[io].push(ribs[0].pts);
-                    //if(ribs[0].corner) io_pts[io].push(ribs[0].pts);
+                    //if(ribs[0].corner) io_pts[io].push(ribs[0].pts); ///////////
                     if(io==0) rib_idx++;
                     for(let k=0; k<ribs.length-1; k++){
                         var r1 = ribs[k].pts;
@@ -124,7 +125,7 @@ export const surface = {
                         //pts.push(r2);
                         //if(io==0) io_pts[io].push(r2); else io_pts[io].push(r2.slice().reverse());
                         io_pts[io].push(r2); // ribs[k+1].pts
-                        //if(ribs[k+1].corner) io_pts[io].push(r2);
+                        //if(ribs[k+1].corner) io_pts[io].push(r2); ////////////
                         if(io==0 && k+1<ribs.length-1 && ribs[k+1].corner){//if(io==0){// && k<ribs.length-2){ // this will prevent top from being double loop!!!!
                             double_ribs.push(rib_idx);
                         }
@@ -151,6 +152,7 @@ export const surface = {
                     //if(i>0) io_ribs[0][i].pts.reverse();
                     //const half = io_ribs[0][i].pts.reverse().slice(1);
                     pts.push([...io_ribs[1][i].pts, ...half]);//...io_ribs[0][i].pts.slice(1)]);
+                    if(io_ribs[0][i].corner) pts.push([...io_ribs[1][i].pts, ...half]);
                     //if(double_ribs.includes(i)){
                         //console.log('double loop!!!!');
                         //pts.push([...io_ribs[1][i].pts, ...half]);//...io_ribs[0][i].pts.slice(1)]);
@@ -169,7 +171,7 @@ export const surface = {
                 pts.push(last_pts);
             }
 
-            if(c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(c.matrix))); // does not need to clone ?!?!?!?!
+            //////////////if(c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(c.matrix))); // does not need to clone ?!?!?!?!
 
             
             //const displacement_map = d.node.get(d, n, 'image');
@@ -218,7 +220,7 @@ export const surface = {
             
             //console.log('reckon surface!!!');
         }}catch(e){
-            //console.log(e);
+            console.log(e);
         }
     },
 };

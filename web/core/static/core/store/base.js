@@ -65,7 +65,7 @@ const string_tags = [model_tags['s'], // rename to text_tags
     'material', 
 ]; 
 const bool_tags = [model_tags['b'],
-    'coil',
+    'coil', 'axial',
 ];
 const atom_tags   = Object.values(model_tags).slice(1);
 

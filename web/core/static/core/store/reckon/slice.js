@@ -25,6 +25,8 @@ const m1 = new Matrix4();
 const m2 = new Matrix4();
 const m3 = new Matrix4();
 
+const d2v1 = new Vector2();
+
 const point = new Vector3();
 const normal = new Vector3();
 const dir = new Vector3();
@@ -43,7 +45,7 @@ const tri1 = new Triangle();
 
 
 //const slice_div = 5; 
-const surface_div = 200;
+const surface_div = 400;
 const pts_per_mesh    = 1000000;
 const edge_pts_per_mesh = 100000;
 const end_surface_div = 900;
@@ -95,8 +97,8 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 
 export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be in own node? #1
     // should define type as text, decimal, int, bool:
-    props: ['axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 
-        'cord_radius', 'layers', 'axes', 'spread_angle', 'material', 'offset', 'coil', 'layer_height'],
+    props: ['coil', 'axial', 'axis_x', 'axis_y', 'axis_z', 'density', 'speed', 'flow', 
+        'cord_radius', 'layers', 'axes', 'spread_angle', 'material', 'offset', 'layer_height'],
     view(d, n, v, a={}){ // will run regardless of manual_compute tag 
         // set which layer to show
     },
@@ -216,11 +218,13 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                                             seg.start.z,
                                         );
                                     }
-                                    segs[ai].at(-1).push(
-                                        normal.x,
-                                        normal.y,
-                                        normal.z,
-                                    );
+                                    if(c.axial){
+                                        d2v1.set(normal.x, normal.z).normalize();
+                                        v2.set(d2v1.x, -10, d2v1.y).normalize();
+                                        segs[ai].at(-1).push(v2.x, v2.y, v2.z);
+                                    }else{
+                                        segs[ai].at(-1).push(normal.x, normal.y, normal.z);
+                                    }
                                     seg_cnt++;
                                 }
                             }
@@ -368,8 +372,8 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
             }
 
             if(c.coil){
-                const coil_path = [];
                 for(let li=0; li < c.layers; li++){ 
+                    const coil_path = [];
                     for(let pi=0; pi < src_paths[li].length-1; pi++){ 
                         for(let i1=0; i1 < src_paths[li][pi].length; i1++){ 
                             //var i2 = Math.round(i1 / src_paths[li][pi].length * src_paths[li][pi+1].length);
@@ -499,7 +503,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                     //ref_pnt = src_path[i].p; // clone? #1
                 }
                 var curve = new CatmullRomCurve3(pts[0]); // use nurbs curve?! #1
-                curve.arcLengthDivisions = 3000; // make this dynamic #1
+                curve.arcLengthDivisions = 4000; // make this dynamic #1
                 //if(curve.getLength() > min_length){
                 curves.push(curve);
                 //console.log(curve);
@@ -530,7 +534,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                             curves.push(curves[i]);
                             paths.push({
                                 ribbon:      paths[i].ribbon, 
-                                speed:       c.speed * (0.4/(1+(k*2))), 
+                                speed:       c.speed * (0.3/(1+(k))), 
                                 flow:        c.flow,
                                 material:    'AIR',
                                 cord_radius: c.cord_radius,
