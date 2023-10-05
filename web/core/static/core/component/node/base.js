@@ -76,23 +76,23 @@ export function Pickable({n, penable, brushable, children}){
     });
 }
 
-export function Root_Transform({n, rotation, children}){
-    const obj = useRef();
-    useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], ([c_mat, ax_mat])=>{ 
-        obj.current.position.set( 0, 0, 0 );
-        if(rotation) obj.current.rotation.set(...rotation)
-        else obj.current.rotation.set( 0, 0, 0 );
-        obj.current.scale.set( 1, 1, 1 );
-        if(c_mat) obj.current.applyMatrix4(c_mat);
-        if(ax_mat) obj.current.applyMatrix4(ax_mat);
-    });
-    return(
-        c('group', {
-            ref: obj,
-            children:children,
-        })
-    )
-}
+// export function Root_Transform({n, rotation, children}){
+//     const obj = useRef();
+//     useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], ([c_mat, ax_mat])=>{ 
+//         obj.current.position.set( 0, 0, 0 );
+//         if(rotation) obj.current.rotation.set(...rotation)
+//         else obj.current.rotation.set( 0, 0, 0 );
+//         obj.current.scale.set( 1, 1, 1 );
+//         if(c_mat) obj.current.applyMatrix4(c_mat);
+//         if(ax_mat) obj.current.applyMatrix4(ax_mat);
+//     });
+//     return(
+//         c('group', {
+//             ref: obj,
+//             children:children,
+//         })
+//     )
+// }
 
 export const View_Transform = forwardRef((props, ref)=>{ 
     var obj = null;

@@ -10,7 +10,7 @@ import {Point} from './point.js';
 const span = 1; 
 
 // function interpolate(d,n,a={}){
-//     pts = new CatmullRomCurve3(pts.map(p=>p.pos)).getPoints(res).map(p=> [p.x, p.y, p.z]);
+//     pts = new CatmullRomCurve3(pts.map(p=>p.pos)).points(res).map(p=> [p.x, p.y, p.z]);
 //     if(a.flat) pts = pts.flat();
 //     return pts;
 // }
@@ -24,11 +24,11 @@ export const Curve = memo(({n})=>{
     const [curve_pts, set_curve_pts] = useState([]);//{pts:[[0,0,0],[0,0,0]]});
     const [segs_geo] = useState({pts:[[0,0,0],[0,0,0]]});//{pts:[[0,0,0],[0,0,0]]});
     //const [curve_count, set_curve_c] = useState(0);
-    useSub(d=> d.n[n].ax.curve, curve=>{ // make useSub that includes useEffect
+    useSub(d=> d.n[n].result, curve=>{ // make useSub that includes useEffect
         const d = gs();
         // const curve2 = gs().n[n].ax.curve2;
         // if(curve2){
-        //     curve_geo2.pts = curve2.getPoints(curve2.getLength()*res).map(p=>[p.x, p.y, p.z]).flat(); 
+        //     curve_geo2.pts = curve2.points(curve2.length()*res).map(p=>[p.x, p.y, p.z]).flat(); 
         //     curve_ref2.current.geometry = new LineGeometry();
         //     curve_ref2.current.geometry.setPositions(curve_geo2.pts);
         // }
@@ -38,9 +38,9 @@ export const Curve = memo(({n})=>{
             //console.log('curve_pts.length: '+curve_pts.length);
             if(curve.length == curve_pts.length){ // using old curve_pts so length always zero !!!!!!!!
                 curve.forEach((curve, i) => {
-                    var div = Math.round(curve.getLength()/span);
+                    var div = Math.round(curve.length()/span);
                     if(div < 100) div = 100;
-                    curve_pts[i] = curve.getPoints(div).map(p=>[p.x, p.y, p.z]).flat();// change back to getPoints !!!!!!!
+                    curve_pts[i] = curve.points(div).map(p=>[p.x, p.y, p.z]).flat();
                     curve_ref.current[i].geometry = new LineGeometry();
                     curve_ref.current[i].geometry.setPositions(curve_pts[i]); 
                     //console.log('update curve');
@@ -48,9 +48,9 @@ export const Curve = memo(({n})=>{
             }else{
                 const new_curve_pts = [];
                 curve.forEach((curve,i) => {
-                    var div = Math.round(curve.getLength()/span);
+                    var div = Math.round(curve.length()/span);
                     if(div < 100) div = 100;
-                    new_curve_pts.push(curve.getPoints(div).map(p=>[p.x, p.y, p.z]).flat());// change back to getPoints !!!!!!!
+                    new_curve_pts.push(curve.points(div).map(p=>[p.x, p.y, p.z]).flat());
                 });
                 set_curve_pts(new_curve_pts);
                 //console.log('set curve');
@@ -75,21 +75,21 @@ export const Curve = memo(({n})=>{
                     //console.log(l);
                     c(Line, {
                         ref:el=> curve_ref.current[i] = el,
-                        points: curve_pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
+                        points: curve_pts,//curve.points(res).map(p=> [p.x, p.y, p.z]),
                         lineWidth: pick ? 4 : 3,
                         color: color[0],
                     })
                 )),
                 // c(Line, {
                 //     ref: curve_ref2,
-                //     points: curve_geo2.pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
+                //     points: curve_geo2.pts,//curve.points(res).map(p=> [p.x, p.y, p.z]),
                 //     lineWidth: pick ? 4 : 3,
                 //     color: 'green',
                 // }),
             ),
             c(Line, {
                 ref: segs_ref,
-                points: segs_geo.pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
+                points: segs_geo.pts,//curve.points(res).map(p=> [p.x, p.y, p.z]),
                 lineWidth: 1,
                 color: color[0],
                 dashed: true,
@@ -107,14 +107,14 @@ export const Curve = memo(({n})=>{
 // curve_geos ? curve_geo.map(cg=>{
 //     c(Line, {
 //         ref:el=> curve_ref.current[i] = el,
-//         points: curve_geos[i].pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
+//         points: curve_geos[i].pts,//curve.points(res).map(p=> [p.x, p.y, p.z]),
 //         lineWidth: pick ? 4 : 3,
 //         color: color[0],
 //     })
 // }) :
 // c(Line, {
 //     ref: curve_ref,
-//     points: curve_geo.pts,//curve.getPoints(res).map(p=> [p.x, p.y, p.z]),
+//     points: curve_geo.pts,//curve.points(res).map(p=> [p.x, p.y, p.z]),
 //     lineWidth: pick ? 4 : 3,
 //     color: color[0],
 // }),
@@ -133,7 +133,7 @@ export const Curve = memo(({n})=>{
 
 // useEffect(()=>subS(d=> d.n[n].c.point, points=>{ // make useSub that includes useEffect
     //     const curve = new CatmullRomCurve3(points.map(p=>p.pos));
-    //     obj.current.geometry.setPositions(curve.getPoints(res).map(p=>[p.x, p.y, p.z]).flat()); //new Float32Array(
+    //     obj.current.geometry.setPositions(curve.points(res).map(p=>[p.x, p.y, p.z]).flat()); //new Float32Array(
     // }),[]);
 
 // c(drei_line, {

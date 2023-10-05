@@ -1,7 +1,7 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
 import {useS, useSubS, useSub, gs} from '../../app.js';
 import {Grid} from '@react-three/drei/Grid';
-import {Pickable, Root_Transform, View_Transform} from '../node/base.js';
+import {Pickable, View_Transform} from '../node/base.js'; //Root_Transform
 import {Vector3, DoubleSide} from 'three';
 import {useThree, useFrame} from '@react-three/fiber';
 
@@ -62,7 +62,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
         //     ref:obj,
         //     rotation: rotation,
         // },
-        c(Root_Transform, {n:n, rotation:rotation},
+        //c(Root_Transform, {n:n, rotation:rotation},
             c(Pickable, {n:n, penable:true}, // points && points.length>1 && 
                 c('group', {name: 'sketch'}, 
                     c(View_Transform, {offset_z:1},
@@ -128,8 +128,8 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
                     infiniteGrid: false,
                     side: DoubleSide,
                 }),
-            ),
-        )
+            )//,
+        //)
     )
 });
 

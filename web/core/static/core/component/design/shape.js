@@ -2,7 +2,7 @@ import {createElement as c, useRef, memo, useState, useEffect} from 'react';
 import {useS, useSubS, useSub, gs} from '../../app.js';
 import {Pickable} from '../node/base.js';
 import {DoubleSide, ShapeGeometry, BufferGeometry} from 'three';
-import {Root_Transform, View_Transform} from '../node/base.js';
+import {View_Transform} from '../node/base.js'; // Root_Transform
 
 const res = 100;
 
@@ -27,7 +27,7 @@ export const Shape = memo(({n})=>{
         // c('group', {
         //     ref: obj,
         // },
-        c(Root_Transform, {n:n},
+        //c(Root_Transform, {n:n},
             c(Pickable, {n:n}, 
                 c(View_Transform, {offset_z:.5},
                     c('mesh', {
@@ -44,6 +44,6 @@ export const Shape = memo(({n})=>{
                     ),
                 ),
             )
-        )
+        //)
     )
 });

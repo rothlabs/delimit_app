@@ -10,8 +10,8 @@ export const Point = memo(({n})=>{//export function Point({n}){
     const color = useS(d=> d.n[n].pick.color); 
     const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     const size = useS(d=> d.point_size);
-    useSub(d=> d.n[n].ax.pos, pos=>{
-        if(pos) obj.current.position.set(pos.x,pos.y,pos.z);
+    useSub(d=> d.n[n].result, pnt=>{
+        if(pnt) obj.current.position.set(pnt.x, pnt.y, pnt.z);
     });
     //console.log('render point', n, deleted);
     return(

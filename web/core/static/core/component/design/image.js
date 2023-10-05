@@ -1,6 +1,6 @@
 import {createElement as c, memo} from 'react';
 import {useS} from '../../app.js';
-import {Root_Transform, View_Transform, Pickable} from '../node/base.js';
+import {View_Transform, Pickable} from '../node/base.js'; // Root_Transform
 import {DoubleSide} from 'three';
 import {Line} from '@react-three/drei/Line';
 
@@ -13,7 +13,7 @@ export const Image = memo(({n})=>{
     const texture = useS(d=> d.n[n].c.texture);
     //console.log('render image');
     return(
-        c(Root_Transform, {n:n},
+        //c(Root_Transform, {n:n},
             c(Pickable, {n:n, brushable:true, penable:true}, 
                 c(View_Transform, {offset_z:1},
                     c('mesh', {
@@ -33,7 +33,7 @@ export const Image = memo(({n})=>{
                     color: color[0],
                 })
             )
-        )
+        //)
     )
 });
 

@@ -13,10 +13,18 @@ const degree_v = 2;
 const nsr = .0001; // normal sample radius
 
 export const create_geo_slice = (set,get)=>({geo:{
+    curve(curve, matrix){
+        return{
+            points: matrix ? 
+                (cnt)=> curve.getPoints(cnt).map(pnt=> pnt.applyMatrix4(matrix)): 
+                (cnt)=> curve.getPoints(cnt),
+            length:()=> curve.getLength(), // need to adjust based on transform!?!?!? #1
+        }
+    },
     smooth_catmullrom(d, pts, span){
         const smt = pts.map(p=> p.clone());
         const curve = new CatmullRomCurve3(smt);
-        //curve.arcLengthDivisions = 2000; // need to make proportional to length of curve! ?!?!?!?!?!?!
+        curve.arcLengthDivisions = 2000; // need to make proportional to length of curve! ?!?!?!?!?!?! #1
         const pt_span = curve.getLength() / smt.length;
         const range = Math.round(span / pt_span / 2) + 1; // +1 here ?!?!?!?!?!
         //console.log('smooth range: '+range);
@@ -34,7 +42,9 @@ export const create_geo_slice = (set,get)=>({geo:{
             smt[i].divideScalar(vc);      
         }
         //smt.push(pts.at(-1).clone());
-        return [smt, curve];
+        const smoothed = new CatmullRomCurve3(smt);
+        smoothed.arcLengthDivisions = 2000;
+        return d.geo.curve(smoothed);//[smt, curve];
     },
     surface(d, pts, a={}){
         try{

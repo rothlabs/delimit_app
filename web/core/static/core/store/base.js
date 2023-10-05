@@ -28,7 +28,7 @@ const cat_tags=[ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
     'fill', 'corner',
 ];
-const cast_tags = [...cat_tags, 'base_matrix']; // , 'base_invert'
+const cast_tags = [...cat_tags];//[...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
 const component = {
     'point':       Point,
@@ -37,7 +37,7 @@ const component = {
     'shape':       Shape,
     'surface':     Surface,
     'sketch':      Sketch,
-    'transform':   Transform,
+    //'transform':   Transform,
     'layer':       Layer,
     'image':       Image,
     'ellipse':     Curve,
