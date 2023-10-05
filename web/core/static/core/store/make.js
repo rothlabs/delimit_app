@@ -159,8 +159,8 @@ export const create_make_slice = (set,get)=>({make:{
     },
     surface(d, a={}){
         return d.make.node(d,'p','surface', {...a, n:{
-            order:         d.make.atom(d,'f', 0),
-            current_image: d.make.atom(d,'f', 0), 
+            order:         d.make.atom(d,'i', 0),
+            current_image: d.make.atom(d,'i', 0), 
         }});
     },
     image(d, a={}){
@@ -176,7 +176,7 @@ export const create_make_slice = (set,get)=>({make:{
             width:  d.make.atom(d,'f', size),
             height: d.make.atom(d,'f', size),
             data:   d.make.atom(d,'s', canvas.toDataURL()),
-            order:  d.make.atom(d,'f', 0),
+            order:  d.make.atom(d,'i', 0),
         }});
     },
     brush(d, a={}){
@@ -200,8 +200,8 @@ export const create_make_slice = (set,get)=>({make:{
             cord_radius:  d.make.atom(d,'f', 0.5),
             speed:        d.make.atom(d,'f', 50),
             flow:         d.make.atom(d,'f', 1),
-            layers:       d.make.atom(d,'f', 1),
-            axes:         d.make.atom(d,'f', 1),
+            layers:       d.make.atom(d,'i', 1),
+            axes:         d.make.atom(d,'i', 1),
             spread_angle: d.make.atom(d,'f', 20),
             layer_height: d.make.atom(d,'f', 0.8),
         }});

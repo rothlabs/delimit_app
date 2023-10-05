@@ -9,6 +9,7 @@ import {Close} from '../toolbar/close.js';
 //import {Badge} from '../node/base.js'
 //import {Cat_Badge} from '../../node/base.js'
 import {String} from '../node/input/string.js';
+import {Integer} from '../node/input/integer.js';
 import {Float} from '../node/input/float.js';
 import {Children} from '../node/input/children.js';
 import {Bool} from '../node/input/bool.js';
@@ -36,6 +37,9 @@ export function Inspect(){
             ),
             ...d.bool_tags.map(t=>
                 c(Bool, {t:t})
+            ),
+            ...d.int_tags.map(t=>
+                c(Integer, {t:t})
             ),
             ...d.float_tags.map(t=>
                 c(Float, {t:t})

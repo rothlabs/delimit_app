@@ -48,12 +48,18 @@ const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', '
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 //const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
 const admin_tags    = ['profile', ...cat_tags]; //category_tags
+const bool_tags = [model_tags['b'],
+    'coil', 'axial',
+];
+const int_tags = [model_tags['i'],
+    'order', 'current_image', 
+    'layers', 'axes',
+];
 const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
     'width', 'height',
-    'order', 'current_image', 
-    'offset', 'layer_height', 'density', 'axes', 'spread_angle', 'layers', 'speed', 'flow', 'cord_radius', 
+    'offset', 'layer_height', 'density', 'spread_angle', 'speed', 'flow', 'cord_radius', 
     'origin_x', 'origin_y', 'origin_z', 'origin_a', 
     'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
     'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', //'offset_a',
@@ -64,14 +70,12 @@ const string_tags = [model_tags['s'], // rename to text_tags
     'color_a', 'color_b',
     'material', 
 ]; 
-const bool_tags = [model_tags['b'],
-    'coil', 'axial',
-];
 const atom_tags   = Object.values(model_tags).slice(1);
 
 
 export const create_base_slice = (set,get)=>({
     model_tags:     model_tags,
+    int_tags:       int_tags,
     float_tags:     float_tags,
     string_tags:    string_tags,
     bool_tags:      bool_tags,
@@ -81,7 +85,7 @@ export const create_base_slice = (set,get)=>({
     cat_map:        cat_map, //category //category_tags
     subject_tags:   subject_tags,
     admin_tags:     admin_tags,
-    value_tags:     [...float_tags, ...string_tags, ...bool_tags],
+    value_tags:     [...bool_tags, ...int_tags, ...float_tags, ...string_tags],
     children_tags:  [...subject_tags, ...children_tags],
     node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},

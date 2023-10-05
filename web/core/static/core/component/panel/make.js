@@ -1,5 +1,5 @@
 import {createElement as c, Fragment} from 'react';
-import {Row, Col, Button} from 'react-bootstrap';
+import {Row, Col, Button, Container} from 'react-bootstrap';
 import {useS, ss, gs, static_url, readable, theme} from '../../app.js'
 //import {Badge} from '../node/base.js'
 
@@ -34,7 +34,7 @@ export function Make(){
                         )
                     ),
                     limited ? null : c(Fragment,{},
-                        c('h5',{className:'text-secondary bi-tag'}, ' Category'),
+                        c('h5',{className:'text-secondary bi-tag'}, ' Tag'),
                         ...d.cat_tags.map(t=>
                             c(Row, {className: 'mt-1 text-left'}, 
                                 c(Button, {
@@ -53,54 +53,93 @@ export function Make(){
                     ),
                 ),
                 limited ? null : c(Col, {}, 
-                    c('h5',{className:'text-secondary bi-ui-checks'}, ' '+readable(d.model_tags['b'])),
-                    ...d.bool_tags.map((t,i)=>
-                        t==d.model_tags['b'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.bool_tags.length-1?'mb-4':'')},
-                            c(Button, {
-                                id:'make_'+t,
-                                className: 'border-white text-start bi-dot',
-                                variant:'outline-primary', size:'lg',
-                                onClick:e=> ss(d=>{ 
-                                    d.make.atom(d, 'b', false, {r:d.pick.n, t:t});
-                                    d.studio.panel.show = false;
-                                }),
-                            }, 
-                                c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
+                    [{m:'s',  v:'',    tags:d.string_tags, icon:'bi-text-left'},
+                     {m:'b',  v:false, tags:d.bool_tags,   icon:'bi-ui-checks'},
+                     {m:'i',  v:0,     tags:d.int_tags,    icon:'bi-plus-slash-minus'},
+                     {m:'f',  v:0,     tags:d.float_tags,  icon:'bi-plus-slash-minus'}].map(item=>
+                        c(Row, {},
+                            c('h5',{className:'text-secondary '+item.icon}, ' '+readable(d.model_tags[item.m])),
+                            item.tags.map((t,i)=>
+                                t==d.model_tags[item.m] ? null : c(Row, {className: 'mb-1 text-left '+(i==item.tags.length-1?'mb-4':'')},
+                                    c(Button, {
+                                        id:'make_'+t,
+                                        className: 'border-white text-start bi-dot',
+                                        variant:'outline-primary', size:'lg',
+                                        onClick:e=> ss(d=>{ 
+                                            d.make.atom(d, item.m, item.v, {r:d.pick.n, t:t});
+                                            d.studio.panel.show = false;
+                                        }),
+                                    }, 
+                                        c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
+                                    )
+                                )
                             )
                         )
                     ),
-                    c('h5',{className:'text-secondary bi-text-left'}, ' '+readable(d.model_tags['s'])),
-                    ...d.string_tags.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
-                        t==d.model_tags['s'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.string_tags.length-1?'mb-4':'')},
-                            c(Button, {
-                                id:'make_'+t,
-                                className: 'border-white text-start bi-dot',
-                                variant:'outline-primary', size:'lg',
-                                onClick:e=> ss(d=>{ 
-                                    d.make.atom(d, 's', '', {r:d.pick.n, t:t});
-                                    d.studio.panel.show = false;
-                                }),
-                            }, 
-                                c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
-                            )
-                        )
-                    ),
-                    c('h5',{className:'text-secondary bi-plus-slash-minus'}, ' '+readable(d.model_tags['f'])),
-                    ...d.float_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
-                        t==d.model_tags['f'] ? null : c(Row, {className: 'mb-1 text-left'}, //['decimal','x','y','z'].includes(t) ?
-                            c(Button, {
-                                id:'make_'+t,
-                                className: 'border-white text-start bi-dot',
-                                variant:'outline-primary', size:'lg',
-                                onClick:e=> ss(d=>{ 
-                                    d.make.atom(d, 'f', 0, {r:d.pick.n, t:t});
-                                    d.studio.panel.show = false;
-                                }),
-                            }, 
-                                c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
-                            )
-                        )
-                    ),
+                    // c('h5',{className:'text-secondary bi-ui-checks'}, ' '+readable(d.model_tags['b'])),
+                    // ...d.bool_tags.map((t,i)=>
+                    //     t==d.model_tags['b'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.bool_tags.length-1?'mb-4':'')},
+                    //         c(Button, {
+                    //             id:'make_'+t,
+                    //             className: 'border-white text-start bi-dot',
+                    //             variant:'outline-primary', size:'lg',
+                    //             onClick:e=> ss(d=>{ 
+                    //                 d.make.atom(d, 'b', false, {r:d.pick.n, t:t});
+                    //                 d.studio.panel.show = false;
+                    //             }),
+                    //         }, 
+                    //             c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
+                    //         )
+                    //     )
+                    // ),
+                    // c('h5',{className:'text-secondary bi-text-left'}, ' '+readable(d.model_tags['s'])),
+                    // ...d.string_tags.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
+                    //     t==d.model_tags['s'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.string_tags.length-1?'mb-4':'')},
+                    //         c(Button, {
+                    //             id:'make_'+t,
+                    //             className: 'border-white text-start bi-dot',
+                    //             variant:'outline-primary', size:'lg',
+                    //             onClick:e=> ss(d=>{ 
+                    //                 d.make.atom(d, 's', '', {r:d.pick.n, t:t});
+                    //                 d.studio.panel.show = false;
+                    //             }),
+                    //         }, 
+                    //             c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
+                    //         )
+                    //     )
+                    // ),
+                    // c('h5',{className:'text-secondary bi-plus-slash-minus'}, ' '+readable(d.model_tags['i'])),
+                    // ...d.int_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
+                    //     t==d.model_tags['i'] ? null : c(Row, {className: 'mb-1 text-left'}, //['decimal','x','y','z'].includes(t) ?
+                    //         c(Button, {
+                    //             id:'make_'+t,
+                    //             className: 'border-white text-start bi-dot',
+                    //             variant:'outline-primary', size:'lg',
+                    //             onClick:e=> ss(d=>{ 
+                    //                 d.make.atom(d, 'i', 0, {r:d.pick.n, t:t});
+                    //                 d.studio.panel.show = false;
+                    //             }),
+                    //         }, 
+                    //             c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
+                    //         )
+                    //     )
+                    // ),
+                    // c('h5',{className:'text-secondary bi-plus-slash-minus'}, ' '+readable(d.model_tags['f'])),
+                    // ...d.float_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
+                    //     t==d.model_tags['f'] ? null : c(Row, {className: 'mb-1 text-left'}, //['decimal','x','y','z'].includes(t) ?
+                    //         c(Button, {
+                    //             id:'make_'+t,
+                    //             className: 'border-white text-start bi-dot',
+                    //             variant:'outline-primary', size:'lg',
+                    //             onClick:e=> ss(d=>{ 
+                    //                 d.make.atom(d, 'f', 0, {r:d.pick.n, t:t});
+                    //                 d.studio.panel.show = false;
+                    //             }),
+                    //         }, 
+                    //             c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
+                    //         )
+                    //     )
+                    // ),
                 ),
             ),
         )

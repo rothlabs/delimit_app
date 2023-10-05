@@ -79,7 +79,8 @@ export const create_pick_slice = (set,get)=>({pick:{
     },
     sv(d, t, v){ // change to set_v
         d.inspect.content[t] = v;
-        if(d.float_tags.includes(t)){   v=+v;  if(isNaN(v)) v=0;   } // check model of each atom instead?
+        if(d.float_tags.includes(t)){ v=parseFloat(v); if(isNaN(v)) v=0; } // check model of each atom instead?
+        if(d.int_tags.includes(t)){   v=parseInt(v);   if(isNaN(v)) v=0; } // check model of each atom instead?
         if(t!='part' && Object.values(d.model_tags).includes(t)){ // is atom?
             d.pick.n.forEach(n => {
                 if(d.model_tags[d.n[n].m] == t) d.node.sv(d, n, v);//d.n[n].v = v;
