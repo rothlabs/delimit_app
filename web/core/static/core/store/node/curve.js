@@ -8,20 +8,23 @@ const add_pnt = (knots, div, ctrl_pnts, pnt, i)=>{
     ctrl_pnts.push(new Vector4(pnt.x, pnt.y, pnt.z, 1));
 }
 
-export const curve = {};
-curve.source = ['point'];//, 'curve'];
-curve.result = (d, s, c)=>{
-    if(s.point.length < 3) return;
+const n = {};
+n.source = ['point'];//, 'curve'];
+n.part = (d, s, c)=>{
+    //if(s.point.length < 3) return;
     const knots = new Array(degree+1).fill(0);
     const div = (s.point.length - degree);
     const ctrl_pnts = [];
-    s.point.map((pnt,i)=> add_pnt(knots, div, ctrl_pnts, pnt, i)); // try currying here
+    s.point.map((pnt,i)=> add_pnt(knots, div, ctrl_pnts, pnt.p, i)); // try currying here
     const curve = new NURBSCurve(degree, knots, ctrl_pnts);
-    curve.getPoints(3); // checking if valid curve 
-    return d.geo.curve(curve);
+    return d.part.curve(curve);
 };
+export const curve = n;
 
 
+//curve.design = (d, s, c)=>{
+    
+//};
 
 
 

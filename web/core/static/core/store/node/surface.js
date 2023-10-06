@@ -184,13 +184,13 @@ export const surface = {
             if(d.n[n].n.image && d.n[d.n[n].n.image[0]].c.canvas){ //  && !['painting','erasing'].includes(d.design.act)
                 var width = d.n[d.n[n].n.image[0]].c.canvas.width;
                 var height = d.n[d.n[n].n.image[0]].c.canvas.height;
-                c.surface = d.geo.surface(d, pts, {
+                c.surface = d.part.surface(d, pts, {
                     shift_map_width: width,
                     shift_map_height: height,
                     shift_map: d.n[d.n[n].n.image[0]].c.canvas.getContext('2d').getImageData(0,0,width,height).data,
                 });
             }else{
-                c.surface = d.geo.surface(d, pts);
+                c.surface = d.part.surface(d, pts);
             }
             //if(d.n[n].n.image) c.shift_map = d.n[d.n[n].n.image[0]].c.texture;
             //c.surface = d.geo.surface(d, pts);

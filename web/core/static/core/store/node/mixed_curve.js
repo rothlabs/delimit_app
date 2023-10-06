@@ -9,11 +9,11 @@ const bb2 = new Box3();
 const mid_res = 500;
 const smooth_range = 6;
 
-export const mixed_curve = {};
-mixed_curve.source = ['curve'];
-mixed_curve.result = (d, s, c)=>{
-    const ptc1 = s.curve[0].points(mid_res);
-    const ptc2 = s.curve[1].points(mid_res);
+const n = {};
+n.source = ['curve'];
+n.part = (d, s, c)=>{
+    const ptc1 = s.curve[0].p.points(mid_res);
+    const ptc2 = s.curve[1].p.points(mid_res);
     if(ptc1[0].z > ptc1.at(-1).z) ptc1.reverse();
     if(ptc2[0].z > ptc2.at(-1).z) ptc2.reverse();
     bb1.setFromArray(ptc1.map(p=>[p.x, p.y, p.z]).flat());
@@ -59,8 +59,9 @@ mixed_curve.result = (d, s, c)=>{
     }
     pto = pto.sort((a,b)=> (a.oxi+a.oyi) - (b.oxi+b.oyi)).map(p=> p.p);
     pto.shift();
-    return d.geo.smooth_catmullrom(d, pto, smooth_range);
+    return d.part.catmullrom(d, pto, smooth_range);
 };
+export const mixed_curve = n;
 
 
 

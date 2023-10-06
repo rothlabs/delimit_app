@@ -1,10 +1,43 @@
 import {Vector3, Matrix4} from 'three';
-import {static_url, readable} from '../app.js';
+import {static_url, readable} from '../../app.js';
+import {point} from './point.js';
+import {curve} from './curve.js';
+import {mixed_curve} from './mixed_curve.js';
+import {ellipse} from './ellipse.js';
+import {surface} from './surface.js';
+import {shape} from './shape.js';
+import {layer} from './layer.js';
+import {image} from './image.js';
+import {brush} from './brush.js';
+import {slice} from './slice.js';
+import {post} from './post.js';
 
 const tv = new Vector3();
 const tm = new Matrix4();
 
 export const create_node_slice =(set,get)=>({node:{
+    point,
+    curve,
+    mixed_curve,
+    ellipse,
+    shape,
+    surface,
+    layer,
+    image,
+    brush,
+    slice,
+    post,
+    brush:{
+        float: ['color_a', 'color_b', 'radius_a', 'radius_b'],
+    },
+    machine:{
+        float: [
+            'origin_x', 'origin_y', 'origin_z', 'origin_a', 'holder_y', 
+            'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
+            'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5',
+            'pva_x', 'pva_y',
+        ],
+    },
     init(d){
         d.node.meta = Object.fromEntries(d.node_tags.map(t=>[t,{
             icon: static_url+'icon/node/'+t+'.svg',

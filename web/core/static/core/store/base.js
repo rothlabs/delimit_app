@@ -37,13 +37,17 @@ const component = {
     'shape':       Shape,
     'surface':     Surface,
     'sketch':      Sketch,
-    //'transform':   Transform,
+    'transform':   Transform,
     'layer':       Layer,
     'image':       Image,
     'ellipse':     Curve,
-    'slice':        Curve,
+    'slice':       Curve,
     'post':        Curve,
 };
+// const component = {
+//     Point, Curve, Shape, Surface, Sketch,
+//     Transform, Layer, Image, Mixed_Curve
+// };
 const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 //const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];

@@ -10,23 +10,25 @@ export const Point = memo(({n})=>{//export function Point({n}){
     const color = useS(d=> d.n[n].pick.color); 
     const pick = useS(d=> (d.n[n].pick.pick || d.n[n].pick.hover));
     const size = useS(d=> d.point_size);
-    useSub(d=> d.n[n].result, pnt=>{
+    useSub(d=> d.n[n].p, pnt=>{
         if(pnt) obj.current.position.set(pnt.x, pnt.y, pnt.z);
     });
     //console.log('render point', n, deleted);
     return(
-        c(View_Transform, { // renamed to View_Transform or Static_Size
-            ref: obj,
-            name:'point',
-            size: pick ? size*1.2 : size, 
-        },
-            c(Pickable, {n:n}, 
-                c('mesh', {},
-                    c('sphereGeometry'),
-                    c('meshBasicMaterial', {color:color[0], toneMapped:false}),
-                )
-            ),
-        )
+        //c(Root_Transform, {n:r},
+            c(View_Transform, { // renamed to View_Transform or Static_Size
+                ref:   obj,
+                name: 'point',
+                size:  pick ? size*1.2 : size, 
+            },
+                c(Pickable, {n:n}, 
+                    c('mesh', {},
+                        c('sphereGeometry'),
+                        c('meshBasicMaterial', {color:color[0], toneMapped:false}),
+                    )
+                ),
+            )
+        //)
     )
 })
 

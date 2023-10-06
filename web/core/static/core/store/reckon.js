@@ -1,17 +1,7 @@
 import { Matrix4, Vector3, Euler, Quaternion, MathUtils, CatmullRomCurve3 } from 'three';
 import {current} from 'immer';
 import lodash from 'lodash';
-import {point} from './node/point.js';
-import {curve} from './node/curve.js';
-import {mixed_curve} from './node/mixed_curve.js';
-import {ellipse} from './node/ellipse.js';
-import {surface} from './node/surface.js';
-import {shape} from './node/shape.js';
-import {layer} from './node/layer.js';
-import {image} from './node/image.js';
-import {brush} from './node/brush.js';
-import {slice} from './node/slice.js';
-import {post} from './node/post.js';
+
 
 // const zero_vector = new Vector3();
 // const v1 = new Vector3();
@@ -24,17 +14,6 @@ import {post} from './node/post.js';
 //const transform_numbers_list = transform_numbers.split(' ');
 
 export const create_reckon_slice =(set,get)=>({reckon:{
-    point,
-    curve,
-    mixed_curve,
-    ellipse,
-    shape,
-    surface,
-    layer,
-    image,
-    brush,
-    slice,
-    post,
     count: 0,
     up(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
         d.reckon.base(d, n, cause);
@@ -47,7 +26,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
         }
         //d.reckon.base_transform(d,n,cause);
-        const node = d.reckon[d.n[n].t];
+        const node = d.node[d.n[n].t];
         //if(!node) return;
         if(node && node.props){
             d.reckon.props(d, n, node.props);
@@ -56,18 +35,18 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.reckon.props(d, n, node.float);
         }
         if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
-            if(node && node.result){// && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
+            if(node && node.part){// && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
                 //d.reckon[d.n[n].t].result(d, n, d.n[n].c, {cause:cause}); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
                 try{
                     const source = {};
                     if(node.source){
                         for(let i = 0; i < node.source.length; i++){
                            if(d.n[n].n[node.source[i]]){
-                               source[node.source[i]] = d.n[n].n[node.source[i]].map(n=> d.n[n].result);
+                               source[node.source[i]] = d.n[n].n[node.source[i]].map(n=> d.n[n]);
                            }
                         }
                     }
-                    d.n[n].result = node.result(d, source, d.n[n].c);
+                    d.n[n].p = node.part(d, source, d.n[n].c);
                 }catch(e){
                     console.log('Reckon Error: '+d.n[n].t, e);
                 }
@@ -98,17 +77,6 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(lodash.isEmpty(result)) return null; 
         return result;
     },
-    brush:{
-        float: ['color_a', 'color_b', 'radius_a', 'radius_b'],
-    },
-    machine:{
-        float: [
-            'origin_x', 'origin_y', 'origin_z', 'origin_a', 'holder_y', 
-            'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
-            'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5',
-            'pva_x', 'pva_y',
-        ],
-    }
 }});
 
 

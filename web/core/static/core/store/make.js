@@ -50,7 +50,7 @@ export const create_make_slice = (set,get)=>({make:{
                     }
 
 
-                    d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
+                    ////d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
                     d.next('reckon.up', r, ['make.edge', t]); 
                     d.next('graph.update');
                     d.next('pick.update');

@@ -1,6 +1,7 @@
 import {current} from 'immer';
-import {Vector3, CatmullRomCurve3, MathUtils} from 'three';
+import {Vector3, CatmullRomCurve3, MathUtils, Matrix4} from 'three';
 import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
+import { curve } from './curve.js';
 //import Delaunator from 'delaunator';
 //import { closest } from '../../junk/vertex.js';
 
@@ -12,40 +13,35 @@ const degree_u = 2;
 const degree_v = 2;
 const nsr = .0001; // normal sample radius
 
-export const create_geo_slice = (set,get)=>({geo:{
-    curve(curve, matrix){
-        return{
-            points: matrix ? 
-                (cnt)=> curve.getPoints(cnt).map(pnt=> pnt.applyMatrix4(matrix)): 
-                (cnt)=> curve.getPoints(cnt),
-            length:()=> curve.getLength(), // need to adjust based on transform!?!?!? #1
-        }
-    },
-    smooth_catmullrom(d, pts, span){
-        const smt = pts.map(p=> p.clone());
-        const curve = new CatmullRomCurve3(smt);
-        curve.arcLengthDivisions = 2000; // need to make proportional to length of curve! ?!?!?!?!?!?! #1
-        const pt_span = curve.getLength() / smt.length;
-        const range = Math.round(span / pt_span / 2) + 1; // +1 here ?!?!?!?!?!
-        //console.log('smooth range: '+range);
-        for(let i=1; i<smt.length-1; i++){ 
-            var vc = 1;
-            var rng = range;
-            if(rng > i) rng = i;
-            if(rng > smt.length-1-i) rng = smt.length-1-i;
-            for(let k=-rng; k<=rng; k++){ 
-                if(k != 0 && pts[i+k]){
-                    smt[i].add(pts[i+k]);
-                    vc++;
-                }
+const catmullrom = (d, pts, smooth)=>{
+    const smt = pts.map(p=> p.clone());
+    const curve = new CatmullRomCurve3(smt);
+    curve.arcLengthDivisions = 2000; // need to make proportional to length of curve! ?!?!?!?!?!?! #1
+    const pt_span = curve.getLength() / smt.length;
+    const range = Math.round(smooth / pt_span / 2) + 1; // +1 here ?!?!?!?!?!
+    //console.log('smooth range: '+range);
+    for(let i=1; i<smt.length-1; i++){ 
+        var vc = 1;
+        var rng = range;
+        if(rng > i) rng = i;
+        if(rng > smt.length-1-i) rng = smt.length-1-i;
+        for(let k=-rng; k<=rng; k++){ 
+            if(k != 0 && pts[i+k]){
+                smt[i].add(pts[i+k]);
+                vc++;
             }
-            smt[i].divideScalar(vc);      
         }
-        //smt.push(pts.at(-1).clone());
-        const smoothed = new CatmullRomCurve3(smt);
-        smoothed.arcLengthDivisions = 2000;
-        return d.geo.curve(smoothed);//[smt, curve];
-    },
+        smt[i].divideScalar(vc);      
+    }
+    //smt.push(pts.at(-1).clone());
+    const smoothed = new CatmullRomCurve3(smt);
+    smoothed.arcLengthDivisions = 2000;
+    return d.part.curve(smoothed);//[smt, curve];
+}
+
+export const create_part_slice = (set,get)=>({part:{
+    curve,
+    catmullrom,
     surface(d, pts, a={}){
         try{
             var length_u = 0;
@@ -112,6 +108,11 @@ export const create_geo_slice = (set,get)=>({geo:{
 }});
 
 
+// points: curve.getPoints(2)[0].z ?? matrix ? 
+//                 (cnt)=> curve.getPoints(cnt).map(pnt=> pnt.applyMatrix4(matrix)): 
+//                 (cnt)=> curve.getPoints(cnt) || matrix ? 
+//                 (cnt)=> curve.getPoints(cnt).map(pnt=> new Vector3(pnt.x, pnt.y, 0).applyMatrix4(matrix)): 
+//                 (cnt)=> curve.getPoints(cnt).map(pnt=> new Vector3(pnt.x, pnt.y, 0)),
 
             //var max_range = i;
             //if(smt.length-1-i < max_range) max_range = smt.length-1-i;

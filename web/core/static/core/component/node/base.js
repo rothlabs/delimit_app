@@ -1,6 +1,6 @@
 import {createElement as c, useRef, forwardRef, useState} from 'react';
 import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
-import {useS, useSubS, ss, gs, fs, sf, mf, rs} from '../../app.js';
+import {useS, useSub, useSubS, ss, gs, fs, sf, mf, rs} from '../../app.js';
 //import {createElement as c, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
 import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
@@ -93,6 +93,23 @@ export function Pickable({n, penable, brushable, children}){
 //         })
 //     )
 // }
+
+export function Root_Transform({n, rotation, children}){
+    const obj = useRef();
+    useSub(d=> d.n[n].p, p=>{ 
+        obj.current.position.set(0, 0, 0);
+        if(rotation) obj.current.rotation.set(...rotation)
+        else obj.current.rotation.set(0, 0, 0);
+        obj.current.scale.set(1, 1, 1);
+        if(p.matrix) obj.current.applyMatrix4(p.matrix);
+    });
+    return(
+        c('group', {
+            ref: obj,
+            children:children,
+        })
+    )
+}
 
 export const View_Transform = forwardRef((props, ref)=>{ 
     var obj = null;

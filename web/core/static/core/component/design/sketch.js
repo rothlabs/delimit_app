@@ -10,10 +10,10 @@ const v2 = new Vector3();
 
 
 
-export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
+export const Sketch = memo(({n, r})=>{ // rename to Sketchpad ?!?!?!?!
     //const obj = useRef();
     //const plane = useRef();
-    const {camera} = useThree(); // use state selector ?!?!?!?!?! (state)=> state.camera 
+    ///////////const {camera} = useThree(); // use state selector ?!?!?!?!?! (state)=> state.camera 
     //const [offset, set_offset] = useState(0);
     const easel_size = useS(d=> d.easel_size); 
     const point_size = useS(d=> d.point_size);
@@ -62,7 +62,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
         //     ref:obj,
         //     rotation: rotation,
         // },
-        //c(Root_Transform, {n:n, rotation:rotation},
+        //c(Root_Transform, {n:r, rotation:rotation},
             c(Pickable, {n:n, penable:true}, // points && points.length>1 && 
                 c('group', {name: 'sketch'}, 
                     c(View_Transform, {offset_z:1},
@@ -128,7 +128,7 @@ export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
                     infiniteGrid: false,
                     side: DoubleSide,
                 }),
-            )//,
+            )
         //)
     )
 });

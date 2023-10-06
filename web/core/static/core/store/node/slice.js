@@ -509,7 +509,7 @@ export const slice = { // 'density', 'speed', 'flow', 'cord_radius ', should be 
                 //console.log(curve);
                 if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
                 paths.push({
-                    ribbon:      d.geo.surface(d, pts, {length_v:curve.getLength()}), 
+                    ribbon:      d.part.surface(d, pts, {length_v:curve.getLength()}), 
                     speed:       c.speed, 
                     flow:        c.flow,
                     material:    c.material,

@@ -13,7 +13,7 @@ transform.float = [
     'turn_x',  'turn_y',  'turn_z', 
     'scale_x', 'scale_y', 'scale_z',
 ];
-transform.result = (d, s, c)=>{
+transform.part = (d, s, c)=>{
     v1.setX(c.move_x ?? 0);
     v1.setY(c.move_y ?? 0);
     v1.setZ(c.move_x ?? 0);
@@ -25,9 +25,7 @@ transform.result = (d, s, c)=>{
     v3.setZ(c.scale_z ?? 0);
     quaternion.setFromEuler(euler.setFromVector3(v2));
     const matrix = new Matrix4().compose(v1, quaternion, v3); 
-    return {
-        points:(cnt) => s.target.points(cnt).map(pnt=> pnt.applyMatrix4(matrix)),
-    }
+    return s.target.transform(matrix);
 }
 
 // const wrap = (trgt, mtrx)=>({

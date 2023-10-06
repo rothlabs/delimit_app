@@ -27,14 +27,14 @@ import {create_pick_slice} from './store/pick.js';
 import {create_inspect_slice} from './store/inspect.js';
 import {create_design_slice} from './store/design.js';
 import {create_make_slice} from './store/make.js';
-import {create_node_slice} from './store/node.js';
+import {create_node_slice} from './store/node/node.js';
 import {create_reckon_slice} from './store/reckon.js'; 
 import {create_remake_slice} from './store/remake.js';
 import {create_delete_slice} from './store/delete.js';
 import {create_action_slice} from './store/action.js';
 import {create_cast_slice} from './store/cast.js';
 import {create_clear_slice} from './store/clear.js';
-import {create_geo_slice} from './store/geo.js';
+import {create_part_slice} from './store/part/part.js';
 
 enablePatches();
 
@@ -101,7 +101,7 @@ export const useS = create(
         ...create_action_slice(...a),
         ...create_cast_slice(...a),
         ...create_clear_slice(...a),
-        ...create_geo_slice(...a),
+        ...create_part_slice(...a),
     }))
 );
 useS.setState(d=>{  d.init(d); return d;  });

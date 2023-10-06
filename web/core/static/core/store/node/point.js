@@ -1,11 +1,11 @@
 import {Vector3} from 'three';
 
-export const point = {};
-point.float = ['x', 'y', 'z'];
-point.result = (d, s, c)=>{
-    console.log('reckon point');
+const n = {};
+n.float = ['x', 'y', 'z'];
+n.part = (d, s, c)=>{
     const x = c.x ?? 0;
     const y = c.y ?? 0;
     const z = c.z ?? 0;
-    return new Vector3(x, y, z);
+    return new Vector3(x, y, z); //d.part.point(  );
 }
+export const point = n;
