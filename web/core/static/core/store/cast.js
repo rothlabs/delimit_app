@@ -11,7 +11,7 @@ export const create_cast_slice=(set,get)=>({cast:{
         c.split(' ').forEach(c=>{
             //if(c=='auxiliary') console.log(c); 
             if(d.n[n].c[c] != undefined) content[c] = d.n[n].c[c];
-            if(d.n[n].ax[c] != undefined) ax[c] = d.n[n].ax[c];
+            //if(d.n[n].ax[c] != undefined) ax[c] = d.n[n].ax[c];
         });
         // if(ax) c.split(' ').forEach(c=> content[c]=d.n[n].ax[c])
         // else c.split(' ').forEach(c=> content[c]=d.n[n].c[c]);

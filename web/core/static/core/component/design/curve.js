@@ -60,11 +60,11 @@ export const Curve = memo(({n})=>{
             //ss(d=> d.n[n].c.rendered_curves = curve.length);
 
 
-            const pts = d.n[n].ax.pts;
-            if(pts){
-                segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
-                segs_ref.current.geometry.setPositions(segs_geo.pts);
-            }
+            // const pts = d.n[n].ax.pts;
+            // if(pts){
+            //     segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
+            //     segs_ref.current.geometry.setPositions(segs_geo.pts);
+            // }
         }
     },[curve_pts]);
     //console.log('render curve');

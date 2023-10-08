@@ -6,14 +6,14 @@ const v3 = new Vector3();
 const euler = new Euler();
 const quaternion = new Quaternion();
 
-export const transform = {};
-transform.source = ['target'];
-transform.float = [
-    'move_x',  'move_y',  'move_z', 
-    'turn_x',  'turn_y',  'turn_z', 
-    'scale_x', 'scale_y', 'scale_z',
-];
-transform.part = (d, s, c)=>{
+const n = {};
+n.source = ['target'];
+n.float = {
+    move_x:0,  move_y:0,  move_z:0, 
+    turn_x:0,  turn_y:0,  turn_z:0, 
+    scale_x:1, scale_y:1, scale_z:1,
+};
+n.part = (d, s, c)=>{
     v1.setX(c.move_x ?? 0);
     v1.setY(c.move_y ?? 0);
     v1.setZ(c.move_x ?? 0);
@@ -27,6 +27,7 @@ transform.part = (d, s, c)=>{
     const matrix = new Matrix4().compose(v1, quaternion, v3); 
     return s.target.transform(matrix);
 }
+export const transform = n;
 
 // const wrap = (trgt, mtrx)=>({
 //     points:(cnt) => trgt.points(cnt).map(pnt=> pnt.applyMatrix4(mtrx)),

@@ -9,7 +9,7 @@ const add_pnt = (knots, div, ctrl_pnts, pnt, i)=>{
 }
 
 const n = {};
-n.source = ['point'];//, 'curve'];
+n.source = ['point', 'curve'];
 n.part = (d, s, c)=>{
     //if(s.point.length < 3) return;
     const knots = new Array(degree+1).fill(0);

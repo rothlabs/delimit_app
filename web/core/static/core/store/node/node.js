@@ -28,15 +28,15 @@ export const create_node_slice =(set,get)=>({node:{
     slice,
     post,
     brush:{
-        float: ['color_a', 'color_b', 'radius_a', 'radius_b'],
+        float: {color_a:0, color_b:0, radius_a:0, radius_b:0},
     },
     machine:{
-        float: [
-            'origin_x', 'origin_y', 'origin_z', 'origin_a', 'holder_y', 
-            'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
-            'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5',
-            'pva_x', 'pva_y',
-        ],
+        float: {
+            origin_x:0, origin_y:0, origin_z:0, origin_a:0, holder_y:0, 
+            holder_x1:0, holder_x2:0, holder_x3:0, holder_x4:0, holder_x5:0,
+            offset_x1:0, offset_x2:0, offset_x3:0, offset_x4:0, offset_x5:0,
+            pva_x:0, pva_y:0,
+        },
     },
     init(d){
         d.node.meta = Object.fromEntries(d.node_tags.map(t=>[t,{
@@ -77,12 +77,8 @@ export const create_node_slice =(set,get)=>({node:{
         }
     },
     set_pos(d, n, pos){ // should go in transform slice? // should be in cast clice ?!?!?!
-        //try{pos.applyMatrix4(d.n[d.node.rt0(d,n,'transform')].ax.inverse); // use own inverse matrix
-            //const trans = d.n[d.node.rt0(d,n,'transform')].c;
-            //pos.applyMatrix4(tm.copy(trans.matrix).invert());inverse
-            //pos.set(pos.x*(1/trans.scale_x),pos.y*(1/trans.scale_y),pos.z*(1/trans.scale_z)); // correct for zero !!!!
-        if(d.n[n].c.invert) pos.applyMatrix4(d.n[n].c.invert);
-        if(d.n[n].ax.invert) pos.applyMatrix4(d.n[n].ax.invert);
+        //if(d.n[n].c.invert) pos.applyMatrix4(d.n[n].c.invert);
+        //if(d.n[n].ax.invert) pos.applyMatrix4(d.n[n].ax.invert);
         d.node.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
     },
     get(d, roots, t){ // like n but different. need better name to differentiate

@@ -1,5 +1,6 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, ButtonToolbar, Button} from 'react-bootstrap';
+import {DragDropContext} from 'react-beautiful-dnd';
 import {ss, gs, useS, use_window_size} from '../../app.js';
 import {Visible} from '../toolbar/visible.js';
 import {Remake} from '../toolbar/remake.js';
@@ -14,6 +15,7 @@ import {Float} from '../node/input/float.js';
 import {Children} from '../node/input/children.js';
 import {Bool} from '../node/input/bool.js';
 
+//https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
 
 export function Inspect(){ 
     const panel = useS(d=> d.studio.panel.name);
@@ -22,6 +24,16 @@ export function Inspect(){
     const limited = useS(d=> d.pick.limited); 
     const cats = useS(d=> d.inspect.cats);
     const d = gs();
+    const onDragEnd = result=>{
+        const {source, destination} = result;
+        console.log(source, destination);
+        ss(d=> d.pick.reorder_stem(d, 
+            source.droppableId, 
+            source.index, 
+            destination.droppableId, 
+            destination.index
+        ));
+    };
     return (
         //show && (panel=='inspect_design' || panel=='inspect_nodes') && 
         (panel=='inspect_design' || panel=='inspect_nodes') && c(Fragment, {},
@@ -32,20 +44,12 @@ export function Inspect(){
                 c(Close),
                 c(Apply),
             ),
-            ...d.string_tags.map(t=>
-                c(String, {t:t})
-            ),
-            ...d.bool_tags.map(t=>
-                c(Bool, {t:t})
-            ),
-            ...d.int_tags.map(t=>
-                c(Integer, {t:t})
-            ),
-            ...d.float_tags.map(t=>
-                c(Float, {t:t})
-            ),
-            ...d.children_tags.map(t=>
-                c(Children, {t:t})
+            d.string_tags.map(t=> c(String, {t})),
+            d.bool_tags.map(t=>   c(Bool, {t:t})),
+            d.int_tags.map(t=>    c(Integer, {t:t})),
+            d.float_tags.map(t=>  c(Float, {t:t})),
+            c(DragDropContext, {onDragEnd},
+                d.children_tags.map(t=> c(Children, {t:t})),
             ),
             !cats.length ? null : c(Fragment,{},
                 c('h5',{className:'text-secondary bi-tag mt-4'}, ' Tags'),

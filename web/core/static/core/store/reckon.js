@@ -32,7 +32,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             d.reckon.props(d, n, node.props);
         }
         if(node && node.float){
-            d.reckon.props(d, n, node.float);
+            d.reckon.props(d, n, Object.keys(node.float));
         }
         if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
             if(node && node.part){// && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){

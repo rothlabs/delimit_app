@@ -1,3 +1,9 @@
+For mixed curves, use endpoints to find axis to work on. This way it doesn't just go on z.
+
+For nodes that do not have children or properties that they could have,
+display small list of these possible items at the bottom of the inspector. Just click on one to add it.
+  
+  
   loaders.py:
         # from core.models import Part, Tag, Bool, Int, Float, String
       # from core.models import Part_Part, Part_Bool, Part_Int, Part_Float, Part_String

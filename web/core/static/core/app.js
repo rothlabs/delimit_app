@@ -18,7 +18,7 @@ import {produce, applyPatches, produceWithPatches, enablePatches} from 'immer';
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
 import {shallow} from 'zustand/shallow';//'shallow';
-import { DndProvider } from 'react-dnd';
+//import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import {create_base_slice} from './store/base.js';
@@ -462,7 +462,7 @@ const termination_link = createHttpLink({
 // });
 
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
-    r(DndProvider, {backend:HTML5Backend},
+    //r(DndProvider, {backend:HTML5Backend},
         r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
             r(RouterProvider, {router:createBrowserRouter([
                 {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
@@ -475,7 +475,7 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
                 ]},
             ])}),
         )
-    )
+    //)
 )));
 //import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';
 //"auc":       "https://esm.sh/apollo-upload-client?pin=v106",

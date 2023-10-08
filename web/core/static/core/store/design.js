@@ -162,13 +162,13 @@ export const create_design_slice = (set,get)=>({design:{
         d.design.mover.active_axes = [true, true, false];
         var count = 0;
         d.pick.n.forEach(n=>{
-            if(d.n[n].ax.pos){
-                d.design.mover.pos.add(d.n[n].ax.pos);
-                count++;
-            }
-            if(d.n[n].ax.matrix){
-                d.design.mover.rot.setFromRotationMatrix(d.n[n].ax.matrix);
-            }
+            // if(d.n[n].ax.pos){
+            //     d.design.mover.pos.add(d.n[n].ax.pos);
+            //     count++;
+            // }
+            // if(d.n[n].ax.matrix){
+            //     d.design.mover.rot.setFromRotationMatrix(d.n[n].ax.matrix);
+            // }
             if(d.n[n].c.top_view) d.design.mover.active_axes = [true, false, true];
             if(d.n[n].c.side_view) d.design.mover.active_axes = [false, true, true];
         });

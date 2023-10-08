@@ -37,17 +37,17 @@ export const create_make_slice = (set,get)=>({make:{
                     }
 
 
-                    if(!d.cast_end[d.n[r].t]){
-                        const content_packs = [{c:d.n[r].c,t:'c'},{c:d.n[r].ax,t:'ax'}];
-                        content_packs.forEach(cp=>{
-                            Object.entries(cp.c).forEach(([t,cc])=>{
-                                if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
-                                    d.n[n][cp.t][t] = cc; 
-                                    if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
-                                }
-                            });
-                        });
-                    }
+                    // if(!d.cast_end[d.n[r].t]){
+                    //     const content_packs = [{c:d.n[r].c,t:'c'},{c:d.n[r].ax,t:'ax'}];
+                    //     content_packs.forEach(cp=>{
+                    //         Object.entries(cp.c).forEach(([t,cc])=>{
+                    //             if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
+                    //                 d.n[n][cp.t][t] = cc; 
+                    //                 if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
+                    //             }
+                    //         });
+                    //     });
+                    // }
 
 
                     ////d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
@@ -62,7 +62,7 @@ export const create_make_slice = (set,get)=>({make:{
     node(d, m, t, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         //const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
-        d.n[n] = {m: m, t:t, r:{}, c:{}, ax:{}, open:true, asset:true, deleted:false, // c:a.c?a.c:{} // l:{}, w:{},
+        d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true, deleted:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
             pick: {pick:false, hover:false},
             graph: { 
                 pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
@@ -117,8 +117,8 @@ export const create_make_slice = (set,get)=>({make:{
     point(d, a={}){ //pos, r, o
         if(a.pos == undefined) a.pos = new Vector3();
         if(a.r){
-            if(d.n[a.r].c.invert) a.pos.applyMatrix4(d.n[a.r].c.invert);
-            if(d.n[a.r].ax.invert) a.pos.applyMatrix4(d.n[a.r].ax.invert);
+            //if(d.n[a.r].c.invert) a.pos.applyMatrix4(d.n[a.r].c.invert);
+            //if(d.n[a.r].ax.invert) a.pos.applyMatrix4(d.n[a.r].ax.invert);
             a.pos.setX(d.rnd(a.pos.x));
             a.pos.setY(d.rnd(a.pos.y));
             a.pos.setZ(d.rnd(a.pos.z));

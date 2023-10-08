@@ -36,12 +36,17 @@ export const create_inspect_slice = (set,get)=>({inspect:{
         })
         d.children_tags.forEach(t=>{
             const nc = node_content.filter(n=> (n.n && n.n[t]!=undefined));
+            const nt = node_content.map(n=> n.t);
             d.inspect.children[t] = [];
             if(nc.length){ 
                 d.inspect.children[t] = nc.map(n=> n.n[t]).flat();
                 d.inspect.asset[t] = nc.some(n=> n.asset);
             }else{  
-                d.inspect.children[t] = undefined;  
+                if(nt.some(nt=> d.node[nt]?.source?.includes(t))){
+                    d.inspect.children[t] = [];  
+                }else{
+                    d.inspect.children[t] = null;  
+                }
             }
         })
         Object.entries(d.model_tags).forEach(([m,t],i)=>{
