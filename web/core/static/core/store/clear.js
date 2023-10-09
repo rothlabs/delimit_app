@@ -37,12 +37,12 @@ export const create_clear_slice=(set,get)=>({clear:{
     point(d,n,c){
         if(c.matrix) d.next('reckon.up', n); 
     },
-    mixed_curve(d,n,c){
-        if(c.matrix){
-            d.next('reckon.up', n); 
-            console.log('mixed_curve reckon because of matrix clear');
-        }
-    },
+    // mixed_curve(d,n,c){
+    //     if(c.matrix){
+    //         d.next('reckon.up', n); 
+    //         console.log('mixed_curve reckon because of matrix clear');
+    //     }
+    // },
     ellipse(d,n,c){
         if(c.matrix){
             d.next('reckon.up', n); 

@@ -25,7 +25,7 @@ n.part = (d, s, c)=>{
     v3.setZ(c.scale_z ?? 0);
     quaternion.setFromEuler(euler.setFromVector3(v2));
     const matrix = new Matrix4().compose(v1, quaternion, v3); 
-    return s.target.transform(matrix);
+    return s.target.p.transform(matrix);
 }
 export const transform = n;
 

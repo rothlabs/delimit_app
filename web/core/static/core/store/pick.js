@@ -125,6 +125,7 @@ export const create_pick_slice = (set,get)=>({pick:{
         let n = d.pick.n[0];
         let stem = d.n[n].n[t1][i1];
         d.n[n].n[t1].splice(i1, 1);
+        d.n[n].n[t2] = d.n[n].n[t2] ?? [];
         d.n[n].n[t2].splice(i2, 0, stem);
         d.n[n].n[t1] = [...d.n[n].n[t1]]; // new array to be reflected in patches
         d.n[n].n[t2] = [...d.n[n].n[t2]]; // new array to be reflected in patches

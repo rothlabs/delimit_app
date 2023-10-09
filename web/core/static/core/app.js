@@ -27,7 +27,7 @@ import {create_pick_slice} from './store/pick.js';
 import {create_inspect_slice} from './store/inspect.js';
 import {create_design_slice} from './store/design.js';
 import {create_make_slice} from './store/make.js';
-import {create_node_slice} from './store/node/node.js';
+import {create_node_slice} from './store/node.js';
 import {create_reckon_slice} from './store/reckon.js'; 
 import {create_remake_slice} from './store/remake.js';
 import {create_delete_slice} from './store/delete.js';
@@ -444,6 +444,9 @@ export function use_media_glb(url){ // makes fresh copy of glb geom and such on 
 
 export function readable(text){
     return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+}
+export function upper(text){
+    return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join('_');
 }
 
 

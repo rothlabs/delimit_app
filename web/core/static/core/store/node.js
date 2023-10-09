@@ -1,16 +1,16 @@
 import {Vector3, Matrix4} from 'three';
-import {static_url, readable} from '../../app.js';
-import {point} from './point.js';
-import {curve} from './curve.js';
-import {mixed_curve} from './mixed_curve.js';
-import {ellipse} from './ellipse.js';
-import {surface} from './surface.js';
-import {shape} from './shape.js';
-import {layer} from './layer.js';
-import {image} from './image.js';
-import {brush} from './brush.js';
-import {slice} from './slice.js';
-import {post} from './post.js';
+import {static_url, readable} from '../app.js';
+import {point} from './node/point.js';
+import {curve} from './node/curve.js';
+//import {mixed_curve} from './node/mixed_curve.js';
+import {ellipse} from './node/ellipse.js';
+import {surface} from './node/surface.js';
+import {shape} from './node/shape.js';
+import {layer} from './node/layer.js';
+import {image} from './node/image.js';
+import {brush} from './node/brush.js';
+import {slice} from './node/slice.js';
+import {post} from './node/post.js';
 
 const tv = new Vector3();
 const tm = new Matrix4();
@@ -18,7 +18,7 @@ const tm = new Matrix4();
 export const create_node_slice =(set,get)=>({node:{
     point,
     curve,
-    mixed_curve,
+    //mixed_curve,
     ellipse,
     shape,
     surface,
@@ -27,17 +27,6 @@ export const create_node_slice =(set,get)=>({node:{
     brush,
     slice,
     post,
-    brush:{
-        float: {color_a:0, color_b:0, radius_a:0, radius_b:0},
-    },
-    machine:{
-        float: {
-            origin_x:0, origin_y:0, origin_z:0, origin_a:0, holder_y:0, 
-            holder_x1:0, holder_x2:0, holder_x3:0, holder_x4:0, holder_x5:0,
-            offset_x1:0, offset_x2:0, offset_x3:0, offset_x4:0, offset_x5:0,
-            pva_x:0, pva_y:0,
-        },
-    },
     init(d){
         d.node.meta = Object.fromEntries(d.node_tags.map(t=>[t,{
             icon: static_url+'icon/node/'+t+'.svg',

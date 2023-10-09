@@ -26,7 +26,6 @@ export function Inspect(){
     const d = gs();
     const onDragEnd = result=>{
         const {source, destination} = result;
-        console.log(source, destination);
         ss(d=> d.pick.reorder_stem(d, 
             source.droppableId, 
             source.index, 

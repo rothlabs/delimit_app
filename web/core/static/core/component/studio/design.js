@@ -1,14 +1,40 @@
 import {createElement as c, useRef, useEffect, useState} from 'react';
-import {useS, useSS, gs, ss} from '../../app.js';
+import {useS, useSS, gs, ss, upper} from '../../app.js';
 import {View_Transform} from '../node/base.js';
 import {GizmoHelper} from '@react-three/drei/GizmoHelper';
 import {GizmoViewport} from '../../three/GizmoViewport.js';
-import {Mover} from '../studio/mover.js';
+import {Mover} from './mover.js';
+
+import {Curve}     from '../design/curve.js';
+//import {Ellipse}   from '../design/ellipse.js';
+import {Image}     from '../design/image.js';
+import {Layer}     from '../design/layer.js';
+import {Point}     from '../design/point.js';
+//import {Post}      from '../design/post.js';
+import {Shape}     from '../design/shape.js';
+//import {Slice}     from '../design/slice.js';
+import {Sketch}    from '../design/sketch.js';
+import {Surface}   from '../design/surface.js';
+//import {Transform} from '../design/transform.js';
+
+const design = {
+    Curve, 
+    //Ellipse, 
+    Image, 
+    Layer, 
+    Point, 
+    //Post,
+    Shape, 
+    //Slice, 
+    Sketch, 
+    Surface, 
+    //Transform,
+};
 
 export function Design(){
     //const obj = useRef();
     //const [id, set_id] = useState('123');
-    const parts = useS(d=> d.design.n);
+    const nodes = useS(d=> d.design.n);
     // useEffect(()=>{
     //     //if(obj.current) ss(d=> d.design.group = obj.current);
     //     //set_id(Math.random().toString());
@@ -18,11 +44,17 @@ export function Design(){
     //console.log('render design');//, obj.current?.children);
     return (
         c('group', {
-            name: 'parts',
+            name: 'design',
         },
-            ...parts.map(n=> 
-                d.n[n].design.vis && c(d.component[d.n[n].t], {n:n, key:n}) // d.node.be(d,n) && 
-            ),
+            nodes.map(n=>{
+                //d.n[n].design.vis && c(d.component[d.n[n].t], {n:n, key:n}) // d.node.be(d,n) && 
+                if(!d.n[n].design.vis) return;
+                let component = design[upper(d.n[n].t)];
+                //console.log(d.n[n]);
+                component = component ?? (d.n[n].p && design[upper(d.n[n].p.design)]);// : null;
+                if(!component) return;
+                return c(component, {key:n, n:n})
+            }),
             c(Mover),
             c(View_Transform, {
                 name:'center_point',

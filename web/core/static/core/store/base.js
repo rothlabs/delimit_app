@@ -3,55 +3,33 @@ import {Vector3, Matrix4} from 'three';
 import * as THREE from 'three';
 import {static_url, theme} from '../app.js';
 import lodash from 'lodash';
-//import { Group } from '../component/part/group.js';
-import {Point} from '../component/design/point.js';
-import {Curve} from '../component/design/curve.js';
-import {Shape} from '../component/design/shape.js';
-import {Surface} from '../component/design/surface.js';
-import {Sketch} from '../component/design/sketch.js';
-import {Transform} from '../component/design/transform.js';
-import {Layer} from '../component/design/layer.js';
-import {Image} from '../component/design/image.js';
 
 var next_funcs = [];
 var next_ids = [];
 
-const subject_tags= [
+const subject_tags = [
     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
-    'mixed_curve', 'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
+    'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
     'slice', 'post', 'machine',
-];
+]; //'mixed_curve', 
 const children_tags = [
-    'boundary', 
+    'boundary', 'guide', 'mix', 'mixed_curve',
 ];
-const cat_tags=[ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
+const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
     'fill', 'corner',
 ];
 const cast_tags = [...cat_tags];//[...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
-const component = {
-    'point':       Point,
-    'curve':       Curve,
-    'mixed_curve': Curve,
-    'shape':       Shape,
-    'surface':     Surface,
-    'sketch':      Sketch,
-    'transform':   Transform,
-    'layer':       Layer,
-    'image':       Image,
-    'ellipse':     Curve,
-    'slice':       Curve,
-    'post':        Curve,
-};
+
 // const component = {
 //     Point, Curve, Shape, Surface, Sketch,
 //     Transform, Layer, Image, Mixed_Curve
 // };
-const model_tags    = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
+const model_tags = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 //const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
-const admin_tags    = ['profile', ...cat_tags]; //category_tags
+const admin_tags = ['profile', ...cat_tags]; //category_tags
 const bool_tags = [model_tags['b'],
     'coil', 'axial',
 ];
@@ -93,17 +71,17 @@ export const create_base_slice = (set,get)=>({
     children_tags:  [...subject_tags, ...children_tags],
     node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},
-    cast_tags: cast_tags,
+    cast_tags:      cast_tags,
     cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
     cast_shallow_map: Object.fromEntries([ // cast_tags
         'public', 'auxiliary', 'manual_compute',
         'fill',
     ].map(t=>[t,true])),
-    cast_end:Object.fromEntries([
-        'point', 'mixed_curve', 'surface', 'layer', 'ellipse', // maybe add ellipse here ?!?!?!?!?!
+    cast_end:Object.fromEntries([ // 'mixed_curve',
+        'point', 'surface', 'layer', 'ellipse', // maybe add ellipse here ?!?!?!?!?!
     ].map(t=>[t,true])),
-    component:component,
-    component_tags:Object.keys(component),
+    //component:component,
+    //component_tags:Object.keys(component),
     node_css:{
         'public':         'bi-globe-americas',
         'profile':        'bi-person',
@@ -118,7 +96,7 @@ export const create_base_slice = (set,get)=>({
         //'repeater':       'bi-files',
         //'group':          'bi-box-seam',
         'transform':      'bi-arrows-move',
-        'mixed_curve':    'bi-bezier',
+        //'mixed_curve':    'bi-bezier',
         'top_view':       'bi-camera-reels',
         'side_view':      'bi-camera-reels',
         'face_camera':    'bi-camera-reels',
@@ -136,6 +114,8 @@ export const create_base_slice = (set,get)=>({
         'brush':          'bi-brush',
         'stroke':         'bi-slash-lg',
         'machine':        'bi-device-ssd',
+        'mix':            'bi-bezier',
+        'guide':          'bi-rulers',
     },
 
     max_click_delta: 7,
@@ -487,6 +467,20 @@ export const create_base_slice = (set,get)=>({
 });
 
 
+// const component = {
+//     'point':       Point,
+//     'curve':       Curve,
+//     'mixed_curve': Curve,
+//     'shape':       Shape,
+//     'surface':     Surface,
+//     'sketch':      Sketch,
+//     'transform':   Transform,
+//     'layer':       Layer,
+//     'image':       Image,
+//     'ellipse':     Curve,
+//     'slice':       Curve,
+//     'post':        Curve,
+// };
 
                                 //d.node.for_r(d, n, rr=>{
                                 //    if(r==rr) dead_edges.push({r:r, n:n, t:t, o:o});

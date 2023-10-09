@@ -20,42 +20,48 @@ import {useS, ss, gs, readable, fs, sf, mf, rs} from '../../../app.js';
 
 export function Children({t}){
 	const children = useS(d=> d.inspect.children[t]);
-	const asset = useS(d=> d.inspect.asset[t]);
+	//const asset = useS(d=> d.inspect.asset[t]);
 	const d = gs();
 
 	const buttons = [
-		{name:'Remove', icon:'bi-x-lg', func(d){
-			console.log('try to remove');
+		{name:'Remove', icon:'bi-x-lg', func(d, n){
 			d.node.for_n(d, d.pick.n, (r,nn,t)=>{
 				if(n == nn) d.delete.edge(d, r, nn, {t:t});
 			})
 		}},
 	];
 
+	//console.log('render children', t, children, children != null, asset);
 	return (
-		children != null && asset && c(Fragment, {}, 
+		children != null && c(Fragment, {}, 
 			c('h5', {className:'text-secondary mt-4 '+d.node_css[t]}, ' '+readable(t)),
 			c(Droppable, {droppableId: t, direction: 'vertical', key:t}, (provided, snapshot) => (
 				c(ListGroup, {
 					ref: provided.innerRef,
-					style: {background: snapshot.isDraggingOver ? 'lightpink' : 'lightgrey',},//getFirstListStyle(snapshot.isDraggingOver),
+					style: {background: snapshot.isDraggingOver ? 'white' : 'white',},//getFirstListStyle(snapshot.isDraggingOver),
 					...provided.droppableProps,
 					className:'mb-3',	
 				},
 					children.map((n,i)=>
 						c(Draggable, {key: n, draggableId: n, index: i}, (provided, snapshot) => (
-							c(ListGroup.Item, {
+							c(InputGroup, {
 								ref: provided.innerRef, 
+								className: 'mb-2',
 								style:{...provided.draggableProps.style}, 
 								...provided.draggableProps,
 								...provided.dragHandleProps,
+								onClick:e=> ss(d=> d.pick.one(d, n)),
 							},
-								(d.n[n].c.name ?? readable(d.n[n].t)) + ' ',
+								c(InputGroup.Text, {
+									className:'flex-grow-1 bg-white',
+								}, 
+									(d.n[n].c.name ?? readable(d.n[n].t)) + ' '
+								),
 								buttons.map(button=>
 									c(Button, {
 										className: button.icon,
 										variant: 'outline-secondary',
-										onClick:e=> ss(d=> button.func(d)),
+										onClick:e=> ss(d=> button.func(d, n)),
 									}),
 								),
 							)

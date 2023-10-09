@@ -13,7 +13,7 @@ export function Integer({t}){
         if(sync_input) set_input_value(content);
     },[content]);
     return (
-        content!=undefined && c(InputGroup, {className:'mb-3'}, 
+        content!=undefined && c(InputGroup, {className:'mb-2'}, 
             c(InputGroup.Text, {}, readable(t)),
             c(Form.Control, {
                 maxLength:64, 

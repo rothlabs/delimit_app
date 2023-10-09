@@ -3,7 +3,7 @@ import {CameraControls} from '@react-three/drei/CameraControls';
 import {OrbitControls} from '@react-three/drei/OrbitControls';
 import {Graph} from '../graph/graph.js';
 import {Board} from './board.js';
-import {Design} from '../design/design.js';
+import {Design} from './design.js';
 import {Mover} from './mover.js';
 import {useS, ss, useSub, theme, gs, rs} from '../../app.js';
 import {useThree, useFrame} from '@react-three/fiber';

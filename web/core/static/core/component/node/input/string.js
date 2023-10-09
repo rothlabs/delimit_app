@@ -10,10 +10,10 @@ export function String({t}){
     const placeholder = useS(d=> d.inspect.placeholder[t]);
     const asset = useS(d=> d.inspect.asset[t]);
     return (
-        content!=undefined && c(InputGroup, {className:'mb-3'}, 
+        content!=undefined && c(InputGroup, {className:'mb-2'}, 
             c(InputGroup.Text, {}, readable(t)),
             c(Form.Control, {
-                as:area_tags.includes(t)?'textarea':'input', 
+                as:area_tags.includes(t) ? 'textarea' : 'input', 
                 ///////// maxLength:64, 
                 value:content, 
                 placeholder:placeholder, 

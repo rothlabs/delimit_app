@@ -1,3 +1,20 @@
+old mixed_curve:
+ed2rcwbtfidww1mq
+bsqv7d5ao7slmvnt
+bdkpaho1t2osoilg
+86323khb72apgtb0
+5bvfwzp9r7vz5kn7
+5b8czai4xuc523y7
+55mu2nz2by2loaqe
+4asaba3sbury5jak
+1kzqtihqr8jwdygm
+vwvg9bkvjne8bisx
+thk57shhqismgety
+rdhrx7j0ryrzdet8
+qek4mlzh3vvsdbcl
+l7rsorg7zaeu69v9
+
+
 For mixed curves, use endpoints to find axis to work on. This way it doesn't just go on z.
 
 For nodes that do not have children or properties that they could have,

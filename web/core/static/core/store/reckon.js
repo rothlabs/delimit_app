@@ -40,10 +40,13 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 try{
                     const source = {};
                     if(node.source){
+                        //source[node.source[i]] 
                         for(let i = 0; i < node.source.length; i++){
-                           if(d.n[n].n[node.source[i]]){
-                               source[node.source[i]] = d.n[n].n[node.source[i]].map(n=> d.n[n]);
-                           }
+                            if(d.n[n].n[node.source[i]]){
+                                source[node.source[i]] = d.n[n].n[node.source[i]].map(n=> d.n[n]);
+                            }else{
+                                source[node.source[i]] = [];
+                            }
                         }
                     }
                     d.n[n].p = node.part(d, source, d.n[n].c);

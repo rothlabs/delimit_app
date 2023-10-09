@@ -1,7 +1,7 @@
 import {current} from 'immer';
 import {Vector3, CatmullRomCurve3, MathUtils, Matrix4} from 'three';
 import {NURBSSurface} from 'three/examples/jsm/curves/NURBSSurface';
-import { curve } from './curve.js';
+import {curve} from './curve.js';
 //import Delaunator from 'delaunator';
 //import { closest } from '../../junk/vertex.js';
 

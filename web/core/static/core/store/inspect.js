@@ -1,3 +1,5 @@
+import {current} from 'immer';
+
 export const create_inspect_slice = (set,get)=>({inspect:{
     cats:[],
     content:{}, 
@@ -43,6 +45,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                 d.inspect.asset[t] = nc.some(n=> n.asset);
             }else{  
                 if(nt.some(nt=> d.node[nt]?.source?.includes(t))){
+                    //console.log(null, t, nt, current(d).node[nt]);
                     d.inspect.children[t] = [];  
                 }else{
                     d.inspect.children[t] = null;  

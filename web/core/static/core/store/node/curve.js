@@ -1,4 +1,4 @@
-import {Vector4, MathUtils} from 'three';
+import {Vector3, Vector4, Box3, MathUtils} from 'three';
 import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 
 const degree = 2;
@@ -7,17 +7,77 @@ const add_pnt = (knots, div, ctrl_pnts, pnt, i)=>{
     knots.push(MathUtils.clamp( knot, 0, 1 ));
     ctrl_pnts.push(new Vector4(pnt.x, pnt.y, pnt.z, 1));
 }
-
-const n = {};
-n.source = ['point', 'curve'];
-n.part = (d, s, c)=>{
-    //if(s.point.length < 3) return;
+const nurbs = (d, s, c)=>{
     const knots = new Array(degree+1).fill(0);
     const div = (s.point.length - degree);
     const ctrl_pnts = [];
     s.point.map((pnt,i)=> add_pnt(knots, div, ctrl_pnts, pnt.p, i)); // try currying here
     const curve = new NURBSCurve(degree, knots, ctrl_pnts);
     return d.part.curve(curve);
+};
+
+const v1 = new Vector3();
+const v2 = new Vector3();
+const bb1 = new Box3();
+const bb2 = new Box3();
+const mid_res = 500;
+const smooth_range = 6;
+const mixed = (d, s, c)=>{
+    const ptc1 = s.mix[0].p.points(mid_res);
+    const ptc2 = s.mix[1].p.points(mid_res);
+    if(ptc1[0].z > ptc1.at(-1).z) ptc1.reverse();
+    if(ptc2[0].z > ptc2.at(-1).z) ptc2.reverse();
+    bb1.setFromArray(ptc1.map(p=>[p.x, p.y, p.z]).flat());
+    bb2.setFromArray(ptc2.map(p=>[p.x, p.y, p.z]).flat());
+    if(bb1.getSize(v1).x > bb2.getSize(v2).x){
+        var pti=ptc1.map((p,i)=>({p:p, v:'xz', i:i})).concat(
+                ptc2.map((p,i)=>({p:p, v:'yz', i:i})));
+    }else{
+        var pti=ptc2.map((p,i)=>({p:p, v:'xz', i:i})).concat(
+                ptc1.map((p,i)=>({p:p, v:'yz', i:i})));
+    }
+    pti.sort((a,b)=> a.p.z-b.p.z);//(a.p.x<b.p.x ? -1 : 1));
+    var pto = [];
+    var oxi = 0; 
+    var oyi = 0;
+    var xi = -1; // zi
+    var yi = -1;
+    for(var i=0; i<pti.length; i++){
+        if(pti[i].v == 'xz'){ var x = pti[i].p.x; xi=i; 
+        }else{ var y = pti[i].p.y; yi=i; }
+        if(xi>-1 && yi>-1) break;
+    }
+    for(var i=0; i<pti.length; i++){ // interpolate x and y here ?!?!?!?!
+        if(pti[i].v == 'xz'){
+            x = pti[i].p.x;
+            oxi = pti[i].i;
+            pto.push({
+                p: new Vector3(x, y, pti[i].p.z), 
+                oxi: oxi,
+                oyi: oyi,
+            });
+            xi = i;
+        }else{
+            y = pti[i].p.y;
+            oyi = pti[i].i;
+            pto.push({
+                p: new Vector3(x, y, pti[i].p.z), 
+                oxi: oxi,
+                oyi: oyi,
+            });
+            yi=i;
+        }
+    }
+    pto = pto.sort((a,b)=> (a.oxi+a.oyi) - (b.oxi+b.oyi)).map(p=> p.p);
+    pto.shift();
+    return d.part.catmullrom(d, pto, smooth_range);   
+}
+
+const n = {};
+n.source = ['point', 'mix'];
+n.part = (d, s, c)=>{
+    if(s.point.length > 2) return nurbs(d, s, c);
+    if(s.mix.length > 1)   return mixed(d, s, c);
 };
 export const curve = n;
 

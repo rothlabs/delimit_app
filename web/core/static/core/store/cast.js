@@ -63,10 +63,10 @@ export const create_cast_slice=(set,get)=>({cast:{
         if(ch.c.matrix) d.next('reckon.up', n); // , ['matrix']
         if(ch.ax.matrix) d.next('reckon.up', n, ['casted_matrix']); // , ['matrix']
     },
-    mixed_curve(d,n,ch){
-        if(ch.c.matrix) d.next('reckon.up', n); // , ['matrix']
-        if(ch.ax.matrix) d.next('reckon.up', n, ['casted_matrix']); // , ['matrix']
-    },
+    // mixed_curve(d,n,ch){
+    //     if(ch.c.matrix) d.next('reckon.up', n); // , ['matrix']
+    //     if(ch.ax.matrix) d.next('reckon.up', n, ['casted_matrix']); // , ['matrix']
+    // },
     ellipse(d,n,ch){
         if(ch.c.matrix) d.next('reckon.up', n); // , ['matrix']
         if(ch.ax.matrix) d.next('reckon.up', n, ['casted_matrix']); // , ['matrix']

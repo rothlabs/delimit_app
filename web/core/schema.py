@@ -19,8 +19,8 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'profile',
     'public', 'top_view', 'side_view', 'auxiliary', 'face_camera', 'manual_compute', #'front_view',  'inner_view', 'outer_view', 'guide',
     'product', 'point', 'curve', 'ellipse', 'sketch', 'repeater', 'group', 'transform', 
-    'mixed_curve', 'surface', 'shape', 'layer', 'image',
-    'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x','turn_y','turn_z', 'scale_x','scale_y','scale_z', 
+    'surface', 'shape', 'layer', 'image',
+    'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z', 
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
     'width', 'height', 'data',
     'name', 'story',
@@ -36,7 +36,8 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', #'offset_a',
     'pva_x', 'pva_y',
     'offset',  
-]}
+    'guide', 'mix',
+]} # 'mixed_curve', 
 cats = tuple(Part.objects.get_or_create(t=tag[t])[0].id for t in [
     'public', 'top_view', 'side_view', 'auxiliary', 'face_camera', 'manual_compute', #'front_view',
     'fill', 'corner',
