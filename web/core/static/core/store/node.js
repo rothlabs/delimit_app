@@ -1,32 +1,34 @@
 import {Vector3, Matrix4} from 'three';
 import {static_url, readable} from '../app.js';
-import {point} from './node/point.js';
-import {curve} from './node/curve.js';
-//import {mixed_curve} from './node/mixed_curve.js';
-import {ellipse} from './node/ellipse.js';
-import {surface} from './node/surface.js';
-import {shape} from './node/shape.js';
-import {layer} from './node/layer.js';
-import {image} from './node/image.js';
 import {brush} from './node/brush.js';
-import {slice} from './node/slice.js';
+import {curve} from './node/curve.js';
+import {ellipse} from './node/ellipse.js';
+import {image} from './node/image.js';
+import {layer} from './node/layer.js';
+import {machine} from './node/machine.js';
+import {point} from './node/point.js';
 import {post} from './node/post.js';
+import {shape} from './node/shape.js';
+import {slice} from './node/slice.js';
+import {surface} from './node/surface.js';
+import {transform} from './node/transform.js';
 
 const tv = new Vector3();
 const tm = new Matrix4();
 
 export const create_node_slice =(set,get)=>({node:{
-    point,
-    curve,
-    //mixed_curve,
-    ellipse,
-    shape,
-    surface,
-    layer,
-    image,
     brush,
-    slice,
+    curve,
+    ellipse,
+    image,
+    layer,
+    machine,
+    point,
     post,
+    shape,
+    slice,
+    surface,
+    transform,
     init(d){
         d.node.meta = Object.fromEntries(d.node_tags.map(t=>[t,{
             icon: static_url+'icon/node/'+t+'.svg',

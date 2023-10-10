@@ -31,7 +31,7 @@ export const Surface = memo(({n})=>{
     const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
     //const surface = useS(d=> d.n[n].ax.surface);
     //const geo = new ParametricGeometry(surface.get_point, res, res);
-    useSub(d=> d.n[n].c.surface, surface=>{ 
+    useSub(d=> d.n[n].p, surface=>{ 
         if(surface){ // obj.current && 
             // var u_res = res;
             // var v_res = res;

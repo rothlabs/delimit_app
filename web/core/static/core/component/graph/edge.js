@@ -23,10 +23,10 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     //useFrame(()=>{
     //    meshline_material.current.lineWidth = 1.5 / camera.zoom;
     //});
-    useSubS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
-        if(text.current) text.current.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.5) );
-        line.current.geometry.setPositions([d[0].pos.x,d[0].pos.y,d[0].pos.z+z_pos, d[1].pos.x,d[1].pos.y,d[1].pos.z+z_pos]);
-    }); 
+    // // // // useSubS(d=> [d.n[r].graph, d.n[n].graph], d=>{ 
+    // // // //     if(text.current) text.current.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.5) );
+    // // // //     line.current.geometry.setPositions([d[0].pos.x,d[0].pos.y,d[0].pos.z+z_pos, d[1].pos.x,d[1].pos.y,d[1].pos.z+z_pos]);
+    // // // // }); 
         //arrow.current.obj.position.copy(d[1].pos).add( tv.copy(d[0].pos).sub(d[1].pos).multiplyScalar(.75) );
         //arrow.current.obj.lookAt(d[0].pos);
         //arrow.current.obj.rotateX(1.5708);
@@ -67,22 +67,22 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
             //     }), 
             //     c('meshLineMaterial', {ref:meshline_material, color:active||hover? theme.primary_s : theme.secondary_s}),
             // ),
-            d.n[r].t!=t && d.n[n].t!=t && c(View_Transform, {
-                ref: text,
-                size: active ? 1.25 : 1,
-            },
-                c('text', {
-                    font: d.base_font, 
-                    outlineWidth: '40%',
-                    outlineColor: 'white',
-                    fontSize: 14,
-                    anchorX: 'center',
-                    anchorY: 'middle',
-                    text: readable(t),
-                },
-                    c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
-                ),
-            ),
+            // // // d.n[r].t!=t && d.n[n].t!=t && c(View_Transform, {
+            // // //     ref: text,
+            // // //     size: active ? 1.25 : 1,
+            // // // },
+            // // //     c('text', {
+            // // //         font: d.base_font, 
+            // // //         outlineWidth: '40%',
+            // // //         outlineColor: 'white',
+            // // //         fontSize: 14,
+            // // //         anchorX: 'center',
+            // // //         anchorY: 'middle',
+            // // //         text: readable(t),
+            // // //     },
+            // // //         c('meshBasicMaterial', {color: color, toneMapped:false}),// causing unsupported texture colorspace: undefined
+            // // //     ),
+            // // // ),
             // c(View_Transform, {
             //     ref: arrow,
             //     size: active ? 1.5 : 1,

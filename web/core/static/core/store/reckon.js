@@ -1,17 +1,12 @@
-import { Matrix4, Vector3, Euler, Quaternion, MathUtils, CatmullRomCurve3 } from 'three';
-import {current} from 'immer';
-import lodash from 'lodash';
+import { Matrix4, Vector3, Euler, Quaternion, MathUtils} from 'three';
+//import {current} from 'immer';
+//import lodash from 'lodash';
 
-
-// const zero_vector = new Vector3();
-// const v1 = new Vector3();
-// const v2 = new Vector3();
-// const v3 = new Vector3();
-// const te = new Euler();
-// const tq = new Quaternion();
-// const tm = new Matrix4();
-// const transform_props = ['move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z'];
-//const transform_numbers_list = transform_numbers.split(' ');
+const v1 = new Vector3();
+const v2 = new Vector3();
+const v3 = new Vector3();
+const euler = new Euler();
+const quaternion = new Quaternion();
 
 export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
@@ -20,27 +15,34 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
-        d.reckon.props(d, n, ['name', 'story']); 
         if(d.cast_map[d.n[n].t]){ // it is a category node if its tag is in the cast map
             d.n[n].c[d.n[n].t] = true;
             d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
         }
-        //d.reckon.base_transform(d,n,cause);
+        d.reckon.props(d, n, ['name', 'story']);
+        d.reckon.props(d, n, Object.keys(d.node.transform.float));
+        d.n[n].c.matrix = d.node.transform.matrix(d, d.n[n].c);
         const node = d.node[d.n[n].t];
-        //if(!node) return;
-        if(node && node.props){
-            d.reckon.props(d, n, node.props);
-        }
-        if(node && node.float){
-            d.reckon.props(d, n, Object.keys(node.float));
+        if(node){
+            if(node.bool){
+                d.reckon.props(d, n, Object.keys(node.bool));
+            }
+            if(node.int){
+                d.reckon.props(d, n, Object.keys(node.int));
+            }
+            if(node.float){
+                d.reckon.props(d, n, Object.keys(node.float));
+            }
+            if(node.string){
+                d.reckon.props(d, n, Object.keys(node.string));
+            }
         }
         if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
-            if(node && node.part){// && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
+            if(node && node.reckon){// && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
                 //d.reckon[d.n[n].t].result(d, n, d.n[n].c, {cause:cause}); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
                 try{
                     const source = {};
                     if(node.source){
-                        //source[node.source[i]] 
                         for(let i = 0; i < node.source.length; i++){
                             if(d.n[n].n[node.source[i]]){
                                 source[node.source[i]] = d.n[n].n[node.source[i]].map(n=> d.n[n]);
@@ -49,16 +51,16 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                             }
                         }
                     }
-                    d.n[n].p = node.part(d, source, d.n[n].c);
+                    d.n[n].p = node.reckon(d, source, d.n[n].c);
                 }catch(e){
                     console.log('Reckon Error: '+d.n[n].t, e);
                 }
             }
             d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         }
-        if(node && node.view){
-            node.view(); // update rendering relevant stuff only
-        }
+        // if(node && node.view){
+        //     node.view(); // update rendering relevant stuff only
+        // }
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
@@ -77,11 +79,14 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 d.n[n].c[t] = result[t];
             }else{   delete d.n[n].c[t];  } // d.n[n].c[t]=null; // should delete attr instead ?!?!?!
         });
-        if(lodash.isEmpty(result)) return null; 
-        return result;
+        //if(lodash.isEmpty(result)) return null; 
+        //return result;
     },
 }});
 
+// if(node.props){
+            //     d.reckon.props(d, n, node.props);
+            // }
 
 // matrix(d, n, ct, func, matrix){
 //     if(d.n[n][ct].matrix_list == undefined){

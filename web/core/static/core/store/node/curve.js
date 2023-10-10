@@ -13,7 +13,7 @@ const nurbs = (d, s, c)=>{
     const ctrl_pnts = [];
     s.point.map((pnt,i)=> add_pnt(knots, div, ctrl_pnts, pnt.p, i)); // try currying here
     const curve = new NURBSCurve(degree, knots, ctrl_pnts);
-    return d.part.curve(curve);
+    return d.part.curve(d, curve, c.matrix);
 };
 
 const v1 = new Vector3();
@@ -70,12 +70,12 @@ const mixed = (d, s, c)=>{
     }
     pto = pto.sort((a,b)=> (a.oxi+a.oyi) - (b.oxi+b.oyi)).map(p=> p.p);
     pto.shift();
-    return d.part.catmullrom(d, pto, smooth_range);   
+    return d.part.catmullrom(d, pto, smooth_range, c.matrix);   
 }
 
 const n = {};
 n.source = ['point', 'mix'];
-n.part = (d, s, c)=>{
+n.reckon = (d, s, c)=>{
     if(s.point.length > 2) return nurbs(d, s, c);
     if(s.mix.length > 1)   return mixed(d, s, c);
 };

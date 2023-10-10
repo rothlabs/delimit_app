@@ -123,7 +123,7 @@ function Card({ n, t, text, index }){
 
 
 export function Children({t}){
-    const children = useS(d=> d.inspect.children[t]);
+    const children = useS(d=> d.inspect.source[t]);
     const asset = useS(d=> d.inspect.asset[t]);
     const d = gs();
 

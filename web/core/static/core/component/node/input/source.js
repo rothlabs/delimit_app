@@ -18,8 +18,8 @@ import {useS, ss, gs, readable, fs, sf, mf, rs} from '../../../app.js';
 
 
 
-export function Children({t}){
-	const children = useS(d=> d.inspect.children[t]);
+export function Source({t}){
+	const source = useS(d=> d.inspect.source[t]);
 	//const asset = useS(d=> d.inspect.asset[t]);
 	const d = gs();
 
@@ -31,9 +31,9 @@ export function Children({t}){
 		}},
 	];
 
-	//console.log('render children', t, children, children != null, asset);
+	//console.log('render source', t, source, source != null, asset);
 	return (
-		children != null && c(Fragment, {}, 
+		source != null && c(Fragment, {}, 
 			c('h5', {className:'text-secondary mt-4 '+d.node_css[t]}, ' '+readable(t)),
 			c(Droppable, {droppableId: t, direction: 'vertical', key:t}, (provided, snapshot) => (
 				c(ListGroup, {
@@ -42,7 +42,7 @@ export function Children({t}){
 					...provided.droppableProps,
 					className:'mb-3',	
 				},
-					children.map((n,i)=>
+					source.map((n,i)=>
 						c(Draggable, {key: n, draggableId: n, index: i}, (provided, snapshot) => (
 							c(InputGroup, {
 								ref: provided.innerRef, 

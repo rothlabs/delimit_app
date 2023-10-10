@@ -3,7 +3,7 @@ import {current} from 'immer';
 export const create_inspect_slice = (set,get)=>({inspect:{
     cats:[],
     content:{}, 
-    children:{},
+    source:{},
     asset:{}, // rename to disabled ?! #1
     placeholder:{}, 
     mergeable:{},
@@ -36,19 +36,19 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                 d.inspect.content[t] = undefined;   
             }
         })
-        d.children_tags.forEach(t=>{
+        d.source_tags.forEach(t=>{
             const nc = node_content.filter(n=> (n.n && n.n[t]!=undefined));
             const nt = node_content.map(n=> n.t);
-            d.inspect.children[t] = [];
+            d.inspect.source[t] = [];
             if(nc.length){ 
-                d.inspect.children[t] = nc.map(n=> n.n[t]).flat();
+                d.inspect.source[t] = nc.map(n=> n.n[t]).flat();
                 d.inspect.asset[t] = nc.some(n=> n.asset);
             }else{  
                 if(nt.some(nt=> d.node[nt]?.source?.includes(t))){
                     //console.log(null, t, nt, current(d).node[nt]);
-                    d.inspect.children[t] = [];  
+                    d.inspect.source[t] = [];  
                 }else{
-                    d.inspect.children[t] = null;  
+                    d.inspect.source[t] = null;  
                 }
             }
         })

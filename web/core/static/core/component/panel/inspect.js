@@ -9,11 +9,11 @@ import {Delete} from '../toolbar/delete.js';
 import {Close} from '../toolbar/close.js';
 //import {Badge} from '../node/base.js'
 //import {Cat_Badge} from '../../node/base.js'
-import {String} from '../node/input/string.js';
+import {Bool} from '../node/input/bool.js';
 import {Integer} from '../node/input/integer.js';
 import {Float} from '../node/input/float.js';
-import {Children} from '../node/input/children.js';
-import {Bool} from '../node/input/bool.js';
+import {String} from '../node/input/string.js';
+import {Source} from '../node/input/source.js';
 
 //https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
 
@@ -48,7 +48,7 @@ export function Inspect(){
             d.int_tags.map(t=>    c(Integer, {t:t})),
             d.float_tags.map(t=>  c(Float, {t:t})),
             c(DragDropContext, {onDragEnd},
-                d.children_tags.map(t=> c(Children, {t:t})),
+                d.source_tags.map(t=> c(Source, {t:t})),
             ),
             !cats.length ? null : c(Fragment,{},
                 c('h5',{className:'text-secondary bi-tag mt-4'}, ' Tags'),

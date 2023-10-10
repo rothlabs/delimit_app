@@ -12,8 +12,8 @@ const subject_tags = [
     'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
     'slice', 'post', 'machine',
 ]; //'mixed_curve', 
-const children_tags = [
-    'boundary', 'guide', 'mix', 'mixed_curve',
+const source_tags = [
+    'boundary', 'guide', 'mix', 'target', 'mixed_curve',
 ];
 const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
     'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
@@ -68,7 +68,7 @@ export const create_base_slice = (set,get)=>({
     subject_tags:   subject_tags,
     admin_tags:     admin_tags,
     value_tags:     [...bool_tags, ...int_tags, ...float_tags, ...string_tags],
-    children_tags:  [...subject_tags, ...children_tags],
+    source_tags:  [...subject_tags, ...source_tags],
     node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},
     cast_tags:      cast_tags,

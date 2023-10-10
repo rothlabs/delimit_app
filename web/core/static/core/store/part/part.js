@@ -13,7 +13,7 @@ const degree_u = 2;
 const degree_v = 2;
 const nsr = .0001; // normal sample radius
 
-const catmullrom = (d, pts, smooth)=>{
+const catmullrom = (d, pts, smooth, matrix)=>{
     const smt = pts.map(p=> p.clone());
     const curve = new CatmullRomCurve3(smt);
     curve.arcLengthDivisions = 2000; // need to make proportional to length of curve! ?!?!?!?!?!?! #1
@@ -36,7 +36,7 @@ const catmullrom = (d, pts, smooth)=>{
     //smt.push(pts.at(-1).clone());
     const smoothed = new CatmullRomCurve3(smt);
     smoothed.arcLengthDivisions = 2000;
-    return d.part.curve(smoothed);//[smt, curve];
+    return d.part.curve(d, smoothed, matrix);//[smt, curve];
 }
 
 export const create_part_slice = (set,get)=>({part:{

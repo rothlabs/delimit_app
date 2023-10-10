@@ -24,8 +24,8 @@ export const Curve = memo(({n})=>{
     const [curve_pts, set_curve_pts] = useState([]);//{pts:[[0,0,0],[0,0,0]]});
     const [segs_geo] = useState({pts:[[0,0,0],[0,0,0]]});//{pts:[[0,0,0],[0,0,0]]});
     //const [curve_count, set_curve_c] = useState(0);
-    useSub(d=> d.n[n].p, curve=>{ // make useSub that includes useEffect
-        const d = gs();
+    useSub(d=> d.n[n].p, part=>{ // make useSub that includes useEffect
+        ///////const d = gs();
         // const curve2 = gs().n[n].ax.curve2;
         // if(curve2){
         //     curve_geo2.pts = curve2.points(curve2.length()*res).map(p=>[p.x, p.y, p.z]).flat(); 
@@ -33,39 +33,40 @@ export const Curve = memo(({n})=>{
         //     curve_ref2.current.geometry.setPositions(curve_geo2.pts);
         // }
         //if(dd[1]) dd=dd[1];
-        if(curve != undefined){ //curve_ref.current && 
-            if(!Array.isArray(curve)) curve = [curve];
-            //console.log('curve_pts.length: '+curve_pts.length);
-            if(curve.length == curve_pts.length){ // using old curve_pts so length always zero !!!!!!!!
-                curve.forEach((curve, i) => {
-                    var div = Math.round(curve.length()/span);
-                    if(div < 100) div = 100;
-                    curve_pts[i] = curve.points(div).map(p=>[p.x, p.y, p.z]).flat();
-                    curve_ref.current[i].geometry = new LineGeometry();
-                    curve_ref.current[i].geometry.setPositions(curve_pts[i]); 
-                    //console.log('update curve');
-                });
-            }else{
-                const new_curve_pts = [];
-                curve.forEach((curve,i) => {
-                    var div = Math.round(curve.length()/span);
-                    if(div < 100) div = 100;
-                    new_curve_pts.push(curve.points(div).map(p=>[p.x, p.y, p.z]).flat());
-                });
-                set_curve_pts(new_curve_pts);
-                //console.log('set curve');
-                //console.log('new_curve_pts: ');
-                //console.log(new_curve_pts);
-            }
-            //ss(d=> d.n[n].c.rendered_curves = curve.length);
-
-
-            // const pts = d.n[n].ax.pts;
-            // if(pts){
-            //     segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
-            //     segs_ref.current.geometry.setPositions(segs_geo.pts);
-            // }
+        if(!part) return; //curve_ref.current && 
+        const curves = part.curves ?? [part];
+        //if(!Array.isArray(curve)) curve = [curve];
+        //console.log('curve_pts.length: '+curve_pts.length);
+        if(curves.length == curve_pts.length){ // using old curve_pts so length always zero !!!!!!!!
+            curves.forEach((curve, i) => {
+                var div = Math.round(curve.length()/span);
+                if(div < 100) div = 100;
+                curve_pts[i] = curve.points(div).map(p=>[p.x, p.y, p.z]).flat();
+                curve_ref.current[i].geometry = new LineGeometry();
+                curve_ref.current[i].geometry.setPositions(curve_pts[i]); 
+                //console.log('update curve');
+            });
+        }else{
+            const new_curve_pts = [];
+            curves.forEach((curve,i) => {
+                var div = Math.round(curve.length()/span);
+                if(div < 100) div = 100;
+                new_curve_pts.push(curve.points(div).map(p=>[p.x, p.y, p.z]).flat());
+            });
+            set_curve_pts(new_curve_pts);
+            //console.log('set curve');
+            //console.log('new_curve_pts: ');
+            //console.log(new_curve_pts);
         }
+        //ss(d=> d.n[n].c.rendered_curves = curve.length);
+
+
+        // const pts = d.n[n].ax.pts;
+        // if(pts){
+        //     segs_geo.pts = pts.map(p=>[p.x, p.y, p.z]).flat();
+        //     segs_ref.current.geometry.setPositions(segs_geo.pts);
+        // }
+        
     },[curve_pts]);
     //console.log('render curve');
     return(

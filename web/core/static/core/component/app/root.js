@@ -6,7 +6,6 @@ import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
 import {ss, use_query} from '../../app.js';
 
-
 export function Root(){
 	const {data, status} = use_query('GetUser', [
 		['user id firstName'],

@@ -20,10 +20,10 @@ n.float = {
     radius_a:10, radius_b:10, 
     angle_a:0, angle_b:180,
 };
-n.part = (d, s, c)=>{
+n.reckon = (d, s, c)=>{
     const matrix = new Matrix4().lookAt(v1, v2.set(c.axis_x, c.axis_y, c.axis_z), up);
     matrix.setPosition(c.x, c.y, c.z);
-    return d.part.curve(make(c), matrix);
+    return d.part.curve(d, make(c), matrix.multiply(c.matrix));
 };
 export const ellipse = n; 
 
