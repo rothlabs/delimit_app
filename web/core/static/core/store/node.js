@@ -9,6 +9,7 @@ import {machine} from './node/machine.js';
 import {point} from './node/point.js';
 import {post} from './node/post.js';
 import {shape} from './node/shape.js';
+import {sketch} from './node/sketch.js';
 import {slice} from './node/slice.js';
 import {surface} from './node/surface.js';
 import {transform} from './node/transform.js';
@@ -26,6 +27,7 @@ export const create_node_slice =(set,get)=>({node:{
     point,
     post,
     shape,
+    sketch,
     slice,
     surface,
     transform,
@@ -62,9 +64,9 @@ export const create_node_slice =(set,get)=>({node:{
         //});
     },
     pin_pos(d, n, matrix){  // should go in transform slice?    
-        if(d.node.be(d,n) && d.n[n].ax.pos){
+        if(d.node.be(d,n) && d.n[n]?.p?.isVector3){
             if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.node.get(d, n, 'x y z');
-            d.n[n].pin.pos.copy(d.n[n].ax.pos).applyMatrix4(tm.copy(matrix).invert());
+            d.n[n].pin.pos.copy(d.n[n].p).applyMatrix4(tm.copy(matrix).invert());
         }
     },
     set_pos(d, n, pos){ // should go in transform slice? // should be in cast clice ?!?!?!

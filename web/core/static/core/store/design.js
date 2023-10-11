@@ -152,6 +152,8 @@ export const create_design_slice = (set,get)=>({design:{
         d.pick.one(d, n, {t:true});
     },
     update(d){
+        //console.log('update design');
+        //console.trace();
         d.design.candidate = d.pick.get_if_one(d);//d.design.candidate = d.pick.get_if_one(d, d.component_tags);
         if(!d.n[d.design.candidate]?.n) d.design.candidate = null;
         if(!d.node.be(d, d.design.part)){ // use exists/available function here?  d.design.part && !d.n[d.design.part].open
@@ -162,28 +164,28 @@ export const create_design_slice = (set,get)=>({design:{
         d.design.mover.active_axes = [true, true, false];
         var count = 0;
         d.pick.n.forEach(n=>{
-            // if(d.n[n].ax.pos){
-            //     d.design.mover.pos.add(d.n[n].ax.pos);
-            //     count++;
-            // }
+            if(d.n[n]?.p?.isVector3){
+                d.design.mover.pos.add(d.n[n].p);
+                count++;
+            }
             // if(d.n[n].ax.matrix){
             //     d.design.mover.rot.setFromRotationMatrix(d.n[n].ax.matrix);
             // }
             if(d.n[n].c.top_view) d.design.mover.active_axes = [true, false, true];
             if(d.n[n].c.side_view) d.design.mover.active_axes = [false, true, true];
         });
-        // if(count > 0){ 
-        //     d.design.mover = {
-        //         pos: d.design.mover.pos.divideScalar(count).applyMatrix4(tm.copy(d.design.matrix).invert()),
-        //     };
-        // }
+        if(count > 0){ 
+            d.design.mover = {
+                pos: d.design.mover.pos.divideScalar(count),//.applyMatrix4(tm.copy(d.design.matrix).invert()),
+            };
+        }
         //}else{  d.design.mover = {pos:d.design.mover.pos.copy(off_screen)};  }
         //if(d.pick.n.length===0) d.design.matrix.identity();
         if(d.studio.mode=='design' && d.design.move_mode=='move' && count > 0){ 
             //d.design.show_mover = true;
             d.design.mover = {...d.design.mover,
                 show:true,
-                pos: d.design.mover.pos.divideScalar(count).applyMatrix4(tm.copy(d.design.matrix).invert()),
+                pos: d.design.mover.pos.divideScalar(count),//.applyMatrix4(tm.copy(d.design.matrix).invert()),
             };
         }else{
             d.design.mover = {...d.design.mover, show:false};

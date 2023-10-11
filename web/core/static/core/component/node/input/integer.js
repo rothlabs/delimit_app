@@ -30,7 +30,7 @@ export function Integer({t}){
                 }
             }),
             c(Button, {
-                className: 'bi-symmetry-vertical',
+                className: 'border-0 bi-plus-slash-minus',
                 variant: 'outline-secondary',
                 onClick:e=>ss(d=>{
                     d.node.get(d, d.pick.n, t).forEach(n => {

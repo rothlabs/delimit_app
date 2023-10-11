@@ -40,7 +40,7 @@ export const create_delete_slice = (set,get)=>({delete:{
                     /////////d.clear.down(d, n, d.n[r].c, d.n[r].ax); // could be causing big slowdown on large objects ?!?!?!?!?!
                     ////d.action.node(d, r, {act:'delete.edge', r:r, n:n, t:t, o:o, src:a.src}); // d.action.go?
                     //if(reckon_nodes) reckon_nodes.forEach(n=> d.next('reckon.up', n));
-                    d.next('reckon.up', r, ['delete.edge', t]); //d.reckon.up(d,n); // 
+                    d.next('reckon.up', r);////////, ['delete.edge', t]); //d.reckon.up(d,n); // 
                     d.next('graph.update');
                     d.next('pick.update');
                     d.next('design.show');

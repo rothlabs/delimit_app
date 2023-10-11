@@ -66,7 +66,7 @@ export function Make(){
                                         className: 'border-white text-start bi-dot',
                                         variant:'outline-primary', size:'lg',
                                         onClick:e=> ss(d=>{ 
-                                            d.make.atom(d, item.m, item.v, {r:d.pick.n, t:t});
+                                            d.make.atom(d, item.m, item.v, {r:d.pick.n, t:t, single:true});
                                             d.studio.panel.show = false;
                                         }),
                                     }, 

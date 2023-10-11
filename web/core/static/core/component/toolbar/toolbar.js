@@ -62,7 +62,7 @@ export function Toolbar(){
                     size: 'lg', // variant: 'outline-primary',
                     onClick:e=> ss(d=>{  // select function does not work inside produce because it has it's own produce 
                         d.pick.n.forEach(n=> {
-                            if(d.n[n].c.manual_compute) d.reckon.up(d, n, 'manual_compute'); 
+                            if(d.n[n].c.autocalc == false) d.reckon.up(d, n, {manual:true}); 
                         });
                     }),
                 }, c('i',{className:'bi-cpu', style:{fontSize:'24px'}}), ' Compute'),

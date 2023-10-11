@@ -51,7 +51,7 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.pick.splittable = false;
         d.pick.deletable = d.pick.n.some(n=> d.n[n].asset);
         d.pick.transformable = d.pick.n.some(n=> d.n[n].c.base_matrix);
-        d.pick.reckonable = d.pick.n.some(n=> d.n[n].c.manual_compute);
+        d.pick.reckonable = d.pick.n.some(n=> (d.n[n].c.autocalc == false));
         d.pick.visible = !d.pick.n.some(n=> !d.n[n].design.vis);
         if(d.pick.n.length > 1){
             d.pick.group = d.pick.n.slice(0,-1);

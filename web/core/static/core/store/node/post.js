@@ -77,7 +77,6 @@ const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3',
 const cmd_dwell = 0.02; // was 0.01
 const approx_rapid_interval = cmd_dwell;
 const preheat_interval = 165;
-const cord_radius_transition = 0.4;
 const max_direct_dist = 4;
 const max_direct_dist_air = 10;
 const tool_offset_a = 35;
@@ -95,7 +94,9 @@ const tool_offset_a = 35;
 const machine_z_y_ratio = 0.9;
 const pva_offset_z = 14; // 20
 
-const n = {}
+const n = {};
+//n.bool = {manual_compute:true};
+n.string = {code:'(Delimit Slicer)'};
 n.source = ['machine', 'slice']; 
 n.reckon = (d, s, c) => {            
     const mach = s.machine[0].c;//d.n[d.n[n].n.machine[0]].c;
@@ -266,9 +267,9 @@ n.reckon = (d, s, c) => {
         //code.push('S1000'); // make this smaller when not hard flush!!!! #1
         //dwell(1);
         code.push(...write_cmd(cmd.close_cap, {no_white_space:true}));
-        dwell(2);
+        dwell(1);
         code.push('M3 S1000');
-        dwell(.2);
+        dwell(1);
         code.push('M5 S0');
         code.push('');
         material = 'H2O';
@@ -517,13 +518,13 @@ n.reckon = (d, s, c) => {
     code.push(...write_cmd(cmd.idle));
     pick_tool(0);
 
-    //c.code = code.join('\r\n');
+    c.code = code.join('\r\n'); // side effect okay here?! #1
     //c.surface = ribbon;
     //ax.curve = curves;
     return{
         design: 'curve',
         curves: curves.map(curve=> d.part.curve(d, curve)),
-        code:   code.join('\r\n'),
+        //code:   code.join('\r\n'),
     };
 };
 export const post = n;

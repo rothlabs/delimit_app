@@ -14,10 +14,10 @@ const subject_tags = [
 ]; //'mixed_curve', 
 const source_tags = [
     'boundary', 'guide', 'mix', 'target', 'mixed_curve',
-];
+]; 
 const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
-    'public', 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
-    'fill', 'corner',
+    'public', 'manual_compute', // 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
+    //'fill', 'corner',
 ];
 const cast_tags = [...cat_tags];//[...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
@@ -31,7 +31,8 @@ const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 //const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
 const admin_tags = ['profile', ...cat_tags]; //category_tags
 const bool_tags = [model_tags['b'],
-    'coil', 'axial',
+    'visible', 'autocalc', 
+    'coil', 'axial', 
 ];
 const int_tags = [model_tags['i'],
     'order', 'current_image', 
@@ -41,7 +42,9 @@ const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
     'width', 'height',
-    'offset', 'layer_height', 'density', 'spread_angle', 'speed', 'flow', 'cord_radius', 
+    'spread_angle', 
+    'slice_spacing', 'slice_offset', 'layer_spacing', 'layer_offset',
+    'cord_radius', 'speed', 'flow',  
     'origin_x', 'origin_y', 'origin_z', 'origin_a', 
     'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
     'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', //'offset_a',
@@ -51,6 +54,7 @@ const string_tags = [model_tags['s'], // rename to text_tags
     'name', 'story', 'code', 'data',
     'color_a', 'color_b',
     'material', 
+    'plane',
 ]; 
 const atom_tags   = Object.values(model_tags).slice(1);
 
@@ -115,7 +119,7 @@ export const create_base_slice = (set,get)=>({
         'stroke':         'bi-slash-lg',
         'machine':        'bi-device-ssd',
         'mix':            'bi-bezier',
-        'guide':          'bi-rulers',
+        'guide':          'bi-bezier2',
     },
 
     max_click_delta: 7,

@@ -27,7 +27,7 @@ export function Buttons({t}){
         asset && c(Fragment, {}, 
             ...buttons.map((button,i)=>
                 c(Button, {
-                    className: button.icon,
+                    className: 'border-0 ' + button.icon,
                     variant: 'outline-secondary',
                     onClick:e=> ss(d=> button.func(d)),
                 }),

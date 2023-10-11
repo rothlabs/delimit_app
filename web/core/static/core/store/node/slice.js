@@ -95,20 +95,22 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 // connect front and back of slice loop
 
 const n = {};
-n.bool = {coil:false, axial:false};
+n.bool = {coil:false, axial:false}; //manual_compute:true, 
 n.int = {layers:1, axes:1};
 n.float = {
     axis_x:0, axis_y:0, axis_z:0,
-    density:0, speed:40, flow:1, cord_radius:0.2, 
-    spread_angle:30, offset:0, layer_height:0.8 
+    spread_angle:30,
+    slice_spacing:0.8, layer_spacing:0.8, 
+    slice_offset:0,    layer_offset:0,
+    cord_radius:0.2,   speed:40,    flow:1, 
 };
 n.string = {material:'PLA'};
 n.source = ['surface', 'boundary'];
 n.reckon = (d, s, c) => {
     //var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
     //const slice_cnt = d.easel_size;
-    const layer_div = (c.cord_radius*2) * c.layer_height;
-    const slice_div = (c.cord_radius*2) / c.density; 
+    const layer_div = c.layer_spacing * c.cord_radius*2;
+    const slice_div = c.slice_spacing * c.cord_radius*2; 
     //const half_slice_cnt = Math.round(d.easel_size/slice_div/2);
     const curves = [];
     
@@ -170,7 +172,7 @@ n.reckon = (d, s, c) => {
         m2.copy(m1).invert();
         for(let sp = -d.easel_size/2; sp < d.easel_size/2; sp += slice_div){
             segs[ai].push([]);
-            m3.makeTranslation(0, 0, sp + slice_div/2)
+            m3.makeTranslation(0, 0, sp + c.slice_offset + slice_div/2);
             var seg_cnt = 0;
             conforms.forEach(conform=>{
                 conform.boundsTree.bvhcast(plane.boundsTree, m3, {
@@ -334,7 +336,7 @@ n.reckon = (d, s, c) => {
                 for(let i = 0; i < seq[pi].length; i++){
                     if(i < seq[pi].length-1){
                         v1.copy(seq[pi][i+1].p).sub(seq[pi][i].p).negate()
-                            .cross(axes[ai].v).normalize().multiplyScalar((li*layer_div)+c.offset);
+                            .cross(axes[ai].v).normalize().multiplyScalar((li*layer_div) + c.layer_offset);
                         //v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
                     }
                     path.push({
@@ -516,7 +518,7 @@ n.reckon = (d, s, c) => {
                     curves.push(curves[i]);
                     paths.push({
                         ribbon:      paths[i].ribbon, 
-                        speed:       c.speed * (0.3/(1+(k))), 
+                        speed:       c.speed * (0.4/(1+(k))), 
                         flow:        c.flow,
                         material:    'AIR',
                         cord_radius: c.cord_radius,

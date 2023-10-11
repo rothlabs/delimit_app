@@ -12,6 +12,7 @@ const rail_res = 100; // 60
 const loop_res = 10; // how many extra ribs to make between given ribs
 
 const n = {};
+n.autocalc = true;
 //n.int = {order:0, current_image:0};
 n.source = ['curve', 'guide']; // 'image'
 n.reckon = (d, s, c) => {

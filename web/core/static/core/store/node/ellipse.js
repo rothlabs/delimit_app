@@ -14,6 +14,7 @@ const make = (c)=> new EllipseCurve(
 );
 
 const n = {};
+n.autocalc = true;
 n.float = {
     x:0, y:0, z:0, 
     axis_x:0, axis_y:1, axis_z:0, 

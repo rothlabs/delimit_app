@@ -74,6 +74,7 @@ const mixed = (d, s, c)=>{
 }
 
 const n = {};
+n.autocalc = true;
 n.source = ['point', 'mix'];
 n.reckon = (d, s, c)=>{
     if(s.point.length > 2) return nurbs(d, s, c);

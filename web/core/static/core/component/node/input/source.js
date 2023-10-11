@@ -59,7 +59,7 @@ export function Source({t}){
 								),
 								buttons.map(button=>
 									c(Button, {
-										className: button.icon,
+										className: 'border-0 ' + button.icon,
 										variant: 'outline-secondary',
 										onClick:e=> ss(d=> button.func(d, n)),
 									}),

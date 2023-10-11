@@ -38,7 +38,7 @@ export function Mover(){
             depthTest:false,
             fixed:true,
             lineWidth:3,
-            rotation: [mover.rot.x, mover.rot.y, mover.rot.z],
+            /////rotation: [mover.rot.x, mover.rot.y, mover.rot.z],
             //autoTransform: false,
             //matrix: mtx,
             onDragStart:e=> fs(d=>{ 

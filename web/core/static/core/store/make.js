@@ -9,53 +9,54 @@ export const create_make_slice = (set,get)=>({make:{
     //     d.make.buttons = d.subject
     // },
     edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
-        if(d.node.be(d,r) && d.node.be(d,n)){
-            if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
-                var t = d.n[n].t;
-                //if(d.n[r].t == 'group')  t = 'group'; 
-                if(a.t != undefined) t = a.t;
-                //if(d.n[r].t == 'public') t = 'viewable';
-                if(r==d.profile && t!='viewable') t = 'asset';
-                if(!d.n[r].n[t]) d.n[r].n[t] = [];
-                /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
-                //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
-                if(!d.n[r].n[t].includes(n)){
-                    var o = a.o;
-                    if(a.o==undefined) o = d.n[r].n[t].length;
-                    d.n[r].n[t].splice(o, 0, n); //d.n[r].n[t].splice(a.o, 0, n);
-                    //console.log('make edge o', d.n[r].t, d.n[n].t, t, o);
-                    //if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
-                    //else              {d.n[r].n[t].push(n)}
-                    var rt = d.n[r].t;
-                    if(d.root_tags[t]) rt=d.root_tags[t];
-                    if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
-                    d.n[n].r[rt].push(r); // reverse relationship 
-                    if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
-                        d.node.r(d,r).filter(r=> d.n[r].t=='group').forEach(r=>{ // deep?  //d.node.re(d,r).filter(e=> d.n[e.r].t=='group')
-                            d.make.edge(d, r, n, {src:a.src}); //, e.r 
-                        });
-                    }
-
-
-                    // if(!d.cast_end[d.n[r].t]){
-                    //     const content_packs = [{c:d.n[r].c,t:'c'},{c:d.n[r].ax,t:'ax'}];
-                    //     content_packs.forEach(cp=>{
-                    //         Object.entries(cp.c).forEach(([t,cc])=>{
-                    //             if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
-                    //                 d.n[n][cp.t][t] = cc; 
-                    //                 if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
-                    //             }
-                    //         });
-                    //     });
-                    // }
-
-
-                    ////d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
-                    d.next('reckon.up', r, ['make.edge', t]); 
-                    d.next('graph.update');
-                    d.next('pick.update');
-                    d.next('design.show');
+        if(!d.node.be(d,r) || !d.node.be(d,n)) return;
+        if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
+            if(a.single && d.n[r].n[a.t]) return;
+            
+            /////var t = d.n[n].t;
+            //if(d.n[r].t == 'group')  t = 'group'; 
+            let t = a.t ?? d.n[n].t;//////////if(a.t != undefined) t = a.t;
+            //if(d.n[r].t == 'public') t = 'viewable';
+            if(r==d.profile && t!='viewable') t = 'asset';
+            if(!d.n[r].n[t]) d.n[r].n[t] = [];
+            /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
+            //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
+            if(!d.n[r].n[t].includes(n)){
+                var o = a.o;
+                if(a.o==undefined) o = d.n[r].n[t].length;
+                d.n[r].n[t].splice(o, 0, n); //d.n[r].n[t].splice(a.o, 0, n);
+                //console.log('make edge o', d.n[r].t, d.n[n].t, t, o);
+                //if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
+                //else              {d.n[r].n[t].push(n)}
+                var rt = d.n[r].t;
+                if(d.root_tags[t]) rt=d.root_tags[t];
+                if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
+                d.n[n].r[rt].push(r); // reverse relationship 
+                if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
+                    d.node.r(d,r).filter(r=> d.n[r].t=='group').forEach(r=>{ // deep?  //d.node.re(d,r).filter(e=> d.n[e.r].t=='group')
+                        d.make.edge(d, r, n, {src:a.src}); //, e.r 
+                    });
                 }
+
+
+                // if(!d.cast_end[d.n[r].t]){
+                //     const content_packs = [{c:d.n[r].c,t:'c'},{c:d.n[r].ax,t:'ax'}];
+                //     content_packs.forEach(cp=>{
+                //         Object.entries(cp.c).forEach(([t,cc])=>{
+                //             if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
+                //                 d.n[n][cp.t][t] = cc; 
+                //                 if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
+                //             }
+                //         });
+                //     });
+                // }
+
+
+                ////d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
+                d.next('reckon.up', r);///////, ['make.edge', t]); 
+                d.next('graph.update');
+                d.next('pick.update');
+                d.next('design.show');
             }
         }
     },
@@ -106,6 +107,10 @@ export const create_make_slice = (set,get)=>({make:{
         return n;
     },
     atom(d, m, v, a={}){ // just check v to figure if b, i, f, or s
+        if(a.single){
+            let r = Array.isArray(a.r) ? a.r : [a.r];
+            if(r.every(r=> d.n[r].n[a.t])) return;
+        }
         const n = d.make.node(d, m, d.model_tags[m], a); //{r:r, t:t}
         d.n[n].v = v; 
         return n;

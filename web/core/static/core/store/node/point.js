@@ -1,6 +1,7 @@
 import {Vector3} from 'three';
 
 const n = {};
+n.autocalc = true;
 n.float = {x:0, y:0, z:0};
 n.reckon = (d, s, c)=>{
     const x = c.x ?? 0;

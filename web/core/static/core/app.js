@@ -251,18 +251,18 @@ export const ss = func=> {
 export const fs = func=>{                 // this might be the secret sauce to async functions! #1
     //console.log('fork state');
     fork = next_state(gs(), func).state;
-    original_fork = next_state(gs(), func).state;;
+    //original_fork = next_state(gs(), func).state;;
 }; 
 
 // set fork
 export const sf = func=>{
     //console.log('set fork');
     if(fork != null){
-        fork = next_state(fork, func).state;
+        next_state(fork, func).state;
         //fork = next_state(fork, func).state; 
     }else{
-        //console.log('TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
-        assert(false, 'TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
+        console.log('TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
+        //assert(false, 'TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
     }
     //next_state(fork, func);
 }; 
@@ -271,11 +271,12 @@ export const sf = func=>{
 export const mf = func=>{ // watch out for no-change resulting in undefined d!?!?!
     if(fork != null){
         console.log('merge state!');
-        commit_state(next_state(original_fork, func));
+        commit_state(next_state(fork, func));
+        //commit_state(next_state(original_fork, func));
         fork = null;
     }else{
-        //console.log('TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
-        assert(false, 'TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
+        console.log('TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
+        //assert(false, 'TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
     }
 }; 
 

@@ -1,31 +1,24 @@
-import { Matrix4, Vector3, Euler, Quaternion, MathUtils} from 'three';
 //import {current} from 'immer';
 //import lodash from 'lodash';
 
-const v1 = new Vector3();
-const v2 = new Vector3();
-const v3 = new Vector3();
-const euler = new Euler();
-const quaternion = new Quaternion();
-
 export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
-    up(d, n, cause){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
-        d.reckon.base(d, n, cause);
+    up(d, n, a={}){ // rename to d.reckon.up // might need to check for node existence or track original reckon call
+        d.reckon.base(d, n, a);
     },
-    base(d, n, cause=[]){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
+    base(d, n, a={}){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
         if(d.cast_map[d.n[n].t]){ // it is a category node if its tag is in the cast map
             d.n[n].c[d.n[n].t] = true;
             d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
         }
-        d.reckon.props(d, n, ['name', 'story']);
-        d.reckon.props(d, n, Object.keys(d.node.transform.float));
+        d.reckon.props(d, n, ['name', 'story', 'visible', 'autocalc',]);
+        d.reckon.props(d, n, Object.keys(d.node.transform.common_float));
         d.n[n].c.matrix = d.node.transform.matrix(d, d.n[n].c);
         const node = d.node[d.n[n].t];
         if(node){
             if(node.bool){
-                d.reckon.props(d, n, Object.keys(node.bool));
+                d.reckon.props(d, n, Object.keys(node.bool)); // do not need to reckon props on way up if caused by source node!!!!!! #1
             }
             if(node.int){
                 d.reckon.props(d, n, Object.keys(node.int));
@@ -37,7 +30,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 d.reckon.props(d, n, Object.keys(node.string));
             }
         }
-        if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
+        if(d.n[n].v != null || (node && node.autocalc) || d.n[n].c.autocalc || a.manual){//cause.includes('manual_compute')){ //if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){ 
             if(node && node.reckon){// && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){
                 //d.reckon[d.n[n].t].result(d, n, d.n[n].c, {cause:cause}); // get more cast_downs from here so it all goes down in one cast.down call ?!?!?!
                 try{
@@ -56,33 +49,36 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                     console.log('Reckon Error: '+d.n[n].t, e);
                 }
             }
-            d.node.for_r(d, n, r=> d.next('reckon.up', r, [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
+            d.node.for_r(d, n, r=> d.next('reckon.up', r));// [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         }
-        // if(node && node.view){
-        //     node.view(); // update rendering relevant stuff only
-        // }
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
     props(d, n, t){ // rename to props ?!?!?!?!
-        const result = {};
+        // // const result = {};
         t.forEach(t=>{//t.split(' ').forEach(t=>{
             if(d.n[n].n && d.n[n].n[t]){ //  && d.node.be(d,d.n[n].n[t][0])
-                if(d.n[n].n[t].length > 1){ // and tag is not singleton ?!?!?! (x, y, z, etc should only have one!) 
-                    result[t] = [];
-                    d.n[n].n[t].forEach(nn=>{
-                        if(d.node.be(d,nn)) result[t].push(d.n[nn].v);
-                    });
-                }else if(d.node.be(d,d.n[n].n[t][0])){
-                    result[t] = d.n[d.n[n].n[t][0]].v;
-                }
-                d.n[n].c[t] = result[t];
+                d.n[n].c[t] = d.n[d.n[n].n[t][0]].v;
+                // // if(d.n[n].n[t].length > 1){ // and tag is not singleton ?!?!?! (x, y, z, etc should only have one!) 
+                // //     result[t] = [];
+                // //     d.n[n].n[t].forEach(nn=>{ // could use for_nt ?! #1
+                // //         if(d.node.be(d,nn)) result[t].push(d.n[nn].v);
+                // //     });
+                // // }else if(d.node.be(d,d.n[n].n[t][0])){
+                // //   result[t] = d.n[d.n[n].n[t][0]].v;
+                // // }
+                // // d.n[n].c[t] = result[t];
             }else{   delete d.n[n].c[t];  } // d.n[n].c[t]=null; // should delete attr instead ?!?!?!
         });
         //if(lodash.isEmpty(result)) return null; 
         //return result;
     },
 }});
+
+
+        // if(node && node.view){
+        //     node.view(); // update rendering relevant stuff only
+        // }
 
 // if(node.props){
             //     d.reckon.props(d, n, node.props);
