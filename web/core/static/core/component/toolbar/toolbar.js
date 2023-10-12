@@ -55,7 +55,7 @@ export function Toolbar(){
                         d.design.part = design_candidate; 
                         d.studio.mode = 'design';
                         d.design.show(d);
-                        d.pick.none(d);
+                        //d.pick.none(d);
                     }),
                 }, c('i',{className:'bi-pencil-square', style:{fontSize:'24px'}}), ' Edit'),
                 reckonable && c(Button, {

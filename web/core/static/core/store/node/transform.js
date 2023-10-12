@@ -9,6 +9,7 @@ const quaternion = new Quaternion();
 const n = {};
 n.autocalc = true;
 n.source = ['target'];
+n.bool = {corner:false};
 n.common_float = {
     move_x:0,  move_y:0,  move_z:0, 
     turn_x:0,  turn_y:0,  turn_z:0, 

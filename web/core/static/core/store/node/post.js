@@ -1,6 +1,8 @@
 import {current} from 'immer';
 import {Vector3, Vector4, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
 
+// y-103 nozzle almost touches bottom of build rod
+
 ////////////////////////////////  Machine Data //////////////////////
 // Home is -1000 for X and Z 
 // Home is 0 for Y
@@ -28,7 +30,7 @@ const back    = new Vector3(0, 0,-1);
 const down    = new Vector3(0,-1, 0);
 
 const ribbon_div = 2;
-const normal_smooth_span = 8; // mm
+const normal_smooth_range = 20;//8; // mm
 //const ribbon_div = 2;
 
 // machine space, absolute:
@@ -91,7 +93,7 @@ const tool_offset_a = 35;
 //     heat_t4: false,
 // };
 
-const machine_z_y_ratio = 0.9;
+const machine_z_y_ratio = 1;
 const pva_offset_z = 14; // 20
 
 const n = {};
@@ -143,7 +145,7 @@ n.reckon = (d, s, c) => {
             if(a.z != undefined){
                 a.z  = -a.z;
                 //if(material == 'AIR') a.z -= 20;
-                if(material == 'PVA') a.z += (a.y * machine_z_y_ratio) + pva_offset_z;
+                if(material == 'PVA') a.z += (a.y * machine_z_y_ratio) + mach.fluid_z;
             }
             if(a.a != undefined)  a.a  = MathUtils.radToDeg(-a.a) + tool_offset_a;//mach.offset_a;
             if(a.b != undefined)  a.b  = MathUtils.radToDeg(-a.b);
@@ -168,8 +170,8 @@ n.reckon = (d, s, c) => {
                 var diff = tool_aim_z - mach_a;
                 mach_a = tool_aim_z - (diff*(-mach_y/280));
             }
-            if(mach_y > -100 && mach_a > tool_aim_z+45){
-                mach_a = tool_aim_z+45;
+            if(mach_y > -100 && mach_a > tool_aim_z + 60){
+                mach_a = tool_aim_z + 60; // + 45
                 //var diff = tool_aim_z - mach_a;
                 //mach_a = tool_aim_z - (diff*(-mach_y/200));
             }
@@ -197,7 +199,7 @@ n.reckon = (d, s, c) => {
     function pick_tool(id){
         if(tool == id) return;
         code.push('(Tool '+id+')');
-        move({y:-300, z:-900});
+        move({y:-300, z:-950});
         if(tool > 0){
             move({x:tools[tool].x, a:mach.origin_a+12}); // was 8 // position above holder
             move({y:mach.holder_y+60});
@@ -248,7 +250,7 @@ n.reckon = (d, s, c) => {
     function start_pva(){
         if(material == 'PVA') return;
         code.push('', '(Start PVA)');
-        move({z:-900, back_to_g1:true});
+        move({z:-950, back_to_g1:true});
         code.push(...write_cmd(cmd.open_cap, {no_white_space:true}));
         code.push(...write_cmd(cmd.flow_t1b, {no_white_space:true}));
         code.push('M3 S1000');
@@ -258,7 +260,7 @@ n.reckon = (d, s, c) => {
     }
     function flush(a={}){
         code.push('', '(Flush)');
-        move({z:-900, back_to_g1:true}); //move({x:-900, z:-900, a:mach.origin_a-90+tool_offset_a});
+        move({z:-950, back_to_g1:true}); //move({x:-900, z:-900, a:mach.origin_a-90+tool_offset_a});
         code.push(...write_cmd(cmd.flow_t1a,  {no_white_space:true}));
         if(a.hard){
             code.push('M3 S1000'); 
@@ -362,7 +364,7 @@ n.reckon = (d, s, c) => {
 
         // Smooth normals over travel:
         var pt_span = curve.getLength() / pts.length;
-        var range = Math.round(normal_smooth_span / pt_span / 2) + 1; // remove +1? #2
+        var range = Math.round(normal_smooth_range / pt_span / 2) + 1; // remove +1? #2
         for(let i=0; i<nml.length; i++){ 
             var vc = 1;
             var rng = range;
@@ -810,7 +812,7 @@ export const post = n;
 // });
 
 // const pt_span = curve.getLength() / pts.length;
-// const range = Math.round(normal_smooth_span / pt_span / 2) + 1; // +1 here ?!?!?!?!?!
+// const range = Math.round(normal_smooth_range / pt_span / 2) + 1; // +1 here ?!?!?!?!?!
 // for(let i=0; i<nml.length; i++){ 
 //     var vc = 1;
 //     var rng = range;

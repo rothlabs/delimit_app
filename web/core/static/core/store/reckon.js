@@ -8,10 +8,10 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     },
     base(d, n, a={}){ // different causes are making reckons happen more than needed ?!?!?!?!?!?!
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
-        if(d.cast_map[d.n[n].t]){ // it is a category node if its tag is in the cast map
-            d.n[n].c[d.n[n].t] = true;
-            d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
-        }
+        // if(d.cast_map[d.n[n].t]){ // it is a category node if its tag is in the cast map
+        //     d.n[n].c[d.n[n].t] = true;
+        //     d.cast.down(d, n, d.n[n].t, {shallow:d.cast_shallow_map[d.n[n].t]});
+        // }
         d.reckon.props(d, n, ['name', 'story', 'visible', 'autocalc',]);
         d.reckon.props(d, n, Object.keys(d.node.transform.common_float));
         d.n[n].c.matrix = d.node.transform.matrix(d, d.n[n].c);

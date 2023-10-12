@@ -25,6 +25,9 @@ const m1 = new Matrix4();
 const m2 = new Matrix4();
 const m3 = new Matrix4();
 
+const pln1 = new Plane();
+const pln2 = new Plane();
+
 const d2v1 = new Vector2();
 
 const point = new Vector3();
@@ -46,6 +49,7 @@ const tri1 = new Triangle();
 
 //const slice_div = 5; 
 const surface_div = 400;
+const slice_lerp_range = 5;
 const pts_per_mesh    = 1000000;
 const edge_pts_per_mesh = 100000;
 const end_surface_div = 900;
@@ -96,7 +100,7 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 
 const n = {};
 n.bool = {coil:false, axial:false}; //manual_compute:true, 
-n.int = {layers:1, axes:1};
+n.int = {layers:1, axes:1, repeats: 0};
 n.float = {
     axis_x:0, axis_y:0, axis_z:0,
     spread_angle:30,
@@ -120,11 +124,11 @@ n.reckon = (d, s, c) => {
     axis.set(c.axis_x, c.axis_y, c.axis_z).normalize();
     axis_t.copy(axis);
     if(c.axes > 1){
-        ortho1.randomDirection().cross(axis).normalize();
+        ortho1.randomDirection().cross(axis).normalize(); // ortho1.set(0,0,1).cross(axis).normalize();
         axis_t.applyAxisAngle(ortho1, MathUtils.degToRad(c.spread_angle));
     }
     for(let i=0; i<c.axes; i++){
-        ortho1.randomDirection().cross(axis_t).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
+        ortho1.set(0,0,1).cross(axis_t).normalize();//ortho1.randomDirection().cross(axis_t).normalize();//ortho1.set(c.axis_z, c.axis_x, c.axis_y).normalize();
         ortho2.copy(ortho1).cross(axis_t).normalize();
         axes.push({v:axis_t.clone(), ortho1:ortho1.clone(), ortho2:ortho2.clone()});
         axis_t.applyAxisAngle(axis, Math.PI*2 / c.axes);
@@ -150,6 +154,7 @@ n.reckon = (d, s, c) => {
     
 
     console.log('Slice: segs'); 
+    let adj_slice_div = slice_div;// * slice_lerp_range;
     var max_seg_cnt = 0;
     const plane = new PlaneGeometry(d.easel_size, d.easel_size); 
     plane.computeBoundsTree({maxLeafTris: 1, strategy: CENTER});
@@ -170,9 +175,9 @@ n.reckon = (d, s, c) => {
             conform.computeBoundsTree({maxDepth: 100, maxLeafTris: 1, strategy: CENTER});
         });
         m2.copy(m1).invert();
-        for(let sp = -d.easel_size/2; sp < d.easel_size/2; sp += slice_div){
+        for(let sp = -d.easel_size/2; sp < d.easel_size/2; sp += adj_slice_div){
             segs[ai].push([]);
-            m3.makeTranslation(0, 0, sp + c.slice_offset + slice_div/2);
+            m3.makeTranslation(0, 0, sp + c.slice_offset);// + reduced_slice_div/2);
             var seg_cnt = 0;
             conforms.forEach(conform=>{
                 conform.boundsTree.bvhcast(plane.boundsTree, m3, {
@@ -181,7 +186,7 @@ n.reckon = (d, s, c) => {
                             triangle1.getNormal(normal);
                             seg.applyMatrix4(m2);
                             normal.applyMatrix4(m2);
-                            dir.copy(seg.end).sub(seg.start).normalize();
+                            dir.copy(seg.end).sub(seg.start);//.normalize();
                             v1.copy(dir).cross(normal).normalize();
                             if(v1.dot(axes[ai].v) > 0){
                                 segs[ai].at(-1).push(
@@ -216,7 +221,6 @@ n.reckon = (d, s, c) => {
             });
             segs[ai].at(-1).unshift(seg_cnt);
             if(max_seg_cnt < seg_cnt) max_seg_cnt = seg_cnt;
-            
         }
     }
     console.log('Slice: fill empty');
@@ -286,16 +290,24 @@ n.reckon = (d, s, c) => {
     //     src_paths.push([]);
     // }
     //const seqs = [];
+    //let seams = null;
+    //let prev_seams = null;
+    //let seq_count = 1;
+    
+    //const skip_idx = [];
+    //let prev_seq = null;
+    let prev_seq_count = 1;
     function make_slice(ai, si){
-        const seq = [];//seqs[ai].push([]);
+        let seq = [];//seqs[ai].push([]);
         const starts = [];
         //const ends = [];
         for(let i = 0; i < segs[ai][si][0]; i++){
             if(links[ai][si][i][0] == 0) starts.push(i);
             //if(links[ai][si][i][0] == 2) ends.push(i);
         }
+        //if(starts.length > 1) 
         //console.log('starts ends', starts.length, ends.length);
-        //if(starts.length != ends.length) continue;
+        //if(starts.length != ends.length) console.log('starts ends', starts.length, ends.length);
         var used = new Array(segs[ai][si][0]).fill(false);
         function make_sequence(i){
             seq.push([]);//seqs[ai][si].push([]);
@@ -330,6 +342,89 @@ n.reckon = (d, s, c) => {
                 return true;
             }) == undefined) break;
         }
+        let reduced = [];
+        if(seq.length > prev_seq_count){
+            const max_dist = 0.001;
+            var used = new Array(seq.length).fill(false);
+            var j = -1;
+            for(let pi = 0; pi < seq.length; pi++){
+                if(used[pi] && seq[pi].length) continue;
+                reduced.push(seq[pi]);
+                j++;
+                for(let k = 0; k < seq.length; k++){
+                    if(used[k] || pi == k) continue;
+                    if(reduced[j][0].p.distanceTo(seq[k][0].p) < max_dist){
+                        reduced[j] = [...seq[k].reverse(), ...reduced[j]];
+                        used[k] = true;
+                        k = 0;
+                    }else if(reduced[j][0].p.distanceTo(seq[k].at(-1).p) < max_dist){
+                        reduced[j] = [...seq[k], ...reduced[j]];
+                        used[k] = true;
+                        k = 0;
+                    }else if(reduced[j].at(-1).p.distanceTo(seq[k][0].p) < max_dist){
+                        reduced[j] = [...reduced[j], ...seq[k]];
+                        used[k] = true;
+                        k = 0;
+                    }else if(reduced[j].at(-1).p.distanceTo(seq[k].at(-1).p) < max_dist){
+                        reduced[j] = [...reduced[j], ...seq[k].reverse()];
+                        used[k] = true;
+                        k = 0;
+                    }
+                    //connect_sequence(j, k);
+                }
+            }
+            seq = reduced;
+            console.log('reduced!!!');
+        }
+        reduced = [];
+        for(let pi = 0; pi < seq.length; pi++){
+            if(seq[pi].length > 2) reduced.push(seq[pi]);
+        }
+        seq = reduced;
+        
+        if(c.coil){
+            if(seq.length > 1){
+                let max_cnt = 0;
+                let max_cnt_idx = -1;
+                for(let pi = 0; pi < seq.length; pi++){
+                    if(max_cnt < seq[pi].length){
+                        max_cnt = seq[pi].length;
+                        max_cnt_idx = pi;
+                    }
+                }
+                seq = [seq[max_cnt_idx]];
+            }
+            //if(seq.length > 1) seq = prev_seq;
+            //prev_seq = seq;//seq[0].map(e=> ({p:e.p.clone(), n:e.n.clone()}));
+        }
+        pln1.set(axes[ai].ortho1, 0);
+        //pln2.set(axes[ai].ortho2, 0);
+        for(let pi = 0; pi < seq.length; pi++){
+            if(seq[pi][0].p.distanceTo(seq[pi].at(-1).p) < 5){
+                let min_dist = Infinity;
+                //let max_dist_pln2 = 0;
+                let k = -1;
+                for(let i = 1; i < seq[pi].length; i++){
+                    let dist = Math.abs(pln1.distanceToPoint(seq[pi][i].p));
+                    let dir = v1.copy(seq[pi][i].p).sub(seq[pi][i-1].p).normalize().dot(axes[ai].ortho1);
+                    if(min_dist > dist && dir < 0){
+                        min_dist = dist;
+                        k = i;
+                    }
+                }
+                //console.log('set start index', k);
+                if(k > 0) seq[pi] = [...seq[pi].slice(k), ...seq[pi].slice(0,k)];
+                seq[pi].push(seq[pi][0]);
+            }
+        }
+        console.log('sequence count: ', seq.length);
+        prev_seq_count = seq.length;
+        //seq_count = seq.length;
+        //prev_seams = seams;
+        // // seams = [];
+        // // for(let pi = 0; pi < seq.length; pi++){
+        // //     seams.push(seq[pi][0].p);
+        // // }
         for(let li = 0; li < c.layers; li++){
             for(let pi = 0; pi < seq.length; pi++){
                 var path = [];
@@ -340,7 +435,7 @@ n.reckon = (d, s, c) => {
                         //v1.copy(seq[pi][i].n).multiplyScalar((li+0.5)*layer_div);
                     }
                     path.push({
-                        p: seq[pi][i].p.clone().add(v1),
+                        p: seq[pi][i].p.clone().add(v1), // does it need to clone?! #1
                         n: seq[pi][i].n,
                     });
                 }
@@ -355,19 +450,43 @@ n.reckon = (d, s, c) => {
         }
     }
 
+    // lerp slices 
+    // for(let li=0; li < c.layers; li++){ 
+    //     const filled_paths = [];
+    //     for(let pi=0; pi < src_paths[li].length-1; pi++){ 
+    //         filled_paths.push(src_paths[li][pi]);
+    //         const fillers = [];
+    //         for(let i1=0; i1 < src_paths[li][pi].length; i1++){ 
+    //             var i2 = Math.round(MathUtils.clamp(
+    //                 i1 / src_paths[li][pi].length * src_paths[li][pi+1].length, 0, src_paths[li][pi+1].length-1
+    //             ));
+    //             for(let k = 0; k < slice_lerp_range; k++){
+    //                 let ratio = (1 / slice_lerp_range) * k;
+    //                 if(!fillers[k]) fillers.push([]);
+    //                 fillers[k].push({
+    //                     p: v1.lerpVectors(src_paths[li][pi][i1].p, src_paths[li][pi+1][i2].p, ratio).clone(),
+    //                     n: v1.lerpVectors(src_paths[li][pi][i1].n, src_paths[li][pi+1][i2].n, ratio).clone(),
+    //                 });
+    //             }
+    //         }
+    //         filled_paths.push(...fillers);
+    //     }
+    //     src_paths[li] = filled_paths;
+    // }
+
     if(c.coil){
         for(let li=0; li < c.layers; li++){ 
             const coil_path = [];
             for(let pi=0; pi < src_paths[li].length-1; pi++){ 
-                for(let i1=0; i1 < src_paths[li][pi].length; i1++){ 
-                    //var i2 = Math.round(i1 / src_paths[li][pi].length * src_paths[li][pi+1].length);
-                    var i2 = Math.round(MathUtils.clamp(
-                        i1 / src_paths[li][pi].length * src_paths[li][pi+1].length, 0, src_paths[li][pi+1].length-1
-                    ));
-                    var ratio = i1 / (src_paths[li][pi].length);
+                const crv1 = new CatmullRomCurve3(src_paths[li][pi].map(e=> e.p));
+                const pts1 = crv1.getSpacedPoints(src_paths[li][pi].length-1);
+                const crv2 = new CatmullRomCurve3(src_paths[li][pi+1].map(e=> e.p));
+                const pts2 = crv2.getSpacedPoints(src_paths[li][pi].length-1);
+                for(let i=0; i < pts1.length; i++){ 
+                    let ratio = i / (pts1.length-1);
                     coil_path.push({
-                        p: v1.lerpVectors(src_paths[li][pi][i1].p, src_paths[li][pi+1][i2].p, ratio).clone(),
-                        n: v1.lerpVectors(src_paths[li][pi][i1].n, src_paths[li][pi+1][i2].n, ratio).clone(),
+                        p: v1.lerpVectors(pts1[i], pts2[i], ratio).clone(),
+                        n: v1.lerpVectors(src_paths[li][pi][i].n, src_paths[li][pi][i].n, ratio).clone(),
                     });
                 }
             }
@@ -491,7 +610,7 @@ n.reckon = (d, s, c) => {
         //if(curve.getLength() > min_length){
         curves.push(curve);
         //console.log(curve);
-        if(pva_start_idx < 0 && c.material == 'PVA') pva_start_idx = paths.length;
+        if(c.material == 'PVA' && pva_start_idx < 0) pva_start_idx = paths.length;
         paths.push({
             ribbon:      d.part.surface(d, pts, {length_v:curve.getLength()}), 
             speed:       c.speed, 
@@ -501,15 +620,15 @@ n.reckon = (d, s, c) => {
             name:        c.name,
         });
     }
+    for(let i=0; i<c.repeats; i++){ 
+        for(let pi=0; pi < src_paths[0].length; pi++){ 
+            make_path(src_paths[0][pi]);
+        }
+    }
     for(let li=0; li<c.layers; li++){ 
-        //for(let ai=0; ai<c.axes; ai++){ 
-            //for(let si=0; si<src_paths[li][ai].length; si++){
-                for(let pi=0; pi < src_paths[li].length; pi++){ 
-                    //var src_path = src_paths[li][ai][si][pth];
-                    make_path(src_paths[li][pi]);
-                }
-            //}
-        //}
+        for(let pi=0; pi < src_paths[li].length; pi++){ 
+            make_path(src_paths[li][pi]);
+        }
         if(pva_start_idx > -1){
             //const air_paths = [];
             let end_idx = paths.length;
@@ -532,7 +651,6 @@ n.reckon = (d, s, c) => {
     }
     
     console.log('Curves: '+curves.length);
-
     console.log('Reckoned Slice!!!');
     return{
         design: 'curve',
@@ -541,6 +659,111 @@ n.reckon = (d, s, c) => {
     }
 };
 export const slice = n;
+
+
+
+
+
+
+
+// if(c.coil){
+//     for(let li=0; li < c.layers; li++){ 
+//         const coil_path = [];
+//         for(let pi=0; pi < src_paths[li].length-1; pi++){ 
+//             for(let i1=0; i1 < src_paths[li][pi].length; i1++){ 
+//                 //var i2 = Math.round(i1 / src_paths[li][pi].length * src_paths[li][pi+1].length);
+//                 var i2 = Math.round(MathUtils.clamp(
+//                     i1 / src_paths[li][pi].length * src_paths[li][pi+1].length, 0, src_paths[li][pi+1].length-1
+//                 ));
+//                 var ratio = i1 / (src_paths[li][pi].length);
+//                 coil_path.push({
+//                     p: v1.lerpVectors(src_paths[li][pi][i1].p, src_paths[li][pi+1][i2].p, ratio).clone(),
+//                     n: v1.lerpVectors(src_paths[li][pi][i1].n, src_paths[li][pi+1][i2].n, ratio).clone(),
+//                 });
+//             }
+//         }
+//         src_paths[li] = [coil_path];
+//     }
+// }
+
+
+
+// // //let valid_slice = true;
+        // // if(seams){
+        // //     //if(seq.length != seq_count && seq.length == prev_seq_count){
+        // //     //    valid_slice = false;
+        // //     //}else{
+        // //         if(seq.length <= seams.length){
+        // //             for(let pi = 0; pi < seq.length; pi++){
+        // //                 let min_dist = Infinity;
+        // //                 let k = -1;
+        // //                 for(let i = 0; i < seq[pi].length; i++){
+        // //                     let dist = seq[pi][i].p.distanceTo(seams[pi]);
+        // //                     if(min_dist > dist){
+        // //                         min_dist = dist;
+        // //                         k = i;
+        // //                     }
+        // //                 }
+        // //                 seq[pi] = [...seq[pi].slice(k), ...seq[pi].slice(0,k)];
+        // //             }
+        // //         }
+        // //     //}
+        // // }
+
+
+
+// const reduced = [];
+//                 let pnt = seams[0];
+//                 const pts = seq.flat();
+//                 //var used = new Array(pts.length).fill(false);
+//                 let pnt_count = pts.length;
+//                 for(let j = 0; j < pnt_count; j++){
+//                     let min_dist = Infinity;
+//                     let idx = -1;
+//                     for(let k = 0; k < pts.length; k++){
+//                         let dist = pts[k].p.distanceTo(pnt);
+//                         if(min_dist > dist){
+//                             min_dist = dist;
+//                             idx = k;
+//                         }
+//                     }
+//                     pnt = pts[idx];
+//                     reduced.push(pnt);
+//                     pts.splice(idx, 1);
+//                     //used[k] = true;
+//                 }
+//                 seq = [reduced];
+
+
+// const max_dist = 0.008;
+//             var used = new Array(seq.length).fill(false);
+//             var j = -1;
+//             for(let pi = 0; pi < seq.length; pi++){
+//                 if(used[pi] && seq[pi].length) continue;
+//                 reduced.push(seq[pi]);
+//                 j++;
+//                 for(let k = 0; k < seq.length; k++){
+//                     if(used[k] || pi == k) continue;
+//                     if(reduced[j][0].p.distanceTo(seq[k][0].p) < max_dist){
+//                         reduced[j] = [...seq[k].reverse(), ...reduced[j]];
+//                         used[k] = true;
+//                         k = 0;
+//                     }else if(reduced[j][0].p.distanceTo(seq[k].at(-1).p) < max_dist){
+//                         reduced[j] = [...seq[k], ...reduced[j]];
+//                         used[k] = true;
+//                         k = 0;
+//                     }else if(reduced[j].at(-1).p.distanceTo(seq[k][0].p) < max_dist){
+//                         reduced[j] = [...reduced[j], ...seq[k]];
+//                         used[k] = true;
+//                         k = 0;
+//                     }else if(reduced[j].at(-1).p.distanceTo(seq[k].at(-1).p) < max_dist){
+//                         reduced[j] = [...reduced[j], ...seq[k].reverse()];
+//                         used[k] = true;
+//                         k = 0;
+//                     }
+//                     //connect_sequence(j, k);
+//                 }
+//             }
 
 
 
