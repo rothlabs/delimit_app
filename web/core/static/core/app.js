@@ -236,7 +236,7 @@ export const rs = func=> {
     const result = next_state(gs(), func); 
     if(fork){
         fork = applyPatches(fork, result.patches);
-        original_fork = applyPatches(original_fork, result.patches);
+        //original_fork = applyPatches(original_fork, result.patches);
     }
 } ;
 
@@ -258,7 +258,7 @@ export const fs = func=>{                 // this might be the secret sauce to a
 export const sf = func=>{
     //console.log('set fork');
     if(fork != null){
-        next_state(fork, func).state;
+        next_state(fork, func);//.state;
         //fork = next_state(fork, func).state; 
     }else{
         console.log('TRIED TO SET STATE FORK THAT DOES NOT EXIST!');

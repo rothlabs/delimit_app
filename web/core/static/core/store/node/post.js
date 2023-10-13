@@ -42,7 +42,7 @@ const normal_smooth_range = 20;//8; // mm
 
 // model space, relative:
 //const z_start = -40; 
-const pulloff = 25; // along surface normal
+const pulloff = 80; // was 25 // along surface normal
 
 const cmd = {
     idle:        '00000', // 0
@@ -79,7 +79,7 @@ const modal = ['idle', 'flow_t1a', 'flow_t1b', 'flow_t1c', 'step_t2', 'step_t3',
 const cmd_dwell = 0.02; // was 0.01
 const approx_rapid_interval = cmd_dwell;
 const preheat_interval = 165;
-const max_direct_dist = 4;
+const max_direct_dist = 10;
 const max_direct_dist_air = 10;
 const tool_offset_a = 35;
 //const max_brush_dist = 80;
@@ -166,9 +166,9 @@ n.reckon = (d, s, c) => {
         if(a.z != undefined) cl += ' Z'+d.rnd(ref.z+a.z, 1000);
         if(a.a != undefined){
             mach_a = d.rnd(ref.w+a.a, 1000);
-            if(mach_y > -120 && mach_a < tool_aim_z){
+            if(mach_y > -100 && mach_a < tool_aim_z){
                 var diff = tool_aim_z - mach_a;
-                mach_a = tool_aim_z - (diff*(-mach_y/280));
+                mach_a = tool_aim_z - (diff*(-mach_y/360)); //280
             }
             if(mach_y > -100 && mach_a > tool_aim_z + 60){
                 mach_a = tool_aim_z + 60; // + 45
@@ -345,10 +345,19 @@ n.reckon = (d, s, c) => {
         var dis = [0];
         var n_ref = [];
 
+        // for(let i=0; i < path.ribbon.length; i++){
+        //     pts.push(path.ribbon[i].p);
+        //     nml.push(path.ribbon[i].n.multiplyScalar(100));
+        //     n_ref.push(nml.at(-1).clone());
+        //     if(pts.length > 1){
+        //         curve.add(new LineCurve3(pts.at(-2), pts.at(-1)));
+        //         dis.push(pts.at(-2).distanceTo(pts.at(-1)));
+        //     }
+        // }
+
         //var length = path.ribbon.length_v; //path.curve.getLength(); 
         //total_length += length;
         // Collect point, normal, distance, and normal reference:
-        /////////var res = path.ribbon.length_v / ribbon_div; 
         for(let v=0; v<res; v++){
             pts.push(new Vector3());
             nml.push(new Vector3());
@@ -381,10 +390,13 @@ n.reckon = (d, s, c) => {
 
         if(model_offset_y == null) model_offset_y = -pts[0].y - 80; // 95
 
+        let up = new Vector3(0,1,0);
         function rotate_point_normal(i, b){
-            m1.makeRotationY(b); // Vector3.applyAxisAngle #2
-            pts[i].applyMatrix4(m1);
-            nml[i].applyMatrix4(m1);
+            //m1.makeRotationY(b); // Vector3.applyAxisAngle #2
+            //pts[i].applyMatrix4(m1);
+            //nml[i].applyMatrix4(m1);
+            pts[i].applyAxisAngle(up, b);
+            nml[i].applyAxisAngle(up, b);
         }
 
         // Write tool paths  to gcode:
@@ -394,7 +406,7 @@ n.reckon = (d, s, c) => {
             if(material == 'PVA'){
                 v1.copy(pts[i]).sub(v2.set(0, pts[i].y, 0)); // for aligning point on YZ plane
             }else{
-                v1.set(nml[i].x, 0, nml[i].z); // for pointing normal forward
+                v1.set(nml[i].x, 0, nml[i].z); // should be set(0, nml[i].y, nml[i].z)?!?!?!? #1 //  for pointing normal forward
                 //v3.set(0, nml[i].y, nml[i].z); //v1.set(normal.x, 0, normal.z);//
                 //axis_a = down.angleTo(v3) * Math.sign(nml[i].z);
             }
@@ -416,7 +428,7 @@ n.reckon = (d, s, c) => {
             // }else{
                 if(i == 0){
                     if(direct < 0){
-                        v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
+                        v2.copy(pts[i]).add(v3.copy(nml[i]).normalize().multiplyScalar(pulloff));
                         move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
                         if(material != 'AIR' && material != 'PVA') code.push('M3');//, 'G4 P0.08'); // open plug
                         move({p:pts[i], ref:'product', no_time:true});
@@ -451,8 +463,8 @@ n.reckon = (d, s, c) => {
                 if(i == pts.length-1){
                     if(pi < paths.length-1){
                         if(paths[pi].material == paths[pi+1].material){
-                            paths[pi  ].ribbon.get_point(0, 1, v1);
-                            paths[pi+1].ribbon.get_point(0, 0, v2);
+                            paths[pi  ].ribbon.get_point(0, 1, v1); //v1.copy(paths[pi  ].ribbon[0].p);//
+                            paths[pi+1].ribbon.get_point(0, 0, v2); //v2.copy(paths[pi+1].ribbon.at(-1).p);//
                             let dist = v1.distanceTo(v2);
                             if(dist < max_direct_dist || ((material=='AIR' || material=='PVA') && dist < max_direct_dist_air)){
                                 direct = dist;
@@ -462,7 +474,7 @@ n.reckon = (d, s, c) => {
                     }
                     if(direct < 0){
                         if(material != 'AIR' && material != 'PVA') code.push('M5 S0');
-                        v2.copy(pts[i]).add(v3.copy(nml[i]).multiplyScalar(pulloff));
+                        v2.copy(pts[i]).add(v3.copy(nml[i]).normalize().multiplyScalar(pulloff));
                         move({p:v2, ref:'product', no_time:true});
                     }
                 }

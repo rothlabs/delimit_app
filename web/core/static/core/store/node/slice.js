@@ -48,7 +48,7 @@ const tri1 = new Triangle();
 
 
 //const slice_div = 5; 
-const surface_div = 400;
+const surface_div = 300;
 const slice_lerp_range = 5;
 const pts_per_mesh    = 1000000;
 const edge_pts_per_mesh = 100000;
@@ -100,7 +100,7 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 
 const n = {};
 n.bool = {coil:false, axial:false}; //manual_compute:true, 
-n.int = {layers:1, axes:1, repeats: 0};
+n.int = {layers:1, axes:1, repeats:0, slows:0};
 n.float = {
     axis_x:0, axis_y:0, axis_z:0,
     spread_angle:30,
@@ -414,7 +414,7 @@ n.reckon = (d, s, c) => {
                 }
                 //console.log('set start index', k);
                 if(k > 0) seq[pi] = [...seq[pi].slice(k), ...seq[pi].slice(0,k)];
-                seq[pi].push(seq[pi][0]);
+                ///////////////////////////////////////////////////seq[pi].push(seq[pi][0]);
             }
         }
         console.log('sequence count: ', seq.length);
@@ -478,19 +478,42 @@ n.reckon = (d, s, c) => {
         for(let li=0; li < c.layers; li++){ 
             const coil_path = [];
             for(let pi=0; pi < src_paths[li].length-1; pi++){ 
-                const crv1 = new CatmullRomCurve3(src_paths[li][pi].map(e=> e.p));
-                const pts1 = crv1.getSpacedPoints(src_paths[li][pi].length-1);
-                const crv2 = new CatmullRomCurve3(src_paths[li][pi+1].map(e=> e.p));
-                const pts2 = crv2.getSpacedPoints(src_paths[li][pi].length-1);
-                for(let i=0; i < pts1.length; i++){ 
-                    let ratio = i / (pts1.length-1);
+                const path1 = src_paths[li][pi];
+                const path2 = src_paths[li][pi+1];
+                const pts1 = [[],[],[]];
+                const pts2 = [[],[],[]];
+                for(let i=0; i < path1.length; i++){ 
+                    pts1[0].push(path1[i].p.clone());
+                    pts1[1].push(path1[i].p.clone().add(v1.copy(path1[i].n).divideScalar(2)));
+                    pts1[2].push(path1[i].p.clone().add(path1[i].n));
+                }
+                for(let i=0; i < path2.length; i++){ 
+                    pts2[0].push(path2[i].p.clone());
+                    pts2[1].push(path2[i].p.clone().add(v1.copy(path2[i].n).divideScalar(2)));
+                    pts2[2].push(path2[i].p.clone().add(path2[i].n));
+                }
+                const ribbon1 = d.part.surface(d, pts1);
+                const ribbon2 = d.part.surface(d, pts2);
+                const res = new CatmullRomCurve3(pts1[0]).getLength() / 2;
+                for(let v = 0; v <= res; v++){
+                    let ratio = v / res;
+                    ribbon1.get_point(0, ratio, v1);
+                    ribbon2.get_point(0, ratio, v2);
+                    ribbon1.get_point(1, ratio, v3);
+                    ribbon2.get_point(1, ratio, v4);
                     coil_path.push({
-                        p: v1.lerpVectors(pts1[i], pts2[i], ratio).clone(),
-                        n: v1.lerpVectors(src_paths[li][pi][i].n, src_paths[li][pi][i].n, ratio).clone(),
+                        p: v5.lerpVectors(v1, v2, ratio).clone(),
+                        n: v6.lerpVectors(v3.sub(v1), v4.sub(v2), ratio).clone(), //src_paths[li][pi][i].n.clone(),//
                     });
                 }
             }
             src_paths[li] = [coil_path];
+        }
+    }else{
+        for(let li=0; li < c.layers; li++){ 
+            for(let pi=0; pi < src_paths[li].length; pi++){ 
+                if(pi % 2) src_paths[li][pi].reverse();
+            }
         }
     }
 
@@ -554,11 +577,11 @@ n.reckon = (d, s, c) => {
     //var inside = true;
     //var ref_pnt = src_paths[0][0][0][0].p;
     var pva_start_idx = -1;
-    function make_path(src_path){
+    function make_path(src_path, pi){
         if(src_path.length < 3) return; // what should min path length be?! #1
         var pts = [[],[],[]]; // could just be 3 with second v as center line ?!?!?!?!?!
         //if(src_path.length < 3) continue;
-        for(let i=0; i < src_path.length; i++){
+        for(let i=0; i < src_path.length; i++){ // set back to zero!!! #1
             //let dist = ref_pnt.distanceTo(src_path[i].p);
             // function check_boundary(v){
             //     var k = 'x'+Math.round(v.x / bnd_vox_size) 
@@ -578,9 +601,17 @@ n.reckon = (d, s, c) => {
                 //ref_pnt = src_path[i].p.clone();
                 //if(hit_outside) bnd_vox[k].p.projectPoint(src_path[i].p, ref_pnt);
                 //box.expandByPoint(ref_pnt);
+                
                 pts[0].push(src_path[i].p.clone());
-                pts[1].push(src_path[i].p.clone().add(v1.copy(src_path[i].n).divideScalar(2))); 
-                pts[2].push(src_path[i].p.clone().add(src_path[i].n));
+                //if(i > 0){
+                //    let new_nml = src_path[i-1].p.clone().sub(src_path[i].p).cross(axes[0].v).normalize();
+                //    pts[1].push(src_path[i].p.clone().add(v1.copy(new_nml).divideScalar(2))); 
+                //    pts[2].push(src_path[i].p.clone().add(new_nml)); 
+                //}else{
+                    pts[1].push(src_path[i].p.clone().add(v1.copy(src_path[i].n).divideScalar(2)));
+                    pts[2].push(src_path[i].p.clone().add(src_path[i].n));
+                //}
+                ///pts[1].push(src_path[i-1].p.clone().sub(src_path[i].p).cross(axes[0].v).normalize());
             //}
             //if((!inside || i == src_path.length-1)){// && box.getSize(v1).length() > min_size){
             // if(i == src_path.length-1){
@@ -612,8 +643,8 @@ n.reckon = (d, s, c) => {
         //console.log(curve);
         if(c.material == 'PVA' && pva_start_idx < 0) pva_start_idx = paths.length;
         paths.push({
-            ribbon:      d.part.surface(d, pts, {length_v:curve.getLength()}), 
-            speed:       c.speed, 
+            ribbon:      d.part.surface(d, pts, {length_v:curve.getLength()}), //pts[0].map((e,i)=> ({p:e, n:pts[1][i]})),// src_path.map(e=> ({p:e.p.clone(), n:e.n.clone()})),//
+            speed:       c.speed * (pi < c.slows ? 0.5 : 1), 
             flow:        c.flow,
             material:    c.material,
             cord_radius: c.cord_radius,
@@ -622,12 +653,12 @@ n.reckon = (d, s, c) => {
     }
     for(let i=0; i<c.repeats; i++){ 
         for(let pi=0; pi < src_paths[0].length; pi++){ 
-            make_path(src_paths[0][pi]);
+            make_path(src_paths[0][pi], pi);
         }
     }
     for(let li=0; li<c.layers; li++){ 
         for(let pi=0; pi < src_paths[li].length; pi++){ 
-            make_path(src_paths[li][pi]);
+            make_path(src_paths[li][pi], pi);
         }
         if(pva_start_idx > -1){
             //const air_paths = [];
@@ -663,7 +694,28 @@ export const slice = n;
 
 
 
-
+// if(c.coil){
+//     for(let li=0; li < c.layers; li++){ 
+//         const coil_path = [];
+//         for(let pi=0; pi < src_paths[li].length-1; pi++){ 
+//             const crv1 = new CatmullRomCurve3(src_paths[li][pi].map(e=> e.p));
+//             const pts1 = crv1.getSpacedPoints(src_paths[li][pi].length-1);
+//             const crv2 = new CatmullRomCurve3(src_paths[li][pi+1].map(e=> e.p));
+//             const pts2 = crv2.getSpacedPoints(src_paths[li][pi].length-1);
+//             for(let i=0; i < pts1.length; i++){ 
+//                 var i2 = Math.round(MathUtils.clamp(
+//                     i / (pts1.length-1) * (src_paths[li][pi+1].length-1), 0, (src_paths[li][pi+1].length-1)
+//                 ));
+//                 let ratio = i / (pts1.length-1);
+//                 coil_path.push({
+//                     p: v1.lerpVectors(pts1[i], pts2[i], ratio).clone(),
+//                     n: v1.lerpVectors(src_paths[li][pi][i].n, src_paths[li][pi+1][i2].n, ratio).clone(), //src_paths[li][pi][i].n.clone(),//
+//                 });
+//             }
+//         }
+//         src_paths[li] = [coil_path];
+//     }
+// }
 
 
 // if(c.coil){

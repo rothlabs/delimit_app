@@ -1,7 +1,7 @@
 import {createElement as c, useRef, memo, useState, useEffect} from 'react';
 import {useS, useSubS, useSub, gs} from '../../app.js';
 import {Grid} from '@react-three/drei/Grid';
-import {Pickable, View_Transform} from '../node/base.js'; //Root_Transform
+import {Pickable, Root_Transform, View_Transform} from '../node/base.js'; 
 import {Vector3, DoubleSide} from 'three';
 import {useThree, useFrame} from '@react-three/fiber';
 
@@ -10,7 +10,7 @@ const v2 = new Vector3();
 
 
 
-export const Sketch = memo(({n, r})=>{ // rename to Sketchpad ?!?!?!?!
+export const Sketch = memo(({n})=>{ // rename to Sketchpad ?!?!?!?!
     //const obj = useRef();
     //const plane = useRef();
     ///////////const {camera} = useThree(); // use state selector ?!?!?!?!?! (state)=> state.camera 
@@ -18,16 +18,16 @@ export const Sketch = memo(({n, r})=>{ // rename to Sketchpad ?!?!?!?!
     const easel_size = useS(d=> d.easel_size); 
     const point_size = useS(d=> d.point_size);
     const color = useS(d=> d.n[n].pick.color); 
-    const top_view = useS(d=> d.n[n].c.top_view); 
-    const side_view = useS(d=> d.n[n].c.side_view);
+    const plane = useS(d=> d.n[n].c.plane); 
+    //const side_view = useS(d=> d.n[n].c.side_view);
     //const face_camera = useS(d=> d.n[n].c.face_camera);
-    var rotation = [0,0,0];
-    var axis_text_a = '+X';
-    var axis_text_b = '+Y';
-    if(top_view){
+    let rotation = [0,0,0];
+    let axis_text_a = '+X';
+    let axis_text_b = '+Y';
+    if(plane == 'XZ'){
         rotation = [Math.PI/2, 0, 0];
         axis_text_b = '+Z';
-    }else if(side_view){
+    }else if(plane == 'YZ'){
         rotation = [0, -Math.PI/2, 0];
         axis_text_a = '+Z';
     }
@@ -58,11 +58,11 @@ export const Sketch = memo(({n, r})=>{ // rename to Sketchpad ?!?!?!?!
     };
     //console.log('render surface');
     return(
-        // c('group', {
-        //     ref:obj,
-        //     rotation: rotation,
-        // },
-        //c(Root_Transform, {n:r, rotation:rotation},
+        c('group', {
+            //ref:obj,
+            rotation: rotation,
+        },
+        //c(Root_Transform, {n:n, rotation:rotation},
             c(Pickable, {n:n, penable:true}, // points && points.length>1 && 
                 c('group', {name: 'sketch'}, 
                     c(View_Transform, {offset_z:1},
@@ -129,7 +129,7 @@ export const Sketch = memo(({n, r})=>{ // rename to Sketchpad ?!?!?!?!
                     side: DoubleSide,
                 }),
             )
-        //)
+        )
     )
 });
 

@@ -101,7 +101,7 @@ export function Root_Transform({n, rotation, children}){
         if(rotation) obj.current.rotation.set(...rotation)
         else obj.current.rotation.set(0, 0, 0);
         obj.current.scale.set(1, 1, 1);
-        if(p.matrix) obj.current.applyMatrix4(p.matrix);
+        if(p?.matrix) obj.current.applyMatrix4(p.matrix);
     });
     return(
         c('group', {

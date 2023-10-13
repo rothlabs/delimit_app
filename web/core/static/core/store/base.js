@@ -36,7 +36,7 @@ const bool_tags = [model_tags['b'],
 ];
 const int_tags = [model_tags['i'],
     'order', 'current_image', 
-    'layers', 'axes', 'repeats',
+    'layers', 'axes', 'repeats', 'slows',
 ];
 const float_tags    = [model_tags['f'], // rename to number_tags
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
