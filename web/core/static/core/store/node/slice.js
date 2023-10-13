@@ -99,10 +99,10 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 // connect front and back of slice loop
 
 const n = {};
-n.bool = {coil:false, axial:false}; //manual_compute:true, 
+n.bool = {autocalc:false, coil:false, axial:false}; //manual_compute:true, 
 n.int = {layers:1, axes:1, repeats:0, slows:0};
 n.float = {
-    axis_x:0, axis_y:0, axis_z:0,
+    axis_x:0, axis_y:-1, axis_z:0,
     spread_angle:30,
     slice_spacing:0.8, layer_spacing:0.8, 
     slice_offset:0,    layer_offset:0,

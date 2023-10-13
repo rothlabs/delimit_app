@@ -116,133 +116,151 @@ export const create_make_slice = (set,get)=>({make:{
         return n;
     },
     part(d, t, a){ // a.r should be array 
-        if(d.make[t]){return d.make[t](d,a)}
-        else         {return d.make.node(d, 'p', t, a)}
-    },
-    point(d, a={}){ //pos, r, o
-        if(a.pos == undefined) a.pos = new Vector3();
-        if(a.r){
-            //if(d.n[a.r].c.invert) a.pos.applyMatrix4(d.n[a.r].c.invert);
-            //if(d.n[a.r].ax.invert) a.pos.applyMatrix4(d.n[a.r].ax.invert);
-            a.pos.setX(d.rnd(a.pos.x));
-            a.pos.setY(d.rnd(a.pos.y));
-            a.pos.setZ(d.rnd(a.pos.z));
+        let props = {};
+        if(d.node[t]){
+            if(d.node[t].bool) Object.entries(d.node[t].bool).forEach(([prop, val])=>{
+                props[prop] = d.make.atom(d, 'b', val);
+            });
+            if(d.node[t].int) Object.entries(d.node[t].int).forEach(([prop, val])=>{
+                props[prop] = d.make.atom(d, 'i', val);
+            });
+            if(d.node[t].float) Object.entries(d.node[t].float).forEach(([prop, val])=>{
+                props[prop] = d.make.atom(d, 'f', val);
+            });
+            if(d.node[t].string) Object.entries(d.node[t].string).forEach(([prop, val])=>{
+                props[prop] = d.make.atom(d, 's', val);
+            });
         }
-        return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
-            x: d.make.atom(d,'f', a.pos.x),
-            y: d.make.atom(d,'f', a.pos.y),
-            z: d.make.atom(d,'f', a.pos.z),
-        }});
+        return d.make.node(d, 'p', t, {...a, n:props});
     },
-    transform(d, a={}){
-        return d.make.node(d,'p','transform', {...a, n:{
-            //matrix: d.make.part(d,'matrix'),
-            move_x:  d.make.atom(d,'f', 0),
-            move_y:  d.make.atom(d,'f', 0),
-            move_z:  d.make.atom(d,'f', 0),
-            turn_x:  d.make.atom(d,'f', 0),
-            turn_y:  d.make.atom(d,'f', 0),
-            turn_z:  d.make.atom(d,'f', 0),
-            scale_x: d.make.atom(d,'f', 1),
-            scale_y: d.make.atom(d,'f', 1),
-            scale_z: d.make.atom(d,'f', 1),
-        }});
-    },
-    ellipse(d, a={}){
-        return d.make.node(d,'p','ellipse', {...a, n:{
-            x: d.make.atom(d,'f', 0),
-            y: d.make.atom(d,'f', 0),
-            z: d.make.atom(d,'f', 0),
-            axis_x: d.make.atom(d,'f', 0),
-            axis_y: d.make.atom(d,'f', 1),
-            axis_z: d.make.atom(d,'f', 0),
-            radius_a: d.make.atom(d,'f', 10),
-            radius_b: d.make.atom(d,'f', 10),
-            angle_a: d.make.atom(d,'f', 90),
-            angle_b: d.make.atom(d,'f', 270),
-        }});
-    },
-    surface(d, a={}){
-        return d.make.node(d,'p','surface', {...a, n:{
-            order:         d.make.atom(d,'i', 0),
-            current_image: d.make.atom(d,'i', 0), 
-        }});
-    },
-    image(d, a={}){
-        var size = 1024;
-        var canvas = document.createElement("canvas");
-        canvas.width = size;
-        canvas.height = size;
-        var cctx = canvas.getContext("2d");
-        cctx.fillStyle = 'white';//'#d63384';
-        cctx.fillRect(0, 0, size, size);
-        return d.make.node(d,'p','image', {...a, n:{
-            //turn_z: d.make.atom(d,'f', 90),
-            width:  d.make.atom(d,'f', size),
-            height: d.make.atom(d,'f', size),
-            data:   d.make.atom(d,'s', canvas.toDataURL()),
-            order:  d.make.atom(d,'i', 0),
-        }});
-    },
-    brush(d, a={}){
-        return d.make.node(d,'p','brush', {...a, n:{
-            color_a:  d.make.atom(d,'s', 'rgba(0, 0, 0, 1)'),
-            color_b:  d.make.atom(d,'s', 'rgba(0, 0, 0, 0)'), 
-            radius_a: d.make.atom(d,'f', 4),
-            radius_b: d.make.atom(d,'f', 8),   
-        }});
-    },
-    slice(d, a={}){ // add manual_compute !!!!!!!!!
-        var n = d.make.node(d,'p','slice', {...a, n:{
-            coil:         d.make.atom(d,'b', false),
-            axial:        d.make.atom(d,'b', false),
-            material:     d.make.atom(d,'s', 'H2O'),
-            axis_x:       d.make.atom(d,'f', 0),
-            axis_y:       d.make.atom(d,'f', -1),
-            axis_z:       d.make.atom(d,'f', 0),
-            offset:       d.make.atom(d,'f', 0),
-            density:      d.make.atom(d,'f', 0.1),
-            cord_radius:  d.make.atom(d,'f', 0.5),
-            speed:        d.make.atom(d,'f', 50),
-            flow:         d.make.atom(d,'f', 1),
-            layers:       d.make.atom(d,'i', 1),
-            axes:         d.make.atom(d,'i', 1),
-            spread_angle: d.make.atom(d,'f', 20),
-            layer_height: d.make.atom(d,'f', 0.8),
-        }});
-        d.make.edge(d, d.cats['manual_compute'], n);
-        return n;
-    },
-    machine(d, a={}){
-        return d.make.node(d,'p','machine', {...a, n:{ 
-            origin_x:  d.make.atom(d,'f', 0),
-            origin_y:  d.make.atom(d,'f', 0),
-            origin_z:  d.make.atom(d,'f', 0),
-            origin_a:  d.make.atom(d,'f', 0),
-            holder_y:  d.make.atom(d,'f', 0),
-            holder_x1: d.make.atom(d,'f', 0),
-            holder_x2: d.make.atom(d,'f', 0),
-            holder_x3: d.make.atom(d,'f', 0),
-            holder_x4: d.make.atom(d,'f', 0),
-            holder_x5: d.make.atom(d,'f', 0),
-            offset_x1: d.make.atom(d,'f', 0),
-            offset_x2: d.make.atom(d,'f', 0),
-            offset_x3: d.make.atom(d,'f', 0),
-            offset_x4: d.make.atom(d,'f', 0),
-            offset_x5: d.make.atom(d,'f', 0),
-            pva_x:     d.make.atom(d,'f', 0),
-            pva_y:     d.make.atom(d,'f', 0),
-            //offset_a:  d.make.atom(d,'f', 0),
-        }});
-    },
-    // matrix(d, a={}){
-    //     if(a.matrix == undefined) a.matrix = new Matrix4();
-    //     return d.make.node(d,'p','matrix', {...a, n:{
-    //         element: a.matrix.elements.map(v=> d.make.atom(d,'f', v)),
-    //     }});
-    // },
 }});
 
+//return d.make.node(d, 'p', t, {...a, atoms});
+        //}else{
+        //    return d.make.node(d, 'p', t, a);
+
+// point(d, a={}){ //pos, r, o
+//     if(a.pos == undefined) a.pos = new Vector3();
+//     if(a.r){
+//         //if(d.n[a.r].c.invert) a.pos.applyMatrix4(d.n[a.r].c.invert);
+//         //if(d.n[a.r].ax.invert) a.pos.applyMatrix4(d.n[a.r].ax.invert);
+//         a.pos.setX(d.rnd(a.pos.x));
+//         a.pos.setY(d.rnd(a.pos.y));
+//         a.pos.setZ(d.rnd(a.pos.z));
+//     }
+//     return d.make.node(d,'p','point', {...a, n:{ //r:a.r, o:a.o,
+//         x: d.make.atom(d,'f', a.pos.x),
+//         y: d.make.atom(d,'f', a.pos.y),
+//         z: d.make.atom(d,'f', a.pos.z),
+//     }});
+// },
+// transform(d, a={}){
+//     return d.make.node(d,'p','transform', {...a, n:{
+//         //matrix: d.make.part(d,'matrix'),
+//         move_x:  d.make.atom(d,'f', 0),
+//         move_y:  d.make.atom(d,'f', 0),
+//         move_z:  d.make.atom(d,'f', 0),
+//         turn_x:  d.make.atom(d,'f', 0),
+//         turn_y:  d.make.atom(d,'f', 0),
+//         turn_z:  d.make.atom(d,'f', 0),
+//         scale_x: d.make.atom(d,'f', 1),
+//         scale_y: d.make.atom(d,'f', 1),
+//         scale_z: d.make.atom(d,'f', 1),
+//     }});
+// },
+// ellipse(d, a={}){
+//     return d.make.node(d,'p','ellipse', {...a, n:{
+//         x: d.make.atom(d,'f', 0),
+//         y: d.make.atom(d,'f', 0),
+//         z: d.make.atom(d,'f', 0),
+//         axis_x: d.make.atom(d,'f', 0),
+//         axis_y: d.make.atom(d,'f', 1),
+//         axis_z: d.make.atom(d,'f', 0),
+//         radius_a: d.make.atom(d,'f', 10),
+//         radius_b: d.make.atom(d,'f', 10),
+//         angle_a: d.make.atom(d,'f', 90),
+//         angle_b: d.make.atom(d,'f', 270),
+//     }});
+// },
+// surface(d, a={}){
+//     return d.make.node(d,'p','surface', {...a, n:{
+//         order:         d.make.atom(d,'i', 0),
+//         current_image: d.make.atom(d,'i', 0), 
+//     }});
+// },
+// image(d, a={}){
+//     var size = 1024;
+//     var canvas = document.createElement("canvas");
+//     canvas.width = size;
+//     canvas.height = size;
+//     var cctx = canvas.getContext("2d");
+//     cctx.fillStyle = 'white';//'#d63384';
+//     cctx.fillRect(0, 0, size, size);
+//     return d.make.node(d,'p','image', {...a, n:{
+//         //turn_z: d.make.atom(d,'f', 90),
+//         width:  d.make.atom(d,'f', size),
+//         height: d.make.atom(d,'f', size),
+//         data:   d.make.atom(d,'s', canvas.toDataURL()),
+//         order:  d.make.atom(d,'i', 0),
+//     }});
+// },
+// brush(d, a={}){
+//     return d.make.node(d,'p','brush', {...a, n:{
+//         color_a:  d.make.atom(d,'s', 'rgba(0, 0, 0, 1)'),
+//         color_b:  d.make.atom(d,'s', 'rgba(0, 0, 0, 0)'), 
+//         radius_a: d.make.atom(d,'f', 4),
+//         radius_b: d.make.atom(d,'f', 8),   
+//     }});
+// },
+// slice(d, a={}){ // add manual_compute !!!!!!!!!
+//     var n = d.make.node(d,'p','slice', {...a, n:{
+//         coil:         d.make.atom(d,'b', false),
+//         axial:        d.make.atom(d,'b', false),
+//         material:     d.make.atom(d,'s', 'H2O'),
+//         axis_x:       d.make.atom(d,'f', 0),
+//         axis_y:       d.make.atom(d,'f', -1),
+//         axis_z:       d.make.atom(d,'f', 0),
+//         offset:       d.make.atom(d,'f', 0),
+//         density:      d.make.atom(d,'f', 0.1),
+//         cord_radius:  d.make.atom(d,'f', 0.5),
+//         speed:        d.make.atom(d,'f', 50),
+//         flow:         d.make.atom(d,'f', 1),
+//         layers:       d.make.atom(d,'i', 1),
+//         axes:         d.make.atom(d,'i', 1),
+//         spread_angle: d.make.atom(d,'f', 20),
+//         layer_height: d.make.atom(d,'f', 0.8),
+//     }});
+//     d.make.edge(d, d.cats['manual_compute'], n);
+//     return n;
+// },
+// machine(d, a={}){
+//     return d.make.node(d,'p','machine', {...a, n:{ 
+//         origin_x:  d.make.atom(d,'f', 0),
+//         origin_y:  d.make.atom(d,'f', 0),
+//         origin_z:  d.make.atom(d,'f', 0),
+//         origin_a:  d.make.atom(d,'f', 0),
+//         holder_y:  d.make.atom(d,'f', 0),
+//         holder_x1: d.make.atom(d,'f', 0),
+//         holder_x2: d.make.atom(d,'f', 0),
+//         holder_x3: d.make.atom(d,'f', 0),
+//         holder_x4: d.make.atom(d,'f', 0),
+//         holder_x5: d.make.atom(d,'f', 0),
+//         offset_x1: d.make.atom(d,'f', 0),
+//         offset_x2: d.make.atom(d,'f', 0),
+//         offset_x3: d.make.atom(d,'f', 0),
+//         offset_x4: d.make.atom(d,'f', 0),
+//         offset_x5: d.make.atom(d,'f', 0),
+//         pva_x:     d.make.atom(d,'f', 0),
+//         pva_y:     d.make.atom(d,'f', 0),
+//         //offset_a:  d.make.atom(d,'f', 0),
+//     }});
+// },
+// // matrix(d, a={}){
+// //     if(a.matrix == undefined) a.matrix = new Matrix4();
+// //     return d.make.node(d,'p','matrix', {...a, n:{
+// //         element: a.matrix.elements.map(v=> d.make.atom(d,'f', v)),
+// //     }});
+// // },
 
 
 // if(a.r && !d.cast_end[d.n[a.r].t]){  // just reckon a.r directly ?!?!?!?!?! 

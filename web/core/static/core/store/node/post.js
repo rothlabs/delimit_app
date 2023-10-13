@@ -97,7 +97,7 @@ const machine_z_y_ratio = 1;
 const pva_offset_z = 14; // 20
 
 const n = {};
-//n.bool = {manual_compute:true};
+n.bool = {autocalc:false};
 n.string = {code:'(Delimit Slicer)'};
 n.source = ['machine', 'slice']; 
 n.reckon = (d, s, c) => {            
