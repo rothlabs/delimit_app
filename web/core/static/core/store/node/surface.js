@@ -173,7 +173,7 @@ n.reckon = (d, s, c) => {
     //////////////if(c.matrix) pts = pts.map(p=>p.map(p=> p.clone().applyMatrix4(c.matrix))); // does not need to clone ?!?!?!?!
 
     
-    //const displacement_map = d.node.get(d, n, 'image');
+    //const displacement_map = d.graph.get(d, n, 'image');
     //if(displacement_map){
     //    c.surface = d.geo.surface(d, pts, {displacement_map:displacement_map[0]});
     //}else{

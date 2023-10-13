@@ -49,7 +49,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                     console.log('Reckon Error: '+d.n[n].t, e);
                 }
             }
-            d.node.for_r(d, n, r=> d.next('reckon.up', r));// [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
+            d.graph.for_root(d, n, r=> d.next('reckon.up', r));// [...cause, d.n[n].t+'__'+r])); // this does not send causes up the chain ?!?!?!?! [...cause, d.n[n].t]
         }
         d.next('design.update'); 
         d.next('inspect.update'); 
@@ -57,14 +57,14 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     props(d, n, t){ // rename to props ?!?!?!?!
         // // const result = {};
         t.forEach(t=>{//t.split(' ').forEach(t=>{
-            if(d.n[n].n && d.n[n].n[t]){ //  && d.node.be(d,d.n[n].n[t][0])
+            if(d.n[n].n && d.n[n].n[t]){ //  && d.graph.ex(d,d.n[n].n[t][0])
                 d.n[n].c[t] = d.n[d.n[n].n[t][0]].v;
                 // // if(d.n[n].n[t].length > 1){ // and tag is not singleton ?!?!?! (x, y, z, etc should only have one!) 
                 // //     result[t] = [];
                 // //     d.n[n].n[t].forEach(nn=>{ // could use for_nt ?! #1
-                // //         if(d.node.be(d,nn)) result[t].push(d.n[nn].v);
+                // //         if(d.graph.ex(d,nn)) result[t].push(d.n[nn].v);
                 // //     });
-                // // }else if(d.node.be(d,d.n[n].n[t][0])){
+                // // }else if(d.graph.ex(d,d.n[n].n[t][0])){
                 // //   result[t] = d.n[d.n[n].n[t][0]].v;
                 // // }
                 // // d.n[n].c[t] = result[t];

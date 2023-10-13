@@ -1,12 +1,20 @@
-import { Vector3 } from 'three';
+import {Vector3, Matrix4} from 'three';
+import {static_url, readable} from '../app.js';
 
 const tv = new Vector3();
+const tm = new Matrix4();
 
 export const create_graph_slice = (set,get)=>({graph:{
     scale: 1,
     n: [],
-    e: [], // rename to e?
+    e: [], 
     init(d){
+        for(const [t, node] of Object.entries(d.node)){
+            node.icon = static_url+'icon/node/'+t+'.svg';
+            node.tag = readable(t);
+            node.css = d.node_css[t];
+        }
+
         d.graph.n_vis={ // n_vis
             ...Object.fromEntries(d.node_tags.map(t=>[t,true])),
             switch:false, integer:false, decimal:false, text:false, point:false,//matrix:false, 
@@ -39,8 +47,8 @@ export const create_graph_slice = (set,get)=>({graph:{
         //console.log('update graph!!!');
         d.graph.n = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
         d.graph.e = [];
-        d.node.for_n(d, d.graph.n, (r,n,t)=>{
-            if(d.node.be(d,n) && d.n[n].graph.vis && d.graph.e_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
+        d.graph.for_stem(d, d.graph.n, (r,n,t)=>{
+            if(d.graph.ex(d,n) && d.n[n].graph.vis && d.graph.e_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
                 d.graph.e.push({r:r, t:t, n:n}); 
             }
         });
@@ -58,7 +66,7 @@ export const create_graph_slice = (set,get)=>({graph:{
             d.graph.n.forEach(n=>{ 
                 //d.n[n].graph.order = {x:0, count:0}; 
                 var lvl = 0;
-                d.node.for_r(d, n, r=>{
+                d.graph.for_root(d, n, r=>{
                     if(d.graph.n.includes(r)){
                         if(d.n[r].graph.lvl > lvl) lvl = d.n[r].graph.lvl;
                     }
@@ -76,7 +84,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.n.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];
-            d.node.for_r(d, n, (r,n,t)=>{
+            d.graph.for_root(d, n, (r,n,t)=>{
                 if(t != 'unknown' && d.graph.n.includes(r)) rt.push(r);       
             });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
@@ -108,7 +116,7 @@ export const create_graph_slice = (set,get)=>({graph:{
                     if(x > l.max_x) l.max_x = x;
                     if(y > max_y) max_y = y;
                     d.n[n].graph.pos.set(x, -y, 0);
-                    d.node.for_n(d, n, (r,n)=>{if(ll.group[d.n[n].graph.grp]){
+                    d.graph.for_stem(d, n, (r,n)=>{if(ll.group[d.n[n].graph.grp]){
                         ll.group[d.n[n].graph.grp].x+=x;
                         ll.group[d.n[n].graph.grp].count++;
                     }});
@@ -137,6 +145,134 @@ export const create_graph_slice = (set,get)=>({graph:{
                 0
             ))};
         });
+    },
+    ////////////////////////////////////////////  Utils //////////////////////////////
+    ex:(d,n)=>{ //use try catch to perform func ?!?!?!?! // have to calculate this every time a user wants to know because the node could not be present at all
+        //if(n){
+            //if(Array.isArray(n)) n = n[0];
+            if(d.n[n] && !d.n[n].deleted){
+                if(d.n[n].open) return 'open';
+                return 'here';
+            }
+        //}
+        return null;
+    },
+    cats(d,n){
+        const result = [];
+        Object.keys(d.cats).forEach(t=>{  
+            d.for(n, n=>{
+                if(d.n[n].r[t]) d.add(result, t);
+            });
+        });
+        return result;
+    },
+    admin(d, n){
+        if(!Array.isArray(n)) n = [n];
+        return n.some(n=> d.admin_tags.includes(d.n[n].t));//{
+            //if(d.admin_tags.includes(d.n[n].t)) return true;
+        //});
+    },
+    pin_pos(d, n, matrix){  // should go in transform slice?    
+        if(d.graph.ex(d,n) && d.n[n]?.p?.isVector3){
+            if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.graph.get(d, n, 'x y z');
+            d.n[n].pin.pos.copy(d.n[n].p).applyMatrix4(tm.copy(matrix).invert());
+        }
+    },
+    set_pos(d, n, pos){ // should go in transform slice? // should be in cast clice ?!?!?!
+        //if(d.n[n].c.invert) pos.applyMatrix4(d.n[n].c.invert);
+        //if(d.n[n].ax.invert) pos.applyMatrix4(d.n[n].ax.invert);
+        d.graph.set(d, n, {x:pos.x, y:pos.y, z:pos.z});
+    },
+    get(d, roots, t){ // like n but different. need better name to differentiate
+        if(!Array.isArray(roots)) roots = [roots];
+        const result = [];
+        roots.forEach(r=>{
+            if(d.n[r].n && d.n[r].n[t]) d.add(result, d.n[r].n[t][0]);//return d.n[r].n[t][o];  && o < d.n[r].n[t].length
+        });
+        return result;
+    },
+    set(d, n, a){
+        if(d.n[n].n){
+            Object.entries(a).forEach(([t,v],i)=>{
+                if(d.n[n].n[t]){
+                    d.for(v, (v,o)=> d.graph.sv(d, d.n[n].n[t][o], v));
+                    //if(d.cast_tags.includes(t)) d.cast.v(d,n,t,v);//d.graph.for_stem_of_tag(d,n,'point', p=>d.next('reckon.up',p));
+                }//else if(d.n[n].c[t]!=undefined){ d.cast.v(d,n,t,v) }
+            });
+        }
+    },
+    // gv (get value) ? #1
+    sv(d, n, v){ // rename to set_atom?
+        if(d.graph.ex(d,n) && d.n[n].t=='decimal') v = d.rnd(v);//Math.round((v + Number.EPSILON) * 100) / 100; Math.round((v + Number.EPSILON) * 100) / 100;//parseFloat(v.toFixed(2));// Math.round(v*100)*0.01; // need to set flag that says 'is_atom' or 'is_float'
+        d.n[n].v = v; // check if has v?
+        d.next('reckon.up', n); // d.reckon.up(d, n);
+    },
+    stem(d, roots, a={}){ 
+        if(!Array.isArray(roots)) roots = [roots]; //if(!filter) filter = ['open']; 
+        var result = []; // should be key value pair for faster checking?  
+        var add_n = (r,n,t,o)=> d.add(result, n);//result.push(n); 
+        if(a.edge) add_n = (r,n,t,o)=>result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates ?!?!?!
+        //if(a.unique && !a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
+        if(!a.collected) a.collected = {...Object.fromEntries(roots.map(r=>[r,true]))};
+        roots.forEach(r=>{
+            if(d.graph.ex(d,r) && d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
+                if(d.graph.ex(d,n)=='open' && (a.edge || !a.collected[n])){
+                    if(!(a.unique && d.graph.subject_root(d,n).some(r=> !a.collected[r])) && !(a.filter && !a.filter(n))){ //a.n.includes(r)
+                        add_n(r,n,t,o); //if(allow_null || d.graph.ex(d, n)) func(n,t,o);  //if(filter.includes(d.graph.ex(d,n)))
+                        a.collected[n] = true; //if(a.unique) a.collected[n] = true;
+                        if(a.deep) result = result.concat(d.graph.stem(d,n,a));
+                    }
+                }
+            }));
+        });
+        return result;
+    },
+    unique_stem:(d, roots, a)=> d.graph.stem(d, roots, {unique:true, ...a}),
+    stem_edge:(d, roots, a)=> d.graph.stem(d, roots, {edge:true, ...a}),
+    stem_of_tag:(d, roots, t)=> d.graph.stem(d, roots, {deep:true}).filter(n=> d.n[n].t==t),
+    for_stem_of_tag:(d,roots,t,func)=> d.graph.stem(d, roots, {deep:true}).forEach(n=>{
+        if(d.n[n].t==t) func(n);
+    }),
+    root(d, nodes, a={}){ 
+        //if(!Array.isArray(nodes)) nodes = [nodes];
+        var result = [];//const result = (a.rt ? [...nodes] : []); // might not need this ?!?!?!
+        var add_r = (r,n,t,o)=> result.push(r); //d.add(d, result, r);// 
+        if(a.edge) add_r = (r,n,t,o)=> result.push({r:r,n:n,t:t,o:o}); // use d.add to avoid duplicates (upgrad for deep compare) ?!?!?!
+        if(!a.collected) a.collected = {};//...Object.fromEntries(nodes.map(r=>[r,true]))};
+        d.for(nodes, n=>{//nodes.forEach(n=>{
+            if(d.graph.ex(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
+                if(!(a.subject && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> { // 'group' causing things like shared name to be delete when trying to remove name from none group
+                    if(d.graph.ex(d,r) == 'open' && (a.edge || !a.collected[r])){
+                        if(!(a.filter && !a.filter(r))){ // && !(a.t && !d.n[r].t==a.t)
+                            add_r(r,n,t,o); //if(allow_null || d.graph.ex(d, r)) func(r,t,o);
+                            a.collected[r] = true;
+                            if(a.deep) result = result.concat(d.graph.root(d,r,a));
+                        }
+                    }
+                });
+            });
+        });
+        return result;
+    },
+    subject_root:(d, n)=> d.graph.root(d, n, {subject:true}),//.filter(e=> !['owner', 'viewer'].includes(e.t)),
+    root_edge:(d, n, a)=> d.graph.root(d, n, {edge:true, ...a}),
+    //rt0:(d,n,t)=> d.graph.root(d, n, {deep:true}).filter(r=>d.n[r].t==t)[0], // a.exit condition to exit search on correct condition
+    root_stem(d, nodes, a={}){
+        const result = [];
+        d.graph.for_root(d, nodes, r=>{
+            const ne = d.graph.stem_edge(d,r).find(e=> nodes.includes(e.n));
+            if(ne) result.push(ne);//d.graph.for_stem(d, r, (r,n,t,o)=>{  if(nodes.includes(n)) result.push({r:r,n:n,t:t,o:o});   })
+        }, a);
+        return result;
+    },
+    for_stem:(d, roots, func, a)=> d.graph.stem_edge(d,roots,a).forEach(e=> func(...Object.values(e))), // rename to for_ne
+    for_root:(d, nodes, func, a)=> d.graph.root_edge(d,nodes,a).forEach(e=> func(...Object.values(e))), // make for loop and exit when function returns true
+    for_root_stem:(d, nodes, func)=> d.graph.root_stem(d,nodes).forEach(e=> func(...Object.values(e))), // use .some instead of .forEach so can exit loop early from inside func?!?!?!?!
+    close:(d, n)=>{ // need to remove edges to this node after close ?!?!?!?!
+        d.n[n].open = false; // rename to closed?
+        d.pick.set(d, n, false);
+        d.pick.hover(d, n, false); // not needed?
+        d.next('graph.update');
     },
 }});
 
@@ -176,7 +312,7 @@ export const create_graph_slice = (set,get)=>({graph:{
 //         d.graph.n.forEach(n=>{
 //             const lvl = d.n[n].graph.lvl;
 //             var rt = [];
-//             d.node.for_r(d, n, r=>{     if(d.graph.n.includes(r)) rt.push(r);       });
+//             d.graph.for_root(d, n, r=>{     if(d.graph.n.includes(r)) rt.push(r);       });
 //             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
 //             if(level[lvl][grp] == undefined) level[lvl][grp] = [];
 //             level[lvl][grp].push(n);

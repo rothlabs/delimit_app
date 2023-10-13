@@ -155,7 +155,7 @@ export const create_base_slice = (set,get)=>({
         d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
         d.base_texture.anisotropy = 16;
         
-        d.node.init(d);
+        //d.node.init(d);
         //d.make.init(d);
         d.graph.init(d); //d.node.init(d);
     },
@@ -317,7 +317,7 @@ export const create_base_slice = (set,get)=>({
                 //console.log('send part', n, d.n[n].t);
                 const part = [[n],                [], [], [], [], []]; //, ['replace']
                 const tags = [[d.t_id[d.n[n].t]], [], [], [], [], []];
-                d.node.for_n(d, n, (r,n,t)=>{
+                d.graph.for_stem(d, n, (r,n,t)=>{
                     const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
                     part[mi].push(n);
                     tags[mi].push(d.t_id[t]);
@@ -367,10 +367,10 @@ export const create_base_slice = (set,get)=>({
                     d.pick.color(d,n.id);
                 }
                 //if(n.id == 'tuXEbqsYYX8CdIPM') console.log('public!')
-                //if(d.node.be(d,n.id)){ // is this stopping undo delete from other client?!?!?!
+                //if(d.graph.ex(d,n.id)){ // is this stopping undo delete from other client?!?!?!
                 if(d.n[n.id].r){
                     //const edges = []; 
-                    d.node.for_rn(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
+                    d.graph.for_root_stem(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
                         //edges.push({r:r, n:n, t:t}); // // , o:o don't know if this is needed ?!?!?!?!,  this will cause reverse edges to be deleted on forward node
                     //});
                     //d.node.delete_edges(d, edges);
@@ -384,7 +384,7 @@ export const create_base_slice = (set,get)=>({
                     d.n[n.id].t = d.t[n.t];
                     if(d.n[n.id].n){
                         //const edges = [];
-                        d.node.for_n(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
+                        d.graph.for_stem(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
                         //    edges.push({r:r, n:n, t:t}); // , o:o this will cause reverse edges to be deleted on forward node
                         //});
                         //d.node.delete_edges(d, edges);
@@ -400,7 +400,7 @@ export const create_base_slice = (set,get)=>({
                     //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                 }else{  
                     d.n[n.id].t = d.model_tags[d.n[n.id].m];
-                    d.node.sv(d, n.id, n.v);//d.n[n.id].v = n.v;  
+                    d.graph.sv(d, n.id, n.v);//d.n[n.id].v = n.v;  
                     //d.n[n.id].pin = n.v; 
                     //console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
                 }
@@ -412,7 +412,7 @@ export const create_base_slice = (set,get)=>({
             }); 
         });
         ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{  // use d.make.edge here so repeater takes action ?!?!?!?!?!?
-            const root_exists = d.node.be(d, e.r);
+            const root_exists = d.graph.ex(d, e.r);
             if(root_exists){ // change be to ex? (ex for exists)
                 if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = [];  
                 //if(d.order_tags.includes(d.t[e.t])){
@@ -421,7 +421,7 @@ export const create_base_slice = (set,get)=>({
                     if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
                 //}
             }
-            if(d.node.be(d, e.n)){
+            if(d.graph.ex(d, e.n)){
                 if(root_exists && e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
                 var rt = 'unknown';
                 if(d.root_tags[d.t[e.t]]){  rt = d.root_tags[d.t[e.t]];  } 
@@ -435,7 +435,7 @@ export const create_base_slice = (set,get)=>({
             }
         }));
         data.p.forEach(n=>{
-            if(d.node.be(d,n.id)) d.reckon.up(d, n.id); // d.next('reckon.up',n.id); // run lowest level reckon only ?!?!?!?!
+            if(d.graph.ex(d,n.id)) d.reckon.up(d, n.id); // d.next('reckon.up',n.id); // run lowest level reckon only ?!?!?!?!
         });
         d.studio.ready = true;
         if(set_update_graph) d.next('graph.update'); // only if add/remove or d.n[n].n/d.n[n].r changes
@@ -456,7 +456,7 @@ export const create_base_slice = (set,get)=>({
     close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)
         const close_pack = {p:[], b:[], i:[], f:[], s:[]};
         nodes.forEach(n=>{
-            d.node.close(d, n);
+            d.graph.close(d, n);
             close_pack[d.n[n].m].push(n);
             // d.n[n].open=false;
             // d.n[n].r = {};
@@ -486,7 +486,7 @@ export const create_base_slice = (set,get)=>({
 //     'post':        Curve,
 // };
 
-                                //d.node.for_r(d, n, rr=>{
+                                //d.graph.for_root(d, n, rr=>{
                                 //    if(r==rr) dead_edges.push({r:r, n:n, t:t, o:o});
                                 //}); // don't have to set to null if set deleted after?
 

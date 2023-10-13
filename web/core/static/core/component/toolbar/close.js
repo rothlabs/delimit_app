@@ -5,7 +5,7 @@ import {ss, gs, useS} from '../../app.js';
 export function Close(){ 
     const buttons = [
         {name:'Close', icon:'bi-x-lg', func(d){
-            const nodes = [...d.pick.n, ...d.node.n(d, d.pick.n, {deep:true})];
+            const nodes = [...d.pick.n, ...d.graph.stem(d, d.pick.n, {deep:true})];
             d.close(d, nodes); // need patch adjust in app.js to open_pack on undo ?!?!?!?!
         }},
     ];

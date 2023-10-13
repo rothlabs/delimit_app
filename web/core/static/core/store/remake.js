@@ -10,7 +10,7 @@ import {make_id, theme} from '../app.js';
 // for a, do if(!a) a = {} at start of each function that uses a
 export const create_remake_slice = (set,get)=>({remake:{
     copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
-        if(!d.node.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.node.admin(d, (a.r ? [n,a.r] : [n]))){ 
+        if(!d.graph.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.graph.admin(d, (a.r ? [n,a.r] : [n]))){ 
             const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
             if(d.n[n].m == 'p') {
                 Object.keys(d.n[n].r).forEach(t=>{
@@ -24,7 +24,7 @@ export const create_remake_slice = (set,get)=>({remake:{
             if(!a.copied) a.copied=[];
             if(a.r) d.make.edge(d, a.r, cpy, {src:a.src});
             if(a.grp && d.n[cpy].n) d.make.edge(d, a.grp, cpy, {src:a.src});
-            d.node.for_n(d, n, (r,n,t,o)=>{
+            d.graph.for_stem(d, n, (r,n,t,o)=>{
                 if(a.deep) { // when deep copying group then exclude nodes that are not in that group ?!?!?!?!
                     if(a.r && d.n[a.r].t=='group') a.grp = a.r;
                     delete a.r;
@@ -51,9 +51,9 @@ export const create_remake_slice = (set,get)=>({remake:{
         }
     },
     split(d, nodes, target){ // make unique copy for everything but asset and transform?
-        if(!d.node.admin(d, [...nodes, target])){ 
+        if(!d.graph.admin(d, [...nodes, target])){ 
             //const dead_edges = [];
-            d.node.for_n(d, target, (r,n,t,o)=>{
+            d.graph.for_stem(d, target, (r,n,t,o)=>{
                 if(nodes.includes(n)){
                     const cpy = d.remake.copy(d, n, {deep:true}); // get rid of view for children as well //, rt:['asset', 'view']
                     d.make.edge(d, r, cpy, {t:t, o:o});
@@ -66,7 +66,7 @@ export const create_remake_slice = (set,get)=>({remake:{
         }
     },
     merge(d, nodes, target){ 
-        if(!d.node.admin(d, [...nodes, target])){ // d.n[target].asset && 
+        if(!d.graph.admin(d, [...nodes, target])){ // d.n[target].asset && 
             if(d.remake.merging[d.n[d.pick.n[0]].t]){  
                 d.remake.merging[d.n[d.pick.n[0]].t](d, nodes, target); 
                 d.remake.merging.base(d, nodes, target);
@@ -79,7 +79,7 @@ export const create_remake_slice = (set,get)=>({remake:{
     },
     merging:{ // make this it's own slice?
         base(d, nodes, target){
-            d.node.for_rn(d, nodes, (r,n,t,o)=>{
+            d.graph.for_root_stem(d, nodes, (r,n,t,o)=>{
                 if(!(d.n[r].n[t] && d.n[r].n[t].includes(target))){
                     d.make.edge(d, r, target, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
                 }
@@ -88,7 +88,7 @@ export const create_remake_slice = (set,get)=>({remake:{
             d.next('reckon.up', target); // maybe this should go in edge creation
         },
         default(d, nodes, target){
-            d.node.for_n(d, nodes, (r,n,t)=>{
+            d.graph.for_stem(d, nodes, (r,n,t)=>{
                 if(d.value_tags.includes(t)){
                     d.delete.edge_or_node(d,r,n,{t:t});
                     //d.delete.node(d, n, {deep:true}); // make delete if not in use by others func?
@@ -107,24 +107,24 @@ export const create_remake_slice = (set,get)=>({remake:{
 
 // if(d.studio.grouping && a.r && d.n[n].n){ // cache e.r?!?!?! // make this func to be used in make node as well  // need to make is_part function?!?!?! (or is_atom)   
 //     //if(d.n[a.r].t=='group') d.make.edge(d, a.r, cpy, {src:a.src});
-//     d.node.re(d,a.r).filter(e=> d.n[e.r].t=='group').forEach(e=> {  // d.node.r_by_name ?!?!?!?!
+//     d.graph.root_edge(d,a.r).filter(e=> d.n[e.r].t=='group').forEach(e=> {  // d.node.r_by_name ?!?!?!?!
 //         d.make.edge(d, e.r, cpy, {src:a.src}); //, {no_auto_group:true}
 //     });
 // }
 
-//d.node.for_r(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
-            //    d.node.for_n(d, r, (r,n,t,o)=>{
+//d.graph.for_root(d, nodes, r=>{ // make for_rn that uses d.n[n].rn which is tagged by use of n
+            //    d.graph.for_stem(d, r, (r,n,t,o)=>{
                     //if(nodes.includes(n) && !(d.n[r].n[t] && d.n[r].n[t].includes(target))){
 
 //console.log(roots);
             //console.log(target);
             //roots = d.node.edges(d,n);
-            //d.node.ne(d,roots).forEach(([r,n,t,o])=>{//d.node.for_n(d, roots, (r,n,t,o)=>{
+            //d.graph.stem_edge(d,roots).forEach(([r,n,t,o])=>{//d.graph.for_stem(d, roots, (r,n,t,o)=>{
 
-//d.node.for_r(d, src, r=>{ // could use for_rn here, 
-            // d.node.for_rn(d, src, (r,n,t,o)=>{
+//d.graph.for_root(d, src, r=>{ // could use for_rn here, 
+            // d.graph.for_root_stem(d, src, (r,n,t,o)=>{
             //     if(!(a.exclude_r && a.exclude_r == r)){  // && !(a.rt && !a.rt.includes(d.n[r].t))
-            //         //d.node.for_n(d, r, (r,n,t,o)=>{
+            //         //d.graph.for_stem(d, r, (r,n,t,o)=>{
             //             //if(!(r==d.profile && t=='asset')){ //src == n && 
             //                 d.make.edge(d, r, cpy, {t:t, o:o}); // adding edge in edge loop bad?!?!?!
             //             //}
@@ -133,19 +133,19 @@ export const create_remake_slice = (set,get)=>({remake:{
             // });
 
             // if(a.r){
-            //     const rne = d.node.rne(d, src).find(e=> e.r == a.r);
+            //     const rne = d.graph.root_stem(d, src).find(e=> e.r == a.r);
             //     if(rne) d.make.edge(d, rne.r, cpy, {t:rne.t, o:rne.o});
             // }
 
 // split(d, roots, target){ // make unique copy for everything but asset and transform?
 //     roots = roots.filter(r=> d.n[r].asset);
-//     if(!d.node.admin(d, [...roots, target])){ 
+//     if(!d.graph.admin(d, [...roots, target])){ 
 //         const dead_edges = [];
 //         //console.log(roots);
 //         //console.log(target);
 //         //roots = d.node.edges(d,n);
-//         //d.node.ne(d,roots).forEach(([r,n,t,o])=>{//d.node.for_n(d, roots, (r,n,t,o)=>{
-//         d.node.for_n(d, roots, (r,n,t,o)=>{
+//         //d.graph.stem_edge(d,roots).forEach(([r,n,t,o])=>{//d.graph.for_stem(d, roots, (r,n,t,o)=>{
+//         d.graph.for_stem(d, roots, (r,n,t,o)=>{
 //             console.log(r, n);
 //             if(n == target){
 //                 //console.log('copy');
@@ -158,6 +158,6 @@ export const create_remake_slice = (set,get)=>({remake:{
 //     }
 // },
 
-//d.node.for_r(d, nodes, (r,n,t)=>{
+//d.graph.for_root(d, nodes, (r,n,t)=>{
             //    d.make.edge(d, target, n, {t:t});
             //});

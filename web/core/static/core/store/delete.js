@@ -3,11 +3,11 @@ export const create_delete_slice = (set,get)=>({delete:{
     node:(d, n, a={})=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n]){
             var nodes = [n];
-            if(a.deep) nodes = nodes.concat(d.node.un(d, n, {filter:n=> d.n[n].asset, ...a})); 
+            if(a.deep) nodes = nodes.concat(d.graph.unique_stem(d, n, {filter:n=> d.n[n].asset, ...a})); 
             nodes.forEach(n=>{ //filter(n=> d.n[n].asset) // && (n==nodes[0] || !d.node.pre(d,n).some(e=> !nodes.includes(e.r)))
-                d.node.for_rn(d, n, (r,n,t)=> d.delete.edge(d,r,n,{t:t,...a}));//d.edge.delete(d, d.node.rne(d,n));
-                d.node.for_n (d, n, (r,n,t)=> d.delete.edge(d,r,n,{t:t,...a}));//d.edge.delete(d, d.node.ne(d,n));
-                d.node.close(d, n);
+                d.graph.for_root_stem(d, n, (r,n,t)=> d.delete.edge(d,r,n,{t:t,...a}));//d.edge.delete(d, d.graph.root_stem(d,n));
+                d.graph.for_stem (d, n, (r,n,t)=> d.delete.edge(d,r,n,{t:t,...a}));//d.edge.delete(d, d.graph.stem_edge(d,n));
+                d.graph.close(d, n);
                 d.n[n].deleted = true;
                 d.next('design.show');
                 // try{
@@ -26,11 +26,11 @@ export const create_delete_slice = (set,get)=>({delete:{
         var t = d.n[n].t;
         if(a.t != undefined) t = a.t;
         if((d.n[r].asset || d.cats[d.n[r].t]) && d.n[r].n[t]){ // d.n[r].n[t] remove d.n[r].n[t] ?!?!?!?!
-            const re = d.node.re(d, n).find(re=> re.r==r);
+            const re = d.graph.root_edge(d, n).find(re=> re.r==r);
             if(re){
                 d.pop(d.n[n].r[re.t], re.r); //d.n[n].r[re.t].splice(re.o, 1);
                 if(d.n[n].r[re.t].length==0) delete d.n[n].r[re.t];
-                if(!d.n[n].n && d.node.cr(d,n).length==0) d.delete.node(d,n); // delete unused atoms
+                if(!d.n[n].n && d.graph.subject_root(d,n).length==0) d.delete.node(d,n); // delete unused atoms
             }
             const o = d.pop(d.n[r].n[t], n); //d.n[r].n[t].splice(e.o, 1);
             //console.log('delete edge', o);
@@ -49,7 +49,7 @@ export const create_delete_slice = (set,get)=>({delete:{
         }
     },
     edge_or_node(d,r,n,a){
-        if(d.node.cr(d,n).length > 1){
+        if(d.graph.subject_root(d,n).length > 1){
             d.delete.edge(d,r,n,a);
         }else{
             d.delete.node(d,n);
@@ -62,7 +62,7 @@ export const create_delete_slice = (set,get)=>({delete:{
 
             ////////////////////////////// special case that needs generalized ?!?!?!?!?
             //var reckon_nodes = null;
-            //if(d.n[r].t=='transform') reckon_nodes = d.node.nt(d,n,'point');
+            //if(d.n[r].t=='transform') reckon_nodes = d.graph.stem_of_tag(d,n,'point');
             //if(d.n[r].t=='transform') 
             //d.clear.down(d,r,n);
             //////////////////////////////

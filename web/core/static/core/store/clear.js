@@ -32,7 +32,7 @@ export const create_clear_slice=(set,get)=>({clear:{
         // });
         if(change.auxiliary) d.next('reckon.up', n, ['auxiliary']);
         if(d.clear[d.n[n].t]) d.clear[d.n[n].t](d,n,change);
-        d.node.for_n(d, n, (r,n)=> d.clear.down(d,n,c,ax));
+        d.graph.for_stem(d, n, (r,n)=> d.clear.down(d,n,c,ax));
     },
     point(d,n,c){
         if(c.matrix) d.next('reckon.up', n); 
@@ -71,7 +71,7 @@ export const create_clear_slice=(set,get)=>({clear:{
 //             if(d.n[n].c[t]) content[t]=d.n[n].c[t];
 //         });
 //         //console.log('clear cat',content);
-//         //d.node.for_n(d, n, (r,n)=> d.clear.base(d,n,content));
+//         //d.graph.for_stem(d, n, (r,n)=> d.clear.base(d,n,content));
 //         d.clear.base(d,n,content);
 //     }else{
 //         d.clear.base(d,n,c);
@@ -89,5 +89,5 @@ export const create_clear_slice=(set,get)=>({clear:{
         //         if(c[t]!=undefined && d.n[n].c[t] === c[t]) delete d.n[n].c[t]; 
         //     });
         //     if(d.clear[d.n[n].t]) d.clear[d.n[n].t](d,n,c);
-        //     d.node.for_n(d, n, (r,n)=> d.clear.down(d,n,c));
+        //     d.graph.for_stem(d, n, (r,n)=> d.clear.down(d,n,c));
         // },

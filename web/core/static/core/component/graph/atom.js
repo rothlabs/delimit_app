@@ -62,7 +62,7 @@ export const Atom = memo(function Atom({n}){
                     outlineColor: 'white',
                     anchorX: 'center',
                     anchorY: 'middle',
-                    text: d.node.meta[t].tag, //readable(tag)
+                    text: d.node[t].tag, //readable(tag)
                 },
                     c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),

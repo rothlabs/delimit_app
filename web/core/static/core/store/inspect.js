@@ -10,19 +10,19 @@ export const create_inspect_slice = (set,get)=>({inspect:{
     splittable:{},
     update(d){ 
         //console.log('update inspect');
-        d.inspect.cats = d.node.cats(d,d.pick.n);
+        d.inspect.cats = d.graph.cats(d,d.pick.n);
         //d.pick.n.forEach(n=>{
-        //    d.node.cats(d,n).forEach(t=> d.add(d.inspect.cats, t));
+        //    d.graph.cats(d,n).forEach(t=> d.add(d.inspect.cats, t));
         //});
 
         const node_content = d.pick.n.map(n=> d.n[n]);
         d.value_tags.forEach(t=>{
             const nc = node_content.filter(n=> n.c[t]!=null);
-            const nodes = d.node.get(d, d.pick.n, t);
+            const nodes = d.graph.get(d, d.pick.n, t);
             d.inspect.mergeable[t] = false;
             d.inspect.splittable[t] = false;
             if(nodes.length > 1) d.inspect.mergeable[t] = true;
-            if(nodes.length == 1 && d.node.cr(d,nodes[0]).length > 1) d.inspect.splittable[t] = true;
+            if(nodes.length == 1 && d.graph.subject_root(d,nodes[0]).length > 1) d.inspect.splittable[t] = true;
             if(nc.length){
                 if(nc.every((n,i,nc)=> n.c[t]==nc[0].c[t])){ // nc[0].c[t] might be array
                     d.inspect.content[t] = nc[0].c[t];

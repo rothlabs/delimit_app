@@ -140,7 +140,7 @@ export function Badge({n}){ // more than one reason to change but okay because i
     const t = d.n[n].t;
     //console.log('render node badge');
     return (
-        c(Boot_Badge, {className:d.node.meta[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node.meta[t].tag+')')
+        c(Boot_Badge, {className:d.node[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node[t].tag+')')
     )
 }
 

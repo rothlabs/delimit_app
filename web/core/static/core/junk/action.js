@@ -3,7 +3,7 @@ import {current} from 'immer';
 export const create_action_slice=(set,get)=>({action:{
     node(d, n, a={}){ // rename to send? // might need to check for node existence or track original reckon call
         if(d.action[d.n[n].t]) d.action[d.n[n].t](d,n,a);
-        d.node.for_r(d, n, r=> d.action.node(d,r,a)); // watch out for cycle ?!?!?!
+        d.graph.for_root(d, n, r=> d.action.node(d,r,a)); // watch out for cycle ?!?!?!
     },
     repeater(d, n, a={}){ // need to repeat category actions !!!!!!!
         if(a.src!=n){
@@ -18,14 +18,14 @@ export const create_action_slice=(set,get)=>({action:{
                         });
                     }else{ // check if atom should be shared or not in a?!?!?!?!
                         const share = (d.n[a.n].n ? false : true); // share if atom
-                        var cgr =             d.node.rne(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
-                        var cgn = (share?cgr: d.node.rne(d, a.n, {filter:r=>grps.includes(r)})); //, deep:true
+                        var cgr =             d.graph.root_stem(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+                        var cgn = (share?cgr: d.graph.root_stem(d, a.n, {filter:r=>grps.includes(r)})); //, deep:true
                         if(cgr.length>0 && cgn.length>0 && cgr[0].r==cgn[0].r){
                             cgr = cgr[0];
                             cgn = cgn[0];
                             grps.forEach(g=>{
                                 if(g != cgr.r){
-                                    const alt_r =             d.n[g].n[cgr.t][cgr.o]; //d.n[g].n[cg.t][d.n[cg.r].n[cg.t].indexOf(a.r)]; // could index just come from d.node.rne above ?!?!?!?!
+                                    const alt_r =             d.n[g].n[cgr.t][cgr.o]; //d.n[g].n[cg.t][d.n[cg.r].n[cg.t].indexOf(a.r)]; // could index just come from d.graph.root_stem above ?!?!?!?!
                                     const alt_n = (share?a.n: d.n[g].n[cgn.t][cgn.o]); //d.n[g].n[cg.t][d.n[cg.r].n[cg.t].indexOf(a.n)]);
                                     d.make.edge(d, alt_r, alt_n, {src:n, t:a.t, o:a.o}); // need o:o
                                 }
@@ -39,8 +39,8 @@ export const create_action_slice=(set,get)=>({action:{
                             if(g != a.r && d.n[g].n[a.t]) d.delete.node(d, d.n[g].n[a.t][a.o], {src:n});
                         });
                     }else{ 
-                        var cgr = d.node.rne(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
-                        var cgn = d.node.rne(d, a.n, {filter:r=>grps.includes(r)}); //, deep:true
+                        var cgr = d.graph.root_stem(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+                        var cgn = d.graph.root_stem(d, a.n, {filter:r=>grps.includes(r)}); //, deep:true
                         if(cgr.length>0 && cgn.length>0 && cgr[0].r==cgn[0].r){
                             cgr = cgr[0];
                             cgn = cgn[0];
@@ -63,7 +63,7 @@ export const create_action_slice=(set,get)=>({action:{
 // export const create_action_slice=(set,get)=>({action:{
 //     node(d, n, a={}){ // rename to send? // might need to check for node existence or track original reckon call
 //         if(d.action[d.n[n].t]) d.action[d.n[n].t](d,n,a);
-//         d.node.for_r(d, n, r=> d.action.node(d,r,a)); // watch out for cycle ?!?!?!
+//         d.graph.for_root(d, n, r=> d.action.node(d,r,a)); // watch out for cycle ?!?!?!
 //     },
 //     repeater(d, n, a={}){ // need to repeat category actions !!!!!!!
 //         if(a.src!=n){
@@ -78,8 +78,8 @@ export const create_action_slice=(set,get)=>({action:{
 //                         });
 //                     }else{ // check if atom should be shared or not in a?!?!?!?!
 //                         const share = (d.n[a.n].n ? false : true);
-//                         const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
-//                         const cgn = (share ? cgr : d.node.r(d, a.n, {filter:r=>grps.includes(r)})); //, deep:true
+//                         const cgr = d.graph.root(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+//                         const cgn = (share ? cgr : d.graph.root(d, a.n, {filter:r=>grps.includes(r)})); //, deep:true
 //                         if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
 //                             const cg = cgr[0];
 //                             grps.forEach(g=>{
@@ -98,8 +98,8 @@ export const create_action_slice=(set,get)=>({action:{
 //                             if(g != a.r && d.n[g].n.group) d.delete.node(d, d.n[g].n.group[a.o], {src:n});
 //                         });
 //                     }else{ 
-//                         const cgr = d.node.r(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
-//                         const cgn = d.node.r(d, a.n, {filter:r=>grps.includes(r)}); //, deep:true
+//                         const cgr = d.graph.root(d, a.r, {filter:r=>grps.includes(r)}); //, deep:true
+//                         const cgn = d.graph.root(d, a.n, {filter:r=>grps.includes(r)}); //, deep:true
 //                         if(cgr.length>0 && cgn.length>0 && cgr[0]==cgn[0]){
 //                             const cg = cgr[0];
 //                             grps.forEach(g=>{
@@ -175,16 +175,16 @@ export const create_action_slice=(set,get)=>({action:{
 
 
 
-//if(d.node.r(d, a.r, {filter:r=>grps.includes(r), deep:true})){
+//if(d.graph.root(d, a.r, {filter:r=>grps.includes(r), deep:true})){
 
 // var grp1 = null;
-                        // d.node.for_r(d, a.r, r=>{
+                        // d.graph.for_root(d, a.r, r=>{
                         //     grp1 = grps.find(r)
                         // },{deep:true});
 
 // group(d,n){ // use a.cause='edge_create' and a.cause='edge_deleted'?
     //     //if(d.n[n].c.n == undefined) d.n[n].c.n = [];
-    //     const nodes = (d.n[n].n.group ? d.n[n].n.group : []);//d.node.n(d, n, {filter:n=>d.n[n].n});//.filter(n=> d.n[n].n);
+    //     const nodes = (d.n[n].n.group ? d.n[n].n.group : []);//d.graph.stem(d, n, {filter:n=>d.n[n].n});//.filter(n=> d.n[n].n);
     //     if(d.n[n].c.n == undefined) d.n[n].c.n = nodes;
     //     if(d.n[n].c.pushed == undefined) d.n[n].c.pushed = [];
     //     if(d.n[n].c.removed == undefined) d.n[n].c.removed = [];

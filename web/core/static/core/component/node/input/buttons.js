@@ -9,16 +9,16 @@ export function Buttons({t}){
     const d = gs();
     var buttons = [];
     if(mergeable) buttons.push({name:'Merge', icon:'bi-arrows-angle-contract', func(d){
-        const n = d.node.get(d, d.pick.n, t); 
+        const n = d.graph.get(d, d.pick.n, t); 
         d.remake.merge(d, n.slice(0,-1),  n.at(-1));
     }});
     if(splittable) buttons.push({name:'Split', icon:'bi-arrows-angle-expand', func(d){
-        const group = d.node.get(d, d.pick.n, t);
+        const group = d.graph.get(d, d.pick.n, t);
         d.pick.n.forEach(target=> d.remake.split(d, group, target));
     }});
     if(!d.atom_tags.includes(t)) buttons.push({name:'Remove', icon:'bi-x-lg', func(d){
         [...d.pick.n].forEach(r=>{
-            d.node.get(d,r,t).forEach(n=>{
+            d.graph.get(d,r,t).forEach(n=>{
                 d.delete.edge_or_node(d,r,n,{t:t});
             });
         });
@@ -36,7 +36,7 @@ export function Buttons({t}){
     )
 }
 
-// if(d.node.cr(d, n).length > 1){
+// if(d.graph.subject_root(d, n).length > 1){
                     //     //console.log('edge only?');
                     //     d.delete.edge(d, r, n, t);
                     // }else{

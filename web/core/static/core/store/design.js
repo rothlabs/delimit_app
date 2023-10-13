@@ -46,7 +46,7 @@ export const create_design_slice = (set,get)=>({design:{
         //if(!n) return;
         var canvas = d.n[n].c.canvas;
         var cctx = canvas.getContext('2d');
-        var width = d.n[d.n[n].n.width[0]].v;//canvas.width = d.n[d.n[n].n.width[0]].v; //d.node.get(d, n, 'width')[0];
+        var width = d.n[d.n[n].n.width[0]].v;//canvas.width = d.n[d.n[n].n.width[0]].v; //d.graph.get(d, n, 'width')[0];
         var height = d.n[d.n[n].n.height[0]].v;//canvas.height = d.n[d.n[n].n.height[0]].v;
         if(d.n[n].ax.invert) ray.pos.applyMatrix4(d.n[n].ax.invert);
         if(d.n[n].c.invert) ray.pos.applyMatrix4(d.n[n].c.invert);
@@ -63,11 +63,11 @@ export const create_design_slice = (set,get)=>({design:{
         cctx.fillStyle = grd;
         cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
         d.n[n].c.texture.needsUpdate = true;
-        //d.node.set(d, n, {data:d.n[n].c.data}); //canvas.toDataURL()
+        //d.graph.set(d, n, {data:d.n[n].c.data}); //canvas.toDataURL()
     },
     end_paint(d, n){
         d.design.act = null;
-        d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
+        d.graph.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
         d.studio.gizmo_active = false; // this might not be needed? #1
     },
     fill(d, n){
@@ -77,18 +77,18 @@ export const create_design_slice = (set,get)=>({design:{
         var height = d.n[d.n[n].n.height[0]].v;
         cctx.fillStyle = 'white';//'#d63384';
         cctx.fillRect(0, 0, width, height);
-        d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
+        d.graph.set(d, n, {data:d.n[n].c.canvas.toDataURL()});
     },
     pin_move(d){ // make drag slice?
         //d.design.pin_matrix.copy(d.design.matrix).invert();
-        d.pick.n.forEach(n => d.node.pin_pos(d, n, d.design.matrix)); //d.design.matrix
+        d.pick.n.forEach(n => d.graph.pin_pos(d, n, d.design.matrix)); //d.design.matrix
     },
     move(d, matrix){ //offset
         d.design.matrix = matrix;
         d.pick.n.forEach(n=>{ // must check if point or position contents!!!!
             if(d.n[n].pin.pos){ //if(d.n[n].pin.pos){
                 v1.copy(d.n[n].pin.pos).applyMatrix4(matrix); // v1.copy(d.n[n].pin.pos).applyMatrix4(d.design.pin_matrix).applyMatrix4(matrix);
-                d.node.set_pos(d, n, v1);
+                d.graph.set_pos(d, n, v1);
             }
         });
     },
@@ -156,7 +156,7 @@ export const create_design_slice = (set,get)=>({design:{
         //console.trace();
         d.design.candidate = d.pick.get_if_one(d);//d.design.candidate = d.pick.get_if_one(d, d.component_tags);
         if(!d.n[d.design.candidate]?.n) d.design.candidate = null;
-        if(!d.node.be(d, d.design.part)){ // use exists/available function here?  d.design.part && !d.n[d.design.part].open
+        if(!d.graph.ex(d, d.design.part)){ // use exists/available function here?  d.design.part && !d.n[d.design.part].open
             d.design.part = null;
             d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
         }
@@ -196,9 +196,9 @@ export const create_design_slice = (set,get)=>({design:{
     },
     show(d){ // 
         if(d.design.part){
-            d.design.n = [d.design.part, ...d.node.n(d, d.design.part, {deep:true})];
-            //d.design.n = [d.design.part, ...d.node.n(d, d.design.part, {deep:true})].filter(n=> d.nodes[d.n[n].t].design);
-            //d.design.n = d.node.n(d, d.design.part, {deep:true, include_roots:true});
+            d.design.n = [d.design.part, ...d.graph.stem(d, d.design.part, {deep:true})];
+            //d.design.n = [d.design.part, ...d.graph.stem(d, d.design.part, {deep:true})].filter(n=> d.nodes[d.n[n].t].design);
+            //d.design.n = d.graph.stem(d, d.design.part, {deep:true, include_roots:true});
         }else{
             d.design.n = [];
         }
@@ -210,9 +210,9 @@ export const create_design_slice = (set,get)=>({design:{
 // //console.log('show');
 //         //console.trace();
 //         if(d.design.part){
-//             d.design.n = [d.design.part, ...d.node.n(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t] && d.n[n].design.vis);
+//             d.design.n = [d.design.part, ...d.graph.stem(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t] && d.n[n].design.vis);
 //             // d.design.n = Array.from( // use unique flag instead of set for performance ?!?!?!
-//             //     new Set([d.design.part, ...d.node.n(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t]))
+//             //     new Set([d.design.part, ...d.graph.stem(d, d.design.part, {deep:true})].filter(n=> d.component[d.n[n].t]))
 //             // );
 //         }else{
 //             d.design.n = [];
@@ -228,7 +228,7 @@ export const create_design_slice = (set,get)=>({design:{
     
 //     var canvas = d.n[n].c.canvas;
 //     var cctx = canvas.getContext("2d");
-//     var width = d.n[d.n[n].n.width[0]].v;//canvas.width = d.n[d.n[n].n.width[0]].v; //d.node.get(d, n, 'width')[0];
+//     var width = d.n[d.n[n].n.width[0]].v;//canvas.width = d.n[d.n[n].n.width[0]].v; //d.graph.get(d, n, 'width')[0];
 //     var height = d.n[d.n[n].n.height[0]].v;//canvas.height = d.n[d.n[n].n.height[0]].v;
 
 //     if(d.n[n].ax.invert) ray.pos.applyMatrix4(d.n[n].ax.invert);
@@ -244,7 +244,7 @@ export const create_design_slice = (set,get)=>({design:{
 //         grd.addColorStop(1, "rgba(255, 0, 0, 0)");
 //         cctx.fillStyle = grd;
 //         cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
-//         d.node.set(d, n, {data:'live'}); //canvas.toDataURL()
+//         d.graph.set(d, n, {data:'live'}); //canvas.toDataURL()
 //         //console.log('new image load!');
 //         //rs(d=>{
             
@@ -266,7 +266,7 @@ export const create_design_slice = (set,get)=>({design:{
 //     cctx.fillRect(x-brush_radius, y-brush_radius, brush_radius*2, brush_radius*2);
 //     console.log('new image load!');
 //     rs(d=>{
-//         d.node.set(d, n, {data:canvas.toDataURL()});
+//         d.graph.set(d, n, {data:canvas.toDataURL()});
 //         console.log('saved to data!');
 //     });
 // };
@@ -310,7 +310,7 @@ export const create_design_slice = (set,get)=>({design:{
 
 //end_move(d){
     //    console.log('end drag');
-    //    d.design.move(d, d.design.matrix, tv2.set(.01, .01, 0));// must set some send-flag instead of doing offset workaround  //d.pick.n.forEach(n => d.node.set(d, n, {x}));
+    //    d.design.move(d, d.design.matrix, tv2.set(.01, .01, 0));// must set some send-flag instead of doing offset workaround  //d.pick.n.forEach(n => d.graph.set(d, n, {x}));
     //},
 
 
@@ -322,9 +322,9 @@ export const create_design_slice = (set,get)=>({design:{
     //     if(d.board.dragging){
     //         d.board.dragging = false;
     //         //d.pick.n.forEach(n=>{
-    //         //    d.node.delta(d, d.node.get(d,n,'x'), 0.0001); // change to send flag
-    //         //    d.node.delta(d, d.node.get(d,n,'y'), 0.0001);
-    //         //    d.node.delta(d, d.node.get(d,n,'z'), 0.0001);
+    //         //    d.node.delta(d, d.graph.get(d,n,'x'), 0.0001); // change to send flag
+    //         //    d.node.delta(d, d.graph.get(d,n,'y'), 0.0001);
+    //         //    d.node.delta(d, d.graph.get(d,n,'z'), 0.0001);
     //         //});
     //     }
     // },
@@ -334,9 +334,9 @@ export const create_design_slice = (set,get)=>({design:{
     //         if(!d.board.dragging && delta.length() > 4){
     //             d.board.dragging = true;
     //             d.pick.n.forEach(n => {
-    //                 d.node.pin(d, d.node.get(d,n,'x'));
-    //                 d.node.pin(d, d.node.get(d,n,'y'));
-    //                 d.node.pin(d, d.node.get(d,n,'z'));
+    //                 d.node.pin(d, d.graph.get(d,n,'x'));
+    //                 d.node.pin(d, d.graph.get(d,n,'y'));
+    //                 d.node.pin(d, d.graph.get(d,n,'z'));
     //             });
     //         }
     //     }else{
@@ -345,10 +345,10 @@ export const create_design_slice = (set,get)=>({design:{
     //     if(d.board.dragging){
     //         //console.log('drag', d.board.pointers, tv);
     //         d.pick.n.forEach(n=>{
-    //             //console.log(current(d.node.get(d,n,'x')));
-    //             d.node.delta(d, d.node.get(d,n,'x'), delta.x);
-    //             d.node.delta(d, d.node.get(d,n,'y'), delta.y);
-    //             d.node.delta(d, d.node.get(d,n,'z'), delta.z);
+    //             //console.log(current(d.graph.get(d,n,'x')));
+    //             d.node.delta(d, d.graph.get(d,n,'x'), delta.x);
+    //             d.node.delta(d, d.graph.get(d,n,'y'), delta.y);
+    //             d.node.delta(d, d.graph.get(d,n,'z'), delta.z);
     //         });
     //     }
     // },

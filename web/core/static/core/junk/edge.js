@@ -12,7 +12,7 @@ export function Edge(){ //Transmute Recast
             // automatically figure out what it is mostly being used as and set tag from that. Could provide options to user as well
             const r = d.pick.target;
             d.pick.group.forEach(n=>{
-                if(!d.node.n(d, n, {deep:true}).includes(r)) d.make.edge(d, r, n);
+                if(!d.graph.stem(d, n, {deep:true}).includes(r)) d.make.edge(d, r, n);
             }); 
         }},
         {name:'Remove',  icon:'bi-box-arrow-up-right', disabled:!removable, func(d){ 

@@ -47,7 +47,7 @@ export function Design(){
             name: 'design',
         },
             nodes.map(n=>{
-                //d.n[n].design.vis && c(d.component[d.n[n].t], {n:n, key:n}) // d.node.be(d,n) && 
+                //d.n[n].design.vis && c(d.component[d.n[n].t], {n:n, key:n}) // d.graph.ex(d,n) && 
                 if(!d.n[n].design.vis) return;
                 let component = design[upper(d.n[n].t)];
                 //console.log(d.n[n]);

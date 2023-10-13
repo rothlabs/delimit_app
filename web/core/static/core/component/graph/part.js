@@ -31,8 +31,8 @@ export const Part = memo(function Part({n}){
     }); 
     const d = gs();
     const t = d.n[n].t;
-    const icon = d.node.meta[t].icon;
     const material = {color: color[0], toneMapped:false};
+
     return(
         r('group', {name: 'part'}, 
             r(View_Transform, {
@@ -52,7 +52,7 @@ export const Part = memo(function Part({n}){
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Svg, {
-                    src: icon,
+                    src: d.node[t].icon,
                     scale: 0.1,
                     position: [-0.8, 0.8, 1],
                     fillMaterial: material,
@@ -66,9 +66,8 @@ export const Part = memo(function Part({n}){
                     outlineColor: 'white',
                     anchorX: 'center',
                     anchorY: 'middle',
-                    text: d.node.meta[t].tag,
+                    text: d.node[t].tag,
                 },
-                    //d.node.meta[t].tag, // memoize it?
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Pickable, {n:n},

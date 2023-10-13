@@ -22,14 +22,14 @@ export function Make(){
                         c(Row, {className: 'mt-1 text-left '+(i==d.subject_tags.length-1?'mb-4':'')},
                             c(Button, {
                                 id:'make_'+t,
-                                className: 'border-white text-start '+d.node.meta[t].css,
+                                className: 'border-white text-start '+d.node[t].css,
                                 variant:'outline-primary', size:'lg',
                                 onClick:e=> ss(d=>{ 
                                     d.make.part(d, t, {r:d.pick.n});
                                     d.studio.panel.show = false;
                                 }),
                             }, 
-                                c('span',{style:{fontSize:'16px'}}, ' '+d.node.meta[t].tag)
+                                c('span',{style:{fontSize:'16px'}}, ' '+d.node[t].tag)
                             )
                         )
                     ),
@@ -39,14 +39,14 @@ export function Make(){
                             c(Row, {className: 'mt-1 text-left'}, 
                                 c(Button, {
                                     id:'make_'+t,
-                                    className: 'border-white text-start '+d.node.meta[t].css,
+                                    className: 'border-white text-start '+d.node[t].css,
                                     variant:'outline-primary', size:'lg',
                                     onClick:e=> ss(d=>{ 
                                         d.pick.n.forEach(n=> d.make.edge(d, d.cats[t], n)); 
                                         d.studio.panel.show = false;
                                     }),
                                 }, 
-                                    c('span',{style:{fontSize:'16px'}}, ' '+d.node.meta[t].tag)
+                                    c('span',{style:{fontSize:'16px'}}, ' '+d.node[t].tag)
                                 )
                             )
                         ),
@@ -146,7 +146,7 @@ export function Make(){
     )
 }
 
-//const limited = !nodes.length || d.node.admin(d,nodes);
+//const limited = !nodes.length || d.graph.admin(d,nodes);
 
 
 // !nodes.length ? null : c(Col, {}, 

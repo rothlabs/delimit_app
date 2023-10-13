@@ -18,11 +18,11 @@ export function Remake(){ //Transmute or Recast
         }},
         {name:'Add',  icon:'bi-box-arrow-in-up-right', disabled:!addable, func(d){ // put button definitions like this in store ?
             d.pick.group.forEach(n=>{ 
-                if(!d.node.n(d, n, {deep:true}).includes(d.pick.target)) d.make.edge(d, d.pick.target, n); // automatically figure out what it is mostly being used as and set tag from that. Could provide options to user as well
+                if(!d.graph.stem(d, n, {deep:true}).includes(d.pick.target)) d.make.edge(d, d.pick.target, n); // automatically figure out what it is mostly being used as and set tag from that. Could provide options to user as well
             }); 
         }},
         {name:'Remove',  icon:'bi-box-arrow-up-right', disabled:!removable, func(d){ 
-            d.node.for_n(d, d.pick.target, (r,n,t)=>{
+            d.graph.for_stem(d, d.pick.target, (r,n,t)=>{
                 if(d.pick.group.includes(n)) d.delete.edge(d,r,n,{t:t});
             })
         }},

@@ -25,7 +25,7 @@ export function Source({t}){
 
 	const buttons = [
 		{name:'Remove', icon:'bi-x-lg', func(d, n){
-			d.node.for_n(d, d.pick.n, (r,nn,t)=>{
+			d.graph.for_stem(d, d.pick.n, (r,nn,t)=>{
 				if(n == nn) d.delete.edge(d, r, nn, {t:t});
 			})
 		}},
@@ -81,7 +81,7 @@ export function Source({t}){
 // 	const buttons = [
 // 		{name:'Remove', icon:'bi-x-lg', func(d){
 // 			console.log('try to remove');
-// 			d.node.for_n(d, d.pick.n, (r,nn,t)=>{
+// 			d.graph.for_stem(d, d.pick.n, (r,nn,t)=>{
 // 				if(n == nn) d.delete.edge(d, r, nn, {t:t});
 // 			})
 // 		}},

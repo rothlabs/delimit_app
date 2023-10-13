@@ -24,10 +24,10 @@ export const create_pick_slice = (set,get)=>({pick:{
     reckonable: false,
     visible: false,
     set(d, n, v, a={}){
-        //if(a.deep) d.node.for_n(d, n, (r,n)= d.pick.set(d,n,true,a));
-        var nodes = n; // this and the next two lines are common so make d.node.for_n with inclusive flag?!?!?!?!?
+        //if(a.deep) d.graph.for_stem(d, n, (r,n)= d.pick.set(d,n,true,a));
+        var nodes = n; // this and the next two lines are common so make d.graph.for_stem with inclusive flag?!?!?!?!?
         if(!Array.isArray(nodes)) nodes = [nodes];
-        if(a.deep) nodes = nodes.concat(d.node.n(d, n, a).filter(n=> d.n[n].m=='p'));
+        if(a.deep) nodes = nodes.concat(d.graph.stem(d, n, a).filter(n=> d.n[n].m=='p'));
         nodes.forEach(n=>{
             d.n[n].pick.pick = v;
             if(v){ d.add(d.pick.n, n)}
@@ -42,9 +42,9 @@ export const create_pick_slice = (set,get)=>({pick:{
         if(d.n[n].pick.pick) console.log(n, current(d).n[n]);
     },
     update(d){
-        //d.pick.n = d.pick.n.filter(n=> d.node.be(d,n));
+        //d.pick.n = d.pick.n.filter(n=> d.graph.ex(d,n));
         d.pick.target = null;
-        d.pick.limited = (!d.pick.n.length || d.node.admin(d, d.pick.n));
+        d.pick.limited = (!d.pick.n.length || d.graph.admin(d, d.pick.n));
         d.pick.addable = false;
         d.pick.removable = false;
         d.pick.mergeable = false;
@@ -56,14 +56,14 @@ export const create_pick_slice = (set,get)=>({pick:{
         if(d.pick.n.length > 1){
             d.pick.group = d.pick.n.slice(0,-1);
             d.pick.target = d.pick.n.at(-1); // only set target if length > 1?
-            const target_nodes = d.node.n(d,d.pick.target);
+            const target_nodes = d.graph.stem(d,d.pick.target);
             const group_in_target = d.pick.group.some(n=> target_nodes.includes(n));
             d.pick.addable = d.n[d.pick.target].asset 
-                && !d.node.n(d,d.pick.group,{deep:true}).includes(d.pick.target) 
+                && !d.graph.stem(d,d.pick.group,{deep:true}).includes(d.pick.target) 
                 && d.pick.group.some(n=> !target_nodes.includes(n));
-            d.pick.removable = d.n[d.pick.target].asset && group_in_target;//d.node.n(d,d.pick.target).some(n=> d.pick.group.includes(n));
+            d.pick.removable = d.n[d.pick.target].asset && group_in_target;//d.graph.stem(d,d.pick.target).some(n=> d.pick.group.includes(n));
             d.pick.mergeable = d.n[d.pick.target].asset && d.pick.n.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
-            d.pick.splittable = d.n[d.pick.target].asset && group_in_target;  //d.pick.group.every(n=> (d.n[n].asset && d.node.n(d,n).includes(d.pick.target))); 
+            d.pick.splittable = d.n[d.pick.target].asset && group_in_target;  //d.pick.group.every(n=> (d.n[n].asset && d.graph.stem(d,n).includes(d.pick.target))); 
         }else{
             d.pick.group = d.pick.n; // copy with spread ?
         }
@@ -83,11 +83,11 @@ export const create_pick_slice = (set,get)=>({pick:{
         if(d.int_tags.includes(t)){   v=parseInt(v);   if(isNaN(v)) v=0; } // check model of each atom instead?
         if(t!='part' && Object.values(d.model_tags).includes(t)){ // is atom?
             d.pick.n.forEach(n => {
-                if(d.model_tags[d.n[n].m] == t) d.node.sv(d, n, v);//d.n[n].v = v;
+                if(d.model_tags[d.n[n].m] == t) d.graph.sv(d, n, v);//d.n[n].v = v;
             });
         }else{
             d.pick.n.forEach(n => {
-                if(d.n[n].m=='p') d.node.set(d, n, {[t]:v}); // if(d.n[n].m=='p' && d.n[n].n[t]) d.node.sv(d, d.n[n].n[t][0], v); // d.node.set(d, n, {t:v})             //d.n[d.n[n].n[t][0]].v = v; 
+                if(d.n[n].m=='p') d.graph.set(d, n, {[t]:v}); // if(d.n[n].m=='p' && d.n[n].n[t]) d.graph.sv(d, d.n[n].n[t][0], v); // d.graph.set(d, n, {t:v})             //d.n[d.n[n].n[t][0]].v = v; 
             });
         }
     },
@@ -166,7 +166,7 @@ export const create_pick_slice = (set,get)=>({pick:{
 
 //d.pick.same = d.pick.n.every((n,i,nodes)=> d.n[n].t==d.n[nodes[0]].t);
 
-// d.node.for_n(d, d.pick.n, (r,n)=>{
+// d.graph.for_stem(d, d.pick.n, (r,n)=>{
         //     if(d.n[n].asset && n == d.pick.n.at(-1)) d.pick.splittable = true;
         // });
 

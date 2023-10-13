@@ -552,7 +552,7 @@ export const post = n;
     // var paths = [];
     // function get_paths(nn){ // make this a general recursive func for getting all of some name #1
     //     const path_nodes = [];
-    //     d.node.for_n(d, nn, (r,nnn)=>{
+    //     d.graph.for_stem(d, nn, (r,nnn)=>{
     //         if(d.n[nnn].c.paths != undefined){
     //             paths = paths.concat(d.n[nnn].c.paths);
     //             path_nodes.push(nnn);
@@ -788,7 +788,7 @@ export const post = n;
 // var paths = [];
 // function get_paths(nn){
 //     const path_nodes = [];
-//     d.node.for_n(d, nn, (r,nnn)=>{
+//     d.graph.for_stem(d, nn, (r,nnn)=>{
 //         if(d.n[nnn].c.paths != undefined){
 //             paths = paths.concat(d.n[nnn].c.paths);
 //             path_nodes.push(nnn);

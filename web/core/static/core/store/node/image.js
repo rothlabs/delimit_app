@@ -43,7 +43,7 @@ export const image = {
                         });
                     });
                     d.n[d.n[n].n.data[0]].v = d.n[n].c.canvas.toDataURL();
-                    //d.node.set(d, n, {data:d.n[n].c.canvas.toDataURL()}, 'stroke');
+                    //d.graph.set(d, n, {data:d.n[n].c.canvas.toDataURL()}, 'stroke');
                 }
             }else{
                 if(c.data != undefined){
@@ -85,7 +85,7 @@ export const image = {
 
 
 
-                            //d.node.for_n(d, n, (r,n)=>{
+                            //d.graph.for_stem(d, n, (r,n)=>{
                             //    d.next('reckon.up', n);//d.reckon.up(d, n);
                                 //console.log('reckup other nodes!');
                             //});

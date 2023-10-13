@@ -57,13 +57,13 @@ export function Inspect(){
                         c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
                             c(Button, {
                                 id:'make_'+t,
-                                className:'border-white pt-0 pb-1 px-2 '+d.node.meta[t].css,
+                                className:'border-white pt-0 pb-1 px-2 '+d.node[t].css,
                                 variant:'outline-primary', 
                                 onClick:e=> ss(d=>{ 
                                     d.pick.n.forEach(n=> d.delete.edge(d, d.cats[t], n)); 
                                 }),
                             }, 
-                                ' '+d.node.meta[t].tag
+                                ' '+d.node[t].tag
                             ) 
                         ) 
                     ),

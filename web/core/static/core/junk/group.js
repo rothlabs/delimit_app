@@ -28,7 +28,7 @@ export function Group({n}){
     return(
             nodes && c('group', {name:d.n[n].t},
                 ...nodes.map(n=> 
-                    d.node.be(d,n) && d.component[d.n[n].t] && c(d.component[d.n[n].t], {n:n})
+                    d.graph.ex(d,n) && d.component[d.n[n].t] && c(d.component[d.n[n].t], {n:n})
                 ),
             )
     )
@@ -43,12 +43,12 @@ export function Group({n}){
 //         c('group', {name:'sketch'},
 //             lines && c('group', {name:'lines'},
 //                 ...lines.map(n=> 
-//                     d.node.be(d,n) && c(Line, {n:n})
+//                     d.graph.ex(d,n) && c(Line, {n:n})
 //                 ),
 //             ),
 //             sketches && c('group', {name:'sketches'},
 //                 ...sketches.map(n=> 
-//                     d.node.be(d,n) && c(Sketch, {n:n})
+//                     d.graph.ex(d,n) && c(Sketch, {n:n})
 //                 ),
 //             )
 //         )

@@ -9,7 +9,7 @@ export const create_make_slice = (set,get)=>({make:{
     //     d.make.buttons = d.subject
     // },
     edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
-        if(!d.node.be(d,r) || !d.node.be(d,n)) return;
+        if(!d.graph.ex(d,r) || !d.graph.ex(d,n)) return;
         if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
             if(a.single && d.n[r].n[a.t]) return;
             
@@ -33,7 +33,7 @@ export const create_make_slice = (set,get)=>({make:{
                 if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
                 d.n[n].r[rt].push(r); // reverse relationship 
                 if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
-                    d.node.r(d,r).filter(r=> d.n[r].t=='group').forEach(r=>{ // deep?  //d.node.re(d,r).filter(e=> d.n[e.r].t=='group')
+                    d.graph.root(d,r).filter(r=> d.n[r].t=='group').forEach(r=>{ // deep?  //d.graph.root_edge(d,r).filter(e=> d.n[e.r].t=='group')
                         d.make.edge(d, r, n, {src:a.src}); //, e.r 
                     });
                 }
@@ -90,7 +90,7 @@ export const create_make_slice = (set,get)=>({make:{
         //}
         //d.consume = d.send; // make add to a consume list? so async ops work? idk
 
-        // // if(d.node.be(d,a.r) && !d.cast_end[d.n[a.r].t]){
+        // // if(d.graph.ex(d,a.r) && !d.cast_end[d.n[a.r].t]){
         // //     const content_packs = [{c:d.n[a.r].c,t:'c'},{c:d.n[a.r].ax,t:'ax'}];
         // //     content_packs.forEach(cp=>{
         // //         Object.entries(cp.c).forEach(([t,cc])=>{

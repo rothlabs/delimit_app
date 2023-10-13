@@ -33,8 +33,8 @@ export function Float({t}){
                 className: 'border-0 bi-plus-slash-minus',
                 variant: 'outline-secondary',
                 onClick:e=>ss(d=>{
-                    d.node.get(d, d.pick.n, t).forEach(n => {
-                        d.node.sv(d, n, -d.n[n].v);
+                    d.graph.get(d, d.pick.n, t).forEach(n => {
+                        d.graph.sv(d, n, -d.n[n].v);
                     });
                 }),
             }),

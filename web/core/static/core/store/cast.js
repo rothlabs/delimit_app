@@ -23,7 +23,7 @@ export const create_cast_slice=(set,get)=>({cast:{
         //     d.n[n].ax[t] = ax; 
         // });
 
-        d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content,ax,a));
+        d.graph.for_stem(d, n, (r,n)=> d.cast.base(d,n,content,ax,a));
     },
     base(d,n,c,ax,a={}){
         const change = {c:{},ax:{}};
@@ -57,7 +57,7 @@ export const create_cast_slice=(set,get)=>({cast:{
         if(change.c.auxiliary) d.next('reckon.up', n, ['auxiliary']);
         if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,change); // merge c and ax together here ?!?!?!?!?
         if(a.shallow) return;
-        if(!d.cast_end[d.n[n].t]) d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c,ax,a));
+        if(!d.cast_end[d.n[n].t]) d.graph.for_stem(d, n, (r,n)=> d.cast.base(d,n,c,ax,a));
     },
     point(d,n,ch){ 
         if(ch.c.matrix) d.next('reckon.up', n); // , ['matrix']
@@ -100,7 +100,7 @@ export const create_cast_slice=(set,get)=>({cast:{
 // down(d,n,c){ 
 //     const content = {};
 //     c.split(' ').forEach(c=> content[c]=d.n[n].c[c]);
-//     d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,content));
+//     d.graph.for_stem(d, n, (r,n)=> d.cast.base(d,n,content));
 // },
 // base(d,n,c){
 //     //d.n[n].c.matrix = c.matrix;
@@ -109,21 +109,21 @@ export const create_cast_slice=(set,get)=>({cast:{
 //         if(c[t]!=undefined) d.n[n].c[t] = c[t]; 
 //     });
 //     if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
-//     d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
+//     d.graph.for_stem(d, n, (r,n)=> d.cast.base(d,n,c));
 // },
 
 // down(d,n,c){ 
-//     d.node.for_n(d, n, (r,n)=> d.cast.base(d,n,c));
+//     d.graph.for_stem(d, n, (r,n)=> d.cast.base(d,n,c));
 // },
 
 // down(d,n,c){ 
 //     const content = {};
 //     c.split(' ').forEach(c => content[c]=d.n[n].c[c]);
-//     d.node.for_n(d, n, n=> d.cast.base(d,n,content));
+//     d.graph.for_stem(d, n, n=> d.cast.base(d,n,content));
 // },
 // base(d,n,c){
 //     if(d.cast[d.n[n].t]) d.cast[d.n[n].t](d,n,c);
-//     d.node.for_n(d, n, n=> d.cast.base(d,n,c));
+//     d.graph.for_stem(d, n, n=> d.cast.base(d,n,c));
 // },
 // point(d,n,c){
 //     if(c.matrix){
@@ -152,8 +152,8 @@ export const create_cast_slice=(set,get)=>({cast:{
 //         te.set(MathUtils.degToRad(d.n[n].c.turn_x), MathUtils.degToRad(d.n[n].c.turn_y), MathUtils.degToRad(d.n[n].c.turn_z));
 //         matrix.makeRotationFromEuler(te);
 //         matrix.setPosition(tv);
-//         d.node.set(d, matrix_node, {element:matrix.elements});
+//         d.graph.set(d, matrix_node, {element:matrix.elements});
 //     }
 //     console.log('try to reckon points');
-//     d.node.for_nt(d,n,'point', p=>d.next('reckon.up',p));
+//     d.graph.for_stem_of_tag(d,n,'point', p=>d.next('reckon.up',p));
 // }
