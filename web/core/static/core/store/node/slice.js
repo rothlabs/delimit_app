@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import {Vector3, Vector2, Matrix4, MathUtils, Color, CatmullRomCurve3, Box3, DoubleSide, Sphere, Triangle,
+import {Vector3, Vector2, Matrix4, MathUtils, Color, CatmullRomCurve3, Box3, DoubleSide, Sphere, Triangle, Cylindrical,
         Mesh, MeshBasicMaterial, Line3, Plane, LineCurve3, CurvePath, Raycaster, BufferGeometry, PlaneGeometry} from 'three';
 //import {NURBSCurve} from 'three/examples/jsm/curves/NURBSCurve';
 import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry';
@@ -11,6 +11,8 @@ import {computeBoundsTree, disposeBoundsTree, acceleratedRaycast, MeshBVH,
 BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
 BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
 Mesh.prototype.raycast = acceleratedRaycast;
+
+const cylindrical = new Cylindrical();
 
 const v1 = new Vector3();
 const v2 = new Vector3();
@@ -100,7 +102,7 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 
 const n = {};
 n.bool = {autocalc:false, coil:false, axial:false}; //manual_compute:true, 
-n.int = {layers:1, axes:1, repeats:0, slows:0};
+n.int = {layers:1, axes:1, repeats:0};
 n.float = {
     axis_x:0, axis_y:-1, axis_z:0,
     spread_angle:30,
@@ -108,8 +110,8 @@ n.float = {
     slice_offset:0,    layer_offset:0,
     cord_radius:0.2,   speed:40,    flow:1, 
 };
-n.string = {material:'PLA'};
-n.source = ['surface', 'boundary'];
+n.string = {material:'PLA', fiber:'polyester',};
+n.source = ['surface', 'boundary'];//, 'speed_curve'];
 n.reckon = (d, s, c) => {
     //var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
     //const slice_cnt = d.easel_size;
@@ -139,11 +141,14 @@ n.reckon = (d, s, c) => {
 
     var bnds = [];
     s.boundary.forEach(boundary=> {
-        const geo = new ParametricGeometry(
-            boundary.p.get_point, 
-            surface_div, 
-            surface_div,
-        );
+        let geo = boundary.p.geo;
+        if(boundary.p.get_point){
+            geo = new ParametricGeometry(
+                boundary.p.get_point, 
+                surface_div, 
+                surface_div,
+            );
+        }
         //geo.computeBoundsTree({maxLeafTris: 1, strategy: SAH});
         //bnds.push(new Mesh(geo, material));
         bnds.push({
@@ -161,7 +166,8 @@ n.reckon = (d, s, c) => {
     const conforms = [];
     const segs = [];
     s.surface.forEach(surface => {
-        const conform = new ParametricGeometry(surface.p.get_point, surface_div, surface_div);
+        let conform = surface.p.geo;
+        if(surface.p.get_point) conform = new ParametricGeometry(surface.p.get_point, surface_div, surface_div);
         conforms.push(conform);
     });
     for(let ai = 0; ai < c.axes; ai++){//axes.forEach((axis, ai)=>{
@@ -516,6 +522,15 @@ n.reckon = (d, s, c) => {
             }
         }
     }
+    // if(c.press_ends){
+    //     for(let li=0; li < c.layers; li++){ 
+    //         for(let pi=0; pi < src_paths[li].length; pi++){ 
+    //             for(let i=0; i < src_paths[li][pi].length; i++){ 
+
+    //             }
+    //         }
+    //     }
+    // }
 
     if(bnds.length){
         var target0 = {pnt: new Vector3(), idx:-1, geo:null};
@@ -570,7 +585,16 @@ n.reckon = (d, s, c) => {
         src_paths = trimmed;
     }
 
-
+    let clearance = 0;
+    for(let li=0; li<c.layers; li++){ 
+        for(let pi=0; pi < src_paths[li].length; pi++){
+            for(let i=0; i < src_paths[li][pi].length; i++){ 
+                let radius = cylindrical.setFromVector3(src_paths[li][pi][i].p).radius;
+                if(clearance < radius) clearance = radius;
+            }
+        }
+    }
+    clearance += 20;
 
     console.log('Slice: paths');
     var paths = []; 
@@ -644,7 +668,9 @@ n.reckon = (d, s, c) => {
         if(c.material == 'PVA' && pva_start_idx < 0) pva_start_idx = paths.length;
         paths.push({
             ribbon:      d.part.surface(d, pts, {length_v:curve.getLength()}), //pts[0].map((e,i)=> ({p:e, n:pts[1][i]})),// src_path.map(e=> ({p:e.p.clone(), n:e.n.clone()})),//
-            speed:       c.speed * (pi < c.slows ? 0.5 : 1), 
+            clearance:   clearance,
+            speed:       c.speed,// * (pi < c.slows ? 0.5 : 1), 
+            speed_func:  (c.axial && c.coil ? t=>((t<.15 ? 0.5 : 1)) : null),
             flow:        c.flow,
             material:    c.material,
             cord_radius: c.cord_radius,
@@ -668,6 +694,7 @@ n.reckon = (d, s, c) => {
                     curves.push(curves[i]);
                     paths.push({
                         ribbon:      paths[i].ribbon, 
+                        clearance:   clearance,
                         speed:       c.speed * (0.4/(1+(k))), 
                         flow:        c.flow,
                         material:    'AIR',

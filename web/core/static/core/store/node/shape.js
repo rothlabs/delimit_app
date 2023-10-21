@@ -9,47 +9,36 @@ const v2 = new Vector3();
 //const v4 = new Vector3();
 //const v5 = new Vector3();
 //const v6 = new Vector3();
+const stitch_dist = 1;
+const res = 200;
 
-export const shape = {
-    res: 200,
-    stitch_dist: 1,
-    node(d, n, c, ax, a={}){ 
-        try{
-            delete c.shape;
-
-            const bndry  = d.n[n].n.curve.map(n=>({
-                used: false,
-                pts: d.n[n].c.curve.getPoints(this.res),
-                //ax_pts: ax.curve.getPoints(this.res),
-            }));
-            var pts = [...bndry[0].pts];
-            //var ax_pts = [...bndry[0].ax_pts];
-            bndry[0].used = true;
-            var i = 1;
-            while(i < bndry.length){
-                if(!bndry[i].used){
-                    if(pts.at(-1).distanceTo(bndry[i].pts[0]) < this.stitch_dist) {
-                        bndry[i].used = true;
-                        pts = pts.concat(bndry[i].pts); 
-                        //ax_pts = ax_pts.concat(bndry[i].ax_pts); 
-                        i = 0;
-                    }else if(pts.at(-1).distanceTo(bndry[i].pts.at(-1)) < this.stitch_dist){
-                        bndry[i].used = true;
-                        pts = pts.concat(bndry[i].pts.reverse());
-                        //ax_pts = ax_pts.concat(bndry[i].ax_pts.reverse());
-                        i = 0;
-                    }
-                }
-                i++;
+const n = {};
+export const shape = n;
+n.autocalc = true;
+n.source = ['curve'];
+n.reckon = (d, s, c)=>{ 
+    const bndry  = s.curve.map(curve=>({
+        used: false,
+        pts: curve.p.points(res),
+    }));
+    var pts = [...bndry[0].pts];
+    bndry[0].used = true;
+    var i = 1;
+    while(i < bndry.length){
+        if(!bndry[i].used){
+            if(pts.at(-1).distanceTo(bndry[i].pts[0]) < stitch_dist) {
+                bndry[i].used = true;
+                pts = pts.concat(bndry[i].pts); 
+                i = 0;
+            }else if(pts.at(-1).distanceTo(bndry[i].pts.at(-1)) < stitch_dist){
+                bndry[i].used = true;
+                pts = pts.concat(bndry[i].pts.reverse());
+                i = 0;
             }
-            
-            c.shape = new Shape(pts);
-        }catch(e){
-            //delete c.shape;
-            //delete ax.shape;
-            //console.log('SHAPE ERROR', e);
         }
-    },
+        i++;
+    }
+    return {shape: new Shape(pts)}; //design:'shape', 
 };
 
 //if(c.matrix) pts = pts.map(p=> p.clone().applyMatrix4(c.matrix));

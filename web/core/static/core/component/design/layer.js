@@ -9,13 +9,13 @@ const res = 100;
 export const Layer = memo(({n})=>{ 
     const obj = useRef();
     const color = useS(d=> d.n[n].pick.color); 
-    const geo = useS(d=> d.n[n].c.geo); 
+    //const geo = useS(d=> d.n[n].p.geo); 
     //const ray_pts = useS(d=> d.n[n].c.ray_pts); 
-    // const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
+    const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
 
-    // useSub(d=> d.n[n].ax.geo, geo=>{ 
-    //     if(geo) obj.current.geometry.copy(geo);
-    // });
+    useSub(d=> d.n[n].p, part=>{ 
+        if(part?.geo) obj.current.geometry.copy(part.geo);
+    });
 
     //console.log('render Layer');
     //const d = gs();

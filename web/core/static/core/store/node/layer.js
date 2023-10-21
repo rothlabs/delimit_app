@@ -20,138 +20,128 @@ const raycaster = new Raycaster();
 const material = new MeshBasicMaterial();
 const offsets = [{x:0,y:0},{x:1,y:0},{x:0,y:1},{x:-1,y:0},{x:0,y:-1}]; // {x:0,y:-1} //{x:-1,y:0}
 //const sketch_size = 400;
-const res = 140;
+const res = 90;////140;
 //const plane = new PlaneGeometry(sketch_size, sketch_size, grid_res-1, grid_res-1);
 const shape_res = 900;
 
-export const layer = { 
-    //shape_res: 800,
-    //layer_loop_div: 3,
-    //sketch_size: sketch_size,
-    res: res,
-    //plane: new PlaneGeometry(sketch_size, sketch_size, grid_res*.5-1, grid_res*.5-1),
-    node(d, n, c, ax, a={}){ 
-        if(d.design.act) return;
-        
-        try{if(!(a.cause && a.cause[0]=='casted_matrix')){ 
-            delete c.geo;
 
-            //if(d.studio.mode == 'graph') throw new Error('In graph mode.');
+const n = {};
+export const layer = n;
+n.autocalc = true;
+n.source = ['shape', 'surface'];
+n.reckon = (d, s, c)=>{ 
+    if(d.design.act) return;
 
-            //const shape_res = (d.design.res=='low' ? 100 : this.shape_res);
-            //const loop_div = (d.design.res=='low' ? 2 : this.layer_loop_div);
+    //if(d.studio.mode == 'graph') throw new Error('In graph mode.');
 
-            //////const shape_res = Math.round(d.design.act ? this.shape_res * d.rapid_res : this.shape_res); // needed for realtime updates #1
+    //const shape_res = (d.design.res=='low' ? 100 : this.shape_res);
+    //const loop_div = (d.design.res=='low' ? 2 : this.layer_loop_div);
 
-            const c_pts = d.n[d.n[n].n.shape[0]].c.shape.getSpacedPoints(shape_res); //getSpacedPoints
-            
+    //////const shape_res = Math.round(d.design.act ? this.shape_res * d.rapid_res : this.shape_res); // needed for realtime updates #1
 
-            const surface  = d.n[d.n[n].n.surface[0]].c.surface;
-            const shape_obj = new Mesh(
-                new ShapeGeometry(d.n[d.n[n].n.shape[0]].c.shape, Math.round(shape_res*0.5)), 
-                material
-            );
+    const c_pts = s.shape[0].p.shape.getSpacedPoints(shape_res); //getSpacedPoints
+    
 
-            const s = d.easel_size;//this.sketch_size;
-            const r = Math.round(d.design.act ? this.res * d.rapid_res : this.res);
-            //var geo = c.geo;
-            //if(geo && d.design.moving){
-            //    let pos = geo.attributes.position.array;
-            //    for(let i=0; i<pos.length; i++) pos[i] = this.plane.attributes.position.array[i];
-            //}else{
-                var geo = new PlaneGeometry(s, s, r-1, r-1);
-                //c.geo = geo;
-                //ax.geo = geo;
+    //const surface  = d.n[d.n[n].n.surface[0]].c.surface;
+    const shape_obj = new Mesh(
+        new ShapeGeometry(s.shape[0].p.shape, Math.round(shape_res*0.5)), 
+        material
+    );
+
+    const es = d.easel_size;//this.sketch_size;
+    const r = Math.round(d.design.act ? res * d.rapid_res : res);
+    //var geo = c.geo;
+    //if(geo && d.design.moving){
+    //    let pos = geo.attributes.position.array;
+    //    for(let i=0; i<pos.length; i++) pos[i] = this.plane.attributes.position.array[i];
+    //}else{
+        var geo = new PlaneGeometry(es, es, r-1, r-1);
+        //c.geo = geo;
+        //ax.geo = geo;
+    //}
+
+
+    //const ray_pts = [];
+    const pts = Array(r*r).fill(0);
+    const pos = geo.attributes.position.array;
+    const idx = geo.index.array;
+    c_pts.forEach((p, ci)=>{
+        offsets.forEach(offset=>{ // first run around with center only and then try offsets to catch stragelers if !epts[i] ?!?!?!?!
+            let i = r*Math.round(r*(-p.y+es/2)/es + offset.y) + Math.round(r*(p.x+es/2)/es + offset.x);
+            //if(!pts[i]){
+                pts[i] = 1;
+                pos[i*3  ] = p.x;
+                pos[i*3+1] = p.y;
             //}
-
-
-            //const ray_pts = [];
-            const pts = Array(r*r).fill(0);
-            const pos = geo.attributes.position.array;
-            const idx = geo.index.array;
-            c_pts.forEach((p, ci)=>{
-                offsets.forEach(offset=>{ // first run around with center only and then try offsets to catch stragelers if !epts[i] ?!?!?!?!
-                    let i = r*Math.round(r*(-p.y+s/2)/s + offset.y) + Math.round(r*(p.x+s/2)/s + offset.x);
-                    //if(!pts[i]){
-                        pts[i] = 1;
-                        pos[i*3  ] = p.x;
-                        pos[i*3+1] = p.y;
-                    //}
-                });
-            });
-            for(let y=0; y < r; y++){
-                let on_edge = false;
-                let fill_start = -1;
-                for(let x=0; x < r; x++){
-                    let i = r*y + x;
-                    if(pts[i] == 1) on_edge = true;
-                    if(on_edge && pts[i] == 0){
-                            const ray_pt = new Vector3((x/r)*s-s/2, (-y/r)*s+s/2, 10); // try 1-() instead for readability 
-                            origin.set(ray_pt.x, ray_pt.y, 100);
-                            raycaster.set(origin, direction);
-                            const intersects = raycaster.intersectObject(shape_obj);
-                            //if(intersects.length > 0) ray_pts.push({pos:ray_pt, hit:true});
-                            //else ray_pts.push({pos:ray_pt, hit:false});
-                            if(intersects.length > 0) fill_start = i
-                            on_edge = false;
-                    }
-                    if(fill_start > -1 && on_edge){
-                        for(let k=fill_start; k < i; k++) pts[k] = 2; //pos[k*3+2] = 10;
-                        fill_start = -1;
-                    }
-                }
+        });
+    });
+    for(let y=0; y < r; y++){
+        let on_edge = false;
+        let fill_start = -1;
+        for(let x=0; x < r; x++){
+            let i = r*y + x;
+            if(pts[i] == 1) on_edge = true;
+            if(on_edge && pts[i] == 0){
+                    const ray_pt = new Vector3((x/r)*es-es/2, (-y/r)*es+es/2, 10); // try 1-() instead for readability 
+                    origin.set(ray_pt.x, ray_pt.y, 100);
+                    raycaster.set(origin, direction);
+                    const intersects = raycaster.intersectObject(shape_obj);
+                    //if(intersects.length > 0) ray_pts.push({pos:ray_pt, hit:true});
+                    //else ray_pts.push({pos:ray_pt, hit:false});
+                    if(intersects.length > 0) fill_start = i
+                    on_edge = false;
             }
-            idx.fill(0);
-            var i = 0;
-            const fpos = pos.slice();
-            function map_to_surface(...indices){
-                indices.forEach(k=>{
-                    //v0.set(1-(fpos[k*3]+s/2)/s, (fpos[k*3+1]+s/2)/s, 0);
-                    surface.get_point_normal((fpos[k*3+1]+s/2)/s, 1-(fpos[k*3]+s/2)/s, v0, v1);
-                    v1.add(v0);
-                    // surface.get_point(v0.y,      v0.x,      v1);
-                    // surface.get_point(v0.y+.005, v0.x,      v2);
-                    // surface.get_point(v0.y,      v0.x+.005, v3);
-                    // v1.add(v2.sub(v1).cross(v3.sub(v1)).normalize());
-                    pos[k*3] = v1.x;   pos[k*3+1] = v1.y;   pos[k*3+2] = v1.z;
-                });
+            if(fill_start > -1 && on_edge){
+                for(let k=fill_start; k < i; k++) pts[k] = 2; //pos[k*3+2] = 10;
+                fill_start = -1;
             }
-            for(let y=0; y < r-1; y++){
-                for(let x=0; x < r-1; x++){
-                    let i0 = r*y + x;
-                    let i1 = i0+1;
-                    let i2 = r*(y+1) + x;
-                    let i3 = i2+1;
-                    if(pts[i0]>1 || pts[i1]>1 || pts[i2]>1){
-                        idx[i] = i0;
-                        idx[i+1] = i2;
-                        idx[i+2] = i1;
-                        i+=3;
-                        map_to_surface(i0, i2, i1);
-                    }
-                    if(pts[i1]>1 || pts[i3]>1 || pts[i2]>1){
-                        idx[i]   = i1;
-                        idx[i+1] = i2;
-                        idx[i+2] = i3;
-                        i+=3;
-                        map_to_surface(i1, i2, i3);
-                    }
-                    
-                }
-            }
-            geo.computeVertexNormals();
-            geo.attributes.position.needsUpdate = true;
-            geo.index.needsUpdate = true;
-            
-            c.geo = geo;
-            //console.log('reckon layer!');
-        }}catch(e){
-            //delete c.geo;
-            //delete ax.geo;
-            //console.log(e);
         }
-    },
+    }
+    idx.fill(0);
+    var i = 0;
+    const fpos = pos.slice();
+    function map_to_surface(...indices){
+        indices.forEach(k=>{
+            //v0.set(1-(fpos[k*3]+es/2)/es, (fpos[k*3+1]+es/2)/es, 0);
+            s.surface[0].p.get_point_normal((fpos[k*3+1]+es/2)/es, 1-(fpos[k*3]+es/2)/es, v0, v1);
+            v1.add(v0);
+            // surface.get_point(v0.y,      v0.x,      v1);
+            // surface.get_point(v0.y+.005, v0.x,      v2);
+            // surface.get_point(v0.y,      v0.x+.005, v3);
+            // v1.add(v2.sub(v1).cross(v3.sub(v1)).normalize());
+            pos[k*3] = v1.x;   pos[k*3+1] = v1.y;   pos[k*3+2] = v1.z;
+        });
+    }
+    for(let y=0; y < r-1; y++){
+        for(let x=0; x < r-1; x++){
+            let i0 = r*y + x;
+            let i1 = i0+1;
+            let i2 = r*(y+1) + x;
+            let i3 = i2+1;
+            if(pts[i0]>1 || pts[i1]>1 || pts[i2]>1){
+                idx[i] = i0;
+                idx[i+1] = i2;
+                idx[i+2] = i1;
+                i+=3;
+                map_to_surface(i0, i2, i1);
+            }
+            if(pts[i1]>1 || pts[i3]>1 || pts[i2]>1){
+                idx[i]   = i1;
+                idx[i+1] = i2;
+                idx[i+2] = i3;
+                i+=3;
+                map_to_surface(i1, i2, i3);
+            }
+            
+        }
+    }
+    geo.computeVertexNormals();
+    geo.attributes.position.needsUpdate = true;
+    geo.index.needsUpdate = true;
+    
+    return{geo:geo}
 };
+
 
 
 

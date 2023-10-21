@@ -11,8 +11,8 @@ export const Shape = memo(({n})=>{
     const mesh = useRef();
     const color = useS(d=> d.n[n].pick.color); 
     const [geo] = useState(new BufferGeometry()); //new BufferGeometry()
-    useSub(d=> d.n[n].c.shape, shape=>{ 
-        if(shape) mesh.current.geometry.copy(new ShapeGeometry(shape, res));
+    useSub(d=> d.n[n].p, part=>{ 
+        if(part?.shape) mesh.current.geometry.copy(new ShapeGeometry(part.shape, res));
     });
     // useSubS(d=> [d.n[n].c.matrix, d.n[n].ax.matrix], c=>{ 
     //     obj.current.position.set( 0, 0, 0 );

@@ -1,5 +1,5 @@
 import {current} from 'immer';
-import {Vector3, Vector4, Matrix4, MathUtils, LineCurve3, CurvePath} from 'three';
+import {Vector3, Vector4, Matrix4, MathUtils, LineCurve3, CurvePath, Box3} from 'three';
 
 // y-103 nozzle almost touches bottom of build rod
 
@@ -29,6 +29,8 @@ const forward = new Vector3(0, 0, 1);
 const back    = new Vector3(0, 0,-1);
 const down    = new Vector3(0,-1, 0);
 
+//const box = new Box3();
+
 const ribbon_div = 2;
 const normal_smooth_range = 20;//8; // mm
 //const ribbon_div = 2;
@@ -42,7 +44,7 @@ const normal_smooth_range = 20;//8; // mm
 
 // model space, relative:
 //const z_start = -40; 
-const pulloff = 80; // was 25 // along surface normal
+//////////const pulloff = 80; // was 25 // along surface normal
 
 const cmd = {
     idle:        '00000', // 0
@@ -66,8 +68,10 @@ const cmd = {
     close_cap:   '01001', // 18
     open_cap:    '11001', // 19
     open_mixer:  '00101', // 20
-    //open_plug:   '101010', // 21
-    //close_plug:  '011010', // 22
+    spin_on_t2:  '10101', // 21
+    spin_off_t2: '01101', // 22
+    spin_on_t3:  '11101', // 23
+    spin_off_t3: '00011', // 24
 };
 
 const cmd_names = {};
@@ -97,6 +101,7 @@ const machine_z_y_ratio = 1;
 const pva_offset_z = 14; // 20
 
 const n = {};
+export const post = n;
 n.bool = {autocalc:false};
 n.string = {code:'(Delimit Slicer)'};
 n.source = ['machine', 'slice']; 
@@ -124,6 +129,8 @@ n.reckon = (d, s, c) => {
     var mach_y = mach.holder_y;
     var mach_a = 0;
     var tool_aim_z = mach.origin_a + tool_offset_a - 90;
+    let speed = 0;
+    let clearance = 0;
     //var tool_aim_y = mach.origin_a + tool_offset_a;
     //var brush_dist = 0;
     var paths = [];
@@ -166,16 +173,16 @@ n.reckon = (d, s, c) => {
         if(a.z != undefined) cl += ' Z'+d.rnd(ref.z+a.z, 1000);
         if(a.a != undefined){
             mach_a = d.rnd(ref.w+a.a, 1000);
-            if(mach_y > -100 && mach_a < tool_aim_z){
+            if(mach_y > -80 && mach_a < tool_aim_z){
                 var diff = tool_aim_z - mach_a;
-                mach_a = tool_aim_z - (diff*(-mach_y/360)); //280
+                mach_a = tool_aim_z - (diff*(-mach_y/160)); //280
             }
-            if(mach_y > -100 && mach_a > tool_aim_z + 60){
-                mach_a = tool_aim_z + 60; // + 45
+            if(mach_y > -100 && mach_a > tool_aim_z + 62.5){
+                mach_a = tool_aim_z + 62.5; // + 45
                 //var diff = tool_aim_z - mach_a;
                 //mach_a = tool_aim_z - (diff*(-mach_y/200));
             }
-            cl += ' A'+mach_a;
+            cl += ' A'+d.rnd(mach_a, 1000);
         }
         if(a.b != undefined) cl += ' B'+d.rnd(      a.b, 1000);
         if(time - cmd_time > cmd_dwell){
@@ -298,7 +305,8 @@ n.reckon = (d, s, c) => {
 
     
 
-    var direct = -1;
+    let direct = -1;
+    //let clearance = paths[0].clearance;
     const curves = [];
     for(let pi = 0; pi < paths.length; pi++){ //paths.forEach((path, pi)=>{
         let path = paths[pi];
@@ -337,13 +345,14 @@ n.reckon = (d, s, c) => {
         // }
         material = path.material;
 
-        var curve = new CurvePath();
+        let curve = new CurvePath();
         curve.arcLengthDivisions = 2000;
         curves.push(curve);
-        var pts = [];
-        var nml = [];
-        var dis = [0];
-        var n_ref = [];
+        let pts = [];
+        let nml = [];
+        let spd = [];
+        let dis = [0];
+        let n_ref = [];
 
         // for(let i=0; i < path.ribbon.length; i++){
         //     pts.push(path.ribbon[i].p);
@@ -358,18 +367,30 @@ n.reckon = (d, s, c) => {
         //var length = path.ribbon.length_v; //path.curve.getLength(); 
         //total_length += length;
         // Collect point, normal, distance, and normal reference:
-        for(let v=0; v<res; v++){
+        //path.clearance = 0;
+        for(let v=0; v<=res; v++){
+            let ratio = v/res;
             pts.push(new Vector3());
             nml.push(new Vector3());
-            path.ribbon.get_point(0, v/res, pts.at(-1));
-            path.ribbon.get_point(1, v/res, nml.at(-1));
+            path.ribbon.get_point(0, ratio, pts.at(-1));
+            path.ribbon.get_point(1, ratio, nml.at(-1));
             nml.at(-1).sub(pts.at(-1));
             n_ref.push(nml.at(-1).clone());
             if(pts.length > 1){
                 curve.add(new LineCurve3(pts.at(-2), pts.at(-1)));
                 dis.push(pts.at(-2).distanceTo(pts.at(-1)));
             }
+            if(path.speed_func){
+                spd.push(d.rnd(path.speed_func(ratio) * path.speed, 10));
+            }else{
+                spd.push(path.speed);
+            }
         }
+        //////path.clearance += 5;
+        ////if(clearance == 0) clearance = path.clearance;
+        //const spd_pts = path.speed_curve.spaced_points(res);
+        //box.setFromPoints(spd_pts);
+        //spd = spd_pts.map(p=> box.getParameter(p,v1).y);
 
         // Smooth normals over travel:
         var pt_span = curve.getLength() / pts.length;
@@ -426,23 +447,29 @@ n.reckon = (d, s, c) => {
             //         move({p:pts[i], b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
             //     }
             // }else{
+
                 if(i == 0){
                     if(direct < 0){
-                        v2.copy(pts[i]).add(v3.copy(nml[i]).normalize().multiplyScalar(pulloff));
+                        v2.copy(pts[i]).setZ((clearance > path.clearance ? clearance : path.clearance)); // pts[i].z + 
                         move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
                         if(material != 'AIR' && material != 'PVA') code.push('M3');//, 'G4 P0.08'); // open plug
                         move({p:pts[i], ref:'product', no_time:true});
                         if(material != 'AIR' && material != 'PVA'){
                             //code.push('M4');
-                            code.push('S'+Math.round(path.flow * path.speed * 10)); // S1000 = 100mm/s 
+                            speed = spd[i];
+                            code.push('S'+Math.round(path.flow * speed * 10)); // S1000 = 100mm/s 
                             //code.push('G4 P0.05');
                         }
                     }else{
-                        move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:direct, ref:'product', no_time:true});
+                        move({p:pts[i], a:axis_a, b:axis_b, speed:spd[i], dist:direct, ref:'product', no_time:true});
                         direct = -1;
                     }
                 }else{
-                    move({p:pts[i], a:axis_a, b:axis_b, speed:path.speed, dist:dis[i], ref:'product'});
+                    if(speed != spd[i]){
+                        speed = spd[i];
+                        code.push('S'+Math.round(path.flow * speed * 10));
+                    }
+                    move({p:pts[i], a:axis_a, b:axis_b, speed:spd[i], dist:dis[i], ref:'product'});
                 }
                 // if(i == pts.length-4){ // path should have exact distance for exact time built into it on end
                 //     if(pi < paths.length-1){
@@ -473,9 +500,11 @@ n.reckon = (d, s, c) => {
                         }
                     }
                     if(direct < 0){
-                        if(material != 'AIR' && material != 'PVA') code.push('M5 S0');
-                        v2.copy(pts[i]).add(v3.copy(nml[i]).normalize().multiplyScalar(pulloff));
-                        move({p:v2, ref:'product', no_time:true});
+                        clearance = path.clearance;
+                        if(material != 'PVA') {
+                            if(material != 'AIR') code.push('M5 S0');
+                            move({z:clearance, ref:'product'});
+                        }
                     }
                 }
             //}
@@ -541,12 +570,18 @@ n.reckon = (d, s, c) => {
         //code:   code.join('\r\n'),
     };
 };
-export const post = n;
 
 
 
+// v3.copy(nml[i]);
+// v3.setY(0);
+// v2.copy(pts[i]).add(v3.normalize().multiplyScalar(clearance));
+// move({p:v2, a:axis_a, b:axis_b, ref:'product', no_time:true});
 
-
+// v3.copy(nml[i]);
+// v3.setY(0);
+// v2.copy(pts[i]).add(v3.normalize().multiplyScalar(clearance));
+// move({p:v2, ref:'product', no_time:true});
 
 
     // var paths = [];

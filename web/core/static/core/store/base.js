@@ -13,7 +13,7 @@ const subject_tags = [
     'slice', 'post', 'machine',
 ]; //'mixed_curve', 
 const source_tags = [
-    'boundary', 'guide', 'mix', 'target', 'mixed_curve',
+    'boundary', 'guide', 'mix', 'target', 'mixed_curve',// 'speed_curve',
 ]; 
 const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
     'public', 'manual_compute', // 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
@@ -48,12 +48,12 @@ const float_tags    = [model_tags['f'], // rename to number_tags
     'origin_x', 'origin_y', 'origin_z', 'origin_a', 
     'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
     'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', //'offset_a',
-    'fluid_z',
+    'fluid_z', 
 ];
 const string_tags = [model_tags['s'], // rename to text_tags
     'name', 'story', 'code', 'data',
     'color_a', 'color_b',
-    'material', 
+    'material', 'fiber',
     'plane',
 ]; 
 const atom_tags   = Object.values(model_tags).slice(1);
