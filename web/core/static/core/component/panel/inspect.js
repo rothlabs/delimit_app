@@ -22,7 +22,7 @@ export function Inspect(){
     //const show = useS(d=> d.studio.panel.show);
     //const nodes = useS(d=> d.pick.n); 
     const limited = useS(d=> d.pick.limited); 
-    const cats = useS(d=> d.inspect.cats);
+    ////////////////const cats = useS(d=> d.inspect.cats);
     const d = gs();
     const onDragEnd = result=>{
         const {source, destination} = result;
@@ -50,25 +50,25 @@ export function Inspect(){
             c(DragDropContext, {onDragEnd},
                 d.source_tags.map(t=> c(Source, {t:t})),
             ),
-            !cats.length ? null : c(Fragment,{},
-                c('h5',{className:'text-secondary bi-tag mt-4'}, ' Tags'),
-                c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
-                    ...cats.map(t=>
-                        c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
-                            c(Button, {
-                                id:'make_'+t,
-                                className:'border-white pt-0 pb-1 px-2 '+d.node[t].css,
-                                variant:'outline-primary', 
-                                onClick:e=> ss(d=>{ 
-                                    d.pick.n.forEach(n=> d.delete.edge(d, d.cats[t], n)); 
-                                }),
-                            }, 
-                                ' '+d.node[t].tag
-                            ) 
-                        ) 
-                    ),
-                ),
-            ),
+            // !cats.length ? null : c(Fragment,{},
+            //     c('h5',{className:'text-secondary bi-tag mt-4'}, ' Tags'),
+            //     c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
+            //         ...cats.map(t=>
+            //             c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
+            //                 c(Button, {
+            //                     id:'make_'+t,
+            //                     className:'border-white pt-0 pb-1 px-2 '+d.node[t].css,
+            //                     variant:'outline-primary', 
+            //                     onClick:e=> ss(d=>{ 
+            //                         d.pick.n.forEach(n=> d.delete.edge(d, d.cats[t], n)); 
+            //                     }),
+            //                 }, 
+            //                     ' '+d.node[t].tag
+            //                 ) 
+            //             ) 
+            //         ),
+            //     ),
+            // ),
         )
     )
 }

@@ -10,7 +10,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
     splittable:{},
     update(d){ 
         //console.log('update inspect');
-        d.inspect.cats = d.graph.cats(d,d.pick.n);
+        ///////////////////////////////////////d.inspect.cats = d.graph.cats(d,d.pick.n);
         //d.pick.n.forEach(n=>{
         //    d.graph.cats(d,n).forEach(t=> d.add(d.inspect.cats, t));
         //});

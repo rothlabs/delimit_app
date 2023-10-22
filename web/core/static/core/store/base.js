@@ -11,15 +11,13 @@ const subject_tags = [
     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
     'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
     'slice', 'post', 'machine',
-]; //'mixed_curve', 
-const source_tags = [
-    'boundary', 'guide', 'mix', 'target', 'mixed_curve',// 'speed_curve',
 ]; 
-const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
-    'public', 'manual_compute', // 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
-    //'fill', 'corner',
-];
-const cast_tags = [...cat_tags];//[...cat_tags, 'base_matrix']; // , 'base_invert'
+
+// const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
+//     'public', 'manual_compute', // 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
+//     //'fill', 'corner',
+// ];
+//const cast_tags = [...cat_tags];//[...cat_tags, 'base_matrix']; // , 'base_invert'
 //const cast_shallow_tags = ['public', 'auxiliary',];
 
 // const component = {
@@ -27,9 +25,9 @@ const cast_tags = [...cat_tags];//[...cat_tags, 'base_matrix']; // , 'base_inver
 //     Transform, Layer, Image, Mixed_Curve
 // };
 const model_tags = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
+//const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 //const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
-const admin_tags = ['profile', ...cat_tags]; //category_tags
+const admin_tags = ['profile'];//, ...cat_tags]; //category_tags
 const bool_tags = [model_tags['b'],
     'visible', 'autocalc', 
     'coil', 'axial', 'corner',
@@ -66,17 +64,17 @@ export const create_base_slice = (set,get)=>({
     string_tags:    string_tags,
     bool_tags:      bool_tags,
     atom_tags:      atom_tags,
-    cat_tags:       cat_tags, //category_tags
+    //cat_tags:       cat_tags, //category_tags
     //cast_shallow_tags: cast_shallow_tags,
-    cat_map:        cat_map, //category //category_tags
+    //cat_map:        cat_map, //category //category_tags
     subject_tags:   subject_tags,
     admin_tags:     admin_tags,
     value_tags:     [...bool_tags, ...int_tags, ...float_tags, ...string_tags],
-    source_tags:  [...subject_tags, ...source_tags],
+    //source_tags:  [...subject_tags, ...source_tags],
     node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},
-    cast_tags:      cast_tags,
-    cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
+    //cast_tags:      cast_tags,
+    //cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
     cast_shallow_map: Object.fromEntries([ // cast_tags
         'public', 'auxiliary', 'manual_compute',
         'fill',
@@ -111,7 +109,7 @@ export const create_base_slice = (set,get)=>({
         'shape':          'bi-pentagon',
         'layer':          'bi-layers',
         'image':          'bi-image',
-        'slice':           'bi-rainbow',
+        'slice':          'bi-rainbow',
         'fill':           'bi-cloud-fog2-fill',
         'corner':         'bi-triangle',
         'post':           'bi-code',
@@ -155,6 +153,13 @@ export const create_base_slice = (set,get)=>({
         d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
         d.base_texture.anisotropy = 16;
         
+        d.source_tags = [];
+
+        for (const [k, v] of Object.entries(d.node)) {
+            d.add(d.source_tags, k);
+            if(v.source) for(const source_tag of v.source) d.add(d.source_tags, source_tag);
+        }
+
         //d.node.init(d);
         //d.make.init(d);
         d.graph.init(d); //d.node.init(d);
@@ -396,7 +401,7 @@ export const create_base_slice = (set,get)=>({
                         });
                     }
                     //if(d.n[n.id].t=='public') d.public = n.id;
-                    if(d.cat_map[d.n[n.id].t]) d.cats[d.n[n.id].t] = n.id; // optimize with direct lookup ?!?!?!?!
+                    ///////////////////if(d.cat_map[d.n[n.id].t]) d.cats[d.n[n.id].t] = n.id; // optimize with direct lookup ?!?!?!?!
                     //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
                 }else{  
                     d.n[n.id].t = d.model_tags[d.n[n.id].m];
@@ -469,6 +474,12 @@ export const create_base_slice = (set,get)=>({
     },
 
 });
+
+
+
+// const source_tags = [
+//     'boundary', 'guide', 'mix', 'target', 'mixed_curve',// 'speed_curve',
+// ]; 
 
 
 // const component = {

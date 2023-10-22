@@ -33,24 +33,6 @@ export function Make(){
                             )
                         )
                     ),
-                    limited ? null : c(Fragment,{},
-                        c('h5',{className:'text-secondary bi-tag'}, ' Tag'),
-                        ...d.cat_tags.map(t=>
-                            c(Row, {className: 'mt-1 text-left'}, 
-                                c(Button, {
-                                    id:'make_'+t,
-                                    className: 'border-white text-start '+d.node[t].css,
-                                    variant:'outline-primary', size:'lg',
-                                    onClick:e=> ss(d=>{ 
-                                        d.pick.n.forEach(n=> d.make.edge(d, d.cats[t], n)); 
-                                        d.studio.panel.show = false;
-                                    }),
-                                }, 
-                                    c('span',{style:{fontSize:'16px'}}, ' '+d.node[t].tag)
-                                )
-                            )
-                        ),
-                    ),
                 ),
                 limited ? null : c(Col, {}, 
                     [{m:'s',  v:'',    tags:d.string_tags, icon:'bi-text-left'},
@@ -76,6 +58,33 @@ export function Make(){
                             )
                         )
                     ),
+                ),
+            ),
+        )
+    )
+}
+
+
+// limited ? null : c(Fragment,{},
+//     c('h5',{className:'text-secondary bi-tag'}, ' Tag'),
+//     ...d.cat_tags.map(t=>
+//         c(Row, {className: 'mt-1 text-left'}, 
+//             c(Button, {
+//                 id:'make_'+t,
+//                 className: 'border-white text-start '+d.node[t].css,
+//                 variant:'outline-primary', size:'lg',
+//                 onClick:e=> ss(d=>{ 
+//                     d.pick.n.forEach(n=> d.make.edge(d, d.cats[t], n)); 
+//                     d.studio.panel.show = false;
+//                 }),
+//             }, 
+//                 c('span',{style:{fontSize:'16px'}}, ' '+d.node[t].tag)
+//             )
+//         )
+//     ),
+// ),
+
+
                     // c('h5',{className:'text-secondary bi-ui-checks'}, ' '+readable(d.model_tags['b'])),
                     // ...d.bool_tags.map((t,i)=>
                     //     t==d.model_tags['b'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.bool_tags.length-1?'mb-4':'')},
@@ -140,11 +149,6 @@ export function Make(){
                     //         )
                     //     )
                     // ),
-                ),
-            ),
-        )
-    )
-}
 
 //const limited = !nodes.length || d.graph.admin(d,nodes);
 

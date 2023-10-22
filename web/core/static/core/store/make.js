@@ -10,7 +10,7 @@ export const create_make_slice = (set,get)=>({make:{
     // },
     edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
         if(!d.graph.ex(d,r) || !d.graph.ex(d,n)) return;
-        if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
+        if(d.n[r].asset || r==d.profile){ // if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
             if(a.single && d.n[r].n[a.t]) return;
             
             /////var t = d.n[n].t;

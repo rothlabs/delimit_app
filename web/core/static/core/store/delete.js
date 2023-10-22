@@ -25,7 +25,7 @@ export const create_delete_slice = (set,get)=>({delete:{
     edge(d, r, n, a={}){ // can be delete_edge, not taking array  
         var t = d.n[n].t;
         if(a.t != undefined) t = a.t;
-        if((d.n[r].asset || d.cats[d.n[r].t]) && d.n[r].n[t]){ // d.n[r].n[t] remove d.n[r].n[t] ?!?!?!?!
+        if(d.n[r].asset && d.n[r].n[t]){ // if((d.n[r].asset || d.cats[d.n[r].t]) && d.n[r].n[t]){ // d.n[r].n[t] remove d.n[r].n[t] ?!?!?!?!
             const re = d.graph.root_edge(d, n).find(re=> re.r==r);
             if(re){
                 d.pop(d.n[n].r[re.t], re.r); //d.n[n].r[re.t].splice(re.o, 1);
