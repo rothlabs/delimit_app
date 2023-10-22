@@ -100,7 +100,9 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 // should collect random points on sharp edges of meshes too to ensure quality feature definition! #1
 // connect front and back of slice loop
 
-const n = {};
+const n = {
+    subject: true,
+};
 n.bool = {autocalc:false, coil:false, axial:false}; //manual_compute:true, 
 n.int = {layers:1, axes:1, repeats:0};
 n.float = {

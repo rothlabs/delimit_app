@@ -12,9 +12,11 @@ const v2 = new Vector3();
 const stitch_dist = 1;
 const res = 200;
 
-const n = {};
+const n = {
+    subject:  true,
+    autocalc: true,
+};
 export const shape = n;
-n.autocalc = true;
 n.source = ['curve'];
 n.reckon = (d, s, c)=>{ 
     const bndry  = s.curve.map(curve=>({

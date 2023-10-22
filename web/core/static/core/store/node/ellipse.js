@@ -13,8 +13,11 @@ const make = (c)=> new EllipseCurve(
     0                                 // aRotation
 );
 
-const n = {};
-n.autocalc = true;
+const n = {
+    subject:  true,
+    autocalc: true,
+};
+export const ellipse = n;
 n.float = {
     x:0, y:0, z:0, 
     axis_x:0, axis_y:1, axis_z:0, 
@@ -26,5 +29,4 @@ n.reckon = (d, s, c)=>{
     matrix.setPosition(c.x, c.y, c.z);
     return d.part.curve(d, make(c), matrix.multiply(c.matrix));
 };
-export const ellipse = n; 
 

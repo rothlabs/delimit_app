@@ -26,23 +26,22 @@ export const create_node_slice =(set,get)=>({node:{
     shape,
     sketch,
     slice,
-    stroke:{},
     surface,
     transform,
-
+    stroke:{},
     product:{},
 
     profile:{},
     public:{},
-    manual_compute:{},
-
 
     switch:{},
     integer:{},
     decimal:{},
     text:{},
+}});
 
-    //init(d){
+
+//init(d){
         // for(const [t, node] of Object.entries(d.node)){
         //     node.icon = static_url+'icon/node/'+t+'.svg';
         //     node.tag = readable(t);
@@ -54,7 +53,6 @@ export const create_node_slice =(set,get)=>({node:{
         //     css: d.node_css[t],
         // }])); // put in config file
     //},
-}});
 
 
 // be:(d,n)=>{ // have to calculate this every time a user wants to know because the node could not be present at all

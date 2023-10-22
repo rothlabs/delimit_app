@@ -73,9 +73,11 @@ const mixed = (d, s, c)=>{
     return d.part.catmullrom(d, pto, smooth_range, c.matrix);   
 }
 
-const n = {};
+const n = {
+    subject:  true,
+    autocalc: true,
+};
 export const curve = n;
-n.autocalc = true;
 n.source = ['point', 'mix'];
 n.bool = {corner:false};
 n.reckon = (d, s, c)=>{

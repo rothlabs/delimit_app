@@ -1,4 +1,6 @@
-const n = {};
+const n = {
+    subject:  true,
+};
 export const machine = n;
 n.float = {
     origin_x:0,  origin_y:0,  origin_z:0,  origin_a:0,  holder_y:0, 

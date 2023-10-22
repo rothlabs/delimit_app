@@ -2,6 +2,7 @@ import {Vector3} from 'three';
 
 const n = {};
 export const point = n;
+n.subject = true;
 n.autocalc = true;
 n.float = {x:0, y:0, z:0};
 n.reckon = (d, s, c)=>{

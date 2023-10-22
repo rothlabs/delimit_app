@@ -100,7 +100,9 @@ const tool_offset_a = 35;
 const machine_z_y_ratio = 1;
 const pva_offset_z = 14; // 20
 
-const n = {};
+const n = {
+    subject: true,
+};
 export const post = n;
 n.bool = {autocalc:false};
 n.string = {code:'(Delimit Slicer)'};

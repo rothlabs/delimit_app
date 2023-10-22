@@ -1,4 +1,6 @@
-const n = {};
-n.autocalc = true;
-n.string = {plane:'XY'};
+const n = {
+    subject:  true,
+    autocalc: true,
+};
 export const sketch = n;
+n.string = {plane:'XY'};

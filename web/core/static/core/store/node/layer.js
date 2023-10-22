@@ -25,9 +25,11 @@ const res = 90;////140;
 const shape_res = 900;
 
 
-const n = {};
+const n = {
+    subject:  true,
+    autocalc: true,
+};
 export const layer = n;
-n.autocalc = true;
 n.source = ['shape', 'surface'];
 n.reckon = (d, s, c)=>{ 
     if(d.design.act) return;

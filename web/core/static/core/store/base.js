@@ -7,11 +7,11 @@ import lodash from 'lodash';
 var next_funcs = [];
 var next_ids = [];
 
-const subject_tags = [
-    'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
-    'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
-    'slice', 'post', 'machine',
-]; 
+// const subject_tags = [
+//     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
+//     'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
+//     'slice', 'post', 'machine',
+// ]; 
 
 // const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
 //     'public', 'manual_compute', // 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
@@ -27,61 +27,61 @@ const subject_tags = [
 const model_tags = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
 //const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 //const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
-const admin_tags = ['profile'];//, ...cat_tags]; //category_tags
-const bool_tags = [model_tags['b'],
-    'visible', 'autocalc', 
-    'coil', 'axial', 'corner',
-];
-const int_tags = [model_tags['i'],
-    'order', 'current_image', 
-    'layers', 'axes', 'repeats', 'slows',
-];
-const float_tags    = [model_tags['f'], // rename to number_tags
-    'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
-    'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
-    'width', 'height',
-    'spread_angle', 
-    'slice_spacing', 'slice_offset', 'layer_spacing', 'layer_offset',
-    'cord_radius', 'speed', 'flow',  
-    'origin_x', 'origin_y', 'origin_z', 'origin_a', 
-    'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
-    'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', //'offset_a',
-    'fluid_z', 
-];
-const string_tags = [model_tags['s'], // rename to text_tags
-    'name', 'story', 'code', 'data',
-    'color_a', 'color_b',
-    'material', 'fiber',
-    'plane',
-]; 
+//const admin_tags = ['profile'];//, ...cat_tags]; //category_tags
+// const bool_tags = [model_tags['b'],
+//     'visible', 'autocalc', 
+//     'coil', 'axial', 'corner',
+// ];
+// const int_tags = [model_tags['i'],
+//     'order', 'current_image', 
+//     'layers', 'axes', 'repeats', 'slows',
+// ];
+// const float_tags    = [model_tags['f'], // rename to number_tags
+//     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
+//     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
+//     'width', 'height',
+//     'spread_angle', 
+//     'slice_spacing', 'slice_offset', 'layer_spacing', 'layer_offset',
+//     'cord_radius', 'speed', 'flow',  
+//     'origin_x', 'origin_y', 'origin_z', 'origin_a', 
+//     'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
+//     'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', //'offset_a',
+//     'fluid_z', 
+// ];
+// const string_tags = [model_tags['s'], // rename to text_tags
+//     'name', 'story', 'code', 'data',
+//     'color_a', 'color_b',
+//     'material', 'fiber',
+//     'plane',
+// ]; 
 const atom_tags   = Object.values(model_tags).slice(1);
 
 
 export const create_base_slice = (set,get)=>({
     model_tags:     model_tags,
-    int_tags:       int_tags,
-    float_tags:     float_tags,
-    string_tags:    string_tags,
-    bool_tags:      bool_tags,
+    int_tags:       [model_tags['i']],//int_tags,
+    float_tags:     [model_tags['f']],//float_tags,
+    string_tags:    [model_tags['s']],//string_tags,
+    bool_tags:      [model_tags['b']],//bool_tags,
     atom_tags:      atom_tags,
     //cat_tags:       cat_tags, //category_tags
     //cast_shallow_tags: cast_shallow_tags,
     //cat_map:        cat_map, //category //category_tags
-    subject_tags:   subject_tags,
-    admin_tags:     admin_tags,
-    value_tags:     [...bool_tags, ...int_tags, ...float_tags, ...string_tags],
-    //source_tags:  [...subject_tags, ...source_tags],
-    node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
+    subject_tags:   [],//subject_tags,
+    admin_tags:     ['profile'],//admin_tags,
+    //value_tags:     [...bool_tags, ...int_tags, ...float_tags, ...string_tags],
+    source_tags:    [],//[...subject_tags, ...source_tags],
+    ////node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},
     //cast_tags:      cast_tags,
     //cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
-    cast_shallow_map: Object.fromEntries([ // cast_tags
-        'public', 'auxiliary', 'manual_compute',
-        'fill',
-    ].map(t=>[t,true])),
-    cast_end:Object.fromEntries([ // 'mixed_curve',
-        'point', 'surface', 'layer', 'ellipse', // maybe add ellipse here ?!?!?!?!?!
-    ].map(t=>[t,true])),
+    // // cast_shallow_map: Object.fromEntries([ // cast_tags
+    // //     'public', 'auxiliary', 'manual_compute',
+    // //     'fill',
+    // // ].map(t=>[t,true])),
+    // // cast_end:Object.fromEntries([ // 'mixed_curve',
+    // //     'point', 'surface', 'layer', 'ellipse', // maybe add ellipse here ?!?!?!?!?!
+    // // ].map(t=>[t,true])),
     //component:component,
     //component_tags:Object.keys(component),
     node_css:{
@@ -152,13 +152,18 @@ export const create_base_slice = (set,get)=>({
         );
         d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
         d.base_texture.anisotropy = 16;
-        
-        d.source_tags = [];
 
-        for (const [k, v] of Object.entries(d.node)) {
-            d.add(d.source_tags, k);
-            if(v.source) for(const source_tag of v.source) d.add(d.source_tags, source_tag);
+        for (const [t, n] of Object.entries(d.node)) {
+            if(n.subject) d.add(d.subject_tags, t);
+            d.add(d.source_tags, t);
+            if(n.source) for(const t of n.source) d.add(d.source_tags, t);
+            if(n.bool) for(const t of Object.keys(n.bool)) d.add(d.bool_tags, t);
+            if(n.int) for(const t of Object.keys(n.int)) d.add(d.int_tags, t);
+            if(n.float) for(const t of Object.keys(n.float)) d.add(d.float_tags, t);
+            if(n.string) for(const t of Object.keys(n.string)) d.add(d.string_tags, t);
         }
+        d.value_tags = [...d.bool_tags, ...d.int_tags, ...d.float_tags, ...d.string_tags];
+        d.node_tags = [...d.subject_tags, ...d.admin_tags];
 
         //d.node.init(d);
         //d.make.init(d);

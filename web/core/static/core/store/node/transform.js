@@ -6,8 +6,11 @@ const v3 = new Vector3();
 const euler = new Euler();
 const quaternion = new Quaternion();
 
-const n = {};
-n.autocalc = true;
+const n = {
+    subject:  true,
+    autocalc: true,
+};
+export const transform = n;
 n.source = ['target'];
 n.bool = {corner:false};
 n.common_float = {
@@ -31,7 +34,6 @@ n.matrix = (d, c) => {
 n.reckon = (d, s, c)=>{
     return s.target[0].p.transform(d, c.matrix);
 }
-export const transform = n;
 
     // v1.setX(c.move_x ?? 0);
     // v1.setY(c.move_y ?? 0);
