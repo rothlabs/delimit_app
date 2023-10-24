@@ -44,7 +44,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                             }
                         }
                     }
-                    d.n[n].p = node.reckon(d, source, d.n[n].c);
+                    const new_part = node.reckon(d, source, d.n[n].c);
+                    if(new_part && !d.n[n].p) d.next('design.show');
+                    d.n[n].p = new_part;
                 }catch(e){
                     console.log('Reckon Error: '+d.n[n].t, e);
                 }

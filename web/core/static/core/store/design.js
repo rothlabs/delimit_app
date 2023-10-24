@@ -106,22 +106,22 @@ export const create_design_slice = (set,get)=>({design:{
     },
     insert_point(d, r, pos){ // in between points for a curve
         var o = undefined;
-        if(d.n[r].n.point && d.n[r].n.point.length > 2){ // check for d.n[r].ax.curve ?!?!?!?!
-            const test_pos = d.n[r].ax.curve.getPoints(200);//new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].ax.pos)).getPoints(200); //spaced points ?!?!?!?!   //d.n[r].c.pts.map(p=> p.pos)
+        if(d.n[r].p && d.n[r].p.design=='curve' && d.n[r].n.point && d.n[r].n.point.length > 2){ // check for d.n[r].ax.curve ?!?!?!?!
+            const test_pos = d.n[r].p.points(200);//d.n[r].ax.curve.getPoints(200);//new CatmullRomCurve3(d.n[r].n.point.map(n=>d.n[n].ax.pos)).getPoints(200); //spaced points ?!?!?!?!   //d.n[r].c.pts.map(p=> p.pos)
             const tests = [];
             var o = 0;
             var prev_dist = 0;
             for (var i = 0; i < test_pos.length; i++) {
                 //v1.copy(d.n[d.n[r].n.point[o]].ax.pos);
-                const dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].ax.pos); //d.n[r].c.pts[o].pos
+                const dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].p); //d.n[r].c.pts[o].pos
                 if(dist > prev_dist){
                     //v1.copy(d.n[d.n[r].n.point[o]].ax.pos);
                     for (var k = o+1; k < d.n[r].n.point.length; k++) {
                         //let prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[k]].ax.pos);
-                        if(d.n[d.n[r].n.point[o]].ax.pos.distanceTo(d.n[d.n[r].n.point[k]].ax.pos) > 1){
+                        if(d.n[d.n[r].n.point[o]].p.distanceTo(d.n[d.n[r].n.point[k]].p) > 1){
                         //if(dist < prev_dist){
                             o = k;
-                            prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].ax.pos);
+                            prev_dist = test_pos[i].distanceTo(d.n[d.n[r].n.point[o]].p);
                             //prev_dist = base_dist;
                             break;
                         }
@@ -148,7 +148,8 @@ export const create_design_slice = (set,get)=>({design:{
                 }
             }
         }
-        const n = d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
+        const n = d.make.part(d, 'point', {r:r, o:o});//d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
+        d.graph.set_pos(d, n, pos);
         d.pick.one(d, n, {t:true});
     },
     update(d){

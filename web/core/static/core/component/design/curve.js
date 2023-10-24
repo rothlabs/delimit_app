@@ -25,6 +25,7 @@ export const Curve = memo(({n})=>{
     const [segs_geo] = useState({pts:[[0,0,0],[0,0,0]]});//{pts:[[0,0,0],[0,0,0]]});
     //const [curve_count, set_curve_c] = useState(0);
     useSub(d=> d.n[n].p, part=>{ // make useSub that includes useEffect
+
         ///////const d = gs();
         // const curve2 = gs().n[n].ax.curve2;
         // if(curve2){

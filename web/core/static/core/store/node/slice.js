@@ -103,6 +103,7 @@ gpu.addFunction(function dot_vct(x1, y1, z1, x2, y2, z2) {
 const n = {
     subject: true,
 };
+export const slice = n;
 n.bool = {autocalc:false, coil:false, axial:false}; //manual_compute:true, 
 n.int = {layers:1, axes:1, repeats:0};
 n.float = {
@@ -718,7 +719,6 @@ n.reckon = (d, s, c) => {
         paths,
     }
 };
-export const slice = n;
 
 
 

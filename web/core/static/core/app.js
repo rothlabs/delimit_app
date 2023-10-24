@@ -31,9 +31,9 @@ import {create_node_slice} from './store/node.js';
 import {create_reckon_slice} from './store/reckon.js'; 
 import {create_remake_slice} from './store/remake.js';
 import {create_delete_slice} from './store/delete.js';
-import {create_action_slice} from './store/action.js';
-import {create_cast_slice} from './store/cast.js';
-import {create_clear_slice} from './store/clear.js';
+//import {create_action_slice} from './store/action.js';
+//import {create_cast_slice} from './store/cast.js';
+//import {create_clear_slice} from './store/clear.js';
 import {create_part_slice} from './store/part/part.js';
 
 enablePatches();
@@ -98,9 +98,6 @@ export const useS = create(
         ...create_reckon_slice(...a),
         ...create_remake_slice(...a),
         ...create_delete_slice(...a),
-        ...create_action_slice(...a),
-        ...create_cast_slice(...a),
-        ...create_clear_slice(...a),
         ...create_part_slice(...a),
     }))
 );
