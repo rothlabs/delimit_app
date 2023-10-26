@@ -195,16 +195,56 @@ export const create_design_slice = (set,get)=>({design:{
             d.design.matrix.identity();
         }
     },
-    show(d){ // 
+    show(d){ // rename to make_scene ?! update_scene ?! #1
         if(d.design.part){
-            d.design.n = [d.design.part, ...d.graph.stem(d, d.design.part, {deep:true})];
-            //d.design.n = [d.design.part, ...d.graph.stem(d, d.design.part, {deep:true})].filter(n=> d.nodes[d.n[n].t].design);
-            //d.design.n = d.graph.stem(d, d.design.part, {deep:true, include_roots:true});
+            d.design.scene = {n:d.design.part, scenes:[]};
+            const collected = [];
+            let root_scenes = [d.design.scene];
+            while(root_scenes.length){
+                let stem_scenes = [];
+                for(const root_scene of root_scenes){
+                    d.graph.for_stem(d, root_scene.n, (r,s)=>{
+                        if(d.add(collected, s)){
+                            let scene = {n:s, scenes:[]};
+                            stem_scenes.push(scene);
+                            root_scene.scenes.push(scene);
+                        }
+                    });
+                }
+                root_scenes = stem_scenes;
+            }
         }else{
-            d.design.n = [];
+            d.design.scene = null;
         }
     }
 }});
+
+// show(d){ // rename to make_scene ?! update_scene ?! #1
+//     if(d.design.part){
+//         const collected = [];
+//         const scene = n=>{
+//             const stems = [];
+//             d.graph.for_stem(d, n, (r,s)=>{
+//                 if(d.add(collected, s)) stems.push(s);
+//             });
+//             return{
+//                 n:n,
+//                 scenes: stems.map(n=> scene(n)),
+//             }
+//         };
+//         d.design.scene = scene(d.design.part);
+//     }else{
+//         d.design.scene = null;//[];
+//     }
+// }
+
+// d.design.scene = {
+            //     n: d.design.part,
+            //     stems: d.graph.stem(d, d.design.part).map(n=> scene_node(n)),
+            // };
+            //d.design.scene = [d.design.part, ...d.graph.stem(d, d.design.part, {deep:true})];
+            //d.design.n = [d.design.part, ...d.graph.stem(d, d.design.part, {deep:true})].filter(n=> d.nodes[d.n[n].t].design);
+            //d.design.n = d.graph.stem(d, d.design.part, {deep:true, include_roots:true});
 
 
 

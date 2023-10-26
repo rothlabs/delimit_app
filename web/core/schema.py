@@ -42,6 +42,7 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'target',
     'visible', 'autocalc',
     'plane',
+    'view_move_x',
 ]} # 'mixed_curve', 
 cats = tuple(Part.objects.get_or_create(t=tag[t])[0].id for t in [
     'public', #'manual_compute', # 'top_view', 'side_view', 'auxiliary', 'face_camera', 'manual_compute', #'front_view',

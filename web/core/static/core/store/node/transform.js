@@ -17,7 +17,12 @@ n.common_float = {
     move_x:0,  move_y:0,  move_z:0, 
     turn_x:0,  turn_y:0,  turn_z:0, 
     scale_x:1, scale_y:1, scale_z:1,
+
+    view_move_x: 0,
 };
+n.reckon = (d, s, c)=>{
+    return s.target[0].p.transform(d, c.matrix);
+}
 n.matrix = (d, c) => {
     v1.setX(c.move_x ?? 0);
     v1.setY(c.move_y ?? 0);
@@ -30,10 +35,12 @@ n.matrix = (d, c) => {
     v3.setZ(c.scale_z ?? 1);
     quaternion.setFromEuler(euler.setFromVector3(v2));
     return new Matrix4().compose(v1, quaternion, v3); 
-},
-n.reckon = (d, s, c)=>{
-    return s.target[0].p.transform(d, c.matrix);
-}
+};
+n.view = (d, c) => {
+    const position = [c.view_move_x ?? 0, c.view_move_y ?? 0, c.view_move_z ?? 0];
+    const rotation = [c.view_turn_x ?? 0, c.view_turn_y ?? 0, c.view_turn_z ?? 0];
+    return {position, rotation}
+};
 
     // v1.setX(c.move_x ?? 0);
     // v1.setY(c.move_y ?? 0);

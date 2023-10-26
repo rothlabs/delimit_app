@@ -7,55 +7,8 @@ import lodash from 'lodash';
 var next_funcs = [];
 var next_ids = [];
 
-// const subject_tags = [
-//     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
-//     'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
-//     'slice', 'post', 'machine',
-// ]; 
-
-// const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
-//     'public', 'manual_compute', // 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
-//     //'fill', 'corner',
-// ];
-//const cast_tags = [...cat_tags];//[...cat_tags, 'base_matrix']; // , 'base_invert'
-//const cast_shallow_tags = ['public', 'auxiliary',];
-
-// const component = {
-//     Point, Curve, Shape, Surface, Sketch,
-//     Transform, Layer, Image, Mixed_Curve
-// };
 const model_tags = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-//const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
-//const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
-//const admin_tags = ['profile'];//, ...cat_tags]; //category_tags
-// const bool_tags = [model_tags['b'],
-//     'visible', 'autocalc', 
-//     'coil', 'axial', 'corner',
-// ];
-// const int_tags = [model_tags['i'],
-//     'order', 'current_image', 
-//     'layers', 'axes', 'repeats', 'slows',
-// ];
-// const float_tags    = [model_tags['f'], // rename to number_tags
-//     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
-//     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
-//     'width', 'height',
-//     'spread_angle', 
-//     'slice_spacing', 'slice_offset', 'layer_spacing', 'layer_offset',
-//     'cord_radius', 'speed', 'flow',  
-//     'origin_x', 'origin_y', 'origin_z', 'origin_a', 
-//     'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
-//     'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', //'offset_a',
-//     'fluid_z', 
-// ];
-// const string_tags = [model_tags['s'], // rename to text_tags
-//     'name', 'story', 'code', 'data',
-//     'color_a', 'color_b',
-//     'material', 'fiber',
-//     'plane',
-// ]; 
 const atom_tags   = Object.values(model_tags).slice(1);
-
 
 export const create_base_slice = (set,get)=>({
     model_tags:     model_tags,
@@ -95,10 +48,8 @@ export const create_base_slice = (set,get)=>({
         'curve':          'bi-bezier2',
         'ellipse':        'bi-circle',
         'sketch':         'bi-easel2',
-        //'repeater':       'bi-files',
         //'group':          'bi-box-seam',
         'transform':      'bi-arrows-move',
-        //'mixed_curve':    'bi-bezier',
         'top_view':       'bi-camera-reels',
         'side_view':      'bi-camera-reels',
         'face_camera':    'bi-camera-reels',
@@ -133,7 +84,7 @@ export const create_base_slice = (set,get)=>({
     n:    {}, // all nodes stored here by ID 
     t:    {},
     t_id: {},
-    cats: {},
+    //cats: {},
     user: 0,
     profile: null,
     //public: null,
@@ -160,6 +111,7 @@ export const create_base_slice = (set,get)=>({
             if(n.bool) for(const t of Object.keys(n.bool)) d.add(d.bool_tags, t);
             if(n.int) for(const t of Object.keys(n.int)) d.add(d.int_tags, t);
             if(n.float) for(const t of Object.keys(n.float)) d.add(d.float_tags, t);
+            if(n.common_float) for(const t of Object.keys(n.common_float)) d.add(d.float_tags, t);
             if(n.string) for(const t of Object.keys(n.string)) d.add(d.string_tags, t);
         }
         d.value_tags = [...d.bool_tags, ...d.int_tags, ...d.float_tags, ...d.string_tags];
@@ -204,22 +156,6 @@ export const create_base_slice = (set,get)=>({
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    join_float_32_arrays(arrays){
-        const lengths = arrays.map(v=> v.length);
-        const result = new Float32Array(lengths.reduce((a,b)=>a+b,0));
-        for (let i=0; i<arrays.length; i++){
-            let start = lengths.slice(0,i).reduce((a,b)=>a+b,0);
-            result.set(arrays[i], start); 
-        }
-        return result;
-    },
-    // try(...funcs){
-    //     const result = null;
-    //     for(var i=0; i<funcs.length; i++){
-    //         try{ result = funcs[i](result);
-    //         }catch{ break; }
-    //     }
-    // },
 
     next(...a){ // static
         const id = a.filter(a=>!Array.isArray(a)).map(a=>String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!
@@ -479,6 +415,74 @@ export const create_base_slice = (set,get)=>({
     },
 
 });
+
+
+// const subject_tags = [
+//     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
+//     'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
+//     'slice', 'post', 'machine',
+// ]; 
+
+// const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
+//     'public', 'manual_compute', // 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
+//     //'fill', 'corner',
+// ];
+//const cast_tags = [...cat_tags];//[...cat_tags, 'base_matrix']; // , 'base_invert'
+//const cast_shallow_tags = ['public', 'auxiliary',];
+
+// const component = {
+//     Point, Curve, Shape, Surface, Sketch,
+//     Transform, Layer, Image, Mixed_Curve
+// };
+
+//const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
+//const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
+//const admin_tags = ['profile'];//, ...cat_tags]; //category_tags
+// const bool_tags = [model_tags['b'],
+//     'visible', 'autocalc', 
+//     'coil', 'axial', 'corner',
+// ];
+// const int_tags = [model_tags['i'],
+//     'order', 'current_image', 
+//     'layers', 'axes', 'repeats', 'slows',
+// ];
+// const float_tags    = [model_tags['f'], // rename to number_tags
+//     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
+//     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
+//     'width', 'height',
+//     'spread_angle', 
+//     'slice_spacing', 'slice_offset', 'layer_spacing', 'layer_offset',
+//     'cord_radius', 'speed', 'flow',  
+//     'origin_x', 'origin_y', 'origin_z', 'origin_a', 
+//     'holder_y', 'holder_x1', 'holder_x2', 'holder_x3', 'holder_x4', 'holder_x5',
+//     'offset_x1', 'offset_x2', 'offset_x3', 'offset_x4', 'offset_x5', //'offset_a',
+//     'fluid_z', 
+// ];
+// const string_tags = [model_tags['s'], // rename to text_tags
+//     'name', 'story', 'code', 'data',
+//     'color_a', 'color_b',
+//     'material', 'fiber',
+//     'plane',
+// ]; 
+
+
+
+// join_float_32_arrays(arrays){
+    //     const lengths = arrays.map(v=> v.length);
+    //     const result = new Float32Array(lengths.reduce((a,b)=>a+b,0));
+    //     for (let i=0; i<arrays.length; i++){
+    //         let start = lengths.slice(0,i).reduce((a,b)=>a+b,0);
+    //         result.set(arrays[i], start); 
+    //     }
+    //     return result;
+    // },
+    // try(...funcs){
+    //     const result = null;
+    //     for(var i=0; i<funcs.length; i++){
+    //         try{ result = funcs[i](result);
+    //         }catch{ break; }
+    //     }
+    // },
 
 
 

@@ -16,7 +16,6 @@ export function Visible(){
                     d.n[n].design.vis = !visible;
                 });
                 d.pick.visible = !visible;
-                d.design.show(d);
             }),
         })
     )

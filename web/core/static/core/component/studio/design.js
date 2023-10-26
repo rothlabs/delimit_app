@@ -31,10 +31,29 @@ const design = {
     //Transform,
 };
 
+function Scene({scene}){
+    const n = scene.n;
+    const visible = useS(d=> d.n[n].design.vis);
+    let transform = useS(d=> d.n[n].design.transform);
+    const d = gs();
+    const component = design[upper(d.n[n].t)] ?? (d.n[n].p && design[upper(d.n[n].p.design)]);
+    if(!d.n[n].design.transform || d.design.scene.n == n) transform = {position:[0,0,0], rotation:[0,0,0]};
+    return (
+        c('group', {
+            position: transform.position,
+            rotation: transform.rotation,
+        },
+            visible && component ? c(component, {n:n}) : false, 
+            scene.scenes.map(scene=> c(Scene, {scene:scene})),
+        )
+    )
+}
+
 export function Design(){
     //const obj = useRef();
     //const [id, set_id] = useState('123');
-    const nodes = useS(d=> d.design.n);
+    //const nodes = useS(d=> d.design.n);
+    const scene = useS(d=> d.design.scene);
     // useEffect(()=>{
     //     //if(obj.current) ss(d=> d.design.group = obj.current);
     //     //set_id(Math.random().toString());
@@ -46,15 +65,17 @@ export function Design(){
         c('group', {
             name: 'design',
         },
-            nodes.map(n=>{
-                //d.n[n].design.vis && c(d.component[d.n[n].t], {n:n, key:n}) // d.graph.ex(d,n) && 
-                if(!d.n[n].design.vis) return;
-                let component = design[upper(d.n[n].t)];
-                //console.log(d.n[n]);
-                component = component ?? (d.n[n].p && design[upper(d.n[n].p.design)]);// : null;
-                if(!component) return;
-                return c(component, {key:n, n:n})
-            }),
+            scene ? c(Scene, {scene:scene}) : false,
+            //design[upper(d.n[part].t)] ? c(design[upper(d.n[part].t)]) : null,
+            // nodes.map(n=>{
+            //     //d.n[n].design.vis && c(d.component[d.n[n].t], {n:n, key:n}) // d.graph.ex(d,n) && 
+            //     if(!d.n[n].design.vis) return;
+            //     let component = design[upper(d.n[n].t)];
+            //     //console.log(d.n[n]);
+            //     component = component ?? (d.n[n].p && design[upper(d.n[n].p.design)]);// : null;
+            //     if(!component) return;
+            //     return c(component, {key:n, n:n})
+            // }),
             c(Mover),
             c(View_Transform, {
                 name:'center_point',
