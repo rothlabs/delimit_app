@@ -11,19 +11,20 @@ const n = {
     autocalc: true,
 };
 export const transform = n;
-n.source = ['target'];
+n.stem = ['target'];
 n.bool = {corner:false};
+n.common_bool = {face_viewer:false};
 n.common_float = {
     move_x:0,  move_y:0,  move_z:0, 
     turn_x:0,  turn_y:0,  turn_z:0, 
     scale_x:1, scale_y:1, scale_z:1,
-
-    view_move_x: 0,
+    view_move_x:0, view_move_y:0, view_move_z:0,
+    view_turn_x:0, view_turn_y:0, view_turn_z:0,
 };
-n.reckon = (d, s, c)=>{
+n.part = (d, s, c)=>{
     return s.target[0].p.transform(d, c.matrix);
 }
-n.matrix = (d, c) => {
+n.matrix = (d, c)=>{
     v1.setX(c.move_x ?? 0);
     v1.setY(c.move_y ?? 0);
     v1.setZ(c.move_z ?? 0);
@@ -36,11 +37,18 @@ n.matrix = (d, c) => {
     quaternion.setFromEuler(euler.setFromVector3(v2));
     return new Matrix4().compose(v1, quaternion, v3); 
 };
+const rad = MathUtils.degToRad;
 n.view = (d, c) => {
     const position = [c.view_move_x ?? 0, c.view_move_y ?? 0, c.view_move_z ?? 0];
-    const rotation = [c.view_turn_x ?? 0, c.view_turn_y ?? 0, c.view_turn_z ?? 0];
+    const rotation = [rad(c.view_turn_x ?? 0), rad(c.view_turn_y ?? 0), rad(c.view_turn_z ?? 0)];
     return {position, rotation}
 };
+
+// const degToRad = (x, y, z)=>([
+//     MathUtils.degToRad(x),
+//     MathUtils.degToRad(y),
+//     MathUtils.degToRad(z),
+// ]);
 
     // v1.setX(c.move_x ?? 0);
     // v1.setY(c.move_y ?? 0);

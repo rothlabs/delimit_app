@@ -48,7 +48,7 @@ export function Inspect(){
             d.int_tags.map(t=>    c(Integer, {t:t})),
             d.float_tags.map(t=>  c(Float, {t:t})),
             c(DragDropContext, {onDragEnd},
-                d.source_tags.map(t=> c(Source, {t:t})),
+                d.stem_tags.map(t=> c(Source, {t:t})),
             ),
             // !cats.length ? null : c(Fragment,{},
             //     c('h5',{className:'text-secondary bi-tag mt-4'}, ' Tags'),

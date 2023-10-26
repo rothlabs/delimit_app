@@ -114,8 +114,8 @@ n.float = {
     cord_radius:0.2,   speed:40,    flow:1, 
 };
 n.string = {material:'PLA', fiber:'polyester',};
-n.source = ['surface', 'boundary'];//, 'speed_curve'];
-n.reckon = (d, s, c) => {
+n.stem = ['surface', 'boundary'];//, 'speed_curve'];
+n.part = (d, s, c) => {
     //var surfaces = d.n[n].n.surface.map(surface=> d.n[surface].c.surface);
     //const slice_cnt = d.easel_size;
     const layer_div = c.layer_spacing * c.cord_radius*2;

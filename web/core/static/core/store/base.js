@@ -23,7 +23,7 @@ export const create_base_slice = (set,get)=>({
     subject_tags:   [],//subject_tags,
     admin_tags:     ['profile'],//admin_tags,
     //value_tags:     [...bool_tags, ...int_tags, ...float_tags, ...string_tags],
-    source_tags:    [],//[...subject_tags, ...source_tags],
+    stem_tags:    [],//[...subject_tags, ...stem_tags],
     ////node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
     root_tags:      {'viewable':'viewer', 'asset':'owner',},
     //cast_tags:      cast_tags,
@@ -93,7 +93,7 @@ export const create_base_slice = (set,get)=>({
         ready: false,
         mode: 'graph',
         panel: {},
-        grouping: false, // put this in d.design ?!?!?!?!?!
+        //grouping: false, // put this in d.design ?!?!?!?!?!
         cursor: '',
     },
 
@@ -106,13 +106,16 @@ export const create_base_slice = (set,get)=>({
 
         for (const [t, n] of Object.entries(d.node)) {
             if(n.subject) d.add(d.subject_tags, t);
-            d.add(d.source_tags, t);
-            if(n.source) for(const t of n.source) d.add(d.source_tags, t);
+            d.add(d.stem_tags, t);
+            if(n.stem) for(const t of n.stem) d.add(d.stem_tags, t);
             if(n.bool) for(const t of Object.keys(n.bool)) d.add(d.bool_tags, t);
             if(n.int) for(const t of Object.keys(n.int)) d.add(d.int_tags, t);
             if(n.float) for(const t of Object.keys(n.float)) d.add(d.float_tags, t);
-            if(n.common_float) for(const t of Object.keys(n.common_float)) d.add(d.float_tags, t);
             if(n.string) for(const t of Object.keys(n.string)) d.add(d.string_tags, t);
+            if(n.common_bool) for(const t of Object.keys(n.common_bool)) d.add(d.bool_tags, t);
+            if(n.common_int) for(const t of Object.keys(n.common_int)) d.add(d.int_tags, t);
+            if(n.common_float) for(const t of Object.keys(n.common_float)) d.add(d.float_tags, t);
+            if(n.common_string) for(const t of Object.keys(n.common_string)) d.add(d.string_tags, t);
         }
         d.value_tags = [...d.bool_tags, ...d.int_tags, ...d.float_tags, ...d.string_tags];
         d.node_tags = [...d.subject_tags, ...d.admin_tags];
@@ -158,22 +161,23 @@ export const create_base_slice = (set,get)=>({
     },
 
     next(...a){ // static
+        const d = get();
         const id = a.filter(a=>!Array.isArray(a)).map(a=>String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!
-        if(get().add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
+        if(d.add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
             //console.log(id);
             //console.log(id, get().n[a[1]] ? get().n[a[1]].t : 'unknown');
             next_funcs.push({a:a, id:id});
-        }else{
-            if(Array.isArray(a.at(-1))){
-                const f = next_funcs.find(f=>(f.id==id));
-                if(Array.isArray(f.a.at(-1))){
-                    const d = get();
-                    a.at(-1).forEach(cumulative=>{
-                        d.add(f.a[f.a.length-1], cumulative);
-                    });
-                }
-            }
-        }
+        }//else{
+        //     if(Array.isArray(a.at(-1))){
+        //         const f = next_funcs.find(f=>(f.id==id));
+        //         if(Array.isArray(f.a.at(-1))){
+        //             //const d = get();
+        //             a.at(-1).forEach(cumulative=>{
+        //                 d.add(f.a[f.a.length-1], cumulative);
+        //             });
+        //         }
+        //     }
+        // }
     },
     continue(d){
         //console.log(current(d).next_funcs);
@@ -380,14 +384,17 @@ export const create_base_slice = (set,get)=>({
                 //}
             }
         }));
-        data.p.forEach(n=>{
-            if(d.graph.ex(d,n.id)) d.reckon.up(d, n.id); // d.next('reckon.up',n.id); // run lowest level reckon only ?!?!?!?!
-        });
+        ///////////////  \/ needed to recieve changes from other users?! \/ #1
+        // // // // data.p.forEach(n=>{
+        // // // //    if(d.graph.ex(d,n.id)) d.next('reckon.up', n.id);//d.reckon.up(d, n.id); // d.next('reckon.up',n.id); // run lowest level reckon only ?!?!?!?!
+        // // // // });
         d.studio.ready = true;
         if(set_update_graph) d.next('graph.update'); // only if add/remove or d.n[n].n/d.n[n].r changes
         ['dp','db','di','df','ds'].forEach(m=>{
             if(data[m]) data[m].forEach(n=> d.delete.node(d, n));
         });
+
+        //console.log(Object.keys(d.n).length);
     },
 
     // receive_deleted: (d, data)=>{ 
@@ -486,7 +493,7 @@ export const create_base_slice = (set,get)=>({
 
 
 
-// const source_tags = [
+// const stem_tags = [
 //     'boundary', 'guide', 'mix', 'target', 'mixed_curve',// 'speed_curve',
 // ]; 
 

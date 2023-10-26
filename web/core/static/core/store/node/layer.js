@@ -30,8 +30,8 @@ const n = {
     autocalc: true,
 };
 export const layer = n;
-n.source = ['shape', 'surface'];
-n.reckon = (d, s, c)=>{ 
+n.stem = ['shape', 'surface'];
+n.part = (d, s, c)=>{ 
     if(d.design.act) return;
 
     //if(d.studio.mode == 'graph') throw new Error('In graph mode.');

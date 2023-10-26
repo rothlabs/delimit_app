@@ -36,7 +36,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                 d.inspect.content[t] = undefined;   
             }
         })
-        d.source_tags.forEach(t=>{
+        d.stem_tags.forEach(t=>{
             const nc = node_content.filter(n=> (n.n && n.n[t]!=undefined));
             const nt = node_content.map(n=> n.t);
             d.inspect.source[t] = [];

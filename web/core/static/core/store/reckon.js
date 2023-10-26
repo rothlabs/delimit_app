@@ -15,21 +15,19 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         if(node.float)  d.reckon.props(d, n, Object.keys(node.float));
         if(node.string) d.reckon.props(d, n, Object.keys(node.string));
         if(d.n[n].v != null || node.autocalc || d.n[n].c.autocalc || a.manual){//cause.includes('manual_compute')){ //if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){ 
-            if(node.reckon){
+            if(node.part){
                 try{
-                    const source = {};
-                    if(node.source){
-                        for(let i = 0; i < node.source.length; i++){
-                            if(d.n[n].n[node.source[i]]){
-                                source[node.source[i]] = d.n[n].n[node.source[i]].map(n=> d.n[n]);
+                    const stem = {};
+                    if(node.stem){
+                        for(let i = 0; i < node.stem.length; i++){
+                            if(d.n[n].n[node.stem[i]]){
+                                stem[node.stem[i]] = d.n[n].n[node.stem[i]].map(n=> d.n[n]);
                             }else{
-                                source[node.source[i]] = [];
+                                stem[node.stem[i]] = [];
                             }
                         }
                     }
-                    const new_part = node.reckon(d, source, d.n[n].c);
-                    if(new_part && !d.n[n].p) d.next('design.show');
-                    d.n[n].p = new_part;
+                    d.n[n].p = node.part(d, stem, d.n[n].c);
                 }catch(e){
                     console.log('Reckon Error: '+d.n[n].t, e);
                 }
@@ -43,10 +41,16 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         t.forEach(t=>{
             if(d.n[n].n && d.n[n].n[t]){ //  && d.graph.ex(d,d.n[n].n[t][0])
                 d.n[n].c[t] = d.n[d.n[n].n[t][0]].v;
-            }else{   delete d.n[n].c[t];  } // d.n[n].c[t]=null; // should delete attr instead ?!?!?!
+            }else{   
+                delete d.n[n].c[t];  
+            } // d.n[n].c[t]=null; // should delete attr instead ?!?!?!
         });
     },
 }});
+
+
+//const new_part = node.reckon(d, stem, d.n[n].c);
+                    //if(new_part && !d.n[n].p) d.next('design.show');
 
 
 // && !(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){

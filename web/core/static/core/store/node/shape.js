@@ -17,8 +17,8 @@ const n = {
     autocalc: true,
 };
 export const shape = n;
-n.source = ['curve'];
-n.reckon = (d, s, c)=>{ 
+n.stem = ['curve'];
+n.part = (d, s, c)=>{ 
     const bndry  = s.curve.map(curve=>({
         used: false,
         pts: curve.p.points(res),

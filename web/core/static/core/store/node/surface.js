@@ -16,8 +16,8 @@ const n = {
     autocalc: true,
 };
 //n.int = {order:0, current_image:0};
-n.source = ['curve', 'guide']; // 'image'
-n.reckon = (d, s, c) => {
+n.stem = ['curve', 'guide']; // 'image'
+n.part = (d, s, c) => {
     if(d.design.act) return;
     var pts = [];
 

@@ -78,9 +78,9 @@ const n = {
     autocalc: true,
 };
 export const curve = n;
-n.source = ['point', 'mix'];
+n.stem = ['point', 'mix'];
 n.bool = {corner:false};
-n.reckon = (d, s, c)=>{
+n.part = (d, s, c)=>{
     if(s.point.length > 2) return nurbs(d, s, c);
     if(s.mix.length > 1)   return mixed(d, s, c);
 };

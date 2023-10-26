@@ -130,8 +130,8 @@ export const create_pick_slice = (set,get)=>({pick:{
         d.n[n].n[t1] = [...d.n[n].n[t1]]; // new array to be reflected in patches
         d.n[n].n[t2] = [...d.n[n].n[t2]]; // new array to be reflected in patches
         //d.graph.update(d);   // these should be triggered by hook in react component #1
-        d.inspect.update(d); // these should be triggered by hook in react component #1
         d.reckon.up(d, n);
+        d.next('inspect.update'); // these should be triggered by hook in react component #1
     },
     hover(d, n, hover){
         if(d.n[n].pick.hover != hover){

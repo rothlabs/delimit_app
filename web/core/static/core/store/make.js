@@ -32,11 +32,11 @@ export const create_make_slice = (set,get)=>({make:{
                 if(d.root_tags[t]) rt=d.root_tags[t];
                 if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
                 d.n[n].r[rt].push(r); // reverse relationship 
-                if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
-                    d.graph.root(d,r).filter(r=> d.n[r].t=='group').forEach(r=>{ // deep?  //d.graph.root_edge(d,r).filter(e=> d.n[e.r].t=='group')
-                        d.make.edge(d, r, n, {src:a.src}); //, e.r 
-                    });
-                }
+                // // // if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
+                // // //     d.graph.root(d,r).filter(r=> d.n[r].t=='group').forEach(r=>{ // deep?  //d.graph.root_edge(d,r).filter(e=> d.n[e.r].t=='group')
+                // // //         d.make.edge(d, r, n, {src:a.src}); //, e.r 
+                // // //     });
+                // // // }
 
 
                 // if(!d.cast_end[d.n[r].t]){

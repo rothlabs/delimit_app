@@ -17,7 +17,7 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'user', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time', 'part',  
     'viewable', 'asset',
     'profile',
-    'public', #'top_view', 'side_view', 'face_camera', 'manual_compute', #'front_view',  'inner_view', 'outer_view', 'guide',
+    'public', 
     'product', 'point', 'curve', 'ellipse', 'sketch', 'group', 'transform', # 'repeater', 
     'surface', 'shape', 'layer', 'image',
     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z', 
@@ -42,7 +42,8 @@ tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in 
     'target',
     'visible', 'autocalc',
     'plane',
-    'view_move_x',
+    'view_move_x', 'view_move_y', 'view_move_z', 'view_turn_x', 'view_turn_y', 'view_turn_z',
+    'face_viewer',
 ]} # 'mixed_curve', 
 cats = tuple(Part.objects.get_or_create(t=tag[t])[0].id for t in [
     'public', #'manual_compute', # 'top_view', 'side_view', 'auxiliary', 'face_camera', 'manual_compute', #'front_view',

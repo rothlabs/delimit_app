@@ -33,10 +33,11 @@ const design = {
 
 function Scene({scene}){
     const n = scene.n;
+    const part = useS(d=> d.n[n].p);
     const visible = useS(d=> d.n[n].design.vis);
     let transform = useS(d=> d.n[n].design.transform);
     const d = gs();
-    const component = design[upper(d.n[n].t)] ?? (d.n[n].p && design[upper(d.n[n].p.design)]);
+    const component = design[upper(d.n[n].t)] ?? (part && design[upper(part.design)]);
     if(!d.n[n].design.transform || d.design.scene.n == n) transform = {position:[0,0,0], rotation:[0,0,0]};
     return (
         c('group', {

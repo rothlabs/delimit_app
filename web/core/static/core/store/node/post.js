@@ -106,8 +106,8 @@ const n = {
 export const post = n;
 n.bool = {autocalc:false};
 n.string = {code:'(Delimit Slicer)'};
-n.source = ['machine', 'slice']; 
-n.reckon = (d, s, c) => {            
+n.stem = ['machine', 'slice']; 
+n.part = (d, s, c) => {            
     const mach = s.machine[0].c;//d.n[d.n[n].n.machine[0]].c;
     const tools = [null,
         {x:mach.holder_x1, offset_x:mach.offset_x1},
