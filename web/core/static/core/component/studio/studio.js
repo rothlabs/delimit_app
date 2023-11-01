@@ -13,6 +13,7 @@ export function Studio(){
     //console.log('render studio!');
     return (
         c(Fragment,{}, 
+            c(Get_Schema),
             c(Open_Push_Close),
             ready && c(Poll), 
             c(Toolbar),
@@ -33,15 +34,26 @@ export function Canvas_Viewport(){
     )
 }
 
+function Get_Schema(){
+    const {data, status} = use_query('Schema', [ 
+        ['schema full'],
+    ],{onCompleted:data=>{
+        //console.log('Get Schema - Complete', data.schema.full);    
+        rs(d=> d.set_schema(d, data.schema.full));
+    }}); 
+    return false;
+}
+
 function Open_Push_Close(){
     const search = useS(d=> d.search);
+
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
         ['openPack pack{ t{id v} p{id t} '+edges+' '+atoms+' } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:(data)=>{data = data.openPack;
         console.log('Open Pack - complete');
         console.log(Date.now()/1000 - 1685555000);
-        if(data.pack) rs(d=> d.receive(d,data.pack) ); 
+        if(data.pack) rs(d=> d.receive(d, data.pack)); 
         //console.log(data);
         //console.log(useS.getState().n);
     }}); 
@@ -77,9 +89,9 @@ function Open_Push_Close(){
         //console.log(data.closePack.reply);
     }}); 
     useEffect(()=>{
-        ss(d=> d.open_pack = open_pack.mutate );//d.set(d=> {d.open_pack = open_pack.mutate;});
-        ss(d=> d.push_pack = push_pack.mutate );//d.set(d=> {d.push_pack = push_pack.mutate;});
-        ss(d=> d.close_pack = close_pack.mutate );//d.set(d=> {d.close_pack = close_pack.mutate;});
+        ss(d=> d.open_pack = open_pack.mutate);//d.set(d=> {d.open_pack = open_pack.mutate;});
+        ss(d=> d.push_pack = push_pack.mutate);//d.set(d=> {d.push_pack = push_pack.mutate;});
+        ss(d=> d.close_pack = close_pack.mutate);//d.set(d=> {d.close_pack = close_pack.mutate;});
     },[]);
     //console.log('studio render');
     return null;

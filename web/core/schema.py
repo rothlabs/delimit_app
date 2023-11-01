@@ -8,8 +8,22 @@ from django.db.models import Q, Count
 from django.contrib.auth import authenticate, login, logout
 from graphene_file_upload.scalars import Upload
 import django.utils
-import time
 from django.db import connection
+
+import os, time, requests, json
+from terminusdb_client import Client
+from terminusdb_client import WOQLQuery as wq
+
+os.system('nc -4 -vz localhost 3636') # trigger terminus socket
+term = Client('http://localhost:6363/')
+for i in range(0, 20):
+    print('Connecting terminus.')
+    try:
+        term.connect(team='admin', password='root', db='delimit')
+        break
+    except:
+        print('Failed to connect terminus.')
+        time.sleep(.25)
 
 
 system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time']
@@ -63,6 +77,10 @@ class Tag_Type(DjangoObjectType):
     class Meta:
         model = Tag
         fields = '__all__'
+class Schema_Type(graphene.ObjectType):
+    full = graphene.String()
+    def resolve_full(self, info): 
+        return json.dumps({'docs':term.get_all_documents(graph_type='schema', as_list=True)}) 
 class Part_Type(graphene.ObjectType): 
     id = graphene.ID()
     t = graphene.ID()
@@ -177,11 +195,19 @@ exists_s = ' EXISTS (SELECT e.id FROM core_part_string e WHERE e.n_id=n.id AND '
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    pollPack   = graphene.Field(Pack_Type, instance=graphene.String())
+    pollPack = graphene.Field(Pack_Type, instance=graphene.String())
+    schema = graphene.Field(Schema_Type)
     #deletePack = graphene.Field(Pack_Type, instance=graphene.String())
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
+    def resolve_schema(root, info):
+        try:
+            return Schema_Type()#'[' + (', '.join(map(str, tmc.get_all_documents(graph_type='schema')))) + ']'
+        except Exception as e: 
+            print('get schema error') 
+            print(e)
+        return None
     def resolve_pollPack(root, info, instance): 
         try:
             user = info.context.user

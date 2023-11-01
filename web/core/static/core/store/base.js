@@ -125,6 +125,16 @@ export const create_base_slice = (set,get)=>({
         d.graph.init(d); //d.node.init(d);
     },
 
+    set_schema(d, data){
+        try{
+            console.log(data);
+            data = JSON.parse(data);
+            console.log(data);
+        }catch(e){
+            console.log('set_schema Error', e);
+        }
+    },
+
     add(array, item){ // static upgrade to do deep compare to find same object ?!?!?!?!
         if(array.indexOf(item) === -1){
             array.push(item);

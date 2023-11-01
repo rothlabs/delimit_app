@@ -373,6 +373,7 @@ function compile_gql(name, gql_parts){
     });
     if(header.length>0) header = '(' + header.slice(2) + ')';
     header = name + header;
+    //console.log({header, body, variables});
     return {header, body, variables}
 }
 function gql_status(loading, error, data, done){

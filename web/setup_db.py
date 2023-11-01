@@ -1,6 +1,6 @@
 
-import os, time, requests
-from terminusdb_client import Client#, WOQLClient #, GraphType
+import os, time, requests, json
+from terminusdb_client import Client
 from terminusdb_client import WOQLQuery as wq
 
 os.system('nc -4 -vz localhost 3636') # connect to terminus socket
@@ -14,33 +14,72 @@ for i in range(0, 20):
         print('Failed to connect terminus.')
         time.sleep(.25)
 
-# wc = WOQLClient("http://localhost:6363/")
-# wc.connect(db="testdb")
 
+client.insert_document([
+    {"@base":"iri:///delimit/", "@schema":"iri:///delimit#", "@type":"@context"},
 
-# client.update_document([
-#     {'@type':'Class', '@id':'Cat', 
-#         'name': 'xsd:string',
-#         'vehicle': 'Bike', 
-#     },
-#     {'@type':'Class', '@id':'Dog', 
-#         'name': 'xsd:string', 
-#         'vehicle': 'Bus', 
-#     },
-#     {'@type':'Class', '@id':'Bike', 
-#         'name': 'xsd:string', 
-#     },
-#     {'@type':'Class', '@id':'Bus', 
-#         'name': 'xsd:string', 
-#     },
-# ], graph_type='schema')
+    {"@id":"Public", "@type":"Class", 
+        "view": {"@class":"Subject", "@type":"List"},
+    },
+    {"@id":"User", "@type":"Class", 
+        "name": "String",
+        "asset": {"@class":"Subject", "@type":"List"},
+        "view":  {"@class":"Subject", "@type":"List"},
+    },
+
+    {"@id":"Subject", "@type":"Class", "@abstract":[]},
+    {"@id":"Part", "@type":"Class", "@abstract":[], 
+        "@inherits": "Subject",
+        "name": {"@class":"String", "@type":"Optional"},
+    },
+
+    {"@id":"Boolean", "@type":"Class", "@inherits":"Subject", "value":"xsd:boolean"},
+    {"@id":"Integer", "@type":"Class", "@inherits":"Subject", "value":"xsd:integer"},
+    {"@id":"Decimal", "@type":"Class", "@inherits":"Subject", "value":"xsd:decimal"},
+    {"@id":"String",  "@type":"Class", "@inherits":"Subject", "value":"xsd:string" },
+
+    {"@id":"Vector", "@type":"Class", 
+        "@inherits": "Part",
+        "x": "Decimal",
+        "y": "Decimal",
+        "z": "Decimal",
+    },
+    {"@id":"Frame", "@type":"Class", #"@abstract":[], 
+        "@inherits": "Part",
+        "frame": {"@class":"Frame",  "@type":"Optional"},
+        "move":  {"@class":"Vector", "@type":"Optional"},
+        "turn":  {"@class":"Vector", "@type":"Optional"},
+        "axis":  {"@class":"Vector", "@type":"Optional"},
+        "up":    {"@class":"Vector", "@type":"Optional"},
+    },
+    # {"@id":"Point", "@type":"Class", 
+    #     "@inherits": "Vector",
+    # },
+    {"@id":"Case", "@type":"Class", 
+        "@inherits": "Part",
+        "part":  {"@class":"Part",  "@type":"Optional"},
+        "frame": {"@class":"Frame", "@type":"Optional"},
+    },
+    {"@id":"Ellipse", "@type":"Class", 
+        "@inherits": "Part",
+        "radius_x": "Decimal",
+        "radius_y": "Decimal",
+        "angle_a":  "Decimal",
+        "angle_b":  "Decimal",
+    },
+    {"@id":"Curve", "@type":"Class", 
+        "@inherits": "Part",
+        "part": {"@class":"Part", "@type":"List"},
+        "mix":  {"@class":"Part", "@type":"List"}, #{'@class':'Part', '@type':'Set'}, 
+    },
+], graph_type='schema', full_replace=True)
 
 # client.delete_document([
-#     {'@id':'Dog/deZV2WyghKh-WLy4'},
-#     #{'@id':'Dog/beQ7uUNufGy64usM'},
-#     #{'@id':'Car/fiIBbILonRH4iaRM'},
-#     #{'@id':'Car/GeyXmpzmOA2FJcJU'},
-# ], graph_type='instance')
+#     {'@id':'car'},
+#     {'@id':'vehicle'},
+#     #{'@id':'decimal/z3LqR3mN9B9epzKJ'},
+#     #{'@id':'car/dZOsnLgE_8IFMXaM'},
+# ], graph_type='schema')
 
 # client.update_document([
 #     # {'@type':'Bike', '@id':'Bike/rxJnJ6Ccc6_iiT2x',
@@ -52,13 +91,11 @@ for i in range(0, 20):
 #     },
 # ], graph_type='instance')
 
-print(client.info())
 
-result = client.get_all_documents(graph_type='schema')
+
 print('Schema:')
-print('\n'.join(map(str, result)))
-
-
+print(json.dumps({'docs':client.get_all_documents(graph_type='schema', as_list=True)}))
+#print('\n'.join(map(str, result)))
 #results = client.query_document({'@type':'Car', 'name':'juice'}) #_document
 myString = wq().string('sammy')
 query = wq().triple('v:named_node', '@schema:name', myString)
@@ -108,58 +145,7 @@ print('\n'.join(map(str, result)))
 
 
 
-# parts = {'@class':'part', '@type':'List'}
-# client.update_document([
-#     {'@id':'boolean', '@type':'Class', 'value':'xsd:boolean'},
-#     {'@id':'integer', '@type':'Class', 'value':'xsd:integer'},
-#     {'@id':'decimal', '@type':'Class', 'value':'xsd:decimal'},
-#     {'@id':'string',  '@type':'Class', 'value':'xsd:string' },
-#     {'@id':'part', '@type':'Class', '@abstract':[], 
-#         'name': {'@class':'string', '@type':'Optional'},
-#     },
-#     {'@id':'vector', '@type':'Class', 
-#         '@inherits': 'part',
-#         'x': 'decimal',
-#         'y': 'decimal',
-#         'z': 'decimal',
-#     },
-#     {'@id':'placement', '@type':'Class', '@abstract':[], 
-#         'move': {'@class':'vector', '@type':'Optional'},
-#         'turn': {'@class':'vector', '@type':'Optional'},
-#         'axis': {'@class':'vector', '@type':'Optional'},
-#         'up':   {'@class':'vector', '@type':'Optional'},
-#     },
 
-#     {'@id':'user', '@type':'Class', 
-#         'name': 'string',
-#         'asset': parts,
-#     },
-    
-#     {'@id':'point', '@type':'Class', 
-#         '@inherits': ['vector', 'placement'],
-#     },
-#     {'@id':'case', '@type':'Class', 
-#         '@inherits': ['part', 'placement'],
-#         'part': {'@class':'part', '@type':'Optional'},
-#     },
-#     {'@id':'ellipse', '@type':'Class', 
-#         '@inherits': ['part', 'placement'],
-#         'radius_x': 'decimal',
-#         'radius_y': 'decimal',
-#         'angle_a':  'decimal',
-#         'angle_b':  'decimal',
-#     },
-
-
-#     {'@id':'vehicle', '@type':'Class', '@abstract':[], 'color':'xsd:string'},
-#     {'@id':'car', '@type':'Class', '@inherits':'vehicle', 'wheels':'xsd:integer'},
-
-#     {'@id':'curve', '@type':'Class', 
-#         '@inherits': ['part', 'placement'],
-#         'part': {'@class':'part', '@type':'List'},
-#         'mix':  {'@class':'part', '@type':'Set'}, 
-#     },
-# ], graph_type='schema')
 
 # client.delete_document([
 #     {'@id':'curve/3uW3-MIG53jLfQXy'}, 
