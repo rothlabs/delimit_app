@@ -18,37 +18,37 @@ export function Make(){
                 c(Col, {}, 
                     //c('i', {className:'text-secondary bi-diagram-3', style:{fontSize:'28px'}}, c('h4',{}, 'Subjects')),
                     c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
-                    ...d.subject_tags.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
-                        c(Row, {className: 'mt-1 text-left '+(i==d.subject_tags.length-1?'mb-4':'')},
+                    ...d.asset_classes.map((cls,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
+                        c(Row, {className: 'mt-1 text-left '+(i==d.asset_classes.length-1?'mb-4':'')},
                             c(Button, {
-                                id:'make_'+t,
-                                className: 'border-white text-start '+d.node[t].css,
+                                id:'make_'+cls,
+                                className: 'border-white text-start '+d.node[cls].css.icon,
                                 variant:'outline-primary', size:'lg',
                                 onClick:e=> ss(d=>{ 
-                                    d.make.part(d, t, {r:d.pick.n});
+                                    d.make.part(d, cls, {r:d.pick.n});
                                     d.studio.panel.show = false;
                                 }),
                             }, 
-                                c('span',{style:{fontSize:'16px'}}, ' '+d.node[t].tag)
+                                c('span',{style:{fontSize:'16px'}}, ' '+readable(cls))
                             )
                         )
                     ),
                 ),
                 limited ? null : c(Col, {}, 
-                    [{m:'s',  v:'',    tags:d.string_tags, icon:'bi-text-left'},
-                     {m:'b',  v:false, tags:d.bool_tags,   icon:'bi-ui-checks'},
-                     {m:'i',  v:0,     tags:d.int_tags,    icon:'bi-plus-slash-minus'},
-                     {m:'f',  v:0,     tags:d.float_tags,  icon:'bi-plus-slash-minus'}].map(item=>
+                    [{cls:'string',  v:'',    tags:d.string_tags,  icon:'bi-text-left'},
+                     {cls:'boolean', v:false, tags:d.boolean_tags, icon:'bi-ui-checks'},
+                     {cls:'integer', v:0,     tags:d.integer_tags, icon:'bi-plus-slash-minus'},
+                     {cls:'decimal', v:0,     tags:d.decimal_tags, icon:'bi-plus-slash-minus'}].map(item=>
                         c(Row, {},
-                            c('h5',{className:'text-secondary '+item.icon}, ' '+readable(d.model_tags[item.m])),
+                            c('h5',{className:'text-secondary '+item.icon}, ' '+readable(item.cls)),//+readable(d.model_tags[item.m])),
                             item.tags.map((t,i)=>
-                                t==d.model_tags[item.m] ? null : c(Row, {className: 'mb-1 text-left '+(i==item.tags.length-1?'mb-4':'')},
+                                c(Row, {className: 'mb-1 text-left '+(i==item.tags.length-1?'mb-4':'')}, //t==item.cls ? null : 
                                     c(Button, {
                                         id:'make_'+t,
                                         className: 'border-white text-start bi-dot',
                                         variant:'outline-primary', size:'lg',
                                         onClick:e=> ss(d=>{ 
-                                            d.make.atom(d, item.m, item.v, {r:d.pick.n, t:t, single:true});
+                                            d.make.atom(d, item.cls, item.v, {r:d.pick.n, t:t, single:true});
                                             d.studio.panel.show = false;
                                         }),
                                     }, 
@@ -86,8 +86,8 @@ export function Make(){
 
 
                     // c('h5',{className:'text-secondary bi-ui-checks'}, ' '+readable(d.model_tags['b'])),
-                    // ...d.bool_tags.map((t,i)=>
-                    //     t==d.model_tags['b'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.bool_tags.length-1?'mb-4':'')},
+                    // ...d.boolean_tags.map((t,i)=>
+                    //     t==d.model_tags['b'] ? null : c(Row, {className: 'mb-1 text-left '+(i==d.boolean_tags.length-1?'mb-4':'')},
                     //         c(Button, {
                     //             id:'make_'+t,
                     //             className: 'border-white text-start bi-dot',
@@ -118,7 +118,7 @@ export function Make(){
                     //     )
                     // ),
                     // c('h5',{className:'text-secondary bi-plus-slash-minus'}, ' '+readable(d.model_tags['i'])),
-                    // ...d.int_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
+                    // ...d.integer_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
                     //     t==d.model_tags['i'] ? null : c(Row, {className: 'mb-1 text-left'}, //['decimal','x','y','z'].includes(t) ?
                     //         c(Button, {
                     //             id:'make_'+t,
@@ -134,7 +134,7 @@ export function Make(){
                     //     )
                     // ),
                     // c('h5',{className:'text-secondary bi-plus-slash-minus'}, ' '+readable(d.model_tags['f'])),
-                    // ...d.float_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
+                    // ...d.decimal_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
                     //     t==d.model_tags['f'] ? null : c(Row, {className: 'mb-1 text-left'}, //['decimal','x','y','z'].includes(t) ?
                     //         c(Button, {
                     //             id:'make_'+t,
@@ -155,7 +155,7 @@ export function Make(){
 
 // !nodes.length ? null : c(Col, {}, 
                 //     c('i', {className:'text-secondary bi-123', style:{fontSize:'24px'}}), //, color:'primary'
-                //     ...d.float_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
+                //     ...d.decimal_tags.map(t=>//...Object.entries(d.node.meta).map(([t,node])=>
                 //         t=='text' ? null : c(Row, {className: 'mt-1 text-left'},
                 //             c(Button, {
                 //                 id:'make_'+t,

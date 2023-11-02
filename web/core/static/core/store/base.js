@@ -7,43 +7,29 @@ import lodash from 'lodash';
 var next_funcs = [];
 var next_ids = [];
 
-const model_tags = {'p':'part', 'b':'switch', 'i':'integer', 'f':'decimal', 's':'text'}; 
-const atom_tags   = Object.values(model_tags).slice(1);
+//const model_tags = {'p':'part', 'b':'boolean', 'i':'integer', 'f':'decimal', 's':'string'}; 
 
 export const create_base_slice = (set,get)=>({
-    model_tags:     model_tags,
-    int_tags:       [model_tags['i']],//int_tags,
-    float_tags:     [model_tags['f']],//float_tags,
-    string_tags:    [model_tags['s']],//string_tags,
-    bool_tags:      [model_tags['b']],//bool_tags,
-    atom_tags:      atom_tags,
-    //cat_tags:       cat_tags, //category_tags
-    //cast_shallow_tags: cast_shallow_tags,
-    //cat_map:        cat_map, //category //category_tags
-    subject_tags:   [],//subject_tags,
-    admin_tags:     ['profile'],//admin_tags,
-    //value_tags:     [...bool_tags, ...int_tags, ...float_tags, ...string_tags],
-    stem_tags:    [],//[...subject_tags, ...stem_tags],
-    ////node_tags:      [...atom_tags, ...subject_tags, ...admin_tags],
-    root_tags:      {'viewable':'viewer', 'asset':'owner',},
-    //cast_tags:      cast_tags,
-    //cast_map: {...cat_map, ...Object.fromEntries(cast_tags.map(t=>[t,true]))},
-    // // cast_shallow_map: Object.fromEntries([ // cast_tags
-    // //     'public', 'auxiliary', 'manual_compute',
-    // //     'fill',
-    // // ].map(t=>[t,true])),
-    // // cast_end:Object.fromEntries([ // 'mixed_curve',
-    // //     'point', 'surface', 'layer', 'ellipse', // maybe add ellipse here ?!?!?!?!?!
-    // // ].map(t=>[t,true])),
-    //component:component,
-    //component_tags:Object.keys(component),
+    node_classes:  [],
+    asset_classes: [],
+    admin_classes: [],
+    terminal_classes: ['boolean', 'integer', 'decimal', 'string'],
+
+    boolean_tags: [],
+    integer_tags: [],
+    decimal_tags: [],
+    string_tags:  [],
+    stem_tags:    [],
+
+    root_tags:      {'view':'viewer', 'asset':'owner',},
+
     node_css:{
         'public':         'bi-globe-americas',
-        'profile':        'bi-person',
-        'switch':         'bi-123', 
+        'user':        'bi-person',
+        'boolean':         'bi-123', 
         'integer':        'bi-123',
         'decimal':        'bi-123',
-        'text':           'bi-type',
+        'string':           'bi-type',
         'point':          'bi-record-circle',
         'curve':          'bi-bezier2',
         'ellipse':        'bi-circle',
@@ -90,10 +76,10 @@ export const create_base_slice = (set,get)=>({
     //public: null,
     search: {depth:null, ids:null},
     studio: {
+        //schema_ready: false,
         ready: false,
         mode: 'graph',
         panel: {},
-        //grouping: false, // put this in d.design ?!?!?!?!?!
         cursor: '',
     },
 
@@ -104,35 +90,25 @@ export const create_base_slice = (set,get)=>({
         d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
         d.base_texture.anisotropy = 16;
 
-        for (const [t, n] of Object.entries(d.node)) {
-            if(n.subject) d.add(d.subject_tags, t);
-            d.add(d.stem_tags, t);
-            if(n.stem) for(const t of n.stem) d.add(d.stem_tags, t);
-            if(n.bool) for(const t of Object.keys(n.bool)) d.add(d.bool_tags, t);
-            if(n.int) for(const t of Object.keys(n.int)) d.add(d.int_tags, t);
-            if(n.float) for(const t of Object.keys(n.float)) d.add(d.float_tags, t);
-            if(n.string) for(const t of Object.keys(n.string)) d.add(d.string_tags, t);
-            if(n.common_bool) for(const t of Object.keys(n.common_bool)) d.add(d.bool_tags, t);
-            if(n.common_int) for(const t of Object.keys(n.common_int)) d.add(d.int_tags, t);
-            if(n.common_float) for(const t of Object.keys(n.common_float)) d.add(d.float_tags, t);
-            if(n.common_string) for(const t of Object.keys(n.common_string)) d.add(d.string_tags, t);
-        }
-        d.value_tags = [...d.bool_tags, ...d.int_tags, ...d.float_tags, ...d.string_tags];
-        d.node_tags = [...d.subject_tags, ...d.admin_tags];
+        // for (const [t, n] of Object.entries(d.node)) {
+        //     if(n.subject) d.add(d.asset_classes, t);
+        //     d.add(d.stem_tags, t);
+        //     if(n.stem) for(const t of n.stem) d.add(d.stem_tags, t);
+        //     if(n.bool) for(const t of Object.keys(n.bool)) d.add(d.boolean_tags, t);
+        //     if(n.int) for(const t of Object.keys(n.int)) d.add(d.integer_tags, t);
+        //     if(n.float) for(const t of Object.keys(n.float)) d.add(d.decimal_tags, t);
+        //     if(n.string) for(const t of Object.keys(n.string)) d.add(d.string_tags, t);
+        //     if(n.common_bool) for(const t of Object.keys(n.common_bool)) d.add(d.boolean_tags, t);
+        //     if(n.common_int) for(const t of Object.keys(n.common_int)) d.add(d.integer_tags, t);
+        //     if(n.common_float) for(const t of Object.keys(n.common_float)) d.add(d.decimal_tags, t);
+        //     if(n.common_string) for(const t of Object.keys(n.common_string)) d.add(d.string_tags, t);
+        // }
+        // d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
+        // d.node_classes = [...d.asset_classes, ...d.admin_classes];
 
         //d.node.init(d);
         //d.make.init(d);
-        d.graph.init(d); //d.node.init(d);
-    },
-
-    set_schema(d, data){
-        try{
-            console.log(data);
-            data = JSON.parse(data);
-            console.log(data);
-        }catch(e){
-            console.log('set_schema Error', e);
-        }
+        //d.graph.init(d); //d.node.init(d);
     },
 
     add(array, item){ // static upgrade to do deep compare to find same object ?!?!?!?!
@@ -169,6 +145,9 @@ export const create_base_slice = (set,get)=>({
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
+    as_array(obj){
+        return obj ? (Array.isArray(obj) ? obj : [obj]) : [];
+    },
 
     next(...a){ // static
         const d = get();
@@ -202,6 +181,69 @@ export const create_base_slice = (set,get)=>({
         });// 0   1
     },
 
+    receive_schema(d, data){
+        try{
+            console.log('receive_schema');
+            console.log(data);
+            const classes = {};
+            for(const n of data) classes[n['@id']] = n;//.toLowerCase()] = n;
+            for(const n of data){
+                if(n['@abstract']) continue
+                const cls = n['@id'].toLowerCase();
+                if(!d.node[cls]) d.node[cls] = {};
+                const node = d.node[cls];
+                if(!node.stem) node.stem = {};
+                const set_stems = n=>{
+                    for(const [t, s] of Object.entries(n)){
+                        if(t.charAt(0) == '@') continue
+                        const cls = (s['@class'] ?? s).toLowerCase();
+                        node.stem[t] = {
+                            class: cls,
+                            type:  (s['@type'] ?? 'Required').toLowerCase(),
+                        };
+                        const defaults = n['@metadata']?.default ?? {};
+                        if(defaults[t] != null) node.stem[t].default = defaults[t];
+                        if(d.terminal_classes.includes(cls)){
+                            if(cls == 'boolean') d.add(d.boolean_tags, t);
+                            if(cls == 'integer') d.add(d.integer_tags, t);
+                            if(cls == 'decimal') d.add(d.decimal_tags, t);
+                            if(cls == 'string')  d.add(d.string_tags, t);
+                        }else{
+                            d.add(d.stem_tags, t);
+                        }
+                    }
+                    const inherits = d.as_array(n['@inherits']);
+                    if(inherits.includes('Asset')){
+                        node.asset = true;
+                        d.add(d.asset_classes, cls);
+                    }
+                    if(inherits.includes('Admin')){
+                        node.admin = true;
+                        d.add(d.admin_classes, cls);
+                    }
+                    inherits.forEach(cls=> set_stems(classes[cls]));
+                    node.css = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
+                }
+                set_stems(n);
+            }
+            d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
+            d.node_classes = [...d.asset_classes, ...d.admin_classes];
+            d.graph.init(d);
+            d.studio.ready = true;
+            console.log(current(d.node));
+        }catch(e){
+            console.log('receive_schema Error', e);
+        }
+    },
+
+    receive_nodes: (d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
+        try{
+            console.log('receive_nodes');
+            console.log(data);
+        }catch(e){
+            console.log('receive_nodes Error', e);
+        }
+    },
 
     send(d, patches){ // change to send patches directly to server (filtering for patches that matter)
         //console.log('patches');
@@ -302,110 +344,118 @@ export const create_base_slice = (set,get)=>({
         }
     },
     
-    receive: (d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        //const window_size = (window.innerWidth+window.innerHeight)/4;
-        var set_update_graph = false;
-        if(data.t){
-            d.t = Object.fromEntries(data.t.map(t=> [t.id, t.v]));
-            d.t_id = Object.fromEntries(data.t.map(t=> [t.v, t.id]));
-        }
-        ['p','b','i','f','s'].forEach(m=>{
-            data[m].forEach(n=>{
-                if(!d.n[n.id]){
-                    d.n[n.id] = {
-                        m: m,
-                        pick: {pick:false, hover:false},
-                        graph: { // put in d.graph.node.vectors
-                            pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),
-                            //dir: new Vector3(),
-                            vis: true,
-                            //lvl: 0,
-                        },
-                        pin: {},
-                        design: { vis:true },
-                    };
-                    d.pick.color(d,n.id);
-                }
-                //if(n.id == 'tuXEbqsYYX8CdIPM') console.log('public!')
-                //if(d.graph.ex(d,n.id)){ // is this stopping undo delete from other client?!?!?!
-                if(d.n[n.id].r){
-                    //const edges = []; 
-                    d.graph.for_root_stem(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
-                        //edges.push({r:r, n:n, t:t}); // // , o:o don't know if this is needed ?!?!?!?!,  this will cause reverse edges to be deleted on forward node
-                    //});
-                    //d.node.delete_edges(d, edges);
-                }
-                d.n[n.id].r = {}; // might not need this because of delete above
-                d.n[n.id].c = {}; // content generated by reckon
-                //d.n[n.id].l = {}; // content generated by reckon
-                //d.n[n.id].w = {}; // content generated by reckon
-                //d.n[n.id].ax = {}; // content generated by reckon
-                if(m=='p'){
-                    d.n[n.id].t = d.t[n.t];
-                    if(d.n[n.id].n){
-                        //const edges = [];
-                        d.graph.for_stem(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
-                        //    edges.push({r:r, n:n, t:t}); // , o:o this will cause reverse edges to be deleted on forward node
-                        //});
-                        //d.node.delete_edges(d, edges);
-                    }
-                    d.n[n.id].n = {}; // might not need this curve because of delete above  should respective r of other nodes 
-                    if(d.n[n.id].t=='profile'){
-                        data.ue.forEach(e=>{
-                            if(e.r==n.id && e.n==d.user) d.profile = n.id;
-                        });
-                    }
-                    //if(d.n[n.id].t=='public') d.public = n.id;
-                    ///////////////////if(d.cat_map[d.n[n.id].t]) d.cats[d.n[n.id].t] = n.id; // optimize with direct lookup ?!?!?!?!
-                    //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
-                }else{  
-                    d.n[n.id].t = d.model_tags[d.n[n.id].m];
-                    d.graph.sv(d, n.id, n.v);//d.n[n.id].v = n.v;  
-                    //d.n[n.id].pin = n.v; 
-                    //console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
-                }
-                set_update_graph = true;
-                d.n[n.id].open = true;
-                d.n[n.id].deleted = false;
-                if(d.graph.n_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.n_vis[d.n[n.id].t];
-                //}
-            }); 
-        });
-        ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{  // use d.make.edge here so repeater takes action ?!?!?!?!?!?
-            const root_exists = d.graph.ex(d, e.r);
-            if(root_exists){ // change be to ex? (ex for exists)
-                if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = [];  
-                //if(d.order_tags.includes(d.t[e.t])){
-                  //  d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes) 
-                //}else{
-                    if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
-                //}
-            }
-            if(d.graph.ex(d, e.n)){
-                if(root_exists && e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
-                var rt = 'unknown';
-                if(d.root_tags[d.t[e.t]]){  rt = d.root_tags[d.t[e.t]];  } 
-                else{if(root_exists)      rt = d.n[e.r].t;           }
-                if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = []; 
-                //if(d.order_tags.includes(d.t[e.t])){
-                    //d.n[e.n].r[rt].push(e.r); 
-                //}else{
-                    if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
-                //}
-            }
-        }));
-        ///////////////  \/ needed to recieve changes from other users?! \/ #1
-        // // // // data.p.forEach(n=>{
-        // // // //    if(d.graph.ex(d,n.id)) d.next('reckon.up', n.id);//d.reckon.up(d, n.id); // d.next('reckon.up',n.id); // run lowest level reckon only ?!?!?!?!
-        // // // // });
-        d.studio.ready = true;
-        if(set_update_graph) d.next('graph.update'); // only if add/remove or d.n[n].n/d.n[n].r changes
-        ['dp','db','di','df','ds'].forEach(m=>{
-            if(data[m]) data[m].forEach(n=> d.delete.node(d, n));
-        });
+    // receive: (d, pack)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
+    //     try{
+    //         console.log(pack);
+    //         pack = JSON.parse(pack);
+    //         console.log(pack);
+    //     }catch(e){
+    //         console.log('base.receive Error', e);
+    //     }
+        
+
+        // var set_update_graph = false;
+        // if(data.t){
+        //     d.t = Object.fromEntries(data.t.map(t=> [t.id, t.v]));
+        //     d.t_id = Object.fromEntries(data.t.map(t=> [t.v, t.id]));
+        // }
+        // ['p','b','i','f','s'].forEach(m=>{
+        //     data[m].forEach(n=>{
+        //         if(!d.n[n.id]){
+        //             d.n[n.id] = {
+        //                 m: m,
+        //                 pick: {pick:false, hover:false},
+        //                 graph: { // put in d.graph.node.vectors
+        //                     pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),
+        //                     //dir: new Vector3(),
+        //                     vis: true,
+        //                     //lvl: 0,
+        //                 },
+        //                 pin: {},
+        //                 design: { vis:true },
+        //             };
+        //             d.pick.color(d,n.id);
+        //         }
+        //         //if(n.id == 'tuXEbqsYYX8CdIPM') console.log('public!')
+        //         //if(d.graph.ex(d,n.id)){ // is this stopping undo delete from other client?!?!?!
+        //         if(d.n[n.id].r){
+        //             //const edges = []; 
+        //             d.graph.for_root_stem(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
+        //                 //edges.push({r:r, n:n, t:t}); // // , o:o don't know if this is needed ?!?!?!?!,  this will cause reverse edges to be deleted on forward node
+        //             //});
+        //             //d.node.delete_edges(d, edges);
+        //         }
+        //         d.n[n.id].r = {}; // might not need this because of delete above
+        //         d.n[n.id].c = {}; // content generated by reckon
+        //         //d.n[n.id].l = {}; // content generated by reckon
+        //         //d.n[n.id].w = {}; // content generated by reckon
+        //         //d.n[n.id].ax = {}; // content generated by reckon
+        //         if(m=='p'){
+        //             d.n[n.id].t = d.t[n.t];
+        //             if(d.n[n.id].n){
+        //                 //const edges = [];
+        //                 d.graph.for_stem(d, n.id, (r,n,t)=> d.delete.edge(d,r,n,{t:t})); //, no_update:true
+        //                 //    edges.push({r:r, n:n, t:t}); // , o:o this will cause reverse edges to be deleted on forward node
+        //                 //});
+        //                 //d.node.delete_edges(d, edges);
+        //             }
+        //             d.n[n.id].n = {}; // might not need this curve because of delete above  should respective r of other nodes 
+        //             if(d.n[n.id].t=='profile'){
+        //                 data.ue.forEach(e=>{
+        //                     if(e.r==n.id && e.n==d.user) d.profile = n.id;
+        //                 });
+        //             }
+        //             //if(d.n[n.id].t=='public') d.public = n.id;
+        //             ///////////////////if(d.cat_map[d.n[n.id].t]) d.cats[d.n[n.id].t] = n.id; // optimize with direct lookup ?!?!?!?!
+        //             //console.log('got part: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<<<<<<<<<<<<< show part update
+        //         }else{  
+        //             d.n[n.id].t = d.model_tags[d.n[n.id].m];
+        //             d.graph.sv(d, n.id, n.v);//d.n[n.id].v = n.v;  
+        //             //d.n[n.id].pin = n.v; 
+        //             //console.log('got atom: '+n.id+' ('+d.n[n.id].t+')'); // <<<<<<<<<<<<< show atom update
+        //         }
+        //         set_update_graph = true;
+        //         d.n[n.id].open = true;
+        //         d.n[n.id].deleted = false;
+        //         if(d.graph.n_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.n_vis[d.n[n.id].t];
+        //         //}
+        //     }); 
+        // });
+        // ['pe','be','ie','fe','se'].forEach(m=> data[m].forEach(e=>{  // use d.make.edge here so repeater takes action ?!?!?!?!?!?
+        //     const root_exists = d.graph.ex(d, e.r);
+        //     if(root_exists){ // change be to ex? (ex for exists)
+        //         if(!d.n[e.r].n[d.t[e.t]]) d.n[e.r].n[d.t[e.t]] = [];  
+        //         //if(d.order_tags.includes(d.t[e.t])){
+        //           //  d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes) 
+        //         //}else{
+        //             if(!d.n[e.r].n[d.t[e.t]].includes(e.n)) d.n[e.r].n[d.t[e.t]].push(e.n); // <<<<<<<<< forward relationship !!!! (nodes)
+        //         //}
+        //     }
+        //     if(d.graph.ex(d, e.n)){
+        //         if(root_exists && e.r==d.profile && d.t[e.t]=='asset') d.n[e.n].asset = true; // should put in base_reckon?! 
+        //         var rt = 'unknown';
+        //         if(d.root_tags[d.t[e.t]]){  rt = d.root_tags[d.t[e.t]];  } 
+        //         else{if(root_exists)      rt = d.n[e.r].t;           }
+        //         if(!d.n[e.n].r[rt]) d.n[e.n].r[rt] = []; 
+        //         //if(d.order_tags.includes(d.t[e.t])){
+        //             //d.n[e.n].r[rt].push(e.r); 
+        //         //}else{
+        //             if(!d.n[e.n].r[rt].includes(e.r)) d.n[e.n].r[rt].push(e.r);  // <<<<<<<<< reverse relationship !!!! (root)
+        //         //}
+        //     }
+        // }));
+        // ///////////////  \/ needed to recieve changes from other users?! \/ #1
+        // // // // // data.p.forEach(n=>{
+        // // // // //    if(d.graph.ex(d,n.id)) d.next('reckon.up', n.id);//d.reckon.up(d, n.id); // d.next('reckon.up',n.id); // run lowest level reckon only ?!?!?!?!
+        // // // // // });
+        // d.studio.ready = true;
+        // if(set_update_graph) d.next('graph.update'); // only if add/remove or d.n[n].n/d.n[n].r changes
+        // ['dp','db','di','df','ds'].forEach(m=>{
+        //     if(data[m]) data[m].forEach(n=> d.delete.node(d, n));
+        // });
 
         //console.log(Object.keys(d.n).length);
-    },
+    //},
 
     // receive_deleted: (d, data)=>{ 
     //     ['p','b','i','f','s'].forEach(m=>{
@@ -434,13 +484,13 @@ export const create_base_slice = (set,get)=>({
 });
 
 
-// const subject_tags = [
+// const asset_classes = [
 //     'product', 'point', 'curve', 'sketch', 'transform', // 'repeater', 'group', 
 //     'ellipse', 'surface', 'shape', 'layer', 'image', 'brush', 'stroke',
 //     'slice', 'post', 'machine',
 // ]; 
 
-// const cat_tags = [ //cat_cast_tags=[ // should call them bool_tags ?!?!?!?!?!
+// const cat_tags = [ //cat_cast_tags=[ // should call them boolean_tags ?!?!?!?!?!
 //     'public', 'manual_compute', // 'auxiliary', 'top_view', 'side_view', 'face_camera', 'manual_compute', // 'front_view',
 //     //'fill', 'corner',
 // ];
@@ -454,16 +504,16 @@ export const create_base_slice = (set,get)=>({
 
 //const cat_map = Object.fromEntries(cat_tags.map(t=>[t,true])); //cat_cast_tags
 //const category_tags = ['public', 'auxiliary', ...cat_cast_tags,];
-//const admin_tags = ['profile'];//, ...cat_tags]; //category_tags
-// const bool_tags = [model_tags['b'],
+//const admin_classes = ['profile'];//, ...cat_tags]; //category_tags
+// const boolean_tags = [model_tags['b'],
 //     'visible', 'autocalc', 
 //     'coil', 'axial', 'corner',
 // ];
-// const int_tags = [model_tags['i'],
+// const integer_tags = [model_tags['i'],
 //     'order', 'current_image', 
 //     'layers', 'axes', 'repeats', 'slows',
 // ];
-// const float_tags    = [model_tags['f'], // rename to number_tags
+// const decimal_tags    = [model_tags['f'], // rename to number_tags
 //     'x', 'y', 'z', 'move_x', 'move_y', 'move_z', 'turn_x', 'turn_y', 'turn_z', 'scale_x', 'scale_y', 'scale_z',
 //     'radius_a', 'radius_b', 'angle_a', 'angle_b', 'axis_x', 'axis_y', 'axis_z',
 //     'width', 'height',

@@ -4,14 +4,14 @@ import {make_id, theme} from '../app.js';
 // this kind of merge could transform one line to fit to the points of the other line
 // point and line need merge settings
 
-// make list of nodes to never have more than one: name, x, y, z, etc (singular non-list nodes) - use value_tags!!!! (maybe rename to single_tags)
+// make list of nodes to never have more than one: name, x, y, z, etc (singular non-list nodes) - use terminal_tags!!!! (maybe rename to single_tags)
 
 
 // for a, do if(!a) a = {} at start of each function that uses a
 export const create_remake_slice = (set,get)=>({remake:{
     copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
         if(!d.graph.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.graph.admin(d, (a.r ? [n,a.r] : [n]))){ 
-            const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
+            const cpy = d.make.node(d, d.n[n].cls); // const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
             if(d.n[n].m == 'p') {
                 // Object.keys(d.n[n].r).forEach(t=>{
                 //     if(d.cats[t]) d.make.edge(d, d.cats[t], cpy);
@@ -89,7 +89,7 @@ export const create_remake_slice = (set,get)=>({remake:{
         },
         default(d, nodes, target){
             d.graph.for_stem(d, nodes, (r,n,t)=>{
-                if(d.value_tags.includes(t)){
+                if(d.terminal_tags.includes(t)){
                     d.delete.edge_or_node(d,r,n,{t:t});
                     //d.delete.node(d, n, {deep:true}); // make delete if not in use by others func?
                 }else{

@@ -77,10 +77,10 @@ class Tag_Type(DjangoObjectType):
     class Meta:
         model = Tag
         fields = '__all__'
-class Schema_Type(graphene.ObjectType):
-    full = graphene.String()
-    def resolve_full(self, info): 
-        return json.dumps({'docs':term.get_all_documents(graph_type='schema', as_list=True)}) 
+# class Schema_Type(graphene.ObjectType):
+#     content = graphene.String()
+#     def resolve_full(self, info): 
+#         return json.dumps({'docs':term.get_all_documents(graph_type='schema', as_list=True)}) 
 class Part_Type(graphene.ObjectType): 
     id = graphene.ID()
     t = graphene.ID()
@@ -115,65 +115,13 @@ class Edge_Type(graphene.ObjectType):
     def resolve_t(self, info): return self.e.t_id
     def resolve_n(self, info): return self.e.n_id
 
-class Pack_Type(graphene.ObjectType): 
-    t = graphene.List(Tag_Type)
-    p = graphene.List(Part_Type)
-    b = graphene.List(Bool_Type)
-    i = graphene.List(Int_Type)
-    f = graphene.List(Float_Type)
-    s = graphene.List(String_Type)
-    dp = graphene.List(graphene.ID)
-    db = graphene.List(graphene.ID)
-    di = graphene.List(graphene.ID)
-    df = graphene.List(graphene.ID)
-    ds = graphene.List(graphene.ID)
-    pe = graphene.List(Edge_Type)
-    be = graphene.List(Edge_Type)
-    ie = graphene.List(Edge_Type)
-    fe = graphene.List(Edge_Type)
-    se = graphene.List(Edge_Type)
-    ue = graphene.List(Edge_Type)
-    def __init__(self, p, b, i, f, s, dp=None, db=None, di=None, df=None, ds=None):
-        self.p_ids = tuple([n.id for n in p])
-        self.p=p
-        self.b=b
-        self.i=i
-        self.f=f
-        self.s=s
-        self.dp=dp
-        self.db=db
-        self.di=di
-        self.df=df
-        self.ds=ds
-    def resolve_t(self, info): return Tag.objects.all()
-    def resolve_p(self, info): return [Part_Type(n=n) for n in self.p] #[Part_Min_Type(id=pc, t=p['t_id']) for p in self.p.values()]
-    def resolve_b(self, info): return [Bool_Type(n=n) for n in self.b]
-    def resolve_i(self, info): return [Int_Type(n=n) for n in self.i]
-    def resolve_f(self, info): return [Float_Type(n=n) for n in self.f]
-    def resolve_s(self, info): return [String_Type(n=n) for n in self.s]
-    def resolve_dp(self, info): return [n.id for n in self.dp] #[Part_Min_Type(id=pc, t=p['t_id']) for p in self.p.values()]
-    def resolve_db(self, info): return [n.id for n in self.db]
-    def resolve_di(self, info): return [n.id for n in self.di]
-    def resolve_df(self, info): return [n.id for n in self.df]
-    def resolve_ds(self, info): return [n.id for n in self.ds]
-    def resolve_pe(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
-        SELECT * FROM core_part_part WHERE core_part_part.r_id IN %(parts)s OR core_part_part.n_id IN %(parts)s""", 
-        {'parts':self.p_ids})]
-    def resolve_be(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
-        SELECT * FROM core_part_bool WHERE core_part_bool.r_id IN %(parts)s OR core_part_bool.n_id IN %(bools)s""", 
-        {'parts':self.p_ids, 'bools':tuple([n.id for n in self.b] + ['none'])})]
-    def resolve_ie(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
-        SELECT * FROM core_part_int WHERE core_part_int.r_id IN %(parts)s OR core_part_int.n_id IN %(ints)s""", 
-        {'parts':self.p_ids, 'ints':tuple([n.id for n in self.i] + ['none'])})]
-    def resolve_fe(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
-        SELECT * FROM core_part_float WHERE core_part_float.r_id IN %(parts)s OR core_part_float.n_id IN %(floats)s""", 
-        {'parts':self.p_ids, 'floats':tuple([n.id for n in self.f] + ['none'])})]
-    def resolve_se(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
-        SELECT * FROM core_part_string WHERE core_part_string.r_id IN %(parts)s OR core_part_string.n_id IN %(strings)s""", 
-        {'parts':self.p_ids, 'strings':tuple([n.id for n in self.s] + ['none'])})]
-    def resolve_ue(self, info): return [Edge_Type(e=e) for e in Part.objects.raw("""
-        SELECT * FROM core_part_user WHERE core_part_user.r_id IN %(parts)s""", 
-        {'parts':self.p_ids})]
+
+class Pack_Type(graphene.ObjectType):
+    content = graphene.String()
+    def __init__(self, data): self.data=data
+    def resolve_content(self, info): 
+        return json.dumps({'data':self.data})
+
 
 def clear_part(part):
     part.p.clear()
@@ -196,106 +144,109 @@ exists_s = ' EXISTS (SELECT e.id FROM core_part_string e WHERE e.n_id=n.id AND '
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
     pollPack = graphene.Field(Pack_Type, instance=graphene.String())
-    schema = graphene.Field(Schema_Type)
+    schema = graphene.Field(Pack_Type)
     #deletePack = graphene.Field(Pack_Type, instance=graphene.String())
     def resolve_user(root, info):
         if info.context.user.is_authenticated: return info.context.user
         else: return None
     def resolve_schema(root, info):
         try:
-            return Schema_Type()#'[' + (', '.join(map(str, tmc.get_all_documents(graph_type='schema')))) + ']'
+            exclude_classes = ['Boolean', 'Integer', 'Decimal', 'String', 'Open_Pack', 'Poll_Pack', 'Drop_Pack']
+            data = term.get_all_documents(graph_type='schema', as_list=True)[1:] 
+            data = filter(lambda n: n['@id'] not in exclude_classes, data)
+            return Pack_Type(data = list(data)) 
         except Exception as e: 
             print('get schema error') 
             print(e)
         return None
     def resolve_pollPack(root, info, instance): 
         try:
-            user = info.context.user
-            if user.is_authenticated:
-                #String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
-                Int.objects.filter(e__t__v='system_time', v__lt=int(time.time())-6).delete() # delete if 4 seconds old! make client pull everything if disconnects for more than 4 seconds
-                Part.objects.filter(~Q(ie__t__v='system_time'), t__v='poll_pack').delete()
-                #String.objects.filter(~Q(e__t__v='client_instance'), p__in=old_poll_packs).delete() 
-                #old_poll_packs.delete()
+            # user = info.context.user
+            # if user.is_authenticated:
+            #     #String.objects.annotate(parts=Count('p')).filter(parts__lt=1).delete()
+            #     Int.objects.filter(e__t__v='system_time', v__lt=int(time.time())-6).delete() # delete if 4 seconds old! make client pull everything if disconnects for more than 4 seconds
+            #     Part.objects.filter(~Q(ie__t__v='system_time'), t__v='poll_pack').delete()
+            #     #String.objects.filter(~Q(e__t__v='client_instance'), p__in=old_poll_packs).delete() 
+            #     #old_poll_packs.delete()
 
-                #open_pack = Part.objects.get(t__v='open_pack', u=user).id
-                #poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
+            #     #open_pack = Part.objects.get(t__v='open_pack', u=user).id
+            #     #poll_packs = Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')
 
-                op_id = Part.objects.get(t__v='open_pack', u=user).id
-                dp_ids = tuple(Part.objects.filter(~Q(s__v=instance), t__v='delete_pack').values_list('id')) or ('',)
-                #tuple([pp.id for pp in Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')] + ['none'])
+            #     op_id = Part.objects.get(t__v='open_pack', u=user).id
+            #     dp_ids = tuple(Part.objects.filter(~Q(s__v=instance), t__v='delete_pack').values_list('id')) or ('',)
+            #     #tuple([pp.id for pp in Part.objects.filter(~Q(s__v=instance), t__v='delete_pack')] + ['none'])
 
-                params = {
-                    'op': op_id,
-                    'pp': tuple([pp.id for pp in Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')] + ['none']),
-                    'opt': tag['open_pack'].id,
-                    'dp': dp_ids,
-                }
+            #     params = {
+            #         'op': op_id,
+            #         'pp': tuple([pp.id for pp in Part.objects.filter(~Q(s__v=instance), t__v='poll_pack')] + ['none']),
+            #         'opt': tag['open_pack'].id,
+            #         'dp': dp_ids,
+            #     }
 
-                # skip if pp is none?
-                # check if not in delete_pack
-                parts = Part.objects.raw(select_p   # need to check if still under profile as asset ?!?!?!?!?!
-                    +"n.t_id != 'none' AND "
-                    +exists_p+'e.r_id = %(op)s) AND'
-                    +exists_p+'e.r_id IN %(pp)s) AND '
-                    +'NOT'+exists_p+'e.r_id IN %(dp)s)'
-                ,params)
-                bools = Bool.objects.raw(select_b
-                    +exists_b+'e.r_id = %(op)s) AND'
-                    +exists_b+'e.r_id IN %(pp)s) AND '
-                    +'NOT'+exists_b+'e.r_id IN %(dp)s)'
-                ,params)
-                ints = Int.objects.raw(select_i
-                    +exists_i+'e.r_id = %(op)s) AND'
-                    +exists_i+'e.r_id IN %(pp)s) AND '
-                    +'NOT'+exists_i+'e.r_id IN %(dp)s)'
-                ,params)
-                floats = Float.objects.raw(select_f
-                    +exists_f+'e.r_id = %(op)s) AND'
-                    +exists_f+'e.r_id IN %(pp)s) AND '
-                    +'NOT'+exists_f+'e.r_id IN %(dp)s)'
-                ,params)
-                strings = String.objects.raw(select_s
-                    +exists_s+'e.r_id = %(op)s) AND'
-                    +exists_s+'e.r_id IN %(pp)s) AND '
-                    +'NOT'+exists_s+'e.r_id IN %(dp)s)'
-                ,params)
+            #     # skip if pp is none?
+            #     # check if not in delete_pack
+            #     parts = Part.objects.raw(select_p   # need to check if still under profile as asset ?!?!?!?!?!
+            #         +"n.t_id != 'none' AND "
+            #         +exists_p+'e.r_id = %(op)s) AND'
+            #         +exists_p+'e.r_id IN %(pp)s) AND '
+            #         +'NOT'+exists_p+'e.r_id IN %(dp)s)'
+            #     ,params)
+            #     bools = Bool.objects.raw(select_b
+            #         +exists_b+'e.r_id = %(op)s) AND'
+            #         +exists_b+'e.r_id IN %(pp)s) AND '
+            #         +'NOT'+exists_b+'e.r_id IN %(dp)s)'
+            #     ,params)
+            #     ints = Int.objects.raw(select_i
+            #         +exists_i+'e.r_id = %(op)s) AND'
+            #         +exists_i+'e.r_id IN %(pp)s) AND '
+            #         +'NOT'+exists_i+'e.r_id IN %(dp)s)'
+            #     ,params)
+            #     floats = Float.objects.raw(select_f
+            #         +exists_f+'e.r_id = %(op)s) AND'
+            #         +exists_f+'e.r_id IN %(pp)s) AND '
+            #         +'NOT'+exists_f+'e.r_id IN %(dp)s)'
+            #     ,params)
+            #     strings = String.objects.raw(select_s
+            #         +exists_s+'e.r_id = %(op)s) AND'
+            #         +exists_s+'e.r_id IN %(pp)s) AND '
+            #         +'NOT'+exists_s+'e.r_id IN %(dp)s)'
+            #     ,params)
 
-                old_delete_packs = Part.objects.filter(~Q(ie__t__v='system_time'), t__v='delete_pack')
-                Part.objects.filter(r__in=old_delete_packs).delete()
-                Bool.objects.filter(p__in=old_delete_packs).delete()
-                Int.objects.filter(p__in=old_delete_packs).delete()
-                Float.objects.filter(p__in=old_delete_packs).delete()
-                String.objects.filter(~Q(e__t__v='client_instance'), p__in=old_delete_packs).delete() #  temp disable so client instance string does not get deleted!!!!
-                old_delete_packs.delete()
-                params = {
-                    'op': op_id,
-                    'dp': dp_ids,
-                    'dp': dp_ids,
-                }
-                # skip if dp is none?
-                d_parts = Part.objects.raw("""SELECT core_part.id, core_part.t_id FROM core_part WHERE
-                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(dp)s) 
-                """, params)
-                d_bools = Bool.objects.raw("""SELECT core_bool.id, core_bool.v FROM core_bool WHERE
-                    EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id IN %(dp)s) 
-                """, params)
-                d_ints = Int.objects.raw("""SELECT core_int.id, core_int.v FROM core_int WHERE
-                    EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id IN %(dp)s) 
-                """, params)
-                d_floats = Float.objects.raw("""SELECT core_float.id, core_float.v FROM core_float WHERE
-                    EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id IN %(dp)s) 
-                """, params)
-                d_strings = String.objects.raw("""SELECT core_string.id, core_string.v FROM core_string WHERE
-                    EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id = %(op)s) AND
-                    EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id IN %(dp)s) 
-                """, params)
+            #     old_delete_packs = Part.objects.filter(~Q(ie__t__v='system_time'), t__v='delete_pack')
+            #     Part.objects.filter(r__in=old_delete_packs).delete()
+            #     Bool.objects.filter(p__in=old_delete_packs).delete()
+            #     Int.objects.filter(p__in=old_delete_packs).delete()
+            #     Float.objects.filter(p__in=old_delete_packs).delete()
+            #     String.objects.filter(~Q(e__t__v='client_instance'), p__in=old_delete_packs).delete() #  temp disable so client instance string does not get deleted!!!!
+            #     old_delete_packs.delete()
+            #     params = {
+            #         'op': op_id,
+            #         'dp': dp_ids,
+            #         'dp': dp_ids,
+            #     }
+            #     # skip if dp is none?
+            #     d_parts = Part.objects.raw("""SELECT core_part.id, core_part.t_id FROM core_part WHERE
+            #         EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id = %(op)s) AND
+            #         EXISTS (SELECT core_part_part.id FROM core_part_part WHERE core_part_part.n_id=core_part.id AND core_part_part.r_id IN %(dp)s) 
+            #     """, params)
+            #     d_bools = Bool.objects.raw("""SELECT core_bool.id, core_bool.v FROM core_bool WHERE
+            #         EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id = %(op)s) AND
+            #         EXISTS (SELECT core_part_bool.id FROM core_part_bool WHERE core_part_bool.n_id=core_bool.id AND core_part_bool.r_id IN %(dp)s) 
+            #     """, params)
+            #     d_ints = Int.objects.raw("""SELECT core_int.id, core_int.v FROM core_int WHERE
+            #         EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id = %(op)s) AND
+            #         EXISTS (SELECT core_part_int.id FROM core_part_int WHERE core_part_int.n_id=core_int.id AND core_part_int.r_id IN %(dp)s) 
+            #     """, params)
+            #     d_floats = Float.objects.raw("""SELECT core_float.id, core_float.v FROM core_float WHERE
+            #         EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id = %(op)s) AND
+            #         EXISTS (SELECT core_part_float.id FROM core_part_float WHERE core_part_float.n_id=core_float.id AND core_part_float.r_id IN %(dp)s) 
+            #     """, params)
+            #     d_strings = String.objects.raw("""SELECT core_string.id, core_string.v FROM core_string WHERE
+            #         EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id = %(op)s) AND
+            #         EXISTS (SELECT core_part_string.id FROM core_part_string WHERE core_part_string.n_id=core_string.id AND core_part_string.r_id IN %(dp)s) 
+            #     """, params)
 
-                return Pack_Type(p=parts,b=bools,i=ints,f=floats,s=strings, dp=d_parts,db=d_bools,di=d_ints,df=d_floats,ds=d_strings)
+                #return Pack_Type(triples=result['bindings'])
             return None
         except Exception as e: 
             print('poll_pack error') 
@@ -315,44 +266,54 @@ class Open_Pack(graphene.Mutation):
     def mutate(cls, root, info, depth, ids, include, exclude): # offset, limit for pages
         try:
             user = info.context.user
-            params = {
-                'cats':     cats,
-                'public':  Part.objects.get(t__v='public').id,
-                'profile': Part.objects.get(t__v='profile', ue__n=user).id 
-                    if user.is_authenticated else 'none',
-                'dp': tuple(Part.objects.filter(t__v='delete_pack').values_list('id')) or ('',),#tuple([dp.id for dp in Part.objects.filter(t__v='delete_pack')] + ['none']), # use .values instead of list comp
-            }
-            parts = Part.objects.raw(select_p # should check if asset tag as well ?!?!?!?!
-                +"n.t_id != 'none' AND "
-                +exists_p+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
-                +'NOT'+exists_p+'e.r_id IN %(dp)s) '
-                +'UNION SELECT core_part.id, core_part.t_id FROM core_part WHERE core_part.id in %(cats)s'
-                ,params)
-            bools = Bool.objects.raw(select_b
-                +exists_b+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
-                +'NOT'+exists_b+'e.r_id IN %(dp)s) '
-                ,params)
-            ints = Int.objects.raw(select_i
-                +exists_i+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
-                +'NOT'+exists_i+'e.r_id IN %(dp)s) '
-                ,params)
-            floats = Float.objects.raw(select_f
-                +exists_f+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
-                +'NOT'+exists_f+'e.r_id IN %(dp)s) '
-                , params)
-            strings = String.objects.raw(select_s
-                +exists_s+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
-                +'NOT'+exists_s+'e.r_id IN %(dp)s) '
-                ,params)
-            if user.is_authenticated: 
-                r_id = Part.objects.get(t__v='open_pack', u=user).id # pu1__n2=user
-                t_id = tag['open_pack'].id
-                Part_Part.objects.bulk_create([Part_Part(r_id=r_id, n_id=n.id, t_id=t_id) for n in parts], ignore_conflicts=True)
-                Part_Bool.objects.bulk_create([Part_Bool(r_id=r_id, n_id=n.id, t_id=t_id) for n in bools], ignore_conflicts=True)
-                Part_Int.objects.bulk_create([Part_Int(r_id=r_id, n_id=n.id, t_id=t_id) for n in ints], ignore_conflicts=True)
-                Part_Float.objects.bulk_create([Part_Float(r_id=r_id, n_id=n.id, t_id=t_id) for n in floats], ignore_conflicts=True)
-                Part_String.objects.bulk_create([Part_String(r_id=r_id, n_id=n.id, t_id=t_id) for n in strings], ignore_conflicts=True)
-            return Open_Pack(pack=Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
+
+            #myString = wq().string('sammy')
+            query = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+                wq().triple('v:public', 'rdf:type', '@schema:Public'),
+                wq().triple('v:public', '@schema:view', 'v:root'),
+                wq().triple('v:root', 'v:tag', 'v:stem'),
+            )
+            result = query.execute(term)
+            
+            return Open_Pack(pack=Pack_Type(data=result['bindings']), reply='Assets Opened')
+            # params = {
+            #     'cats':     cats,
+            #     'public':  Part.objects.get(t__v='public').id,
+            #     'profile': Part.objects.get(t__v='profile', ue__n=user).id 
+            #         if user.is_authenticated else 'none',
+            #     'dp': tuple(Part.objects.filter(t__v='delete_pack').values_list('id')) or ('',),#tuple([dp.id for dp in Part.objects.filter(t__v='delete_pack')] + ['none']), # use .values instead of list comp
+            # }
+            # parts = Part.objects.raw(select_p # should check if asset tag as well ?!?!?!?!
+            #     +"n.t_id != 'none' AND "
+            #     +exists_p+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
+            #     +'NOT'+exists_p+'e.r_id IN %(dp)s) '
+            #     +'UNION SELECT core_part.id, core_part.t_id FROM core_part WHERE core_part.id in %(cats)s'
+            #     ,params)
+            # bools = Bool.objects.raw(select_b
+            #     +exists_b+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
+            #     +'NOT'+exists_b+'e.r_id IN %(dp)s) '
+            #     ,params)
+            # ints = Int.objects.raw(select_i
+            #     +exists_i+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
+            #     +'NOT'+exists_i+'e.r_id IN %(dp)s) '
+            #     ,params)
+            # floats = Float.objects.raw(select_f
+            #     +exists_f+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
+            #     +'NOT'+exists_f+'e.r_id IN %(dp)s) '
+            #     , params)
+            # strings = String.objects.raw(select_s
+            #     +exists_s+'(e.r_id = %(profile)s OR e.r_id = %(public)s)) AND '
+            #     +'NOT'+exists_s+'e.r_id IN %(dp)s) '
+            #     ,params)
+            # if user.is_authenticated: 
+            #     r_id = Part.objects.get(t__v='open_pack', u=user).id # pu1__n2=user
+            #     t_id = tag['open_pack'].id
+            #     Part_Part.objects.bulk_create([Part_Part(r_id=r_id, n_id=n.id, t_id=t_id) for n in parts], ignore_conflicts=True)
+            #     Part_Bool.objects.bulk_create([Part_Bool(r_id=r_id, n_id=n.id, t_id=t_id) for n in bools], ignore_conflicts=True)
+            #     Part_Int.objects.bulk_create([Part_Int(r_id=r_id, n_id=n.id, t_id=t_id) for n in ints], ignore_conflicts=True)
+            #     Part_Float.objects.bulk_create([Part_Float(r_id=r_id, n_id=n.id, t_id=t_id) for n in floats], ignore_conflicts=True)
+            #     Part_String.objects.bulk_create([Part_String(r_id=r_id, n_id=n.id, t_id=t_id) for n in strings], ignore_conflicts=True)
+            # return Open_Pack(pack=Pack_Type(p=parts, b=bools, i=ints, f=floats, s=strings), reply='Parts opened.')
         except Exception as e: 
             print('open_pack error')
             print(e)
@@ -369,26 +330,27 @@ class Close_Pack(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, p, b, i, f, s):
         try:
-            user = info.context.user
-            if user.is_authenticated: 
-                open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__n2=user
-                if p:
-                    parts   = Part.objects.filter(id__in=p)
-                    open_pack.p.remove(*parts) 
-                if b:
-                    bools   = Bool.objects.filter(id__in=b)
-                    open_pack.b.remove(*bools)
-                if i:
-                    ints    = Int.objects.filter(id__in=i)
-                    open_pack.i.remove(*ints)
-                if f:
-                    floats  = Float.objects.filter(id__in=f)
-                    open_pack.f.remove(*floats)
-                if s:
-                    strings = String.objects.filter(id__in=s)
-                    open_pack.s.remove(*strings)
+            # user = info.context.user
+            # if user.is_authenticated: 
+            #     open_pack = Part.objects.get(t__v='open_pack', u=user) # pu1__n2=user
+            #     if p:
+            #         parts   = Part.objects.filter(id__in=p)
+            #         open_pack.p.remove(*parts) 
+            #     if b:
+            #         bools   = Bool.objects.filter(id__in=b)
+            #         open_pack.b.remove(*bools)
+            #     if i:
+            #         ints    = Int.objects.filter(id__in=i)
+            #         open_pack.i.remove(*ints)
+            #     if f:
+            #         floats  = Float.objects.filter(id__in=f)
+            #         open_pack.f.remove(*floats)
+            #     if s:
+            #         strings = String.objects.filter(id__in=s)
+            #         open_pack.s.remove(*strings)
             return Close_Pack(reply='Closed pack.')
-        except Exception as e: print(e)
+        except Exception as e: 
+            print(e)
         return Close_Pack()
 
 
@@ -414,241 +376,241 @@ class Push_Pack(graphene.Mutation):
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
-
-                # setup:
-                profile = Part.objects.get(t__v='profile', ue__n=user)# profile = Part.objects.get(t__v='profile', u=user)   #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
-                is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user
-                poll_pack = Part.objects.create(t=tag['poll_pack']) 
-                system_time = Int.objects.create(v=int(time.time()))
-                poll_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
-                if instance:
-                    client_instance = String.objects.get_or_create(v=instance)[0]
-                    poll_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']}) # o:2 so sender doesn't recieve
-                poll_pack.p.add(profile, through_defaults={'t':tag['poll_pack']}) # change so profile is only added if it actually gains or loses assets or something like that
-                new_nodes = {'p':[], 'b':[], 'i':[], 'f':[], 's':[]}
-
-
-                params = {
-                    'opens': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']), # could be tuple comprehension?
-                    'open': Part.objects.get(t__v='open_pack', u=user).id,
-                    'profile':    profile.id,
-                    'update':     poll_pack.id,
-                    'cats':       cats,
-                    'perm_tag':   perm_tag, # data.t NOT IN %(perm_tag)s -- make it about anything that could effect meaning/behavior of child node!!!!!?!?!?!?
-                    'asset_tag':  tag['asset'].id,
-                    'open_tag':   tag['open_pack'].id,
-                    'update_tag': tag['poll_pack'].id,
-                    'delete_tag': tag['delete_pack'].id,
-                    'b_id':   ['none'],
-                    'b_v':    [False],
-                    'i_id':   ['none'],
-                    'i_v':    [0],
-                    'f_id':   ['none'],
-                    'f_v':    [0],
-                    's_id':   ['none'],
-                    's_v':    ['empty'],
-                    'r_id':   ['none'],
-                    'r_t_id': ['none'],
-                    'p_r_id': ['none'],
-                    'p_n_id': ['none'],
-                    'p_t_id': ['none'],
-                    'b_r_id': ['none'],
-                    'b_n_id': ['none'],
-                    'b_t_id': ['none'],
-                    'i_r_id': ['none'],
-                    'i_n_id': ['none'],
-                    'i_t_id': ['none'],
-                    'f_r_id': ['none'],
-                    'f_n_id': ['none'],
-                    'f_t_id': ['none'],
-                    's_r_id': ['none'],
-                    's_n_id': ['none'],
-                    's_t_id': ['none'],
-                }
-                if atoms:
-                    if len(atoms[0]) > 0:
-                        params['b_id'] += atoms[0]
-                        params['b_v'] += b 
-                    if len(atoms[1]) > 0:
-                        params['i_id'] += atoms[1]
-                        params['i_v'] += i 
-                    if len(atoms[2]) > 0:
-                        params['f_id'] += atoms[2]
-                        params['f_v'] += f 
-                    if len(atoms[3]) > 0:
-                        params['s_id'] += atoms[3]
-                        params['s_v'] += s 
-                if parts:
-                    for p in range(len(parts)):
-                        params['r_id'].append(parts[p][0][0])
-                        params['r_t_id'].append(t[p][0][0])
-                        params['p_r_id'] += [parts[p][0][0] for n in parts[p][1]] 
-                        params['p_n_id'] += parts[p][1] 
-                        params['p_t_id'] += t[p][1]
-                        params['b_r_id'] += [parts[p][0][0] for n in parts[p][2]] 
-                        params['b_n_id'] += parts[p][2]
-                        params['b_t_id'] += t[p][2]
-                        params['i_r_id'] += [parts[p][0][0] for n in parts[p][3]] 
-                        params['i_n_id'] += parts[p][3]
-                        params['i_t_id'] += t[p][3]
-                        params['f_r_id'] += [parts[p][0][0] for n in parts[p][4]] 
-                        params['f_n_id'] += parts[p][4]
-                        params['f_t_id'] += t[p][4]
-                        params['s_r_id'] += [parts[p][0][0] for n in parts[p][5]] 
-                        params['s_n_id'] += parts[p][5]
-                        params['s_t_id'] += t[p][5]
-                params['r_id_tuple'] = tuple(params['r_id'])
-                with connection.cursor() as cursor: 
-                    cursor.execute("""
-                        -- bools
-                        CREATE TEMP TABLE new_bool (id TEXT, v BOOLEAN);
-                        WITH data AS (
-                            INSERT INTO core_bool (id, v) SELECT unnest(%(b_id)s), unnest(%(b_v)s) 
-                                ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
-                                    WHERE EXISTS (SELECT a.id FROM core_part_bool a WHERE a.n_id = core_bool.id AND a.r_id = %(profile)s)  
-                            RETURNING id, v
-                        ) INSERT INTO new_bool (id, v) SELECT * FROM data;
-                        INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_bool ON CONFLICT DO NOTHING;  
-                        INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_bool ON CONFLICT DO NOTHING;
-                        DELETE FROM core_part_bool a USING new_bool WHERE a.n_id = new_bool.id AND a.t_id = %(delete_tag)s;
-
-                        -- ints
-                        CREATE TEMP TABLE new_int (id TEXT, v INTEGER);
-                        WITH data AS (
-                            INSERT INTO core_int (id, v) SELECT unnest(%(i_id)s), unnest(%(i_v)s) 
-                                ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
-                                    WHERE EXISTS (SELECT a.id FROM core_part_int a WHERE a.n_id = core_int.id AND a.r_id = %(profile)s)  
-                            RETURNING id, v
-                        ) INSERT INTO new_int (id, v) SELECT * FROM data;
-                        INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_int ON CONFLICT DO NOTHING;  
-                        INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_int ON CONFLICT DO NOTHING;
-                        DELETE FROM core_part_int a USING new_int WHERE a.n_id = new_int.id AND a.t_id = %(delete_tag)s;
-
-                        -- floats
-                        CREATE TEMP TABLE new_float (id TEXT, v DOUBLE PRECISION);
-                        WITH data AS (
-                            INSERT INTO core_float (id, v) SELECT unnest(%(f_id)s), unnest(%(f_v)s) 
-                                ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
-                                    WHERE EXISTS (SELECT a.id FROM core_part_float a WHERE a.n_id = core_float.id AND a.r_id = %(profile)s)  
-                            RETURNING id, v
-                        ) INSERT INTO new_float (id, v) SELECT * FROM data;
-                        INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_float ON CONFLICT DO NOTHING;  
-                        INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_float ON CONFLICT DO NOTHING;
-                        DELETE FROM core_part_float a USING new_float WHERE a.n_id = new_float.id AND a.t_id = %(delete_tag)s;
-
-                        -- strings
-                        CREATE TEMP TABLE new_string (id TEXT, v TEXT);
-                        WITH data AS (
-                            INSERT INTO core_string (id, v) SELECT unnest(%(s_id)s), unnest(%(s_v)s) 
-                                ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
-                                    WHERE EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = core_string.id AND a.r_id = %(profile)s)  
-                            RETURNING id, v
-                        ) INSERT INTO new_string (id, v) SELECT * FROM data;
-                        INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_string ON CONFLICT DO NOTHING;  
-                        INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_string ON CONFLICT DO NOTHING;
-                        DELETE FROM core_part_string a USING new_string WHERE a.n_id = new_string.id AND a.t_id = %(delete_tag)s;
-
-                        -- parts
-                        CREATE TEMP TABLE new_part (id TEXT, t_id TEXT);
-                        WITH data AS (
-                            INSERT INTO core_part (id, t_id) SELECT unnest(%(r_id)s), unnest(%(r_t_id)s) 
-                                ON CONFLICT (id) DO UPDATE SET t_id = EXCLUDED.t_id
-                                WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = core_part.id AND a.r_id = %(profile)s)  
-                            RETURNING id, t_id
-                        ) INSERT INTO new_part (id, t_id) SELECT * FROM data;
-                        INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;  
-                        INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;
-                        DELETE FROM core_part_part a USING new_part WHERE a.n_id = new_part.id AND a.t_id = %(delete_tag)s;
-
-                        -- clear parts -- must only clear what is open
-                        DELETE FROM core_part_part a WHERE a.r_id IN %(r_id_tuple)s 
-                            AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
-                                OR EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
-                            AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
-                        DELETE FROM core_part_bool a WHERE a.r_id IN %(r_id_tuple)s;
-                        DELETE FROM core_part_int a WHERE a.r_id IN %(r_id_tuple)s;
-                        DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s;
-                        DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s;
+                print('authed')
+                # # setup:
+                # profile = Part.objects.get(t__v='profile', ue__n=user)# profile = Part.objects.get(t__v='profile', u=user)   #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
+                # is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user
+                # poll_pack = Part.objects.create(t=tag['poll_pack']) 
+                # system_time = Int.objects.create(v=int(time.time()))
+                # poll_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
+                # if instance:
+                #     client_instance = String.objects.get_or_create(v=instance)[0]
+                #     poll_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']}) # o:2 so sender doesn't recieve
+                # poll_pack.p.add(profile, through_defaults={'t':tag['poll_pack']}) # change so profile is only added if it actually gains or loses assets or something like that
+                # new_nodes = {'p':[], 'b':[], 'i':[], 'f':[], 's':[]}
 
 
-                        -- part to part edges
-                        WITH data AS (
-                            SELECT unnest(%(p_r_id)s) AS r, unnest(%(p_n_id)s) AS n, unnest(%(p_t_id)s) AS t
-                        )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data 
-                            WHERE (data.r IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s))
-                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
-                                ON CONFLICT DO NOTHING;
+                # params = {
+                #     'opens': tuple([p.id for p in Part.objects.filter(t__v='open_pack')] + ['none']), # could be tuple comprehension?
+                #     'open': Part.objects.get(t__v='open_pack', u=user).id,
+                #     'profile':    profile.id,
+                #     'update':     poll_pack.id,
+                #     'cats':       cats,
+                #     'perm_tag':   perm_tag, # data.t NOT IN %(perm_tag)s -- make it about anything that could effect meaning/behavior of child node!!!!!?!?!?!?
+                #     'asset_tag':  tag['asset'].id,
+                #     'open_tag':   tag['open_pack'].id,
+                #     'update_tag': tag['poll_pack'].id,
+                #     'delete_tag': tag['delete_pack'].id,
+                #     'b_id':   ['none'],
+                #     'b_v':    [False],
+                #     'i_id':   ['none'],
+                #     'i_v':    [0],
+                #     'f_id':   ['none'],
+                #     'f_v':    [0],
+                #     's_id':   ['none'],
+                #     's_v':    ['empty'],
+                #     'r_id':   ['none'],
+                #     'r_t_id': ['none'],
+                #     'p_r_id': ['none'],
+                #     'p_n_id': ['none'],
+                #     'p_t_id': ['none'],
+                #     'b_r_id': ['none'],
+                #     'b_n_id': ['none'],
+                #     'b_t_id': ['none'],
+                #     'i_r_id': ['none'],
+                #     'i_n_id': ['none'],
+                #     'i_t_id': ['none'],
+                #     'f_r_id': ['none'],
+                #     'f_n_id': ['none'],
+                #     'f_t_id': ['none'],
+                #     's_r_id': ['none'],
+                #     's_n_id': ['none'],
+                #     's_t_id': ['none'],
+                # }
+                # if atoms:
+                #     if len(atoms[0]) > 0:
+                #         params['b_id'] += atoms[0]
+                #         params['b_v'] += b 
+                #     if len(atoms[1]) > 0:
+                #         params['i_id'] += atoms[1]
+                #         params['i_v'] += i 
+                #     if len(atoms[2]) > 0:
+                #         params['f_id'] += atoms[2]
+                #         params['f_v'] += f 
+                #     if len(atoms[3]) > 0:
+                #         params['s_id'] += atoms[3]
+                #         params['s_v'] += s 
+                # if parts:
+                #     for p in range(len(parts)):
+                #         params['r_id'].append(parts[p][0][0])
+                #         params['r_t_id'].append(t[p][0][0])
+                #         params['p_r_id'] += [parts[p][0][0] for n in parts[p][1]] 
+                #         params['p_n_id'] += parts[p][1] 
+                #         params['p_t_id'] += t[p][1]
+                #         params['b_r_id'] += [parts[p][0][0] for n in parts[p][2]] 
+                #         params['b_n_id'] += parts[p][2]
+                #         params['b_t_id'] += t[p][2]
+                #         params['i_r_id'] += [parts[p][0][0] for n in parts[p][3]] 
+                #         params['i_n_id'] += parts[p][3]
+                #         params['i_t_id'] += t[p][3]
+                #         params['f_r_id'] += [parts[p][0][0] for n in parts[p][4]] 
+                #         params['f_n_id'] += parts[p][4]
+                #         params['f_t_id'] += t[p][4]
+                #         params['s_r_id'] += [parts[p][0][0] for n in parts[p][5]] 
+                #         params['s_n_id'] += parts[p][5]
+                #         params['s_t_id'] += t[p][5]
+                # params['r_id_tuple'] = tuple(params['r_id'])
+                # with connection.cursor() as cursor: 
+                #     cursor.execute("""
+                #         -- bools
+                #         CREATE TEMP TABLE new_bool (id TEXT, v BOOLEAN);
+                #         WITH data AS (
+                #             INSERT INTO core_bool (id, v) SELECT unnest(%(b_id)s), unnest(%(b_v)s) 
+                #                 ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
+                #                     WHERE EXISTS (SELECT a.id FROM core_part_bool a WHERE a.n_id = core_bool.id AND a.r_id = %(profile)s)  
+                #             RETURNING id, v
+                #         ) INSERT INTO new_bool (id, v) SELECT * FROM data;
+                #         INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_bool ON CONFLICT DO NOTHING;  
+                #         INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_bool ON CONFLICT DO NOTHING;
+                #         DELETE FROM core_part_bool a USING new_bool WHERE a.n_id = new_bool.id AND a.t_id = %(delete_tag)s;
 
-                        -- bool edges
-                        WITH data AS (
-                            SELECT unnest(%(b_r_id)s) AS r, unnest(%(b_n_id)s) AS n, unnest(%(b_t_id)s) AS t
-                        )INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
-                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
-                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_bool a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
-                                ON CONFLICT DO NOTHING;
+                #         -- ints
+                #         CREATE TEMP TABLE new_int (id TEXT, v INTEGER);
+                #         WITH data AS (
+                #             INSERT INTO core_int (id, v) SELECT unnest(%(i_id)s), unnest(%(i_v)s) 
+                #                 ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
+                #                     WHERE EXISTS (SELECT a.id FROM core_part_int a WHERE a.n_id = core_int.id AND a.r_id = %(profile)s)  
+                #             RETURNING id, v
+                #         ) INSERT INTO new_int (id, v) SELECT * FROM data;
+                #         INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_int ON CONFLICT DO NOTHING;  
+                #         INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_int ON CONFLICT DO NOTHING;
+                #         DELETE FROM core_part_int a USING new_int WHERE a.n_id = new_int.id AND a.t_id = %(delete_tag)s;
 
-                        -- int edges
-                        WITH data AS (
-                            SELECT unnest(%(i_r_id)s) AS r, unnest(%(i_n_id)s) AS n, unnest(%(i_t_id)s) AS t
-                        )INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
-                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
-                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_int a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
-                                ON CONFLICT DO NOTHING;
+                #         -- floats
+                #         CREATE TEMP TABLE new_float (id TEXT, v DOUBLE PRECISION);
+                #         WITH data AS (
+                #             INSERT INTO core_float (id, v) SELECT unnest(%(f_id)s), unnest(%(f_v)s) 
+                #                 ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
+                #                     WHERE EXISTS (SELECT a.id FROM core_part_float a WHERE a.n_id = core_float.id AND a.r_id = %(profile)s)  
+                #             RETURNING id, v
+                #         ) INSERT INTO new_float (id, v) SELECT * FROM data;
+                #         INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_float ON CONFLICT DO NOTHING;  
+                #         INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_float ON CONFLICT DO NOTHING;
+                #         DELETE FROM core_part_float a USING new_float WHERE a.n_id = new_float.id AND a.t_id = %(delete_tag)s;
 
-                        -- float edges
-                        WITH data AS (
-                            SELECT unnest(%(f_r_id)s) AS r, unnest(%(f_n_id)s) AS n, unnest(%(f_t_id)s) AS t
-                        )INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
-                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
-                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_float a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
-                                ON CONFLICT DO NOTHING;
+                #         -- strings
+                #         CREATE TEMP TABLE new_string (id TEXT, v TEXT);
+                #         WITH data AS (
+                #             INSERT INTO core_string (id, v) SELECT unnest(%(s_id)s), unnest(%(s_v)s) 
+                #                 ON CONFLICT (id) DO UPDATE SET v = EXCLUDED.v 
+                #                     WHERE EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = core_string.id AND a.r_id = %(profile)s)  
+                #             RETURNING id, v
+                #         ) INSERT INTO new_string (id, v) SELECT * FROM data;
+                #         INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_string ON CONFLICT DO NOTHING;  
+                #         INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_string ON CONFLICT DO NOTHING;
+                #         DELETE FROM core_part_string a USING new_string WHERE a.n_id = new_string.id AND a.t_id = %(delete_tag)s;
 
-                        -- string edges
-                        WITH data AS (
-                            SELECT unnest(%(s_r_id)s) AS r, unnest(%(s_n_id)s) AS n, unnest(%(s_t_id)s) AS t
-                        )INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
-                            WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s) 
-                            AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
-                                ON CONFLICT DO NOTHING;
+                #         -- parts
+                #         CREATE TEMP TABLE new_part (id TEXT, t_id TEXT);
+                #         WITH data AS (
+                #             INSERT INTO core_part (id, t_id) SELECT unnest(%(r_id)s), unnest(%(r_t_id)s) 
+                #                 ON CONFLICT (id) DO UPDATE SET t_id = EXCLUDED.t_id
+                #                 WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = core_part.id AND a.r_id = %(profile)s)  
+                #             RETURNING id, t_id
+                #         ) INSERT INTO new_part (id, t_id) SELECT * FROM data;
+                #         INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(profile)s, id, %(asset_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;  
+                #         INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT %(update)s, id, %(update_tag)s, 0 FROM new_part ON CONFLICT DO NOTHING;
+                #         DELETE FROM core_part_part a USING new_part WHERE a.n_id = new_part.id AND a.t_id = %(delete_tag)s;
 
-                        -- add to open packs
-                        INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT a.r_id, new_bool.id, %(open_tag)s, 0 
-                            FROM core_part_part a JOIN core_part_bool b ON a.n_id = b.r_id JOIN new_bool ON b.n_id = new_bool.id
-                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
-                        INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT a.r_id, new_int.id, %(open_tag)s, 0 
-                            FROM core_part_part a JOIN core_part_int b ON a.n_id = b.r_id JOIN new_int ON b.n_id = new_int.id
-                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
-                        INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, new_float.id, %(open_tag)s, 0 
-                            FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id JOIN new_float ON b.n_id = new_float.id
-                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
-                        INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT a.r_id, new_string.id, %(open_tag)s, 0 
-                            FROM core_part_part a JOIN core_part_string b ON a.n_id = b.r_id JOIN new_string ON b.n_id = new_string.id
-                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
-                        INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT a.r_id, new_part.id, %(open_tag)s, 0 
-                            FROM core_part_part a JOIN core_part_part b ON a.n_id = b.r_id JOIN new_part ON b.n_id = new_part.id
-                                WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
-                    """, params)
+                #         -- clear parts -- must only clear what is open
+                #         DELETE FROM core_part_part a WHERE a.r_id IN %(r_id_tuple)s 
+                #             AND ((a.r_id IN %(cats)s AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(open)s))
+                #                 OR EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.r_id AND b.r_id = %(profile)s))
+                #             AND EXISTS (SELECT a.id FROM core_part_part b WHERE b.n_id = a.n_id AND b.r_id = %(profile)s);
+                #         DELETE FROM core_part_bool a WHERE a.r_id IN %(r_id_tuple)s;
+                #         DELETE FROM core_part_int a WHERE a.r_id IN %(r_id_tuple)s;
+                #         DELETE FROM core_part_float a WHERE a.r_id IN %(r_id_tuple)s;
+                #         DELETE FROM core_part_string a WHERE a.r_id IN %(r_id_tuple)s;
 
 
-                if pdel or bdel or idel or fdel or sdel:
-                    delete_pack = Part.objects.create(t=tag['delete_pack']) 
-                    delete_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
-                    if instance: delete_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
-                    if pdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        try: delete_pack.p.add(*Part.objects.filter(is_asset, id__in=pdel), through_defaults={'t':tag['delete_pack']})
-                        except Exception as e: print(e)
-                    if bdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        try: delete_pack.b.add(*Bool.objects.filter(is_asset, id__in=bdel), through_defaults={'t':tag['delete_pack']})
-                        except Exception as e: print(e)
-                    if idel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        try: delete_pack.i.add(*Int.objects.filter(is_asset, id__in=idel), through_defaults={'t':tag['delete_pack']})
-                        except Exception as e: print(e)
-                    if fdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        try: delete_pack.f.add(*Float.objects.filter(is_asset, id__in=fdel), through_defaults={'t':tag['delete_pack']})
-                        except Exception as e: print(e)
-                    if sdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        try: delete_pack.s.add(*String.objects.filter(is_asset, id__in=sdel), through_defaults={'t':tag['delete_pack']})
-                        except Exception as e: print(e)
+                #         -- part to part edges
+                #         WITH data AS (
+                #             SELECT unnest(%(p_r_id)s) AS r, unnest(%(p_n_id)s) AS n, unnest(%(p_t_id)s) AS t
+                #         )INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data 
+                #             WHERE (data.r IN %(cats)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s))
+                #             AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                #                 ON CONFLICT DO NOTHING;
+
+                #         -- bool edges
+                #         WITH data AS (
+                #             SELECT unnest(%(b_r_id)s) AS r, unnest(%(b_n_id)s) AS n, unnest(%(b_t_id)s) AS t
+                #         )INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
+                #             WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
+                #             AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_bool a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                #                 ON CONFLICT DO NOTHING;
+
+                #         -- int edges
+                #         WITH data AS (
+                #             SELECT unnest(%(i_r_id)s) AS r, unnest(%(i_n_id)s) AS n, unnest(%(i_t_id)s) AS t
+                #         )INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
+                #             WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
+                #             AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_int a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                #                 ON CONFLICT DO NOTHING;
+
+                #         -- float edges
+                #         WITH data AS (
+                #             SELECT unnest(%(f_r_id)s) AS r, unnest(%(f_n_id)s) AS n, unnest(%(f_t_id)s) AS t
+                #         )INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
+                #             WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s)
+                #             AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_float a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                #                 ON CONFLICT DO NOTHING;
+
+                #         -- string edges
+                #         WITH data AS (
+                #             SELECT unnest(%(s_r_id)s) AS r, unnest(%(s_n_id)s) AS n, unnest(%(s_t_id)s) AS t
+                #         )INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT data.r, data.n, data.t, 0 FROM data  
+                #             WHERE EXISTS (SELECT a.id FROM core_part_part a WHERE a.n_id = data.r AND a.r_id = %(profile)s) 
+                #             AND (data.t NOT IN %(perm_tag)s OR EXISTS (SELECT a.id FROM core_part_string a WHERE a.n_id = data.n AND a.r_id = %(profile)s)) 
+                #                 ON CONFLICT DO NOTHING;
+
+                #         -- add to open packs
+                #         INSERT INTO core_part_bool (r_id, n_id, t_id, o) SELECT a.r_id, new_bool.id, %(open_tag)s, 0 
+                #             FROM core_part_part a JOIN core_part_bool b ON a.n_id = b.r_id JOIN new_bool ON b.n_id = new_bool.id
+                #                 WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
+                #         INSERT INTO core_part_int (r_id, n_id, t_id, o) SELECT a.r_id, new_int.id, %(open_tag)s, 0 
+                #             FROM core_part_part a JOIN core_part_int b ON a.n_id = b.r_id JOIN new_int ON b.n_id = new_int.id
+                #                 WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
+                #         INSERT INTO core_part_float (r_id, n_id, t_id, o) SELECT a.r_id, new_float.id, %(open_tag)s, 0 
+                #             FROM core_part_part a JOIN core_part_float b ON a.n_id = b.r_id JOIN new_float ON b.n_id = new_float.id
+                #                 WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
+                #         INSERT INTO core_part_string (r_id, n_id, t_id, o) SELECT a.r_id, new_string.id, %(open_tag)s, 0 
+                #             FROM core_part_part a JOIN core_part_string b ON a.n_id = b.r_id JOIN new_string ON b.n_id = new_string.id
+                #                 WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
+                #         INSERT INTO core_part_part (r_id, n_id, t_id, o) SELECT a.r_id, new_part.id, %(open_tag)s, 0 
+                #             FROM core_part_part a JOIN core_part_part b ON a.n_id = b.r_id JOIN new_part ON b.n_id = new_part.id
+                #                 WHERE a.r_id IN %(opens)s ON CONFLICT DO NOTHING;
+                #     """, params)
+
+
+                # if pdel or bdel or idel or fdel or sdel:
+                #     delete_pack = Part.objects.create(t=tag['delete_pack']) 
+                #     delete_pack.i.add(system_time, through_defaults={'t':tag['system_time']})
+                #     if instance: delete_pack.s.add(client_instance, through_defaults={'t':tag['client_instance']})
+                #     if pdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                #         try: delete_pack.p.add(*Part.objects.filter(is_asset, id__in=pdel), through_defaults={'t':tag['delete_pack']})
+                #         except Exception as e: print(e)
+                #     if bdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                #         try: delete_pack.b.add(*Bool.objects.filter(is_asset, id__in=bdel), through_defaults={'t':tag['delete_pack']})
+                #         except Exception as e: print(e)
+                #     if idel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                #         try: delete_pack.i.add(*Int.objects.filter(is_asset, id__in=idel), through_defaults={'t':tag['delete_pack']})
+                #         except Exception as e: print(e)
+                #     if fdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                #         try: delete_pack.f.add(*Float.objects.filter(is_asset, id__in=fdel), through_defaults={'t':tag['delete_pack']})
+                #         except Exception as e: print(e)
+                #     if sdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                #         try: delete_pack.s.add(*String.objects.filter(is_asset, id__in=sdel), through_defaults={'t':tag['delete_pack']})
+                #         except Exception as e: print(e)
             else: reply = 'Sign-in required.'
             return Push_Pack(reply=reply) 
         except Exception as e: print(e)

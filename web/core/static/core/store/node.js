@@ -34,10 +34,10 @@ export const create_node_slice =(set,get)=>({node:{
     profile:{},
     public:{},
 
-    switch:{},
+    boolean:{},
     integer:{},
     decimal:{},
-    text:{},
+    string:{},
 }});
 
 
@@ -47,7 +47,7 @@ export const create_node_slice =(set,get)=>({node:{
         //     node.tag = readable(t);
         //     node.css = d.node_css[t];
         // }
-        // d.node.meta = Object.fromEntries(d.node_tags.map(t=>[t,{
+        // d.node.meta = Object.fromEntries(d.node_classes.map(t=>[t,{
         //     icon: static_url+'icon/node/'+t+'.svg',
         //     tag: readable(t),
         //     css: d.node_css[t],

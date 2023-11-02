@@ -18,95 +18,190 @@ for i in range(0, 20):
 client.insert_document([
     {"@base":"iri:///delimit/", "@schema":"iri:///delimit#", "@type":"@context"},
 
-    {"@id":"Public", "@type":"Class", 
-        "view": {"@class":"Subject", "@type":"List"},
+    {"@id":"Node",  "@type":"Class", "@abstract":[]},
+    {"@id":"Admin", "@type":"Class", "@abstract":[], "@inherits":"Node"},
+    {"@id":"Asset", "@type":"Class", "@abstract":[], "@inherits":"Node"},
+
+    {"@id":"Open_Pack", "@type":"Class", 
+        "node": {"@class":"Node", "@type":"Set"},
     },
-    {"@id":"User", "@type":"Class", 
-        "name": "String",
-        "asset": {"@class":"Subject", "@type":"List"},
-        "view":  {"@class":"Subject", "@type":"List"},
+    {"@id":"Poll_Pack", "@type":"Class", 
+        "node": {"@class":"Node", "@type":"Set"},
+    },
+    {"@id":"Drop_Pack", "@type":"Class", 
+        "node": {"@class":"Node", "@type":"Set"},
     },
 
-    {"@id":"Subject", "@type":"Class", "@abstract":[]},
+    {"@id":"User", "@type":"Class", 
+        "@inherits": "Admin",
+        "@metadata":{"css":{"icon":"bi-person"}},
+        "name":  "String",
+        "asset": {"@class":"Asset", "@type":"Set"},
+        "view":  {"@class":"Asset", "@type":"Set"},
+        "open_pack": "Open_Pack",
+        "poll_Pack": "Poll_Pack",
+        "drop_Pack": "Drop_Pack",
+    },
+    {"@id":"Public", "@type":"Class", 
+        "@inherits": "Admin",
+        "@metadata":{"css":{"icon":"bi-globe-americas"}}, 
+        "view":  {"@class":"Asset", "@type":"Set"},
+    },
+
+    {"@id":"Boolean", "@type":"Class", "@inherits":"Asset", "value":"xsd:boolean"},
+    {"@id":"Integer", "@type":"Class", "@inherits":"Asset", "value":"xsd:integer"},
+    {"@id":"Decimal", "@type":"Class", "@inherits":"Asset", "value":"xsd:decimal"},
+    {"@id":"String",  "@type":"Class", "@inherits":"Asset", "value":"xsd:string" },
+
     {"@id":"Part", "@type":"Class", "@abstract":[], 
-        "@inherits": "Subject",
+        "@inherits": "Asset",
+        "@metadata":{"default":{"name":""}},
         "name": {"@class":"String", "@type":"Optional"},
     },
 
-    {"@id":"Boolean", "@type":"Class", "@inherits":"Subject", "value":"xsd:boolean"},
-    {"@id":"Integer", "@type":"Class", "@inherits":"Subject", "value":"xsd:integer"},
-    {"@id":"Decimal", "@type":"Class", "@inherits":"Subject", "value":"xsd:decimal"},
-    {"@id":"String",  "@type":"Class", "@inherits":"Subject", "value":"xsd:string" },
-
+    {"@id":"Case", "@type":"Class", 
+        "@inherits": "Part", 
+        "@metadata":{"css":{"icon":"bi-arrows-move"}},
+        "part": {"@class":"Part",    "@type":"Optional"},
+        "case": {"@class":"Case",    "@type":"Optional"},
+        "move": {"@class":"Vector",  "@type":"Optional"},
+        "turn": {"@class":"Vector",  "@type":"Optional"},
+        "axis": {"@class":"Vector",  "@type":"Optional"},
+        "up":   {"@class":"Vector",  "@type":"Optional"},
+        "spin": {"@class":"Decimal", "@type":"Optional"},
+    },
     {"@id":"Vector", "@type":"Class", 
         "@inherits": "Part",
-        "x": "Decimal",
-        "y": "Decimal",
-        "z": "Decimal",
-    },
-    {"@id":"Frame", "@type":"Class", #"@abstract":[], 
-        "@inherits": "Part",
-        "frame": {"@class":"Frame",  "@type":"Optional"},
-        "move":  {"@class":"Vector", "@type":"Optional"},
-        "turn":  {"@class":"Vector", "@type":"Optional"},
-        "axis":  {"@class":"Vector", "@type":"Optional"},
-        "up":    {"@class":"Vector", "@type":"Optional"},
-    },
-    # {"@id":"Point", "@type":"Class", 
-    #     "@inherits": "Vector",
-    # },
-    {"@id":"Case", "@type":"Class", 
-        "@inherits": "Part",
-        "part":  {"@class":"Part",  "@type":"Optional"},
-        "frame": {"@class":"Frame", "@type":"Optional"},
-    },
-    {"@id":"Ellipse", "@type":"Class", 
-        "@inherits": "Part",
-        "radius_x": "Decimal",
-        "radius_y": "Decimal",
-        "angle_a":  "Decimal",
-        "angle_b":  "Decimal",
+        "@metadata":{"default":{"x":0, "y":0, "z":0}, "css":{"icon":"bi-record-circle"}},
+        "x": {"@class":"Decimal", "@type":"Optional"},
+        "y": {"@class":"Decimal", "@type":"Optional"},
+        "z": {"@class":"Decimal", "@type":"Optional"},
     },
     {"@id":"Curve", "@type":"Class", 
         "@inherits": "Part",
-        "part": {"@class":"Part", "@type":"List"},
-        "mix":  {"@class":"Part", "@type":"List"}, #{'@class':'Part', '@type':'Set'}, 
+        "@metadata":{"css":{"icon":"bi-bezier2"}},
+        "part":   {"@class":"Part", "@type":"List"},
+        "mix":    {"@class":"Part", "@type":"Set"}, 
+        "radius": {"@class":"Decimal", "@type":"Optional"},
+    },
+    {"@id":"Surface", "@type":"Class", 
+        "@inherits": "Part",
+        "@metadata":{"css":{"icon":"bi-map"}}, 
+        "part":  {"@class":"Part", "@type":"List"},
+        "guide": {"@class":"Part", "@type":"Set"},
+    },
+    {"@id":"Machine", "@type":"Class", 
+        "@inherits": "Part",
+        "@metadata":{"css":{"icon":"bi-device-ssd"}},
+        "origin": {"@class":"Vector", "@type":"Optional"},
     },
 ], graph_type='schema', full_replace=True)
 
+
 # client.delete_document([
-#     {'@id':'car'},
-#     {'@id':'vehicle'},
-#     #{'@id':'decimal/z3LqR3mN9B9epzKJ'},
-#     #{'@id':'car/dZOsnLgE_8IFMXaM'},
-# ], graph_type='schema')
+#     {'@id':'Public/rrWz1g6OwImRQQaz'},
+#     {'@id':'Decimal/nwzVKESEwB_oJz8K'},
+#     {'@id':'Decimal/SMnA6ntU098-f_z3'},
+#     {'@id':'Decimal/0BLuabSS0kPoDLHI'},
+# ], graph_type='instance')
 
 # client.update_document([
-#     # {'@type':'Bike', '@id':'Bike/rxJnJ6Ccc6_iiT2x',
-#     #     'name': 'Speedy',
-#     # },
-#     {'@type':'Dog', 
-#         'name': 'Dude',
-#         'vehicle': 'DTp-WCpBXReqd7kJ',
+#     {'@type':'Decimal', '@capture': 'd1',
+#         'value': 1.11,
+#     },
+#     {'@type':'Decimal', '@capture': 'd2',
+#         'value': 2.22,
+#     },
+#     {'@type':'Decimal', '@capture': 'd3',
+#         'value': 3.33,
+#     },
+#     {'@type':'Vector', 
+#         '@capture': 'v1',
+#         'x': {"@ref": 'd1'},
+#         'y': {"@ref": 'd2'},
+#         'z': {"@ref": 'd3'},
+#     },
+#     {'@type':'Public', 
+#         'view': [
+#             {"@ref": 'd1'}, {"@ref": 'd2'}, {"@ref": 'd3'}, 
+#             {"@ref": 'v1'}
+#         ],
 #     },
 # ], graph_type='instance')
 
 
+# exclude_id = ['Open_Pack', 'Drop_Pack']
+# data = client.get_all_documents(graph_type='schema', as_list=True)[1:]
+# data = filter(lambda n: n['@id'] not in exclude_id, data)
+# print('test data')
+# print(list(data))
 
 print('Schema:')
-print(json.dumps({'docs':client.get_all_documents(graph_type='schema', as_list=True)}))
-#print('\n'.join(map(str, result)))
-#results = client.query_document({'@type':'Car', 'name':'juice'}) #_document
-myString = wq().string('sammy')
-query = wq().triple('v:named_node', '@schema:name', myString)
+print('\n'.join(map(str, client.get_all_documents(graph_type='schema', as_list=True))))
+
+print('Instance: ')
+result = client.get_all_documents(graph_type='instance')
+print('\n'.join(map(str, result)))
+
+print('WOQL: ')
+query = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+    wq().triple('v:public', 'rdf:type', '@schema:Public'),
+    wq().triple('v:public', '@schema:view', 'v:root'),
+    wq().triple('v:root', 'v:tag', 'v:stem'),
+)
 result = query.execute(client)
-print('Get: ')
 print(list(result['bindings']))
 
 
-result = client.get_all_documents(graph_type='instance')
-print('Instance: ')
-print('\n'.join(map(str, result)))
+
+# client.update_document([
+#     {'@type':'Decimal', 
+#         '@capture': 'id1',
+#         'value': 1.11,
+#     },
+#     {'@type':'Decimal', 
+#         '@capture': 'id2',
+#         'value': 2.22,
+#     },
+#     {'@type':'Decimal', 
+#         '@capture': 'id3',
+#         'value': 3.33,
+#     },
+#     {'@type':'Public', 
+#         'view': [{"@ref": 'id1'}, {"@ref": 'id2'}, {"@ref": 'id3'}],
+#     },
+# ], graph_type='instance')
+
+#results = client.query_document({'@type':'Car', 'name':'juice'}) #_document
+#myString = wq().string('sammy')
+#query = wq().triple('v:named_node', '@schema:name', myString)
+# query = wq().insert_document({
+#     "@type": "Triple", "object": {"@type": "Value", "data": {"@type": "xsd:decimal", "@value": 1.23}}, "predicate": {"@type": "NodeValue", "node": "@schema:value"}, "subject": {"@type": "NodeValue", "Node": "@type:Decimal"}
+# }, 'v:newId') # Decimal/qpwdngitcfkeldaz
+#print(query.to_json())
+#result = query.execute(client)
+#print('Get: ')
+#print(list(result['bindings']))
+
+
+#"arc":      {"@class":"Bool", "@type":"Optional"},
+        #"radius_x": {"@class":"Decimal", "@type":"Optional"},
+        #"radius_y": {"@class":"Decimal", "@type":"Optional"},
+        #"angle_a":  {"@class":"Decimal", "@type":"Optional"},
+        #"angle_b":  {"@class":"Decimal", "@type":"Optional"},
+
+# {"@id":"Case", "@type":"Class", 
+    #     "@inherits": "Part",
+    #     "part":  {"@class":"Part",  "@type":"Optional"},
+    #     "frame": {"@class":"Frame", "@type":"Optional"},
+    # },
+
+# {"@id":"Curve", "@type":"Class", 
+#         "@inherits": "Part",
+#         "part": {"@class":"Part", "@type":"List"},
+#         "mix":  {"@class":"Part", "@type":"List"}, 
+#     },
+
 
 #"iri:///testdb/Dog/JlcK9EP0jW-id60P"
 

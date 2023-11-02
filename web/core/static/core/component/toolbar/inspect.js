@@ -49,7 +49,7 @@ export function Inspect(){
 //     const part = useS(d=> d.design.part);
 //     const nodes = useS(d=> d.pick.n); 
 //     const string_tags = useS(d=> d.inspect.string_tags);
-//     const float_tags = useS(d=> d.inspect.float_tags);
+//     const decimal_tags = useS(d=> d.inspect.decimal_tags);
 //     const menu = useS(d=> d.studio.menu);
 //     useEffect(()=>{
 //         if(window_size.width>=576){
@@ -89,7 +89,7 @@ export function Inspect(){
 //                 ...string_tags.map(t=>
 //                     c(String, {t:t})
 //                 ),
-//                 ...float_tags.map(t=>
+//                 ...decimal_tags.map(t=>
 //                     c(Float, {t:t})
 //                 ),
 //                 nodes.filter(n=>d.n[n].asset).length ? c('div', {className:''},

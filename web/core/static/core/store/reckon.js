@@ -5,29 +5,38 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     count: 0,
     up(d, n, a={}){ 
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
-        d.reckon.props(d, n, ['name', 'story', 'visible', 'autocalc',]);
-        d.reckon.props(d, n, Object.keys(d.node.transform.common_float));
+        //d.reckon.props(d, n, ['name', 'story', 'visible', 'autocalc',]);
+        //d.reckon.props(d, n, Object.keys(d.node.transform.common_float));
+        
+        const node = d.node[d.n[n].t] ?? {};
+        const node_stem = Object.entries(node.stem ?? {});
+
+        // if(node.boolean) d.reckon.props(d, n, Object.keys(node.boolean)); // do not need to reckon props on way up if caused by source node!!!!!! #1
+        // if(node.integer) d.reckon.props(d, n, Object.keys(node.integer));
+        // if(node.decimal) d.reckon.props(d, n, Object.keys(node.decimal));
+        // if(node.string)  d.reckon.props(d, n, Object.keys(node.string));
+        //const stem = {};
+        for(const [t, s] of node_stem){
+            if(!d.terminal_classes.includes(s.class)) continue;
+            if(d.n[n].n && d.n[n].n[t]){ //  && d.graph.ex(d,d.n[n].n[t][0])
+                d.n[n].c[t] = d.n[d.n[n].n[t][0]].v; // check if list or single?! #1
+            }else{   
+                delete d.n[n].c[t];  
+            }
+        }
+
         d.n[n].c.matrix = d.node.transform.matrix(d, d.n[n].c);
         d.n[n].design.transform = d.node.transform.view(d, d.n[n].c);
-        const node = d.node[d.n[n].t] ?? {};
-        if(node.bool)   d.reckon.props(d, n, Object.keys(node.bool)); // do not need to reckon props on way up if caused by source node!!!!!! #1
-        if(node.int)    d.reckon.props(d, n, Object.keys(node.int));
-        if(node.float)  d.reckon.props(d, n, Object.keys(node.float));
-        if(node.string) d.reckon.props(d, n, Object.keys(node.string));
+
         if(d.n[n].v != null || node.autocalc || d.n[n].c.autocalc || a.manual){//cause.includes('manual_compute')){ //if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){ 
             if(node.part){
                 try{
                     const stem = {};
-                    if(node.stem){
-                        for(let i = 0; i < node.stem.length; i++){
-                            if(d.n[n].n[node.stem[i]]){
-                                stem[node.stem[i]] = d.n[n].n[node.stem[i]].map(n=> d.n[n]);
-                            }else{
-                                stem[node.stem[i]] = [];
-                            }
-                        }
+                    for(const [t, s] of node_stem){
+                        if(d.terminal_classes.includes(s.class)) continue;
+                        if(d.n[n].n[t]) stem[t] = d.n[n].n[t].map(n=> d.n[n]);
                     }
-                    d.n[n].p = node.part(d, stem, d.n[n].c);
+                    d.n[n].p = node.part(d, stem, d.n[n].c); // make stem and d.n[n].c one argument?! #1
                 }catch(e){
                     console.log('Reckon Error: '+d.n[n].t, e);
                 }
@@ -37,16 +46,29 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         d.next('design.update'); 
         d.next('inspect.update'); 
     },
-    props(d, n, t){ 
-        t.forEach(t=>{
-            if(d.n[n].n && d.n[n].n[t]){ //  && d.graph.ex(d,d.n[n].n[t][0])
-                d.n[n].c[t] = d.n[d.n[n].n[t][0]].v;
-            }else{   
-                delete d.n[n].c[t];  
-            } // d.n[n].c[t]=null; // should delete attr instead ?!?!?!
-        });
-    },
+    // props(d, n, t){ 
+    //     t.forEach(t=>{
+    //         if(d.n[n].n && d.n[n].n[t]){ //  && d.graph.ex(d,d.n[n].n[t][0])
+    //             d.n[n].c[t] = d.n[d.n[n].n[t][0]].v;
+    //         }else{   
+    //             delete d.n[n].c[t];  
+    //         } // d.n[n].c[t]=null; // should delete attr instead ?!?!?!
+    //     });
+    // },
 }});
+
+
+
+// const stem = {};
+// if(node.stem){
+//     for(let i = 0; i < node.stem.length; i++){
+//         if(d.n[n].n[node.stem[i]]){
+//             stem[node.stem[i]] = d.n[n].n[node.stem[i]].map(n=> d.n[n]);
+//         }else{
+//             stem[node.stem[i]] = [];
+//         }
+//     }
+// }
 
 
 //const new_part = node.reckon(d, stem, d.n[n].c);

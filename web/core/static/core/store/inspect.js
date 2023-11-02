@@ -16,7 +16,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
         //});
 
         const node_content = d.pick.n.map(n=> d.n[n]);
-        d.value_tags.forEach(t=>{
+        d.terminal_tags.forEach(t=>{
             const nc = node_content.filter(n=> n.c[t]!=null);
             const nodes = d.graph.get(d, d.pick.n, t);
             d.inspect.mergeable[t] = false;
@@ -44,7 +44,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                 d.inspect.source[t] = nc.map(n=> n.n[t]).flat();
                 d.inspect.asset[t] = nc.some(n=> n.asset);
             }else{  
-                if(nt.some(nt=> d.node[nt]?.source?.includes(t))){
+                if(nt.some(nt=> d.node[nt]?.stem[t])){//if(nt.some(nt=> d.node[nt]?.stem?.includes(t))){
                     //console.log(null, t, nt, current(d).node[nt]);
                     d.inspect.source[t] = [];  
                 }else{
@@ -52,8 +52,8 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                 }
             }
         })
-        Object.entries(d.model_tags).forEach(([m,t],i)=>{
-            const nc = node_content.filter(n=> (n.m==m && n.v!=undefined));
+        for(const cls of d.terminal_classes){ //Object.entries(d.model_tags).forEach(([m,t],i)=>{
+            const nc = node_content.filter(n=> n.cls == cls); //const nc = node_content.filter(n=> (n.m==m && n.v!=undefined));
             if(nc.length){  
                 if(nc.every((n,i,nc)=> n.v==nc[0].v)){
                     d.inspect.content[t] = nc[0].v;   // could be content just like part
@@ -63,8 +63,10 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                     d.inspect.placeholder[t] = nc.map(n=>n.v).join(',  ');
                 }
                 d.inspect.asset[t] = nc.some(n=> n.asset);
-            }else{  d.inspect.content[t] = undefined;  }
-        });
+            }else{  
+                d.inspect.content[t] = undefined;  
+            }
+        };
         if(d.pick.n.length > 0){
             if(window.innerWidth>=576 || (d.studio.panel.show && (d.studio.panel.name=='inspect_design' || d.studio.panel.name=='inspect_nodes'))){
                 if(d.design.part && d.design.part==d.pick.get_if_one(d)){ //d.pick.n.length==1 && d.pick.n[0]==d.design.part

@@ -16,7 +16,7 @@ export function Buttons({t}){
         const group = d.graph.get(d, d.pick.n, t);
         d.pick.n.forEach(target=> d.remake.split(d, group, target));
     }});
-    if(!d.atom_tags.includes(t)) buttons.push({name:'Remove', icon:'bi-x-lg', func(d){
+    if(!d.terminal_classes.includes(t)) buttons.push({name:'Remove', icon:'bi-x-lg', func(d){
         [...d.pick.n].forEach(r=>{
             d.graph.get(d,r,t).forEach(n=>{
                 d.delete.edge_or_node(d,r,n,{t:t});

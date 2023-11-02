@@ -60,10 +60,10 @@ export const create_make_slice = (set,get)=>({make:{
             }
         }
     },
-    node(d, m, t, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
+    node(d, cls, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         //const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
-        d.n[n] = {m: m, t:t, r:{}, c:{}, open:true, asset:true, deleted:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
+        d.n[n] = {cls:cls, t:cls, r:{}, c:{}, open:true, asset:true, deleted:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
             pick: {pick:false, hover:false},
             graph: { 
                 pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
@@ -75,13 +75,13 @@ export const create_make_slice = (set,get)=>({make:{
             design:{ vis:true },
         };
         d.pick.color(d,n);
-        if(m=='p'){ d.n[n].n={}; }
+        if(!d.terminal_classes.includes(cls)){ d.n[n].n={}; }
         d.make.edge(d, d.profile, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
         
         //if(a.r) d.make.edge(d, a.r, n, a); // a.r should be list?
         d.for(a.r, r=> d.make.edge(d, r, n, a));
 
-        if(a.n) Object.entries(a.n).forEach(([t,nn],i)=>{
+        if(a.stem) Object.entries(a.stem).forEach(([t,nn],i)=>{
             d.for(nn, nn=> d.make.edge(d, n, nn, {t:t}));
         });
         //{
@@ -106,34 +106,40 @@ export const create_make_slice = (set,get)=>({make:{
         d.next('graph.update'); // check if in graph_tags 
         return n;
     },
-    atom(d, m, v, a={}){ // just check v to figure if b, i, f, or s
+    atom(d, cls, v, a={}){ // just check v to figure if b, i, f, or s
         if(a.single){
-            let r = Array.isArray(a.r) ? a.r : [a.r];
-            if(r.every(r=> d.n[r].n[a.t])) return;
+            //let r = Array.isArray(a.r) ? a.r : [a.r];
+            if(d.as_array(a.r).every(r=> d.n[r].n[a.t])) return;
         }
-        const n = d.make.node(d, m, d.model_tags[m], a); //{r:r, t:t}
+        const n = d.make.node(d, cls, a); //{r:r, t:t}
         d.n[n].v = v; 
         return n;
     },
-    part(d, t, a){ // a.r should be array 
-        let props = {};
-        if(d.node[t]){
-            if(d.node[t].bool) Object.entries(d.node[t].bool).forEach(([prop, val])=>{
-                props[prop] = d.make.atom(d, 'b', val);
-            });
-            if(d.node[t].int) Object.entries(d.node[t].int).forEach(([prop, val])=>{
-                props[prop] = d.make.atom(d, 'i', val);
-            });
-            if(d.node[t].float) Object.entries(d.node[t].float).forEach(([prop, val])=>{
-                props[prop] = d.make.atom(d, 'f', val);
-            });
-            if(d.node[t].string) Object.entries(d.node[t].string).forEach(([prop, val])=>{
-                props[prop] = d.make.atom(d, 's', val);
-            });
+    part(d, cls, a){ // a.r should be array 
+        let stem = {};
+        if(d.node[cls]){
+            for(const [t, s] of Object.entries(d.node[cls].stem)){
+                if(d.terminal_classes.includes(s.class)){
+                    stem[t] = d.make.atom(d, s.class, s.default);
+                }
+            }
         }
-        return d.make.node(d, 'p', t, {...a, n:props});
+        return d.make.node(d, cls, {...a, stem:stem});
     },
 }});
+
+// if(d.node[cls].bool) Object.entries(d.node[cls].bool).forEach(([prop, val])=>{
+//     stems[prop] = d.make.atom(d, 'b', val);
+// });
+// if(d.node[cls].int) Object.entries(d.node[cls].int).forEach(([prop, val])=>{
+//     stems[prop] = d.make.atom(d, 'i', val);
+// });
+// if(d.node[cls].float) Object.entries(d.node[cls].float).forEach(([prop, val])=>{
+//     stems[prop] = d.make.atom(d, 'f', val);
+// });
+// if(d.node[cls].string) Object.entries(d.node[cls].string).forEach(([prop, val])=>{
+//     stems[prop] = d.make.atom(d, 's', val);
+// });
 
 //return d.make.node(d, 'p', t, {...a, atoms});
         //}else{

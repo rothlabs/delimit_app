@@ -78,11 +78,11 @@ const n = {
     autocalc: true,
 };
 export const curve = n;
-n.stem = ['point', 'mix'];
-n.bool = {corner:false};
+//n.stem = ['point', 'mix'];
+//n.bool = {corner:false};
 n.part = (d, s, c)=>{
-    if(s.point.length > 2) return nurbs(d, s, c);
-    if(s.mix.length > 1)   return mixed(d, s, c);
+    if(s.part.length > 2) return nurbs(d, s, c);
+    if(s.mix.length > 1)  return mixed(d, s, c);
 };
 
 

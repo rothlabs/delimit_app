@@ -9,13 +9,13 @@ const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
-    const ready = useS(d=> d.studio.ready);
+    //const ready = useS(d=> d.studio.ready);
     //console.log('render studio!');
     return (
         c(Fragment,{}, 
             c(Get_Schema),
             c(Open_Push_Close),
-            ready && c(Poll), 
+            //ready && c(Poll), 
             c(Toolbar),
             c(Panel),
             c(Canvas_Viewport),
@@ -36,34 +36,35 @@ export function Canvas_Viewport(){
 
 function Get_Schema(){
     const {data, status} = use_query('Schema', [ 
-        ['schema full'],
-    ],{onCompleted:data=>{
+        ['schema content'],
+    ],{onCompleted:result=>{
         //console.log('Get Schema - Complete', data.schema.full);    
-        rs(d=> d.set_schema(d, data.schema.full));
+        rs(d=> d.receive_schema(d, JSON.parse(result.schema.content).data));
     }}); 
     return false;
 }
 
 function Open_Push_Close(){
+    const ready = useS(d=> d.studio.ready);
     const search = useS(d=> d.search);
 
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
-        ['openPack pack{ t{id v} p{id t} '+edges+' '+atoms+' } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
+        ['openPack pack{ content } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
-    ],{onCompleted:(data)=>{data = data.openPack;
+    ],{onCompleted:result=>{
         console.log('Open Pack - complete');
         console.log(Date.now()/1000 - 1685555000);
-        if(data.pack) rs(d=> d.receive(d, data.pack)); 
+        if(result.openPack.pack) rs(d=> d.receive_nodes(d, JSON.parse(result.openPack.pack.content).data)); 
         //console.log(data);
         //console.log(useS.getState().n);
     }}); 
     useEffect(()=>{
-        if(Object.keys(gs().n).length < 1) {
+        if(ready && Object.keys(gs().n).length < 1) {
             console.log('Open Pack - mutate');
             console.log(Date.now()/1000 - 1685555000);
             open_pack.mutate();
         }
-    },[]);
+    },[ready]);
     const push_pack = use_mutation('PushPack', [['pushPack reply', // send edges as [ID] pr_id, [ID] pn_id, [ID] pt_id,  [ID] parts, [ID] floats 
         ['String instance', instance],
         ['[[ID]] atoms',    null], 
@@ -112,9 +113,9 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
             if(data.pollPack) console.log('poll pack recieved', data.pollPack);
             //if(data.deletePack && data.deletePack.p.length > 0) console.log('delete pack part recieved', data.deletePack.p);
             //console.log(data.pollPack.s.find(s=> s.v==instance));
-            rs(d=> d.receive(d, data.pollPack)); // do not read anything older than when loader!!!!!!!
+            rs(d=> d.receive_nodes(d, data.pollPack)); // do not read anything older than when loader!!!!!!!
         }
-        //if(data.deletePack) rs(d=> d.receive_deleted(d, data.deletePack) ); 
+        //if(data.deletePack) rs(d=> d.receive_instance_deleted(d, data.deletePack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
     }}); 
     return null;

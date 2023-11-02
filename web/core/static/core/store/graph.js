@@ -9,25 +9,25 @@ export const create_graph_slice = (set,get)=>({graph:{
     n: [],
     e: [], 
     init(d){
-        for(const [t, node] of Object.entries(d.node)){
-            node.icon = static_url+'icon/node/'+t+'.svg';
-            node.tag = readable(t);
-            node.css = d.node_css[t];
-        }
+        // for(const [t, node] of Object.entries(d.node)){
+        //     node.icon = static_url+'icon/node/'+t+'.svg';
+        //     node.tag = readable(t);
+        //     node.css = d.node_css[t];
+        // }
 
         d.graph.n_vis={ // n_vis
-            ...Object.fromEntries(d.node_tags.map(t=>[t,true])),
-            switch:false, integer:false, decimal:false, text:false, point:false,
-            public:false, 
+            ...Object.fromEntries(d.node_classes.map(t=>[t,true])),
+            //switch:false, integer:false, decimal:false, text:false, point:false,
+            //public:false, 
         };
         d.graph.e_vis={ // e_vis
             //...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),
-            //...Object.fromEntries([...d.subject_tags, ...d.value_tags].map(t=>[t,true])), 
+            //...Object.fromEntries([...d.asset_classes, ...d.terminal_tags].map(t=>[t,true])), 
             ...Object.fromEntries(d.stem_tags.map(t=>[t,true])),
-            viewable:false, asset:false,
+            //viewable:false, asset:false,
         };
-        delete d.graph.e_vis.decimal;
-        delete d.graph.e_vis.text;
+        //delete d.graph.e_vis.decimal;
+        //delete d.graph.e_vis.text;
     },
     set_node_vis:(d, t, vis)=>{
         d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders
@@ -167,8 +167,8 @@ export const create_graph_slice = (set,get)=>({graph:{
     // },
     admin(d, n){
         if(!Array.isArray(n)) n = [n];
-        return n.some(n=> d.admin_tags.includes(d.n[n].t));//{
-            //if(d.admin_tags.includes(d.n[n].t)) return true;
+        return n.some(n=> d.admin_classes.includes(d.n[n].t));//{
+            //if(d.admin_classes.includes(d.n[n].t)) return true;
         //});
     },
     pin_pos(d, n, matrix){  // should go in transform slice?    
