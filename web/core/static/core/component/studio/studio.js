@@ -1,7 +1,7 @@
 import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas, useThree} from '@react-three/fiber';
 import {Toolbar} from '../toolbar/toolbar.js';
-import {useS, gs, ss, rs, use_query, use_mutation, instance, static_url} from '../../app.js';
+import {useS, gs, ss, rs, use_query, use_mutation, client_instance, static_url} from '../../app.js';
 import {Viewport} from './viewport.js';
 import {Panel} from '../panel/panel.js';
 
@@ -36,12 +36,12 @@ export function Canvas_Viewport(){
 
 function Get_Schema(){
     const {data, status} = use_query('Schema', [ 
-        ['schema content'],
+        ['schema triples'],
     ],{onCompleted:result=>{
         //console.log('Get Schema - Complete', data.schema.full);    
         rs(d=>{
             try{
-                d.receive_schema(d, JSON.parse(result.schema.content).data)
+                d.receive_schema(d, JSON.parse(result.schema.triples).list)
             }catch(e){
                 console.log('receive_schema Error', e);
             }
@@ -55,7 +55,7 @@ function Open_Push_Close(){
     const search = useS(d=> d.search);
 
     const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
-        ['openPack pack{ content } ',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
+        ['openPack pack{ triples }',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
             ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
     ],{onCompleted:result=>{
         console.log('Open Pack - complete');
@@ -63,7 +63,7 @@ function Open_Push_Close(){
         //if(result.openPack.pack) 
         rs(d=>{
             try{
-                d.receive_triples(d, JSON.parse(result.openPack.pack.content).data); 
+                d.receive_triples(d, JSON.parse(result.openPack.pack.triples).list); 
             }catch(e){
                 console.log('receive_triples Error', e);
             }
@@ -79,21 +79,22 @@ function Open_Push_Close(){
         }
     },[ready]);
     const push_pack = use_mutation('PushPack', [['pushPack reply', // send edges as [ID] pr_id, [ID] pn_id, [ID] pt_id,  [ID] parts, [ID] floats 
-        ['String instance', instance],
-        ['[[ID]] atoms',    null], 
-        ['[Boolean] b',     null],
-        ['[Int] i',         null],
-        ['[Float] f',       null],
-        ['[String] s',      null],
-        ['[[[ID]]] parts',  null], // should split so first id is not [ID] for part make seperate list that coresponds?
-        ['[[[ID]]] t',      null],
-        ['[ID] pdel',       null],
-        ['[ID] bdel',       null],
-        ['[ID] idel',       null],
-        ['[ID] fdel',       null],
-        ['[ID] sdel',       null],
-    ]],{onCompleted:(data)=>{data = data.pushPack;
-        console.log('Push Pack - complete: ',data.reply);
+        ['String triples', null],
+        ['String client_instance', client_instance],
+        // ['[[ID]] atoms',    null], 
+        // ['[Boolean] b',     null],
+        // ['[Int] i',         null],
+        // ['[Float] f',       null],
+        // ['[String] s',      null],
+        // ['[[[ID]]] parts',  null], // should split so first id is not [ID] for part make seperate list that coresponds?
+        // ['[[[ID]]] t',      null],
+        // ['[ID] pdel',       null],
+        // ['[ID] bdel',       null],
+        // ['[ID] idel',       null],
+        // ['[ID] fdel',       null],
+        // ['[ID] sdel',       null],
+    ]],{onCompleted:result=>{
+        console.log('Push Pack - complete: ', result.pushPack.reply);
     }});
     // merge with push_pack ?!?! Or make delete_pack and keep all types of ops seperate?
     const close_pack = use_mutation('ClosePack', [['closePack reply', 

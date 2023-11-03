@@ -48,7 +48,7 @@ const Nodes = memo(()=>{
     //console.log('render graph nodes');
     return (
         c('group', {name:'nodes'}, // ref:graph, dispose:null
-			...nodes.map(n=> 
+			...Object.keys(nodes).map(n=> 
 				d.terminal_classes.includes(d.n[n].t) ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
             ),
 		)

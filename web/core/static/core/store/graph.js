@@ -32,9 +32,9 @@ export const create_graph_slice = (set,get)=>({graph:{
     set_node_vis:(d, t, vis)=>{
         d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders
         d.graph.n_vis[t] = vis;
-        Object.values(d.n).forEach(n=>{
-            if(d.graph.n_vis[n.t]!=undefined) n.graph.vis = d.graph.n_vis[n.t];
-        });
+        // Object.values(d.n).forEach(n=>{
+        //     if(d.graph.n_vis[n.t]!=undefined) n.graph.vis = d.graph.n_vis[n.t];
+        // });
         d.graph.update(d);
     },
     set_edge_vis:(d, t, vis)=>{
@@ -44,29 +44,30 @@ export const create_graph_slice = (set,get)=>({graph:{
     },
     update:d=>{
         //console.log('update graph!!!');
-        d.graph.n = Object.keys(d.n).filter(n=> d.n[n].open && d.n[n].graph.vis);
+        d.graph.n = Object.fromEntries(Object.keys(d.n).filter(n=> d.graph.ex(d,n) && d.graph.n_vis[d.n[n].t]).map(n=>[n,true]));//d.n[n].open && d.n[n].graph.vis);
+
         d.graph.e = [];
-        d.graph.for_stem(d, d.graph.n, (r,n,t)=>{
-            if(d.graph.ex(d,n) && d.n[n].graph.vis && d.graph.e_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
+        d.graph.for_stem(d, Object.keys(d.graph.n), (r,n,t)=>{
+            if(d.graph.n[r] && d.graph.e_vis[t] && d.graph.n[n]){ //if(d.graph.ex(d,n) && d.n[n].graph.vis && d.graph.e_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
                 d.graph.e.push({r:r, t:t, n:n}); 
             }
         });
+        //console.log('display edges', d.graph.e);
 
-
-        d.graph.n.forEach(n=>{   
+        for(const n of Object.keys(d.graph.n)){//for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{  
             d.n[n].graph.lvl = 0; 
             d.n[n].graph.grp = null;  
-        }); //Object.values(d.n).forEach(n=> n.graph.lvl=0);
+        }//}); //Object.values(d.n).forEach(n=> n.graph.lvl=0);
         
         var highest_lvl = 0;
         var setting_lvl = true; 
         while(setting_lvl){
             setting_lvl = false;
-            d.graph.n.forEach(n=>{ 
+            for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{
                 //d.n[n].graph.order = {x:0, count:0}; 
                 var lvl = 0;
                 d.graph.for_root(d, n, r=>{
-                    if(d.graph.n.includes(r)){
+                    if(d.graph.n[r]){//if(d.graph.n.includes(r)){
                         if(d.n[r].graph.lvl > lvl) lvl = d.n[r].graph.lvl;
                     }
                 });
@@ -75,23 +76,23 @@ export const create_graph_slice = (set,get)=>({graph:{
                     highest_lvl = lvl+1;
                     setting_lvl = true;
                 }
-            });
+            }//);
         }
 
         const level = [];
         for(var i=0; i<=highest_lvl+10; i++){  level.push({max_x:0, group:{}, count:0});  }
-        d.graph.n.forEach(n=>{
+        for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{
             const lvl = d.n[n].graph.lvl;
             var rt = [];
             d.graph.for_root(d, n, (r,n,t)=>{
-                if(t != 'unknown' && d.graph.n.includes(r)) rt.push(r);       
+                if(t != 'unknown' && d.graph.n[r]) rt.push(r);       
             });
             const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
             if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = {n:[], x:0, count:0};
             level[lvl].group[grp].n.push(n);
             level[lvl].count++;
             d.n[n].graph.grp = grp; 
-        });
+        }//);
 
         var ly=0;
         var max_x = 0;
@@ -136,14 +137,14 @@ export const create_graph_slice = (set,get)=>({graph:{
             const graph_size = max_x > max_y ? max_x : max_y;
             d.graph.scale = window_size / graph_size / 2;
         }
-        d.graph.n.forEach(n=>{  
+        for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{ 
             var lvl = d.n[n].graph.lvl;
             d.n[n].graph = {...d.n[n].graph, pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(tv.set(
                 -level[lvl].max_x*d.graph.scale/2,   // -max_x*d.graph.scale/2
                 (max_y+2)*d.graph.scale/2,
                 0
             ))};
-        });
+        }//);
     },
     ////////////////////////////////////////////  Utils //////////////////////////////
     ex:(d,n)=>{ //use try catch to perform func ?!?!?!?! // have to calculate this every time a user wants to know because the node could not be present at all
@@ -202,7 +203,7 @@ export const create_graph_slice = (set,get)=>({graph:{
     },
     // gv (get value) ? #1
     sv(d, n, v){ // rename to set_atom?
-        if(d.graph.ex(d,n) && d.n[n].t=='decimal') v = d.rnd(v);//Math.round((v + Number.EPSILON) * 100) / 100; Math.round((v + Number.EPSILON) * 100) / 100;//parseFloat(v.toFixed(2));// Math.round(v*100)*0.01; // need to set flag that says 'is_atom' or 'is_float'
+        if(d.graph.ex(d,n) && d.n[n].t == 'decimal') v = d.rnd(v);//Math.round((v + Number.EPSILON) * 100) / 100; Math.round((v + Number.EPSILON) * 100) / 100;//parseFloat(v.toFixed(2));// Math.round(v*100)*0.01; // need to set flag that says 'is_atom' or 'is_float'
         d.n[n].v = v; // check if has v?
         d.next('reckon.up', n); // d.reckon.up(d, n);
     },
@@ -349,7 +350,7 @@ export const create_graph_slice = (set,get)=>({graph:{
 //             const graph_size = max_x > max_y ? max_x : max_y;
 //             d.graph.scale = window_size / graph_size / 2;
 //         }
-//         d.graph.n.forEach(n=>{   
+//         for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{  
 //             d.n[n].graph = {...d.n[n].graph, 
 //                 pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(new Vector3(-max_x*d.graph.scale/2,-(max_y+2)*d.graph.scale/2,0))
 //             };

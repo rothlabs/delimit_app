@@ -117,10 +117,11 @@ class Edge_Type(graphene.ObjectType):
 
 
 class Pack_Type(graphene.ObjectType):
-    content = graphene.String()
-    def __init__(self, data): self.data=data
-    def resolve_content(self, info): 
-        return json.dumps({'data':self.data})
+    triples = graphene.String()
+    def __init__(self, triples): 
+        self.triples = triples
+    def resolve_triples(self, info): 
+        return json.dumps({'list':self.triples})
 
 
 def clear_part(part):
@@ -152,9 +153,9 @@ class Query(graphene.ObjectType):
     def resolve_schema(root, info):
         try:
             exclude_classes = ['Open_Pack', 'Poll_Pack'] # 'Boolean', 'Integer', 'Decimal', 'String', 
-            data = term.get_all_documents(graph_type='schema', as_list=True)[1:] 
-            data = filter(lambda n: n['@id'] not in exclude_classes, data)
-            return Pack_Type(data = list(data)) 
+            triples = term.get_all_documents(graph_type='schema', as_list=True)[1:] 
+            triples = filter(lambda n: n['@id'] not in exclude_classes, triples)
+            return Pack_Type(triples = list(triples)) 
         except Exception as e: 
             print('get schema error') 
             print(e)
@@ -267,7 +268,7 @@ class Open_Pack(graphene.Mutation):
         try:
             user = info.context.user
 
-            data = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+            triples = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
                 wq().triple('v:public', 'rdf:type', '@schema:Public'),
                 wq().triple('v:public', '@schema:view', 'v:root'),
                 wq().triple('v:root', 'v:tag', 'v:stem'),
@@ -275,19 +276,19 @@ class Open_Pack(graphene.Mutation):
 
             if user.is_authenticated: 
                 user_id = wq().string(user.id)
-                data += wq().woql_and(
+                triples += wq().woql_and(
                     wq().triple('v:root', 'rdf:type', '@schema:User'),
                     wq().triple('v:root', '@schema:user', user_id),
                     wq().triple('v:root', 'v:tag', 'v:stem'),
                 ).execute(term)['bindings']
-                data += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+                triples += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
                     wq().triple('v:user', 'rdf:type', '@schema:User'),
                     wq().triple('v:user', '@schema:user', user_id),
                     wq().triple('v:user', '@schema:asset', 'v:root'),
                     wq().triple('v:root', 'v:tag', 'v:stem'),
                 ).execute(term)['bindings']           
                 
-            return Open_Pack(pack=Pack_Type(data=data), reply='Assets Opened')
+            return Open_Pack(pack=Pack_Type(triples=triples), reply='Assets Opened')
             # params = {
             #     'cats':     cats,
             #     'public':  Part.objects.get(t__v='public').id,
@@ -368,27 +369,30 @@ class Close_Pack(graphene.Mutation):
 
 class Push_Pack(graphene.Mutation):
     class Arguments:
-        instance = graphene.String()
-        atoms = graphene.List(graphene.List(graphene.ID)) # vids[m][n]
-        b = graphene.List(graphene.Boolean)
-        i = graphene.List(graphene.Int)
-        f = graphene.List(graphene.Float)
-        s = graphene.List(graphene.String)
-        parts = graphene.List(graphene.List(graphene.List(graphene.ID))) # ids[p][m][n] (first m contains  part id)
-        t = graphene.List(graphene.List(graphene.List(graphene.ID))) # t1[p][m][n] (first m containts part tag)
-        pdel = graphene.List(graphene.ID)
-        bdel = graphene.List(graphene.ID)
-        idel = graphene.List(graphene.ID)
-        fdel = graphene.List(graphene.ID)
-        sdel = graphene.List(graphene.ID)
+        triples = graphene.String()
+        client_instance = graphene.String()
+        # atoms = graphene.List(graphene.List(graphene.ID)) # vids[m][n]
+        # b = graphene.List(graphene.Boolean)
+        # i = graphene.List(graphene.Int)
+        # f = graphene.List(graphene.Float)
+        # s = graphene.List(graphene.String)
+        # parts = graphene.List(graphene.List(graphene.List(graphene.ID))) # ids[p][m][n] (first m contains  part id)
+        # t = graphene.List(graphene.List(graphene.List(graphene.ID))) # t1[p][m][n] (first m containts part tag)
+        # pdel = graphene.List(graphene.ID)
+        # bdel = graphene.List(graphene.ID)
+        # idel = graphene.List(graphene.ID)
+        # fdel = graphene.List(graphene.ID)
+        # sdel = graphene.List(graphene.ID)
     reply = graphene.String(default_value = 'Failed to save.')
     @classmethod
-    def mutate(cls, root, info, instance, atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
+    def mutate(cls, root, info, triples, client_instance): # atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
         try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
-                print('authed')
+                print('Push Pack!!!')
+                print(triples)
+                
                 # # setup:
                 # profile = Part.objects.get(t__v='profile', ue__n=user)# profile = Part.objects.get(t__v='profile', u=user)   #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
                 # is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user

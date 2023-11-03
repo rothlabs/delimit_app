@@ -1,4 +1,4 @@
-import {make_id, theme} from '../app.js';
+import {make_id} from '../app.js';
 import {Vector3, Matrix4} from 'three';
 import {current} from 'immer';
 
@@ -19,7 +19,7 @@ export const create_make_slice = (set,get)=>({make:{
             //if(d.n[r].t == 'group')  t = 'group'; 
             let t = a.t ?? d.n[n].t;//////////if(a.t != undefined) t = a.t;
             //if(d.n[r].t == 'public') t = 'viewable';
-            if(r==d.user && t == 'asset'){// t!='view'){
+            if(r == d.user && t == 'asset'){// t!='view'){
                 //t = 'asset';
                 d.n[n].asset = true;
             }
@@ -69,7 +69,7 @@ export const create_make_slice = (set,get)=>({make:{
     },
     node(d, cls, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         //const window_size = (window.innerWidth+window.innerHeight)/4;
-        const n = make_id();
+        const n = make_id(cls);
         d.n[n] = d.node_template(d, cls);
         d.n[n].asset = true;
         //d.n[n].drop = false;

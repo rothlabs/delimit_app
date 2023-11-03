@@ -1,26 +1,25 @@
 import {current} from 'immer';
 import {Vector3, Matrix4} from 'three';
 import * as THREE from 'three';
-import {readable, static_url, theme} from '../app.js';
+import {readable, static_url, upper, theme} from '../app.js';
 import lodash from 'lodash';
 
 var next_funcs = [];
 var next_ids = [];
 
-//const model_tags = {'p':'part', 'b':'boolean', 'i':'integer', 'f':'decimal', 's':'string'}; 
-
 export const create_base_slice = (set,get)=>({
+    n: {}, // all nodes stored here by ID 
+
     terminal_classes: ['boolean', 'integer', 'decimal', 'string'],
     asset_classes: [],
     admin_classes: [],
 
+    root_tags:    {'view':'viewer', 'asset':'owner'},
+    stem_tags:    [],
     boolean_tags: [],
     integer_tags: [],
     decimal_tags: [],
     string_tags:  [],
-    stem_tags:    [],
-
-    root_tags:      {'view':'viewer', 'asset':'owner',},
 
     node_css:{
         'public':         'bi-globe-americas',
@@ -66,9 +65,9 @@ export const create_base_slice = (set,get)=>({
     //base_texture: base_texture,
     //rapid_res: 0.5,
 
-    n:    {}, // all nodes stored here by ID 
-    t:    {},
-    t_id: {},
+    
+    //t:    {},
+    //t_id: {},
     //cats: {},
     user_id: 0,
     user: null,
@@ -232,30 +231,34 @@ export const create_base_slice = (set,get)=>({
     send(d, patches){ // change to send patches directly to server (filtering for patches that matter)
         //console.log('patches');
         //console.log(patches); // auto merges patches into mutations state slice 
-        const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
-        const no_edits = JSON.stringify(edits).split('').sort().join();
+        /////const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
+        //////const no_edits = JSON.stringify(edits).split('').sort().join();
         //const appends = {};
-        const parts = [];
-        const atoms = [];
-        const deleted_nodes = [];
+        const nodes = [];
+        ////const atoms = [];
+        /////const deleted_nodes = [];
+
+        //const args = {triples:[]};
+
         patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
             if(patch.path[0]=='n'){
                 const n = patch.path[1];
                 if(patch.op == 'add'){ 
                     //console.log(n, patch);
                     if(patch.path.length == 2){ // node created  if(patch.path[0]=='n' && patch.path.length < 3){
-                        if(d.n[n].m=='p'){
-                            d.add(parts,n);
-                        }else{
-                            //console.log('push atom');
-                            //console.log(patch.value.v);
-                            //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
-                            //edits[d.n[n].m].push(patch.value.v); 
-                            atoms.push({n:n, v:patch.value.v});
-                        }
+                        d.add(nodes, n);
+                        // if(d.terminal_classes.includes(d.n[n].t)){//if(d.n[n].m=='p'){
+                        //     //console.log('push atom');
+                        //     //console.log(patch.value.v);
+                        //     //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                        //     //edits[d.n[n].m].push(patch.value.v); 
+                        //     atoms.push({n:n, v:patch.value.v});
+                        // }else{
+                        //     d.add(parts,n);
+                        // }
 
                     }else if(patch.path[2] == 'n'){ // this should be removed, always just set the part if it has changed   need to check if already modified this one (merge patches)
-                        d.add(parts,n);
+                        d.add(nodes, n);
                         // //console.log('add '+patch.path[3]+' to '+d.n[n].t);
                         // if(!appends[n]){ appends[n] = {
                         //     part: [[n],        [], [], [], [], [], ['append']],
@@ -270,73 +273,90 @@ export const create_base_slice = (set,get)=>({
                 }else if(patch.op == 'replace'){ 
                     if(patch.path[2]=='n'){
                         //console.log('remove at',n);
-                        d.add(parts,n);
+                        d.add(nodes, n);
                     }else if(patch.path[2]=='v'){ // atom has changed
+                        d.add(nodes, n);
                         //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
                         //edits[d.n[n].m].push(patch.value);
-                        atoms.push({n:n, v:patch.value});
-                    }else if(patch.path[2]=='deleted'){
-                        if(patch.value==true){
-                            edits[d.n[n].m+'del'].push(n);
-                            deleted_nodes.push(n);
-                        }else{
-                            if(d.n[n].m=='p'){
-                                d.add(parts,n);
-                            }else{
-                                //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
-                                //edits[d.n[n].m].push(d.n[n].v);
-                                atoms.push({n:n, v:d.n[n].v});
-                            }
-                        }
+                        //atoms.push({n:n, v:patch.value});
+                    }else if(patch.path[2]=='drop'){
+                        d.add(nodes, n);
+                        // if(patch.value==true){
+                        //     edits[d.n[n].m+'del'].push(n);
+                        //     deleted_nodes.push(n);
+                        // }else{
+                        //     d.add(parts, n);
+                        //     // if(d.terminal_classes.includes(d.n[n].t)){
+                        //     //     //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
+                        //     //     //edits[d.n[n].m].push(d.n[n].v);
+                        //     //     atoms.push({n:n, v:d.n[n].v});
+                        //     // }else{
+                        //     //     d.add(parts,n);
+                        //     // }
+                        // }
                     }
                 }else if(patch.op == 'remove'){
                     if(patch.path[2]=='n'){
                         //console.log('remove at',n);
-                        d.add(parts,n);
+                        d.add(nodes, n);
                     }
                 }
             }
         });
+
+        const triples = [];
+        for(const n of nodes){
+            const cls = upper(d.n[n].t);
+            //const root = n;
+            triples.push({n, tag:'rdf:type', stem:'@schema:'+cls});
+            triples.push({n, tag:'@schema:drop', stem:{'@type':'xsd:boolean', '@value':d.n[n].drop}});
+            if(d.terminal_classes.includes(d.n[n].t)){
+                triples.push({n, tag:'@schema:value', stem:{'@type':'xsd:'+d.n[n].t, '@value':d.n[n].v}});
+            }
+            d.graph.for_stem(d, n, (r,nn,t)=>{
+                triples.push({n, tag:'@schema:'+t, stem:nn});
+            });
+        }
+
         //function include_part(n){ // don't set if already set!   don't set part if profile?
-        parts.forEach(n=>{ // need to test with two profiles working on same asset
-            if(d.n[n].t != 'profile' && !deleted_nodes.includes(n)){
-                //console.log('send part', n, d.n[n].t);
-                const part = [[n],                [], [], [], [], []]; //, ['replace']
-                const tags = [[d.t_id[d.n[n].t]], [], [], [], [], []];
-                d.graph.for_stem(d, n, (r,n,t)=>{
-                    const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
-                    part[mi].push(n);
-                    tags[mi].push(d.t_id[t]);
-                });
-                edits.parts.push(part);
-                edits.t.push(tags);
-            }
-        });
-        atoms.forEach(atom=>{
-            if(!deleted_nodes.includes(atom.n)){
-                edits.atoms[['b','i','f','s'].indexOf(d.n[atom.n].m)].push(atom.n); // atom id
-                edits[d.n[atom.n].m].push(atom.v);
-            }
-        });
+        // // // parts.forEach(n=>{ // need to test with two profiles working on same asset
+        // // //     if(d.n[n].t != 'profile' && !deleted_nodes.includes(n)){
+        // // //         //console.log('send part', n, d.n[n].t);
+        // // //         const part = [[n],                [], [], [], [], []]; //, ['replace']
+        // // //         const tags = [[d.t_id[d.n[n].t]], [], [], [], [], []];
+        // // //         d.graph.for_stem(d, n, (r,n,t)=>{
+        // // //             const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
+        // // //             part[mi].push(n);
+        // // //             tags[mi].push(d.t_id[t]);
+        // // //         });
+        // // //         edits.parts.push(part);
+        // // //         edits.t.push(tags);
+        // // //     }
+        // // // });
+        // // // atoms.forEach(atom=>{
+        // // //     if(!deleted_nodes.includes(atom.n)){
+        // // //         edits.atoms[['b','i','f','s'].indexOf(d.n[atom.n].m)].push(atom.n); // atom id
+        // // //         edits[d.n[atom.n].m].push(atom.v);
+        // // //     }
+        // // // });
         // Object.values(appends).forEach(append=>{ // need add and remove for d.n[n].n for BIG parts like profiles
         //     edits.parts.push(append.part);
         //     edits.t.push(append.tags);
         // });
-        if(JSON.stringify(edits).split('').sort().join() != no_edits){ // might not need this check anymore
+        if(triples.length){//if(JSON.stringify(edits).split('').sort().join() != no_edits){ // might not need this check anymore
             console.log('Push Pack - mutate');
-            d.push_pack({variables:edits});
+            console.log(triples);
+            console.log(JSON.stringify({list:triples}));
+            d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
         }
     },
 
     node_template: (d, t)=>({
-        t:t, r:{}, c:{}, open:true, //asset:false, drop:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
-        pick: {pick:false, hover:false},
-        graph: { 
-            pos: new Vector3(), 
-            vis: d.graph.n_vis[t]!=undefined ? d.graph.n_vis[t] : true,
-        },
-        pin: {},
-        design:{ vis:true },
+        t:t, r:{}, c:{}, open:true, drop:false,//asset:false, drop:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
+        pick:   {pick:false, hover:false},
+        graph:  {pos:new Vector3()},
+        pin:    {},
+        design: {vis:true},
     }),
 
     receive_triples: (d, triples)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
@@ -356,20 +376,24 @@ export const create_base_slice = (set,get)=>({
                 d.pick.color(d, r);
             }
         }
+        if(!d.user){
+            for(const triple of triples){
+                if(triple.stem['@type'] && triple.tag.slice(0, 8) == '@schema:'){
+                    const r = triple.root;
+                    if(d.n[r].t == 'user' && triple.tag.slice(8) == 'user' && triple.stem['@value'] == d.user_id){
+                        d.user = r;
+                    }
+                }
+            }
+        }
         for(const triple of triples){
-            const r = triple.root;
             if(triple.tag.slice(0, 8) == '@schema:'){
+                const r = triple.root;
                 const t = triple.tag.slice(8);
                 if(triple.stem['@type']){
-                    const v = triple.stem['@value'];
-                    if(d.n[r].t == 'user' && t == 'user' && v == d.user_id){
-                        d.user = r;
-                    }else if(t != 'user'){
-                        d.graph.sv(d, r, v);
-                    }
+                    if(t == 'value') d.graph.sv(d, r, triple.stem['@value']);
                 }else{
-                    const n = triple.stem;
-                    d.make.edge(d, r, n, {t:t, received:true});
+                    d.make.edge(d, r, triple.stem, {t:t, received:true});
                 }
             }
         }
@@ -450,7 +474,7 @@ export const create_base_slice = (set,get)=>({
                 set_update_graph = true;
                 d.n[n.id].open = true;
                 d.n[n.id].deleted = false;
-                if(d.graph.n_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.n_vis[d.n[n.id].t];
+                ///////if(d.graph.n_vis[d.n[n.id].t]!=undefined) d.n[n.id].graph.vis = d.graph.n_vis[d.n[n.id].t];
                 //}
             }); 
         });
@@ -659,7 +683,7 @@ export const create_base_slice = (set,get)=>({
 //if(e.t.v=='asset' && d.n[e.r.id].profile) d.n[n.id].asset = true; //t=='profile' && d.n[e.r.id].u.id==user_id
 //if(e.t.v=='asset' && d.n[n.id].profile && d.n[e.n.id]) d.n[e.n.id].asset = true;
 
-//if(atom_tags.includes(t)){  d.inspect.c[t] = d.selected.nodes.filter(n=> d.n[n].m==t).map(n=> d.n[n].v).find(v=> v!=null);  }
+//if(terminal_tags.includes(t)){  d.inspect.c[t] = d.selected.nodes.filter(n=> d.n[n].m==t).map(n=> d.n[n].v).find(v=> v!=null);  }
             //else{  d.inspect.c[t] = d.selected.nodes.map(n=> d.n[n].c[t]).find(v=> v!=null);  }
 
 //delete d.inspect[t];
@@ -670,7 +694,7 @@ export const create_base_slice = (set,get)=>({
 // export const node_tag = [ // make it so this reads from server
 //     'Profile', 'Public', // admin
 //     'Point', 'curve', // geom
-//     ...Object.values(atom_tags), 
+//     ...Object.values(terminal_tags), 
 // ];
 
 // d.selected.nodes = [];
@@ -715,5 +739,5 @@ export const create_base_slice = (set,get)=>({
 
 // tag: id=> {
     //     const n = get().n;
-    //     return n[id].m=='p' && n[id].t ? uppercase(n[id].t) : atom_tags[n[id].m];
+    //     return n[id].m=='p' && n[id].t ? uppercase(n[id].t) : terminal_tags[n[id].m];
     // },

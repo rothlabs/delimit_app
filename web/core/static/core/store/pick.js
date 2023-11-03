@@ -78,11 +78,11 @@ export const create_pick_slice = (set,get)=>({pick:{
     },
     sv(d, t, v){ // change to set_v
         d.inspect.content[t] = v;
-        if(d.decimal_tags.includes(t)){ v=parseFloat(v); if(isNaN(v)) v=0; } // check model of each atom instead?
-        if(d.integer_tags.includes(t)){ v=parseInt(v);   if(isNaN(v)) v=0; } // check model of each atom instead?
-        if(t!='part' && Object.values(d.model_tags).includes(t)){ // is atom?
+        if([...d.decimal_tags, 'decimal'].includes(t)){ v=parseFloat(v); if(isNaN(v)) v=0; } // check model of each atom instead?
+        if([...d.integer_tags, 'integer'].includes(t)){ v=parseInt(v);   if(isNaN(v)) v=0; } // check model of each atom instead?
+        if(d.terminal_classes.includes(t)){//if(t!='part' && Object.values(d.model_tags).includes(t)){ // is atom?   # updated to use terminal_classes! #1
             d.pick.n.forEach(n => {
-                if(d.model_tags[d.n[n].m] == t) d.graph.sv(d, n, v);//d.n[n].v = v;
+                if(d.n[n].t == t) d.graph.sv(d, n, v);//d.n[n].v = v;
             });
         }else{
             d.pick.n.forEach(n => {

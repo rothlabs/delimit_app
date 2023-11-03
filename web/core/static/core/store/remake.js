@@ -1,4 +1,4 @@
-import {make_id, theme} from '../app.js';
+//import {make_id, theme} from '../app.js';
 
 // need line merge that looks for closest points so it doesn't just put the line on the end of the target (same as special drawing tool in legacy system)
 // this kind of merge could transform one line to fit to the points of the other line

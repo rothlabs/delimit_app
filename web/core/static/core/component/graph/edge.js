@@ -13,12 +13,12 @@ const z_pos = -1;
 export function Edge({r, t, n}){  // need to make edges their own object in store with reckon function
     //const meshline = useRef();
     //const meshline_material = useRef();
-    const text = useRef();
+    /////////////////////////////const text = useRef();
     const line = useRef();
     //const arrow = useRef();
-    const [active, set_active] = useState(false);
-    const [hover, set_hover] = useState(false);
-    const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
+    ///////////const [active, set_active] = useState(false);
+    ////////////const [hover, set_hover] = useState(false);
+    ////////////////////////////////const color = useMemo(()=> active||hover? theme.primary : theme.secondary, [active, hover]);
     //const {camera} = useThree();
     //useFrame(()=>{
     //    meshline_material.current.lineWidth = 1.5 / camera.zoom;
@@ -42,18 +42,18 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     return(
         c('group', { // not using Pickable because it is not a node. make another Pickable for none node objects
             name: 'edge',
-            onClick: e=> set_active(true),
-            onPointerMissed: e=> {if(e.which == 1) set_active(false);},
-            onPointerOver: e=> set_hover(true),
-            onPointerOut: e=> set_hover(false),
+            ///////////onClick: e=> set_active(true),
+            ////////onPointerMissed: e=> {if(e.which == 1) set_active(false);},
+            /////////onPointerOver: e=> set_hover(true),
+            //////////onPointerOut: e=> set_hover(false),
         }, 
             c(Line, {
                 ref: line,
                 points:[[rp.x, rp.y, rp.z+z_pos], [np.x, np.y, np.z+z_pos]],       // Array of points, Array<Vector3 | Vector2 | [number, number, number] | [number, number] | number>
                 color: '#ffcfe2',                   // Default
-                lineWidth:1,                   // In pixels (default)
-                segments:false,                 // If true, renders a THREE.LineSegments2. Otherwise, renders a THREE.Line2
-                dashed:false,                   // Default
+                lineWidth: 1,                   // In pixels (default)
+                segments: false,                 // If true, renders a THREE.LineSegments2. Otherwise, renders a THREE.Line2
+                dashed: false,                   // Default
                 //vertexColors:true,              // Optional array of RGB values for each point
                 //{...lineProps}                  // All THREE.Line2 props are valid
                 //{...materialProps}              // All THREE.LineMaterial props are valid
