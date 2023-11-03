@@ -368,9 +368,9 @@ class Close_Pack(graphene.Mutation):
 
 
 class Push_Pack(graphene.Mutation):
-    class Arguments:
-        triples = graphene.String()
-        client_instance = graphene.String()
+    #class Arguments:
+        #triples = graphene.String()
+        #client_instance = graphene.String()
         # atoms = graphene.List(graphene.List(graphene.ID)) # vids[m][n]
         # b = graphene.List(graphene.Boolean)
         # i = graphene.List(graphene.Int)
@@ -385,7 +385,7 @@ class Push_Pack(graphene.Mutation):
         # sdel = graphene.List(graphene.ID)
     reply = graphene.String(default_value = 'Failed to save.')
     @classmethod
-    def mutate(cls, root, info, triples, client_instance): # atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
+    def mutate(cls, root, info):#, triples, client_instance): # atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
         try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             reply='Saved'
             user = info.context.user
@@ -627,10 +627,12 @@ class Push_Pack(graphene.Mutation):
                 #     if sdel: # must check if every root is an asset too!!! (except public, profile, etc) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 #         try: delete_pack.s.add(*String.objects.filter(is_asset, id__in=sdel), through_defaults={'t':tag['delete_pack']})
                 #         except Exception as e: print(e)
-            else: reply = 'Sign-in required.'
+            else: 
+                reply = 'Sign-in required.'
             return Push_Pack(reply=reply) 
-        except Exception as e: print(e)
-        return Push_Pack()
+        except Exception as e: 
+            print(e)
+            return Push_Pack()
 
 
 class Login(graphene.Mutation):

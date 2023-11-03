@@ -347,7 +347,8 @@ export const create_base_slice = (set,get)=>({
             console.log('Push Pack - mutate');
             console.log(triples);
             console.log(JSON.stringify({list:triples}));
-            d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
+            //d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
+            d.push_pack(); //{variables:{triples:'testing'}}
         }
     },
 

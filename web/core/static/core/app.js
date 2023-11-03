@@ -355,6 +355,7 @@ function compile_gql(name, gql_parts){
     var header = '';
     var body = '';
     var variables = {};
+    console.log('gql_parts',gql_parts);
     gql_parts.forEach(q => {
         const q_words = q[0].split(' ');
         body += q_words[0];
@@ -366,7 +367,7 @@ function compile_gql(name, gql_parts){
             if(i<q.length-1){
                 body += ', ';
             }else{ body += ')'; }
-            variables[q_var_meta[1]] = q[i][1]
+            variables[q_var_meta[1]] = q[i][1];
             header_vars.push(q_var_meta[1]);
         }
         body += '{'+q[0].slice(q_words[0].length+1)+'} '; 
@@ -410,7 +411,7 @@ export function use_mutation(name, gql_parts, arg){
         variables:variables, 
         refetchQueries: arg && arg.refetch && arg.refetch.split(' '),
         onCompleted: arg && arg.onCompleted,
-    } ); // Add option for cache
+    }); // Add option for cache
     const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
     return {mutate:mutate, data:data, status:gql_status(loading,error,data,done), reset:reset};
 }
