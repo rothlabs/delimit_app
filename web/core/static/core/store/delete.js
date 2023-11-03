@@ -8,7 +8,7 @@ export const create_delete_slice = (set,get)=>({delete:{
                 d.graph.for_root_stem(d, n, (r,n,t)=> d.delete.edge(d,r,n,{t:t,...a}));//d.edge.delete(d, d.graph.root_stem(d,n));
                 d.graph.for_stem (d, n, (r,n,t)=> d.delete.edge(d,r,n,{t:t,...a}));//d.edge.delete(d, d.graph.stem_edge(d,n));
                 d.graph.close(d, n);
-                d.n[n].deleted = true;
+                d.n[n].drop = true;
                 d.next('design.show');
                 // try{
                 //     d.n[n].c.object3D.children[0].position.set(1000,1000,1000);

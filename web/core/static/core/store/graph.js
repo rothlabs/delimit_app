@@ -22,7 +22,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         };
         d.graph.e_vis={ // e_vis
             //...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),
-            //...Object.fromEntries([...d.asset_classes, ...d.terminal_tags].map(t=>[t,true])), 
+            ...Object.fromEntries(d.terminal_tags.map(t=>[t,true])), 
             ...Object.fromEntries(d.stem_tags.map(t=>[t,true])),
             //viewable:false, asset:false,
         };
@@ -149,7 +149,7 @@ export const create_graph_slice = (set,get)=>({graph:{
     ex:(d,n)=>{ //use try catch to perform func ?!?!?!?! // have to calculate this every time a user wants to know because the node could not be present at all
         //if(n){
             //if(Array.isArray(n)) n = n[0];
-            if(d.n[n] && !d.n[n].deleted){
+            if(d.n[n] && !d.n[n].drop){
                 if(d.n[n].open) return 'open';
                 return 'here';
             }

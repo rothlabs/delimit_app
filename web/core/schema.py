@@ -151,7 +151,7 @@ class Query(graphene.ObjectType):
         else: return None
     def resolve_schema(root, info):
         try:
-            exclude_classes = ['Boolean', 'Integer', 'Decimal', 'String', 'Open_Pack', 'Poll_Pack', 'Drop_Pack']
+            exclude_classes = ['Open_Pack', 'Poll_Pack'] # 'Boolean', 'Integer', 'Decimal', 'String', 
             data = term.get_all_documents(graph_type='schema', as_list=True)[1:] 
             data = filter(lambda n: n['@id'] not in exclude_classes, data)
             return Pack_Type(data = list(data)) 
@@ -267,15 +267,27 @@ class Open_Pack(graphene.Mutation):
         try:
             user = info.context.user
 
-            #myString = wq().string('sammy')
-            query = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+            data = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
                 wq().triple('v:public', 'rdf:type', '@schema:Public'),
                 wq().triple('v:public', '@schema:view', 'v:root'),
                 wq().triple('v:root', 'v:tag', 'v:stem'),
-            )
-            result = query.execute(term)
-            
-            return Open_Pack(pack=Pack_Type(data=result['bindings']), reply='Assets Opened')
+            ).execute(term)['bindings'] # might not return bindings if nothing found?! #1
+
+            if user.is_authenticated: 
+                user_id = wq().string(user.id)
+                data += wq().woql_and(
+                    wq().triple('v:root', 'rdf:type', '@schema:User'),
+                    wq().triple('v:root', '@schema:user', user_id),
+                    wq().triple('v:root', 'v:tag', 'v:stem'),
+                ).execute(term)['bindings']
+                data += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+                    wq().triple('v:user', 'rdf:type', '@schema:User'),
+                    wq().triple('v:user', '@schema:user', user_id),
+                    wq().triple('v:user', '@schema:asset', 'v:root'),
+                    wq().triple('v:root', 'v:tag', 'v:stem'),
+                ).execute(term)['bindings']           
+                
+            return Open_Pack(pack=Pack_Type(data=data), reply='Assets Opened')
             # params = {
             #     'cats':     cats,
             #     'public':  Part.objects.get(t__v='public').id,

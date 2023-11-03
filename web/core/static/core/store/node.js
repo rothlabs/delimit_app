@@ -34,10 +34,10 @@ export const create_node_slice =(set,get)=>({node:{
     profile:{},
     public:{},
 
-    boolean:{},
-    integer:{},
-    decimal:{},
-    string:{},
+    // boolean:{},
+    // integer:{},
+    // decimal:{},
+    // string:{},
 }});
 
 

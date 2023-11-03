@@ -16,7 +16,7 @@ export const Atom = memo(function Atom({n}){
     //const hover = useS(d=> d.n[n].hover);
     //const color = useMemo(()=> pick||hover? theme.primary : theme.secondary, [pick, hover]);
     const val = useS(d=> ''+d.n[n].v);
-    const tag = useS(d=> d.n[n].t); //d.tag(n)
+    //const tag = useS(d=> d.n[n].t); //d.tag(n)
     //const pos = useS(d=> d.n[n].graph.pos); // can i remove?!!!
     useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
         obj.current.position.copy(graph.pos);
@@ -62,7 +62,7 @@ export const Atom = memo(function Atom({n}){
                     outlineColor: 'white',
                     anchorX: 'center',
                     anchorY: 'middle',
-                    text: d.node[t].tag, //readable(tag)
+                    text: d.node[t].tag, //readable(tag) readable(d.n[n].t),//
                 },
                     c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),

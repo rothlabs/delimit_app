@@ -11,7 +11,7 @@ import {make_id, theme} from '../app.js';
 export const create_remake_slice = (set,get)=>({remake:{
     copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
         if(!d.graph.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.graph.admin(d, (a.r ? [n,a.r] : [n]))){ 
-            const cpy = d.make.node(d, d.n[n].cls); // const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
+            const cpy = d.make.node(d, d.n[n].t); // const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
             if(d.n[n].m == 'p') {
                 // Object.keys(d.n[n].r).forEach(t=>{
                 //     if(d.cats[t]) d.make.edge(d, d.cats[t], cpy);

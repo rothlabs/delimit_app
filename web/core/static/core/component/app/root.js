@@ -4,16 +4,22 @@ import {Outlet, Link} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
-import {ss, use_query} from '../../app.js';
+import {ss, rs, use_query} from '../../app.js';
 
 export function Root(){
 	const {data, status} = use_query('GetUser', [
 		['user id firstName'],
-	],{onCompleted:(data)=>{
-		if(data.user){
-			//console.log('User ID: '+data.user.id);
-			ss(d=> d.user = data.user.id); // should still use recieve patches method (don't use ss anymore, just ssi and sso)
-		} 
+	],{onCompleted:data=>{
+		try{
+			if(data.user){
+				rs(d=>{ 
+					d.user_id = data.user.id;
+					//console.log('user id', d.user_id);
+				}); 
+			}
+		}catch(e){
+			console.log('get user id error', e);
+		}
 	}}); 
 	return (
 		c(Fragment,{},

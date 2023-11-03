@@ -10,14 +10,19 @@ export const create_make_slice = (set,get)=>({make:{
     // },
     edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
         if(!d.graph.ex(d,r) || !d.graph.ex(d,n)) return;
-        if(d.n[r].asset || r==d.profile){ // if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
+        //console.log('make edge 1', r, a.t, n);
+        if(d.n[r].asset || r==d.user || a.received){ // if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
+            //console.log('make edge 2', r, a.t, n);
             if(a.single && d.n[r].n[a.t]) return;
             
             /////var t = d.n[n].t;
             //if(d.n[r].t == 'group')  t = 'group'; 
             let t = a.t ?? d.n[n].t;//////////if(a.t != undefined) t = a.t;
             //if(d.n[r].t == 'public') t = 'viewable';
-            if(r==d.profile && t!='viewable') t = 'asset';
+            if(r==d.user && t == 'asset'){// t!='view'){
+                //t = 'asset';
+                d.n[n].asset = true;
+            }
             if(!d.n[r].n[t]) d.n[r].n[t] = [];
             /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
             //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
@@ -57,26 +62,30 @@ export const create_make_slice = (set,get)=>({make:{
                 d.next('graph.update');
                 d.next('pick.update');
                 d.next('design.show');
+
+                //console.log('make edge final', r, t, n);
             }
         }
     },
     node(d, cls, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
         //const window_size = (window.innerWidth+window.innerHeight)/4;
         const n = make_id();
-        d.n[n] = {cls:cls, t:cls, r:{}, c:{}, open:true, asset:true, deleted:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
-            pick: {pick:false, hover:false},
-            graph: { 
-                pos: new Vector3(), //random_vector({min:window_size, max:window_size*1.5, z:0}),//new Vector3(-window_size, window_size, 0),  
-                //dir: new Vector3(),
-                vis: d.graph.n_vis[t]!=undefined ? d.graph.n_vis[t] : true,
-                //lvl: 0,
-            },
-            pin: {},
-            design:{ vis:true },
-        };
-        d.pick.color(d,n);
-        if(!d.terminal_classes.includes(cls)){ d.n[n].n={}; }
-        d.make.edge(d, d.profile, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
+        d.n[n] = d.node_template(d, cls);
+        d.n[n].asset = true;
+        //d.n[n].drop = false;
+
+        // d.n[n] = {cls:cls, t:cls, r:{}, c:{}, open:true, asset:true, drop:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
+        //     pick: {pick:false, hover:false},
+        //     graph: { 
+        //         pos: new Vector3(), 
+        //         vis: d.graph.n_vis[t]!=undefined ? d.graph.n_vis[t] : true,
+        //     },
+        //     pin: {},
+        //     design:{ vis:true },
+        // };
+        d.pick.color(d, n);
+        if(!d.terminal_classes.includes(cls)) d.n[n].n={}; 
+        d.make.edge(d, d.user, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
         
         //if(a.r) d.make.edge(d, a.r, n, a); // a.r should be list?
         d.for(a.r, r=> d.make.edge(d, r, n, a));

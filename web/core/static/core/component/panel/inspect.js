@@ -9,9 +9,9 @@ import {Delete} from '../toolbar/delete.js';
 import {Close} from '../toolbar/close.js';
 //import {Badge} from '../node/base.js'
 //import {Cat_Badge} from '../../node/base.js'
-import {Bool} from '../node/input/bool.js';
+import {Boolean} from '../node/input/boolean.js';
 import {Integer} from '../node/input/integer.js';
-import {Float} from '../node/input/float.js';
+import {Decimal} from '../node/input/decimal.js';
 import {String} from '../node/input/string.js';
 import {Source} from '../node/input/source.js';
 
@@ -43,10 +43,10 @@ export function Inspect(){
                 c(Close),
                 c(Apply),
             ),
-            d.string_tags.map(t=> c(String, {t})),
-            d.boolean_tags.map(t=>   c(Bool, {t:t})),
-            d.integer_tags.map(t=>    c(Integer, {t:t})),
-            d.decimal_tags.map(t=>  c(Float, {t:t})),
+            [...d.string_tags,  'string'].map(t=>  c(String,  {t})),
+            [...d.boolean_tags, 'boolean'].map(t=> c(Boolean, {t})),
+            [...d.integer_tags, 'integer'].map(t=> c(Integer, {t})),
+            [...d.decimal_tags, 'decimal'].map(t=> c(Decimal, {t})),
             c(DragDropContext, {onDragEnd},
                 d.stem_tags.map(t=> c(Source, {t:t})),
             ),

@@ -66,7 +66,7 @@ export const Part = memo(function Part({n}){
                     outlineColor: 'white',
                     anchorX: 'center',
                     anchorY: 'middle',
-                    text: d.node[t].tag,
+                    text: d.node[t].tag, //readable(d.n[n].t),//
                 },
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),

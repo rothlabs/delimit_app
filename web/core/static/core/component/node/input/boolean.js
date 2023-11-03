@@ -3,7 +3,7 @@ import {Row, Col, Container, Button, Form, InputGroup} from 'react-bootstrap';
 import {ss, useS, readable} from '../../../app.js';
 import {Buttons} from './buttons.js';
 
-export function Bool({t}){
+export function Boolean({t}){
     const content = useS(d=> d.inspect.content[t]);
     const asset = useS(d=> d.inspect.asset[t]);
     return (

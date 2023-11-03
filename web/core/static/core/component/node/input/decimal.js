@@ -3,7 +3,7 @@ import {Row, Col, Container, Button, Form, InputGroup} from 'react-bootstrap';
 import {ss, useS, readable} from '../../../app.js';
 import {Buttons} from './buttons.js';
 
-export function Float({t}){
+export function Decimal({t}){
     const content     = useS(d=> d.inspect.content[t]);
     const placeholder = useS(d=> d.inspect.placeholder[t]);
     const asset       = useS(d=> d.inspect.asset[t]);

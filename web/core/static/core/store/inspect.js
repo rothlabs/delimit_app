@@ -52,8 +52,8 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                 }
             }
         })
-        for(const cls of d.terminal_classes){ //Object.entries(d.model_tags).forEach(([m,t],i)=>{
-            const nc = node_content.filter(n=> n.cls == cls); //const nc = node_content.filter(n=> (n.m==m && n.v!=undefined));
+        for(const t of d.terminal_classes){ //Object.entries(d.model_tags).forEach(([m,t],i)=>{
+            const nc = node_content.filter(n=> n.t == t); //const nc = node_content.filter(n=> (n.m==m && n.v!=undefined));
             if(nc.length){  
                 if(nc.every((n,i,nc)=> n.v==nc[0].v)){
                     d.inspect.content[t] = nc[0].v;   // could be content just like part

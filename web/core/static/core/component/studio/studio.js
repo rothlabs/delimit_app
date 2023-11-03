@@ -39,7 +39,13 @@ function Get_Schema(){
         ['schema content'],
     ],{onCompleted:result=>{
         //console.log('Get Schema - Complete', data.schema.full);    
-        rs(d=> d.receive_schema(d, JSON.parse(result.schema.content).data));
+        rs(d=>{
+            try{
+                d.receive_schema(d, JSON.parse(result.schema.content).data)
+            }catch(e){
+                console.log('receive_schema Error', e);
+            }
+        });
     }}); 
     return false;
 }
@@ -54,7 +60,14 @@ function Open_Push_Close(){
     ],{onCompleted:result=>{
         console.log('Open Pack - complete');
         console.log(Date.now()/1000 - 1685555000);
-        if(result.openPack.pack) rs(d=> d.receive_nodes(d, JSON.parse(result.openPack.pack.content).data)); 
+        //if(result.openPack.pack) 
+        rs(d=>{
+            try{
+                d.receive_triples(d, JSON.parse(result.openPack.pack.content).data); 
+            }catch(e){
+                console.log('receive_triples Error', e);
+            }
+        });
         //console.log(data);
         //console.log(useS.getState().n);
     }}); 
@@ -113,7 +126,7 @@ function Poll(){ // appears to be a bug where the server doesn't always catch ch
             if(data.pollPack) console.log('poll pack recieved', data.pollPack);
             //if(data.deletePack && data.deletePack.p.length > 0) console.log('delete pack part recieved', data.deletePack.p);
             //console.log(data.pollPack.s.find(s=> s.v==instance));
-            rs(d=> d.receive_nodes(d, data.pollPack)); // do not read anything older than when loader!!!!!!!
+            rs(d=> d.receive_triples(d, data.pollPack)); // do not read anything older than when loader!!!!!!!
         }
         //if(data.deletePack) rs(d=> d.receive_instance_deleted(d, data.deletePack) ); 
         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request
