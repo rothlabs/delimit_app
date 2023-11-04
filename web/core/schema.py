@@ -15,17 +15,25 @@ from terminusdb_client import Client
 from terminusdb_client import WOQLQuery as wq
 
 os.system('nc -4 -vz localhost 3636') # trigger terminus socket
-term = Client('http://localhost:6363/')
+graph = Client('http://localhost:6363/')
 for i in range(0, 20):
     print('Connecting terminus.')
     try:
-        term.connect(team='admin', password='root', db='delimit')
+        graph.connect(team='admin', password='root', db='delimit')
         break
     except:
         print('Failed to connect terminus.')
         time.sleep(.25)
 
-db_schema = json.loads(requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text)
+graph_schema = json.loads(requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text)
+
+admin_classes = {} #{k:True for k in graph_schema if (graph_schema[k])}
+for k in graph_schema:
+    if '@inherits' in graph_schema[k]:
+        if 'Admin' == graph_schema[k]['@inherits'] or 'Admin' in graph_schema[k]['@inherits']:
+            admin_classes[k] = True
+
+print(admin_classes)
 
 
 system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time']
@@ -82,7 +90,7 @@ class Tag_Type(DjangoObjectType):
 # class Schema_Type(graphene.ObjectType):
 #     content = graphene.String()
 #     def resolve_full(self, info): 
-#         return json.dumps({'docs':term.get_all_documents(graph_type='schema', as_list=True)}) 
+#         return json.dumps({'docs':graph.get_all_documents(graph_type='schema', as_list=True)}) 
 class Part_Type(graphene.ObjectType): 
     id = graphene.ID()
     t = graphene.ID()
@@ -155,7 +163,7 @@ class Query(graphene.ObjectType):
     def resolve_schema(root, info):
         try:
             exclude_classes = ['Open_Pack', 'Poll_Pack'] # 'Boolean', 'Integer', 'Decimal', 'String', 
-            triples = term.get_all_documents(graph_type='schema', as_list=True)[1:] 
+            triples = graph.get_all_documents(graph_type='schema', as_list=True)[1:] 
             triples = filter(lambda n: n['@id'] not in exclude_classes, triples)
             return Pack_Type(triples = list(triples)) 
         except Exception as e: 
@@ -270,11 +278,20 @@ class Open_Pack(graphene.Mutation):
         try:
             user = info.context.user
 
-            triples = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+            triples = wq().woql_and(
+                wq().triple('v:root', 'rdf:type', '@schema:Public'),
+                # wq().woql_or(
+                #     wq().triple('v:root', 'rdf:type',     'v:stem'),
+                #     wq().triple('v:root', '@schema:view', 'v:stem'),
+                # ),
+                wq().triple('v:root', 'v:tag', 'v:stem'),
+            ).execute(graph)['bindings']
+
+            triples += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
                 wq().triple('v:public', 'rdf:type', '@schema:Public'),
                 wq().triple('v:public', '@schema:view', 'v:root'),
                 wq().triple('v:root', 'v:tag', 'v:stem'),
-            ).execute(term)['bindings'] # might not return bindings if nothing found?! #1
+            ).execute(graph)['bindings'] # might not return bindings if nothing found?! #1
 
             if user.is_authenticated: 
                 user_id = wq().string(user.id)
@@ -282,13 +299,14 @@ class Open_Pack(graphene.Mutation):
                     wq().triple('v:root', 'rdf:type', '@schema:User'),
                     wq().triple('v:root', '@schema:user', user_id),
                     wq().triple('v:root', 'v:tag', 'v:stem'),
-                ).execute(term)['bindings']
+                ).execute(graph)['bindings']
                 triples += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
                     wq().triple('v:user', 'rdf:type', '@schema:User'),
                     wq().triple('v:user', '@schema:user', user_id),
                     wq().triple('v:user', '@schema:asset', 'v:root'),
+                    wq().triple('v:root', '@schema:drop', wq().boolean(False)),
                     wq().triple('v:root', 'v:tag', 'v:stem'),
-                ).execute(term)['bindings']           
+                ).execute(graph)['bindings']           
                 
             return Open_Pack(pack=Pack_Type(triples=triples), reply='Assets Opened')
             # params = {
@@ -392,40 +410,57 @@ class Push_Pack(graphene.Mutation):
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
-                #print('Push Pack!!!')
                 triples = json.loads(triples)['list']
-                #print(triples)
-
-                node = {} # {triple.root:{} for triple in triples}
+                user_triples = wq().woql_and(
+                    wq().triple('v:root', 'rdf:type', '@schema:User'),
+                    wq().triple('v:root', '@schema:user', wq().string(user.id)),
+                ).execute(graph)['bindings']
+                user_node = graph.get_document(user_triples[0]['root'])
+                new_nodes = []
+                nodes = {} 
                 for triple in triples:
                     r = triple['root']
-                    if not r in node:
-                        node[r] = {'@id':r}
-                    if(triple['tag'] == 'rdf:type'):
-                        node[r]['@type'] = triple['stem'] # [8:]
+                    if triple['tag'] == 'class':
+                        nodes[r] = {'@id':r}
+                        try: # exists 
+                            node = graph.get_document(r)
+                            nodes[r]['@type'] = node['@type'] # force type to existing node
+                        except: # not exits
+                            nodes[r]['@type'] = triple['stem'] # [8:]
+                            new_nodes.append(r) # nodes[r]['new'] = True
                 for triple in triples:
-                    if(triple['tag'][:8] == '@schema:'):
+                    if triple['tag'][:4] == 'tag:':
                         r = triple['root']
-                        t = triple['tag'][8:]
+                        clss = nodes[r]['@type']
+                        if clss in admin_classes:
+                            continue
+                        if not r in user_node['asset']:
+                            continue
+                        t = triple['tag'][4:]
                         stem = triple['stem']
-                        clss = node[r]['@type']
-                        if '@class' in db_schema[clss][t]:#hasattr(db_schema[clss][t], '@class'): #if hasattr(triple.stem, '@type'):
-                            # if db_schema[clss][t]['@class'] == 'xsd:boolean': 
-                            #     stem = (stem == 'true')
-                            # elif db_schema[clss][t]['@class'] == 'xsd:integer': 
-                            #     stem = int(stem)
-                            # elif db_schema[clss][t]['@class'] == 'xsd:decimal': 
-                            #     stem = float(stem)
-                            if db_schema[clss][t]['@type'] == 'Set' or db_schema[clss][t]['@type'] == 'List':
-                                if not isinstance(node[r][t], list): 
-                                    node[r][t] = []
-                                node[r][t].append(stem)
+                        if '@class' in graph_schema[clss][t]:#hasattr(graph_schema[clss][t], '@class'): #if hasattr(triple.stem, '@type'):
+                            if graph_schema[clss][t]['@type'] == 'Set' or graph_schema[clss][t]['@type'] == 'List':
+                                if not isinstance(nodes[r][t], list): 
+                                    nodes[r][t] = []
+                                nodes[r][t].append(stem)
                                 continue
-                        node[r][t] = stem
-                docs = [node[k] for k in node]
-                #print('\n'.join(map(str, docs)))
-                term.update_document(docs, graph_type='instance')
+                        nodes[r][t] = stem
+                graph.update_document([nodes[k] for k in nodes])
+
+                if len(new_nodes) > 0:
+                    user_node['asset'].extend(new_nodes)
+                    graph.update_document(user_node)
+
                 
+
+
+                # if graph_schema[clss][t]['@class'] == 'xsd:boolean': 
+                #     stem = (stem == 'True')
+                # elif graph_schema[clss][t]['@class'] == 'xsd:integer': 
+                #     stem = int(stem)
+                # elif graph_schema[clss][t]['@class'] == 'xsd:decimal': 
+                #     stem = float(stem)
+
                 # # setup:
                 # profile = Part.objects.get(t__v='profile', ue__n=user)# profile = Part.objects.get(t__v='profile', u=user)   #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}
                 # is_asset = Q(e__t__v='asset', e__r=profile) # pp2__n1__pu1__n2=user

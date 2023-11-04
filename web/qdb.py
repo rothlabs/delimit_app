@@ -4,110 +4,25 @@ from terminusdb_client import Client
 from terminusdb_client import WOQLQuery as wq
 
 os.system('nc -4 -vz localhost 3636') # connect to terminus socket
-client = Client('http://localhost:6363/')
+graph = Client('http://localhost:6363/')
 for i in range(0, 20):
     print('Connecting terminus.')
     try:
-        client.connect(team='admin', password='root', db='delimit')
+        graph.connect(team='admin', password='root', db='delimit')
         break
     except:
         print('Failed to connect terminus.')
         time.sleep(.25)
 
 
-client.insert_document([
-    {"@base":"iri:///delimit/", "@schema":"iri:///delimit#", "@type":"@context"},
-
-    {"@id":"Node",  "@type":"Class", "@abstract":[]},
-    {"@id":"Admin", "@type":"Class", "@abstract":[], "@inherits":"Node"},
-    {"@id":"Asset", "@type":"Class", "@abstract":[], 
-        "@inherits": "Node",
-        "public": {"@class":"xsd:boolean", "@type":"Optional"},
-        "drop":   {"@class":"xsd:boolean", "@type":"Optional"},
-    },
-
-    # {"@id":"Open_Pack", "@type":"Class", 
-    #     "user": "User",
-    #     "node": {"@class":"Node", "@type":"Set"},
-    # },
-    # {"@id":"Poll_Pack", "@type":"Class", 
-    #     "user": "User",
-    #     "node": {"@class":"Node", "@type":"Set"},
-    # },
-
-    {"@id":"User", "@type":"Class", 
-        "@inherits": "Admin",
-        "@metadata":{"css":{"icon":"bi-person"}},
-        "user":  "xsd:string",
-        "name":  {"@class":"String", "@type":"Optional"},
-        "asset": {"@class":"Asset", "@type":"Set"},
-        "view":  {"@class":"Asset", "@type":"Set"},
-        #"open":  {"@class":"Asset", "@type":"Set"},
-    },
-    # {"@id":"Public", "@type":"Class", 
-    #     "@inherits": "Admin",
-    #     "@metadata":{"css":{"icon":"bi-globe-americas"}}, 
-    #     "view":  {"@class":"Asset", "@type":"Set"},
-    # },
-
-    {"@id":"Boolean", "@type":"Class", "@inherits":"Asset", "value":"xsd:boolean"},
-    {"@id":"Integer", "@type":"Class", "@inherits":"Asset", "value":"xsd:integer"},
-    {"@id":"Decimal", "@type":"Class", "@inherits":"Asset", "value":"xsd:decimal"},
-    {"@id":"String",  "@type":"Class", "@inherits":"Asset", "value":"xsd:string" },
-
-    {"@id":"Part", "@type":"Class", "@abstract":[], 
-        "@inherits": "Asset",
-        "@metadata":{"default":{"name":""}},
-        "name": {"@class":"String", "@type":"Optional"},
-    },
-
-    {"@id":"Case", "@type":"Class", 
-        "@inherits": "Part", 
-        "@metadata":{"css":{"icon":"bi-arrows-move"}},
-        "part": {"@class":"Part",    "@type":"Optional"},
-        "case": {"@class":"Case",    "@type":"Optional"},
-        "move": {"@class":"Vector",  "@type":"Optional"},
-        "turn": {"@class":"Vector",  "@type":"Optional"},
-        "axis": {"@class":"Vector",  "@type":"Optional"},
-        "up":   {"@class":"Vector",  "@type":"Optional"},
-        "spin": {"@class":"Decimal", "@type":"Optional"},
-    },
-    {"@id":"Vector", "@type":"Class", 
-        "@inherits": "Part",
-        "@metadata":{"default":{"x":0, "y":0, "z":0}, "css":{"icon":"bi-record-circle"}},
-        "x": {"@class":"Decimal", "@type":"Optional"},
-        "y": {"@class":"Decimal", "@type":"Optional"},
-        "z": {"@class":"Decimal", "@type":"Optional"},
-    },
-    {"@id":"Curve", "@type":"Class", 
-        "@inherits": "Part",
-        "@metadata":{"css":{"icon":"bi-bezier2"}},
-        "part":   {"@class":"Part", "@type":"List"},
-        "mix":    {"@class":"Part", "@type":"Set"}, 
-        "radius": {"@class":"Decimal", "@type":"Optional"},
-    },
-    {"@id":"Surface", "@type":"Class", 
-        "@inherits": "Part",
-        "@metadata":{"css":{"icon":"bi-map"}}, 
-        "part":  {"@class":"Part", "@type":"List"},
-        "guide": {"@class":"Part", "@type":"Set"},
-    },
-    {"@id":"Machine", "@type":"Class", 
-        "@inherits": "Part",
-        "@metadata":{"css":{"icon":"bi-device-ssd"}},
-        "origin": {"@class":"Vector", "@type":"Optional"},
-    },
-], graph_type='schema', full_replace=True)
-
-
-# client.delete_document([
-#     {'@id':'Decimal/fksmcnfjeitfopad'},
-#     # {'@id':'Decimal/nwzVKESEwB_oJz8K'},
-#     # {'@id':'Decimal/SMnA6ntU098-f_z3'},
-#     # {'@id':'Decimal/0BLuabSS0kPoDLHI'},
+# graph.delete_document([
+#     {'@id':'String/tmh42yb1nvcgt65s'},
+#     #{'@id':'Decimal/9p6uj0rbby71itx5'},
+#     #{'@id':'Decimal/p0nhj7s5fdk59d0z'},
+#     #{'@id':'Vector/no9rmuuxkxug6tkl'},
 # ], graph_type='instance')
 
-# result = client.update_document([
+# result = graph.update_document([
 #     {'@type':'Decimal', '@id': 'Decimal/kpFzKeu3GStXYb5W',
 #         'value': 777,
 #     },
@@ -140,35 +55,47 @@ client.insert_document([
 
 
 # exclude_id = ['Open_Pack', 'Drop_Pack']
-# data = client.get_all_documents(graph_type='schema', as_list=True)[1:]
+# data = graph.get_all_documents(graph_type='schema', as_list=True)[1:]
 # data = filter(lambda n: n['@id'] not in exclude_id, data)
 # print('test data')
 # print(list(data))
 
-print('Schema:')
-schema = requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text 
-print(schema)
-#print(client.get_document('Machine', graph_type='schema'))
-#print('\n'.join(map(str, client.get_all_documents(graph_type='schema', as_list=True))))
+# print('Schema:')
+# schema = json.loads(requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text)
+# print(schema)
+#print(graph.get_document('Machine', graph_type='schema'))
+#print('\n'.join(map(str, graph.get_all_documents(graph_type='schema', as_list=True))))
 
-print('Instance: ')
-result = client.get_all_documents(graph_type='instance')
+
+#graph.insert_triples(graph_type='instance', )
+
+print('Get Document: ')
+triples = wq().woql_and(
+    wq().triple('v:root', 'rdf:type', '@schema:User'),
+    wq().triple('v:root', '@schema:user', wq().string(1)),
+).execute(graph)['bindings']
+user_node = graph.get_document(triples[0]['root'])
+print(user_node)
+
+
+print('All Documents: ')
+result = graph.get_all_documents(graph_type='instance')
 print('\n'.join(map(str, result)))
 
 print('WOQL: ')
-query = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
-    wq().triple('v:public', 'rdf:type', '@schema:Public'),
-    wq().triple('v:public', '@schema:view', 'v:root'),
-    wq().triple('v:root', 'v:tag', 'v:stem'),
-)
-result = query.execute(client)
-print(list(result['bindings']))
+user_triples = wq().woql_and(
+    wq().triple('v:root', 'rdf:type', '@schema:User'),
+    wq().triple('v:root', '@schema:user', wq().string(1)),
+).execute(graph)['bindings']
+user_node = graph.get_document(user_triples[0]['root'])
+user_node['asset'].extend(['crazy', 'horse'])         
+print(user_node)
 
 
 
 
 
-# client.update_document([
+# graph.update_document([
 #     {'@type':'Decimal', 
 #         '@capture': 'id1',
 #         'value': 1.11,
@@ -186,14 +113,14 @@ print(list(result['bindings']))
 #     },
 # ], graph_type='instance')
 
-#results = client.query_document({'@type':'Car', 'name':'juice'}) #_document
+#results = graph.query_document({'@type':'Car', 'name':'juice'}) #_document
 #myString = wq().string('sammy')
 #query = wq().triple('v:named_node', '@schema:name', myString)
 # query = wq().insert_document({
 #     "@type": "Triple", "object": {"@type": "Value", "data": {"@type": "xsd:decimal", "@value": 1.23}}, "predicate": {"@type": "NodeValue", "node": "@schema:value"}, "subject": {"@type": "NodeValue", "Node": "@type:Decimal"}
 # }, 'v:newId') # Decimal/qpwdngitcfkeldaz
 #print(query.to_json())
-#result = query.execute(client)
+#result = query.execute(graph)
 #print('Get: ')
 #print(list(result['bindings']))
 
@@ -234,20 +161,20 @@ print(list(result['bindings']))
 
 
 # import os, time, requests
-# from terminusdb_client import Client, WOQLClient #, GraphType
+# from terminusdb_client import graph, WOQLClient #, GraphType
 # from terminusdb_client import WOQLQuery as wq
 
 # # os.system('nc -4 -vz localhost 3636') # connect to terminus socket
-# client = Client('http://localhost:6363/')
+# graph = graph('http://localhost:6363/')
 # for i in range(0, 20):
 #     print('Connecting terminus.')
 #     try:
-#         client.connect(team='admin', password='root')
+#         graph.connect(team='admin', password='root')
 #         break
 #     except:
 #         print('Failed to connect terminus.')
 #         time.sleep(.25)
-# client.connect(db='testdb')
+# graph.connect(db='testdb')
 
 # wc = WOQLClient("http://localhost:6363/")
 # wc.connect(db="testdb")
@@ -256,11 +183,11 @@ print(list(result['bindings']))
 
 
 
-# client.delete_document([
+# graph.delete_document([
 #     {'@id':'curve/3uW3-MIG53jLfQXy'}, 
 # ], graph_type='instance')
 
-# client.insert_document([
+# graph.insert_document([
 #     #{'@type':'curve', 'part':['car/dZOsnLgE_8IFMXaM', 'point/FTuvWcJujLfPahcq']},
 #     #{'@type':'curve', '@id':'curve/z4xAymCribLBfl2q', 'part':['car/dZOsnLgE_8IFMXaM', 'point/FTuvWcJujLfPahcq']}, #, 
 #     #{'@type':'curve', 'part':[], 'mix':[]}, #, 'part':['point/FTuvWcJujLfPahcq']
@@ -269,7 +196,7 @@ print(list(result['bindings']))
 # ])# , graph_type='instance'
 
 
-# client.update_document([
+# graph.update_document([
 #     {'@type':'decimal', 'value':1.11},
 #     {'@type':'decimal', 'value':2.22},
 #     {'@type':'decimal', 'value':3.33},
@@ -281,7 +208,7 @@ print(list(result['bindings']))
 
 
 
-# results = client.get_document('')
+# results = graph.get_document('')
 # print(results)
 
 print('done')
@@ -347,10 +274,10 @@ print('done')
 
 
 # schema = {'@type' : 'Class', '@id' : 'Person', 'name' : 'xsd:string'}
-# results = client.insert_document(schema, graph_type="schema")
+# results = graph.insert_document(schema, graph_type="schema")
 
 # document = {'@type' : 'Person', 'name' : 'Jim'}
-# results = client.insert_document(document)
+# results = graph.insert_document(document)
 
 
 # dbid="delimit"
@@ -359,7 +286,7 @@ print('done')
 # prefixes = {'@base' : 'iri:///delimit/',
 #             '@schema' : 'iri:///delimit#'}
 # team="admin"
-# client.create_database(
+# graph.create_database(
 #     dbid,
 #     team,
 #     label=label,
@@ -372,7 +299,7 @@ print('done')
 # prefixes = {'@base' : 'iri:///testdb/',
 #             '@schema' : 'iri:///testdb#'}
 # team="admin"
-# client.create_database(
+# graph.create_database(
 #     dbid,
 #     team,
 #     label=label,

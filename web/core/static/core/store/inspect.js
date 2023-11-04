@@ -22,7 +22,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
             d.inspect.mergeable[t] = false;
             d.inspect.splittable[t] = false;
             if(nodes.length > 1) d.inspect.mergeable[t] = true;
-            if(nodes.length == 1 && d.graph.subject_root(d,nodes[0]).length > 1) d.inspect.splittable[t] = true;
+            if(nodes.length == 1 && d.graph.asset_root(d,nodes[0]).length > 1) d.inspect.splittable[t] = true;
             if(nc.length){
                 if(nc.every((n,i,nc)=> n.c[t]==nc[0].c[t])){ // nc[0].c[t] might be array
                     d.inspect.content[t] = nc[0].c[t];

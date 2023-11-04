@@ -36,7 +36,7 @@ export function Buttons({t}){
     )
 }
 
-// if(d.graph.subject_root(d, n).length > 1){
+// if(d.graph.asset_root(d, n).length > 1){
                     //     //console.log('edge only?');
                     //     d.delete.edge(d, r, n, t);
                     // }else{

@@ -217,7 +217,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         roots.forEach(r=>{
             if(d.graph.ex(d,r) && d.n[r].n) Object.entries(d.n[r].n).forEach(([t,nodes],i)=> nodes.forEach((n,o)=>{
                 if(d.graph.ex(d,n)=='open' && (a.edge || !a.collected[n])){
-                    if(!(a.unique && d.graph.subject_root(d,n).some(r=> !a.collected[r])) && !(a.filter && !a.filter(n))){ //a.n.includes(r)
+                    if(!(a.unique && d.graph.asset_root(d,n).some(r=> !a.collected[r])) && !(a.filter && !a.filter(n))){ //a.n.includes(r)
                         add_n(r,n,t,o); //if(allow_null || d.graph.ex(d, n)) func(n,t,o);  //if(filter.includes(d.graph.ex(d,n)))
                         a.collected[n] = true; //if(a.unique) a.collected[n] = true;
                         if(a.deep) result = result.concat(d.graph.stem(d,n,a));
@@ -241,7 +241,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         if(!a.collected) a.collected = {};//...Object.fromEntries(nodes.map(r=>[r,true]))};
         d.for(nodes, n=>{//nodes.forEach(n=>{
             if(d.graph.ex(d,n)) Object.entries(d.n[n].r).forEach(([t,roots],i)=>{ 
-                if(!(a.subject && ['owner','viewer','group'].includes(t))) roots.forEach((r,o)=> { // 'group' causing things like shared name to be delete when trying to remove name from none group
+                if(!(a.asset && ['owner','viewer'].includes(t))) roots.forEach((r,o)=> { // 'group' causing things like shared name to be delete when trying to remove name from none group
                     if(d.graph.ex(d,r) == 'open' && (a.edge || !a.collected[r])){
                         if(!(a.filter && !a.filter(r))){ // && !(a.t && !d.n[r].t==a.t)
                             add_r(r,n,t,o); //if(allow_null || d.graph.ex(d, r)) func(r,t,o);
@@ -254,7 +254,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         });
         return result;
     },
-    subject_root:(d, n)=> d.graph.root(d, n, {subject:true}),//.filter(e=> !['owner', 'viewer'].includes(e.t)),
+    asset_root:(d, n)=> d.graph.root(d, n, {asset:true}),//.filter(e=> !['owner', 'viewer'].includes(e.t)),
     root_edge:(d, n, a)=> d.graph.root(d, n, {edge:true, ...a}),
     //rt0:(d,n,t)=> d.graph.root(d, n, {deep:true}).filter(r=>d.n[r].t==t)[0], // a.exit condition to exit search on correct condition
     root_stem(d, nodes, a={}){

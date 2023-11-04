@@ -30,7 +30,7 @@ export const create_delete_slice = (set,get)=>({delete:{
             if(re){
                 d.pop(d.n[n].r[re.t], re.r); //d.n[n].r[re.t].splice(re.o, 1);
                 if(d.n[n].r[re.t].length==0) delete d.n[n].r[re.t];
-                if(!d.n[n].n && d.graph.subject_root(d,n).length==0) d.delete.node(d,n); // delete unused atoms
+                if(!d.n[n].n && d.graph.asset_root(d,n).length==0) d.delete.node(d,n); // delete unused atoms
             }
             const o = d.pop(d.n[r].n[t], n); //d.n[r].n[t].splice(e.o, 1);
             //console.log('delete edge', o);
@@ -49,7 +49,7 @@ export const create_delete_slice = (set,get)=>({delete:{
         }
     },
     edge_or_node(d,r,n,a){
-        if(d.graph.subject_root(d,n).length > 1){
+        if(d.graph.asset_root(d,n).length > 1){
             d.delete.edge(d,r,n,a);
         }else{
             d.delete.node(d,n);
