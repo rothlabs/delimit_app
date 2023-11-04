@@ -37,6 +37,53 @@
     "react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap@2.8.0/+esm",
     "react-use":                        "https://cdn.jsdelivr.net/npm/react-use@17.4.0/+esm",
     "react-beautiful-dnd":              "https://cdn.jsdelivr.net/npm/react-beautiful-dnd@13.1.1/+esm",
+    "three":                            "https://cdn.jsdelivr.net/npm/three@0.158.0/+esm",
+    "three/examples/jsm/curves/NURBSCurve":   "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/curves/NURBSCurve/+esm",
+    "three/examples/jsm/curves/NURBSSurface": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/curves/NURBSSurface/+esm",
+    "three/examples/jsm/geometries/ParametricGeometry": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/geometries/ParametricGeometry/+esm",
+    "three/examples/jsm/lines/LineGeometry": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/lines/LineGeometry/+esm",
+    "@react-three/fiber":               "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.15.9/+esm",
+    "three-mesh-bvh":                   "https://cdn.jsdelivr.net/npm/three-mesh-bvh/+esm",
+    "@react-three/drei/CameraControls": "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/CameraControls/+esm",
+    "@react-three/drei/OrbitControls":  "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/OrbitControls/+esm",
+    "@react-three/drei/Edges":          "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/Edges/+esm",
+    "@react-three/drei/useGLTF":        "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/useGLTF/+esm",
+    "@react-three/drei/Line":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/Line/+esm",
+    "@react-three/drei/Svg":            "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/Svg/+esm",
+    "@react-three/drei/PivotControls":  "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/web/pivotControls/index/+esm",
+    "@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/Grid/+esm",
+    "@react-three/drei/GizmoHelper":    "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/GizmoHelper/+esm",
+    "webgl-sdf-generator":              "https://cdn.jsdelivr.net/npm/webgl-sdf-generator@1.1.1/+esm",
+    "bidi-js":                          "https://cdn.jsdelivr.net/npm/bidi-js@1.0.3/+esm"
+  }}</script>
+  <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
+</head>
+
+<body data-media-url='{% get_media_prefix %}' data-static-url='{% get_static_prefix %}'>
+  {{ ctx | json_script:"ctx" }}
+  <div id='app'></div>
+  <script src='{% static "core/app.js" %}' type='module'></script>
+</body>
+
+</html>
+
+
+<!-- 
+
+
+    "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
+    "lodash":                           "https://cdn.jsdelivr.net/npm/lodash@4.17.21/+esm",
+    "immer":                            "https://cdn.jsdelivr.net/npm/immer@10.0.2/+esm",
+    "zustand":                          "https://cdn.jsdelivr.net/npm/zustand@4.4.1/+esm",
+    "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand@4.4.1/middleware/+esm",
+    "zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand@4.4.1/shallow/+esm",
+    "gpu":                              "https://cdn.jsdelivr.net/npm/gpu.js@2.16.0/+esm",
+    "react":                            "https://cdn.jsdelivr.net/npm/react@18.2.0/+esm",  
+    "react-dom/client":                 "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client/+esm", 
+    "react-router-dom":                 "https://cdn.jsdelivr.net/npm/react-router-dom@6.16.0/+esm",
+    "react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap@2.8.0/+esm",
+    "react-use":                        "https://cdn.jsdelivr.net/npm/react-use@17.4.0/+esm",
+    "react-beautiful-dnd":              "https://cdn.jsdelivr.net/npm/react-beautiful-dnd@13.1.1/+esm",
     "three":                            "https://cdn.jsdelivr.net/npm/three@0.157.0/+esm",
     "three/examples/jsm/curves/NURBSCurve":   "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/curves/NURBSCurve/+esm",
     "three/examples/jsm/curves/NURBSSurface": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/curves/NURBSSurface/+esm",
@@ -55,20 +102,8 @@
     "@react-three/drei/GizmoHelper":    "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.4/core/GizmoHelper/+esm",
     "webgl-sdf-generator":              "https://cdn.jsdelivr.net/npm/webgl-sdf-generator@1.1.1/+esm",
     "bidi-js":                          "https://cdn.jsdelivr.net/npm/bidi-js@1.0.3/+esm"
-  }}</script>
-  <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
-</head>
-
-<body data-media-url='{% get_media_prefix %}' data-static-url='{% get_static_prefix %}'>
-  {{ ctx | json_script:"ctx" }}
-  <div id='app'></div>
-  <script src='{% static "core/app.js" %}' type='module'></script>
-</body>
-
-</html>
 
 
-<!-- 
   "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
     "lodash":                           "https://cdn.jsdelivr.net/npm/lodash@4.17.21/+esm",
     "immer":                            "https://cdn.jsdelivr.net/npm/immer@10.0.2/+esm",

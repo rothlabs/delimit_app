@@ -79,8 +79,8 @@ function Open_Push_Close(){
         }
     },[ready]);
     const push_pack = use_mutation('PushPack', [['pushPack reply', // send edges as [ID] pr_id, [ID] pn_id, [ID] pt_id,  [ID] parts, [ID] floats 
-        //['String triples', 'cooltest'],
-        //['String client_instance', client_instance],
+        ['String triples', null],
+        ['String clientInstance', client_instance],
         // ['[[ID]] atoms',    null], 
         // ['[Boolean] b',     null],
         // ['[Int] i',         null],

@@ -121,11 +121,11 @@ client.insert_document([
 #     #     'y': {"@ref": 'd2'},
 #     #     'z': {"@ref": 'd3'},
 #     # },
-#     {'@type':'User', '@id':'User/7WogT0PW39UjmnTE',
-#         'user': '1',
-#         'name': 'String/Ecu49XS2xeh3y0XC',
-#         'asset': ['String/Ecu49XS2xeh3y0XC', 'Decimal/ig4Gqy4FpqOw8PZr', 'Decimal/kpFzKeu3GStXYb5W', 'Decimal/sSieDnnYLWI5ImKv', 'Vector/Fozw06RB8FpmR0Fa'],
-#     },
+#     # {'@type':'User', '@id':'User/7WogT0PW39UjmnTE',
+#     #     'user': '1',
+#     #     'name': 'String/Ecu49XS2xeh3y0XC',
+#     #     'asset': ['String/Ecu49XS2xeh3y0XC', 'Decimal/ig4Gqy4FpqOw8PZr', 'Decimal/kpFzKeu3GStXYb5W', 'Decimal/sSieDnnYLWI5ImKv', 'Vector/Fozw06RB8FpmR0Fa'],
+#     # },
 # ], graph_type='instance')
 
 
@@ -136,7 +136,10 @@ client.insert_document([
 # print(list(data))
 
 print('Schema:')
-print('\n'.join(map(str, client.get_all_documents(graph_type='schema', as_list=True))))
+schema = requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text 
+print(schema)
+#print(client.get_document('Machine', graph_type='schema'))
+#print('\n'.join(map(str, client.get_all_documents(graph_type='schema', as_list=True))))
 
 print('Instance: ')
 result = client.get_all_documents(graph_type='instance')
@@ -150,6 +153,8 @@ query = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
 )
 result = query.execute(client)
 print(list(result['bindings']))
+
+
 
 
 

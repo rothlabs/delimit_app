@@ -308,14 +308,15 @@ export const create_base_slice = (set,get)=>({
         for(const n of nodes){
             const cls = upper(d.n[n].t);
             //const root = n;
-            triples.push({n, tag:'rdf:type', stem:'@schema:'+cls});
-            triples.push({n, tag:'@schema:drop', stem:{'@type':'xsd:boolean', '@value':d.n[n].drop}});
+            triples.push({root:n, tag:'rdf:type', stem:cls}); // stem:'@schema:'+cls});
+            triples.push({root:n, tag:'@schema:drop', stem:d.n[n].drop});//stem:{'@type':'xsd:boolean', '@value':d.n[n].drop}});
             if(d.terminal_classes.includes(d.n[n].t)){
-                triples.push({n, tag:'@schema:value', stem:{'@type':'xsd:'+d.n[n].t, '@value':d.n[n].v}});
+                triples.push({root:n, tag:'@schema:value', stem:d.n[n].v});//stem:{'@type':'xsd:'+d.n[n].t, '@value':d.n[n].v}});
+            }else{
+                d.graph.for_stem(d, n, (r,nn,t)=>{
+                    triples.push({root:n, tag:'@schema:'+t, stem:nn}); //  triples.push({root:n, tag:'@schema:'+t, stem:nn});
+                });
             }
-            d.graph.for_stem(d, n, (r,nn,t)=>{
-                triples.push({n, tag:'@schema:'+t, stem:nn});
-            });
         }
 
         //function include_part(n){ // don't set if already set!   don't set part if profile?
@@ -344,11 +345,10 @@ export const create_base_slice = (set,get)=>({
         //     edits.t.push(append.tags);
         // });
         if(triples.length){//if(JSON.stringify(edits).split('').sort().join() != no_edits){ // might not need this check anymore
-            console.log('Push Pack - mutate');
-            console.log(triples);
-            console.log(JSON.stringify({list:triples}));
-            //d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
-            d.push_pack(); //{variables:{triples:'testing'}}
+            // console.log('Push Pack - mutate');
+            // console.log(triples);
+            // console.log(JSON.stringify({list:triples}));
+            d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
         }
     },
 

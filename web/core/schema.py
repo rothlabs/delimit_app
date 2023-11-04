@@ -25,6 +25,8 @@ for i in range(0, 20):
         print('Failed to connect terminus.')
         time.sleep(.25)
 
+db_schema = json.loads(requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text)
+
 
 system_tags = ['user', 'profile', 'open_pack', 'poll_pack', 'delete_pack', 'client_instance', 'system_time']
 tag = {t: Tag.objects.get_or_create(v=t, system=(t in system_tags))[0] for t in [ # put all this in config file
@@ -368,9 +370,9 @@ class Close_Pack(graphene.Mutation):
 
 
 class Push_Pack(graphene.Mutation):
-    #class Arguments:
-        #triples = graphene.String()
-        #client_instance = graphene.String()
+    class Arguments:
+        triples = graphene.String()
+        clientInstance = graphene.String()
         # atoms = graphene.List(graphene.List(graphene.ID)) # vids[m][n]
         # b = graphene.List(graphene.Boolean)
         # i = graphene.List(graphene.Int)
@@ -385,13 +387,44 @@ class Push_Pack(graphene.Mutation):
         # sdel = graphene.List(graphene.ID)
     reply = graphene.String(default_value = 'Failed to save.')
     @classmethod
-    def mutate(cls, root, info):#, triples, client_instance): # atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
+    def mutate(cls, root, info, triples, clientInstance): # atoms, b, i, f, s, parts, t, pdel,bdel,idel,fdel,sdel): 
         try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             reply='Saved'
             user = info.context.user
             if user.is_authenticated: 
-                print('Push Pack!!!')
-                print(triples)
+                #print('Push Pack!!!')
+                triples = json.loads(triples)['list']
+                #print(triples)
+
+                node = {} # {triple.root:{} for triple in triples}
+                for triple in triples:
+                    r = triple['root']
+                    if not r in node:
+                        node[r] = {'@id':r}
+                    if(triple['tag'] == 'rdf:type'):
+                        node[r]['@type'] = triple['stem'] # [8:]
+                for triple in triples:
+                    if(triple['tag'][:8] == '@schema:'):
+                        r = triple['root']
+                        t = triple['tag'][8:]
+                        stem = triple['stem']
+                        clss = node[r]['@type']
+                        if '@class' in db_schema[clss][t]:#hasattr(db_schema[clss][t], '@class'): #if hasattr(triple.stem, '@type'):
+                            # if db_schema[clss][t]['@class'] == 'xsd:boolean': 
+                            #     stem = (stem == 'true')
+                            # elif db_schema[clss][t]['@class'] == 'xsd:integer': 
+                            #     stem = int(stem)
+                            # elif db_schema[clss][t]['@class'] == 'xsd:decimal': 
+                            #     stem = float(stem)
+                            if db_schema[clss][t]['@type'] == 'Set' or db_schema[clss][t]['@type'] == 'List':
+                                if not isinstance(node[r][t], list): 
+                                    node[r][t] = []
+                                node[r][t].append(stem)
+                                continue
+                        node[r][t] = stem
+                docs = [node[k] for k in node]
+                #print('\n'.join(map(str, docs)))
+                term.update_document(docs, graph_type='instance')
                 
                 # # setup:
                 # profile = Part.objects.get(t__v='profile', ue__n=user)# profile = Part.objects.get(t__v='profile', u=user)   #team = Part.objects.get(t__v='team', pu1__t2__v='owner', u=user) # pu1__n2=user #temp_pack = {p:[], b:[], i:[], f:[], s:[]}

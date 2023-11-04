@@ -86,7 +86,8 @@ export const create_pick_slice = (set,get)=>({pick:{
             });
         }else{
             d.pick.n.forEach(n => {
-                if(d.n[n].m=='p') d.graph.set(d, n, {[t]:v}); // if(d.n[n].m=='p' && d.n[n].n[t]) d.graph.sv(d, d.n[n].n[t][0], v); // d.graph.set(d, n, {t:v})             //d.n[d.n[n].n[t][0]].v = v; 
+                d.graph.set(d, n, {[t]:v});
+                //if(!d.terminal_classes.includes(d.n[n].t)) d.graph.set(d, n, {[t]:v}); // if(d.n[n].m=='p' && d.n[n].n[t]) d.graph.sv(d, d.n[n].n[t][0], v); // d.graph.set(d, n, {t:v})             //d.n[d.n[n].n[t][0]].v = v; 
             });
         }
     },

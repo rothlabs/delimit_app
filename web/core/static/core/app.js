@@ -355,7 +355,7 @@ function compile_gql(name, gql_parts){
     var header = '';
     var body = '';
     var variables = {};
-    console.log('gql_parts',gql_parts);
+    //console.log('gql_parts', gql_parts);
     gql_parts.forEach(q => {
         const q_words = q[0].split(' ');
         body += q_words[0];
@@ -405,7 +405,7 @@ export function use_query(name, gql_parts, arg){ // 'cache-and-network'
 }
 export function use_mutation(name, gql_parts, arg){
     const {header, body, variables} = compile_gql(name, gql_parts);
-    console.log({header, body, variables});
+    //console.log({header, body, variables});
     const [mutate, {data, loading, error, reset}] = useMutation( 
         gql`mutation ${header}{${body}}`, {
         variables:variables, 
