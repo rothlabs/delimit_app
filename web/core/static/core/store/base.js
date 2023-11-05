@@ -309,7 +309,6 @@ export const create_base_slice = (set,get)=>({
             if(d.admin_classes.includes(d.n[n].t)) continue; // rename to system_classes #1
             const cls = upper(d.n[n].t);
             triples.push({root:n, tag:'class', stem:cls}); // stem:'@schema:'+cls});
-            //triples.push({root:n, tag:'public',   stem:d.n[n].public});
             triples.push({root:n, tag:'tag:drop', stem:d.n[n].drop});//stem:{'@type':'xsd:boolean', '@value':d.n[n].drop}});
             if(d.terminal_classes.includes(d.n[n].t)){
                 triples.push({root:n, tag:'tag:value', stem:d.n[n].v});//stem:{'@type':'xsd:'+d.n[n].t, '@value':d.n[n].v}});

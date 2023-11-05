@@ -278,20 +278,21 @@ class Open_Pack(graphene.Mutation):
         try:
             user = info.context.user
 
-            triples = wq().woql_and(
-                wq().triple('v:root', 'rdf:type', '@schema:Public'),
-                # wq().woql_or(
-                #     wq().triple('v:root', 'rdf:type',     'v:stem'),
-                #     wq().triple('v:root', '@schema:view', 'v:stem'),
-                # ),
-                wq().triple('v:root', 'v:tag', 'v:stem'),
-            ).execute(graph)['bindings']
+            triples = []
+            # triples = wq().woql_and(
+            #     wq().triple('v:root', 'rdf:type', '@schema:Public'),
+            #     # wq().woql_or(
+            #     #     wq().triple('v:root', 'rdf:type',     'v:stem'),
+            #     #     wq().triple('v:root', '@schema:view', 'v:stem'),
+            #     # ),
+            #     wq().triple('v:root', 'v:tag', 'v:stem'),
+            # ).execute(graph)['bindings']
 
-            triples += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
-                wq().triple('v:public', 'rdf:type', '@schema:Public'),
-                wq().triple('v:public', '@schema:view', 'v:root'),
-                wq().triple('v:root', 'v:tag', 'v:stem'),
-            ).execute(graph)['bindings'] # might not return bindings if nothing found?! #1
+            # triples += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+            #     wq().triple('v:public', 'rdf:type', '@schema:Public'),
+            #     wq().triple('v:public', '@schema:view', 'v:root'),
+            #     wq().triple('v:root', 'v:tag', 'v:stem'),
+            # ).execute(graph)['bindings'] # might not return bindings if nothing found?! #1
 
             if user.is_authenticated: 
                 user_id = wq().string(user.id)
@@ -425,17 +426,19 @@ class Push_Pack(graphene.Mutation):
                         try: # exists 
                             node = graph.get_document(r)
                             nodes[r]['@type'] = node['@type'] # force type to existing node
+                            if not r in user_node['asset']:
+                                del nodes[r]
                         except: # not exits
                             nodes[r]['@type'] = triple['stem'] # [8:]
                             new_nodes.append(r) # nodes[r]['new'] = True
+                        if nodes[r]['@type'] in admin_classes:
+                            del nodes[r]
                 for triple in triples:
                     if triple['tag'][:4] == 'tag:':
                         r = triple['root']
+                        if not r in nodes:
+                            continue
                         clss = nodes[r]['@type']
-                        if clss in admin_classes:
-                            continue
-                        if not r in user_node['asset']:
-                            continue
                         t = triple['tag'][4:]
                         stem = triple['stem']
                         if '@class' in graph_schema[clss][t]:#hasattr(graph_schema[clss][t], '@class'): #if hasattr(triple.stem, '@type'):
@@ -445,7 +448,9 @@ class Push_Pack(graphene.Mutation):
                                 nodes[r][t].append(stem)
                                 continue
                         nodes[r][t] = stem
-                graph.update_document([nodes[k] for k in nodes])
+                docs = [nodes[k] for k in nodes]
+                #print(docs)
+                graph.update_document(docs)
 
                 if len(new_nodes) > 0:
                     user_node['asset'].extend(new_nodes)

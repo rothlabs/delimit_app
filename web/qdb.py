@@ -14,12 +14,16 @@ for i in range(0, 20):
         print('Failed to connect terminus.')
         time.sleep(.25)
 
+# graph.update_document([
+#     {'@id': 'String/Ecu49XS2xeh3y0XC', '@type': 'String', 'value': 'Julian', 'drop':False},
+#     {'@id': 'Vector/Fozw06RB8FpmR0Fa', '@type': 'Vector', 'x': 'Decimal/kpFzKeu3GStXYb5W', 'y': 'Decimal/ig4Gqy4FpqOw8PZr', 'z': 'Decimal/sSieDnnYLWI5ImKv', 'drop':False},
+# ])
 
 # graph.delete_document([
-#     {'@id':'String/tmh42yb1nvcgt65s'},
-#     #{'@id':'Decimal/9p6uj0rbby71itx5'},
-#     #{'@id':'Decimal/p0nhj7s5fdk59d0z'},
-#     #{'@id':'Vector/no9rmuuxkxug6tkl'},
+#     {'@id':'Public/L__y3Su-ZftsTH5p'},
+#     {'@id':'Decimal/9p6uj0rbby71itx5'},
+#     {'@id':'Decimal/p0nhj7s5fdk59d0z'},
+#     {'@id':'Vector/no9rmuuxkxug6tkl'},
 # ], graph_type='instance')
 
 # result = graph.update_document([

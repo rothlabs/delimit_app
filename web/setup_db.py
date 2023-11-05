@@ -22,18 +22,17 @@ client.insert_document([
     {"@id":"Admin", "@type":"Class", "@abstract":[], "@inherits":"Node"},
     {"@id":"Asset", "@type":"Class", "@abstract":[], 
         "@inherits": "Node",
-        "public": {"@class":"xsd:boolean", "@type":"Optional"},
-        "drop":   {"@class":"xsd:boolean", "@type":"Optional"},
+        "drop": "xsd:boolean", #  {"@class":"xsd:boolean", "@type":"Optional"},
     },
 
-    # {"@id":"Open_Pack", "@type":"Class", 
-    #     "user": "User",
-    #     "node": {"@class":"Node", "@type":"Set"},
-    # },
-    # {"@id":"Poll_Pack", "@type":"Class", 
-    #     "user": "User",
-    #     "node": {"@class":"Node", "@type":"Set"},
-    # },
+    {"@id":"Open_Pack", "@type":"Class", 
+        "user": "User",
+        "node": {"@class":"Node", "@type":"Set"},
+    },
+    {"@id":"Poll_Pack", "@type":"Class", 
+        "user": "User",
+        "node": {"@class":"Node", "@type":"Set"},
+    },
 
     {"@id":"User", "@type":"Class", 
         "@inherits": "Admin",
@@ -41,7 +40,6 @@ client.insert_document([
         "user":  "xsd:string",
         "name":  {"@class":"String", "@type":"Optional"},
         "asset": {"@class":"Asset", "@type":"Set"},
-        "view":  {"@class":"Asset", "@type":"Set"},
         #"open":  {"@class":"Asset", "@type":"Set"},
     },
     # {"@id":"Public", "@type":"Class", 
@@ -100,69 +98,22 @@ client.insert_document([
 ], graph_type='schema', full_replace=True)
 
 
-# client.delete_document([
-#     {'@id':'Decimal/fksmcnfjeitfopad'},
-#     # {'@id':'Decimal/nwzVKESEwB_oJz8K'},
-#     # {'@id':'Decimal/SMnA6ntU098-f_z3'},
-#     # {'@id':'Decimal/0BLuabSS0kPoDLHI'},
-# ], graph_type='instance')
-
-# result = client.update_document([
-#     {'@type':'Decimal', '@id': 'Decimal/kpFzKeu3GStXYb5W',
-#         'value': 777,
-#     },
-#     {'@type':'Decimal', '@id': 'Decimal/fksmcnfjeitfopad',
-#         'value': 888,
-#     },
-#     # {'@type':'Decimal', '@capture': 'd1',
-#     #     'value': 1.11,
-#     # },
-#     # {'@type':'Decimal', '@capture': 'd2',
-#     #     'value': 2.22,
-#     # },
-#     # {'@type':'Decimal', '@capture': 'd3',
-#     #     'value': 3.33,
-#     # },
-#     # {'@type':'Vector', 
-#     #     '@capture': 'v1',
-#     #     'x': {"@ref": 'd1'},
-#     #     'y': {"@ref": 'd2'},
-#     #     'z': {"@ref": 'd3'},
-#     # },
-#     # {'@type':'User', '@id':'User/7WogT0PW39UjmnTE',
-#     #     'user': '1',
-#     #     'name': 'String/Ecu49XS2xeh3y0XC',
-#     #     'asset': ['String/Ecu49XS2xeh3y0XC', 'Decimal/ig4Gqy4FpqOw8PZr', 'Decimal/kpFzKeu3GStXYb5W', 'Decimal/sSieDnnYLWI5ImKv', 'Vector/Fozw06RB8FpmR0Fa'],
-#     # },
-# ], graph_type='instance')
-# print('update_document result:')
-# print(result)
-
-
-# exclude_id = ['Open_Pack', 'Drop_Pack']
-# data = client.get_all_documents(graph_type='schema', as_list=True)[1:]
-# data = filter(lambda n: n['@id'] not in exclude_id, data)
-# print('test data')
-# print(list(data))
-
 print('Schema:')
-schema = requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text 
-print(schema)
-#print(client.get_document('Machine', graph_type='schema'))
-#print('\n'.join(map(str, client.get_all_documents(graph_type='schema', as_list=True))))
+schema = json.loads(requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text)
+print('\n'.join([k+': '+str(schema[k]) for k in schema]))
 
 print('Instance: ')
 result = client.get_all_documents(graph_type='instance')
 print('\n'.join(map(str, result)))
 
-print('WOQL: ')
-query = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
-    wq().triple('v:public', 'rdf:type', '@schema:Public'),
-    wq().triple('v:public', '@schema:view', 'v:root'),
-    wq().triple('v:root', 'v:tag', 'v:stem'),
-)
-result = query.execute(client)
-print(list(result['bindings']))
+# print('WOQL: ')
+# query = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+#     wq().triple('v:public', 'rdf:type', '@schema:Public'),
+#     wq().triple('v:public', '@schema:view', 'v:root'),
+#     wq().triple('v:root', 'v:tag', 'v:stem'),
+# )
+# result = query.execute(client)
+# print(list(result['bindings']))
 
 
 
