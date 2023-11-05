@@ -84,7 +84,7 @@ export const create_make_slice = (set,get)=>({make:{
         //     design:{ vis:true },
         // };
         d.pick.color(d, n);
-        if(!d.terminal_classes.includes(cls)) d.n[n].n={}; 
+        if(!d.terminal_classes[cls]) d.n[n].n={}; 
         d.make.edge(d, d.user, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
         
         //if(a.r) d.make.edge(d, a.r, n, a); // a.r should be list?
@@ -128,8 +128,8 @@ export const create_make_slice = (set,get)=>({make:{
         let stem = {};
         if(d.node[cls]){
             for(const [t, s] of Object.entries(d.node[cls].stem)){
-                if(d.terminal_classes.includes(s.class)){
-                    stem[t] = d.make.atom(d, s.class, s.default);
+                if(d.terminal_classes[s.class[0]] && s.default != null){
+                    stem[t] = d.make.atom(d, s.class[0], s.default);
                 }
             }
         }

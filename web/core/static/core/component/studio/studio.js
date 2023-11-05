@@ -36,12 +36,12 @@ export function Canvas_Viewport(){
 
 function Get_Schema(){
     const {data, status} = use_query('Schema', [ 
-        ['schema triples'],
+        ['schema data'],
     ],{onCompleted:result=>{
         //console.log('Get Schema - Complete', data.schema.full);    
         rs(d=>{
             try{
-                d.receive_schema(d, JSON.parse(result.schema.triples).list)
+                d.receive_schema(d, JSON.parse(result.schema.data))
             }catch(e){
                 console.log('receive_schema Error', e);
             }
@@ -54,16 +54,20 @@ function Open_Push_Close(){
     const ready = useS(d=> d.studio.ready);
     const search = useS(d=> d.search);
 
-    const open_pack = use_mutation('OpenPack', [ //pack is a part that holds all models instances to specified depth and the first sub part holds all roots  
-        ['openPack pack{ triples }',  //['openPack pack{u{id} tag{id v} p{id} '+atoms+' '+edges+' } ',   //['openPack pack{ p{ id t{v} e{t{v}r{id}} u{id} '+edges+' } '+atoms+ ' } ',
-            ['Int depth', search.depth], ['[ID] ids', search.ids], ['[[String]] include', null], ['[[String]] exclude', null]]  //[['s','name','cool awesome']]
+    const open_pack = use_mutation('OpenPack', [  
+        ['openPack pack{ data }',  
+            ['Int depth', search.depth], 
+            ['[ID] ids', search.ids], 
+            ['[[String]] include', null], 
+            ['[[String]] exclude', null]
+        ]  
     ],{onCompleted:result=>{
         console.log('Open Pack - complete');
         console.log(Date.now()/1000 - 1685555000);
         //if(result.openPack.pack) 
         rs(d=>{
             try{
-                d.receive_triples(d, JSON.parse(result.openPack.pack.triples).list); 
+                d.receive_triples(d, JSON.parse(result.openPack.pack.data).list); 
             }catch(e){
                 console.log('receive_triples Error', e);
             }
@@ -78,28 +82,18 @@ function Open_Push_Close(){
             open_pack.mutate();
         }
     },[ready]);
-    const push_pack = use_mutation('PushPack', [['pushPack reply', // send edges as [ID] pr_id, [ID] pn_id, [ID] pt_id,  [ID] parts, [ID] floats 
-        ['String triples', null],
-        ['String clientInstance', client_instance],
-        // ['[[ID]] atoms',    null], 
-        // ['[Boolean] b',     null],
-        // ['[Int] i',         null],
-        // ['[Float] f',       null],
-        // ['[String] s',      null],
-        // ['[[[ID]]] parts',  null], // should split so first id is not [ID] for part make seperate list that coresponds?
-        // ['[[[ID]]] t',      null],
-        // ['[ID] pdel',       null],
-        // ['[ID] bdel',       null],
-        // ['[ID] idel',       null],
-        // ['[ID] fdel',       null],
-        // ['[ID] sdel',       null],
-    ]],{onCompleted:result=>{
+    const push_pack = use_mutation('PushPack', [
+        ['pushPack reply', 
+            ['String triples', null],
+            ['String clientInstance', client_instance],
+        ],
+    ],{onCompleted:result=>{
         console.log('Push Pack - complete: ', result.pushPack.reply);
     }});
     // merge with push_pack ?!?! Or make delete_pack and keep all types of ops seperate?
     const close_pack = use_mutation('ClosePack', [['closePack reply', 
         ['[ID] p', null], ['[ID] b', null], ['[ID] i', null], ['[ID] f', null], ['[ID] s', null],
-    ]],{onCompleted:data=>{ 
+    ]],{onCompleted:result=>{ 
         console.log('Close Pack - complete');
         //console.log(data.closePack.reply);
     }}); 

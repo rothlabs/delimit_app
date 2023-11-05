@@ -167,10 +167,7 @@ export const create_graph_slice = (set,get)=>({graph:{
     //     return result;
     // },
     admin(d, n){
-        if(!Array.isArray(n)) n = [n];
-        return n.some(n=> d.admin_classes.includes(d.n[n].t));//{
-            //if(d.admin_classes.includes(d.n[n].t)) return true;
-        //});
+        return d.as_array(n).some(n=> d.admin_classes.includes(d.n[n].t));
     },
     pin_pos(d, n, matrix){  // should go in transform slice?    
         if(d.graph.ex(d,n) && d.n[n]?.p?.isVector3){

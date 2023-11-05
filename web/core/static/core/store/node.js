@@ -28,16 +28,6 @@ export const create_node_slice =(set,get)=>({node:{
     slice,
     surface,
     transform,
-    stroke:{},
-    product:{},
-
-    profile:{},
-    public:{},
-
-    // boolean:{},
-    // integer:{},
-    // decimal:{},
-    // string:{},
 }});
 
 

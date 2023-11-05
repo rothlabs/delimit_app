@@ -10,6 +10,7 @@ export function Make(){
     const panel = useS(d=> d.studio.panel.name);
     //const nodes = useS(d=> d.pick.n);
     const limited = useS(d=> d.pick.limited); 
+    const terminal = useS(d=> d.pick.terminal); 
     const d = gs();
     return(
         //show && panel=='make' && c(Fragment, {},
@@ -34,7 +35,7 @@ export function Make(){
                         )
                     ),
                 ),
-                limited ? null : c(Col, {}, 
+                limited || terminal ? false : c(Col, {}, 
                     [{cls:'string',  v:'',    tags:d.string_tags,  icon:'bi-text-left'},
                      {cls:'boolean', v:false, tags:d.boolean_tags, icon:'bi-ui-checks'},
                      {cls:'integer', v:0,     tags:d.integer_tags, icon:'bi-plus-slash-minus'},

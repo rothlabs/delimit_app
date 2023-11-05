@@ -10,7 +10,7 @@ var next_ids = [];
 export const create_base_slice = (set,get)=>({
     n: {}, // all nodes stored here by ID 
 
-    terminal_classes: ['boolean', 'integer', 'decimal', 'string'],
+    terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
     asset_classes: [],
     admin_classes: [],
 
@@ -21,39 +21,41 @@ export const create_base_slice = (set,get)=>({
     decimal_tags: [],
     string_tags:  [],
 
-    node_css:{
-        'public':         'bi-globe-americas',
-        'user':        'bi-person',
-        'boolean':         'bi-123', 
-        'integer':        'bi-123',
-        'decimal':        'bi-123',
-        'string':           'bi-type',
-        'point':          'bi-record-circle',
-        'curve':          'bi-bezier2',
-        'ellipse':        'bi-circle',
-        'sketch':         'bi-easel2',
-        //'group':          'bi-box-seam',
-        'transform':      'bi-arrows-move',
-        'top_view':       'bi-camera-reels',
-        'side_view':      'bi-camera-reels',
-        'face_camera':    'bi-camera-reels',
-        'auxiliary':      'bi-binoculars',
-        'manual_compute': 'bi-cpu',
-        'product':        'bi-bag',
-        'surface':        'bi-map',
-        'shape':          'bi-pentagon',
-        'layer':          'bi-layers',
-        'image':          'bi-image',
-        'slice':          'bi-rainbow',
-        'fill':           'bi-cloud-fog2-fill',
-        'corner':         'bi-triangle',
-        'post':           'bi-code',
-        'brush':          'bi-brush',
-        'stroke':         'bi-slash-lg',
-        'machine':        'bi-device-ssd',
-        'mix':            'bi-bezier',
-        'guide':          'bi-bezier2',
-    },
+    stem: {},
+
+    // node_css:{
+    //     'public':         'bi-globe-americas',
+    //     'user':        'bi-person',
+    //     'boolean':         'bi-123', 
+    //     'integer':        'bi-123',
+    //     'decimal':        'bi-123',
+    //     'string':           'bi-type',
+    //     'point':          'bi-record-circle',
+    //     'curve':          'bi-bezier2',
+    //     'ellipse':        'bi-circle',
+    //     'sketch':         'bi-easel2',
+    //     //'group':          'bi-box-seam',
+    //     'transform':      'bi-arrows-move',
+    //     'top_view':       'bi-camera-reels',
+    //     'side_view':      'bi-camera-reels',
+    //     'face_camera':    'bi-camera-reels',
+    //     'auxiliary':      'bi-binoculars',
+    //     'manual_compute': 'bi-cpu',
+    //     'product':        'bi-bag',
+    //     'surface':        'bi-map',
+    //     'shape':          'bi-pentagon',
+    //     'layer':          'bi-layers',
+    //     'image':          'bi-image',
+    //     'slice':          'bi-rainbow',
+    //     'fill':           'bi-cloud-fog2-fill',
+    //     'corner':         'bi-triangle',
+    //     'post':           'bi-code',
+    //     'brush':          'bi-brush',
+    //     'stroke':         'bi-slash-lg',
+    //     'machine':        'bi-device-ssd',
+    //     'mix':            'bi-bezier',
+    //     'guide':          'bi-bezier2',
+    // },
 
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
@@ -182,43 +184,35 @@ export const create_base_slice = (set,get)=>({
     receive_schema(d, schema){
         console.log('receive_schema');
         console.log(schema);
-        const classes = {};
-        for(const n of schema) classes[n['@id']] = n;
-        for(const n of schema){
+        for(const [Cls, n] of Object.entries(schema)){
             if(n['@abstract']) continue
-            const cls = n['@id'].toLowerCase();
+            const cls = Cls.toLowerCase();
+            if(n['@inherits'].includes('Asset')) d.add(d.asset_classes, cls);
+            if(n['@inherits'].includes('Admin')) d.add(d.admin_classes, cls);
             if(!d.node[cls]) d.node[cls] = {};
             const node = d.node[cls];
-            node.icon = static_url+'icon/node/'+cls+'.svg';
             node.tag = readable(cls);
+            node.icon = static_url+'icon/node/'+cls+'.svg';
+            node.css  = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
             if(!node.stem) node.stem = {};
-            const set_stems = n=>{
-                for(const [t, s] of Object.entries(n)){
-                    if(t.charAt(0) == '@') continue
-                    const cls = (s['@class'] ?? s).toLowerCase();
-                    node.stem[t] = {
-                        class: cls,
-                        type:  (s['@type'] ?? 'Required').toLowerCase(),
-                    };
-                    const defaults = n['@metadata']?.default ?? {};
-                    if(defaults[t] != null) node.stem[t].default = defaults[t];
-                    if(d.terminal_classes.includes(cls)){
-                        if(cls == 'boolean') d.add(d.boolean_tags, t);
-                        if(cls == 'integer') d.add(d.integer_tags, t);
-                        if(cls == 'decimal') d.add(d.decimal_tags, t);
-                        if(cls == 'string')  d.add(d.string_tags, t);
-                    }else if(!['user', 'drop', 'value'].includes(t)){
-                        console.log('stem_tag', t);
-                        d.add(d.stem_tags, t);
-                    }
+            for(const [t, s] of Object.entries(n)){
+                if(t.charAt(0) == '@') continue
+                const cls = d.as_array(s['@class'] ?? s).map(cls=> cls.toLowerCase());
+                node.stem[t] = {
+                    class: cls,
+                    type:  (s['@type'] ?? 'Required').toLowerCase(),
+                };
+                const defaults = n['@metadata']?.default ?? {};
+                if(defaults[t] != null) node.stem[t].default = defaults[t];
+                if(cls.length == 1 && d.terminal_classes[cls[0]]){
+                    if(cls[0] == 'boolean') d.add(d.boolean_tags, t);
+                    if(cls[0] == 'integer') d.add(d.integer_tags, t);
+                    if(cls[0] == 'decimal') d.add(d.decimal_tags, t);
+                    if(cls[0] == 'string')  d.add(d.string_tags, t);
+                }else if(!['user', 'drop', 'value'].includes(t)){
+                    d.add(d.stem_tags, t);
                 }
-                const inherits = d.as_array(n['@inherits']);
-                if(inherits.includes('Asset')) d.add(d.asset_classes, cls);
-                if(inherits.includes('Admin')) d.add(d.admin_classes, cls);
-                inherits.forEach(cls=> set_stems(classes[cls]));
-                node.css  = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
             }
-            set_stems(n);
         }
         d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
         d.node_classes = [...d.asset_classes, ...d.admin_classes];
@@ -310,7 +304,7 @@ export const create_base_slice = (set,get)=>({
             const cls = upper(d.n[n].t);
             triples.push({root:n, tag:'class', stem:cls}); // stem:'@schema:'+cls});
             triples.push({root:n, tag:'tag:drop', stem:d.n[n].drop});//stem:{'@type':'xsd:boolean', '@value':d.n[n].drop}});
-            if(d.terminal_classes.includes(d.n[n].t)){
+            if(d.terminal_classes[d.n[n].t]){
                 triples.push({root:n, tag:'tag:value', stem:d.n[n].v});//stem:{'@type':'xsd:'+d.n[n].t, '@value':d.n[n].v}});
             }else{
                 d.graph.for_stem(d, n, (r,nn,t)=>{
@@ -367,7 +361,7 @@ export const create_base_slice = (set,get)=>({
             const r = triple.root; 
             if(triple.tag == 'rdf:type'){
                 if(!d.n[r]) d.n[r] = d.node_template(d, triple.stem.slice(8).toLowerCase());
-                if(d.terminal_classes.includes(d.n[r].t)){
+                if(d.terminal_classes[d.n[r].t]){
                     delete d.n[r].n;
                 }else{
                     d.graph.for_stem(d, r, (r,n,t)=> d.delete.edge(d, r, n, {t:t}));
@@ -539,6 +533,58 @@ export const create_base_slice = (set,get)=>({
     },
 
 });
+
+
+
+
+// receive_schema(d, schema){
+//         console.log('receive_schema');
+//         console.log(schema);
+//         const classes = {};
+//         for(const n of schema) classes[n['@id']] = n;
+//         for(const n of schema){
+//             if(n['@abstract']) continue
+//             const cls = n['@id'].toLowerCase();
+//             if(!d.node[cls]) d.node[cls] = {};
+//             const node = d.node[cls];
+//             node.icon = static_url+'icon/node/'+cls+'.svg';
+//             node.tag = readable(cls);
+//             if(!node.stem) node.stem = {};
+//             const set_stems = n=>{
+//                 for(const [t, s] of Object.entries(n)){
+//                     if(t.charAt(0) == '@') continue
+//                     const cls = (s['@class'] ?? s).toLowerCase();
+//                     node.stem[t] = {
+//                         class: cls,
+//                         type:  (s['@type'] ?? 'Required').toLowerCase(),
+//                     };
+//                     const defaults = n['@metadata']?.default ?? {};
+//                     if(defaults[t] != null) node.stem[t].default = defaults[t];
+//                     if(d.terminal_classes.includes(cls)){
+//                         if(cls == 'boolean') d.add(d.boolean_tags, t);
+//                         if(cls == 'integer') d.add(d.integer_tags, t);
+//                         if(cls == 'decimal') d.add(d.decimal_tags, t);
+//                         if(cls == 'string')  d.add(d.string_tags, t);
+//                     }else if(!['user', 'drop', 'value'].includes(t)){
+//                         console.log('stem_tag', t);
+//                         d.add(d.stem_tags, t);
+//                     }
+//                 }
+//                 const inherits = d.as_array(n['@inherits']);
+//                 if(inherits.includes('Asset')) d.add(d.asset_classes, cls);
+//                 if(inherits.includes('Admin')) d.add(d.admin_classes, cls);
+//                 inherits.forEach(cls=> set_stems(classes[cls]));
+//                 node.css  = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
+//             }
+//             set_stems(n);
+//         }
+//         d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
+//         d.node_classes = [...d.asset_classes, ...d.admin_classes];
+//         d.graph.init(d);
+//         d.studio.ready = true;
+//         console.log(current(d.node));
+//     },
+
 
 
 // const asset_classes = [

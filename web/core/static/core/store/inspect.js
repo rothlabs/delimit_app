@@ -3,7 +3,7 @@ import {current} from 'immer';
 export const create_inspect_slice = (set,get)=>({inspect:{
     cats:[],
     content:{}, 
-    source:{},
+    stem:{},
     asset:{}, // rename to disabled ?! #1
     placeholder:{}, 
     mergeable:{},
@@ -39,20 +39,20 @@ export const create_inspect_slice = (set,get)=>({inspect:{
         d.stem_tags.forEach(t=>{
             const nc = node_content.filter(n=> (n.n && n.n[t]!=undefined));
             const nt = node_content.map(n=> n.t);
-            d.inspect.source[t] = [];
+            d.inspect.stem[t] = [];
             if(nc.length){ 
-                d.inspect.source[t] = nc.map(n=> n.n[t]).flat();
+                d.inspect.stem[t] = nc.map(n=> n.n[t]).flat();
                 d.inspect.asset[t] = nc.some(n=> n.asset);
             }else{  
                 if(nt.some(nt=> d.node[nt]?.stem[t])){//if(nt.some(nt=> d.node[nt]?.stem?.includes(t))){
                     //console.log(null, t, nt, current(d).node[nt]);
-                    d.inspect.source[t] = [];  
+                    d.inspect.stem[t] = [];  
                 }else{
-                    d.inspect.source[t] = null;  
+                    d.inspect.stem[t] = null;  
                 }
             }
         })
-        for(const t of d.terminal_classes){ //Object.entries(d.model_tags).forEach(([m,t],i)=>{
+        for(const t of Object.keys(d.terminal_classes)){ //Object.entries(d.model_tags).forEach(([m,t],i)=>{
             const nc = node_content.filter(n=> n.t == t); //const nc = node_content.filter(n=> (n.m==m && n.v!=undefined));
             if(nc.length){  
                 if(nc.every((n,i,nc)=> n.v==nc[0].v)){

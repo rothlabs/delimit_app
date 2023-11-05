@@ -49,7 +49,7 @@ const Nodes = memo(()=>{
     return (
         c('group', {name:'nodes'}, // ref:graph, dispose:null
 			...Object.keys(nodes).map(n=> 
-				d.terminal_classes.includes(d.n[n].t) ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
+				d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
             ),
 		)
     )

@@ -17,7 +17,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
         // if(node.string)  d.reckon.props(d, n, Object.keys(node.string));
         //const stem = {};
         for(const [t, s] of node_stem){
-            if(!d.terminal_classes.includes(s.class)) continue;
+            if(!d.terminal_classes[s.class[0]]) continue;
             if(d.n[n].n && d.n[n].n[t]){ //  && d.graph.ex(d,d.n[n].n[t][0])
                 d.n[n].c[t] = d.n[d.n[n].n[t][0]].v; // check if list or single?! #1
             }else{   
@@ -33,7 +33,7 @@ export const create_reckon_slice =(set,get)=>({reckon:{
                 try{
                     const stem = {};
                     for(const [t, s] of node_stem){
-                        if(d.terminal_classes.includes(s.class)) continue;
+                        if(d.terminal_classes[s.class[0]]) continue;
                         if(d.n[n].n[t]) stem[t] = d.n[n].n[t].map(n=> d.n[n]);
                     }
                     d.n[n].p = node.part(d, stem, d.n[n].c); // make stem and d.n[n].c one argument?! #1

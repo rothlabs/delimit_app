@@ -13,7 +13,7 @@ import {Boolean} from '../node/input/boolean.js';
 import {Integer} from '../node/input/integer.js';
 import {Decimal} from '../node/input/decimal.js';
 import {String} from '../node/input/string.js';
-import {Source} from '../node/input/source.js';
+import {Stem} from '../node/input/stem.js';
 
 //https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
 
@@ -48,7 +48,7 @@ export function Inspect(){
             [...d.integer_tags, 'integer'].map(t=> c(Integer, {t})),
             [...d.decimal_tags, 'decimal'].map(t=> c(Decimal, {t})),
             c(DragDropContext, {onDragEnd},
-                d.stem_tags.map(t=> c(Source, {t:t})),
+                d.stem_tags.map(t=> c(Stem, {t:t})),
             ),
             // !cats.length ? null : c(Fragment,{},
             //     c('h5',{className:'text-secondary bi-tag mt-4'}, ' Tags'),
