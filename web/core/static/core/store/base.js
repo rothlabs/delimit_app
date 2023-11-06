@@ -9,6 +9,7 @@ var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
     n: {}, // all nodes stored here by ID 
+    stem: {},
 
     terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
     asset_classes: [],
@@ -21,7 +22,6 @@ export const create_base_slice = (set,get)=>({
     decimal_tags: [],
     string_tags:  [],
 
-    stem: {},
 
     // node_css:{
     //     'public':         'bi-globe-americas',
@@ -184,6 +184,7 @@ export const create_base_slice = (set,get)=>({
     receive_schema(d, schema){
         console.log('receive_schema');
         console.log(schema);
+        const icon = schema['Node']['@metadata']['icon'];
         for(const [Cls, n] of Object.entries(schema)){
             if(n['@abstract']) continue
             const cls = Cls.toLowerCase();
@@ -192,8 +193,8 @@ export const create_base_slice = (set,get)=>({
             if(!d.node[cls]) d.node[cls] = {};
             const node = d.node[cls];
             node.tag = readable(cls);
-            node.icon = static_url+'icon/node/'+cls+'.svg';
-            node.css  = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
+            node.icon = icon.all[n['@metadata']?.icon ?? 'box'];//static_url+'icon/node/'+cls+'.svg';
+            //node.css  = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
             if(!node.stem) node.stem = {};
             for(const [t, s] of Object.entries(n)){
                 if(t.charAt(0) == '@') continue
@@ -211,6 +212,9 @@ export const create_base_slice = (set,get)=>({
                     if(cls[0] == 'string')  d.add(d.string_tags, t);
                 }else if(!['user', 'drop', 'value'].includes(t)){
                     d.add(d.stem_tags, t);
+                    if(!d.stem[t]) d.stem[t] = {
+                        icon: icon.all[icon['stem'][t] ?? 'box'],
+                    };
                 }
             }
         }

@@ -58,6 +58,46 @@ for i in range(0, 20):
 # print(result)
 
 
+# triples = wq().woql_and(
+#     wq().woql_or(
+#         wq().triple('v:root', 'rdf:type', '@schema:Boolean'),
+#         wq().triple('v:root', 'rdf:type', '@schema:Integer'),
+#         wq().triple('v:root', 'rdf:type', '@schema:Decimal'),
+#         wq().triple('v:root', 'rdf:type', '@schema:String'),
+#         wq().triple('v:root', 'rdf:type', '@schema:Decimal'),
+#         wq().triple('v:root', 'rdf:type', '@schema:Vector'),
+#         wq().triple('v:root', 'rdf:type', '@schema:Case'),
+#         wq().triple('v:root', 'rdf:type', '@schema:Machine'),
+#     ),
+#     wq().triple('v:root', '@schema:drop', wq().boolean(True)),
+#     wq().triple('v:root', 'v:tag', 'v:stem'),
+# ).execute(graph)['bindings']
+# #print('\n'.join(map(str, triples)))
+# nodes = [triple['root'] for triple in triples]
+# graph.delete_document(nodes)
+
+print('All Documents: ')
+result = graph.get_all_documents(graph_type='instance')
+print('\n'.join(map(str, result)))
+
+# print('Get Document: ')
+# triples = wq().woql_and(
+#     wq().triple('v:root', 'rdf:type', '@schema:User'),
+#     wq().triple('v:root', '@schema:user', wq().string(1)),
+# ).execute(graph)['bindings']
+# user_node = graph.get_document(triples[0]['root'])
+# print(user_node)
+
+# print('WOQL: ')
+# user_triples = wq().woql_and(
+#     wq().triple('v:root', 'rdf:type', '@schema:User'),
+#     wq().triple('v:root', '@schema:user', wq().string(1)),
+# ).execute(graph)['bindings']
+# user_node = graph.get_document(user_triples[0]['root'])
+# user_node['asset'].extend(['crazy', 'horse'])         
+# print(user_node)
+
+
 # exclude_id = ['Open_Pack', 'Drop_Pack']
 # data = graph.get_all_documents(graph_type='schema', as_list=True)[1:]
 # data = filter(lambda n: n['@id'] not in exclude_id, data)
@@ -71,29 +111,10 @@ for i in range(0, 20):
 #print('\n'.join(map(str, graph.get_all_documents(graph_type='schema', as_list=True))))
 
 
-#graph.insert_triples(graph_type='instance', )
-
-print('Get Document: ')
-triples = wq().woql_and(
-    wq().triple('v:root', 'rdf:type', '@schema:User'),
-    wq().triple('v:root', '@schema:user', wq().string(1)),
-).execute(graph)['bindings']
-user_node = graph.get_document(triples[0]['root'])
-print(user_node)
 
 
-print('All Documents: ')
-result = graph.get_all_documents(graph_type='instance')
-print('\n'.join(map(str, result)))
 
-print('WOQL: ')
-user_triples = wq().woql_and(
-    wq().triple('v:root', 'rdf:type', '@schema:User'),
-    wq().triple('v:root', '@schema:user', wq().string(1)),
-).execute(graph)['bindings']
-user_node = graph.get_document(user_triples[0]['root'])
-user_node['asset'].extend(['crazy', 'horse'])         
-print(user_node)
+
 
 
 

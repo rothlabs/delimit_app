@@ -1,7 +1,8 @@
 import {createElement as c, Fragment, useCallback, useRef} from 'react';
 import {Row, Col, Container, Form, InputGroup, Button, ListGroup, ButtonToolbar} from 'react-bootstrap';
 import {Droppable, Draggable} from 'react-beautiful-dnd'; // import { useDrag, useDrop } from 'react-dnd';
-import {useS, ss, gs, readable, fs, sf, mf, rs} from '../../../app.js';
+import {useS, ss, gs, readable, fs, sf, mf, rs, theme} from '../../../app.js';
+import { Svg } from '../../app/base.js';
 
 
 // c(ListGroup.Item, {
@@ -31,14 +32,14 @@ export function Stem({t}){
 		}},
 	];
 
-	const pen_icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-vector-pen" viewBox="0 0 16 16"> <path fill="%23ffffff" d="M 2.0036318,1.2502973 12.000126,4.2721455 13.455271,9.5511012 10.785786,12.56844 5.0143315,11.265355 Z"/>  <path fill="%23d63384" fill-rule="evenodd" d="m 15.030264,10.245718 a 0.5,0.5 0 0 1 0,0.708 l -4,4 a 0.5,0.5 0 0 1 -0.708,0 l -1.902,-1.902 -3.313,-0.829 a 1.5,1.5 0 0 1 -1.073,-1.024 L 0.93026405,0.85371789 11.276264,3.9577179 a 1.5,1.5 0 0 1 1.023,1.072 l 0.828,3.313 z m -2.908,-1.8000001 -0.793,-3.173 a 0.5,0.5 0 0 0 -0.342,-0.358 l -8.565,-2.57 2.57,8.5670001 a 0.5,0.5 0 0 0 0.357,0.34 l 3.174,0.794 3.6,-3.6000001 z" id="path59" /> <path fill-rule="evenodd" d="m 2.448264,2.4317179 4.228,5.168 a 1,1 0 1 0 1,-1 l -5.168,-4.228 -0.086,-0.026 z" id="path61" /></svg>';
-	const dataUri = `data:image/svg+xml,${pen_icon}`;//const dataUri = `url("data:image/svg+xml,${pen_icon}")`;
+	//const pen_icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-vector-pen" viewBox="0 0 16 16"> <path fill="%23ffffff" d="M 2.0036318,1.2502973 12.000126,4.2721455 13.455271,9.5511012 10.785786,12.56844 5.0143315,11.265355 Z"/>  <path fill="%23d63384" fill-rule="evenodd" d="m 15.030264,10.245718 a 0.5,0.5 0 0 1 0,0.708 l -4,4 a 0.5,0.5 0 0 1 -0.708,0 l -1.902,-1.902 -3.313,-0.829 a 1.5,1.5 0 0 1 -1.073,-1.024 L 0.93026405,0.85371789 11.276264,3.9577179 a 1.5,1.5 0 0 1 1.023,1.072 l 0.828,3.313 z m -2.908,-1.8000001 -0.793,-3.173 a 0.5,0.5 0 0 0 -0.342,-0.358 l -8.565,-2.57 2.57,8.5670001 a 0.5,0.5 0 0 0 0.357,0.34 l 3.174,0.794 3.6,-3.6000001 z" id="path59" /> <path fill-rule="evenodd" d="m 2.448264,2.4317179 4.228,5.168 a 1,1 0 1 0 1,-1 l -5.168,-4.228 -0.086,-0.026 z" id="path61" /></svg>';
+	//const dataUri = `data:image/svg+xml,${pen_icon}`;//const dataUri = `url("data:image/svg+xml,${pen_icon}")`;
 
 	//console.log('render stem', t, stem, stem != null, asset);
 	return (
 		stem != null && c(Fragment, {}, 
 			c('h5', {className:'text-secondary mt-4'},//, style:{background: dataUri}}, 
-				c('img', {src:dataUri}),
+				c(Svg, {svg:d.stem[t].icon, color:theme.secondary}),//c('img', {src:'data:image/svg+xml,'+d.stem[t].icon}),
 				' '+readable(t),
 			), // c('h5', {className:'text-secondary mt-4 '+d.node[t].css}, ' '+readable(t)),
 			c(Droppable, {droppableId: t, direction: 'vertical', key:t}, (provided, snapshot) => (

@@ -1,6 +1,7 @@
-import {createElement as c, Fragment} from 'react';
+import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, Button, Container} from 'react-bootstrap';
 import {useS, ss, gs, static_url, readable, theme} from '../../app.js'
+import { Svg_Button } from '../app/base.js';
 //import {Badge} from '../node/base.js'
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
@@ -19,19 +20,16 @@ export function Make(){
                 c(Col, {}, 
                     //c('i', {className:'text-secondary bi-diagram-3', style:{fontSize:'28px'}}, c('h4',{}, 'Subjects')),
                     c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
-                    ...d.asset_classes.map((cls,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
+                    ...d.asset_classes.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
                         c(Row, {className: 'mt-1 text-left '+(i==d.asset_classes.length-1?'mb-4':'')},
-                            c(Button, {
-                                id:'make_'+cls,
-                                className: 'border-white text-start '+d.node[cls].css.icon,
-                                variant:'outline-primary', size:'lg',
-                                onClick:e=> ss(d=>{ 
-                                    d.make.part(d, cls, {r:d.pick.n});
+                            c(Svg_Button, {
+                                svg: d.node[t].icon, 
+                                text: readable(t), 
+                                func: ()=> ss(d=>{ 
+                                    d.make.part(d, t, {r:d.pick.n});
                                     d.studio.panel.show = false;
-                                }),
-                            }, 
-                                c('span',{style:{fontSize:'16px'}}, ' '+readable(cls))
-                            )
+                                })
+                            })
                         )
                     ),
                 ),

@@ -49,17 +49,20 @@ export const ctx = JSON.parse(document.getElementById('ctx').text); // to get in
 
 ColorManagement.enabled = true;
 const style = getComputedStyle(document.body);
+// export const color = {
+//     color:
+// }
 export const theme = {
-    primary: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)),
+    primary: style.getPropertyValue('--bs-primary'),//new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)),
     primary_s: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertLinearToSRGB(),
     primary_l: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertSRGBToLinear(),
-    secondary: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)),
+    secondary: style.getPropertyValue('--bs-secondary'), // new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)),
     secondary_s: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertLinearToSRGB(),
     secondary_l: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertSRGBToLinear(),
     success: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)), 
     success_s: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertLinearToSRGB(), 
     success_l: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertSRGBToLinear(), 
-    info: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)),
+    info: style.getPropertyValue('--bs-info'), // new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)),
     info_s: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertLinearToSRGB(),
     info_l: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertSRGBToLinear(),
     warning: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)),

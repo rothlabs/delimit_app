@@ -1,6 +1,7 @@
 import {createElement as c, useRef, forwardRef, useState} from 'react';
 import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
 import {useS, useSub, useSubS, ss, gs, fs, sf, mf, rs, readable} from '../../app.js';
+import {Svg} from '../app/base.js';
 //import {createElement as c, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
 import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
@@ -140,7 +141,10 @@ export function Badge({n}){ // more than one reason to change but okay because i
     const t = d.n[n].t;
     //console.log('render node badge');
     return (
-        c(Boot_Badge, {className:d.node[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node[t].tag+')')
+        c(Boot_Badge, {bg:color[4]}, 
+            c(Svg, {svg:d.node[t].icon, color:'white'}),
+            (name?' '+name:'') + ' ('+d.node[t].tag+')'
+        ) //c(Boot_Badge, {className:d.node[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node[t].tag+')')
     )
 }
 

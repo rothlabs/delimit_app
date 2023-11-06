@@ -49,7 +49,6 @@ graph.insert_document([
         "@metadata":{
             "icon":{
                 "all": icon,
-                "default": "box",
                 "stem":{
                     "asset": "box",
                     "move": "arrows_move", 

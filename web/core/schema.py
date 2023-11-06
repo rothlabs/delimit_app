@@ -148,7 +148,7 @@ class Push_Pack(graphene.Mutation):
                                 nodes[r][t].append(stem)
                                 continue
                         nodes[r][t] = stem
-                        if t == 'drop' and stem == 'True':
+                        if t == 'drop' and stem == True:
                             drop_nodes.append(r)
                 graph.update_document([nodes[k] for k in nodes])
                 if len(new_nodes) > 0:
