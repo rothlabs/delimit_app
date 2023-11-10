@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <title>Delimit Graph Container</title>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <script type='importmap'>{"imports":{
+    "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie/+esm",
+    "@apollo/client/core":              "https://cdn.jsdelivr.net/npm/@apollo/client/core/+esm",
+    "@apollo/client/link/context":      "https://cdn.jsdelivr.net/npm/@apollo/client/link/context/+esm",
+    "immer":                            "https://cdn.jsdelivr.net/npm/immer/+esm"
+  }}</script>
+</head>
+
+<body>
+  <div id='app'>
+    Graph Container
+  </div>
+  <script src='{% static "graph/app.js" %}' type='module'></script>
+</body>
+
+</html>
+
+
+<!--
+    "three":                            "https://cdn.jsdelivr.net/npm/three/+esm"
+-->

@@ -21,8 +21,10 @@ export function Toolbar(){
     const mode_buttons = [
         {name:' Design',  icon:'bi-pencil-square',  value:'design', disabled:design_part==null},
         {name:' Graph',   icon:'bi-diagram-3',      value:'graph',  disabled:false},
+        {name:' Code',    icon:'bi-braces',         value:'code',   disabled:false},
     ];
     const tools = [Make, Inspect, History, Visual, Pick, Draw, Move]; //Group
+    //console.log('render toolbar', mode);
     return(
         c(Fragment,{},
             c(ButtonGroup, {className:'position-absolute top-0 start-50 translate-middle-x mt-3', style:{zIndex: 1}}, 
@@ -34,9 +36,11 @@ export function Toolbar(){
                         value: button.value,
                         checked: mode == button.value,
                         onChange:e=> ss(d=>{
-                            d.studio.mode=e.currentTarget.value
-                            if(d.studio.mode=='design') d.design.show(d); // should this be in NEXT statement ?!?!?!?!?!
-                            d.next('design.update'); 
+                            d.studio.mode = e.currentTarget.value
+                            if(d.studio.mode=='design'){
+                                d.design.show(d); // should this be in NEXT statement ?!?!?!?!?!
+                                d.next('design.update'); 
+                            }
                         }),
                         disabled: button.disabled,
                         className: button.icon,
@@ -47,6 +51,29 @@ export function Toolbar(){
                 c(ButtonToolbar,{className:'gap-3 p-2'}, // use ButtonToolbar here instead?
                     ...tools.map(tool => c(tool))
                 ),
+                // c(Button,{
+                //     onClick:e=>{
+                //         //document.getElementById('graph_container').contentWindow.postMessage('please work');
+                //         //postMessage('Message from core app', 'https://graph.delimit.art/')
+                //         window.addEventListener(
+                //             "message",
+                //             (event) => {
+                //                 console.log('core got a response!!!');
+                //               // Do we trust the sender of this message?  (might be
+                //               // different from what we originally opened, for example).
+                //               if (event.origin !== 'https://graph.delimit.art') return;
+                //                 console.log(event.data);
+                          
+                //               // event.source is popup
+                //               // event.data is "hi there yourself!  the secret response is: rheeeeet!"
+                //             },
+                //             false,
+                //           ); 
+                //           document.getElementById('graph_container').contentWindow.postMessage('Message from core app with weird target', 'https://graph.delimit.art');
+                //     }
+                // },
+                //     'Test Frame'
+                // )
             ),
             c('div', {className:'position-absolute bottom-0 start-50 translate-middle-x mb-3 d-grid gap-2 col-4 mx-auto'},
                 mode=='graph' && design_candidate && c(Button, {

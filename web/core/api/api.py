@@ -1,51 +1,22 @@
 import os, time, requests, json
 import graphene
-from graphene_django import DjangoObjectType
-from django.contrib.auth.models import User
 from core.models import make_id
 from django.contrib.auth import authenticate, login, logout
-from terminusdb_client import Client
-from terminusdb_client import WOQLQuery as wq
 from django.conf import settings
-#from graphene_file_upload.scalars import Upload  # for uploading files like 3d models
-#from django.db import connection  # for raw SQL on relational db
+from graph import graph
+from terminusdb_client import WOQLQuery as wq
+from core.api.login import Login
+from core.api.logout import Logout
+from core.api.open_assets import Open_Assets
+from core.api.push_assets import Push_Assets
+from core.api.replace_schema import Replace_Schema
+from core.api.types import Authenticated_User_Type, Pack_Type
 
 GRAPH = settings.GRAPH
-os.system('nc -4 -vz '+GRAPH['host']+' '+GRAPH['socket_port']) # trigger terminusdb.socket
-graph = Client('http://'+GRAPH['host']+':'+GRAPH['port']+'/')
-for i in range(0, 20):
-    print('Connecting terminus.')
-    try:
-        graph.connect(team=GRAPH['user'], password=GRAPH['password'], db=GRAPH['database'])
-        break
-    except:
-        print('Failed to connect terminus.')
-        time.sleep(.25)
-graph_schema = json.loads(requests.get(
+graph.schema = json.loads(requests.get(
     'http://'+GRAPH['user']+':'+GRAPH['password']+'@'+GRAPH['host']+':'+GRAPH['port']
     +'/api/schema/'+GRAPH['user']+'/'+GRAPH['database']
 ).text)
-
-admin_classes = {} 
-for k in graph_schema:
-    if '@inherits' in graph_schema[k]:
-        if 'Admin' == graph_schema[k]['@inherits'] or 'Admin' in graph_schema[k]['@inherits']:
-            admin_classes[k] = True
-
-class Authenticated_User_Type(DjangoObjectType):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email',)
-class User_Type(DjangoObjectType):
-    class Meta:
-        model = User
-        fields = ('id', 'first_name',)
-class Pack_Type(graphene.ObjectType):
-    data = graphene.String()
-    def __init__(self, data): 
-        self.data = data
-    def resolve_data(self, info): 
-        return json.dumps(self.data)
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
@@ -57,8 +28,8 @@ class Query(graphene.ObjectType):
             return None
     def resolve_schema(root, info):
         try:
-            sub_schema = graph_schema.copy()
-            for k in ['@context', 'Open_Pack', 'Poll_Pack']: # 'Boolean', 'Integer', 'Decimal', 'String', 
+            sub_schema = graph.schema.copy()
+            for k in ['@context']: # 'Open_Assets', 'Poll_Pack' 'Boolean', 'Integer', 'Decimal', 'String', 
                 del sub_schema[k]
             return Pack_Type(data = sub_schema)
         except Exception as e: 
@@ -66,137 +37,28 @@ class Query(graphene.ObjectType):
             print(e)
         return None
 
-class Open_Pack(graphene.Mutation):
-    class Arguments:
-        depth = graphene.Int()
-        ids = graphene.List(graphene.ID)
-        include = graphene.List(graphene.List(graphene.String)) # must include nodes that use these atoms with these values 
-        exclude = graphene.List(graphene.List(graphene.String)) # must exclude nodes that use these atoms with these values
-    pack = graphene.Field(Pack_Type)
-    reply = graphene.String(default_value = 'Failed to open pack.')
-    @classmethod
-    def mutate(cls, root, info, depth, ids, include, exclude): # offset, limit for pages
-        try:
-            user = info.context.user
-            triples = []
-            if user.is_authenticated: 
-                user_id = wq().string(user.id)
-                triples += wq().woql_and(
-                    wq().triple('v:root', 'rdf:type', '@schema:User'),
-                    wq().triple('v:root', '@schema:user', user_id),
-                    wq().triple('v:root', 'v:tag', 'v:stem'),
-                ).execute(graph)['bindings']
-                triples += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
-                    wq().triple('v:user', 'rdf:type', '@schema:User'),
-                    wq().triple('v:user', '@schema:user', user_id),
-                    wq().triple('v:user', '@schema:asset', 'v:root'),
-                    wq().triple('v:root', '@schema:drop', wq().boolean(False)),
-                    wq().triple('v:root', 'v:tag', 'v:stem'),
-                ).execute(graph)['bindings']           
-            return Open_Pack(pack=Pack_Type(data={'list':triples}), reply='Assets Opened')
-        except Exception as e: 
-            print('Open_Pack Error: ')
-            print(e)
-        return Open_Pack()
-
-class Push_Pack(graphene.Mutation):
-    class Arguments:
-        triples = graphene.String()
-        clientInstance = graphene.String()
-    reply = graphene.String(default_value = 'Failed to save.')
-    @classmethod
-    def mutate(cls, root, info, triples, clientInstance):
-        try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            reply='Saved'
-            user = info.context.user
-            if user.is_authenticated: 
-                triples = json.loads(triples)['list']
-                user_triples = wq().woql_and(
-                    wq().triple('v:root', 'rdf:type', '@schema:User'),
-                    wq().triple('v:root', '@schema:user', wq().string(user.id)),
-                ).execute(graph)['bindings']
-                user_node = graph.get_document(user_triples[0]['root'])
-                new_nodes = []
-                drop_nodes = []
-                nodes = {} 
-                for triple in triples:
-                    r = triple['root']
-                    if triple['tag'] == 'class':
-                        nodes[r] = {'@id':r}
-                        try: # exists 
-                            node = graph.get_document(r)
-                            nodes[r]['@type'] = node['@type'] # force type to existing node
-                            if not r in user_node['asset']:
-                                del nodes[r]
-                        except: # not exits
-                            nodes[r]['@type'] = triple['stem'] 
-                            new_nodes.append(r) 
-                        if nodes[r]['@type'] in admin_classes:
-                            del nodes[r]
-                for triple in triples:
-                    if triple['tag'][:4] == 'tag:':
-                        r = triple['root']
-                        if not r in nodes:
-                            continue
-                        clss = nodes[r]['@type']
-                        t = triple['tag'][4:]
-                        stem = triple['stem']
-                        if '@class' in graph_schema[clss][t]:
-                            if graph_schema[clss][t]['@type'] == 'Set' or graph_schema[clss][t]['@type'] == 'List':
-                                if not isinstance(nodes[r][t], list): 
-                                    nodes[r][t] = []
-                                nodes[r][t].append(stem)
-                                continue
-                        nodes[r][t] = stem
-                        if t == 'drop' and stem == True:
-                            drop_nodes.append(r)
-                graph.update_document([nodes[k] for k in nodes])
-                if len(new_nodes) > 0:
-                    user_node['asset'].extend(new_nodes)
-                    graph.update_document(user_node)
-                if len(drop_nodes) > 0:
-                    graph.delete_document(drop_nodes)
-            else: 
-                reply = 'Sign-in required.'
-            return Push_Pack(reply=reply) 
-        except Exception as e: 
-            print('Push_Pack Error: ')
-            print(e)
-        return Push_Pack()
-
-
-class Login(graphene.Mutation):
-    class Arguments:
-        username = graphene.String(required=True)
-        password = graphene.String(required=True)
-    user = graphene.Field(User_Type)
-    reply = graphene.String(default_value = 'Failed to sign in.')
-    @classmethod
-    def mutate(cls, root, info, username, password):
-        user = authenticate(username=username, password=password)
-        if user: 
-            login(info.context, user)
-            return Login(reply='Welcome ' + user.first_name, user=user)
-        return Login()
-        
-class Logout(graphene.Mutation):
-    user = graphene.Field(User_Type)
-    reply = graphene.String(default_value = 'Failed to sign out.')
-    @classmethod
-    def mutate(cls, root, info):
-        if info.context.user.is_authenticated: 
-            user = info.context.user
-            logout(info.context)
-            return Logout(reply='Farewell '+user.first_name, user=user)
-        return Logout()
-
 class Mutation(graphene.ObjectType):
     login = Login.Field()
     logout = Logout.Field()
-    openPack = Open_Pack.Field()
-    pushPack = Push_Pack.Field()
+    openPack = Open_Assets.Field()
+    pushPack = Push_Assets.Field()
+    replaceSchema = Replace_Schema.Field()
 
-schema = graphene.Schema(query=Query, mutation=Mutation)
+api = graphene.Schema(query=Query, mutation=Mutation)
+
+
+
+# admin_classes = {} 
+# for k in graph.schema:
+#     if '@inherits' in graph.schema[k]:
+#         if 'Admin' == graph.schema[k]['@inherits'] or 'Admin' in graph.schema[k]['@inherits']:
+#             admin_classes[k] = True
+
+
+#from terminusdb_client import Client
+#from graphene_file_upload.scalars import Upload  # for uploading files like 3d models
+#from django.db import connection  # for raw SQL on relational db
+
 
 
             # triples = wq().woql_and(
@@ -206,15 +68,15 @@ schema = graphene.Schema(query=Query, mutation=Mutation)
             #     #     wq().triple('v:root', '@schema:view', 'v:stem'),
             #     # ),
             #     wq().triple('v:root', 'v:tag', 'v:stem'),
-            # ).execute(graph)['bindings']
+            # ).execute(graph.client)['bindings']
             # triples += wq().select('v:root', 'v:tag', 'v:stem').woql_and(
             #     wq().triple('v:public', 'rdf:type', '@schema:Public'),
             #     wq().triple('v:public', '@schema:view', 'v:root'),
             #     wq().triple('v:root', 'v:tag', 'v:stem'),
-            # ).execute(graph)['bindings'] # might not return bindings if nothing found?! #1
+            # ).execute(graph.client)['bindings'] # might not return bindings if nothing found?! #1
 
-#exclude_classes = ['Open_Pack', 'Poll_Pack'] # 'Boolean', 'Integer', 'Decimal', 'String', 
-#triples = graph.get_all_documents(graph_type='schema', as_list=True)[1:] 
+#exclude_classes = ['Open_Assets', 'Poll_Pack'] # 'Boolean', 'Integer', 'Decimal', 'String', 
+#triples = graph.client.get_all_documents(graph_type='schema', as_list=True)[1:] 
 #triples = filter(lambda n: n['@id'] not in exclude_classes, triples)
 #return Pack_Type(data = {'list':list(triples)}) 
 

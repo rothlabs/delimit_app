@@ -15,7 +15,8 @@ export const Atom = memo(function Atom({n}){
     const pick = useS(d=> d.n[n].pick.pick); //const pick = useD(d=> d.selection.includes(n));
     //const hover = useS(d=> d.n[n].hover);
     //const color = useMemo(()=> pick||hover? theme.primary : theme.secondary, [pick, hover]);
-    const val = useS(d=> ''+d.n[n].v);
+    let val = useS(d=> ''+d.n[n].v);
+    if(val.length > 24) val = val.substring(0, 24);
     //const tag = useS(d=> d.n[n].t); //d.tag(n)
     //const pos = useS(d=> d.n[n].graph.pos); // can i remove?!!!
     useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 

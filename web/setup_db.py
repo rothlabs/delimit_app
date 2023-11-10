@@ -16,6 +16,13 @@ for i in range(0, 20):
         print('Failed to connect terminus.')
         time.sleep(.25)
 
+template_code = '''
+export function compute({app, id, stem, patch}){ 
+    // node behavior 
+    return {inner, outer}; 
+}   
+'''
+
 icon = {
     'box': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box" viewBox="0 0 16 16">
         <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
@@ -23,56 +30,90 @@ icon = {
     'person': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
         <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
     </svg>''',
-    'arrows_move': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-move" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10zM.146 8.354a.5.5 0 0 1 0-.708l2-2a.5.5 0 1 1 .708.708L1.707 7.5H5.5a.5.5 0 0 1 0 1H1.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2zM10 8a.5.5 0 0 1 .5-.5h3.793l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L14.293 8.5H10.5A.5.5 0 0 1 10 8z"/>
+    # 'arrows_move': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-move" viewBox="0 0 16 16">
+    #     <path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10zM.146 8.354a.5.5 0 0 1 0-.708l2-2a.5.5 0 1 1 .708.708L1.707 7.5H5.5a.5.5 0 0 1 0 1H1.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2zM10 8a.5.5 0 0 1 .5-.5h3.793l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L14.293 8.5H10.5A.5.5 0 0 1 10 8z"/>
+    # </svg>''',
+    # 'circle_dot': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-record-circle" viewBox="0 0 16 16">
+    #     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+    #     <path d="M11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+    # </svg>''',
+    # 'bezier': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bezier2" viewBox="0 0 16 16">
+    #     <path fill-rule="evenodd" d="M1 2.5A1.5 1.5 0 0 1 2.5 1h1A1.5 1.5 0 0 1 5 2.5h4.134a1 1 0 1 1 0 1h-2.01c.18.18.34.381.484.605.638.992.892 2.354.892 3.895 0 1.993.257 3.092.713 3.7.356.476.895.721 1.787.784A1.5 1.5 0 0 1 12.5 11h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5H6.866a1 1 0 1 1 0-1h1.711a2.839 2.839 0 0 1-.165-.2C7.743 11.407 7.5 10.007 7.5 8c0-1.46-.246-2.597-.733-3.355-.39-.605-.952-1-1.767-1.112A1.5 1.5 0 0 1 3.5 5h-1A1.5 1.5 0 0 1 1 3.5v-1zM2.5 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm10 10a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z"/>
+    # </svg>''',
+    # 'map': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-map" viewBox="0 0 16 16">
+    #     <path fill-rule="evenodd" d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z"/>
+    # </svg>''',
+    # 'machine': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-device-ssd" viewBox="0 0 16 16">
+    #     <path d="M4.75 4a.75.75 0 0 0-.75.75v3.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75h-6.5ZM5 8V5h6v3H5Zm0-5.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Zm7 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0ZM4.5 11a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Zm7 0a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Z"/>
+    #     <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2Zm11 12V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1v-2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2a1 1 0 0 0 1-1Zm-7.25 1v-2H5v2h.75Zm1.75 0v-2h-.75v2h.75Zm1.75 0v-2H8.5v2h.75ZM11 13h-.75v2H11v-2Z"/>
+    # </svg>''',
+    'braces': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-braces" viewBox="0 0 16 16">
+        <path d="M2.114 8.063V7.9c1.005-.102 1.497-.615 1.497-1.6V4.503c0-1.094.39-1.538 1.354-1.538h.273V2h-.376C3.25 2 2.49 2.759 2.49 4.352v1.524c0 1.094-.376 1.456-1.49 1.456v1.299c1.114 0 1.49.362 1.49 1.456v1.524c0 1.593.759 2.352 2.372 2.352h.376v-.964h-.273c-.964 0-1.354-.444-1.354-1.538V9.663c0-.984-.492-1.497-1.497-1.6zM13.886 7.9v.163c-1.005.103-1.497.616-1.497 1.6v1.798c0 1.094-.39 1.538-1.354 1.538h-.273v.964h.376c1.613 0 2.372-.759 2.372-2.352v-1.524c0-1.094.376-1.456 1.49-1.456V7.332c-1.114 0-1.49-.362-1.49-1.456V4.352C13.51 2.759 12.75 2 11.138 2h-.376v.964h.273c.964 0 1.354.444 1.354 1.538V6.3c0 .984.492 1.497 1.497 1.6z"/>
     </svg>''',
-    'circle_dot': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-record-circle" viewBox="0 0 16 16">
-        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-        <path d="M11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+    'c_square': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-c-square" viewBox="0 0 16 16">
+        <path d="M8.146 4.992c-1.212 0-1.927.92-1.927 2.502v1.06c0 1.571.703 2.462 1.927 2.462.979 0 1.641-.586 1.729-1.418h1.295v.093c-.1 1.448-1.354 2.467-3.03 2.467-2.091 0-3.269-1.336-3.269-3.603V7.482c0-2.261 1.201-3.638 3.27-3.638 1.681 0 2.935 1.054 3.029 2.572v.088H9.875c-.088-.879-.768-1.512-1.729-1.512Z"/>
+        <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2Zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2Z"/>
     </svg>''',
-    'bezier': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bezier2" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M1 2.5A1.5 1.5 0 0 1 2.5 1h1A1.5 1.5 0 0 1 5 2.5h4.134a1 1 0 1 1 0 1h-2.01c.18.18.34.381.484.605.638.992.892 2.354.892 3.895 0 1.993.257 3.092.713 3.7.356.476.895.721 1.787.784A1.5 1.5 0 0 1 12.5 11h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5H6.866a1 1 0 1 1 0-1h1.711a2.839 2.839 0 0 1-.165-.2C7.743 11.407 7.5 10.007 7.5 8c0-1.46-.246-2.597-.733-3.355-.39-.605-.952-1-1.767-1.112A1.5 1.5 0 0 1 3.5 5h-1A1.5 1.5 0 0 1 1 3.5v-1zM2.5 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm10 10a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z"/>
-    </svg>''',
-    'map': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-map" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z"/>
-    </svg>''',
-    'machine': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-device-ssd" viewBox="0 0 16 16">
-        <path d="M4.75 4a.75.75 0 0 0-.75.75v3.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75h-6.5ZM5 8V5h6v3H5Zm0-5.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Zm7 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0ZM4.5 11a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Zm7 0a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Z"/>
-        <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2Zm11 12V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1v-2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2a1 1 0 0 0 1-1Zm-7.25 1v-2H5v2h.75Zm1.75 0v-2h-.75v2h.75Zm1.75 0v-2H8.5v2h.75ZM11 13h-.75v2H11v-2Z"/>
+    'diagram': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-diagram-3" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zM8.5 5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1zM0 11.5A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5v-1zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm4.5.5A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm4.5.5a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z"/>
     </svg>''',
 }
 
 graph.insert_document([
     {"@base":"iri:///delimit/", "@schema":"iri:///delimit#", "@type":"@context"},
 
-    {"@id":"Node",  "@type":"Class", "@abstract":[],
+    {"@id":"Core", "@type":"Class", "@abstract":[],
         "@metadata":{
             "icon":{
                 "all": icon,
                 "stem":{
-                    "asset": "box",
-                    "move": "arrows_move", 
+                    "code": "braces",
+                    "icon": "braces",
+                    "stem": "diagram",
+                    "class": "c_square",
                 },
-            }
+            },
         },
     },
 
+    {"@id":"Language", "@type":"Enum",
+        "@value":[
+            "JavaScript", 
+            "SVG",
+        ],
+    },
+    {"@id":"Leaf", "@type":"Enum",
+        "@value":[
+            "Booleam",
+            "Integer",
+            "Decimal",
+            "String",
+        ],
+    },
+
+    {"@id":"Node",  "@type":"Class", "@abstract":[],},
+
     {"@id":"Admin", "@type":"Class", "@abstract":[], 
-        "@inherits":"Node",
+        "@inherits": "Node",
     },
     {"@id":"Asset", "@type":"Class", "@abstract":[], 
         "@inherits": "Node",
         "drop": "xsd:boolean", 
     },
 
-    {"@id":"Open_Pack", "@type":"Class", 
-        "user": "User",
-        "node": {"@class":"Node", "@type":"Set"},
-    },
-    {"@id":"Poll_Pack", "@type":"Class", 
-        "user": "User",
-        "node": {"@class":"Node", "@type":"Set"},
-    },
+    {"@id":"Boolean", "@type":"Class", "@inherits":"Asset", "value":"xsd:boolean"},
+    {"@id":"Integer", "@type":"Class", "@inherits":"Asset", "value":"xsd:integer"},
+    {"@id":"Decimal", "@type":"Class", "@inherits":"Asset", "value":"xsd:decimal"},
+    {"@id":"String",  "@type":"Class", "@inherits":"Asset", "value":"xsd:string" },
+
+    # {"@id":"Open_Assets", "@type":"Class", 
+    #     "user": "User",
+    #     "node": {"@class":"Node", "@type":"Set"},
+    # },
+    # {"@id":"Poll_Pack", "@type":"Class", 
+    #     "user": "User",
+    #     "node": {"@class":"Node", "@type":"Set"},
+    # },
 
     {"@id":"User", "@type":"Class", 
         "@inherits": "Admin",
@@ -81,54 +122,70 @@ graph.insert_document([
         "name":  {"@class":"String", "@type":"Optional"},
         "asset": {"@class":"Asset", "@type":"Set"},
     },
-
-    {"@id":"Boolean", "@type":"Class", "@inherits":"Asset", "value":"xsd:boolean"},
-    {"@id":"Integer", "@type":"Class", "@inherits":"Asset", "value":"xsd:integer"},
-    {"@id":"Decimal", "@type":"Class", "@inherits":"Asset", "value":"xsd:decimal"},
-    {"@id":"String",  "@type":"Class", "@inherits":"Asset", "value":"xsd:string" },
-
     {"@id":"Part", "@type":"Class", "@abstract":[], 
         "@inherits": "Asset",
         "@metadata":{"default":{"name":""}},
         "name": {"@class":"String", "@type":"Optional"},
     },
+    {"@id":"Class", "@type":"Class", 
+        "@inherits": "Part",
+        "@metadata":{"icon":"c_square", "default":{"name":""}},
+        "code":     {"@class":"Code", "@type":"Optional"},
+        "stem":     {"@class":"Stem", "@type":"List"},
+        "icon":     {"@class":"Code", "@type":"Optional"},
+    },
+    {"@id":"Stem", "@type":"Class", 
+        "@inherits": "Part",
+        "@metadata":{"icon":"diagram", "enum":{"leaf":"Leaf"}, "default":{"name":""}},
+        "class":        {"@class":"Class",   "@type":"Optional"},
+        "leaf":         {"@class":"String",  "@type":"Optional"},
+        "default":      {"@class":"String",  "@type":"Optional"},
+        "max_length":   {"@class":"Decimal", "@type":"Optional"},
+        "icon":         {"@class":"Code",    "@type":"Optional"},
+    },
+    {"@id":"Code", "@type":"Class", 
+        "@inherits": "Part",
+        "@metadata":{"icon":"braces", "default":{"name":"", "code":template_code, "language":"JavaScript"}, "enum":{"language":"Language"}},
+        "code":     {"@class":"String", "@type":"Optional"},
+        "language": {"@class":"String", "@type":"Optional"},
+    },
 
-    {"@id":"Case", "@type":"Class", 
-        "@inherits": "Part", 
-        "@metadata":{"icon":"arrows_move"},
-        "part": {"@class":"Part",    "@type":"Optional"},
-        "case": {"@class":"Case",    "@type":"Optional"},
-        "move": {"@class":"Vector",  "@type":"Optional"},
-        "turn": {"@class":"Vector",  "@type":"Optional"},
-        "axis": {"@class":"Vector",  "@type":"Optional"},
-        "up":   {"@class":"Vector",  "@type":"Optional"},
-        "spin": {"@class":"Decimal", "@type":"Optional"},
-    },
-    {"@id":"Vector", "@type":"Class", 
-        "@inherits": "Part",
-        "@metadata":{"icon":"circle_dot", "default":{"x":0, "y":0, "z":0}},
-        "x": {"@class":"Decimal", "@type":"Optional"},
-        "y": {"@class":"Decimal", "@type":"Optional"},
-        "z": {"@class":"Decimal", "@type":"Optional"},
-    },
-    {"@id":"Curve", "@type":"Class", 
-        "@inherits": "Part",
-        "@metadata":{"icon":"bezier"},
-        "part":   {"@class":"Part", "@type":"List"},
-        "mix":    {"@class":"Part", "@type":"Set"}, 
-        "radius": {"@class":"Decimal", "@type":"Optional"},
-    },
-    {"@id":"Surface", "@type":"Class", 
-        "@inherits": "Part",
-        "@metadata":{"icon":"map"}, 
-        "part":  {"@class":"Part", "@type":"List"},
-        "guide": {"@class":"Part", "@type":"Set"},
-    },
-    {"@id":"Machine", "@type":"Class", 
-        "@inherits": "Part",
-        "@metadata":{"icon":"machine"}, 
-        "origin": {"@class":"Vector", "@type":"Optional"},
-    },
+    # {"@id":"Case", "@type":"Class", 
+    #     "@inherits": "Part", 
+    #     "@metadata":{"icon":"arrows_move"},
+    #     "part": {"@class":"Part",    "@type":"Optional"},
+    #     "case": {"@class":"Case",    "@type":"Optional"},
+    #     "move": {"@class":"Vector",  "@type":"Optional"},
+    #     "turn": {"@class":"Vector",  "@type":"Optional"},
+    #     "axis": {"@class":"Vector",  "@type":"Optional"},
+    #     "up":   {"@class":"Vector",  "@type":"Optional"},
+    #     "spin": {"@class":"Decimal", "@type":"Optional"},
+    # },
+    # {"@id":"Vector", "@type":"Class", 
+    #     "@inherits": "Part",
+    #     "@metadata":{"icon":"circle_dot", "default":{"x":0, "y":0, "z":0}},
+    #     "x": {"@class":"Decimal", "@type":"Optional"},
+    #     "y": {"@class":"Decimal", "@type":"Optional"},
+    #     "z": {"@class":"Decimal", "@type":"Optional"},
+    # },
+    # {"@id":"Curve", "@type":"Class", 
+    #     "@inherits": "Part",
+    #     "@metadata":{"icon":"bezier"},
+    #     "part":   {"@class":"Part", "@type":"List"},
+    #     "mix":    {"@class":"Part", "@type":"List"}, 
+    #     "radius": {"@class":"Decimal", "@type":"Optional"},
+    # },
+    # {"@id":"Surface", "@type":"Class", 
+    #     "@inherits": "Part",
+    #     "@metadata":{"icon":"map"}, 
+    #     "part":  {"@class":"Part", "@type":"List"},
+    #     "guide": {"@class":"Part", "@type":"List"},
+    # },
+    # {"@id":"Machine", "@type":"Class", 
+    #     "@inherits": "Part",
+    #     "@metadata":{"icon":"machine"}, 
+    #     "origin": {"@class":"Vector", "@type":"Optional"},
+    # },
 ], graph_type='schema', full_replace=True)
 
 

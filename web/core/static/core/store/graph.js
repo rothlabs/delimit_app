@@ -17,6 +17,7 @@ export const create_graph_slice = (set,get)=>({graph:{
 
         d.graph.n_vis={ // n_vis
             ...Object.fromEntries(d.node_classes.map(t=>[t,true])),
+            ...Object.fromEntries(Object.keys(d.terminal_classes).map(t=>[t,false])),
             //switch:false, integer:false, decimal:false, text:false, point:false,
             //public:false, 
         };
@@ -189,7 +190,7 @@ export const create_graph_slice = (set,get)=>({graph:{
         return result;
     },
     set(d, n, a){
-        if(d.n[n].n){
+        if(d.graph.ex(d, n) && d.n[n].n){//!d.terminal_classes[d.n[n].t]){ //if(d.n[n].n){ 
             Object.entries(a).forEach(([t,v],i)=>{
                 if(d.n[n].n[t]){
                     d.for(v, (v,o)=> d.graph.sv(d, d.n[n].n[t][o], v));

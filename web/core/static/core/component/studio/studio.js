@@ -3,7 +3,72 @@ import {Canvas, useThree} from '@react-three/fiber';
 import {Toolbar} from '../toolbar/toolbar.js';
 import {useS, gs, ss, rs, use_query, use_mutation, client_instance, static_url} from '../../app.js';
 import {Viewport} from './viewport.js';
+import {Code} from './code.js';
 import {Panel} from '../panel/panel.js';
+
+// useLazyQuery!!!
+// https://www.apollographql.com/docs/react/data/queries
+
+
+//document.getElementById('sandbox').contentWindow.postMessage();
+
+// window.addEventListener(
+//     "message",
+//     (event) => {
+//         console.log(event);
+//       //if (event.origin !== "http://example.org:8080") return;
+  
+//       // …
+//     },
+//     false,
+// );
+
+
+// const getGeneratedPageURL = ({ html, css, js }) => {
+//     const getBlobURL = (code, type) => {
+//       const blob = new Blob([code], { type });
+//       return URL.createObjectURL(blob)
+//     }
+  
+//     const cssURL = getBlobURL(css, 'text/css');
+//     const jsURL = getBlobURL(js, 'text/javascript');
+  
+//     const source = `
+//       <html>
+//         <head>
+//           ${css && `<link rel="stylesheet" type="text/css" href="${cssURL}" />`}
+//           ${js && `<script src="${jsURL}"></script>`}
+//         </head>
+//         <body>
+//           ${html || ''}
+//         </body>
+//       </html>
+//     `
+  
+//     return getBlobURL(source, 'text/html')
+//   }
+  
+//   const url = getGeneratedPageURL({
+//     html: '<p>Hello, world!</p>',
+//     css: 'p { color: blue; }',
+//     js: `
+//     console.log("hiiiiiiiiiiiiiii");
+
+//     `
+//   })
+  
+// var sample = document.createElement('iframe');
+// sample.src = url;// __jailed__path__ + '_frame.html';
+// sample.sandbox = 'allow-scripts';//perm.join(' ');
+// //sample.style.display = 'none';
+// document.body.appendChild(sample);
+//   //const iframe = document.getElementById('sandbox'); //document.querySelector('#iframe')
+//   //iframe.src = url;
+  
+
+
+
+
 
 const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
 const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
@@ -18,20 +83,25 @@ export function Studio(){
             //ready && c(Poll), 
             c(Toolbar),
             c(Panel),
-            c(Canvas_Viewport),
+            c(Workspace),
         )
     )
 }
 
-export function Canvas_Viewport(){
+export function Workspace(){
     const cursor = useS(d=> d.studio.cursor);
-    return(
-        c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
-            c(Canvas,{orthographic:true, camera:{far:10000}, }, //, far:10000 zoom:1    //frameloop:'demand', 
-                c(Viewport),
+    const mode = useS(d=> d.studio.mode);
+    if(mode == 'code'){
+        return c(Code);
+    }else{
+        return(
+            c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
+                c(Canvas,{orthographic:true, camera:{far:10000}, }, //, far:10000 zoom:1    //frameloop:'demand', 
+                    c(Viewport),
+                )
             )
         )
-    )
+    }
 }
 
 function Get_Schema(){

@@ -2,22 +2,56 @@
 import os, time, requests, json
 from terminusdb_client import Client
 from terminusdb_client import WOQLQuery as wq
+from terminusdb_client.woqlquery import Doc 
 
 os.system('nc -4 -vz localhost 3636') # connect to terminus socket
-graph = Client('http://localhost:6363/')
+gdb = Client('http://localhost:6363/')
 for i in range(0, 20):
     print('Connecting terminus.')
     try:
-        graph.connect(team='admin', password='root', db='delimit')
+        gdb.connect(user='admin', password='root') # , db='delimit'
         break
     except:
         print('Failed to connect terminus.')
         time.sleep(.25)
 
+print(gdb.get_databases())
+
+gdb.set_db('delimit')
+
+print('Schema: ')
+result = gdb.get_all_documents(graph_type='schema')
+#print('\n'.join(map(str,result)))
+print('\n'.join(map(str, filter(lambda n: not (('@id' in n) and (n['@id'] in ['Node'])), result))))
+
+# myString = wq().string('sammy')
+# #query = wq().triple('v:named_node', '@schema:name', myString)
+# query = wq().insert_document(Doc({"@type":"Vector", "x":"4"})) # Decimal/qpwdngitcfkeldaz
+# print(query)#print(query.to_json())
+# result = query.execute(graph)
+
+
+
+# print('Get all roots and stems via any list.')
+# query = wq().path('v:root', 'rdf:rest*,rdf:first', 'v:stem', 'v:hope')
+# result = query.execute(graph)
+# print(result)
+
+#user = graph.get_document('User/7WogT0PW39UjmnTE')
+# assets = []
+# for asset in user['asset']:
+#     print(asset)
+#     if not '@id' in asset: assets.append(asset)
+# user['asset'] = assets
+# graph.update_document(user)
+
+
+
 # graph.update_document([
 #     {'@id': 'String/Ecu49XS2xeh3y0XC', '@type': 'String', 'value': 'Julian', 'drop':False},
 #     {'@id': 'Vector/Fozw06RB8FpmR0Fa', '@type': 'Vector', 'x': 'Decimal/kpFzKeu3GStXYb5W', 'y': 'Decimal/ig4Gqy4FpqOw8PZr', 'z': 'Decimal/sSieDnnYLWI5ImKv', 'drop':False},
 # ])
+
 
 # graph.delete_document([
 #     {'@id':'Public/L__y3Su-ZftsTH5p'},
@@ -76,9 +110,7 @@ for i in range(0, 20):
 # nodes = [triple['root'] for triple in triples]
 # graph.delete_document(nodes)
 
-print('All Documents: ')
-result = graph.get_all_documents(graph_type='instance')
-print('\n'.join(map(str, result)))
+
 
 # print('Get Document: ')
 # triples = wq().woql_and(
@@ -98,7 +130,7 @@ print('\n'.join(map(str, result)))
 # print(user_node)
 
 
-# exclude_id = ['Open_Pack', 'Drop_Pack']
+# exclude_id = ['Open_Assets', 'Drop_Pack']
 # data = graph.get_all_documents(graph_type='schema', as_list=True)[1:]
 # data = filter(lambda n: n['@id'] not in exclude_id, data)
 # print('test data')
@@ -236,7 +268,7 @@ print('\n'.join(map(str, result)))
 # results = graph.get_document('')
 # print(results)
 
-print('done')
+
 
 
 

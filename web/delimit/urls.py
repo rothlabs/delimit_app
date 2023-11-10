@@ -20,12 +20,11 @@ from django.conf.urls.static import static
 #from ajax_select import urls as ajax_select_urls
 
 urlpatterns = [
-    path('', include('core.urls')),
-    #path('catalog/', include('catalog.urls')),
-    #path('easel/', include('easel.urls')),
-    path('admin/', admin.site.urls),
+    path(r'', include('core.urls')),
+    path(r'admin/', admin.site.urls),
+    path(r'silk/', include('silk.urls', namespace='silk'))
     #url(r'^ajax_select/', include(ajax_select_urls)),
     #url(r'^admin/', include(admin.site.urls)),
 ]# + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) # FOR LOCAL TESTING ONLY: https://docs.djangoproject.com/en/4.1/howto/static-files/#serving-files-uploaded-by-a-user-during-development
 
-urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
+#urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

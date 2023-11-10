@@ -8,9 +8,6 @@ var next_funcs = [];
 var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
-    n: {}, // all nodes stored here by ID 
-    stem: {},
-
     terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
     asset_classes: [],
     admin_classes: [],
@@ -21,41 +18,7 @@ export const create_base_slice = (set,get)=>({
     integer_tags: [],
     decimal_tags: [],
     string_tags:  [],
-
-
-    // node_css:{
-    //     'public':         'bi-globe-americas',
-    //     'user':        'bi-person',
-    //     'boolean':         'bi-123', 
-    //     'integer':        'bi-123',
-    //     'decimal':        'bi-123',
-    //     'string':           'bi-type',
-    //     'point':          'bi-record-circle',
-    //     'curve':          'bi-bezier2',
-    //     'ellipse':        'bi-circle',
-    //     'sketch':         'bi-easel2',
-    //     //'group':          'bi-box-seam',
-    //     'transform':      'bi-arrows-move',
-    //     'top_view':       'bi-camera-reels',
-    //     'side_view':      'bi-camera-reels',
-    //     'face_camera':    'bi-camera-reels',
-    //     'auxiliary':      'bi-binoculars',
-    //     'manual_compute': 'bi-cpu',
-    //     'product':        'bi-bag',
-    //     'surface':        'bi-map',
-    //     'shape':          'bi-pentagon',
-    //     'layer':          'bi-layers',
-    //     'image':          'bi-image',
-    //     'slice':          'bi-rainbow',
-    //     'fill':           'bi-cloud-fog2-fill',
-    //     'corner':         'bi-triangle',
-    //     'post':           'bi-code',
-    //     'brush':          'bi-brush',
-    //     'stroke':         'bi-slash-lg',
-    //     'machine':        'bi-device-ssd',
-    //     'mix':            'bi-bezier',
-    //     'guide':          'bi-bezier2',
-    // },
+    enum: {},
 
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
@@ -64,19 +27,13 @@ export const create_base_slice = (set,get)=>({
     easel_size: 400,
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
     scene: null,
-    //base_texture: base_texture,
-    //rapid_res: 0.5,
 
-    
-    //t:    {},
-    //t_id: {},
-    //cats: {},
-    user_id: 0,
+    n: {}, // all nodes stored here by ID 
+    stem: {},
     user: null,
-    //public: null,
+    user_id: 0,
     search: {depth:null, ids:null},
     studio: {
-        //schema_ready: false,
         ready: false,
         mode: 'graph',
         panel: {},
@@ -89,26 +46,6 @@ export const create_base_slice = (set,get)=>({
         );
         d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
         d.base_texture.anisotropy = 16;
-
-        // for (const [t, n] of Object.entries(d.node)) {
-        //     if(n.subject) d.add(d.asset_classes, t);
-        //     d.add(d.stem_tags, t);
-        //     if(n.stem) for(const t of n.stem) d.add(d.stem_tags, t);
-        //     if(n.bool) for(const t of Object.keys(n.bool)) d.add(d.boolean_tags, t);
-        //     if(n.int) for(const t of Object.keys(n.int)) d.add(d.integer_tags, t);
-        //     if(n.float) for(const t of Object.keys(n.float)) d.add(d.decimal_tags, t);
-        //     if(n.string) for(const t of Object.keys(n.string)) d.add(d.string_tags, t);
-        //     if(n.common_bool) for(const t of Object.keys(n.common_bool)) d.add(d.boolean_tags, t);
-        //     if(n.common_int) for(const t of Object.keys(n.common_int)) d.add(d.integer_tags, t);
-        //     if(n.common_float) for(const t of Object.keys(n.common_float)) d.add(d.decimal_tags, t);
-        //     if(n.common_string) for(const t of Object.keys(n.common_string)) d.add(d.string_tags, t);
-        // }
-        // d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
-        // d.node_classes = [...d.asset_classes, ...d.admin_classes];
-
-        //d.node.init(d);
-        //d.make.init(d);
-        //d.graph.init(d); //d.node.init(d);
     },
 
     add(array, item){ // static upgrade to do deep compare to find same object ?!?!?!?!
@@ -183,22 +120,27 @@ export const create_base_slice = (set,get)=>({
 
     receive_schema(d, schema){
         console.log('receive_schema');
-        console.log(schema);
-        const icon = schema['Node']['@metadata']['icon'];
+        //console.log(schema);
+        const icon = schema['Core']['@metadata']['icon'];
         for(const [Cls, n] of Object.entries(schema)){
-            if(n['@abstract']) continue
             const cls = Cls.toLowerCase();
+            if(n['@type'] == 'Enum'){
+                d.enum[cls] = n['@values'];
+                continue;
+            }
+            if(n['@abstract'] || n['@type'] != 'Class') continue;
             if(n['@inherits'].includes('Asset')) d.add(d.asset_classes, cls);
             if(n['@inherits'].includes('Admin')) d.add(d.admin_classes, cls);
             if(!d.node[cls]) d.node[cls] = {};
             const node = d.node[cls];
             node.tag = readable(cls);
-            node.icon = icon.all[n['@metadata']?.icon ?? 'box'];//static_url+'icon/node/'+cls+'.svg';
+            node.icon = icon.all[n['@metadata']?.icon];//static_url+'icon/node/'+cls+'.svg';
+            node.icon = node.icon ?? icon.all['box'];
             //node.css  = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
             if(!node.stem) node.stem = {};
             for(const [t, s] of Object.entries(n)){
                 if(t.charAt(0) == '@') continue
-                const cls = d.as_array(s['@class'] ?? s).map(cls=> cls.toLowerCase());
+                const cls = d.as_array(s['@class'] ?? s).map(cls=> cls.toLowerCase()); // need to check if it is type enum and skip #1
                 node.stem[t] = {
                     class: cls,
                     type:  (s['@type'] ?? 'Required').toLowerCase(),
@@ -222,86 +164,38 @@ export const create_base_slice = (set,get)=>({
         d.node_classes = [...d.asset_classes, ...d.admin_classes];
         d.graph.init(d);
         d.studio.ready = true;
+        console.log('node and stem info!!!!!!!!!!!!!!!!!');
         console.log(current(d.node));
+        console.log(current(d.stem));
     },
 
 
     send(d, patches){ // change to send patches directly to server (filtering for patches that matter)
-        //console.log('patches');
-        //console.log(patches); // auto merges patches into mutations state slice 
-        /////const edits = {atoms:[[],[],[],[]], b:[], i:[], f:[], s:[], parts:[], t:[], pdel:[],bdel:[],idel:[],fdel:[],sdel:[]};
-        //////const no_edits = JSON.stringify(edits).split('').sort().join();
-        //const appends = {};
         const nodes = [];
-        ////const atoms = [];
-        /////const deleted_nodes = [];
-
-        //const args = {triples:[]};
-
         patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
             if(patch.path[0]=='n'){
                 const n = patch.path[1];
                 if(patch.op == 'add'){ 
-                    //console.log(n, patch);
                     if(patch.path.length == 2){ // node created  if(patch.path[0]=='n' && patch.path.length < 3){
                         d.add(nodes, n);
-                        // if(d.terminal_classes.includes(d.n[n].t)){//if(d.n[n].m=='p'){
-                        //     //console.log('push atom');
-                        //     //console.log(patch.value.v);
-                        //     //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
-                        //     //edits[d.n[n].m].push(patch.value.v); 
-                        //     atoms.push({n:n, v:patch.value.v});
-                        // }else{
-                        //     d.add(parts,n);
-                        // }
-
-                    }else if(patch.path[2] == 'n'){ // this should be removed, always just set the part if it has changed   need to check if already modified this one (merge patches)
+                    }else if(patch.path[2] == 'n'){ // stem added
                         d.add(nodes, n);
-                        // //console.log('add '+patch.path[3]+' to '+d.n[n].t);
-                        // if(!appends[n]){ appends[n] = {
-                        //     part: [[n],        [], [], [], [], [], ['append']],
-                        //     tags: [[d.n[n].t], [], [], [], [], []]
-                        // }}
-                        // var nid = patch.value;
-                        // if(Array.isArray(nid)) nid = nid[0]; // could be a single element array if new edge tag
-                        // const mi = ['r','p','b','i','f','s'].indexOf(d.n[nid].m);
-                        // appends[n].part[mi].push(nid);
-                        // appends[n].tags[mi].push(patch.path[3]);
                     }
                 }else if(patch.op == 'replace'){ 
-                    if(patch.path[2]=='n'){
-                        //console.log('remove at',n);
+                    if(patch.path[2]=='n'){ // stems replaced
                         d.add(nodes, n);
-                    }else if(patch.path[2]=='v'){ // atom has changed
+                    }else if(patch.path[2]=='v'){ // terminal value changed
                         d.add(nodes, n);
-                        //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
-                        //edits[d.n[n].m].push(patch.value);
-                        //atoms.push({n:n, v:patch.value});
                     }else if(patch.path[2]=='drop'){
                         d.add(nodes, n);
-                        // if(patch.value==true){
-                        //     edits[d.n[n].m+'del'].push(n);
-                        //     deleted_nodes.push(n);
-                        // }else{
-                        //     d.add(parts, n);
-                        //     // if(d.terminal_classes.includes(d.n[n].t)){
-                        //     //     //edits.atoms[['b','i','f','s'].indexOf(d.n[n].m)].push(n); // atom id
-                        //     //     //edits[d.n[n].m].push(d.n[n].v);
-                        //     //     atoms.push({n:n, v:d.n[n].v});
-                        //     // }else{
-                        //     //     d.add(parts,n);
-                        //     // }
-                        // }
                     }
                 }else if(patch.op == 'remove'){
                     if(patch.path[2]=='n'){
-                        //console.log('remove at',n);
                         d.add(nodes, n);
                     }
                 }
             }
         });
-
         const triples = [];
         for(const n of nodes){
             if(d.admin_classes.includes(d.n[n].t)) continue; // rename to system_classes #1
@@ -316,36 +210,7 @@ export const create_base_slice = (set,get)=>({
                 });
             }
         }
-
-        //function include_part(n){ // don't set if already set!   don't set part if profile?
-        // // // parts.forEach(n=>{ // need to test with two profiles working on same asset
-        // // //     if(d.n[n].t != 'profile' && !deleted_nodes.includes(n)){
-        // // //         //console.log('send part', n, d.n[n].t);
-        // // //         const part = [[n],                [], [], [], [], []]; //, ['replace']
-        // // //         const tags = [[d.t_id[d.n[n].t]], [], [], [], [], []];
-        // // //         d.graph.for_stem(d, n, (r,n,t)=>{
-        // // //             const mi = ['r','p','b','i','f','s'].indexOf(d.n[n].m);
-        // // //             part[mi].push(n);
-        // // //             tags[mi].push(d.t_id[t]);
-        // // //         });
-        // // //         edits.parts.push(part);
-        // // //         edits.t.push(tags);
-        // // //     }
-        // // // });
-        // // // atoms.forEach(atom=>{
-        // // //     if(!deleted_nodes.includes(atom.n)){
-        // // //         edits.atoms[['b','i','f','s'].indexOf(d.n[atom.n].m)].push(atom.n); // atom id
-        // // //         edits[d.n[atom.n].m].push(atom.v);
-        // // //     }
-        // // // });
-        // Object.values(appends).forEach(append=>{ // need add and remove for d.n[n].n for BIG parts like profiles
-        //     edits.parts.push(append.part);
-        //     edits.t.push(append.tags);
-        // });
-        if(triples.length){//if(JSON.stringify(edits).split('').sort().join() != no_edits){ // might not need this check anymore
-            // console.log('Push Pack - mutate');
-            // console.log(triples);
-            // console.log(JSON.stringify({list:triples}));
+        if(triples.length){
             d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
         }
     },
@@ -362,6 +227,7 @@ export const create_base_slice = (set,get)=>({
         console.log('receive_triples');
         console.log(triples);
         for(const triple of triples){
+            if(triple.root.slice(0,5) == 'Class') console.log(triple);
             const r = triple.root; 
             if(triple.tag == 'rdf:type'){
                 if(!d.n[r]) d.n[r] = d.node_template(d, triple.stem.slice(8).toLowerCase());
@@ -396,9 +262,71 @@ export const create_base_slice = (set,get)=>({
             }
         }
         if(triples.length) d.next('graph.update');
-        console.log(current(d.n));
+        //console.log(current(d.n));
     },
     
+
+
+
+        // for (const [t, n] of Object.entries(d.node)) {
+        //     if(n.subject) d.add(d.asset_classes, t);
+        //     d.add(d.stem_tags, t);
+        //     if(n.stem) for(const t of n.stem) d.add(d.stem_tags, t);
+        //     if(n.bool) for(const t of Object.keys(n.bool)) d.add(d.boolean_tags, t);
+        //     if(n.int) for(const t of Object.keys(n.int)) d.add(d.integer_tags, t);
+        //     if(n.float) for(const t of Object.keys(n.float)) d.add(d.decimal_tags, t);
+        //     if(n.string) for(const t of Object.keys(n.string)) d.add(d.string_tags, t);
+        //     if(n.common_bool) for(const t of Object.keys(n.common_bool)) d.add(d.boolean_tags, t);
+        //     if(n.common_int) for(const t of Object.keys(n.common_int)) d.add(d.integer_tags, t);
+        //     if(n.common_float) for(const t of Object.keys(n.common_float)) d.add(d.decimal_tags, t);
+        //     if(n.common_string) for(const t of Object.keys(n.common_string)) d.add(d.string_tags, t);
+        // }
+        // d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
+        // d.node_classes = [...d.asset_classes, ...d.admin_classes];
+
+        //d.node.init(d);
+        //d.make.init(d);
+        //d.graph.init(d); //d.node.init(d);
+
+
+// node_css:{
+    //     'public':         'bi-globe-americas',
+    //     'user':        'bi-person',
+    //     'boolean':         'bi-123', 
+    //     'integer':        'bi-123',
+    //     'decimal':        'bi-123',
+    //     'string':           'bi-type',
+    //     'point':          'bi-record-circle',
+    //     'curve':          'bi-bezier2',
+    //     'ellipse':        'bi-circle',
+    //     'sketch':         'bi-easel2',
+    //     //'group':          'bi-box-seam',
+    //     'transform':      'bi-arrows-move',
+    //     'top_view':       'bi-camera-reels',
+    //     'side_view':      'bi-camera-reels',
+    //     'face_camera':    'bi-camera-reels',
+    //     'auxiliary':      'bi-binoculars',
+    //     'manual_compute': 'bi-cpu',
+    //     'product':        'bi-bag',
+    //     'surface':        'bi-map',
+    //     'shape':          'bi-pentagon',
+    //     'layer':          'bi-layers',
+    //     'image':          'bi-image',
+    //     'slice':          'bi-rainbow',
+    //     'fill':           'bi-cloud-fog2-fill',
+    //     'corner':         'bi-triangle',
+    //     'post':           'bi-code',
+    //     'brush':          'bi-brush',
+    //     'stroke':         'bi-slash-lg',
+    //     'machine':        'bi-device-ssd',
+    //     'mix':            'bi-bezier',
+    //     'guide':          'bi-bezier2',
+    // },
+
+
+
+
+
     // // receive: (d, pack)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
     // //     try{
     // //         console.log(pack);

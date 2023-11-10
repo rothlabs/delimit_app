@@ -159,7 +159,7 @@ export const create_design_slice = (set,get)=>({design:{
         if(!d.n[d.design.candidate]?.n) d.design.candidate = null;
         if(!d.graph.ex(d, d.design.part)){ // use exists/available function here?  d.design.part && !d.n[d.design.part].open
             d.design.part = null;
-            d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
+            if(d.studio.mode == 'design') d.studio.mode = 'graph'; // move to studio update? only modify this section in update!!!
         }
         d.design.mover.pos.set(0,0,0);
         d.design.mover.active_axes = [true, true, false];

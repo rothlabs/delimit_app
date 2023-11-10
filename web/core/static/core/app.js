@@ -189,7 +189,7 @@ function commit_state(arg){
             if(p.op=='add' && p.path.length==2 && p.path[0]=='n'){//console.log('replace add with replace n.id.deleted=false');
                 result = {
                     op:'replace',
-                    path: [...p.path, 'deleted'],
+                    path: [...p.path, 'drop'],
                     value:false,
                 };
                 patches_extras.push({
@@ -209,7 +209,7 @@ function commit_state(arg){
             if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){//console.log('replace remove with replace n.id.deleted=true');
                 result = {
                     op:'replace',
-                    path: [...p.path, 'deleted'],
+                    path: [...p.path, 'drop'],
                     value:true,
                 };
                 inverse_extras.push({

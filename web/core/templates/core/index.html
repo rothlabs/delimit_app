@@ -1,4 +1,5 @@
 {% load static %}
+{% load hosts %}
 <!DOCTYPE html>
 <html lang='en'>
 
@@ -26,7 +27,7 @@
   <script type='importmap'>{"imports":{
     "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
     "lodash":                           "https://cdn.jsdelivr.net/npm/lodash@4.17.21/+esm",
-    "immer":                            "https://cdn.jsdelivr.net/npm/immer@10.0.2/+esm",
+    "immer":                            "https://cdn.jsdelivr.net/npm/immer/+esm",
     "zustand":                          "https://cdn.jsdelivr.net/npm/zustand@4.4.1/+esm",
     "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand@4.4.1/middleware/+esm",
     "zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand@4.4.1/shallow/+esm",
@@ -54,7 +55,8 @@
     "@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/Grid/+esm",
     "@react-three/drei/GizmoHelper":    "https://cdn.jsdelivr.net/npm/@react-three/drei@9.88.11/core/GizmoHelper/+esm",
     "webgl-sdf-generator":              "https://cdn.jsdelivr.net/npm/webgl-sdf-generator@1.1.1/+esm",
-    "bidi-js":                          "https://cdn.jsdelivr.net/npm/bidi-js@1.0.3/+esm"
+    "bidi-js":                          "https://cdn.jsdelivr.net/npm/bidi-js@1.0.3/+esm",
+    "@monaco-editor/react":             "https://cdn.jsdelivr.net/npm/@monaco-editor/react@4.6.0/+esm"
   }}</script>
   <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
 </head>
@@ -63,12 +65,30 @@
   {{ ctx | json_script:"ctx" }}
   <div id='app'></div>
   <script src='{% static "core/app.js" %}' type='module'></script>
+  <iframe id='graph_container' sandbox='allow-scripts allow-same-origin' style="display: none;" src='{% host_url "index" host "graph" %}'></iframe>
 </body>
 
 </html>
 
 
 <!-- 
+    <link href='{% static "core/prism/prism.css" %}' rel='stylesheet' />
+    <script src='{% static "core/prism/prism.js" %}'></script>
+
+    "react-simple-code-editor":         "https://cdn.jsdelivr.net/npm/react-simple-code-editor@0.13.1/+esm",
+
+  sandbox="allow-scripts"
+
+  <iframe id='sandbox' width="200" height="200" src=''></iframe>
+
+  <iframe id='sandbox' width="1200" height="1200" url='https://example.org/'></iframe>
+<div id='app'></div>
+  <script src='' type='module'></script>
+
+url='https://delimit.art/sandbox'
+
+
+sandbox="allow-scripts allow-same-origin"
 
 
     "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",

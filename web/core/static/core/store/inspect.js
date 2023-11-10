@@ -14,6 +14,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
         //d.pick.n.forEach(n=>{
         //    d.graph.cats(d,n).forEach(t=> d.add(d.inspect.cats, t));
         //});
+        const claimed_leaf_tags = {};
 
         const node_content = d.pick.n.map(n=> d.n[n]);
         d.terminal_tags.forEach(t=>{
@@ -32,6 +33,7 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                     d.inspect.placeholder[t] = nc.map(n=>n.c[t]).join(',  ');
                 }
                 d.inspect.asset[t] = nc.some(n=> n.asset);
+                claimed_leaf_tags[t] = true;
             }else{  
                 d.inspect.content[t] = undefined;   
             }
@@ -40,12 +42,11 @@ export const create_inspect_slice = (set,get)=>({inspect:{
             const nc = node_content.filter(n=> (n.n && n.n[t]!=undefined));
             const nt = node_content.map(n=> n.t);
             d.inspect.stem[t] = [];
-            if(nc.length){ 
+            if(nc.length && !claimed_leaf_tags[t]){ 
                 d.inspect.stem[t] = nc.map(n=> n.n[t]).flat();
                 d.inspect.asset[t] = nc.some(n=> n.asset);
             }else{  
-                if(nt.some(nt=> d.node[nt]?.stem[t])){//if(nt.some(nt=> d.node[nt]?.stem?.includes(t))){
-                    //console.log(null, t, nt, current(d).node[nt]);
+                if(nt.some(nt=> d.node[nt]?.stem[t]) && !claimed_leaf_tags[t]){//if(nt.some(nt=> d.node[nt]?.stem?.includes(t))){
                     d.inspect.stem[t] = [];  
                 }else{
                     d.inspect.stem[t] = null;  
