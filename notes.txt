@@ -1,3 +1,13 @@
+add_header 'Access-Control-Allow-Origin' * always;
+
+Use this in nginx instead of location /static/ to make it protected and force routing via django fro user auth of static files
+  location /protected/ {
+        internal;
+        alias /home/julian/delimit/web/;
+    }
+
+
+
 old mixed_curve:
 ed2rcwbtfidww1mq
 bsqv7d5ao7slmvnt
