@@ -25,8 +25,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             }
         }
 
-        d.n[n].c.matrix = d.node.transform.matrix(d, d.n[n].c);
-        d.n[n].design.transform = d.node.transform.view(d, d.n[n].c);
+        // d.n[n].c.matrix = d.node.transform.matrix(d, d.n[n].c);
+        // d.n[n].design.transform = d.node.transform.view(d, d.n[n].c);
 
         if(d.n[n].v != null || node.autocalc || d.n[n].c.autocalc || a.manual){//cause.includes('manual_compute')){ //if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){ 
             if(node.part){

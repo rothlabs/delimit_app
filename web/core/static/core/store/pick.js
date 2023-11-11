@@ -44,7 +44,7 @@ export const create_pick_slice = (set,get)=>({pick:{
     update(d){
         //d.pick.n = d.pick.n.filter(n=> d.graph.ex(d,n));
         d.pick.target = null;
-        d.pick.limited = (!d.pick.n.length || d.graph.admin(d, d.pick.n));
+        d.pick.limited = !d.pick.n.length; // rename to access and specify no write if foreign db has no write by this user #1   //(!d.pick.n.length || d.graph.admin(d, d.pick.n));
         d.pick.terminal = d.pick.n.some(n=> d.terminal_classes[d.n[n].t]);
         d.pick.addable = false;
         d.pick.removable = false;

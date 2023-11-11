@@ -16,10 +16,8 @@ export const create_graph_slice = (set,get)=>({graph:{
         // }
 
         d.graph.n_vis={ // n_vis
-            ...Object.fromEntries(d.node_classes.map(t=>[t,true])),
-            ...Object.fromEntries(Object.keys(d.terminal_classes).map(t=>[t,false])),
-            //switch:false, integer:false, decimal:false, text:false, point:false,
-            //public:false, 
+            ...Object.fromEntries(Object.keys(d.node).map(t=>[t,true])), //...Object.fromEntries(d.node_classes.map(t=>[t,true])),
+            //...Object.fromEntries(Object.keys(d.terminal_classes).map(t=>[t,false])),
         };
         d.graph.e_vis={ // e_vis
             //...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),
@@ -167,9 +165,9 @@ export const create_graph_slice = (set,get)=>({graph:{
     //     });
     //     return result;
     // },
-    admin(d, n){
-        return d.as_array(n).some(n=> d.admin_classes.includes(d.n[n].t));
-    },
+    // // admin(d, n){
+    // //     return d.as_array(n).some(n=> d.admin_classes.includes(d.n[n].t));
+    // // },
     pin_pos(d, n, matrix){  // should go in transform slice?    
         if(d.graph.ex(d,n) && d.n[n]?.p?.isVector3){
             if(!d.n[n].pin.pos) d.n[n].pin.pos = new Vector3();    //const pos = d.graph.get(d, n, 'x y z');

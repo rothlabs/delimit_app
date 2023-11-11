@@ -4,25 +4,105 @@ from terminusdb_client import Client
 from terminusdb_client import WOQLQuery as wq
 from terminusdb_client.woqlquery import Doc 
 
-os.system('nc -4 -vz localhost 3636') # connect to terminus socket
+#os.system('nc -4 -vz localhost 3636') # connect to terminus socket
 gdb = Client('http://localhost:6363/')
 for i in range(0, 20):
     print('Connecting terminus.')
     try:
-        gdb.connect(user='admin', password='root') # , db='delimit'
+        gdb.connect(team='admin', user='admin', key='5c6rvgUaTups5i45d6sW82sKtOOADmL0HVu5j4RyaNXqkrtx558udQDq8nKM6mUv') 
         break
-    except:
+    except Exception as e:
         print('Failed to connect terminus.')
+        print(e)
         time.sleep(.25)
 
-print(gdb.get_databases())
+print(gdb.team)
 
-gdb.set_db('delimit')
+#print(gdb.get_organizations())
+
+# capability = {
+#   "operation": "revoke",
+#   "scope": "public",
+#   "scope_type": "organization",
+#   "user": "public",
+#   "roles": [
+#     "Consumer Role"
+#   ]
+# }
+# gdb.change_capabilities(capability)
+#gdb.delete_database('public_core', team='public')
+#gdb.delete_organization('public')
+
+#[{'@id': 'Organization/admin', '@type': 'Organization', 'database': ['SystemDatabase/system', 'UserDatabase/xkvxnGfN763qgeDV'], 'name': 'admin'}, {'@id': 'Organization/public', '@type': 'Organization', 'database': ['UserDatabase/AXc-43JIO7a1iCWt'], 'name': 'public'}]
+
+# capability = {
+#   "operation": "grant",
+#   "scope": "public",
+#   "scope_type": "organization",
+#   "user": "public",
+#   "roles": [
+#     "Consumer Role"
+#   ]
+# }
+# gdb.change_capabilities(capability)
+
+#gdb.set_db('delimit_core', team='admin') # UserDatabase/AXc-43JIO7a1iCWt
+
+
+# gdb.insert_document([
+#     {"@base":"iri:///delimit/", "@schema":"iri:///delimit#", "@type":"@context"},
+# ], graph_type='schema', full_replace=True)
+
+
+#gdb.change_user_password('admin', 'jZYdpLWDRic7RRc6')
+
+#print(gdb.get_available_roles())
+#print(gdb.get_organizations())
+print(gdb.get_users())
+
+# gdb.create_organization('public')
+# gdb.add_user('public', 'NvutG9E7NkaZ8T6w5OVcJiweLDOUp46FOgYtfVRNeYOsTBet7cITB04JYpSCiF53')
+
+# dbid="public_core"
+# label="public_core"
+# description="Public Core Database"
+# prefixes = {'@base' : 'iri:///public_core/',
+#             '@schema' : 'iri:///public_core#'}
+# team="public"
+# gdb.create_database(
+#     dbid,
+#     team,
+#     label=label,
+#     description=description,
+#     prefixes=prefixes)
+
+
 
 print('Schema: ')
 result = gdb.get_all_documents(graph_type='schema')
-#print('\n'.join(map(str,result)))
-print('\n'.join(map(str, filter(lambda n: not (('@id' in n) and (n['@id'] in ['Node'])), result))))
+print('\n'.join(map(str,result)))
+#print('\n'.join(map(str, filter(lambda n: not (('@id' in n) and (n['@id'] in ['Core'])), result))))
+print('Instance: ')
+result = gdb.get_all_documents(graph_type='instance')
+print('\n'.join(map(str,result)))
+
+
+
+
+
+
+# triples = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
+#     wq().triple('v:root', '@schema:drop', wq().boolean(False)),
+#     wq().woql_or(
+#         wq().triple('v:root', 'v:tag', 'v:stem'),
+#         wq().woql_and(
+#             wq().triple('v:root', 'v:tag', 'v:cons'),
+#             wq().path('v:cons', 'rdf:rest*,rdf:first', 'v:stem'),
+#         )
+#     ),
+# ).execute(gdb)['bindings']    
+# print(triples)
+
 
 # myString = wq().string('sammy')
 # #query = wq().triple('v:named_node', '@schema:name', myString)

@@ -53,7 +53,7 @@ export function Panel(){
                     }),
                     (['make', 'inspect_design', 'inspect_nodes'].includes(panel)) &&
                         c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
-                            limited ? c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.user})) :
+                            //limited ? c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.user})) :
                             nodes.map(n=>
                                 c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
                                     c(Badge, {n:n})

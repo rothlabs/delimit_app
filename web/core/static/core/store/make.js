@@ -11,7 +11,7 @@ export const create_make_slice = (set,get)=>({make:{
     edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
         if(!d.graph.ex(d,r) || !d.graph.ex(d,n)) return;
         //console.log('make edge 1', r, a.t, n);
-        if(d.n[r].asset || r==d.user || a.received){ // if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
+        if(d.n[r].asset || a.received){  // if(d.n[r].asset || r==d.user || a.received){     // if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
             //console.log('make edge 2', r, a.t, n);
             if(a.single && d.n[r].n[a.t]) return;
             
@@ -19,10 +19,10 @@ export const create_make_slice = (set,get)=>({make:{
             //if(d.n[r].t == 'group')  t = 'group'; 
             let t = a.t ?? d.n[n].t;//////////if(a.t != undefined) t = a.t;
             //if(d.n[r].t == 'public') t = 'viewable';
-            if(r == d.user && t == 'asset'){// t!='view'){
-                //t = 'asset';
-                d.n[n].asset = true;
-            }
+            // // // if(r == d.user && t == 'asset'){// t!='view'){
+            // // //     //t = 'asset';
+            // // //     d.n[n].asset = true;
+            // // // }
             if(!d.n[r].n[t]) d.n[r].n[t] = [];
             /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
             //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
@@ -85,7 +85,7 @@ export const create_make_slice = (set,get)=>({make:{
         // };
         d.pick.color(d, n);
         if(!d.terminal_classes[cls]) d.n[n].n={}; 
-        d.make.edge(d, d.user, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
+        ///////d.make.edge(d, d.user, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
         
         //if(a.r) d.make.edge(d, a.r, n, a); // a.r should be list?
         d.for(a.r, r=> d.make.edge(d, r, n, a));
@@ -116,10 +116,17 @@ export const create_make_slice = (set,get)=>({make:{
         return n;
     },
     atom(d, cls, v, a={}){ // just check v to figure if b, i, f, or s
-        if(a.single){
+        if(v == null){
+            if(cls == 'boolean') v = false;
+            if(cls == 'integer' || cls == 'decimal') v = 0;
+            if(cls == 'string') v = '';
+        }
+        //console.log('come on!', current(a.r));
+        if(a.single && a.r && a.r.length){
             //let r = Array.isArray(a.r) ? a.r : [a.r];
             if(d.as_array(a.r).every(r=> d.n[r].n[a.t])) return;
         }
+        //console.log('come on! 2');
         const n = d.make.node(d, cls, a); //{r:r, t:t}
         d.n[n].v = v; 
         return n;

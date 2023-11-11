@@ -3,7 +3,7 @@ import graphene
 from core.models import make_id
 from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
-from graph import graph
+from graph.database import client as gdb
 from terminusdb_client import WOQLQuery as wq
 from core.api.login import Login
 from core.api.logout import Logout
@@ -12,25 +12,27 @@ from core.api.push_assets import Push_Assets
 from core.api.replace_schema import Replace_Schema
 from core.api.types import Authenticated_User_Type, Pack_Type
 
-GRAPH = settings.GRAPH
-graph.schema = json.loads(requests.get(
-    'http://'+GRAPH['user']+':'+GRAPH['password']+'@'+GRAPH['host']+':'+GRAPH['port']
-    +'/api/schema/'+GRAPH['user']+'/'+GRAPH['database']
-).text)
+# GRAPH = settings.GRAPH
+# graph.schema = json.loads(requests.get(
+#     'http://'+GRAPH['user']+':'+GRAPH['password']+'@'+GRAPH['host']+':'+GRAPH['port']
+#     +'/api/schema/'+GRAPH['user']+'/'+GRAPH['database']
+# ).text)
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    schema = graphene.Field(Pack_Type)
+    package = graphene.Field(Pack_Type)
     def resolve_user(root, info):
         if info.context.user.is_authenticated: 
             return info.context.user
         else: 
             return None
-    def resolve_schema(root, info):
+    def resolve_library(root, info):
         try:
-            sub_schema = graph.schema.copy()
-            for k in ['@context']: # 'Open_Assets', 'Poll_Pack' 'Boolean', 'Integer', 'Decimal', 'String', 
-                del sub_schema[k]
+            user = info.context.user
+            if user.is_authenticated:
+            # sub_schema = graph.schema.copy()
+            # for k in ['@context']: # 'Open_Assets', 'Poll_Pack' 'Boolean', 'Integer', 'Decimal', 'String', 
+            #     del sub_schema[k]
             return Pack_Type(data = sub_schema)
         except Exception as e: 
             print('get schema error') 
@@ -46,6 +48,21 @@ class Mutation(graphene.ObjectType):
 
 api = graphene.Schema(query=Query, mutation=Mutation)
 
+
+
+
+    # def resolve_library(root, info):
+    #     try:
+    #         # user = info.context.user
+    #         # if user.is_authenticated:
+    #         # sub_schema = graph.schema.copy()
+    #         # for k in ['@context']: # 'Open_Assets', 'Poll_Pack' 'Boolean', 'Integer', 'Decimal', 'String', 
+    #         #     del sub_schema[k]
+    #         # return Pack_Type(data = sub_schema)
+    #     except Exception as e: 
+    #         print('get schema error') 
+    #         print(e)
+    #     return None
 
 
 # admin_classes = {} 

@@ -8,6 +8,14 @@ from django.db.models.signals import post_save
 
 def make_id(): return get_random_string(length=16)
 
+class Account(models.Model):
+    id = models.CharField(default=make_id, max_length=16, primary_key=True)
+    user         = models.ForeignKey(User, on_delete=models.CASCADE)
+    gdb_username = models.CharField(default=make_id, max_length=16)
+    gdb_password = models.CharField(default=make_id, max_length=16)
+    def __str__(self): 
+        return str(self.user) + ' ('+str(self.id)+')'
+
 class Id(models.Model):
     class Meta: abstract = True
     id = models.CharField(default=make_id, max_length=16, primary_key=True)

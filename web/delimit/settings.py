@@ -173,12 +173,21 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 GRAPH = {
-    'database':    'delimit',
-    'user':        'admin',
-    'password':    'root',
-    'host':        'localhost',
-    'port':        '6363',
-    'socket_port': '3636', 
+    'socket':{
+        'host': 'localhost',
+        'port': '3636', 
+    },
+    'server':{
+        'host': 'localhost',
+        'port': '6363',
+    },
+    'user':{
+        'admin':{
+            'key':  '5c6rvgUaTups5i45d6sW82sKtOOADmL0HVu5j4RyaNXqkrtx558udQDq8nKM6mUv',
+        },
+        # 'public':{
+        #     'key':  'NvutG9E7NkaZ8T6w5OVcJiweLDOUp46FOgYtfVRNeYOsTBet7cITB04JYpSCiF53',
+        # }
+    }
 }

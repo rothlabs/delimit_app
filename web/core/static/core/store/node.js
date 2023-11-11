@@ -15,19 +15,19 @@ import {surface} from './node/surface.js';
 import {transform} from './node/transform.js';
 
 export const create_node_slice =(set,get)=>({node:{
-    brush,
-    curve,
-    ellipse,
-    image,
-    layer,
-    machine,
-    point,
-    post,
-    shape,
-    sketch,
-    slice,
-    surface,
-    transform,
+    // brush,
+    // curve,
+    // ellipse,
+    // image,
+    // layer,
+    // machine,
+    // point,
+    // post,
+    // shape,
+    // sketch,
+    // slice,
+    // surface,
+    // transform,
 }});
 
 

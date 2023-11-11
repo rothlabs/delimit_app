@@ -27,9 +27,9 @@ icon = {
     'box': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box" viewBox="0 0 16 16">
         <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
     </svg>''',
-    'person': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
-        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
-    </svg>''',
+    # 'person': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+    #     <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
+    # </svg>''',
     # 'arrows_move': '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-move" viewBox="0 0 16 16">
     #     <path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10zM.146 8.354a.5.5 0 0 1 0-.708l2-2a.5.5 0 1 1 .708.708L1.707 7.5H5.5a.5.5 0 0 1 0 1H1.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2zM10 8a.5.5 0 0 1 .5-.5h3.793l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L14.293 8.5H10.5A.5.5 0 0 1 10 8z"/>
     # </svg>''',
@@ -76,55 +76,17 @@ graph.insert_document([
         },
     },
 
-    {"@id":"Language", "@type":"Enum",
-        "@value":[
-            "JavaScript", 
-            "SVG",
-        ],
-    },
-    {"@id":"Leaf", "@type":"Enum",
-        "@value":[
-            "Booleam",
-            "Integer",
-            "Decimal",
-            "String",
-        ],
-    },
-
-    {"@id":"Node",  "@type":"Class", "@abstract":[],},
-
-    {"@id":"Admin", "@type":"Class", "@abstract":[], 
-        "@inherits": "Node",
-    },
-    {"@id":"Asset", "@type":"Class", "@abstract":[], 
-        "@inherits": "Node",
+    {"@id":"Node", "@type":"Class", "@abstract":[], 
         "drop": "xsd:boolean", 
     },
 
-    {"@id":"Boolean", "@type":"Class", "@inherits":"Asset", "value":"xsd:boolean"},
-    {"@id":"Integer", "@type":"Class", "@inherits":"Asset", "value":"xsd:integer"},
-    {"@id":"Decimal", "@type":"Class", "@inherits":"Asset", "value":"xsd:decimal"},
-    {"@id":"String",  "@type":"Class", "@inherits":"Asset", "value":"xsd:string" },
+    {"@id":"Boolean", "@type":"Class", "@inherits":"Node", "value":"xsd:boolean"},
+    {"@id":"Integer", "@type":"Class", "@inherits":"Node", "value":"xsd:integer"},
+    {"@id":"Decimal", "@type":"Class", "@inherits":"Node", "value":"xsd:decimal"},
+    {"@id":"String",  "@type":"Class", "@inherits":"Node", "value":"xsd:string" },
 
-    # {"@id":"Open_Assets", "@type":"Class", 
-    #     "user": "User",
-    #     "node": {"@class":"Node", "@type":"Set"},
-    # },
-    # {"@id":"Poll_Pack", "@type":"Class", 
-    #     "user": "User",
-    #     "node": {"@class":"Node", "@type":"Set"},
-    # },
-
-    {"@id":"User", "@type":"Class", 
-        "@inherits": "Admin",
-        "@metadata":{"icon":"person"},
-        "user":  "xsd:string",
-        "name":  {"@class":"String", "@type":"Optional"},
-        "asset": {"@class":"Asset", "@type":"Set"},
-    },
     {"@id":"Part", "@type":"Class", "@abstract":[], 
-        "@inherits": "Asset",
-        "@metadata":{"default":{"name":""}},
+        "@inherits": "Node",
         "name": {"@class":"String", "@type":"Optional"},
     },
     {"@id":"Class", "@type":"Class", 
@@ -149,6 +111,43 @@ graph.insert_document([
         "code":     {"@class":"String", "@type":"Optional"},
         "language": {"@class":"String", "@type":"Optional"},
     },
+
+    {"@id":"Language", "@type":"Enum",
+        "@value":[
+            "JavaScript", 
+            "SVG",
+        ],
+    },
+    {"@id":"Leaf", "@type":"Enum",
+        "@value":[
+            "Booleam",
+            "Integer",
+            "Decimal",
+            "String",
+        ],
+    },
+    # {"@id":"Curve", "@type":"Class", 
+    #     "@inherits": "Part",
+    #     "vector":  {"@class":"Vector", "@type":"Optional"},
+    # },
+    # {"@id":"Vector", "@type":"Class", 
+    #     "@inherits": "Part",
+    #     "x":  {"@class":"Decimal", "@type":"Optional"},
+    # },
+], graph_type='schema', full_replace=True)
+
+print('Schema: ')
+result = graph.get_all_documents(graph_type='schema')
+print('\n'.join(map(str,result)))
+# print('Schema:')
+# schema = json.loads(requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text)
+# print('\n'.join([k+': '+str(schema[k]) for k in schema]))
+
+print('Instance: ')
+result = graph.get_all_documents(graph_type='instance')
+print('\n'.join(map(str, result)))
+
+
 
     # {"@id":"Case", "@type":"Class", 
     #     "@inherits": "Part", 
@@ -186,16 +185,35 @@ graph.insert_document([
     #     "@metadata":{"icon":"machine"}, 
     #     "origin": {"@class":"Vector", "@type":"Optional"},
     # },
-], graph_type='schema', full_replace=True)
 
 
-print('Schema:')
-schema = json.loads(requests.get('http://admin:root@localhost:6363/api/schema/admin/delimit').text)
-print('\n'.join([k+': '+str(schema[k]) for k in schema]))
 
-print('Instance: ')
-result = graph.get_all_documents(graph_type='instance')
-print('\n'.join(map(str, result)))
+    # {"@id":"Node",  "@type":"Class", "@abstract":[],},
+
+    # {"@id":"Admin", "@type":"Class", "@abstract":[], 
+    #     "@inherits": "Node",
+    # },
+
+
+
+    # {"@id":"Open_Assets", "@type":"Class", 
+    #     "user": "User",
+    #     "node": {"@class":"Node", "@type":"Set"},
+    # },
+    # {"@id":"Poll_Pack", "@type":"Class", 
+    #     "user": "User",
+    #     "node": {"@class":"Node", "@type":"Set"},
+    # },
+    # {"@id":"User", "@type":"Class", 
+    #     "@inherits": "Admin",
+    #     "@metadata":{"icon":"person"},
+    #     "user":  "xsd:string",
+    #     "name":  {"@class":"String", "@type":"Optional"},
+    #     "asset": {"@class":"Asset", "@type":"Set"},
+    # },
+
+
+
 
 
 

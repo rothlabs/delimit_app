@@ -9,8 +9,8 @@ var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
     terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
-    asset_classes: [],
-    admin_classes: [],
+    //asset_classes: [],
+    //admin_classes: [],
 
     root_tags:    {'view':'viewer', 'asset':'owner'},
     stem_tags:    [],
@@ -30,7 +30,6 @@ export const create_base_slice = (set,get)=>({
 
     n: {}, // all nodes stored here by ID 
     stem: {},
-    user: null,
     user_id: 0,
     search: {depth:null, ids:null},
     studio: {
@@ -129,8 +128,8 @@ export const create_base_slice = (set,get)=>({
                 continue;
             }
             if(n['@abstract'] || n['@type'] != 'Class') continue;
-            if(n['@inherits'].includes('Asset')) d.add(d.asset_classes, cls);
-            if(n['@inherits'].includes('Admin')) d.add(d.admin_classes, cls);
+            //if(n['@inherits'].includes('Asset')) d.add(d.asset_classes, cls);
+            //if(n['@inherits'].includes('Admin')) d.add(d.admin_classes, cls);
             if(!d.node[cls]) d.node[cls] = {};
             const node = d.node[cls];
             node.tag = readable(cls);
@@ -161,7 +160,7 @@ export const create_base_slice = (set,get)=>({
             }
         }
         d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
-        d.node_classes = [...d.asset_classes, ...d.admin_classes];
+        //d.node_classes = [...d.asset_classes, ...d.admin_classes];
         d.graph.init(d);
         d.studio.ready = true;
         console.log('node and stem info!!!!!!!!!!!!!!!!!');
@@ -198,7 +197,7 @@ export const create_base_slice = (set,get)=>({
         });
         const triples = [];
         for(const n of nodes){
-            if(d.admin_classes.includes(d.n[n].t)) continue; // rename to system_classes #1
+            //if(d.admin_classes.includes(d.n[n].t)) continue; // rename to system_classes #1
             const cls = upper(d.n[n].t);
             triples.push({root:n, tag:'class', stem:cls}); // stem:'@schema:'+cls});
             triples.push({root:n, tag:'tag:drop', stem:d.n[n].drop});//stem:{'@type':'xsd:boolean', '@value':d.n[n].drop}});
@@ -216,7 +215,7 @@ export const create_base_slice = (set,get)=>({
     },
 
     node_template: (d, t)=>({
-        t:t, r:{}, c:{}, open:true, drop:false,//asset:false, drop:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
+        t:t, r:{}, c:{}, open:true, drop:false, asset:true,
         pick:   {pick:false, hover:false},
         graph:  {pos:new Vector3()},
         pin:    {},
@@ -240,16 +239,16 @@ export const create_base_slice = (set,get)=>({
                 d.pick.color(d, r);
             }
         }
-        if(!d.user){
-            for(const triple of triples){
-                if(triple.stem['@type'] && triple.tag.slice(0, 8) == '@schema:'){
-                    const r = triple.root;
-                    if(d.n[r].t == 'user' && triple.tag.slice(8) == 'user' && triple.stem['@value'] == d.user_id){
-                        d.user = r;
-                    }
-                }
-            }
-        }
+        // if(!d.user){
+        //     for(const triple of triples){
+        //         if(triple.stem['@type'] && triple.tag.slice(0, 8) == '@schema:'){
+        //             const r = triple.root;
+        //             if(d.n[r].t == 'user' && triple.tag.slice(8) == 'user' && triple.stem['@value'] == d.user_id){
+        //                 d.user = r;
+        //             }
+        //         }
+        //     }
+        // }
         for(const triple of triples){
             if(triple.tag.slice(0, 8) == '@schema:'){
                 const r = triple.root;

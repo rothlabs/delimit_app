@@ -10,7 +10,7 @@
 // for a, do if(!a) a = {} at start of each function that uses a
 export const create_remake_slice = (set,get)=>({remake:{
     copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
-        if(!d.graph.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.graph.admin(d, (a.r ? [n,a.r] : [n]))){ 
+        //if(!d.graph.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.graph.admin(d, (a.r ? [n,a.r] : [n]))){ 
             const cpy = d.make.node(d, d.n[n].t); // const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
             if(d.n[n].m == 'p') {
                 // Object.keys(d.n[n].r).forEach(t=>{
@@ -48,10 +48,10 @@ export const create_remake_slice = (set,get)=>({remake:{
             //if(a.r && a.depth==0) d.make.edge(d, a.r, cpy, {src:a.src}); // attaching last is important for copying groups inside repeater
             d.next('reckon.up', cpy); // maybe this should go in node creation
             return cpy;
-        }
+        //}
     },
     split(d, nodes, target){ // make unique copy for everything but asset and transform?
-        if(!d.graph.admin(d, [...nodes, target])){ 
+        //if(!d.graph.admin(d, [...nodes, target])){ 
             //const dead_edges = [];
             d.graph.for_stem(d, target, (r,n,t,o)=>{
                 if(nodes.includes(n)){
@@ -63,10 +63,10 @@ export const create_remake_slice = (set,get)=>({remake:{
             });
             //d.node.delete_edges(d, dead_edges);
             
-        }
+        //}
     },
     merge(d, nodes, target){ 
-        if(!d.graph.admin(d, [...nodes, target])){ // d.n[target].asset && 
+        //if(!d.graph.admin(d, [...nodes, target])){ // d.n[target].asset && 
             if(d.remake.merging[d.n[d.pick.n[0]].t]){  
                 d.remake.merging[d.n[d.pick.n[0]].t](d, nodes, target); 
                 d.remake.merging.base(d, nodes, target);
@@ -75,7 +75,7 @@ export const create_remake_slice = (set,get)=>({remake:{
                 d.remake.merging.default(d, nodes, target);  
                 d.remake.merging.base(d, nodes, target);
             }
-        }
+        //}
     },
     merging:{ // make this it's own slice?
         base(d, nodes, target){

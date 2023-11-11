@@ -20,13 +20,17 @@ export function Make(){
                 c(Col, {}, 
                     //c('i', {className:'text-secondary bi-diagram-3', style:{fontSize:'28px'}}, c('h4',{}, 'Subjects')),
                     c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
-                    ...d.asset_classes.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
-                        c(Row, {className: 'mt-1 text-left '+(i==d.asset_classes.length-1?'mb-4':'')},
+                    ...Object.keys(d.node).map((t,i)=>//...d.asset_classes.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
+                        c(Row, {className: 'mt-1 text-left '+(i==Object.keys(d.node).length-1?'mb-4':'')},
                             c(Svg_Button, {
                                 svg: d.node[t].icon, 
                                 text: readable(t), 
                                 func: ()=> ss(d=>{ 
-                                    d.make.part(d, t, {r:d.pick.n});
+                                    if(d.terminal_classes[t]){
+                                        d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
+                                    }else{
+                                        d.make.part(d, t, {r:d.pick.n});
+                                    }
                                     d.studio.panel.show = false;
                                 })
                             })
@@ -47,7 +51,8 @@ export function Make(){
                                         className: 'border-white text-start bi-dot',
                                         variant:'outline-primary', size:'lg',
                                         onClick:e=> ss(d=>{ 
-                                            d.make.atom(d, item.cls, item.v, {r:d.pick.n, t:t, single:true});
+                                            console.log('what the hell!!!');
+                                            d.make.atom(d, item.cls, null, {r:d.pick.n, t:t, single:true});
                                             d.studio.panel.show = false;
                                         }),
                                     }, 
