@@ -3,7 +3,7 @@ import {Container, Form, Row, Col} from 'react-bootstrap';
 import {useS, ss, readable} from '../../app.js'
 
 export function Visual(){
-    const panel = useS(d=> d.studio.panel.name);
+    const panel = useS(d=> d.studio.panel.mode);
     //const show = useS(d=> d.studio.panel.show);
     const node_vis = useS(d=> d.graph.n_vis);
     const edge_vis = useS(d=> d.graph.e_vis);

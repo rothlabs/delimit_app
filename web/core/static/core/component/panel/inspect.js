@@ -18,7 +18,7 @@ import {Stem} from '../node/input/stem.js';
 //https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
 
 export function Inspect(){ 
-    const panel = useS(d=> d.studio.panel.name);
+    const panel = useS(d=> d.studio.panel.mode);
     //const show = useS(d=> d.studio.panel.show);
     //const nodes = useS(d=> d.pick.n); 
     const limited = useS(d=> d.pick.limited); 

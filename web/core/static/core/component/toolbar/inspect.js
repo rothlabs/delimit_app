@@ -3,7 +3,7 @@ import {ButtonToolbar, ToggleButton} from 'react-bootstrap';
 import {ss, gs, useS} from '../../app.js';
 
 export function Inspect(){ 
-    const panel = useS(d=> d.studio.panel.name);
+    const panel = useS(d=> d.studio.panel.mode);
     const show = useS(d=> d.studio.panel.show);
     const part = useS(d=> d.design.part);
     const nodes = useS(d=> d.pick.n); 

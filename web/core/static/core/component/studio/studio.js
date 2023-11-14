@@ -6,7 +6,9 @@ import {Viewport} from './viewport.js';
 import {Code} from './code.js';
 import {Package} from './package.js';
 import {Panel} from '../panel/panel.js';
-import {Row, Col, Button, Container, InputGroup, Form} from 'react-bootstrap';
+import {Mode_Bar} from './mode_bar.js';
+import {Panel_Bar} from './mode_bar.js';
+import {Container, Row, Col, Button, InputGroup, Form} from 'react-bootstrap';
 
 // useLazyQuery!!!
 // https://www.apollographql.com/docs/react/data/queries
@@ -76,10 +78,19 @@ export function Studio(){
     //const ready = useS(d=> d.studio.ready);
     //console.log('render studio!');
     return (
-        c(Container, {fluid:true},  
-            c(Toolbar),
-            c(Panel),
-            c(Workspace),
+        c(Fragment, {},
+            c(Mode_Bar),
+            c(Container, {fluid:true},  
+                c(Row, {},
+                    c(Col, {}, c(Toolbar)) 
+                ),
+                c(Row, {}, 
+                    c(Col, {}, c(Panel_Bar)),
+                    c(Col, {}, c(Panel)),
+                    c(Col, {}, c(Workspace)),
+                ),
+            ),
+            c(Reckon_Count),
         )
     )
 }
@@ -87,6 +98,11 @@ export function Studio(){
 //c(Get_Schema),
 //c(Open_Push_Close),
 //ready && c(Poll),
+
+function Reckon_Count(){
+    const reckon_count = useS(d=> d.reckon.count);
+    return c(Badge, {className:'position-absolute bottom-0 start-0 m-1'}, 'Computes: '+reckon_count);
+}
 
 export function Workspace(){
     const cursor = useS(d=> d.studio.cursor);

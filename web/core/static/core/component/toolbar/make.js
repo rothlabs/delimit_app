@@ -5,7 +5,7 @@ import {useS, ss} from '../../app.js'
 
 export function Make(){
     //const ready = useS(d=> d.studio.ready);
-    const panel = useS(d=> d.studio.panel.name);
+    const panel = useS(d=> d.studio.panel.mode);
     const show = useS(d=> d.studio.panel.show);
     return(
         //c(ButtonGroup, {},
@@ -18,7 +18,6 @@ export function Make(){
                 checked: show && panel=='make',
                 onChange:(e)=> { 
                     if(e.currentTarget.checked){ 
-                        
                         ss(d=> d.studio.panel={name:'make', show:true});
                     }else{ ss(d=> d.studio.panel.show=false); }
                 }

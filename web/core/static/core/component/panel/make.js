@@ -9,7 +9,7 @@ import { Make_Package } from './make_package.js';
 
 export function Make(){
     const mode = useS(d=> d.studio.mode);
-    const panel = useS(d=> d.studio.panel.name);
+    const panel = useS(d=> d.studio.panel.mode);
     const limited = useS(d=> d.pick.limited); 
     const terminal = useS(d=> d.pick.terminal); 
     if(panel != 'make') return false;

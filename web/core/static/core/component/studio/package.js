@@ -8,7 +8,7 @@ export function Package(){
 		['packages data'],
 	],{onCompleted:data=>{
         console.log(data.packages.data);
-        rs(d=> d.packages.fetch = packages.refetch);
+        rs(d=> d.studio.package.fetch = packages.refetch);
     }}); 
     const drop_package = use_mutation('DropPackage', [  
         ['dropPackage reply',  

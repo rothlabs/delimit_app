@@ -35,12 +35,13 @@ export const create_base_slice = (set,get)=>({
     studio: {
         ready: false,
         mode: 'package',
+        package: {
+            fetch(){},
+        },
         panel: {},
         cursor: '',
     },
-    packages: {
-        fetch(){},
-    },
+
 
     init(d){
         d.base_texture = new THREE.TextureLoader().load(

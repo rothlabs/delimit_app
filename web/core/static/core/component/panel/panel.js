@@ -13,7 +13,7 @@ import {Badge} from '../node/base.js'
 
 export function Panel(){ 
     const show = useS(d=> d.studio.panel.show);
-    const panel = useS(d=> d.studio.panel.name);
+    const panel = useS(d=> d.studio.panel.mode);
     const nodes = useS(d=> d.pick.n);
     const limited = useS(d=> d.pick.limited); 
     const window_size = use_window_size();
@@ -94,7 +94,7 @@ export function Panel(){
 
 //c(Container, {fluid:true, className:'position-absolute start-0 bg-white mt-2 p-3 border rounded', style:{maxWidth:width}}, 
 
-//const panel = useS(d=> d.studio.panel.name);
+//const panel = useS(d=> d.studio.panel.mode);
 
 //const part = useS(d=> d.design.part);
     //const nodes = useS(d=> d.pick.n); 

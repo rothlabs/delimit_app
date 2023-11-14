@@ -13,7 +13,7 @@ export function Make_Package(){
         ],
     ],{onCompleted:response=>{
         console.log('Made Package: ', response.makePackage.reply);
-        gs().packages.fetch();
+        gs().studio.package.fetch();
     }}); 
     return(
         c(Col, {},//{className:'grid gap-0 row-gap-3'},//{className:'mb-0 ms-0 me-0'},

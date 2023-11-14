@@ -3,7 +3,7 @@ import {ButtonGroup, ToggleButton, } from 'react-bootstrap';
 import {useS, ss} from '../../app.js'
 
 export function Visual(){
-    const panel = useS(d=> d.studio.panel.name);
+    const panel = useS(d=> d.studio.panel.mode);
     const show = useS(d=> d.studio.panel.show);
     return(
         //c(ButtonGroup, {},

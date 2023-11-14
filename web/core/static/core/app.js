@@ -136,7 +136,7 @@ function ignore_patch(p){
     const path = p.path.join('.');
     if(path == 'studio.panel') return false;
     if(path == 'studio.panel.show') return false;
-    if(path == 'studio.panel.name') return false;
+    if(path == 'studio.panel.mode') return false;
     if(path == 'design.matrix') return false;
     if(path == 'design.act') return false; // 'design.moving'
     //if(path == 'graph.c_c') return false;
