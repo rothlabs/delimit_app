@@ -1,9 +1,10 @@
 import graphene
 from core.api.types import User_Type
+from django.contrib.auth import logout
 
 class Logout(graphene.Mutation):
     user = graphene.Field(User_Type)
-    reply = graphene.String(default_value = 'Failed to sign out.')
+    reply = graphene.String(default_value = 'Failed to sign out')
     @classmethod
     def mutate(cls, root, info):
         if info.context.user.is_authenticated: 

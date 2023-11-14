@@ -391,7 +391,7 @@ export function use_query(name, gql_parts, arg){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
     //console.log({header, body, variables});
-    const {loading, error, data, startPolling} = useQuery(
+    const {loading, error, data, startPolling, refetch} = useQuery(
         gql`query ${header}{${body}}`, {   
         variables:    variables, 
         fetchPolicy:  arg && arg.fetchPolicy, 
@@ -404,7 +404,7 @@ export function use_query(name, gql_parts, arg){ // 'cache-and-network'
     //var alt = null;
 	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
     //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
-    return {data:data, status:gql_status(loading,error,data,()=>'Done'), startPolling:startPolling};
+    return {data, status:gql_status(loading,error,data,()=>'Done'), startPolling, refetch};
 }
 export function use_mutation(name, gql_parts, arg){
     const {header, body, variables} = compile_gql(name, gql_parts);

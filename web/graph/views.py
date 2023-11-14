@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from terminusdb_client import WOQLQuery as wq
-from . import graph
+from .database import gdbc
 
 def index(request):
     return render(request, 'graph/index.html')

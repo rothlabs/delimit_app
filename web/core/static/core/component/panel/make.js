@@ -2,66 +2,63 @@ import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, Button, Container} from 'react-bootstrap';
 import {useS, ss, gs, static_url, readable, theme} from '../../app.js'
 import { Svg_Button } from '../app/base.js';
+import { Make_Package } from './make_package.js';
 //import {Badge} from '../node/base.js'
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
 
 export function Make(){
-    //const show = useS(d=> d.studio.panel.show);
+    const mode = useS(d=> d.studio.mode);
     const panel = useS(d=> d.studio.panel.name);
-    //const nodes = useS(d=> d.pick.n);
     const limited = useS(d=> d.pick.limited); 
     const terminal = useS(d=> d.pick.terminal); 
+    if(panel != 'make') return false;
+    if(mode == 'package') return c(Make_Package);
     const d = gs();
     return(
-        //show && panel=='make' && c(Fragment, {},
-        panel=='make' && c(Fragment, {},
-            c(Row, {className:'mb-3 ms-0 me-0'},
-                c(Col, {}, 
-                    //c('i', {className:'text-secondary bi-diagram-3', style:{fontSize:'28px'}}, c('h4',{}, 'Subjects')),
-                    c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
-                    ...Object.keys(d.node).map((t,i)=>//...d.asset_classes.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
-                        c(Row, {className: 'mt-1 text-left '+(i==Object.keys(d.node).length-1?'mb-4':'')},
-                            c(Svg_Button, {
-                                svg: d.node[t].icon, 
-                                text: readable(t), 
-                                func: ()=> ss(d=>{ 
-                                    if(d.terminal_classes[t]){
-                                        d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
-                                    }else{
-                                        d.make.part(d, t, {r:d.pick.n});
-                                    }
-                                    d.studio.panel.show = false;
-                                })
+        c(Row, {className:'mb-3 ms-0 me-0'},
+            c(Col, {}, 
+                c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
+                ...Object.keys(d.node).map((t,i)=>//...d.asset_classes.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
+                    c(Row, {className: 'mt-1 text-left '+(i==Object.keys(d.node).length-1?'mb-4':'')},
+                        c(Svg_Button, {
+                            svg: d.node[t].icon, 
+                            text: readable(t), 
+                            func: ()=> ss(d=>{ 
+                                if(d.terminal_classes[t]){
+                                    d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
+                                }else{
+                                    d.make.part(d, t, {r:d.pick.n});
+                                }
+                                d.studio.panel.show = false;
                             })
-                        )
-                    ),
+                        })
+                    )
                 ),
-                limited || terminal ? false : c(Col, {}, 
-                    [{cls:'string',  v:'',    tags:d.string_tags,  icon:'bi-text-left'},
-                     {cls:'boolean', v:false, tags:d.boolean_tags, icon:'bi-ui-checks'},
-                     {cls:'integer', v:0,     tags:d.integer_tags, icon:'bi-plus-slash-minus'},
-                     {cls:'decimal', v:0,     tags:d.decimal_tags, icon:'bi-plus-slash-minus'}].map(item=>
-                        c(Row, {},
-                            c('h5',{className:'text-secondary '+item.icon}, ' '+readable(item.cls)),//+readable(d.model_tags[item.m])),
-                            item.tags.map((t,i)=>
-                                c(Row, {className: 'mb-1 text-left '+(i==item.tags.length-1?'mb-4':'')}, //t==item.cls ? null : 
-                                    c(Button, {
-                                        id:'make_'+t,
-                                        className: 'border-white text-start bi-dot',
-                                        variant:'outline-primary', size:'lg',
-                                        onClick:e=> ss(d=>{ 
-                                            console.log('what the hell!!!');
-                                            d.make.atom(d, item.cls, null, {r:d.pick.n, t:t, single:true});
-                                            d.studio.panel.show = false;
-                                        }),
-                                    }, 
-                                        c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
-                                    )
+            ),
+            limited || terminal ? false : c(Col, {}, 
+                [{cls:'string',  v:'',    tags:d.string_tags,  icon:'bi-text-left'},
+                    {cls:'boolean', v:false, tags:d.boolean_tags, icon:'bi-ui-checks'},
+                    {cls:'integer', v:0,     tags:d.integer_tags, icon:'bi-plus-slash-minus'},
+                    {cls:'decimal', v:0,     tags:d.decimal_tags, icon:'bi-plus-slash-minus'}].map(item=>
+                    c(Row, {},
+                        c('h5',{className:'text-secondary '+item.icon}, ' '+readable(item.cls)),//+readable(d.model_tags[item.m])),
+                        item.tags.map((t,i)=>
+                            c(Row, {className: 'mb-1 text-left '+(i==item.tags.length-1?'mb-4':'')}, //t==item.cls ? null : 
+                                c(Button, {
+                                    id:'make_'+t,
+                                    className: 'border-white text-start bi-dot',
+                                    variant:'outline-primary', size:'lg',
+                                    onClick:e=> ss(d=>{ 
+                                        d.make.atom(d, item.cls, null, {r:d.pick.n, t:t, single:true});
+                                        d.studio.panel.show = false;
+                                    }),
+                                }, 
+                                    c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
                                 )
                             )
                         )
-                    ),
+                    )
                 ),
             ),
         )

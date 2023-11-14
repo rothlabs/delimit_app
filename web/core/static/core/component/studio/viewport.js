@@ -184,6 +184,18 @@ export function Viewport(){ // for some reason this renders 5 times on load
                color: 'white',
                intensity: 0.25,
             }),
+        )
+    )
+}
+
+
+
+
+
+
+
+
+
             // r('mesh', { 
             //     name: 'board',
             //     onClick:(e)=>{ e.stopPropagation();
@@ -262,9 +274,6 @@ export function Viewport(){ // for some reason this renders 5 times on load
                 
             //     r(Line, {ref:draw_line}), // temp drawing line for visualization
             // ),
-        )
-    )
-}
 
 
 //export const camera_zoom_rv = makeVar(1);

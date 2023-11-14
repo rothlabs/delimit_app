@@ -74,6 +74,15 @@ export function Board(){
                 });
                 
             },
+        },   
+            c('planeGeometry', {args:[20000, 20000],}),
+            c('meshBasicMaterial', {color:'white', toneMapped:false}),
+        )
+    )
+}
+
+
+
             // onPointerUp(e){
             //     if(e.which==3){//[0,1].includes(e.which)){
             //         ss(d=>{ d.studio.gizmo_active = false; });
@@ -170,12 +179,6 @@ export function Board(){
             //         }
             //     }
             // },
-        },   
-            c('planeGeometry', {args:[20000, 20000],}),
-            c('meshBasicMaterial', {color:'white', toneMapped:false}),
-        )
-    )
-}
 
 
 //export const camera_zoom_rv = makeVar(1);

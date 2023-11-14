@@ -6,15 +6,37 @@ from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
-def make_id(): return get_random_string(length=16)
+id_length = 16
+max_id_length = 64
+name_length = 64
+description_length = 512
+
+def make_id(): return get_random_string(length=id_length)
 
 class Account(models.Model):
-    id = models.CharField(default=make_id, max_length=16, primary_key=True)
-    user         = models.ForeignKey(User, on_delete=models.CASCADE)
-    gdb_username = models.CharField(default=make_id, max_length=16)
-    gdb_password = models.CharField(default=make_id, max_length=16)
+    user         = models.ForeignKey(User, on_delete=models.CASCADE) 
+    gdb_user     = models.CharField(default='', max_length=max_id_length)
+    gdb_key      = models.CharField(default='', max_length=max_id_length)
     def __str__(self): 
-        return str(self.user) + ' ('+str(self.id)+')'
+       return str(self.user) + ' ('+str(self.id)+')'
+
+class Team(models.Model):
+    team = models.CharField(default='', max_length=max_id_length) 
+    name = models.CharField(default='', max_length=name_length)
+    description = models.TextField(default='', max_length=description_length, blank=True)
+    def __str__(self): 
+       return str(self.name) + ' ('+str(self.team)+')'
+
+class Package(models.Model):
+    package = models.CharField(default='', max_length=max_id_length) 
+    team = models.CharField(default='', max_length=max_id_length) 
+    name = models.CharField(default='', max_length=name_length)
+    description = models.TextField(default='', max_length=description_length, blank=True)
+    def __str__(self): 
+       return str(self.name) + ' ('+str(self.package)+')'
+
+
+
 
 class Id(models.Model):
     class Meta: abstract = True

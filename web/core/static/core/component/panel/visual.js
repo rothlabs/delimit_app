@@ -5,15 +5,15 @@ import {useS, ss, readable} from '../../app.js'
 export function Visual(){
     const panel = useS(d=> d.studio.panel.name);
     //const show = useS(d=> d.studio.panel.show);
-    const graph_tag_vis = useS(d=> d.graph.n_vis);
-    const graph_edge_vis = useS(d=> d.graph.e_vis);
+    const node_vis = useS(d=> d.graph.n_vis);
+    const edge_vis = useS(d=> d.graph.e_vis);
     return(
         //show && panel=='visual' && c(Fragment, {},
         panel=='visual' && c(Fragment, {},
             c(Row, {className:'mb-3'}, //mt-3 
                 c(Col, {}, 
                     c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'), // c('h5', {className:'mb-3'}, 'Nodes'),
-                    ...Object.entries(graph_tag_vis).map(([t,vis], i)=>
+                    ...Object.entries(node_vis).map(([t,vis], i)=>
                         c(Form.Check, {
                             className:'mt-2', 
                             label: readable(t), 
@@ -24,7 +24,7 @@ export function Visual(){
                 ),
                 c(Col, {}, 
                     c('h5',{className:'text-secondary bi-slash-lg'}, ' Edge'), // c('h5', {className:'mb-3'}, 'Edges'),
-                    ...Object.entries(graph_edge_vis).map(([t,vis], i)=>
+                    ...Object.entries(edge_vis).map(([t,vis], i)=>
                         c(Form.Check, {
                             className:'mt-2', 
                             label: readable(t), 

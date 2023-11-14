@@ -1,11 +1,11 @@
 import json
 import graphene
 from core.api.types import Pack_Type
-from core.api.config import auth_required_message, core_classes
-from graph.database import client as gdb
+from core.api.config import auth_required_message
+from graph.database import gdbc
 from terminusdb_client import WOQLQuery as wq
 
-class Push_Assets(graphene.Mutation):
+class Push_Nodes(graphene.Mutation):
     class Arguments:
         triples = graphene.String()
         clientInstance = graphene.String()
@@ -15,7 +15,7 @@ class Push_Assets(graphene.Mutation):
         try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             user = info.context.user
             if not user.is_authenticated: 
-                return Push_Assets(reply = auth_required_message)
+                return Push_Nodes(reply = auth_required_message)
             triples = json.loads(triples)['list']
             drop_nodes = []
             nodes = {} 
@@ -23,19 +23,12 @@ class Push_Assets(graphene.Mutation):
                 r = triple['root']
                 if triple['tag'] == 'class':
                     nodes[r] = {'@id':r, '@type': triple['stem']}
-                    # try: # exists 
-                    #     node = gdb.get_document(r)
-                    #     #nodes[r]['@type'] = node['@type'] # force type to existing node
-                    # except: # not exits
-                    #     nodes[r]['@type'] = triple['stem'] 
-                    # # if nodes[r]['@type'] in core_classes:
-                    # #     del nodes[r]
-            for r in nodes:
-                clss = nodes[r]['@type']
-                for t in graph.schema[clss]:
-                    if '@class' in graph.schema[clss][t]:
-                        if graph.schema[clss][t]['@type'] == 'List' or graph.schema[clss][t]['@type'] == 'Set':
-                            nodes[r][t] = []
+            # for r in nodes:
+            #     clss = nodes[r]['@type']
+            #     for t in graph.schema[clss]:
+            #         if '@class' in graph.schema[clss][t]:
+            #             if graph.schema[clss][t]['@type'] == 'List' or graph.schema[clss][t]['@type'] == 'Set':
+            #                 nodes[r][t] = []
             for triple in triples:
                 if triple['tag'][:4] == 'tag:':
                     r = triple['root']
@@ -48,23 +41,33 @@ class Push_Assets(graphene.Mutation):
                         if graph.schema[clss][t]['@type'] == 'List' or graph.schema[clss][t]['@type'] == 'Set':
                             nodes[r][t].append(stem)
                             continue
+                    
                     nodes[r][t] = stem
                     if t == 'drop' and stem == True:
                         drop_nodes.append(r)
-            gdb.update_document([nodes[k] for k in nodes])
+            gdbc.update_document([nodes[k] for k in nodes])
             if len(drop_nodes) > 0:
-                gdb.delete_document(drop_nodes)
-            return Push_Assets(reply='Saved') 
+                gdbc.delete_document(drop_nodes)
+            return Push_Nodes(reply='Saved') 
         except Exception as e: 
-            print('Push_Assets Error: ')
+            print('Push_Nodes Error: ')
             print(e)
-        return Push_Assets()
+        return Push_Nodes()
 
+
+
+                    # try: # exists 
+                    #     node = gdbc.get_document(r)
+                    #     #nodes[r]['@type'] = node['@type'] # force type to existing node
+                    # except: # not exits
+                    #     nodes[r]['@type'] = triple['stem'] 
+                    # # if nodes[r]['@type'] in core_classes:
+                    # #     del nodes[r]
 
                 # if triple['tag'] == 'class':
                 #     nodes[r] = {'@id':r}
                 #     try: # exists 
-                #         node = gdb.get_document(r)
+                #         node = gdbc.get_document(r)
                 #         nodes[r]['@type'] = node['@type'] # force type to existing node
                 #         if not r in user_node['asset']:
                 #             del nodes[r]
@@ -77,10 +80,10 @@ class Push_Assets(graphene.Mutation):
             # user_triples = wq().woql_and(
             #     wq().triple('v:root', 'rdf:type', '@schema:User'),
             #     wq().triple('v:root', '@schema:user', wq().string(user.id)),
-            # ).execute(gdb)['bindings']
-            # user_node = gdb.get_document(user_triples[0]['root'])
+            # ).execute(gdbc)['bindings']
+            # user_node = gdbc.get_document(user_triples[0]['root'])
             # new_nodes = []
 
 # if len(new_nodes) > 0:
 #     user_node['asset'].extend(new_nodes)
-#     gdb.update_document(user_node)
+#     gdbc.update_document(user_node)

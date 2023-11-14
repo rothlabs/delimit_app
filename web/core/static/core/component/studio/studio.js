@@ -4,7 +4,9 @@ import {Toolbar} from '../toolbar/toolbar.js';
 import {useS, gs, ss, rs, use_query, use_mutation, client_instance, static_url} from '../../app.js';
 import {Viewport} from './viewport.js';
 import {Code} from './code.js';
+import {Package} from './package.js';
 import {Panel} from '../panel/panel.js';
+import {Row, Col, Button, Container, InputGroup, Form} from 'react-bootstrap';
 
 // useLazyQuery!!!
 // https://www.apollographql.com/docs/react/data/queries
@@ -67,20 +69,14 @@ import {Panel} from '../panel/panel.js';
   
 
 
-
-
-
-const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
-const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
+//const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
+//const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
     //const ready = useS(d=> d.studio.ready);
     //console.log('render studio!');
     return (
-        c(Fragment,{}, 
-            c(Get_Schema),
-            c(Open_Push_Close),
-            //ready && c(Poll), 
+        c(Container, {fluid:true},  
             c(Toolbar),
             c(Panel),
             c(Workspace),
@@ -88,11 +84,17 @@ export function Studio(){
     )
 }
 
+//c(Get_Schema),
+//c(Open_Push_Close),
+//ready && c(Poll),
+
 export function Workspace(){
     const cursor = useS(d=> d.studio.cursor);
     const mode = useS(d=> d.studio.mode);
     if(mode == 'code'){
         return c(Code);
+    }else if(mode == 'package'){
+        return c(Package);
     }else{
         return(
             c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
@@ -104,21 +106,21 @@ export function Workspace(){
     }
 }
 
-function Get_Schema(){
-    const {data, status} = use_query('Schema', [ 
-        ['schema data'],
-    ],{onCompleted:result=>{
-        //console.log('Get Schema - Complete', data.schema.full);    
-        rs(d=>{
-            try{
-                d.receive_schema(d, JSON.parse(result.schema.data))
-            }catch(e){
-                console.log('receive_schema Error', e);
-            }
-        });
-    }}); 
-    return false;
-}
+// function Get_Schema(){
+//     const {data, status} = use_query('Schema', [ 
+//         ['schema data'],
+//     ],{onCompleted:result=>{
+//         //console.log('Get Schema - Complete', data.schema.full);    
+//         rs(d=>{
+//             try{
+//                 d.receive_schema(d, JSON.parse(result.schema.data))
+//             }catch(e){
+//                 console.log('receive_schema Error', e);
+//             }
+//         });
+//     }}); 
+//     return false;
+// }
 
 function Open_Push_Close(){
     const ready = useS(d=> d.studio.ready);

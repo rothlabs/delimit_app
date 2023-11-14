@@ -4,7 +4,7 @@ import {ButtonGroup, ToggleButton, } from 'react-bootstrap';
 import {useS, ss} from '../../app.js'
 
 export function Make(){
-    const ready = useS(d=> d.studio.ready);
+    //const ready = useS(d=> d.studio.ready);
     const panel = useS(d=> d.studio.panel.name);
     const show = useS(d=> d.studio.panel.show);
     return(
@@ -14,7 +14,7 @@ export function Make(){
                 type: 'checkbox',
                 className:'bi bi-plus-lg border-white',
                 variant:'outline-primary', size: 'lg',
-                disabled:!ready,
+                //disabled:!ready,
                 checked: show && panel=='make',
                 onChange:(e)=> { 
                     if(e.currentTarget.checked){ 

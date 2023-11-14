@@ -19,9 +19,10 @@ export function Toolbar(){
     const design_candidate = useS(d=> d.design.candidate);
     const reckonable = useS(d=> d.pick.reckonable);
     const mode_buttons = [
-        {name:' Design',  icon:'bi-pencil-square',  value:'design', disabled:design_part==null},
-        {name:' Graph',   icon:'bi-diagram-3',      value:'graph',  disabled:false},
-        {name:' Code',    icon:'bi-braces',         value:'code',   disabled:false},
+        {name:' Package', icon:'bi-box-seam',       value:'package', disabled:false},
+        {name:' Design',  icon:'bi-pencil-square',  value:'design',  disabled:design_part==null},
+        {name:' Graph',   icon:'bi-diagram-3',      value:'graph',   disabled:false},
+        {name:' Code',    icon:'bi-braces',         value:'code',    disabled:false},
     ];
     const tools = [Make, Inspect, History, Visual, Pick, Draw, Move]; //Group
     //console.log('render toolbar', mode);

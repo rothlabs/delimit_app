@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        migrations.swappable_dependency(settings.gdb_connect_MODEL),
     ]
 
     operations = [
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('o', models.IntegerField(default=0)),
-                ('n', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='n', to=settings.AUTH_USER_MODEL)),
+                ('n', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='n', to=settings.gdb_connect_MODEL)),
                 ('p', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='up', to='core.part')),
                 ('t', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='ut', to='core.tag')),
             ],
@@ -186,6 +186,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='part',
             name='u',
-            field=models.ManyToManyField(blank=True, related_name='p', through='core.Part_User', to=settings.AUTH_USER_MODEL),
+            field=models.ManyToManyField(blank=True, related_name='p', through='core.Part_User', to=settings.gdb_connect_MODEL),
         ),
     ]

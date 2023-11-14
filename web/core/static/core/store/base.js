@@ -34,9 +34,12 @@ export const create_base_slice = (set,get)=>({
     search: {depth:null, ids:null},
     studio: {
         ready: false,
-        mode: 'graph',
+        mode: 'package',
         panel: {},
         cursor: '',
+    },
+    packages: {
+        fetch(){},
     },
 
     init(d){

@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        migrations.swappable_dependency(settings.gdb_connect_MODEL),
         ('core', '0003_rename_p_part_bool_r_rename_p_part_float_r_and_more'),
     ]
 
@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='part',
             name='u',
-            field=models.ManyToManyField(related_name='p', through='core.Part_User', to=settings.AUTH_USER_MODEL),
+            field=models.ManyToManyField(related_name='p', through='core.Part_User', to=settings.gdb_connect_MODEL),
         ),
         migrations.AlterField(
             model_name='part_bool',

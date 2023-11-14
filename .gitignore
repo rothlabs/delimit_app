@@ -11,6 +11,7 @@ __pycache__
 /web/sass/dart-sass/
 /web/core/static/core/css/boot.css
 /web/npm/
+/web/terminus/
 
 *.DS_Store
 *.FCStd1

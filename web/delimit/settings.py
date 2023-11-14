@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'x=v8rfzhm&ty94f*bnqqzfd15b_cwol_7odzjkd+#vdvmc^@_*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['delimit.art','www.delimit.art','localhost', 'graph.delimit', 'graph.delimit.art', 'graph.localhost']
 
@@ -184,10 +184,7 @@ GRAPH = {
     },
     'user':{
         'admin':{
-            'key':  '5c6rvgUaTups5i45d6sW82sKtOOADmL0HVu5j4RyaNXqkrtx558udQDq8nKM6mUv',
+            'key':  '9h3IAvdGrdn8sjORuwJwCYJekg0UijjK9N7i3JipkETLtPTNJTPwfVeMwp2ItaVT', #'5c6rvgUaTups5i45d6sW82sKtOOADmL0HVu5j4RyaNXqkrtx558udQDq8nKM6mUv',
         },
-        # 'public':{
-        #     'key':  'NvutG9E7NkaZ8T6w5OVcJiweLDOUp46FOgYtfVRNeYOsTBet7cITB04JYpSCiF53',
-        # }
     }
 }

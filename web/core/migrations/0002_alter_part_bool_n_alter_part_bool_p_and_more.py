@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        migrations.swappable_dependency(settings.gdb_connect_MODEL),
         ('core', '0001_initial'),
     ]
 
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='part_user',
             name='n',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='e', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='e', to=settings.gdb_connect_MODEL),
         ),
         migrations.AlterField(
             model_name='part_user',

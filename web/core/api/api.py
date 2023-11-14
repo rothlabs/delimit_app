@@ -1,54 +1,62 @@
-import os, time, requests, json
 import graphene
-from core.models import make_id
-from django.contrib.auth import authenticate, login, logout
-from django.conf import settings
-from graph.database import client as gdb
+from graph.database import gdbc, gdb_connect
 from terminusdb_client import WOQLQuery as wq
 from core.api.login import Login
 from core.api.logout import Logout
-from core.api.open_assets import Open_Assets
-from core.api.push_assets import Push_Assets
-from core.api.replace_schema import Replace_Schema
+from core.api.open_nodes import Open_Nodes
+from core.api.push_nodes import Push_Nodes
+from core.api.drop_package import Drop_Package
+from core.api.make_package import Make_Package
 from core.api.types import Authenticated_User_Type, Pack_Type
-
-# GRAPH = settings.GRAPH
-# graph.schema = json.loads(requests.get(
-#     'http://'+GRAPH['user']+':'+GRAPH['password']+'@'+GRAPH['host']+':'+GRAPH['port']
-#     +'/api/schema/'+GRAPH['user']+'/'+GRAPH['database']
-# ).text)
+from core.models import Package
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    package = graphene.Field(Pack_Type)
+    packages = graphene.Field(Pack_Type)
     def resolve_user(root, info):
         if info.context.user.is_authenticated: 
             return info.context.user
         else: 
             return None
-    def resolve_library(root, info):
+    def resolve_packages(root, info):
         try:
-            user = info.context.user
-            if user.is_authenticated:
-            # sub_schema = graph.schema.copy()
-            # for k in ['@context']: # 'Open_Assets', 'Poll_Pack' 'Boolean', 'Integer', 'Decimal', 'String', 
-            #     del sub_schema[k]
-            return Pack_Type(data = sub_schema)
+            gdb_connect(info.context.user)
+            databases = gdbc.get_databases()
+            packages = Package.objects.filter(package__in=[p['name'] for p in databases]) # p['name'] is the id
+            result = []
+            for p in packages:
+                result.append({
+                    'team': p.team,
+                    'package': p.package, 
+                    'name': p.name, 
+                    'description': p.description,
+                })
+            return Pack_Type(data = {'list':result})
         except Exception as e: 
-            print('get schema error') 
+            print('Error: Query packages') 
             print(e)
         return None
 
 class Mutation(graphene.ObjectType):
     login = Login.Field()
     logout = Logout.Field()
-    openPack = Open_Assets.Field()
-    pushPack = Push_Assets.Field()
-    replaceSchema = Replace_Schema.Field()
+    makePackage = Make_Package.Field()
+    dropPackage = Drop_Package.Field()
+    openNodes = Open_Nodes.Field()
+    pushNodes = Push_Nodes.Field()
 
 api = graphene.Schema(query=Query, mutation=Mutation)
 
 
+
+
+    
+
+# GRAPH = settings.GRAPH
+# graph.schema = json.loads(requests.get(
+#     'http://'+GRAPH['user']+':'+GRAPH['password']+'@'+GRAPH['host']+':'+GRAPH['port']
+#     +'/api/schema/'+GRAPH['user']+'/'+GRAPH['database']
+# ).text)
 
 
     # def resolve_library(root, info):

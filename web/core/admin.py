@@ -2,6 +2,9 @@ from django.contrib import admin
 from . import models
 
 admin.site.register(models.Account)
+admin.site.register(models.Team)
+admin.site.register(models.Package)
+
 admin.site.register(models.Bool)
 admin.site.register(models.Int)
 admin.site.register(models.Float)

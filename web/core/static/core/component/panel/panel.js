@@ -23,9 +23,9 @@ export function Panel(){
         if(window_size.width <=576) set_width('100vw');
         if(window_size.width > 576) set_width('30vw');
     },[window_size.width])
-    const d = gs();
+    if(!show) return;
     return (
-        show && c(Container, {
+        c(Container, {
             className:'position-absolute start-0', // ps-3 pe-3 
             style:{
                 minWidth:'350px', 
@@ -34,36 +34,40 @@ export function Panel(){
         }, 
             c(Container, {
                 fluid:true, 
-                className:'bg-white pt-3 ps-3 pb-3 border rounded',
+                className:'bg-white border rounded', // pt-3 ps-3 pb-3
                 // style:{
                 //     maxHeight: height,
                 //     overflow: 'auto',
                 // },
             }, 
-                c(Container, {
-                    fluid:true, 
-                    className:'p-0 m-0',
-                    style:{
-                        minHeight: '36px',
-                    },
+                c(Row, {
+                    //fluid:true, 
+                    //className:'p-0 m-0',
+                    // style:{
+                    //     minHeight: '36px',
+                    // },
                 }, 
-                    c(CloseButton, {
-                        className:'position-absolute top-0 end-0 mt-3 me-4',
-                        onClick:()=>{ss(d=>d.studio.panel.show=false)}
-                    }),
-                    (['make', 'inspect_design', 'inspect_nodes'].includes(panel)) &&
-                        c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
-                            //limited ? c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.user})) :
-                            nodes.map(n=>
-                                c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
-                                    c(Badge, {n:n})
-                                ) 
+                    c(Col, {},//{className:'p-0 m-0'},
+                        (['make', 'inspect_design', 'inspect_nodes'].includes(panel)) &&
+                            c(Row, {className:'row-cols-auto gap-2 mb-3 ms-1 me-4'}, //className:'ms-1 me-1'
+                                //limited ? c(Col,{className:'ps-0 pe-0'}, c(Badge, {n:d.user})) :
+                                nodes.map(n=>
+                                    c(Col,{className:'ps-0 pe-0'}, // might need to add key to keep things straight 
+                                        c(Badge, {n:n})
+                                    ) 
+                                ),
                             ),
-                        ),
+                    ),
+                    c(Col, {className:'d-flex justify-content-end', xs:'2'}, //, xxl:'2'  md:'auto',
+                        c(CloseButton, {className:'mt-2',
+                            //className:'position-absolute top-0 end-0 mt-3 me-4',
+                            onClick:()=>{ss(d=>d.studio.panel.show=false)}
+                        }),
+                    ),
                 ),
-                c(Container, {
-                    fluid:true, 
-                    className:'p-0 m-0 pe-3',// ps-3 pe-3',
+                c(Row, {
+                    //fluid:true, 
+                    //className:'p-0 m-0 pt-1 pe-3',// ps-3 pe-3',
                     style:{
                         maxHeight: height,
                         overflow: 'auto',
