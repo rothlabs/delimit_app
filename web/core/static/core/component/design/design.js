@@ -3,18 +3,18 @@ import {useS, useSS, gs, ss, upper} from '../../app.js';
 import {View_Transform} from '../node/base.js';
 import {GizmoHelper} from '@react-three/drei/GizmoHelper';
 import {GizmoViewport} from '../../three/GizmoViewport.js';
-import {Mover} from './mover.js';
+import {Mover} from '../studio/mover.js';
 
-import {Curve}     from '../design/curve.js';
+import {Curve}     from './curve.js';
 //import {Ellipse}   from '../design/ellipse.js';
-import {Image}     from '../design/image.js';
-import {Layer}     from '../design/layer.js';
-import {Point}     from '../design/point.js';
+import {Image}     from './image.js';
+import {Layer}     from './layer.js';
+import {Point}     from './point.js';
 //import {Post}      from '../design/post.js';
-import {Shape}     from '../design/shape.js';
+import {Shape}     from './shape.js';
 //import {Slice}     from '../design/slice.js';
-import {Sketch}    from '../design/sketch.js';
-import {Surface}   from '../design/surface.js';
+import {Sketch}    from './sketch.js';
+import {Surface}   from './surface.js';
 //import {Transform} from '../design/transform.js';
 
 const design = {

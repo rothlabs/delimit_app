@@ -7,7 +7,7 @@ import { Make_Package } from './make_package.js';
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
 
-export function Make(){
+export function Make_Node(){
     const mode = useS(d=> d.studio.mode);
     const panel = useS(d=> d.studio.panel.mode);
     const limited = useS(d=> d.pick.limited); 

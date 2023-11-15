@@ -146,16 +146,16 @@ export const create_pick_slice = (set,get)=>({pick:{
         if(t) nodes = nodes.filter(n=> d.n[n].t==t);
         d.pick.set(d, nodes, false); //nodes.forEach(n=> d.pick.set(d, n, false)); //d.n[n].pick.pick=false   Object.values(d.n).forEach(n=> n.pick.pick=false);
     },
-    colors: [[theme.primary, theme.primary_l, 'primary'], [theme.info, theme.info_l, 'info']],
+    colors: [[theme.primary, theme.primary_l, theme.primary], [theme.info, theme.info_l, 'info']],
     color(d,n){
         const selector = d.n[n].pick.pick || d.n[n].pick.hover;
         const target = (n == d.pick.target ? 1 : 0); // d.pick.n.length > 1 && 
         d.n[n].pick.color = [
             selector ? d.pick.colors[target][0] : theme.secondary,
-            selector ? d.pick.colors[target][0] : 'white',
-            selector ? 'white' : theme.primary,
+            selector ? d.pick.colors[target][0] : theme.light,
+            selector ? theme.light : theme.primary,
             selector ? d.pick.colors[target][1] : theme.secondary_l,
-            selector ? d.pick.colors[target][2] : 'secondary',
+            selector ? d.pick.colors[target][2] : theme.secondary,
         ];
         //if(d.studio.mode=='design' && d.pick.reckon_tags.includes(d.n[n].t)) d.next('reckon.up', n, 'color'); // only call if color changes !?!?!?!?
     },

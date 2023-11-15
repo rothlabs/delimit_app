@@ -1,14 +1,14 @@
 import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas, useThree} from '@react-three/fiber';
+import {useS, gs, ss, rs, use_query, use_mutation, client_instance, use_window_size} from '../../app.js';
 import {Toolbar} from '../toolbar/toolbar.js';
-import {useS, gs, ss, rs, use_query, use_mutation, client_instance, static_url} from '../../app.js';
 import {Viewport} from './viewport.js';
 import {Code} from './code.js';
 import {Package} from './package.js';
 import {Panel} from '../panel/panel.js';
 import {Mode_Bar} from './mode_bar.js';
-import {Panel_Bar} from './mode_bar.js';
-import {Container, Row, Col, Button, InputGroup, Form} from 'react-bootstrap';
+import {Panel_Bar} from './panel_bar.js';
+import {Container, Row, Col, Badge, Button, InputGroup, Form} from 'react-bootstrap';
 
 // useLazyQuery!!!
 // https://www.apollographql.com/docs/react/data/queries
@@ -75,46 +75,72 @@ import {Container, Row, Col, Button, InputGroup, Form} from 'react-bootstrap';
 //const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
 
 export function Studio(){
-    //const ready = useS(d=> d.studio.ready);
-    //console.log('render studio!');
     return (
-        c(Fragment, {},
-            c(Mode_Bar),
-            c(Container, {fluid:true},  
-                c(Row, {},
-                    c(Col, {}, c(Toolbar)) 
-                ),
-                c(Row, {}, 
-                    c(Col, {}, c(Panel_Bar)),
-                    c(Col, {}, c(Panel)),
-                    c(Col, {}, c(Workspace)),
-                ),
+        c(Col, {className:'d-flex flex-column'}, 
+            c(Row, {},
+                c(Col, {}, c(Toolbar)) 
             ),
-            c(Reckon_Count),
+            c(Row, {className: 'flex-grow-1 g-0'}, 
+                c(Col, {className:'col-auto d-flex flex-column'}, c(Panel_Bar)), // d-flex flex-column
+                c(Col, {className:'d-flex flex-column'}, 
+                    c(Row,{className:'g-0 flex-grow-1'}, c(Panel_Workspace)), // className:'col-auto'
+                )
+            ),
+            //),
+            //c(Reckon_Count),
         )
     )
 }
-
 //c(Get_Schema),
 //c(Open_Push_Close),
 //ready && c(Poll),
-
 function Reckon_Count(){
     const reckon_count = useS(d=> d.reckon.count);
     return c(Badge, {className:'position-absolute bottom-0 start-0 m-1'}, 'Computes: '+reckon_count);
 }
 
+function Panel_Workspace(){
+    const studio_mode = useS(d=> d.studio.mode);
+    const panel_mode = useS(d=> d.studio.panel.mode);
+    if(studio_mode == 'graph' || studio_mode == 'design'){
+        return [
+            panel_mode && c(Col, {}, c(Panel)), // d-flex flex-column
+            c(Col, {className:'col-auto'}, c(Workspace)), // d-flex flex-column
+        ]
+    }else{
+        return [
+            panel_mode && c(Col, {xs:'3'}, c(Panel)), // d-flex flex-column
+            c(Col, {xs:panel_mode ? '9' : '12'}, c(Workspace)), // d-flex flex-column
+        ]
+    }
+}
+
 export function Workspace(){
     const cursor = useS(d=> d.studio.cursor);
-    const mode = useS(d=> d.studio.mode);
-    if(mode == 'code'){
+    const panel_mode = useS(d=> d.studio.panel.mode);
+    const studio_mode = useS(d=> d.studio.mode);
+    const window_size = use_window_size();
+    if(studio_mode == 'code'){
         return c(Code);
-    }else if(mode == 'package'){
+    }else if(studio_mode == 'package'){
         return c(Package);
     }else{
+        let width = window_size.width - 52;
+        if(panel_mode) width = window_size.width * .75;
+        width = width + 'px';
         return(
-            c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
-                c(Canvas,{orthographic:true, camera:{far:10000}, }, //, far:10000 zoom:1    //frameloop:'demand', 
+            //c('p', {}, 'hello world')
+            //c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
+            //c('div', {name:'r3f', className: 'flex-grow-1 '+cursor, style:{zIndex:-1}},
+            //c(Row, {
+                //className: 'flex-grow-1 '+cursor, 
+            //},
+            c('div', {style:{position:'relative', width:width, height:'100%'}},
+                c(Canvas,{
+                    className: cursor, // 'flex-grow-1 '+ 
+                    orthographic: true, 
+                    camera: {far:10000}, 
+                }, //, far:10000 zoom:1    //frameloop:'demand', 
                     c(Viewport),
                 )
             )

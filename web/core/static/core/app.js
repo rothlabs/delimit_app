@@ -53,6 +53,8 @@ const style = getComputedStyle(document.body);
 //     color:
 // }
 export const theme = {
+    bg_body: style.getPropertyValue('--bs-body-bg'),
+
     primary: style.getPropertyValue('--bs-primary'),//new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)),
     primary_s: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertLinearToSRGB(),
     primary_l: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertSRGBToLinear(),
@@ -65,16 +67,16 @@ export const theme = {
     info: style.getPropertyValue('--bs-info'), // new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)),
     info_s: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertLinearToSRGB(),
     info_l: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertSRGBToLinear(),
-    warning: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)),
+    warning: style.getPropertyValue('--bs-warning'), // warning: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)),
     warning_s: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertLinearToSRGB(),
     warning_l: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertSRGBToLinear(),
-    danger: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)),
+    danger: style.getPropertyValue('--bs-danger'), // danger: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)),
     danger_s: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertLinearToSRGB(),
     danger_l: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertSRGBToLinear(),
-    light: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)),
+    light: style.getPropertyValue('--bs-light'), // light: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)),
     light_s: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertLinearToSRGB(),
     light_l: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertSRGBToLinear(),
-    dark: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)),
+    dark: style.getPropertyValue('--bs-dark'), // dark: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)),
     dark_s: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertLinearToSRGB(),
     dark_l: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertSRGBToLinear(),
 };
@@ -473,7 +475,7 @@ createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
             r(RouterProvider, {router:createBrowserRouter([
                 {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
                     {path:'',        element:r('p',{}, 'At Home')},
-                    {path:'catalog', element:r('p',{}, 'At Catalog')},
+                    {path:'shop',    element:r('p',{}, 'At Shop')},
                     {path:'studio',  element:r(Studio), errorElement:r(Router_Error)},  // {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
                         //{path:'',       element:r(Studio_Browser)},
                         //{path:':id',    element:r(Studio_Editor)},

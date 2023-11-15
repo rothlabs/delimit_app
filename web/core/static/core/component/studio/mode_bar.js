@@ -14,10 +14,10 @@ export function Mode_Bar(){
     ];
     //console.log('render mode bar', mode);
     return(
-        c(ButtonGroup, {
-            className:'position-absolute top-0 start-50 translate-middle-x mt-2', 
-            style:{zIndex: 1}
-        }, 
+        // c(ButtonGroup, {
+        //     className:'position-absolute top-0 start-50 translate-middle-x mt-2', 
+        //     style:{zIndex: 1}
+        // }, 
             mode_buttons.map((button,i)=>
                 c(ToggleButton,{
                     id: 'studio_mode'+i,
@@ -37,8 +37,8 @@ export function Mode_Bar(){
                 }, 
                     window_size.width>576 ? button.name : '',
                 )
-            ),
-        )
+            )
+        //)
     )
 }
 

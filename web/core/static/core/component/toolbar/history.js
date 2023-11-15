@@ -12,8 +12,8 @@ export function History(){
         c(ButtonGroup, {},
             ...mode_buttons.map(button=>
                 c(Button,{
+                    className: button.icon + ' border-0',
                     variant: 'outline-primary', size: 'lg',
-                    className: button.icon + ' border-white',
                     onClick:()=> button.func(), 
                 })
             )

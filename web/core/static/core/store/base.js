@@ -28,6 +28,7 @@ export const create_base_slice = (set,get)=>({
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
     scene: null,
 
+    mode: 'home',
     n: {}, // all nodes stored here by ID 
     stem: {},
     user_id: 0,

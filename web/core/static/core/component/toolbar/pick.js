@@ -25,7 +25,7 @@ export function Pick(){
                     type: 'checkbox',
                     variant: 'outline-primary', size: 'lg',
                     checked: button.checked,
-                    className: button.icon + ' border-white',
+                    className: button.icon + ' border-0',
                     onChange:e=> ss(d=>{
                         button.func(d);
                         if(d.design.mode == 'erase') d.design.mode = '';

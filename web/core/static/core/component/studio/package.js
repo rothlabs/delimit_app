@@ -30,8 +30,8 @@ export function Package(){
     if(packages.data == undefined) return false;
     const pckgs = JSON.parse(packages.data.packages.data).list;
     return(
-        c(Row, {},
-            c(Col, {},
+        //c(Row, {},
+            //c(Col, {},
                 pckgs.map(pkg=>
                     c(Row, {},
                         c(Col, {xs:'4'},
@@ -61,14 +61,7 @@ export function Package(){
                         ),
                     )
                 ) 
-            )
-        )
+            //)
+        //)
     )
 }
-
-
-// try{
-//     console.log(data.packages.data)
-// }catch(e){
-//     console.log('get packages error', e);
-// }

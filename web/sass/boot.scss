@@ -4,10 +4,21 @@
 @import "bootstrap/scss/functions";
 
 $min-contrast-ratio:   3;
+$primary: #ff2391;
+$info:    #1ed1b9;
+$enable-rounded: false;
+
+/*
+$light:   #ffffff;
+$dark:    #000000;
+
+$min-contrast-ratio:   3;
 $primary: tint-color(#d63384, 25%);
 $info:    shade-color(#20c9b2, 10%);
+*/
 
 @import "bootstrap/scss/variables";
+
 
 
 /* $theme-colors: (
@@ -27,11 +38,16 @@ $input-btn-padding-x-sm:      0px;
 $input-btn-padding-y-sm:      0.1rem;
 $input-btn-padding-x-lg:      0px;
 $input-btn-padding-y-lg:      0.1rem;
-$input-btn-font-size:      $font-size-base * 1.25;*/
+$input-btn-font-size:      $font-size-base * 1.25;
 
-$btn-padding-y-lg:    0rem;
-$btn-padding-x-lg:    0.35rem;
-$btn-font-size-lg:    $input-btn-font-size-lg*1.15;
+
+                $btn-padding-y-lg:    0rem;   
+                $btn-padding-x-lg:    0.35rem;
+                $btn-font-size-lg:    $input-btn-font-size-lg*1.15;
+
+*/
+
+
 
 /*$btn-padding-y-sm: 0.1rem;
 $btn-padding-x-sm: 0.1rem;
