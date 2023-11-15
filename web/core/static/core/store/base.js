@@ -8,6 +8,8 @@ var next_funcs = [];
 var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
+    repo: new Map(),
+    
     terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
     //asset_classes: [],
     //admin_classes: [],

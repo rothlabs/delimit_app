@@ -16,7 +16,7 @@ export function Make_Node(){
     if(mode == 'package') return c(Make_Package);
     const d = gs();
     return(
-        c(Row, {className:'mb-3 ms-0 me-0'},
+        c(Row, {}, // className:'mb-3 ms-0 me-0'
             c(Col, {}, 
                 c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
                 ...Object.keys(d.node).map((t,i)=>//...d.asset_classes.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
@@ -25,12 +25,13 @@ export function Make_Node(){
                             svg: d.node[t].icon, 
                             text: readable(t), 
                             func: ()=> ss(d=>{ 
-                                if(d.terminal_classes[t]){
-                                    d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
-                                }else{
-                                    d.make.part(d, t, {r:d.pick.n});
-                                }
-                                d.studio.panel.show = false;
+                                d.make.part(d, t, {r:d.pick.n});
+                                //if(d.terminal_classes[t]){
+                                //    d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
+                                //}else{
+                                //    d.make.part(d, t, {r:d.pick.n});
+                                //}
+                                //d.studio.panel.show = false;
                             })
                         })
                     )
