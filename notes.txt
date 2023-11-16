@@ -1,3 +1,11 @@
+print(wq().woql_and(
+    #wq().triple('test_subject', 'v:tag', 'v:stem'),
+    #wq().triple('v:root1', 'v:tag1', 'v:stem1'), # terminusdb:///data/delimit
+    wq().path('test_subject', '.*', 'v:stem'),
+    wq().using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV', wq().path('v:stem', '.*', 'v:stem2')), 
+    ).execute(gdb)['bindings'])
+
+
 add_header 'Access-Control-Allow-Origin' * always;
 
 Use this in nginx instead of location /static/ to make it protected and force routing via django fro user auth of static files
