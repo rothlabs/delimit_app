@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-from terminusdb_client import WOQLQuery as wq
+from terminus import WOQLQuery as wq
 from .database import gdbc
 
 def index(request):

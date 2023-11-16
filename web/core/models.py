@@ -1,128 +1,147 @@
 import os
 from django.db import models
-from django.dispatch import receiver
-import django.utils
-from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
 
 id_length = 16
-max_id_length = 64
 name_length = 64
 description_length = 512
 
-def make_id(): return get_random_string(length=id_length)
-
 class Account(models.Model):
     user         = models.ForeignKey(User, on_delete=models.CASCADE) 
-    gdb_user     = models.CharField(default='', max_length=max_id_length)
-    gdb_key      = models.CharField(default='', max_length=max_id_length)
+    gdb_user     = models.CharField(default='', max_length=id_length)
+    gdb_key      = models.CharField(default='', max_length=id_length)
     def __str__(self): 
        return str(self.user) + ' ('+str(self.id)+')'
 
 class Team(models.Model):
-    team = models.CharField(default='', max_length=max_id_length) 
+    team = models.CharField(default='', max_length=id_length) 
     name = models.CharField(default='', max_length=name_length)
     description = models.TextField(default='', max_length=description_length, blank=True)
     def __str__(self): 
        return str(self.name) + ' ('+str(self.team)+')'
 
-class Package(models.Model):
-    package = models.CharField(default='', max_length=max_id_length) 
-    team = models.CharField(default='', max_length=max_id_length) 
+class Repo(models.Model):
+    repo = models.CharField(default='', max_length=id_length) 
+    team = models.CharField(default='', max_length=id_length) 
     name = models.CharField(default='', max_length=name_length)
     description = models.TextField(default='', max_length=description_length, blank=True)
     def __str__(self): 
-       return str(self.name) + ' ('+str(self.package)+')'
+       return str(self.name) + ' ('+str(self.repo)+')'
 
 
+#from django.dispatch import receiver
+#from django.db.models.signals import post_save
+#import django.utils
+#from django.utils.crypto import get_random_string
 
 
-class Id(models.Model):
-    class Meta: abstract = True
-    id = models.CharField(default=make_id, max_length=16, primary_key=True)
-class Atom(models.Model):
-    class Meta: abstract = True
-    def __str__(self): return str(self.v)+' ('+str(self.id)+')'
+#def make_id(): return get_random_string(length=id_length)
 
-class Tag(Id):    
-    v = models.CharField(default='', blank=True, max_length=128)
-    system = models.BooleanField(default=False)
-    def __str__(self): 
-        system_text = ' '
-        if self.system: system_text = 'SYSTEM'
-        return str(self.v)+' '+system_text+' ('+str(self.id)+')'
-class Bool(Id, Atom):   v = models.BooleanField(default=False)
-class Int(Id, Atom):    v = models.IntegerField(default=0)
-class Float(Id, Atom):  v = models.FloatField(default=0)
-class String(Id, Atom): v = models.TextField(default='', blank=True)
 
-class Part(Id): 
-    t    = models.ForeignKey(Tag, related_name='p', on_delete=models.CASCADE)#null=True, on_delete=models.SET_NULL)
-    p    = models.ManyToManyField('self', related_name='r', through='Part_Part', symmetrical=False) # blank=True, 
-    b    = models.ManyToManyField(Bool,   related_name='p', through='Part_Bool')
-    i    = models.ManyToManyField(Int,    related_name='p', through='Part_Int')
-    f    = models.ManyToManyField(Float,  related_name='p', through='Part_Float')
-    s    = models.ManyToManyField(String, related_name='p', through='Part_String')
-    u    = models.ManyToManyField(User,   related_name='p', through='Part_User')
-    def __str__(self): return self.t.v+' ('+self.id+')'
+# class Id(models.Model):
+#     class Meta: abstract = True
+#     id = models.CharField(default=make_id, max_length=16, primary_key=True)
+# class Atom(models.Model):
+#     class Meta: abstract = True
+#     def __str__(self): return str(self.v)+' ('+str(self.id)+')'
 
-class Edge(models.Model):
-    class Meta: 
-        abstract = True
-        unique_together = ['r', 'n', 't']
-    o = models.IntegerField(default=0) # order (look into PositiveIntegerField)
-    def __str__(self): 
-        ntv = 'user'
-        if hasattr(self.n, 'v'): ntv = str(self.n.v)
-        if hasattr(self.n, 't'): ntv = self.n.t.v
-        return self.r.t.v+' ('+self.r.id+') <<---- '+self.t.v+' '+str(self.o)+' ----- '+ntv+' ('+str(self.n.id)+')'
+# class Tag(Id):    
+#     v = models.CharField(default='', blank=True, max_length=128)
+#     system = models.BooleanField(default=False)
+#     def __str__(self): 
+#         system_text = ' '
+#         if self.system: system_text = 'SYSTEM'
+#         return str(self.v)+' '+system_text+' ('+str(self.id)+')'
+# class Bool(Id, Atom):   v = models.BooleanField(default=False)
+# class Int(Id, Atom):    v = models.IntegerField(default=0)
+# class Float(Id, Atom):  v = models.FloatField(default=0)
+# class String(Id, Atom): v = models.TextField(default='', blank=True)
+
+# class Part(Id): 
+#     t    = models.ForeignKey(Tag, related_name='p', on_delete=models.CASCADE)#null=True, on_delete=models.SET_NULL)
+#     p    = models.ManyToManyField('self', related_name='r', through='Part_Part', symmetrical=False) # blank=True, 
+#     b    = models.ManyToManyField(Bool,   related_name='p', through='Part_Bool')
+#     i    = models.ManyToManyField(Int,    related_name='p', through='Part_Int')
+#     f    = models.ManyToManyField(Float,  related_name='p', through='Part_Float')
+#     s    = models.ManyToManyField(String, related_name='p', through='Part_String')
+#     u    = models.ManyToManyField(User,   related_name='p', through='Part_User')
+#     def __str__(self): return self.t.v+' ('+self.id+')'
+
+# class Edge(models.Model):
+#     class Meta: 
+#         abstract = True
+#         unique_together = ['r', 'n', 't']
+#     o = models.IntegerField(default=0) # order (look into PositiveIntegerField)
+#     def __str__(self): 
+#         ntv = 'user'
+#         if hasattr(self.n, 'v'): ntv = str(self.n.v)
+#         if hasattr(self.n, 't'): ntv = self.n.t.v
+#         return self.r.t.v+' ('+self.r.id+') <<---- '+self.t.v+' '+str(self.o)+' ----- '+ntv+' ('+str(self.n.id)+')'
  
-class Part_Part(Edge):
-    #t1 = models.ForeignKey(Tag,  related_name='pp1', null=True, blank=True, on_delete=models.SET_NULL)
-    r = models.ForeignKey(Part, related_name='pe', on_delete=models.CASCADE)  
-    t = models.ForeignKey(Tag,  related_name='pe', on_delete=models.CASCADE)#null=True, blank=True, on_delete=models.SET_NULL)
-    n = models.ForeignKey(Part, related_name='e', on_delete=models.CASCADE)
-class Part_Bool(Edge):
-    #t1 = models.ForeignKey(Tag,  related_name='pb1', null=True, blank=True, on_delete=models.SET_NULL)
-    r = models.ForeignKey(Part, related_name='be', on_delete=models.CASCADE)                         
-    t = models.ForeignKey(Tag,  related_name='be', on_delete=models.CASCADE)
-    n = models.ForeignKey(Bool, related_name='e', on_delete=models.CASCADE)                         
-class Part_Int(Edge):
-    #t1 = models.ForeignKey(Tag,  related_name='pi1', null=True, blank=True, on_delete=models.SET_NULL)
-    r = models.ForeignKey(Part, related_name='ie', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag,  related_name='ie', on_delete=models.CASCADE)
-    n = models.ForeignKey(Int,  related_name='e', on_delete=models.CASCADE)
-class Part_Float(Edge):
-    #t1 = models.ForeignKey(Tag,   related_name='pf1', null=True, blank=True, on_delete=models.SET_NULL)
-    r = models.ForeignKey(Part,  related_name='fe', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag,   related_name='fe', on_delete=models.CASCADE)
-    n = models.ForeignKey(Float, related_name='e', on_delete=models.CASCADE)
-class Part_String(Edge):
-    #t1 = models.ForeignKey(Tag,    related_name='ps1', null=True, blank=True, on_delete=models.SET_NULL)
-    r = models.ForeignKey(Part,   related_name='se', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag,    related_name='se', on_delete=models.CASCADE)
-    n = models.ForeignKey(String, related_name='e', on_delete=models.CASCADE)
-class Part_User(Edge):
-    #t1 = models.ForeignKey(Tag,  related_name='pu1', null=True, blank=True, on_delete=models.SET_NULL)
-    r = models.ForeignKey(Part, related_name='ue', on_delete=models.CASCADE)
-    t = models.ForeignKey(Tag,  related_name='ue', on_delete=models.CASCADE)
-    n = models.ForeignKey(User, related_name='e', on_delete=models.CASCADE)
+# class Part_Part(Edge):
+#     #t1 = models.ForeignKey(Tag,  related_name='pp1', null=True, blank=True, on_delete=models.SET_NULL)
+#     r = models.ForeignKey(Part, related_name='pe', on_delete=models.CASCADE)  
+#     t = models.ForeignKey(Tag,  related_name='pe', on_delete=models.CASCADE)#null=True, blank=True, on_delete=models.SET_NULL)
+#     n = models.ForeignKey(Part, related_name='e', on_delete=models.CASCADE)
+# class Part_Bool(Edge):
+#     #t1 = models.ForeignKey(Tag,  related_name='pb1', null=True, blank=True, on_delete=models.SET_NULL)
+#     r = models.ForeignKey(Part, related_name='be', on_delete=models.CASCADE)                         
+#     t = models.ForeignKey(Tag,  related_name='be', on_delete=models.CASCADE)
+#     n = models.ForeignKey(Bool, related_name='e', on_delete=models.CASCADE)                         
+# class Part_Int(Edge):
+#     #t1 = models.ForeignKey(Tag,  related_name='pi1', null=True, blank=True, on_delete=models.SET_NULL)
+#     r = models.ForeignKey(Part, related_name='ie', on_delete=models.CASCADE)
+#     t = models.ForeignKey(Tag,  related_name='ie', on_delete=models.CASCADE)
+#     n = models.ForeignKey(Int,  related_name='e', on_delete=models.CASCADE)
+# class Part_Float(Edge):
+#     #t1 = models.ForeignKey(Tag,   related_name='pf1', null=True, blank=True, on_delete=models.SET_NULL)
+#     r = models.ForeignKey(Part,  related_name='fe', on_delete=models.CASCADE)
+#     t = models.ForeignKey(Tag,   related_name='fe', on_delete=models.CASCADE)
+#     n = models.ForeignKey(Float, related_name='e', on_delete=models.CASCADE)
+# class Part_String(Edge):
+#     #t1 = models.ForeignKey(Tag,    related_name='ps1', null=True, blank=True, on_delete=models.SET_NULL)
+#     r = models.ForeignKey(Part,   related_name='se', on_delete=models.CASCADE)
+#     t = models.ForeignKey(Tag,    related_name='se', on_delete=models.CASCADE)
+#     n = models.ForeignKey(String, related_name='e', on_delete=models.CASCADE)
+# class Part_User(Edge):
+#     #t1 = models.ForeignKey(Tag,  related_name='pu1', null=True, blank=True, on_delete=models.SET_NULL)
+#     r = models.ForeignKey(Part, related_name='ue', on_delete=models.CASCADE)
+#     t = models.ForeignKey(Tag,  related_name='ue', on_delete=models.CASCADE)
+#     n = models.ForeignKey(User, related_name='e', on_delete=models.CASCADE)
 
 
 
-@receiver(post_save, sender=User)
-def create_user_system_packs(sender, instance, created, **kwargs): # not tested 
-    if created:  
-        name = String.objects.create(v=instance.first_name) # might be firstName!!!!
-        profile = Part.objects.create(t=tag['profile'])
-        profile.u.add(instance, through_defaults={'t':tag['user']})
-        profile.s.add(name, through_defaults={'t':tag['name']})
-        #poll_pack = Part.objects.create(t=tag['poll_pack'])
-        #poll_pack.u.add(instance, through_defaults={'t':tag['user']})
-        open_pack = Part.objects.create(t=tag['open_pack'])
-        open_pack.u.add(instance, through_defaults={'t':tag['user']})
-        #open_pack.p.add(poll_pack, through_defaults={'t':tag['poll_pack']})
+# @receiver(post_save, sender=User)
+# def create_user_system_packs(sender, instance, created, **kwargs): # not tested 
+#     if created:  
+#         name = String.objects.create(v=instance.first_name) # might be firstName!!!!
+#         profile = Part.objects.create(t=tag['profile'])
+#         profile.u.add(instance, through_defaults={'t':tag['user']})
+#         profile.s.add(name, through_defaults={'t':tag['name']})
+#         #poll_pack = Part.objects.create(t=tag['poll_pack'])
+#         #poll_pack.u.add(instance, through_defaults={'t':tag['user']})
+#         open_pack = Part.objects.create(t=tag['open_pack'])
+#         open_pack.u.add(instance, through_defaults={'t':tag['user']})
+#         #open_pack.p.add(poll_pack, through_defaults={'t':tag['poll_pack']})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # @receiver(post_save, sender=Part)
 # def add_part_to_poll_packs(sender, instance, **kwargs):

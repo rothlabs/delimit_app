@@ -3,7 +3,7 @@ import graphene
 from core.api.types import Pack_Type
 from core.api.config import auth_required_message
 from graph.database import gdbc
-from terminusdb_client import WOQLQuery as wq
+from terminus import WOQLQuery as wq
 
 class Push_Nodes(graphene.Mutation):
     class Arguments:

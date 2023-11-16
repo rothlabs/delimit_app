@@ -2,7 +2,7 @@ import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, Button, Container} from 'react-bootstrap';
 import {useS, ss, gs, static_url, readable, theme} from '../../app.js'
 import { Svg_Button } from '../app/base.js';
-import { Make_Package } from './make_package.js';
+import { Make_Repo } from './make_repo.js';
 //import {Badge} from '../node/base.js'
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
@@ -13,7 +13,7 @@ export function Make_Node(){
     const limited = useS(d=> d.pick.limited); 
     const terminal = useS(d=> d.pick.terminal); 
     if(panel != 'make') return false;
-    if(mode == 'package') return c(Make_Package);
+    if(mode == 'repo') return c(Make_Repo);
     const d = gs();
     return(
         c(Row, {}, // className:'mb-3 ms-0 me-0'

@@ -7,7 +7,7 @@ export function Mode_Bar(){
     const studio_mode = useS(d=> d.studio.mode);
     //const design_part = useS(d=> d.design.part);
     const mode_buttons = [
-        {name:' Package', icon:'bi-box-seam',       value:'package', disabled:false},
+        {name:' Repo',    icon:'bi-box-seam',       value:'repo', disabled:false},
         {name:' Design',  icon:'bi-pencil-square',  value:'design',  disabled:false}, // design_part==null
         {name:' Graph',   icon:'bi-diagram-3',      value:'graph',   disabled:false},
         {name:' Code',    icon:'bi-braces',         value:'code',    disabled:false},

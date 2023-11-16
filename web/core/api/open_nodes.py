@@ -2,22 +2,22 @@ import json
 import graphene
 #from core.api.types import Pack_Type
 from graph.database import gdbc, gdb_connect
-from terminusdb_client import WOQLQuery as wq
+from terminus import WOQLQuery as wq
 
 class Open_Nodes(graphene.Mutation): # rename to Open_Assets and Push_Assets
     class Arguments:
         team = graphene.String()
-        package = graphene.String()
+        repo = graphene.String()
         #nodes = graphene.List(graphene.String())
     #pack = graphene.Field(Pack_Type)
     triples = graphene.String(default_value = '{"list":[]}')
-    reply = graphene.String(default_value = 'Failed to open nodes.')
+    reply = graphene.String(default_value = 'Failed to open nodes')
     @classmethod
-    def mutate(cls, root, info, team, package): # , include, exclude): # offset, limit for pages
+    def mutate(cls, root, info, team, repo): # , include, exclude): # offset, limit for pages
         try:
-            gdb_connect(info.context.user, team=team, package=package)
-            triples = wq().star('v:root', 'v:tag', 'v:stem').execute(gdbc)['bindings'] 
-            return Open_Nodes(triples = json.dumps({'list':triples}))
+            gdb_connect(info.context.user, team=team, repo=repo)
+            triples = wq().triple('v:root', 'v:tag', 'v:stem').execute(gdbc)['bindings'] # star(subj='root', pred='tag', obj='stem')
+            return Open_Nodes(reply='Opened nodes', triples = json.dumps({'list':triples}))
         except Exception as e: 
             print('Error: Open_Nodes')
             print(e)
@@ -36,6 +36,8 @@ class Open_Nodes(graphene.Mutation): # rename to Open_Assets and Push_Assets
             # ).execute(gdbc)['bindings'] 
             # triples = query.execute(gdbc)['bindings']    
             #return Open_Nodes(nodes=Pack_Type(data={'list':triples}), reply='Opened nodes')
+
+
 
 
 

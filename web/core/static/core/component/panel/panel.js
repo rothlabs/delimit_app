@@ -2,7 +2,7 @@ import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Container, CloseButton, Row, Col, ButtonToolbar} from 'react-bootstrap';
 import {ss, gs, useS, use_window_size, static_url} from '../../app.js';
 import {Make_Node}    from './make_node.js';
-import {Make_Package} from './make_package.js';
+import {Make_Repo} from './make_repo.js';
 import {Inspect} from './inspect.js';
 import {Modules} from './modules.js';
 import {Display} from './display.js';
@@ -19,7 +19,7 @@ export function Panel(){
     const mode = useS(d=> d.studio.panel.mode);
     //if(!show) return false;
     if(mode == 'make'){
-        if(studio_mode == 'package') return c(Make_Package);
+        if(studio_mode == 'repo') return c(Make_Repo);
         return c(Make_Node);
     }
     if(mode == 'inspect') return c(Inspect);

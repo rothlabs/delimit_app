@@ -1,16 +1,16 @@
 import os, time
 from django.conf import settings
 from core.models import Account
-from terminusdb_client import Client
-from terminusdb_client import WOQLQuery as wq
+from terminus import Client           # terminusdb_client
+from terminus import WOQLQuery as wq  # terminusdb_client
 
 GRAPH = settings.GRAPH
 
-os.system('nc -4 -vz '+GRAPH['socket']['host']+' '+GRAPH['socket']['port']) # trigger terminusdb.socket
+#os.system('nc -4 -vz '+GRAPH['socket']['host']+' '+GRAPH['socket']['port']) # trigger terminusdb.socket
 
 gdbc = Client('http://'+GRAPH['server']['host']+':'+GRAPH['server']['port']+'/')
 
-def gdb_connect(user, team=None, package=None):
+def gdb_connect(user, team=None, repo=None):
     gdb_user = 'anonymous'
     gdb_key = 'anonymous'
     if user.is_authenticated:
@@ -19,7 +19,7 @@ def gdb_connect(user, team=None, package=None):
         gdb_user = account.gdb_user
         gdb_key = account.gdb_key
     if not team: team = 'anonymous'
-    if package: gdbc.connect(user=gdb_user, key=gdb_key, team=team, db=package)
+    if repo: gdbc.connect(user=gdb_user, key=gdb_key, team=team, db=repo)
     else: gdbc.connect(user=gdb_user, key=gdb_key, team=team)
     return team
 

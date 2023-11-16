@@ -176,7 +176,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GRAPH = {
     'socket':{
         'host': 'localhost',
-        'port': '3636', 
+        'port': '3636',  
     },
     'server':{
         'host': 'localhost',
@@ -184,7 +184,7 @@ GRAPH = {
     },
     'user':{
         'admin':{
-            'key':  '9h3IAvdGrdn8sjORuwJwCYJekg0UijjK9N7i3JipkETLtPTNJTPwfVeMwp2ItaVT', #'5c6rvgUaTups5i45d6sW82sKtOOADmL0HVu5j4RyaNXqkrtx558udQDq8nKM6mUv',
+            'key': 'root', #'9h3IAvdGrdn8sjORuwJwCYJekg0UijjK9N7i3JipkETLtPTNJTPwfVeMwp2ItaVT', #'5c6rvgUaTups5i45d6sW82sKtOOADmL0HVu5j4RyaNXqkrtx558udQDq8nKM6mUv',
         },
     }
 }

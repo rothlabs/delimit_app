@@ -1,47 +1,47 @@
 import graphene
 from graph.database import gdbc, gdb_connect
-from terminusdb_client import WOQLQuery as wq
+from terminus import WOQLQuery as wq # terminusdb_client
 from core.api.login import Login
 from core.api.logout import Logout
 from core.api.open_nodes import Open_Nodes
 from core.api.push_nodes import Push_Nodes
-from core.api.drop_package import Drop_Package
-from core.api.make_package import Make_Package
+from core.api.drop_repo import Drop_Repo
+from core.api.make_repo import Make_Repo
 from core.api.types import Authenticated_User_Type, Pack_Type
-from core.models import Package
+from core.models import Repo
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    packages = graphene.Field(Pack_Type)
+    repos = graphene.Field(Pack_Type)
     def resolve_user(root, info):
         if info.context.user.is_authenticated: 
             return info.context.user
         else: 
             return None
-    def resolve_packages(root, info):
+    def resolve_repos(root, info):
         try:
             gdb_connect(info.context.user)
             databases = gdbc.get_databases()
-            packages = Package.objects.filter(package__in=[p['name'] for p in databases]) # p['name'] is the id
+            repos = Repo.objects.filter(repo__in=[p['name'] for p in databases]) # p['name'] is the id
             result = []
-            for p in packages:
+            for p in repos:
                 result.append({
                     'team': p.team,
-                    'package': p.package, 
+                    'repo': p.repo, 
                     'name': p.name, 
                     'description': p.description,
                 })
             return Pack_Type(data = {'list':result})
         except Exception as e: 
-            print('Error: Query packages') 
+            print('Error: Query repos') 
             print(e)
         return None
 
 class Mutation(graphene.ObjectType):
     login = Login.Field()
     logout = Logout.Field()
-    makePackage = Make_Package.Field()
-    dropPackage = Drop_Package.Field()
+    makeRepo = Make_Repo.Field()
+    dropRepo = Drop_Repo.Field()
     openNodes = Open_Nodes.Field()
     pushNodes = Push_Nodes.Field()
 

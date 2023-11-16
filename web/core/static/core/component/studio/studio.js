@@ -4,7 +4,7 @@ import {useS, gs, ss, rs, use_query, use_mutation, client_instance, use_window_s
 import {Toolbar} from '../toolbar/toolbar.js';
 import {Viewport} from './viewport.js';
 import {Code} from './code.js';
-import {Package} from './package.js';
+import {Repo} from './repo.js';
 import {Panel} from '../panel/panel.js';
 import {Mode_Bar} from './mode_bar.js';
 import {Panel_Bar} from './panel_bar.js';
@@ -122,8 +122,8 @@ export function Workspace(){
     const window_size = use_window_size();
     if(studio_mode == 'code'){
         return c(Code);
-    }else if(studio_mode == 'package'){
-        return c(Package);
+    }else if(studio_mode == 'repo'){
+        return c(Repo);
     }else{
         let width = window_size.width - 52;
         if(panel_mode) width = window_size.width * .75;

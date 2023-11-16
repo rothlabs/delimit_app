@@ -9,7 +9,7 @@ var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
     repo: new Map(),
-    
+
     terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
     //asset_classes: [],
     //admin_classes: [],
@@ -37,8 +37,8 @@ export const create_base_slice = (set,get)=>({
     search: {depth:null, ids:null},
     studio: {
         ready: false,
-        mode: 'package',
-        package: {
+        mode: 'repo',
+        repo: {
             fetch(){},
         },
         panel: {},
@@ -230,13 +230,11 @@ export const create_base_slice = (set,get)=>({
     }),
 
     receive_triples: (d, triples)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        console.log('receive_triples');
         console.log(triples);
         for(const triple of triples){
-            if(triple.root.slice(0,5) == 'Class') console.log(triple);
             const r = triple.root; 
-            if(triple.tag == 'rdf:type'){
-                if(!d.n[r]) d.n[r] = d.node_template(d, triple.stem.slice(8).toLowerCase());
+            if(!d.n[r]){
+                d.n[r] = d.node_template(d, triple.stem.slice(8).toLowerCase());
                 if(d.terminal_classes[d.n[r].t]){
                     delete d.n[r].n;
                 }else{
@@ -246,16 +244,6 @@ export const create_base_slice = (set,get)=>({
                 d.pick.color(d, r);
             }
         }
-        // if(!d.user){
-        //     for(const triple of triples){
-        //         if(triple.stem['@type'] && triple.tag.slice(0, 8) == '@schema:'){
-        //             const r = triple.root;
-        //             if(d.n[r].t == 'user' && triple.tag.slice(8) == 'user' && triple.stem['@value'] == d.user_id){
-        //                 d.user = r;
-        //             }
-        //         }
-        //     }
-        // }
         for(const triple of triples){
             if(triple.tag.slice(0, 8) == '@schema:'){
                 const r = triple.root;
@@ -471,6 +459,55 @@ export const create_base_slice = (set,get)=>({
     },
 
 });
+
+
+
+
+
+
+
+// receive_triples: (d, triples)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
+//     console.log(triples);
+//     for(const triple of triples){
+//         if(triple.root.slice(0,5) == 'Class') console.log(triple);
+//         const r = triple.root; 
+//         if(triple.tag == 'rdf:type'){
+//             if(!d.n[r]) d.n[r] = d.node_template(d, triple.stem.slice(8).toLowerCase());
+//             if(d.terminal_classes[d.n[r].t]){
+//                 delete d.n[r].n;
+//             }else{
+//                 d.graph.for_stem(d, r, (r,n,t)=> d.delete.edge(d, r, n, {t:t}));
+//                 d.n[r].n = {};
+//             }
+//             d.pick.color(d, r);
+//         }
+//     }
+//     // if(!d.user){
+//     //     for(const triple of triples){
+//     //         if(triple.stem['@type'] && triple.tag.slice(0, 8) == '@schema:'){
+//     //             const r = triple.root;
+//     //             if(d.n[r].t == 'user' && triple.tag.slice(8) == 'user' && triple.stem['@value'] == d.user_id){
+//     //                 d.user = r;
+//     //             }
+//     //         }
+//     //     }
+//     // }
+//     for(const triple of triples){
+//         if(triple.tag.slice(0, 8) == '@schema:'){
+//             const r = triple.root;
+//             const t = triple.tag.slice(8);
+//             if(triple.stem['@type']){
+//                 if(t == 'value') d.graph.sv(d, r, triple.stem['@value']);
+//             }else{
+//                 d.make.edge(d, r, triple.stem, {t:t, received:true});
+//             }
+//         }
+//     }
+//     if(triples.length) d.next('graph.update');
+//     //console.log(current(d.n));
+// },
+
+
 
 
 

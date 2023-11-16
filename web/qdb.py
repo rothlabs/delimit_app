@@ -4,6 +4,7 @@ from terminus import Client
 from terminus import WOQLQuery as wq
 from terminus.woqlquery import Doc 
 
+# ./terminusdb db update 7Yl2byU8Y05Z7xmn/4v6nUUuVVg0Z2M6g --schema false
 #create_database = 'terminusdb db create admin/core --organization="admin" --label="core" --comment="Delimit Core" --public=true --schema=false --data-prefix="iri:///core/"'
 
 # url = 'http://admin:root@localhost:6363/api/schema/admin/core?schema_checking=disabled'
@@ -11,12 +12,12 @@ from terminus.woqlquery import Doc
 # print(response)
 
 
-os.system('nc -4 -vz localhost 3636') # connect to terminus socket
+#os.system('nc -4 -vz localhost 3636') # connect to terminus socket
 gdb = Client('http://localhost:6363/')
 for i in range(0, 1):
     print('Connecting terminus.')
     try:
-        #gdb.connect(user='admin', key='9h3IAvdGrdn8sjORuwJwCYJekg0UijjK9N7i3JipkETLtPTNJTPwfVeMwp2ItaVT') 
+        #gdb.connect(user='admin', key='root')   # gdb.connect(user='admin', key='9h3IAvdGrdn8sjORuwJwCYJekg0UijjK9N7i3JipkETLtPTNJTPwfVeMwp2ItaVT') 
         gdb.connect(team='7Yl2byU8Y05Z7xmn', user='7Yl2byU8Y05Z7xmn', key='Ya5FChrBxYlHaLQr')
         break
     except Exception as e:
@@ -25,7 +26,29 @@ for i in range(0, 1):
         time.sleep(.25)
 
 # gdb.add_user(username='anonymous', password='anonymous')
-print(gdb.get_databases()) # ('UU1R6yogAvKrG7aG') 
+#print(gdb.add_user(username='7Yl2byU8Y05Z7xmn', password='Ya5FChrBxYlHaLQr')) # ('UU1R6yogAvKrG7aG')
+#print(gdb.get_databases())
+gdb.set_db('f3du3cGcG5Vp57Z8')
+#print(gdb._get_prefixes())
+
+
+#print(gdb.list_databases())
+
+
+#print(wq().path('test_subject', '.*,.', 'v:stem').using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV').path('v:stem', '.*,.', 'v:stem2').execute(gdb)['bindings'])
+#print(wq().using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV').using('7Yl2byU8Y05Z7xmn/f3du3cGcG5Vp57Z8').path('test_subject', '.*', 'v:stem').execute(gdb)['bindings'])
+
+
+
+print(wq().woql_or(
+    wq().path('test_subject', '.*,.', 'v:stem'),
+    wq().path('test_subject', '.*,.', 'v:stem').using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV').path('v:stem', '.*,.', 'v:stem2'),  #wq().using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV', wq().path('v:stem', '.*', 'v:stem2')),
+    ).execute(gdb)['bindings'])
+# print(wq()
+#     #.delete_triple('test_subject', '@schema:stem', 'delimit') 
+#     .add_triple('object_one!', '@schema:stem', 'AQtstWW3PLS7jdeV') 
+#     .execute(gdb))
+# print(wq().star().execute(gdb)['bindings'])
 
 # capability = {
 #   "operation": "grant",
@@ -56,10 +79,7 @@ print(gdb.get_databases()) # ('UU1R6yogAvKrG7aG')
 # #     #  .delete_triple('curve/randomcode', '@schema:part', '2/vector/othervect')
 # #     ).execute(gdb))
 
-# # # (wq().delete_triple('vector/randomcode', '@schema:x', 37)
-# # #      .delete_triple('vector/randomcode', '@schema:y', 88)
-# # #      .delete_triple('vector/randomcode', '@schema:z', 13)
-# # #      .execute(gdb))
+
 
 # # triples = wq().triple('v:root', 'v:tag', 'v:stem').execute(gdb)['bindings']
 # # print(triples)
