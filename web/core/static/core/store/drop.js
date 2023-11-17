@@ -1,5 +1,5 @@
 
-export const create_delete_slice = (set,get)=>({delete:{
+export const create_drop_slice = (set,get)=>({delete:{
     node:(d, n, a={})=>{ // allow delete if not asset when it is another user deleting 
         if(d.n[n]){
             var nodes = [n];
@@ -22,7 +22,10 @@ export const create_delete_slice = (set,get)=>({delete:{
             });
         }
     },
-    edge(d, r, n, a={}){ // can be delete_edge, not taking array  
+    edge(d, a={}){ 
+        
+
+
         var t = d.n[n].t;
         if(a.t != undefined) t = a.t;
         if(d.n[r].asset && d.n[r].n[t]){ // if((d.n[r].asset || d.cats[d.n[r].t]) && d.n[r].n[t]){ // d.n[r].n[t] remove d.n[r].n[t] ?!?!?!?!

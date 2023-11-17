@@ -97,7 +97,7 @@ export const create_design_slice = (set,get)=>({design:{
         //if(!ray.n3) return;
         var r = d.pick.get_if_one(d, ['curve']); //, {one_tag:true}
         if(!r){
-            r = d.make.part(d, 'curve', {r:n});//{r:ray.n3}); // d.design.part
+            r = d.make.node(d, {spec:'curve', r:n}); // r = d.make.part(d, 'curve', {r:n});//{r:ray.n3}); // d.design.part
             d.pick.one(d, r);
             d.next('design.insert_point', r, ray.pos); // wait until next so matrix can cast to curve
         }else{
@@ -148,7 +148,7 @@ export const create_design_slice = (set,get)=>({design:{
                 }
             }
         }
-        const n = d.make.part(d, 'point', {r:r, o:o});//d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
+        const n = d.make.node(d, {spec:'point', r:r, o:o}); // const n = d.make.part(d, 'point', {r:r, o:o}); //d.make.point(d, {pos:pos, r:r, o:o}); // must have insertion index. For now, using -1 for last
         d.graph.set_pos(d, n, pos);
         d.pick.one(d, n, {t:true});
     },

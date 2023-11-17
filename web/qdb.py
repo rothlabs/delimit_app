@@ -40,15 +40,17 @@ gdb.set_db('f3du3cGcG5Vp57Z8')
 
 
 
-print(wq().woql_or(
-    wq().path('test_subject', '.*,.', 'v:stem'),
-    wq().path('test_subject', '.*,.', 'v:stem').using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV').path('v:stem', '.*,.', 'v:stem2'),  #wq().using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV', wq().path('v:stem', '.*', 'v:stem2')),
-    ).execute(gdb)['bindings'])
-# print(wq()
-#     #.delete_triple('test_subject', '@schema:stem', 'delimit') 
-#     .add_triple('object_one!', '@schema:stem', 'AQtstWW3PLS7jdeV') 
-#     .execute(gdb))
-# print(wq().star().execute(gdb)['bindings'])
+# # # print(wq().woql_or(
+# # #     wq().path('test_subject', '.*,.', 'v:stem'),
+# # #     wq().path('test_subject', '.*,.', 'v:stem').using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV').path('v:stem', '.*,.', 'v:stem2'),  #wq().using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV', wq().path('v:stem', '.*', 'v:stem2')),
+# # #     ).execute(gdb)['bindings'])
+
+
+print(wq()
+    .triple('v:root', 'v:wow', 'AQtstWW3PLS7jdeV') # @schema:stem
+    .add_triple('v:root', 'v:wow', '4jTppoxGp0JPNQJf') 
+    .execute(gdb))
+print(wq().star().execute(gdb)['bindings'])
 
 # capability = {
 #   "operation": "grant",

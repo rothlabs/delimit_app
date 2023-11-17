@@ -9,24 +9,18 @@ export const create_graph_slice = (set,get)=>({graph:{
     n: [],
     e: [], 
     init(d){
-        // for(const [t, node] of Object.entries(d.node)){
-        //     node.icon = static_url+'icon/node/'+t+'.svg';
-        //     node.tag = readable(t);
-        //     node.css = d.node_css[t];
-        // }
-
-        d.graph.n_vis={ // n_vis
-            ...Object.fromEntries(Object.keys(d.node).map(t=>[t,true])), //...Object.fromEntries(d.node_classes.map(t=>[t,true])),
-            //...Object.fromEntries(Object.keys(d.terminal_classes).map(t=>[t,false])),
+        d.graph.n_vis={ 
+            node: true,
+            //...Object.fromEntries(Object.keys(d.node).map(t=>[t,true])), 
         };
-        d.graph.e_vis={ // e_vis
-            //...Object.fromEntries(Object.keys(d.root_tags).map(t=>[t,true])),
-            ...Object.fromEntries(d.terminal_tags.map(t=>[t,true])), 
-            ...Object.fromEntries(d.stem_tags.map(t=>[t,true])),
-            //viewable:false, asset:false,
+        d.graph.e_vis={ 
+            spec: true, 
+            make: true,
+            name: true,
+            leaf: true,
+            //...Object.fromEntries(d.terminal_tags.map(t=>[t,true])), 
+            //...Object.fromEntries(d.stem_tags.map(t=>[t,true])),
         };
-        //delete d.graph.e_vis.decimal;
-        //delete d.graph.e_vis.text;
     },
     set_node_vis:(d, t, vis)=>{
         d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders
@@ -145,6 +139,10 @@ export const create_graph_slice = (set,get)=>({graph:{
             ))};
         }//);
     },
+
+    ////////////////////////////////////////////  New utils //////////////////////////
+
+
     ////////////////////////////////////////////  Utils //////////////////////////////
     ex:(d,n)=>{ //use try catch to perform func ?!?!?!?! // have to calculate this every time a user wants to know because the node could not be present at all
         //if(n){
@@ -155,6 +153,27 @@ export const create_graph_slice = (set,get)=>({graph:{
             }
         //}
         return null;
+    },
+    path(d, n, path, a={}){
+        try{
+            let result = n;
+            let pth = path.split(' ');
+            let leaf = false;
+            if(pth.at(-1) == 'v'){
+                leaf = true;
+                pth.pop();
+            }
+            for(const stem in pth){
+                if(d.n[result].drop) return a.default;
+                result = d.n[result].n[stem][0];
+            }
+            if(leaf){
+                if(d.n[result].v == null) return a.default;
+                return d.n[result].v;
+            }
+            return result;
+        }catch{}
+        return a.default;
     },
     // cats(d,n){
     //     const result = [];

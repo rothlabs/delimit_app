@@ -23,7 +23,6 @@ export const Atom = memo(function Atom({n}){
         obj.current.position.copy(graph.pos);
     }); 
     const d = gs();
-    const t = d.n[n].t;
     //const pos = gs().n[n].graph.pos
 
     // useEffect(()=>subS(d=> d.n[n].graph, d=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
@@ -63,7 +62,7 @@ export const Atom = memo(function Atom({n}){
                     outlineColor: 'white',
                     anchorX: 'center',
                     anchorY: 'middle',
-                    text: d.node[t].tag, //readable(tag) readable(d.n[n].t),//
+                    text: d.spec.tag(d,n), //readable(tag) readable(d.n[n].t),//
                 },
                     c('meshBasicMaterial', {color: color[0], toneMapped:false}),// causing unsupported texture colorspace: undefined
                 ),

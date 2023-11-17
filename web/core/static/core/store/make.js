@@ -5,84 +5,28 @@ import {current} from 'immer';
 const tm = new Matrix4();
 
 export const create_make_slice = (set,get)=>({make:{
-    // init(d){
-    //     d.make.buttons = d.subject
-    // },
-    edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
+    edge(d, r, n, a={}){ 
         if(!d.graph.ex(d,r) || !d.graph.ex(d,n)) return;
-        //console.log('make edge 1', r, a.t, n);
-        if(d.n[r].asset || a.received){  // if(d.n[r].asset || r==d.user || a.received){     // if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
-            //console.log('make edge 2', r, a.t, n);
+        if(d.n[r].asset || a.received){  
             if(a.single && d.n[r].n[a.t]) return;
-            
-            /////var t = d.n[n].t;
-            //if(d.n[r].t == 'group')  t = 'group'; 
-            let t = a.t ?? d.n[n].t;//////////if(a.t != undefined) t = a.t;
-            //if(d.n[r].t == 'public') t = 'viewable';
-            // // // if(r == d.user && t == 'asset'){// t!='view'){
-            // // //     //t = 'asset';
-            // // //     d.n[n].asset = true;
-            // // // }
+            let t = a.t ?? d.spec.tag(d, n); //d.n[n].t;
             if(!d.n[r].n[t]) d.n[r].n[t] = [];
-            /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
-            //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
-            if(!d.n[r].n[t].includes(n)){
-                var o = a.o;
-                if(a.o==undefined) o = d.n[r].n[t].length;
-                d.n[r].n[t].splice(o, 0, n); //d.n[r].n[t].splice(a.o, 0, n);
-                //console.log('make edge o', d.n[r].t, d.n[n].t, t, o);
-                //if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
-                //else              {d.n[r].n[t].push(n)}
-                var rt = d.n[r].t;
-                if(d.root_tags[t]) rt=d.root_tags[t];
-                if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
-                d.n[n].r[rt].push(r); // reverse relationship 
-                // // // if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
-                // // //     d.graph.root(d,r).filter(r=> d.n[r].t=='group').forEach(r=>{ // deep?  //d.graph.root_edge(d,r).filter(e=> d.n[e.r].t=='group')
-                // // //         d.make.edge(d, r, n, {src:a.src}); //, e.r 
-                // // //     });
-                // // // }
-
-
-                // if(!d.cast_end[d.n[r].t]){
-                //     const content_packs = [{c:d.n[r].c,t:'c'},{c:d.n[r].ax,t:'ax'}];
-                //     content_packs.forEach(cp=>{
-                //         Object.entries(cp.c).forEach(([t,cc])=>{
-                //             if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
-                //                 d.n[n][cp.t][t] = cc; 
-                //                 if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
-                //             }
-                //         });
-                //     });
-                // }
-
-
-                ////d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
-                d.next('reckon.up', r);///////, ['make.edge', t]); 
-                d.next('graph.update');
-                d.next('pick.update');
-                d.next('design.show');
-
-                //console.log('make edge final', r, t, n);
-            }
+            var o = a.o ?? d.n[r].n[t].length;
+            d.n[r].n[t].splice(o, 0, n); 
+            var rt = d.spec.tag(d, r); // d.n[r].t;
+            if(d.root_tags[t]) rt=d.root_tags[t];
+            if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
+            d.n[n].r[rt].push(r); // reverse relationship 
+            d.next('reckon.up', r);
+            d.next('graph.update');
+            d.next('pick.update');
+            d.next('design.show'); 
         }
     },
-    node(d, cls, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
-        //const window_size = (window.innerWidth+window.innerHeight)/4;
-        const n = make_id(cls);
-        d.n[n] = d.node_template(d, cls);
+    node(d, a={}){ 
+        const n = make_id();
+        d.n[n] = d.node_template(d, 'node');
         d.n[n].asset = true;
-        //d.n[n].drop = false;
-
-        // d.n[n] = {cls:cls, t:cls, r:{}, c:{}, open:true, asset:true, drop:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
-        //     pick: {pick:false, hover:false},
-        //     graph: { 
-        //         pos: new Vector3(), 
-        //         vis: d.graph.n_vis[t]!=undefined ? d.graph.n_vis[t] : true,
-        //     },
-        //     pin: {},
-        //     design:{ vis:true },
-        // };
         d.pick.color(d, n);
         if(!d.terminal_classes[cls]) d.n[n].n={}; 
         ///////d.make.edge(d, d.user, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
@@ -143,6 +87,152 @@ export const create_make_slice = (set,get)=>({make:{
         return d.make.node(d, cls, {...a, stem:stem});
     },
 }});
+
+
+
+// export const create_make_slice = (set,get)=>({make:{
+//     // init(d){
+//     //     d.make.buttons = d.subject
+//     // },
+//     edge(d, r, n, a={}){ // check existance of r and n here ?!?!?!?!?!
+//         if(!d.graph.ex(d,r) || !d.graph.ex(d,n)) return;
+//         //console.log('make edge 1', r, a.t, n);
+//         if(d.n[r].asset || a.received){  // if(d.n[r].asset || r==d.user || a.received){     // if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
+//             //console.log('make edge 2', r, a.t, n);
+//             if(a.single && d.n[r].n[a.t]) return;
+            
+//             /////var t = d.n[n].t;
+//             //if(d.n[r].t == 'group')  t = 'group'; 
+//             let t = a.t ?? d.n[n].t;//////////if(a.t != undefined) t = a.t;
+//             //if(d.n[r].t == 'public') t = 'viewable';
+//             // // // if(r == d.user && t == 'asset'){// t!='view'){
+//             // // //     //t = 'asset';
+//             // // //     d.n[n].asset = true;
+//             // // // }
+//             if(!d.n[r].n[t]) d.n[r].n[t] = [];
+//             /////////////////////d.n[r].n[t] = [...d.n[r].n[t]]; // not good, always rebuilding edges to force d.send to send all edges of root (flag edge rebuild/send?)
+//             //if(d.order_tags.includes(t)) d.n[r].n[t] = [...d.n[r].n[t]]; // if order matters for this tag, rebuild list 
+//             if(!d.n[r].n[t].includes(n)){
+//                 var o = a.o;
+//                 if(a.o==undefined) o = d.n[r].n[t].length;
+//                 d.n[r].n[t].splice(o, 0, n); //d.n[r].n[t].splice(a.o, 0, n);
+//                 //console.log('make edge o', d.n[r].t, d.n[n].t, t, o);
+//                 //if(a.o!=undefined){d.n[r].n[t].splice(a.o, 0, n)}
+//                 //else              {d.n[r].n[t].push(n)}
+//                 var rt = d.n[r].t;
+//                 if(d.root_tags[t]) rt=d.root_tags[t];
+//                 if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
+//                 d.n[n].r[rt].push(r); // reverse relationship 
+//                 // // // if(d.studio.grouping && d.n[n].n){ // need to make is_part function?!?!?! (or is_atom)   
+//                 // // //     d.graph.root(d,r).filter(r=> d.n[r].t=='group').forEach(r=>{ // deep?  //d.graph.root_edge(d,r).filter(e=> d.n[e.r].t=='group')
+//                 // // //         d.make.edge(d, r, n, {src:a.src}); //, e.r 
+//                 // // //     });
+//                 // // // }
+
+
+//                 // if(!d.cast_end[d.n[r].t]){
+//                 //     const content_packs = [{c:d.n[r].c,t:'c'},{c:d.n[r].ax,t:'ax'}];
+//                 //     content_packs.forEach(cp=>{
+//                 //         Object.entries(cp.c).forEach(([t,cc])=>{
+//                 //             if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
+//                 //                 d.n[n][cp.t][t] = cc; 
+//                 //                 if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
+//                 //             }
+//                 //         });
+//                 //     });
+//                 // }
+
+
+//                 ////d.action.node(d, r, {act:'make.edge', src:a.src, r:r, n:n, t:t, o:o});
+//                 d.next('reckon.up', r);///////, ['make.edge', t]); 
+//                 d.next('graph.update');
+//                 d.next('pick.update');
+//                 d.next('design.show');
+
+//                 //console.log('make edge final', r, t, n);
+//             }
+//         }
+//     },
+//     node(d, cls, a={}){ // might want to use this on reception of nodes so can't set consume here? or can I since it will be overwritten?
+//         //const window_size = (window.innerWidth+window.innerHeight)/4;
+//         const n = make_id(cls);
+//         d.n[n] = d.node_template(d, cls);
+//         d.n[n].asset = true;
+//         //d.n[n].drop = false;
+
+//         // d.n[n] = {cls:cls, t:cls, r:{}, c:{}, open:true, asset:true, drop:false, // ax:{} c:a.c?a.c:{} // l:{}, w:{},
+//         //     pick: {pick:false, hover:false},
+//         //     graph: { 
+//         //         pos: new Vector3(), 
+//         //         vis: d.graph.n_vis[t]!=undefined ? d.graph.n_vis[t] : true,
+//         //     },
+//         //     pin: {},
+//         //     design:{ vis:true },
+//         // };
+//         d.pick.color(d, n);
+//         if(!d.terminal_classes[cls]) d.n[n].n={}; 
+//         ///////d.make.edge(d, d.user, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
+        
+//         //if(a.r) d.make.edge(d, a.r, n, a); // a.r should be list?
+//         d.for(a.r, r=> d.make.edge(d, r, n, a));
+
+//         if(a.stem) Object.entries(a.stem).forEach(([t,nn],i)=>{
+//             d.for(nn, nn=> d.make.edge(d, n, nn, {t:t}));
+//         });
+//         //{
+//         //    if(Array.isArray(a.r)){   a.r.forEach(r=> d.make.edge(d, r, n, a))   }
+//         //    else{   d.make.edge(d, a.r, n, a);  }
+//         //}
+//         //d.consume = d.send; // make add to a consume list? so async ops work? idk
+
+//         // // if(d.graph.ex(d,a.r) && !d.cast_end[d.n[a.r].t]){
+//         // //     const content_packs = [{c:d.n[a.r].c,t:'c'},{c:d.n[a.r].ax,t:'ax'}];
+//         // //     content_packs.forEach(cp=>{
+//         // //         Object.entries(cp.c).forEach(([t,cc])=>{
+//         // //             if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
+//         // //                 d.n[n][cp.t][t] = cc; 
+//         // //                 if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
+//         // //             }
+//         // //         });
+//         // //     });
+//         // // }
+
+//         //d.next('reckon.up', n, ['make.node']); will this ever be needed ?!?!?!?!
+//         d.next('graph.update'); // check if in graph_tags 
+//         return n;
+//     },
+//     atom(d, cls, v, a={}){ // just check v to figure if b, i, f, or s
+//         if(v == null){
+//             if(cls == 'boolean') v = false;
+//             if(cls == 'integer' || cls == 'decimal') v = 0;
+//             if(cls == 'string') v = '';
+//         }
+//         //console.log('come on!', current(a.r));
+//         if(a.single && a.r && a.r.length){
+//             //let r = Array.isArray(a.r) ? a.r : [a.r];
+//             if(d.as_array(a.r).every(r=> d.n[r].n[a.t])) return;
+//         }
+//         //console.log('come on! 2');
+//         const n = d.make.node(d, cls, a); //{r:r, t:t}
+//         d.n[n].v = v; 
+//         return n;
+//     },
+//     part(d, cls, a){ // a.r should be array 
+//         let stem = {};
+//         if(d.node[cls]){
+//             for(const [t, s] of Object.entries(d.node[cls].stem)){
+//                 if(d.terminal_classes[s.class[0]] && s.default != null){
+//                     stem[t] = d.make.atom(d, s.class[0], s.default);
+//                 }
+//             }
+//         }
+//         return d.make.node(d, cls, {...a, stem:stem});
+//     },
+// }});
+
+
+
+
 
 // if(d.node[cls].bool) Object.entries(d.node[cls].bool).forEach(([prop, val])=>{
 //     stems[prop] = d.make.atom(d, 'b', val);

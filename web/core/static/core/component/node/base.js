@@ -142,8 +142,8 @@ export function Badge({n}){ // more than one reason to change but okay because i
     //console.log('render node badge');
     return (
         c(Boot_Badge, {bg:color[4]}, 
-            c(Svg, {svg:d.node[t].icon, color:'white'}),
-            (name?' '+name:'') + ' ('+d.node[t].tag+')'
+            c(Svg, {svg:d.spec.icon(d,n), color:'white'}),
+            (name?' '+name:'') + ' ('+d.spec.tag(d,n)+')'
         ) //c(Boot_Badge, {className:d.node[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node[t].tag+')')
     )
 }

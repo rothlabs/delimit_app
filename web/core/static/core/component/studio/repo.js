@@ -26,7 +26,7 @@ export function Repo(){
         ]  
     ],{onCompleted:data=>{
         console.log(data.openNodes.reply);
-        rs(d=> d.receive_triples(d, JSON.parse(result.openPack.pack.data).list)); 
+        rs(d=> d.receive_triples(d, JSON.parse(data.openNodes.triples).list)); 
     }});
     if(repos.data == undefined) return false;
     const pckgs = JSON.parse(repos.data.repos.data).list;

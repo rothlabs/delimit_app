@@ -26,6 +26,7 @@ export const Part = memo(function Part({n}){
     //     //console.log('update part pos');
     // }), []);
     //console.log('render part');
+
     useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
         obj.current.position.copy(graph.pos);
     }); 
@@ -52,7 +53,7 @@ export const Part = memo(function Part({n}){
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Svg, {
-                    src: d.node[t].icon,
+                    src: d.spec.icon(d,n),
                     scale: 0.1,
                     position: [-0.8, 0.8, 1],
                     fillMaterial: material,
@@ -66,7 +67,7 @@ export const Part = memo(function Part({n}){
                     outlineColor: 'white',
                     anchorX: 'center',
                     anchorY: 'middle',
-                    text: d.node[t].tag, //readable(d.n[n].t),//
+                    text: d.spec.tag(d,n), //readable(d.n[n].t),//
                 },
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),

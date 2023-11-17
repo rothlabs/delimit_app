@@ -27,10 +27,10 @@ import {create_pick_slice} from './store/pick.js';
 import {create_inspect_slice} from './store/inspect.js';
 import {create_design_slice} from './store/design.js';
 import {create_make_slice} from './store/make.js';
-import {create_node_slice} from './store/node.js';
+import {create_spec_slice} from './store/spec.js';
 import {create_reckon_slice} from './store/reckon.js'; 
 import {create_remake_slice} from './store/remake.js';
-import {create_delete_slice} from './store/delete.js';
+import {create_drop_slice} from './store/drop.js';
 //import {create_action_slice} from './store/action.js';
 //import {create_cast_slice} from './store/cast.js';
 //import {create_clear_slice} from './store/clear.js';
@@ -81,13 +81,13 @@ export const theme = {
     dark_l: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertSRGBToLinear(),
 };
 
-export const make_id = (t='', length=16)=> { // need to improve this so more random!!!!
+export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
     Array.from({ length }).some(() => {
       s += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
       return s.length >= length;
     });
-    return upper(t) + '/' + s.slice(0, length);
+    return s;//return upper(t) + '/' + s.slice(0, length);
 };
 export const client_instance = make_id('Client');
 
@@ -99,10 +99,10 @@ export const useS = create(
         ...create_inspect_slice(...a),
         ...create_design_slice(...a),
         ...create_make_slice(...a),
-        ...create_node_slice(...a),
+        ...create_spec_slice(...a),
         ...create_reckon_slice(...a),
         ...create_remake_slice(...a),
-        ...create_delete_slice(...a),
+        ...create_drop_slice(...a),
         ...create_part_slice(...a),
     }))
 );

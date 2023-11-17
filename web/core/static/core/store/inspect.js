@@ -46,11 +46,11 @@ export const create_inspect_slice = (set,get)=>({inspect:{
                 d.inspect.stem[t] = nc.map(n=> n.n[t]).flat();
                 d.inspect.asset[t] = nc.some(n=> n.asset);
             }else{  
-                if(nt.some(nt=> d.node[nt]?.stem[t]) && !claimed_leaf_tags[t]){//if(nt.some(nt=> d.node[nt]?.stem?.includes(t))){
-                    d.inspect.stem[t] = [];  
-                }else{
-                    d.inspect.stem[t] = null;  
-                }
+                // // // // if(nt.some(nt=> d.node[nt]?.stem[t]) && !claimed_leaf_tags[t]){//if(nt.some(nt=> d.node[nt]?.stem?.includes(t))){
+                // // // //     d.inspect.stem[t] = [];  
+                // // // // }else{
+                // // // //     d.inspect.stem[t] = null;  
+                // // // // }
             }
         })
         for(const t of Object.keys(d.terminal_classes)){ //Object.entries(d.model_tags).forEach(([m,t],i)=>{

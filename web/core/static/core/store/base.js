@@ -9,10 +9,13 @@ var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
     repo: new Map(),
+    node: new Map(),
 
     terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
     //asset_classes: [],
     //admin_classes: [],
+
+    terminal_tags: [],
 
     root_tags:    {'view':'viewer', 'asset':'owner'},
     stem_tags:    [],
@@ -31,8 +34,6 @@ export const create_base_slice = (set,get)=>({
     scene: null,
 
     mode: 'home',
-    n: {}, // all nodes stored here by ID 
-    stem: {},
     user_id: 0,
     search: {depth:null, ids:null},
     studio: {
@@ -124,58 +125,6 @@ export const create_base_slice = (set,get)=>({
         });// 0   1
     },
 
-    receive_schema(d, schema){
-        console.log('receive_schema');
-        //console.log(schema);
-        const icon = schema['Core']['@metadata']['icon'];
-        for(const [Cls, n] of Object.entries(schema)){
-            const cls = Cls.toLowerCase();
-            if(n['@type'] == 'Enum'){
-                d.enum[cls] = n['@values'];
-                continue;
-            }
-            if(n['@abstract'] || n['@type'] != 'Class') continue;
-            //if(n['@inherits'].includes('Asset')) d.add(d.asset_classes, cls);
-            //if(n['@inherits'].includes('Admin')) d.add(d.admin_classes, cls);
-            if(!d.node[cls]) d.node[cls] = {};
-            const node = d.node[cls];
-            node.tag = readable(cls);
-            node.icon = icon.all[n['@metadata']?.icon];//static_url+'icon/node/'+cls+'.svg';
-            node.icon = node.icon ?? icon.all['box'];
-            //node.css  = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
-            if(!node.stem) node.stem = {};
-            for(const [t, s] of Object.entries(n)){
-                if(t.charAt(0) == '@') continue
-                const cls = d.as_array(s['@class'] ?? s).map(cls=> cls.toLowerCase()); // need to check if it is type enum and skip #1
-                node.stem[t] = {
-                    class: cls,
-                    type:  (s['@type'] ?? 'Required').toLowerCase(),
-                };
-                const defaults = n['@metadata']?.default ?? {};
-                if(defaults[t] != null) node.stem[t].default = defaults[t];
-                if(cls.length == 1 && d.terminal_classes[cls[0]]){
-                    if(cls[0] == 'boolean') d.add(d.boolean_tags, t);
-                    if(cls[0] == 'integer') d.add(d.integer_tags, t);
-                    if(cls[0] == 'decimal') d.add(d.decimal_tags, t);
-                    if(cls[0] == 'string')  d.add(d.string_tags, t);
-                }else if(!['user', 'drop', 'value'].includes(t)){
-                    d.add(d.stem_tags, t);
-                    if(!d.stem[t]) d.stem[t] = {
-                        icon: icon.all[icon['stem'][t] ?? 'box'],
-                    };
-                }
-            }
-        }
-        d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
-        //d.node_classes = [...d.asset_classes, ...d.admin_classes];
-        d.graph.init(d);
-        d.studio.ready = true;
-        console.log('node and stem info!!!!!!!!!!!!!!!!!');
-        console.log(current(d.node));
-        console.log(current(d.stem));
-    },
-
-
     send(d, patches){ // change to send patches directly to server (filtering for patches that matter)
         const nodes = [];
         patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
@@ -222,43 +171,74 @@ export const create_base_slice = (set,get)=>({
     },
 
     node_template: (d, t)=>({
-        t:t, r:{}, c:{}, open:true, drop:false, asset:true,
+        t:t, r:{}, c:{}, open:true, drop:false, asset:true, // rename asset to write #1 (permission to write)
         pick:   {pick:false, hover:false},
         graph:  {pos:new Vector3()},
         pin:    {},
         design: {vis:true},
     }),
 
-    receive_triples: (d, triples)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
+    receive_triples:(d, triples)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         console.log(triples);
+        const handled = new Map();
         for(const triple of triples){
             const r = triple.root; 
-            if(!d.n[r]){
-                d.n[r] = d.node_template(d, triple.stem.slice(8).toLowerCase());
-                if(d.terminal_classes[d.n[r].t]){
-                    delete d.n[r].n;
-                }else{
-                    d.graph.for_stem(d, r, (r,n,t)=> d.delete.edge(d, r, n, {t:t}));
-                    d.n[r].n = {};
-                }
-                d.pick.color(d, r);
+            if(!handled.has(r)){
+                d.drop.edge(d, r, '.', '.').execute(); // root term stem
+                // if(d.node.has(n)){
+                //     d.drop.edge(d, {root:n})
+                //     //for(const edge in d.graph.edge(d, {root:n})) d.drop.edge(d, {edge});
+                //     //d.graph.drop_stems(d, n); // d.graph.for_edge(d, n, (r,n,t)=> d.delete.edge(d, r, t, n)); // rename to for_edge or for_triple
+                // }else{
+                //     d.make.node(d, {node:n}); // d.n[n] = d.node_template(d, 'node');
+                // }
+                // d.n[n].n = {};
+                // d.pick.color(d, n);
             }
+            handled.set(r, true);
         }
         for(const triple of triples){
-            if(triple.tag.slice(0, 8) == '@schema:'){
+            if(triple.term.slice(0, 8) == '@schema:'){
                 const r = triple.root;
                 const t = triple.tag.slice(8);
-                if(triple.stem['@type']){
-                    if(t == 'value') d.graph.sv(d, r, triple.stem['@value']);
+                const s = triple.stem;
+                if(s['@type']){
+                    //if(t == 'value'){
+                        d.make.edge(d, r, t, s['@value'], {leaf:true}).execute();
+                        //delete d.n[n].n;
+                        //d.graph.sv(d, n, triple.stem['@value']);
+                    //}
                 }else{
-                    d.make.edge(d, r, triple.stem, {t:t, received:true});
+                    d.make.edge(d, r, t, s).execute();
+                    //d.make.edge(d, n, t, triple.stem, {received:true});
                 }
             }
         }
-        if(triples.length) d.next('graph.update');
-        //console.log(current(d.n));
+        if(triples.length){
+            d.graph.init(d);
+            d.studio.ready = true;
+            d.next('graph.update');
+        }
+        console.log(current(d.n));
     },
-    
+
+    close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)
+        const close_pack = {p:[], b:[], i:[], f:[], s:[]};
+        nodes.forEach(n=>{
+            d.graph.close(d, n);
+            close_pack[d.n[n].m].push(n);
+            // d.n[n].open=false;
+            // d.n[n].r = {};
+            // d.n[n].c = {};
+            // d.n[n].t = '';
+            // if(d.n[n].m=='p'){  d.n[n].n = {};  }
+            // else{  d.n[n].v = null;  }
+        });
+        d.close_pack({variables:close_pack});
+    },
+
+});
+
 
 
 
@@ -316,9 +296,6 @@ export const create_base_slice = (set,get)=>({
     //     'mix':            'bi-bezier',
     //     'guide':          'bi-bezier2',
     // },
-
-
-
 
 
     // // receive: (d, pack)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
@@ -443,25 +420,61 @@ export const create_base_slice = (set,get)=>({
     //     });
     // },
 
-    close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)
-        const close_pack = {p:[], b:[], i:[], f:[], s:[]};
-        nodes.forEach(n=>{
-            d.graph.close(d, n);
-            close_pack[d.n[n].m].push(n);
-            // d.n[n].open=false;
-            // d.n[n].r = {};
-            // d.n[n].c = {};
-            // d.n[n].t = '';
-            // if(d.n[n].m=='p'){  d.n[n].n = {};  }
-            // else{  d.n[n].v = null;  }
-        });
-        d.close_pack({variables:close_pack});
-    },
-
-});
 
 
 
+
+
+    // receive_schema(d, schema){
+    //     console.log('receive_schema');
+    //     //console.log(schema);
+    //     const icon = schema['Core']['@metadata']['icon'];
+    //     for(const [Cls, n] of Object.entries(schema)){
+    //         const cls = Cls.toLowerCase();
+    //         if(n['@type'] == 'Enum'){
+    //             d.enum[cls] = n['@values'];
+    //             continue;
+    //         }
+    //         if(n['@abstract'] || n['@type'] != 'Class') continue;
+    //         //if(n['@inherits'].includes('Asset')) d.add(d.asset_classes, cls);
+    //         //if(n['@inherits'].includes('Admin')) d.add(d.admin_classes, cls);
+    //         if(!d.node[cls]) d.node[cls] = {};
+    //         const node = d.node[cls];
+    //         node.tag = readable(cls);
+    //         node.icon = icon.all[n['@metadata']?.icon];//static_url+'icon/node/'+cls+'.svg';
+    //         node.icon = node.icon ?? icon.all['box'];
+    //         //node.css  = {icon: n['@metadata']?.css?.icon ?? 'bi-box'};
+    //         if(!node.stem) node.stem = {};
+    //         for(const [t, s] of Object.entries(n)){
+    //             if(t.charAt(0) == '@') continue
+    //             const cls = d.as_array(s['@class'] ?? s).map(cls=> cls.toLowerCase()); // need to check if it is type enum and skip #1
+    //             node.stem[t] = {
+    //                 class: cls,
+    //                 type:  (s['@type'] ?? 'Required').toLowerCase(),
+    //             };
+    //             const defaults = n['@metadata']?.default ?? {};
+    //             if(defaults[t] != null) node.stem[t].default = defaults[t];
+    //             if(cls.length == 1 && d.terminal_classes[cls[0]]){
+    //                 if(cls[0] == 'boolean') d.add(d.boolean_tags, t);
+    //                 if(cls[0] == 'integer') d.add(d.integer_tags, t);
+    //                 if(cls[0] == 'decimal') d.add(d.decimal_tags, t);
+    //                 if(cls[0] == 'string')  d.add(d.string_tags, t);
+    //             }else if(!['user', 'drop', 'value'].includes(t)){
+    //                 d.add(d.stem_tags, t);
+    //                 if(!d.stem[t]) d.stem[t] = {
+    //                     icon: icon.all[icon['stem'][t] ?? 'box'],
+    //                 };
+    //             }
+    //         }
+    //     }
+    //     d.terminal_tags = [...d.boolean_tags, ...d.integer_tags, ...d.decimal_tags, ...d.string_tags];
+    //     //d.node_classes = [...d.asset_classes, ...d.admin_classes];
+    //     d.graph.init(d);
+    //     d.studio.ready = true;
+    //     console.log('node and stem info!!!!!!!!!!!!!!!!!');
+    //     console.log(current(d.node));
+    //     console.log(current(d.stem));
+    // },
 
 
 

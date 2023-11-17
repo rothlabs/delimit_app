@@ -7,6 +7,8 @@ import { Make_Repo } from './make_repo.js';
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
 
+
+
 export function Make_Node(){
     const mode = useS(d=> d.studio.mode);
     const panel = useS(d=> d.studio.panel.mode);
@@ -15,56 +17,99 @@ export function Make_Node(){
     if(panel != 'make') return false;
     if(mode == 'repo') return c(Make_Repo);
     const d = gs();
+    const specs = d.spec.all(d);
     return(
-        c(Row, {}, // className:'mb-3 ms-0 me-0'
-            c(Col, {}, 
-                c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
-                ...Object.keys(d.node).map((t,i)=>//...d.asset_classes.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
-                    c(Row, {className: 'mt-1 text-left '+(i==Object.keys(d.node).length-1?'mb-4':'')},
-                        c(Svg_Button, {
-                            svg: d.node[t].icon, 
-                            text: readable(t), 
-                            func: ()=> ss(d=>{ 
-                                d.make.part(d, t, {r:d.pick.n});
-                                //if(d.terminal_classes[t]){
-                                //    d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
-                                //}else{
-                                //    d.make.part(d, t, {r:d.pick.n});
-                                //}
-                                //d.studio.panel.show = false;
-                            })
-                        })
-                    )
-                ),
-            ),
-            limited || terminal ? false : c(Col, {}, 
-                [{cls:'string',  v:'',    tags:d.string_tags,  icon:'bi-text-left'},
-                    {cls:'boolean', v:false, tags:d.boolean_tags, icon:'bi-ui-checks'},
-                    {cls:'integer', v:0,     tags:d.integer_tags, icon:'bi-plus-slash-minus'},
-                    {cls:'decimal', v:0,     tags:d.decimal_tags, icon:'bi-plus-slash-minus'}].map(item=>
-                    c(Row, {},
-                        c('h5',{className:'text-secondary '+item.icon}, ' '+readable(item.cls)),//+readable(d.model_tags[item.m])),
-                        item.tags.map((t,i)=>
-                            c(Row, {className: 'mb-1 text-left '+(i==item.tags.length-1?'mb-4':'')}, //t==item.cls ? null : 
-                                c(Button, {
-                                    id:'make_'+t,
-                                    className: 'border-white text-start bi-dot',
-                                    variant:'outline-primary', size:'lg',
-                                    onClick:e=> ss(d=>{ 
-                                        d.make.atom(d, item.cls, null, {r:d.pick.n, t:t, single:true});
-                                        d.studio.panel.show = false;
-                                    }),
-                                }, 
-                                    c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
-                                )
-                            )
-                        )
-                    )
-                ),
-            ),
+        specs.map((n,i)=>
+            c(Row, {className: 'mt-1 text-left '+(i==specs.length-1?'mb-4':'')},
+                c(Svg_Button, {
+                    svg: d.graph.path(d, n, 'icon code v', {default:d.spec.default.icon}), //d.n[d.n[d.n[n].n.icon[0]].n.name[0]].v, // d.spec.icon(d,n),
+                    text: d.graph.path(d, n, 'tag v', {default:'node'}), 
+                    func: ()=> ss(d=>{ 
+                        d.make.node(d, {spec:n, r:d.pick.n}) //d.make.part(d, t, {r:d.pick.n});
+                    })
+                })
+            )
         )
     )
 }
+
+d.n[n].c.icon 
+d.n[n].c.tag
+
+//if(d.terminal_classes[t]){
+                        //    d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
+                        //}else{
+                        //    d.make.part(d, t, {r:d.pick.n});
+                        //}
+                        //d.studio.panel.show = false;
+
+
+// c(Row, {}, // className:'mb-3 ms-0 me-0'
+//             c(Col, {}, 
+//                 c('h5',{className:'text-secondary bi-diagram-3'}, ' Node'),
+//                 ...Object.keys(d.node).map((t,i)=>//...d.asset_classes.map((t,i)=>//...Object.entries(d.node.meta).map(([t,node])=>
+//                     c(Row, {className: 'mt-1 text-left '+(i==Object.keys(d.node).length-1?'mb-4':'')},
+//                         c(Svg_Button, {
+//                             svg: d.spec.icon(d,n),
+//                             text: readable(t), 
+//                             func: ()=> ss(d=>{ 
+//                                 d.make.part(d, t, {r:d.pick.n});
+//                                 //if(d.terminal_classes[t]){
+//                                 //    d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
+//                                 //}else{
+//                                 //    d.make.part(d, t, {r:d.pick.n});
+//                                 //}
+//                                 //d.studio.panel.show = false;
+//                             })
+//                         })
+//                     )
+//                 ),
+//             ),
+//             limited || terminal ? false : c(Col, {}, 
+//                 [{cls:'string',  v:'',    tags:d.string_tags,  icon:'bi-text-left'},
+//                     {cls:'boolean', v:false, tags:d.boolean_tags, icon:'bi-ui-checks'},
+//                     {cls:'integer', v:0,     tags:d.integer_tags, icon:'bi-plus-slash-minus'},
+//                     {cls:'decimal', v:0,     tags:d.decimal_tags, icon:'bi-plus-slash-minus'}].map(item=>
+//                     c(Row, {},
+//                         c('h5',{className:'text-secondary '+item.icon}, ' '+readable(item.cls)),//+readable(d.model_tags[item.m])),
+//                         item.tags.map((t,i)=>
+//                             c(Row, {className: 'mb-1 text-left '+(i==item.tags.length-1?'mb-4':'')}, //t==item.cls ? null : 
+//                                 c(Button, {
+//                                     id:'make_'+t,
+//                                     className: 'border-white text-start bi-dot',
+//                                     variant:'outline-primary', size:'lg',
+//                                     onClick:e=> ss(d=>{ 
+//                                         d.make.atom(d, item.cls, null, {r:d.pick.n, t:t, single:true});
+//                                         d.studio.panel.show = false;
+//                                     }),
+//                                 }, 
+//                                     c('span',{style:{fontSize:'16px'}}, ' '+readable(t))
+//                                 )
+//                             )
+//                         )
+//                     )
+//                 ),
+//             ),
+//         )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // limited ? null : c(Fragment,{},

@@ -57,7 +57,7 @@ class Make_Repo(graphene.Mutation):
             icon_icon_code_string = make_id()
             empty_string = make_id()
             string_string = make_id()
-            name_string = make_id()
+            tag_string = make_id()
             name_string = make_id()
             icon_string = make_id()
             leaf_string = make_id()
@@ -69,6 +69,7 @@ class Make_Repo(graphene.Mutation):
 
             spec_icon = make_id()
             icon_icon = make_id()
+            spec_spec_tag = make_id()
             spec_spec_name = make_id()
             spec_spec_icon = make_id()
             spec_spec_leaf = make_id()
@@ -84,6 +85,7 @@ class Make_Repo(graphene.Mutation):
                 .add_triple(icon_icon_code_string, '@schema:value', wq().string(braces_svg))
                 .add_triple(empty_string,  '@schema:value', wq().string(''))
                 .add_triple(string_string,  '@schema:value', wq().string('String'))
+                .add_triple(tag_string,    '@schema:value', wq().string('Tag'))
                 .add_triple(name_string,   '@schema:value', wq().string('Name'))
                 .add_triple(icon_string,   '@schema:value', wq().string('Icon'))
                 .add_triple(leaf_string,   '@schema:value', wq().string('Leaf'))
@@ -99,31 +101,37 @@ class Make_Repo(graphene.Mutation):
                 .add_triple(icon_icon, '@schema:code', icon_icon_code_string)
                 .add_triple(icon_icon, '@schema:language', svg_string)
                 
-                .add_triple(spec_spec_name, '@schema:name', name_string)  
+                .add_triple(spec_spec_tag, '@schema:tag',  tag_string)  
+                .add_triple(spec_spec_tag, '@schema:leaf', string_string) 
+                .add_triple(spec_spec_tag, '@schema:make', empty_string) # 'make' signifies to create a make stem when node created
+
+                .add_triple(spec_spec_name, '@schema:tag',  name_string)  
                 .add_triple(spec_spec_name, '@schema:leaf', string_string) 
                 .add_triple(spec_spec_name, '@schema:make', empty_string) # 'make' signifies to create a make stem when node created
                 
-                .add_triple(spec_spec_icon, '@schema:name', icon_string)   
+                .add_triple(spec_spec_icon, '@schema:tag',  icon_string)   
                 .add_triple(spec_spec_icon, '@schema:icon', icon_icon) 
                 
-                .add_triple(spec_spec_leaf,  '@schema:name', leaf_string)  
+                .add_triple(spec_spec_leaf,  '@schema:tag', leaf_string)  
                 .add_triple(spec_spec_leaf,  '@schema:leaf', string_string) 
 
-                .add_triple(spec_spec_make, '@schema:name', make_string)  
+                .add_triple(spec_spec_make, '@schema:tag', make_string)  
                 #.add_triple(spec_spec_make, '@schema:icon', icon_icon) generic node icon? (box)
 
-                .add_triple(spec_spec_any, '@schema:name', any_string)   
+                .add_triple(spec_spec_any, '@schema:tag', any_string)   
                 .add_triple(spec_spec_any, '@schema:icon', spec_icon) 
                 
-                .add_triple(spec_spec_all, '@schema:name', all_string)   
+                .add_triple(spec_spec_all, '@schema:tag', all_string)   
                 .add_triple(spec_spec_all, '@schema:icon', spec_icon) 
                 
-                .add_triple(spec_spec_one, '@schema:name', one_string)   
+                .add_triple(spec_spec_one, '@schema:tag', one_string)   
                 .add_triple(spec_spec_one, '@schema:icon', spec_icon) 
 
+                .add_triple(spec_spec, '@schema:tag',  spec_string)
                 .add_triple(spec_spec, '@schema:name', spec_string)
                 .add_triple(spec_spec, '@schema:icon', spec_icon)
-                .add_triple(spec_spec, '@schema:all',  spec_spec_name) # all means required
+                .add_triple(spec_spec, '@schema:all',  spec_spec_tag) # all means required
+                .add_triple(spec_spec, '@schema:any',  spec_spec_name) # all means required
                 .add_triple(spec_spec, '@schema:any',  spec_spec_icon)
                 .add_triple(spec_spec, '@schema:any',  spec_spec_leaf)
                 .add_triple(spec_spec, '@schema:any',  spec_spec_make)
