@@ -3,6 +3,8 @@ import {Vector3, Matrix4} from 'three';
 import * as THREE from 'three';
 import {readable, static_url, upper, theme, make_id} from '../app.js';
 import lodash from 'lodash';
+import {face} from './face.js';
+import {color} from './color.js';
 
 var next_funcs = [];
 var next_ids = [];
@@ -12,20 +14,8 @@ export const create_base_slice = (set,get)=>({
     repo: new Map(),
     node: new Map(),
 
-    
-    //terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
-    //asset_classes: [],
-    //admin_classes: [],
-
-    //terminal_tags: [],
-
-    //root_terms:    {'view':'viewer', 'asset':'owner'},
-    // stem_tags:    [],
-    // boolean_tags: [],
-    // integer_tags: [],
-    // decimal_tags: [],
-    // string_tags:  [],
-    // enum: {},
+    face,
+    color,
 
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
@@ -49,6 +39,16 @@ export const create_base_slice = (set,get)=>({
         cursor: '',
     },
 
+    leaf(d, node, path, alt){
+        try{
+            for(const term of path.split(' ')){
+                node = d.node.get(node).forw.get(term)[0];
+            }
+            return d.node.get(node).get('leaf')[0];
+        }catch{
+            return alt;
+        }
+    },
 
     init(d){
         d.base_texture = new THREE.TextureLoader().load(
@@ -206,19 +206,35 @@ export const create_base_slice = (set,get)=>({
                 const r = triple.root;
                 const t = triple.tag.slice(8);
                 const s = triple.stem;
-                if(s['@class']) s = {type:s['@class'], value:s['@value']};
+                if(s['@class']) s = {type:s['@class'], leaf:s['@value']};
                 d.make.edge(d, r, t, s, {received:true});
             }
         }
         if(module.triples.length){
             d.graph.init(d);
             d.studio.ready = true;
-            d.graph.next();
+            d.graph.increment();
         }
         console.log(current(Array.from(d.node.entries())));
     },
 });
 
+
+
+
+    //terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
+    //asset_classes: [],
+    //admin_classes: [],
+
+    //terminal_tags: [],
+
+    //root_terms:    {'view':'viewer', 'asset':'owner'},
+    // stem_tags:    [],
+    // boolean_tags: [],
+    // integer_tags: [],
+    // decimal_tags: [],
+    // string_tags:  [],
+    // enum: {},
 
 
 

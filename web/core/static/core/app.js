@@ -24,17 +24,16 @@ import {shallow} from 'zustand/shallow';//'shallow';
 import {create_base_slice} from './store/base.js';
 import {create_graph_slice} from './store/graph.js';
 import {create_pick_slice} from './store/pick.js';
-import {create_inspect_slice} from './store/inspect.js';
-import {create_design_slice} from './store/design.js';
-import {create_make_slice} from './store/make.js';
-import {create_spec_slice} from './store/spec.js';
-import {create_reckon_slice} from './store/reckon.js'; 
-import {create_remake_slice} from './store/remake.js';
-import {create_drop_slice} from './store/drop.js';
+//import {create_inspect_slice} from './store/inspect.js';
+//import {create_design_slice} from './store/design.js';
+//import {create_make_slice} from './store/make.js';
+//import {create_reckon_slice} from './store/reckon.js'; 
+//import {create_remake_slice} from './store/remake.js';
+//import {create_drop_slice} from './store/drop.js';
 //import {create_action_slice} from './store/action.js';
 //import {create_cast_slice} from './store/cast.js';
 //import {create_clear_slice} from './store/clear.js';
-import {create_part_slice} from './store/part/part.js';
+//import {create_part_slice} from './store/part/part.js';
 
 enableMapSet();
 enablePatches();
@@ -95,16 +94,15 @@ export const client_instance = make_id('Client');
 export const useS = create(
     subscribeWithSelector((...a) => ({ 
         ...create_base_slice(...a),
-        ...create_graph_slice(...a),
-        ...create_pick_slice(...a),
-        ...create_inspect_slice(...a),
-        ...create_design_slice(...a),
-        ...create_make_slice(...a),
-        ...create_spec_slice(...a),
-        ...create_reckon_slice(...a),
-        ...create_remake_slice(...a),
-        ...create_drop_slice(...a),
-        ...create_part_slice(...a),
+        // ...create_graph_slice(...a),
+        // ...create_pick_slice(...a),
+        // ...create_inspect_slice(...a),
+        // ...create_design_slice(...a),
+        // ...create_make_slice(...a),
+        // ...create_reckon_slice(...a),
+        // ...create_remake_slice(...a),
+        // ...create_drop_slice(...a),
+        // ...create_part_slice(...a),
     }))
 );
 useS.setState(d=>{  d.init(d); return d;  });

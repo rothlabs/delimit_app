@@ -18,7 +18,7 @@ export const Node = memo(({node})=>{
     const name  = useS(d=> d.face.name(d, node));
     const tag   = useS(d=> d.face.tag(d, node));
     const icon  = useS(d=> d.face.icon(d, node));
-    const color = useS(d=> d.face.color(d, node));
+    const color = useS(d=> d.face.color.secondary(d, node));
     useSub(d=> d.graph.node.get(node).pos, pos=>{ //useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
         obj.current.position.copy(pos);
     }); 
@@ -31,7 +31,7 @@ export const Node = memo(({node})=>{
                 ref: obj,
                 size: 20, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             },
-                name && r('text', {
+                r('text', {
                     font: d.base_font, 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
                     position: [0, 1.4, 2],
@@ -62,7 +62,7 @@ export const Node = memo(({node})=>{
                 },
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
-                r(Pickable, {n:node},
+                r(Pickable, {node},
                     r('mesh', {
                         //position:[0,0,0], 
                         geometry: circle_geometry,

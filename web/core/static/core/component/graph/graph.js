@@ -17,8 +17,8 @@ import {Edge} from './edge.js';
 
 
 export const Graph = memo(()=>{
-    const counter = useS(d=> d.graph.counter); 
-    useEffect(()=> rs(d=> d.graph.update(d)), [counter]); // only run the graph update function if viewing the graph
+    const count = useS(d=> d.graph.count); 
+    useEffect(()=> rs(d=> d.graph.update(d)), [count]); // only run the graph update function if viewing the graph
     const d = gs();
     console.log('render graph');
     return(

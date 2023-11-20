@@ -1,6 +1,6 @@
 
 export const create_drop_slice = (set,get)=>({drop:{
-    node(d, nodes, a={}){ // allow delete if not asset when it is another user deleting 
+    node(d, nodes, a={}){ 
         let drops = new Set();
         for(const node of nodes){
             if(d.node.has(node)) drops.add(node);
@@ -9,13 +9,11 @@ export const create_drop_slice = (set,get)=>({drop:{
             function get_stems(nodes){
                 const next_nodes = new Set();
                 for(const node of nodes){
-                    for(const stems of d.node.get(node).forw.values()){
-                        for(const stem of stems){
-                            if(!d.node.has(stem)) continue;
-                            if(d.node.get(stem).back.values().every(({root})=> drops.has(root))){ // what if the root doesn't exist?
-                                drops.add(stem);
-                                next_nodes.add(stem);
-                            }
+                    for(const [_, stem] of d.node.get(node).forw){
+                        if(!d.node.has(stem)) continue;
+                        if(d.node.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.node.has(root) 
+                            drops.add(stem);
+                            next_nodes.add(stem);
                         }
                     }
                 }
@@ -29,16 +27,14 @@ export const create_drop_slice = (set,get)=>({drop:{
             d.drop.edge(d, {stem:node});
             d.node.delete(node);
         }
-        if(drops.length) d.graph.next();
+        if(drops.length) d.graph.increment();
     },
     edge(d, a={}){
         const drops = []; 
         function forward_edge(func){
             if(!d.node.has(a.root)) return {};
-            for(const [term, stems] of d.node.get(a.root).forw.entries()){
-                for(let indx; indx < stems.length; indx++){
-                    func({root:a.root, term, stem:stems[indx], indx});
-                }
+            for(const [term, stem, indx] of d.node.get(a.root).forw){
+                func({root:a.root, term, stem, indx});
             }
         }
         if(a.root && a.term && a.stem){ 
@@ -46,10 +42,10 @@ export const create_drop_slice = (set,get)=>({drop:{
         }else if(a.root && a.stem){
             forward_edge(edge=> edge.stem==a.stem && drops.push(edge));
         }else if(a.root){  
-            forward_edge(edge=> edge && drops.push(edge));
+            forward_edge(edge=> drops.push(edge));
         }else if(a.stem){
             if(!d.node.has(a.stem)) return;
-            for(const {root, term, indx} of d.node.get(a.stem).back.values()){
+            for(const [root, term, indx] of d.node.get(a.stem).back.values()){
                 drops.push({root, term, stem:a.stem, indx});
             }
         }
@@ -67,7 +63,7 @@ export const create_drop_slice = (set,get)=>({drop:{
             if(!d.node.has(drp.stem)) continue;
             d.node.get(drp.stem).back.delete(drp.root+':'+drp.term+':'+drp.indx);
         }
-        if(drops.length) d.graph.next();
+        if(drops.length) d.graph.increment();
     },
 }});
 

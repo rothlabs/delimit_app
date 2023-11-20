@@ -8,12 +8,12 @@ export const create_make_slice = (set,get)=>({make:{
         const repo = a.repo ?? d.pick.repo();
         d.drop.edge(d, {root:node}); // drop all edges for this node 
         d.node.set(node, {
-            forw: new Map(), // key:term,           value:[stem_id or leaf_value]
+            forw: List_Map(), // key:term,           value:[stem_id or leaf_value]
             back: new Map(), // key:(root+term+i),  value:{root, term, i}
             repo,
         });
         d.repo.get(repo).node.set(node);
-        d.graph.next();
+        d.graph.increment();
         return node;
     },
     edge(d, root, term, stem, a={}){ // if somehow this is called without permission, the server should kick back with failed 
@@ -25,48 +25,72 @@ export const create_make_slice = (set,get)=>({make:{
         const indx = a.indx ?? length;
         if(indx > length || length >= a.max_length) return; 
         forw.get(term).splice(indx, 0, stem); 
-        if(!stem.type) d.node.get(stem).back.set(root+':'+term+':'+indx, {root, term, indx});
-        d.graph.next();
+        if(!stem.type) d.node.get(stem).back.set(root+':'+term+':'+indx, [root, term, indx]);
+        d.graph.increment();
     },
 }});
+
+function List_Map(){
+    const map = new Map();
+    map[Symbol.iterator] = ()=>{
+        const entries = map.entries();
+        let {value, done} = entries.next();
+        let indx = -1;
+        return{
+            next(){
+                indx++;
+                if(indx < value[1].length){
+                    return {value:[value[0], value[1][indx], indx]};	
+                }
+                ({value, done} = entries.next());
+                if(done) return {done};
+                indx = 0;
+                return {value:[value[0], value[1][indx], indx]};	
+            }
+        };
+    };
+    return map;
+}
+
+
 
 //const term = a.term ?? 'stem';
 
 
-    // atom(d, cls, v, a={}){ // just check v to figure if b, i, f, or s
-    //     if(v == null){
-    //         if(cls == 'boolean') v = false;
-    //         if(cls == 'integer' || cls == 'decimal') v = 0;
-    //         if(cls == 'string') v = '';
-    //     }
-    //     //console.log('come on!', current(a.r));
-    //     if(a.single && a.r && a.r.length){
-    //         //let r = Array.isArray(a.r) ? a.r : [a.r];
-    //         if(d.as_array(a.r).every(r=> d.n[r].n[a.t])) return;
-    //     }
-    //     //console.log('come on! 2');
-    //     const n = d.make.node(d, cls, a); //{r:r, t:t}
-    //     d.n[n].v = v; 
-    //     return n;
-    // },
-    // part(d, cls, a){ // a.r should be array 
-    //     let stem = {};
-    //     if(d.node[cls]){
-    //         for(const [t, s] of Object.entries(d.node[cls].stem)){
-    //             if(d.terminal_classes[s.class[0]] && s.default != null){
-    //                 stem[t] = d.make.atom(d, s.class[0], s.default);
-    //             }
-    //         }
-    //     }
-    //     return d.make.node(d, cls, {...a, stem:stem});
-    // },
+// atom(d, cls, v, a={}){ // just check v to figure if b, i, f, or s
+//     if(v == null){
+//         if(cls == 'boolean') v = false;
+//         if(cls == 'integer' || cls == 'decimal') v = 0;
+//         if(cls == 'string') v = '';
+//     }
+//     //console.log('come on!', current(a.r));
+//     if(a.single && a.r && a.r.length){
+//         //let r = Array.isArray(a.r) ? a.r : [a.r];
+//         if(d.as_array(a.r).every(r=> d.n[r].n[a.t])) return;
+//     }
+//     //console.log('come on! 2');
+//     const n = d.make.node(d, cls, a); //{r:r, t:t}
+//     d.n[n].v = v; 
+//     return n;
+// },
+// part(d, cls, a){ // a.r should be array 
+//     let stem = {};
+//     if(d.node[cls]){
+//         for(const [t, s] of Object.entries(d.node[cls].stem)){
+//             if(d.terminal_classes[s.class[0]] && s.default != null){
+//                 stem[t] = d.make.atom(d, s.class[0], s.default);
+//             }
+//         }
+//     }
+//     return d.make.node(d, cls, {...a, stem:stem});
+// },
 
 
 
-        // d.next('reckon.up', r);
-        // d.next('graph.update');
-        // d.next('pick.update');
-        // d.next('design.show'); 
+// d.next('reckon.up', r);
+// d.next('graph.update');
+// d.next('pick.update');
+// d.next('design.show'); 
 
 
 
@@ -80,7 +104,7 @@ export const create_make_slice = (set,get)=>({make:{
 //         if(d.n[r].asset || a.received){  // if(d.n[r].asset || r==d.user || a.received){     // if(d.n[r].asset || r==d.profile || (d.cats[d.n[r].t] && d.n[n].asset)){ // || (r==d.profile && a.t=='asset') || (r==d.cat.public && a.t=='viewable')
 //             //console.log('make edge 2', r, a.t, n);
 //             if(a.single && d.n[r].n[a.t]) return;
-            
+
 //             /////var t = d.n[n].t;
 //             //if(d.n[r].t == 'group')  t = 'group'; 
 //             let t = a.t ?? d.n[n].t;//////////if(a.t != undefined) t = a.t;
@@ -152,7 +176,7 @@ export const create_make_slice = (set,get)=>({make:{
 //         d.pick.color(d, n);
 //         if(!d.terminal_classes[cls]) d.n[n].n={}; 
 //         ///////d.make.edge(d, d.user, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
-        
+
 //         //if(a.r) d.make.edge(d, a.r, n, a); // a.r should be list?
 //         d.for(a.r, r=> d.make.edge(d, r, n, a));
 
@@ -228,8 +252,8 @@ export const create_make_slice = (set,get)=>({make:{
 // });
 
 //return d.make.node(d, 'p', t, {...a, atoms});
-        //}else{
-        //    return d.make.node(d, 'p', t, a);
+//}else{
+//    return d.make.node(d, 'p', t, a);
 
 // point(d, a={}){ //pos, r, o
 //     if(a.pos == undefined) a.pos = new Vector3();
@@ -356,61 +380,61 @@ export const create_make_slice = (set,get)=>({make:{
 
 
 // if(a.r && !d.cast_end[d.n[a.r].t]){  // just reckon a.r directly ?!?!?!?!?! 
-        //     d.cast_tags.forEach(tt=>{
-        //         if(!d.cast_shallow_map[tt]){ // must use matrix list !?!?!?!?!?!
-        //             if(tt=='base_matrix'){
-        //                 cc = {...cc, o:cc.o+1};
-        //                 if(cp.t=='c') c.base_matrix = cc;
-        //                 else          ax.base_matrix = cc;
-        //                 d.reckon.matrix(d, n, cp.t, d.add_nc,  cc);
-        //             }else{
-        //                 if(d.n[a.r].c[tt]) d.n[n].c[tt] = d.n[a.r].c[tt];
-        //                 if(d.n[a.r].ax[tt]) d.n[n].ax[tt] = d.n[a.r].ax[tt];
-        //             }
-        //         }
-        //     });
-        // }
+//     d.cast_tags.forEach(tt=>{
+//         if(!d.cast_shallow_map[tt]){ // must use matrix list !?!?!?!?!?!
+//             if(tt=='base_matrix'){
+//                 cc = {...cc, o:cc.o+1};
+//                 if(cp.t=='c') c.base_matrix = cc;
+//                 else          ax.base_matrix = cc;
+//                 d.reckon.matrix(d, n, cp.t, d.add_nc,  cc);
+//             }else{
+//                 if(d.n[a.r].c[tt]) d.n[n].c[tt] = d.n[a.r].c[tt];
+//                 if(d.n[a.r].ax[tt]) d.n[n].ax[tt] = d.n[a.r].ax[tt];
+//             }
+//         }
+//     });
+// }
 
-            // if(d.n[a.r].c.matrix){
-            //     d.n[n].c.matrix = d.n[a.r].c.matrix;
-            //     d.n[n].c.inverse = d.n[a.r].c.inverse;
-            // }
-            // if(d.n[a.r].ax.matrix){
-            //     d.n[n].ax.matrix = d.n[a.r].ax.matrix;
-            //     d.n[n].ax.inverse = d.n[a.r].ax.inverse;
-            // }
+// if(d.n[a.r].c.matrix){
+//     d.n[n].c.matrix = d.n[a.r].c.matrix;
+//     d.n[n].c.inverse = d.n[a.r].c.inverse;
+// }
+// if(d.n[a.r].ax.matrix){
+//     d.n[n].ax.matrix = d.n[a.r].ax.matrix;
+//     d.n[n].ax.inverse = d.n[a.r].ax.inverse;
+// }
 
 
 //if(a.v == undefined){d.n[n].v = {'b':true, 'i':0, 'f':0, 's':''}[m]}
-        //else                {d.n[n].v = a.v}  
+//else                {d.n[n].v = a.v}  
 //const tags = ['d11','d21','d31','d41','d12','d22','d32','d42','d13','d23','d33','d43','d14','d24','d34','d44'];
 //n: Object.fromEntries(tags.map((t,i)=>['d', 
-            //    d.make.atom(d,'f',{v:a.matrix.elements[i]})
-            //])),
+//    d.make.atom(d,'f',{v:a.matrix.elements[i]})
+//])),
 
 // d11: d.make.atom(d,'f', {v:el[0]}),
-            // d21: d.make.atom(d,'f'),
-            // d31: d.make.atom(d,'f'),
-            // d41: d.make.atom(d,'f'),
-            // d12: d.make.atom(d,'f'),
-            // d22: d.make.atom(d,'f'),
-            // d32: d.make.atom(d,'f'),
-            // d42: d.make.atom(d,'f'),
-            // d13: d.make.atom(d,'f'),
-            // d23: d.make.atom(d,'f'),
-            // d33: d.make.atom(d,'f'),
-            // d43: d.make.atom(d,'f'),
-            // d14: d.make.atom(d,'f'),
-            // d24: d.make.atom(d,'f'),
-            // d34: d.make.atom(d,'f'),
-            // d44: d.make.atom(d,'f'),
+// d21: d.make.atom(d,'f'),
+// d31: d.make.atom(d,'f'),
+// d41: d.make.atom(d,'f'),
+// d12: d.make.atom(d,'f'),
+// d22: d.make.atom(d,'f'),
+// d32: d.make.atom(d,'f'),
+// d42: d.make.atom(d,'f'),
+// d13: d.make.atom(d,'f'),
+// d23: d.make.atom(d,'f'),
+// d33: d.make.atom(d,'f'),
+// d43: d.make.atom(d,'f'),
+// d14: d.make.atom(d,'f'),
+// d24: d.make.atom(d,'f'),
+// d34: d.make.atom(d,'f'),
+// d44: d.make.atom(d,'f'),
 
 //const x = d.make.atom(d, 'f', pos.x); //, n, 'x' // d, v, root_id, edge_tag
-        //const y = d.make.atom(d, 'f', pos.y); //, n, 'y' 
-        //const z = d.make.atom(d, 'f', pos.z); //, n, 'z'
+//const y = d.make.atom(d, 'f', pos.y); //, n, 'y' 
+//const z = d.make.atom(d, 'f', pos.z); //, n, 'z'
 
 // if(d.profile){
-        //     if(!d.n[d.profile].n.asset) d.n[d.profile].n.asset = [];
-        //     d.n[d.profile].n.asset.push(n);
-        // }
+//     if(!d.n[d.profile].n.asset) d.n[d.profile].n.asset = [];
+//     d.n[d.profile].n.asset.push(n);
+// }
 
