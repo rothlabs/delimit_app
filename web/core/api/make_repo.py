@@ -31,7 +31,7 @@ class Make_Repo(graphene.Mutation):
             user = info.context.user
             if not user.is_authenticated:
                 return Make_Repo(reply = auth_required_message)
-            team = gdb_connect(user, team=team)
+            team, gdb_user = gdb_connect(user, team=team)
             name = conform(name, max_length=64, name=True)
             repo = make_id() 
             description = conform(description, max_length=512)

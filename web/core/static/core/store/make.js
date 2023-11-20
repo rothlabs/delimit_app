@@ -1,92 +1,72 @@
-import {make_id} from '../app.js';
-import {Vector3, Matrix4} from 'three';
-import {current} from 'immer';
-
-const tm = new Matrix4();
+import { make_id } from '../app.js';
+//import {current} from 'immer';
 
 export const create_make_slice = (set,get)=>({make:{
-    edge(d, r, n, a={}){ 
-        if(!d.graph.ex(d,r) || !d.graph.ex(d,n)) return;
-        if(d.n[r].asset || a.received){  
-            if(a.single && d.n[r].n[a.t]) return;
-            let t = a.t ?? d.spec.tag(d, n); //d.n[n].t;
-            if(!d.n[r].n[t]) d.n[r].n[t] = [];
-            var o = a.o ?? d.n[r].n[t].length;
-            d.n[r].n[t].splice(o, 0, n); 
-            var rt = d.spec.tag(d, r); // d.n[r].t;
-            if(d.root_tags[t]) rt=d.root_tags[t];
-            if(!d.n[n].r[rt]) d.n[n].r[rt] = [];
-            d.n[n].r[rt].push(r); // reverse relationship 
-            d.next('reckon.up', r);
-            d.next('graph.update');
-            d.next('pick.update');
-            d.next('design.show'); 
-        }
-    },
     node(d, a={}){ 
-        const n = make_id();
-        d.n[n] = d.node_template(d, 'node');
-        d.n[n].asset = true;
-        d.pick.color(d, n);
-        if(!d.terminal_classes[cls]) d.n[n].n={}; 
-        ///////d.make.edge(d, d.user, n, {t:'asset'}); // need to make temp profile for anonymous users!!!!
-        
-        //if(a.r) d.make.edge(d, a.r, n, a); // a.r should be list?
-        d.for(a.r, r=> d.make.edge(d, r, n, a));
-
-        if(a.stem) Object.entries(a.stem).forEach(([t,nn],i)=>{
-            d.for(nn, nn=> d.make.edge(d, n, nn, {t:t}));
+        const node = a.node ?? make_id();
+        if(!(a.received || d.write_access(d, node))) return;
+        const repo = a.repo ?? d.pick.repo();
+        d.drop.edge(d, {root:node}); // drop all edges for this node 
+        d.node.set(node, {
+            forw: new Map(), // key:term,           value:[stem_id or leaf_value]
+            back: new Map(), // key:(root+term+i),  value:{root, term, i}
+            repo,
         });
-        //{
-        //    if(Array.isArray(a.r)){   a.r.forEach(r=> d.make.edge(d, r, n, a))   }
-        //    else{   d.make.edge(d, a.r, n, a);  }
-        //}
-        //d.consume = d.send; // make add to a consume list? so async ops work? idk
-
-        // // if(d.graph.ex(d,a.r) && !d.cast_end[d.n[a.r].t]){
-        // //     const content_packs = [{c:d.n[a.r].c,t:'c'},{c:d.n[a.r].ax,t:'ax'}];
-        // //     content_packs.forEach(cp=>{
-        // //         Object.entries(cp.c).forEach(([t,cc])=>{
-        // //             if((d.cast_map[t] || t=='matrix_list' ) && !d.cast_shallow_map[t]) {
-        // //                 d.n[n][cp.t][t] = cc; 
-        // //                 if(t=='matrix_list') d.reckon.matrix(d, n, cp.t);
-        // //             }
-        // //         });
-        // //     });
-        // // }
-
-        //d.next('reckon.up', n, ['make.node']); will this ever be needed ?!?!?!?!
-        d.next('graph.update'); // check if in graph_tags 
-        return n;
+        d.repo.get(repo).node.set(node);
+        d.graph.next();
+        return node;
     },
-    atom(d, cls, v, a={}){ // just check v to figure if b, i, f, or s
-        if(v == null){
-            if(cls == 'boolean') v = false;
-            if(cls == 'integer' || cls == 'decimal') v = 0;
-            if(cls == 'string') v = '';
-        }
-        //console.log('come on!', current(a.r));
-        if(a.single && a.r && a.r.length){
-            //let r = Array.isArray(a.r) ? a.r : [a.r];
-            if(d.as_array(a.r).every(r=> d.n[r].n[a.t])) return;
-        }
-        //console.log('come on! 2');
-        const n = d.make.node(d, cls, a); //{r:r, t:t}
-        d.n[n].v = v; 
-        return n;
-    },
-    part(d, cls, a){ // a.r should be array 
-        let stem = {};
-        if(d.node[cls]){
-            for(const [t, s] of Object.entries(d.node[cls].stem)){
-                if(d.terminal_classes[s.class[0]] && s.default != null){
-                    stem[t] = d.make.atom(d, s.class[0], s.default);
-                }
-            }
-        }
-        return d.make.node(d, cls, {...a, stem:stem});
+    edge(d, root, term, stem, a={}){ // if somehow this is called without permission, the server should kick back with failed 
+        if(!(d.node.has(root) && (stem.type || d.node.has(stem)))) return;
+        if(!(a.received || d.write_access(d, root))) return;
+        const forw = d.node.get(root).forw;
+        const length = forw.get(term)?.length ?? 0;
+        if(!length) forw.set(term, []); 
+        const indx = a.indx ?? length;
+        if(indx > length || length >= a.max_length) return; 
+        forw.get(term).splice(indx, 0, stem); 
+        if(!stem.type) d.node.get(stem).back.set(root+':'+term+':'+indx, {root, term, indx});
+        d.graph.next();
     },
 }});
+
+//const term = a.term ?? 'stem';
+
+
+    // atom(d, cls, v, a={}){ // just check v to figure if b, i, f, or s
+    //     if(v == null){
+    //         if(cls == 'boolean') v = false;
+    //         if(cls == 'integer' || cls == 'decimal') v = 0;
+    //         if(cls == 'string') v = '';
+    //     }
+    //     //console.log('come on!', current(a.r));
+    //     if(a.single && a.r && a.r.length){
+    //         //let r = Array.isArray(a.r) ? a.r : [a.r];
+    //         if(d.as_array(a.r).every(r=> d.n[r].n[a.t])) return;
+    //     }
+    //     //console.log('come on! 2');
+    //     const n = d.make.node(d, cls, a); //{r:r, t:t}
+    //     d.n[n].v = v; 
+    //     return n;
+    // },
+    // part(d, cls, a){ // a.r should be array 
+    //     let stem = {};
+    //     if(d.node[cls]){
+    //         for(const [t, s] of Object.entries(d.node[cls].stem)){
+    //             if(d.terminal_classes[s.class[0]] && s.default != null){
+    //                 stem[t] = d.make.atom(d, s.class[0], s.default);
+    //             }
+    //         }
+    //     }
+    //     return d.make.node(d, cls, {...a, stem:stem});
+    // },
+
+
+
+        // d.next('reckon.up', r);
+        // d.next('graph.update');
+        // d.next('pick.update');
+        // d.next('design.show'); 
 
 
 

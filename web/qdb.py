@@ -27,12 +27,11 @@ for i in range(0, 1):
 
 # gdb.add_user(username='anonymous', password='anonymous')
 #print(gdb.add_user(username='7Yl2byU8Y05Z7xmn', password='Ya5FChrBxYlHaLQr')) # ('UU1R6yogAvKrG7aG')
-#print(gdb.get_databases())
-gdb.set_db('f3du3cGcG5Vp57Z8')
+#print(gdb.get_database('f3du3cGcG5Vp57Z8'))
+#gdb.set_db('f3du3cGcG5Vp57Z8')
 #print(gdb._get_prefixes())
 
-
-#print(gdb.list_databases())
+print(gdb.get_organization_user('7Yl2byU8Y05Z7xmn', '7Yl2byU8Y05Z7xmn'))
 
 
 #print(wq().path('test_subject', '.*,.', 'v:stem').using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV').path('v:stem', '.*,.', 'v:stem2').execute(gdb)['bindings'])
@@ -45,12 +44,12 @@ gdb.set_db('f3du3cGcG5Vp57Z8')
 # # #     wq().path('test_subject', '.*,.', 'v:stem').using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV').path('v:stem', '.*,.', 'v:stem2'),  #wq().using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV', wq().path('v:stem', '.*', 'v:stem2')),
 # # #     ).execute(gdb)['bindings'])
 
-
-print(wq()
-    .triple('v:root', 'v:wow', 'AQtstWW3PLS7jdeV') # @schema:stem
-    .add_triple('v:root', 'v:wow', '4jTppoxGp0JPNQJf') 
-    .execute(gdb))
-print(wq().star().execute(gdb)['bindings'])
+# # # print(wq()
+# # #     .triple('v:someNode', 'v:myPredicate', 'someCoolValue') # @schema:stem #AQtstWW3PLS7jdeV
+# # #     .triple('v:root', 'v:wow', 'v:someNode')
+# # #     .add_triple('v:root', 'v:wow', '4jTppoxGp0JPNQJf') 
+# # #     .execute(gdb))
+# # # print(wq().star().execute(gdb)['bindings'])
 
 # capability = {
 #   "operation": "grant",

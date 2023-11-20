@@ -1,29 +1,31 @@
 import {current} from 'immer';
 import {Vector3, Matrix4} from 'three';
 import * as THREE from 'three';
-import {readable, static_url, upper, theme} from '../app.js';
+import {readable, static_url, upper, theme, make_id} from '../app.js';
 import lodash from 'lodash';
 
 var next_funcs = [];
 var next_ids = [];
 
 export const create_base_slice = (set,get)=>({
+    team: new Map(),
     repo: new Map(),
     node: new Map(),
 
-    terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
+    
+    //terminal_classes: Object.fromEntries(['boolean', 'integer', 'decimal', 'string'].map(t=>[t,true])),
     //asset_classes: [],
     //admin_classes: [],
 
-    terminal_tags: [],
+    //terminal_tags: [],
 
-    root_tags:    {'view':'viewer', 'asset':'owner'},
-    stem_tags:    [],
-    boolean_tags: [],
-    integer_tags: [],
-    decimal_tags: [],
-    string_tags:  [],
-    enum: {},
+    //root_terms:    {'view':'viewer', 'asset':'owner'},
+    // stem_tags:    [],
+    // boolean_tags: [],
+    // integer_tags: [],
+    // decimal_tags: [],
+    // string_tags:  [],
+    // enum: {},
 
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
@@ -41,6 +43,7 @@ export const create_base_slice = (set,get)=>({
         mode: 'repo',
         repo: {
             fetch(){},
+            target: null,
         },
         panel: {},
         cursor: '',
@@ -89,7 +92,7 @@ export const create_base_slice = (set,get)=>({
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    as_array(obj){
+    array(obj){
         return obj ? (Array.isArray(obj) ? obj : [obj]) : [];
     },
 
@@ -125,66 +128,103 @@ export const create_base_slice = (set,get)=>({
         });// 0   1
     },
 
-    send(d, patches){ // change to send patches directly to server (filtering for patches that matter)
-        const nodes = [];
-        patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
-            if(patch.path[0]=='n'){
-                const n = patch.path[1];
-                if(patch.op == 'add'){ 
-                    if(patch.path.length == 2){ // node created  if(patch.path[0]=='n' && patch.path.length < 3){
-                        d.add(nodes, n);
-                    }else if(patch.path[2] == 'n'){ // stem added
-                        d.add(nodes, n);
-                    }
-                }else if(patch.op == 'replace'){ 
-                    if(patch.path[2]=='n'){ // stems replaced
-                        d.add(nodes, n);
-                    }else if(patch.path[2]=='v'){ // terminal value changed
-                        d.add(nodes, n);
-                    }else if(patch.path[2]=='drop'){
-                        d.add(nodes, n);
-                    }
-                }else if(patch.op == 'remove'){
-                    if(patch.path[2]=='n'){
-                        d.add(nodes, n);
-                    }
-                }
-            }
-        });
-        const triples = [];
-        for(const n of nodes){
-            //if(d.admin_classes.includes(d.n[n].t)) continue; // rename to system_classes #1
-            const cls = upper(d.n[n].t);
-            triples.push({root:n, tag:'class', stem:cls}); // stem:'@schema:'+cls});
-            triples.push({root:n, tag:'tag:drop', stem:d.n[n].drop});//stem:{'@type':'xsd:boolean', '@value':d.n[n].drop}});
-            if(d.terminal_classes[d.n[n].t]){
-                triples.push({root:n, tag:'tag:value', stem:d.n[n].v});//stem:{'@type':'xsd:'+d.n[n].t, '@value':d.n[n].v}});
-            }else{
-                d.graph.for_stem(d, n, (r,nn,t)=>{
-                    triples.push({root:n, tag:'tag:'+t, stem:nn}); //  triples.push({root:n, tag:'@schema:'+t, stem:nn});
-                });
-            }
-        }
-        if(triples.length){
-            d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
-        }
+    send_triples(d, patches){ // change to send patches directly to server (filtering for patches that matter)
+        console.log(patches);
+        // const nodes = [];
+        // patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
+        //     if(patch.path[0]=='n'){
+        //         const n = patch.path[1];
+        //         if(patch.op == 'add'){ 
+        //             if(patch.path.length == 2){ // node created  if(patch.path[0]=='n' && patch.path.length < 3){
+        //                 d.add(nodes, n);
+        //             }else if(patch.path[2] == 'n'){ // stem added
+        //                 d.add(nodes, n);
+        //             }
+        //         }else if(patch.op == 'replace'){ 
+        //             if(patch.path[2]=='n'){ // stems replaced
+        //                 d.add(nodes, n);
+        //             }else if(patch.path[2]=='v'){ // terminal value changed
+        //                 d.add(nodes, n);
+        //             }else if(patch.path[2]=='drop'){
+        //                 d.add(nodes, n);
+        //             }
+        //         }else if(patch.op == 'remove'){
+        //             if(patch.path[2]=='n'){
+        //                 d.add(nodes, n);
+        //             }
+        //         }
+        //     }
+        // });
+        // const triples = [];
+        // for(const n of nodes){
+        //     //if(d.admin_classes.includes(d.n[n].t)) continue; // rename to system_classes #1
+        //     const cls = upper(d.n[n].t);
+        //     triples.push({root:n, tag:'class', stem:cls}); // stem:'@schema:'+cls});
+        //     triples.push({root:n, tag:'tag:drop', stem:d.n[n].drop});//stem:{'@type':'xsd:boolean', '@value':d.n[n].drop}});
+        //     if(d.terminal_classes[d.n[n].t]){
+        //         triples.push({root:n, tag:'tag:value', stem:d.n[n].v});//stem:{'@type':'xsd:'+d.n[n].t, '@value':d.n[n].v}});
+        //     }else{
+        //         d.graph.for_stem(d, n, (r,nn,t)=>{
+        //             triples.push({root:n, tag:'tag:'+t, stem:nn}); //  triples.push({root:n, tag:'@schema:'+t, stem:nn});
+        //         });
+        //     }
+        // }
+        // if(triples.length){
+        //     d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
+        // }
     },
 
-    node_template: (d, t)=>({
-        t:t, r:{}, c:{}, open:true, drop:false, asset:true, // rename asset to write #1 (permission to write)
-        pick:   {pick:false, hover:false},
-        graph:  {pos:new Vector3()},
-        pin:    {},
-        design: {vis:true},
-    }),
+    write_access(d, node){
+        if(Array.isArray(node)){
+            return node.filter(node=> d.repo.get(node.repo).write_access);
+        }
+        if(d.repo.has(node.repo)){
+            return d.repo.get(node.repo).write_access;
+        }
+        return true;
+    },
 
-    receive_triples:(d, triples)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        console.log(triples);
-        const handled = new Map();
-        for(const triple of triples){
-            const r = triple.root; 
-            if(!handled.has(r)){
-                d.drop.edge(d, r, '.', '.').execute(); // root term stem
+    receive_module:(d, module)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
+        console.log(module);
+        const repo = module.repo.id;
+        d.pick.repo(repo, {weak:true}); 
+        d.repo.set(repo,{
+            name: module.repo.name,
+            team: module.repo.team,
+            description: module.repo.description,
+            write_access: module.repo.write_access,
+            node: d.repo.get(repo)?.node ?? new Set(),
+        });
+        const handled = new Set();
+        for(const triple of module.triples){
+            if(handled.has(triple.root)) continue;
+            d.make.node(d, {repo, node:triple.root, received:true});
+            handled.add(triple.root);
+        }
+        for(const triple of module.triples){
+            if(triple.term.slice(0, 8) == '@schema:'){
+                const r = triple.root;
+                const t = triple.tag.slice(8);
+                const s = triple.stem;
+                if(s['@class']) s = {type:s['@class'], value:s['@value']};
+                d.make.edge(d, r, t, s, {received:true});
+            }
+        }
+        if(module.triples.length){
+            d.graph.init(d);
+            d.studio.ready = true;
+            d.graph.next();
+        }
+        console.log(current(Array.from(d.node.entries())));
+    },
+});
+
+
+
+
+
+                //d.drop.edge(d, {root:r}); // root term stem
+                
                 // if(d.node.has(n)){
                 //     d.drop.edge(d, {root:n})
                 //     //for(const edge in d.graph.edge(d, {root:n})) d.drop.edge(d, {edge});
@@ -194,50 +234,26 @@ export const create_base_slice = (set,get)=>({
                 // }
                 // d.n[n].n = {};
                 // d.pick.color(d, n);
-            }
-            handled.set(r, true);
-        }
-        for(const triple of triples){
-            if(triple.term.slice(0, 8) == '@schema:'){
-                const r = triple.root;
-                const t = triple.tag.slice(8);
-                const s = triple.stem;
-                if(s['@type']){
-                    //if(t == 'value'){
-                        d.make.edge(d, r, t, s['@value'], {leaf:true}).execute();
-                        //delete d.n[n].n;
-                        //d.graph.sv(d, n, triple.stem['@value']);
-                    //}
-                }else{
-                    d.make.edge(d, r, t, s).execute();
-                    //d.make.edge(d, n, t, triple.stem, {received:true});
-                }
-            }
-        }
-        if(triples.length){
-            d.graph.init(d);
-            d.studio.ready = true;
-            d.next('graph.update');
-        }
-        console.log(current(d.n));
-    },
+            //}
+            
 
-    close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)
-        const close_pack = {p:[], b:[], i:[], f:[], s:[]};
-        nodes.forEach(n=>{
-            d.graph.close(d, n);
-            close_pack[d.n[n].m].push(n);
-            // d.n[n].open=false;
-            // d.n[n].r = {};
-            // d.n[n].c = {};
-            // d.n[n].t = '';
-            // if(d.n[n].m=='p'){  d.n[n].n = {};  }
-            // else{  d.n[n].v = null;  }
-        });
-        d.close_pack({variables:close_pack});
-    },
 
-});
+
+
+// close: (d, nodes)=>{ /// need to integrate into post update system!!!! (broken, will not work right)
+//     const close_pack = {p:[], b:[], i:[], f:[], s:[]};
+//     nodes.forEach(n=>{
+//         d.graph.close(d, n);
+//         close_pack[d.n[n].m].push(n);
+//         // d.n[n].open=false;
+//         // d.n[n].r = {};
+//         // d.n[n].c = {};
+//         // d.n[n].t = '';
+//         // if(d.n[n].m=='p'){  d.n[n].n = {};  }
+//         // else{  d.n[n].v = null;  }
+//     });
+//     d.close_pack({variables:close_pack});
+// },
 
 
 

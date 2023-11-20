@@ -1,9 +1,27 @@
+import {applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'https://cdn.jsdelivr.net/npm/immer@10.0.3/+esm';
+
+enablePatches();
+enableMapSet();
+
+const state = {
+		node: new Map([['wow',37], ['nice',88]]),
+};
+
+const [nextState, patches, inversePatches] = produceWithPatches(
+    state,
+    d => {
+        d.node.delete('wow');
+    }
+);
+
+console.log(Array.from(nextState.node.values()));
+const nextState2 = applyPatches(nextState, inversePatches);
+console.log(Array.from(nextState2.node.values()));
+
+console.log('done');
 
 
-triple('v:toDelete', 'drop', 'v:dropFlag')
-triple('v:dropFlag', '.', 'forReal')
-triple('v:toDelete', 'v:term', 'v:stem')
-delete_triple('v:toDelete', 'v:term', 'v:stem')
+
 
 
 const node = new Map();

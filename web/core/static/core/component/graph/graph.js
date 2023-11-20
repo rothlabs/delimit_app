@@ -1,75 +1,90 @@
-import {createElement as c, useEffect, useState, memo} from 'react';
-import {ss, gs, useS, useSS, make_id} from '../../app.js';
-import {useFrame, useThree} from '@react-three/fiber';
+import {createElement as c, memo, useEffect} from 'react';
+import {rs, gs, useS} from '../../app.js';
+//import {useFrame, useThree} from '@react-three/fiber';
 //import {use_d, shallow} from '../../state/state.js';
-import {Part} from './part.js';
-import {Atom} from './atom.js';
-import {Vector3} from 'three';
+import {Node} from './node.js';
+//import {Atom} from './atom.js';
+//import {Vector3} from 'three';
 import {Edge} from './edge.js';
 //import {Bounds} from '@react-three/drei/Bounds';
 
 //export const graph_z = 300;
 
-const repulsion = 100000;
-const inward_force = 1; // make dynamic based on how many objects
-const part_spring = 0.05;
-const tv = new Vector3();
+// const repulsion = 100000;
+// const inward_force = 1; // make dynamic based on how many objects
+// const part_spring = 0.05;
+// const tv = new Vector3();
 
 
 export const Graph = memo(()=>{
-    //const ready = useS(d=> d.graph.ready);
-    //console.log('render graph')
-    // use_effect([nodes, controls],()=>{ // appears to always run once but first time loading the editor the project bounds aren't there yet
-	// 	//console.log(project.current);
-	// 	bounds.setFromObject( project.current );
-	// 	const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
-	// 	const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
-	// 	if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);
-	// 	if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);
-	// 	camera.updateProjectionMatrix();
-	// 	action_rv({name:'record', init:true}); 
-	// 	sketches_rv({get:id=> sketches.current.find(sketch=> {if(sketch) return sketch.id==id})});
-	// });
-    //console.log('render graph');
-    return(
-        //ready && c(Bounds, {fit:true, clip:true, observe:true, damping:6, margin:1.2},
-        c('group', {name:'graph'},
-            c(Nodes),
-            c(Edges),
-            //c(Arrange),
-        )
-        //)
-    )
-});
-
-const Nodes = memo(()=>{
-    const nodes = useS(d=> d.graph.n);   // doesn't need to be ss?
+    const counter = useS(d=> d.graph.counter); 
+    useEffect(()=> rs(d=> d.graph.update(d)), [counter]); // only run the graph update function if viewing the graph
     const d = gs();
-    //console.log('render graph nodes');
-    return (
-        c('group', {name:'nodes'}, // ref:graph, dispose:null
-			...Object.keys(nodes).map(n=> 
-				d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
+    console.log('render graph');
+    return(
+        c('group', {name:'graph'},
+            d.graph.node.keys().map(node=> 
+				c(Node, {node, key:node}),//d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
+            ),
+            d.graph.edge.map(e=> 
+				c(Edge, {...e, key:e.r+e.n+e.t}) // , key:e.r+e.t+e.n  //make_id()
             ),
 		)
     )
 });
 
-const Edges = memo(()=>{
-    const edges = useS(d=> d.graph.e);  // rerendering every time the client polls for update!! 
-    //const edges = useDS(d=> d.graph.edge_roots);
-    //const tags = useDS(d=> d.graph.edge_tags);
-    //const nodes = useDS(d=> d.graph.edge_nodes);
-    //const d = useD.getState();
-    //console.log('render graph edges');
-    return (
-        c('group', {name:'edges'}, // ref:graph, dispose:null
-			...edges.map(e=> 
-				c(Edge, {r:e.r, t:e.t, n:e.n, key:e.r+e.n+e.t}) // , key:e.r+e.t+e.n  //make_id()
-            ),
-		)
-    )
-});
+
+// export const Graph = memo(()=>{
+//     //const ready = useS(d=> d.graph.ready);
+//     //console.log('render graph')
+//     // use_effect([nodes, controls],()=>{ // appears to always run once but first time loading the editor the project bounds aren't there yet
+// 	// 	//console.log(project.current);
+// 	// 	bounds.setFromObject( project.current );
+// 	// 	const zoom_x = camera.right / (bounds.max.x - bounds.min.x);
+// 	// 	const zoom_y = camera.top / (bounds.max.y - bounds.min.y);
+// 	// 	if(zoom_x <= zoom_y) controls.zoomTo(zoom_x * 1.75);
+// 	// 	if(zoom_x >  zoom_y) controls.zoomTo(zoom_y * 1.75);
+// 	// 	camera.updateProjectionMatrix();
+// 	// 	action_rv({name:'record', init:true}); 
+// 	// 	sketches_rv({get:id=> sketches.current.find(sketch=> {if(sketch) return sketch.id==id})});
+// 	// });
+//     //console.log('render graph');
+//     return(
+//         //ready && c(Bounds, {fit:true, clip:true, observe:true, damping:6, margin:1.2},
+//         c('group', {name:'graph'},
+//             c(Nodes),
+//             c(Edges),
+//             //c(Arrange),
+//         )
+//         //)
+//     )
+// });
+
+// const Nodes = memo(()=>{
+//     useS(d=> d.graph.counter);   
+//     const d = gs();
+//     console.log('render graph nodes');
+//     return (
+//         c('group', {name:'nodes'}, // ref:graph, dispose:null
+//             d.graph.node.keys().map(n=> 
+// 				c(Node, {n, key:n}),//d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
+//             ),
+// 		)
+//     )
+// });
+
+// const Edges = memo(()=>{
+//     useS(d=> d.graph.counter);  
+//     const d = gs();
+//     console.log('render graph edges');
+//     return (
+//         c('group', {name:'edges'}, // ref:graph, dispose:null
+//             d.graph.edge.values().map(e=> 
+// 				c(Edge, {r:e.r, t:e.t, n:e.n, key:e.r+e.n+e.t}) // , key:e.r+e.t+e.n  //make_id()
+//             ),
+// 		)
+//     )
+// });
 
 
 

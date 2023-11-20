@@ -19,14 +19,14 @@ export function Repo(){
         console.log(data.dropRepo.reply);
         repos.refetch();
     }}); 
-    const open_nodes = use_mutation('OpenNodes', [  
-        ['openNodes reply triples',  
+    const open_module = use_mutation('OpenModule', [  
+        ['openModule reply module',  
             ['String team', null], 
             ['String repo', null], 
         ]  
     ],{onCompleted:data=>{
-        console.log(data.openNodes.reply);
-        rs(d=> d.receive_triples(d, JSON.parse(data.openNodes.triples).list)); 
+        console.log(data.openModule.reply);
+        rs(d=> d.receive_module(d, JSON.parse(data.openModule.module))); 
     }});
     if(repos.data == undefined) return false;
     const pckgs = JSON.parse(repos.data.repos.data).list;
@@ -36,7 +36,7 @@ export function Repo(){
                 c(Col, {xs:'4'},
                     c('img', {className:'hjs', src:'holder.js/100px180', role:'button',
                         onClick:e=>{ 
-                            open_nodes.mutate({variables:{team:pkg.team, repo:pkg.repo}});
+                            open_module.mutate({variables:{team:pkg.team, repo:pkg.repo}});
                         },
                     }),
                 ),
@@ -44,10 +44,11 @@ export function Repo(){
                     c(Button, {
                         className: 'border-0 mt-2 mb-2',
                         onClick:e=>{ 
-                            open_nodes.mutate({variables:{team:pkg.team, repo:pkg.repo}});
+                            open_module.mutate({variables:{team:pkg.team, repo:pkg.repo}});
                         },
                     }, pkg.name),
                     c('p', {}, pkg.description),
+                    c('p', {}, pkg.write),
                 ),
                 c(Col, {xs:'3'}, // md:'auto',
                     c(Button, {

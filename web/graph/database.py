@@ -21,7 +21,15 @@ def gdb_connect(user, team=None, repo=None):
     if not team: team = 'anonymous'
     if repo: gdbc.connect(user=gdb_user, key=gdb_key, team=team, db=repo)
     else: gdbc.connect(user=gdb_user, key=gdb_key, team=team)
-    return team
+    return (team, gdb_user)
+
+def gdb_access_write(team, repo, user):
+    for capability in gdb.get_organization_user(team, user)['capability']:
+        for role in capability['role']:
+            if role['scope']=='Organization/'+team or role['scope']=='UserDatabase/'+repo: 
+                if 'instance_write_access' in role['action']:
+                    return True
+    return False
 
 
 

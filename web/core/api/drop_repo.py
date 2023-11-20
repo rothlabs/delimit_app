@@ -14,7 +14,7 @@ class Drop_Repo(graphene.Mutation):
             user = info.context.user
             if not user.is_authenticated:
                 return Drop_Repo(reply = auth_required_message)
-            team = gdb_connect(user, team=team)
+            team, gdb_user = gdb_connect(user, team=team)
             gdbc.delete_database(repo, team)
             Repo.objects.get(repo = repo).delete()
             return Drop_Repo(reply = 'Dropped repo')

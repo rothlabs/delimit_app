@@ -1,9 +1,9 @@
 import graphene
-from graph.database import gdbc, gdb_connect
+from graph.database import gdbc, gdb_connect, gdb_write_access
 from terminus import WOQLQuery as wq # terminusdb_client
 from core.api.login import Login
 from core.api.logout import Logout
-from core.api.open_nodes import Open_Nodes
+from core.api.open_module import Open_Module
 from core.api.push_nodes import Push_Nodes
 from core.api.drop_repo import Drop_Repo
 from core.api.make_repo import Make_Repo
@@ -20,16 +20,17 @@ class Query(graphene.ObjectType):
             return None
     def resolve_repos(root, info):
         try:
-            gdb_connect(info.context.user)
+            team, gdb_user = gdb_connect(info.context.user)
             databases = gdbc.get_databases()
             repos = Repo.objects.filter(repo__in=[p['name'] for p in databases]) # p['name'] is the id
             result = []
             for p in repos:
                 result.append({
-                    'team': p.team,
                     'repo': p.repo, 
+                    'team': p.team,
                     'name': p.name, 
                     'description': p.description,
+                    'write_access': gdb_write_access(p.team, p.repo, gdb_user),
                 })
             return Pack_Type(data = {'list':result})
         except Exception as e: 
@@ -42,7 +43,7 @@ class Mutation(graphene.ObjectType):
     logout = Logout.Field()
     makeRepo = Make_Repo.Field()
     dropRepo = Drop_Repo.Field()
-    openNodes = Open_Nodes.Field()
+    openModule = Open_Module.Field()
     pushNodes = Push_Nodes.Field()
 
 api = graphene.Schema(query=Query, mutation=Mutation)

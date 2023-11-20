@@ -10,7 +10,7 @@ import {View_Transform} from '../node/base.js';
 const tv = new Vector3();
 const z_pos = -1;
 
-export function Edge({r, t, n}){  // need to make edges their own object in store with reckon function
+export function Edge({root, term, stem}){  // need to make edges their own object in store with reckon function
     //const meshline = useRef();
     //const meshline_material = useRef();
     /////////////////////////////const text = useRef();
@@ -37,8 +37,8 @@ export function Edge({r, t, n}){  // need to make edges their own object in stor
     //const rg = useS(d=> d.n[r].graph);
     //const ng = useS(d=> d.n[n].graph);
     const d = gs();
-    const rp = d.n[r].graph.pos;
-    const np = d.n[n].graph.pos;
+    const rp = d.graph.node.get(root).pos;
+    const np = d.graph.node.get(stem).pos;
     return(
         c('group', { // not using Pickable because it is not a node. make another Pickable for none node objects
             name: 'edge',

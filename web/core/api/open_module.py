@@ -1,27 +1,41 @@
 import json
 import graphene
 #from core.api.types import Pack_Type
-from graph.database import gdbc, gdb_connect
+from graph.database import gdbc, gdb_connect, gdb_write_access
 from terminus import WOQLQuery as wq
 
-class Open_Nodes(graphene.Mutation): # rename to Open_Assets and Push_Assets
+class Open_Module(graphene.Mutation): # rename to Open_Module?! #1
     class Arguments:
         team = graphene.String()
         repo = graphene.String()
         #nodes = graphene.List(graphene.String())
     #pack = graphene.Field(Pack_Type)
-    triples = graphene.String(default_value = '{"list":[]}')
+    #write = graphene.Boolean(default_value = False)
+    module = graphene.String(default_value = 'null')
     reply = graphene.String(default_value = 'Failed to open nodes')
     @classmethod
     def mutate(cls, root, info, team, repo): # , include, exclude): # offset, limit for pages
         try:
-            gdb_connect(info.context.user, team=team, repo=repo)
+            team, gdb_user = gdb_connect(info.context.user, team=team, repo=repo)
             triples = wq().triple('v:root', 'v:tag', 'v:stem').execute(gdbc)['bindings'] # star(subj='root', pred='tag', obj='stem')
-            return Open_Nodes(reply='Opened nodes', triples = json.dumps({'list':triples}))
+            rdb_repo = Repo.objects.get(repo=repo)
+            return Open_Module(
+                reply = 'Opened nodes',
+                module = json.dumps({
+                    'repo':{
+                        'id': repo,
+                        'team': team,
+                        'name': rdb_repo.name, 
+                        'description': rdb_repo.description,
+                        'write_access': gdb_write_access(team, repo, gdb_user),
+                    },
+                    'triples': triples,
+                }),
+            )
         except Exception as e: 
-            print('Error: Open_Nodes')
+            print('Error: Open_Module')
             print(e)
-        return Open_Nodes()
+        return Open_Module()
 
 
         # triples = wq().select('v:root', 'v:tag', 'v:stem').woql_and(
@@ -35,7 +49,7 @@ class Open_Nodes(graphene.Mutation): # rename to Open_Assets and Push_Assets
             #     ),
             # ).execute(gdbc)['bindings'] 
             # triples = query.execute(gdbc)['bindings']    
-            #return Open_Nodes(nodes=Pack_Type(data={'list':triples}), reply='Opened nodes')
+            #return Open_Module(nodes=Pack_Type(data={'list':triples}), reply='Opened nodes')
 
 
 

@@ -14,7 +14,7 @@ import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
 import {extend} from '@react-three/fiber';
 import {Text} from './troika/troika-three-text.js';
-import {produce, applyPatches, produceWithPatches, enablePatches} from 'immer'; 
+import {produce, applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'immer'; 
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
 import {shallow} from 'zustand/shallow';//'shallow';
@@ -36,6 +36,7 @@ import {create_drop_slice} from './store/drop.js';
 //import {create_clear_slice} from './store/clear.js';
 import {create_part_slice} from './store/part/part.js';
 
+enableMapSet();
 enablePatches();
 
 extend({Text});
@@ -150,7 +151,7 @@ function ignore_patch(p){
     //if(p.path.includes('pick')) return false;
     return true;
 }
-const ignored_node_props = ['pick', 'graph', 'pin', 'c', 'c_c'];
+const ignored_node_props = ['repo', 'pick', 'hover', 'pos', 'c_c'];
 function commit_state(arg){
     arg.patches = arg.patches.filter(p=> ignore_patch(p));
     arg.inverse = arg.inverse.filter(p=> ignore_patch(p));

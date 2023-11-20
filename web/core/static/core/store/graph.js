@@ -4,88 +4,109 @@ import {static_url, readable} from '../app.js';
 const tv = new Vector3();
 const tm = new Matrix4();
 
-export const create_graph_slice = (set,get)=>({graph:{
+export const create_graph_slice = (set,get)=>({graph:{ 
+    // init(d){
+    //     d.graph.n_vis={ 
+    //         node: true,
+    //         //...Object.fromEntries(Object.keys(d.node).map(t=>[t,true])), 
+    //     };
+    //     d.graph.e_vis={ 
+    //         spec: true, 
+    //         make: true,
+    //         name: true,
+    //         leaf: true,
+    //         //...Object.fromEntries(d.terminal_tags.map(t=>[t,true])), 
+    //         //...Object.fromEntries(d.stem_tags.map(t=>[t,true])),
+    //     };
+    // },
+    // next(d){
+    //     d.graph.counter++;
+    // },
+    // set_node_vis:(d, t, vis)=>{
+    //     d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders
+    //     d.graph.n_vis[t] = vis;
+    //     // Object.values(d.n).forEach(n=>{
+    //     //     if(d.graph.n_vis[n.t]!=undefined) n.graph.vis = d.graph.n_vis[n.t];
+    //     // });
+    //     d.graph.update(d);
+    // },
+    // set_edge_vis:(d, t, vis)=>{
+    //     d.graph.e_vis = {...d.graph.e_vis}; // make new object so visual panel rerenders
+    //     d.graph.e_vis[t] = vis;
+    //     d.graph.update(d);
+    // },
+    
+    node: new Map(),
+    edge: new Map(),
+    counter: 0,
     scale: 1,
-    n: [],
-    e: [], 
-    init(d){
-        d.graph.n_vis={ 
-            node: true,
-            //...Object.fromEntries(Object.keys(d.node).map(t=>[t,true])), 
-        };
-        d.graph.e_vis={ 
-            spec: true, 
-            make: true,
-            name: true,
-            leaf: true,
-            //...Object.fromEntries(d.terminal_tags.map(t=>[t,true])), 
-            //...Object.fromEntries(d.stem_tags.map(t=>[t,true])),
-        };
-    },
-    set_node_vis:(d, t, vis)=>{
-        d.graph.n_vis = {...d.graph.n_vis}; // make new object so visual panel rerenders
-        d.graph.n_vis[t] = vis;
-        // Object.values(d.n).forEach(n=>{
-        //     if(d.graph.n_vis[n.t]!=undefined) n.graph.vis = d.graph.n_vis[n.t];
+    
+    next: d=> d.graph.counter++,
+
+    update(d){
+        // // collect nodes and edges to display
+        // d.graph.n = Object.fromEntries(Object.keys(d.n).filter(n=> d.graph.ex(d,n) && d.graph.n_vis[d.n[n].t]).map(n=>[n,true]));//d.n[n].open && d.n[n].graph.vis);
+        // d.graph.e = [];
+        // d.graph.for_stem(d, Object.keys(d.graph.n), (r,n,t)=>{
+        //     if(d.graph.n[r] && d.graph.e_vis[t] && d.graph.n[n]){ //if(d.graph.ex(d,n) && d.n[n].graph.vis && d.graph.e_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
+        //         d.graph.e.push({r:r, t:t, n:n}); 
+        //     }
         // });
-        d.graph.update(d);
-    },
-    set_edge_vis:(d, t, vis)=>{
-        d.graph.e_vis = {...d.graph.e_vis}; // make new object so visual panel rerenders
-        d.graph.e_vis[t] = vis;
-        d.graph.update(d);
-    },
-    update:d=>{
-        //console.log('update graph!!!');
-        d.graph.n = Object.fromEntries(Object.keys(d.n).filter(n=> d.graph.ex(d,n) && d.graph.n_vis[d.n[n].t]).map(n=>[n,true]));//d.n[n].open && d.n[n].graph.vis);
+        // //console.log('display edges', d.graph.e);
+        
+        d.graph.node = new Map();
+        d.graph.edge = []; //new Map();
 
-        d.graph.e = [];
-        d.graph.for_stem(d, Object.keys(d.graph.n), (r,n,t)=>{
-            if(d.graph.n[r] && d.graph.e_vis[t] && d.graph.n[n]){ //if(d.graph.ex(d,n) && d.n[n].graph.vis && d.graph.e_vis[t]){ //  && r!=n,  r==n should probably never be allowd in the first place
-                d.graph.e.push({r:r, t:t, n:n}); 
+        for(const [root, root_obj] of d.node.entries()){
+            d.graph.node.set(root, {
+                lvl: 0,
+                pos: new Vector3(),
+            });
+            for(const [term, stems] of root_obj.forw.entries()){
+                for(let i; i < stems.length; i++){
+                    d.graph.edge.push({root, term, stem:stems[i]});
+                }
             }
-        });
-        //console.log('display edges', d.graph.e);
+        }
 
-        for(const n of Object.keys(d.graph.n)){//for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{  
-            d.n[n].graph.lvl = 0; 
-            d.n[n].graph.grp = null;  
-        }//}); //Object.values(d.n).forEach(n=> n.graph.lvl=0);
+
         
         var highest_lvl = 0;
         var setting_lvl = true; 
         while(setting_lvl){
             setting_lvl = false;
-            for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{
-                //d.n[n].graph.order = {x:0, count:0}; 
+            for(const [node, node_obj] of d.graph.node.entries()){
                 var lvl = 0;
-                d.graph.for_root(d, n, r=>{
-                    if(d.graph.n[r]){//if(d.graph.n.includes(r)){
-                        if(d.n[r].graph.lvl > lvl) lvl = d.n[r].graph.lvl;
+                for(const {root} of d.node.get(node).back.values()){
+                    if(d.graph.node.has(root)){
+                        const root_lvl = d.graph.node.get(root).lvl;
+                        if(lvl < root_lvl) lvl = root_lvl;
                     }
-                });
-                if(d.n[n].graph.lvl != lvl+1){
-                    d.n[n].graph.lvl = lvl+1;
+                }
+                if(node_obj.lvl != lvl+1){
+                    node_obj.lvl = lvl+1;
                     highest_lvl = lvl+1;
                     setting_lvl = true;
                 }
-            }//);
+            }
         }
 
         const level = [];
-        for(var i=0; i<=highest_lvl+10; i++){  level.push({max_x:0, group:{}, count:0});  }
-        for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{
-            const lvl = d.n[n].graph.lvl;
-            var rt = [];
-            d.graph.for_root(d, n, (r,n,t)=>{
-                if(t != 'unknown' && d.graph.n[r]) rt.push(r);       
-            });
-            const grp = d.n[n].t+'__'+rt.sort().join('_'); //JSON.stringify(d.n[n].r)
-            if(level[lvl].group[grp] == undefined) level[lvl].group[grp] = {n:[], x:0, count:0};
+        for(var i=0; i <= highest_lvl+10; i++){ // WHY 10 ?!?!?! #1
+            level.push({max_x:0, group:{}, count:0});  
+        } 
+        for(const [n, node] of d.graph.node.entries()){
+            const lvl = node.lvl;
+            // // // var rt = [];
+            // // // d.graph.for_root(d, n, (r,n,t)=>{
+            // // //     if(t != 'unknown' && d.graph.n[r]) rt.push(r);       
+            // // // });
+            const grp = d.spec.tag(d,n)+'__'+d.node.get(n).back.values().map(v=>v.root).sort().join('_'); // const grp = d.spec.tag(d,n)+'__'+rt.sort().join('_');     //JSON.stringify(d.node.get(n).r)
+            if(!level[lvl].group[grp]) level[lvl].group[grp] = {n:[], x:0, count:0};
             level[lvl].group[grp].n.push(n);
             level[lvl].count++;
-            d.n[n].graph.grp = grp; 
-        }//);
+            node.grp = grp; 
+        }
 
         var ly=0;
         var max_x = 0;
@@ -108,11 +129,14 @@ export const create_graph_slice = (set,get)=>({graph:{
                 g.n.forEach(n=>{
                     if(x > l.max_x) l.max_x = x;
                     if(y > max_y) max_y = y;
-                    d.n[n].graph.pos.set(x, -y, 0);
-                    d.graph.for_stem(d, n, (r,n)=>{if(ll.group[d.n[n].graph.grp]){
-                        ll.group[d.n[n].graph.grp].x+=x;
-                        ll.group[d.n[n].graph.grp].count++;
-                    }});
+                    d.graph.node.get(n).pos.set(x, -y, 0);
+                    for(const n of d.node.get(n).forw.values().flat()){
+                        const graph_node = d.graph.node.get(n);
+                        if(ll.group[graph_node.grp]){
+                            ll.group[graph_node.grp].x+=x;
+                            ll.group[graph_node.grp].count++;
+                        }
+                    }
                     y++;
                     if(y >= ly+size){
                         y=ly;  
@@ -130,15 +154,22 @@ export const create_graph_slice = (set,get)=>({graph:{
             const graph_size = max_x > max_y ? max_x : max_y;
             d.graph.scale = window_size / graph_size / 2;
         }
-        for(const n of Object.keys(d.graph.n)){//d.graph.n.forEach(n=>{ 
-            var lvl = d.n[n].graph.lvl;
-            d.n[n].graph = {...d.n[n].graph, pos: d.n[n].graph.pos.multiplyScalar(d.graph.scale).add(tv.set(
+        for(const node of d.graph.node.values()){
+            var lvl = node.lvl;
+            node.pos.multiplyScalar(d.graph.scale).add(tv.set(
                 -level[lvl].max_x*d.graph.scale/2,   // -max_x*d.graph.scale/2
                 (max_y+2)*d.graph.scale/2,
                 0
-            ))};
-        }//);
+            ));
+        }
     },
+
+    // d.node.get(n).graph = {...d.node.get(n).graph, pos: d.node.get(n).graph.pos.multiplyScalar(d.graph.scale).add(tv.set(
+    //     -level[lvl].max_x*d.graph.scale/2,   // -max_x*d.graph.scale/2
+    //     (max_y+2)*d.graph.scale/2,
+    //     0
+    // ))};
+
 
     ////////////////////////////////////////////  New utils //////////////////////////
 

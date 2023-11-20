@@ -13,32 +13,23 @@ const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for
 const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
 //const tv = new THREE.Vector3();
 
-export const Part = memo(function Part({n}){ 
+export const Node = memo(({node})=>{ 
     const obj = useRef();
-    
-    //const pos = useS(d=> d.n[n].graph.pos);//const pos = d.n[n].graph.pos; 
-    const name = useS(d=> d.n[n].c.name);
-    
-    const color = useS(d=> d.n[n].pick.color);
-    const pick = useS(d=> d.n[n].pick.pick); 
-    // useEffect(()=> subS(d=> d.n[n].graph, d=>{ //useEffect(()=> subscribe(d=> d.xyz(d.n[id].graph.pos), pos=>{ 
-    //     obj.current.obj.position.copy(d.pos);
-    //     //console.log('update part pos');
-    // }), []);
-    //console.log('render part');
-
-    useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
-        obj.current.position.copy(graph.pos);
+    const name  = useS(d=> d.face.name(d, node));
+    const tag   = useS(d=> d.face.tag(d, node));
+    const icon  = useS(d=> d.face.icon(d, node));
+    const color = useS(d=> d.face.color(d, node));
+    useSub(d=> d.graph.node.get(node).pos, pos=>{ //useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
+        obj.current.position.copy(pos);
     }); 
     const d = gs();
-    const t = d.n[n].t;
-    const material = {color: color[0], toneMapped:false};
-
+    const material = {color, toneMapped:false};
+    //console.log('render part');
     return(
         r('group', {name: 'part'}, 
             r(View_Transform, {
                 ref: obj,
-                size: pick ? 25 : 20, // 1.5 : 1, adjust size of other items
+                size: 20, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             },
                 name && r('text', {
                     font: d.base_font, 
@@ -53,7 +44,7 @@ export const Part = memo(function Part({n}){
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Svg, {
-                    src: d.spec.icon(d,n),
+                    src: icon,
                     scale: 0.1,
                     position: [-0.8, 0.8, 1],
                     fillMaterial: material,
@@ -67,11 +58,11 @@ export const Part = memo(function Part({n}){
                     outlineColor: 'white',
                     anchorX: 'center',
                     anchorY: 'middle',
-                    text: d.spec.tag(d,n), //readable(d.n[n].t),//
+                    text: tag,//d.spec.tag(d,n), //readable(d.n[n].t),//
                 },
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
-                r(Pickable, {n:n},
+                r(Pickable, {n:node},
                     r('mesh', {
                         //position:[0,0,0], 
                         geometry: circle_geometry,
