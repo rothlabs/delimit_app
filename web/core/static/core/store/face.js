@@ -1,16 +1,16 @@
 
 export const face = {
-    name:(d, node)=> d.leaf(d, node, 'name', ''),
+    name:(d, node)=> d.leaf(d, node, 'name', 'untitled'),
     icon:(d, node)=> d.leaf(d, node, 'spec icon code', d.face.alt.icon),
-    tag: (d, node)=> d.leaf(d, node, 'spec tag', d.face.alt.icon),
+    tag: (d, node)=> d.leaf(d, node, 'spec tag', 'node'),
 };
 
 face.color = {
     secondary(d, node){
-        return d.pick.node.has(node) ? d.color.primary : d.color.secondary;
+        return d.picked.node.has(node) ? d.color.primary : d.color.secondary;
     },
     background(d, node){
-        return d.pick.node.has(node) ? d.color.primary : d.color.background;
+        return d.picked.node.has(node) ? d.color.primary : d.color.background;
     },
 };
 

@@ -4,13 +4,13 @@ import {ss, useS} from '../../app.js';
 
 export function Move(){
     const studio_mode = useS(d=> d.studio.mode);
-    const move_mode = useS(d=> d.design.move_mode);
+    const move_mode = useS(d=> d.design.move.mode);
     const buttons = [
         {name:'Move', icon:'bi bi-arrows-move', value:'move'},
     ];
     return(
         studio_mode=='design' && c(ButtonToolbar, {}, 
-            ...buttons.map((button,i)=>
+            buttons.map((button,i)=>
                 c(ToggleButton,{
                     id: 'move_mode_'+i,
                     type: 'checkbox',
@@ -19,10 +19,10 @@ export function Move(){
                     checked: move_mode == button.value,
                     className: button.icon+ ' border-white',
                     onChange:e=> ss(d=>{
-                        if(d.design.move_mode == button.value){
-                            d.design.move_mode = '';
+                        if(d.design.move.mode == button.value){
+                            d.design.move.mode = '';
                         }else{
-                            d.design.move_mode = button.value;
+                            d.design.move.mode = button.value;
                         }
                         d.next('design.update');
                     }),

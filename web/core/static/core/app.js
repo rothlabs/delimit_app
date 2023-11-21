@@ -15,6 +15,8 @@ import * as THREE from 'three';
 import {extend} from '@react-three/fiber';
 import {Text} from './troika/troika-three-text.js';
 import {produce, applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'immer'; 
+enableMapSet();
+enablePatches();
 import {create} from 'zustand';
 import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
 import {shallow} from 'zustand/shallow';//'shallow';
@@ -22,8 +24,8 @@ import {shallow} from 'zustand/shallow';//'shallow';
 //import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import {create_base_slice} from './store/base.js';
-import {create_graph_slice} from './store/graph.js';
-import {create_pick_slice} from './store/pick.js';
+//import {create_graph_slice} from './store/graph.js';
+//import {create_pick_slice} from './store/pick.js';
 //import {create_inspect_slice} from './store/inspect.js';
 //import {create_design_slice} from './store/design.js';
 //import {create_make_slice} from './store/make.js';
@@ -35,8 +37,7 @@ import {create_pick_slice} from './store/pick.js';
 //import {create_clear_slice} from './store/clear.js';
 //import {create_part_slice} from './store/part/part.js';
 
-enableMapSet();
-enablePatches();
+
 
 extend({Text});
 

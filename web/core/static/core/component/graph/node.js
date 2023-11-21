@@ -24,27 +24,35 @@ export const Node = memo(({node})=>{
     }); 
     const d = gs();
     const material = {color, toneMapped:false};
-    //console.log('render part');
+    //console.log('render node');
+    //console.log(color, name, tag);
     return(
         r('group', {name: 'part'}, 
             r(View_Transform, {
                 ref: obj,
-                size: 20, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
+                size: 16, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             },
+                r(Pickable, {node},
+                    r('mesh', {
+                        //position:[0,0,0], 
+                        geometry: circle_geometry,
+                        material: background_material, //raycast:()=>null,
+                    }),
+                ),
                 r('text', {
                     font: d.base_font, 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                    position: [0, 1.4, 2],
+                    position: [1.3, .5, 2],
                     outlineWidth: '40%',
                     outlineColor: 'white',
-                    anchorX: 'center',
+                    anchorX: 'left',
                     anchorY: 'middle',
                     text: name,
                 },
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
                 r(Svg, {
-                    src: icon,
+                    src: 'data:image/svg+xml;utf8,'+icon,
                     scale: 0.1,
                     position: [-0.8, 0.8, 1],
                     fillMaterial: material,
@@ -53,22 +61,15 @@ export const Node = memo(({node})=>{
                 r('text', {
                     font: d.base_font, 
                     fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                    position: [0, -1.4, 2],
+                    position: [1.3, -.5, 2],
                     outlineWidth: '40%',
                     outlineColor: 'white',
-                    anchorX: 'center',
+                    anchorX: 'left',
                     anchorY: 'middle',
                     text: tag,//d.spec.tag(d,n), //readable(d.n[n].t),//
                 },
                     r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
                 ),
-                r(Pickable, {node},
-                    r('mesh', {
-                        //position:[0,0,0], 
-                        geometry: circle_geometry,
-                        material: background_material, //raycast:()=>null,
-                    }),
-                )
             )
         )
     )

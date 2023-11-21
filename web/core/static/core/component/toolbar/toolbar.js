@@ -4,16 +4,16 @@ import {History} from './history.js';
 import {Draw} from './draw.js';
 import {Pick} from './pick.js';
 import {Move} from './move.js';
-//import {Group} from './group.js';
+
 import {useS, gs, ss, use_window_size} from '../../app.js';
 //import { Badge } from '../../node/base.js';
 //import {Panel} from '../panel/panel.js';
 
 export function Toolbar(){
-    const mode = useS(d=> d.studio.mode);
-    const design_candidate = useS(d=> d.design.candidate);
-    const reckonable = useS(d=> d.pick.reckonable);
-    const tools = [History, Pick, Draw, Move]; //Group
+    //const mode = useS(d=> d.studio.mode);
+    //const design_candidate = useS(d=> d.design.candidate);
+    //const reckonable = useS(d=> d.pick.reckonable);
+    const tools = [History, Pick, Draw, Move]; 
     //console.log('render toolbar', mode);
     return(
         c(ButtonToolbar, {className:''}, // gap-3 p-2 use ButtonToolbar here instead?

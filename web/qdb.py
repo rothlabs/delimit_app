@@ -13,12 +13,12 @@ from terminus.woqlquery import Doc
 
 
 #os.system('nc -4 -vz localhost 3636') # connect to terminus socket
-gdb = Client('http://localhost:6363/')
+gdbc = Client('http://localhost:6363/')
 for i in range(0, 1):
     print('Connecting terminus.')
     try:
         #gdb.connect(user='admin', key='root')   # gdb.connect(user='admin', key='9h3IAvdGrdn8sjORuwJwCYJekg0UijjK9N7i3JipkETLtPTNJTPwfVeMwp2ItaVT') 
-        gdb.connect(team='7Yl2byU8Y05Z7xmn', user='7Yl2byU8Y05Z7xmn', key='Ya5FChrBxYlHaLQr')
+        gdbc.connect(team='7Yl2byU8Y05Z7xmn', user='7Yl2byU8Y05Z7xmn', key='Ya5FChrBxYlHaLQr')
         break
     except Exception as e:
         print('Failed to connect terminus.')
@@ -31,7 +31,20 @@ for i in range(0, 1):
 #gdb.set_db('f3du3cGcG5Vp57Z8')
 #print(gdb._get_prefixes())
 
-print(gdb.get_organization_user('7Yl2byU8Y05Z7xmn', '7Yl2byU8Y05Z7xmn'))
+#print(gdb.get_organization_user('7Yl2byU8Y05Z7xmn', '7Yl2byU8Y05Z7xmn'))
+
+team = '7Yl2byU8Y05Z7xmn'
+user = '7Yl2byU8Y05Z7xmn'
+repo = 'f3du3cGcG5Vp57Z8'
+
+print(gdbc.get_organization_user(team, user)['capability'])
+
+for capability in gdbc.get_organization_user(team, user)['capability']:
+    if capability['scope']=='Organization/'+team or capability['scope']=='UserDatabase/'+repo: 
+        for role in capability['role']:
+            if 'instance_write_access' in role['action']:
+                print('hell yeah')
+print('good?')
 
 
 #print(wq().path('test_subject', '.*,.', 'v:stem').using('7Yl2byU8Y05Z7xmn/hEgyJXwWJZdDHaoV').path('v:stem', '.*,.', 'v:stem2').execute(gdb)['bindings'])

@@ -23,7 +23,7 @@ export function Pickable({node, penable, brushable, children}){
         onClick(e){ e.stopPropagation();//e.stopPropagation?.call(); 
             ss(d=>{
                 console.log('clicked pickable');
-                //d.pick.one(d, node);
+                //d.pick.node(d, node);
             });
             // ss(d=>{
             //     if(!d.studio.gizmo_active && e.delta < d.max_click_delta){

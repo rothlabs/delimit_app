@@ -1,4 +1,4 @@
-import {createElement as c, memo, useEffect} from 'react';
+import {createElement as c, memo, useEffect, useLayoutEffect} from 'react';
 import {rs, gs, useS} from '../../app.js';
 //import {useFrame, useThree} from '@react-three/fiber';
 //import {use_d, shallow} from '../../state/state.js';
@@ -17,17 +17,18 @@ import {Edge} from './edge.js';
 
 
 export const Graph = memo(()=>{
-    const count = useS(d=> d.graph.count); 
-    useEffect(()=> rs(d=> d.graph.update(d)), [count]); // only run the graph update function if viewing the graph
+    //const mounted = useRef(true);
+    useS(d=> d.graph.count); 
+    rs(d=> d.graph.update(d));
     const d = gs();
     console.log('render graph');
     return(
         c('group', {name:'graph'},
-            d.graph.node.keys().map(node=> 
+            Array.from(d.graph.node.keys()).map(node=> 
 				c(Node, {node, key:node}),//d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
             ),
-            d.graph.edge.map(e=> 
-				c(Edge, {...e, key:e.r+e.n+e.t}) // , key:e.r+e.t+e.n  //make_id()
+            d.graph.edge.map(edge=> 
+				c(Edge, {...edge, key: edge.root + edge.term + edge.stem}) // , key:e.r+e.t+e.n  //make_id()
             ),
 		)
     )

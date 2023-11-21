@@ -1,71 +1,74 @@
+export const drop = {};
 
-export const create_drop_slice = (set,get)=>({drop:{
-    node(d, nodes, a={}){ 
-        let drops = new Set();
-        for(const node of nodes){
-            if(d.node.has(node)) drops.add(node);
-        }
-        if(a.deep){
-            function get_stems(nodes){
-                const next_nodes = new Set();
-                for(const node of nodes){
-                    for(const [_, stem] of d.node.get(node).forw){
-                        if(!d.node.has(stem)) continue;
-                        if(d.node.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.node.has(root) 
-                            drops.add(stem);
-                            next_nodes.add(stem);
-                        }
+drop.node = (d, nodes, a={})=>{ 
+    let drops = new Set();
+    for(const node of nodes){
+        if(d.node.has(node)) drops.add(node);
+    }
+    if(a.deep){
+        function get_stems(nodes){
+            const next_nodes = new Set();
+            for(const node of nodes){
+                for(const [term, stem] of d.forw(d, node)){ // d.flat(d.node.get(node).forw)
+                    if(!d.node.has(stem)) continue;
+                    if(d.node.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.node.has(root) 
+                        drops.add(stem);
+                        next_nodes.add(stem);
                     }
                 }
-                if(next_nodes.size) get_stems(next_nodes);
-            };
-            get_stems(drops);
-        }
-        if(!a.received) drops = d.write_access(d, drops);
-        for(const node of drops){
-            d.drop.edge(d, {root:node});
-            d.drop.edge(d, {stem:node});
-            d.node.delete(node);
-        }
-        if(drops.length) d.graph.increment();
-    },
-    edge(d, a={}){
-        const drops = []; 
-        function forward_edge(func){
-            if(!d.node.has(a.root)) return {};
-            for(const [term, stem, indx] of d.node.get(a.root).forw){
-                func({root:a.root, term, stem, indx});
             }
+            if(next_nodes.size) get_stems(next_nodes);
+        };
+        get_stems(drops);
+    }
+    if(!a.received) drops = d.write_access(d, drops);
+    for(const node of drops){
+        d.drop.edge(d, {root:node});
+        d.drop.edge(d, {stem:node});
+        const repo = d.node.get(node).repo;
+        d.repo.get(repo).node.delete(node);
+        d.node.delete(node);
+    }
+    if(drops.length) d.graph.increment(d);
+};
+
+
+drop.edge = (d, a={})=>{
+    const drops = []; 
+    function forward_edge(func){
+        if(!d.node.has(a.root)) return {};
+        for(const [term, stem, indx] of d.forw(d, a.root)){ // d.flat(d.node.get(a.root).forw)
+            func({root:a.root, term, stem, indx});
         }
-        if(a.root && a.term && a.stem){ 
-            drops.push({root:a.root, term:a.term, stem:a.stem, indx:a.indx ?? 0});
-        }else if(a.root && a.stem){
-            forward_edge(edge=> edge.stem==a.stem && drops.push(edge));
-        }else if(a.root){  
-            forward_edge(edge=> drops.push(edge));
-        }else if(a.stem){
-            if(!d.node.has(a.stem)) return;
-            for(const [root, term, indx] of d.node.get(a.stem).back.values()){
-                drops.push({root, term, stem:a.stem, indx});
-            }
+    }
+    if(a.root && a.term && a.stem){ 
+        drops.push({root:a.root, term:a.term, stem:a.stem, indx:a.indx ?? 0});
+    }else if(a.root && a.stem){
+        forward_edge(edge=> edge.stem==a.stem && drops.push(edge));
+    }else if(a.root){  
+        forward_edge(edge=> drops.push(edge));
+    }else if(a.stem){
+        if(!d.node.has(a.stem)) return;
+        for(const [root, term, indx] of d.node.get(a.stem).back.values()){
+            drops.push({root, term, stem:a.stem, indx});
         }
-        drops.sort((a, b)=> b.indx - a.indx);
-        for(const drp of drops){
-            if(!d.node.has(drp.root)) continue;
-            const forw = d.node.get(drp.root).forw;
-            if(!forw.has(drp.term)) continue;
-            const stems = forw.get(drp.term);
-            if(drp.indx >= stems.length) continue;
-            stems.splice(drp.indx, 1);
-            if(!stems.length) forw.delete(drp.term);
-        }
-        for(const drp of drops){
-            if(!d.node.has(drp.stem)) continue;
-            d.node.get(drp.stem).back.delete(drp.root+':'+drp.term+':'+drp.indx);
-        }
-        if(drops.length) d.graph.increment();
-    },
-}});
+    }
+    drops.sort((a, b)=> b.indx - a.indx);
+    for(const drp of drops){
+        if(!d.node.has(drp.root)) continue;
+        const forw = d.node.get(drp.root).forw;
+        if(!forw.has(drp.term)) continue;
+        const stems = forw.get(drp.term);
+        if(drp.indx >= stems.length) continue;
+        stems.splice(drp.indx, 1);
+        if(!stems.length) forw.delete(drp.term);
+    }
+    for(const drp of drops){
+        if(!d.node.has(drp.stem)) continue;
+        d.node.get(drp.stem).back.delete(drp.root+':'+drp.term+':'+drp.indx);
+    }
+    if(drops.length) d.graph.increment(d);
+};
 
 
     // edge_or_node(d,r,n,a){

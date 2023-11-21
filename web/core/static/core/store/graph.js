@@ -1,3 +1,4 @@
+import {current} from 'immer';
 import {Vector3, Matrix4} from 'three';
 import {static_url, readable} from '../app.js';
 
@@ -36,7 +37,7 @@ const tm = new Matrix4();
 // 	console.log(term, stem, indx);
 // }
 
-export const create_graph_slice = (set,get)=>({graph:{ 
+export const graph = {
     // init(d){
     //     d.graph.n_vis={ 
     //         node: true,
@@ -69,7 +70,7 @@ export const create_graph_slice = (set,get)=>({graph:{
     // },
     
     node: new Map(),
-    edge: new Map(),
+    edge: [],
     count: 0,
     scale: 1,
     
@@ -89,12 +90,12 @@ export const create_graph_slice = (set,get)=>({graph:{
         d.graph.node = new Map();
         d.graph.edge = []; 
 
-        for(const [root, root_obj] of d.node){
+        for(const [root] of d.node){
             d.graph.node.set(root, {
                 lvl: 0,
                 pos: new Vector3(),
             });
-            for(const [term, stem] of root_obj.forw){
+            for(const [term, stem] of d.forw(d, root, {leafless:true})){
                 d.graph.edge.push({root, term, stem});
             }
         }
@@ -123,17 +124,17 @@ export const create_graph_slice = (set,get)=>({graph:{
         for(var i=0; i <= highest_lvl+10; i++){ // WHY 10 ?!?!?! #1
             level.push({max_x:0, group:{}, count:0});  
         } 
-        for(const [n, node] of d.graph.node){
-            const lvl = node.lvl;
+        for(const [node, node_obj] of d.graph.node){
+            const lvl = node_obj.lvl;
             // // // var rt = [];
             // // // d.graph.for_root(d, n, (r,n,t)=>{
             // // //     if(t != 'unknown' && d.graph.n[r]) rt.push(r);       
             // // // });
-            const grp = d.spec.tag(d,n)+'__'+d.node.get(n).back.values().map(v=>v.root).sort().join('_'); // const grp = d.spec.tag(d,n)+'__'+rt.sort().join('_');     //JSON.stringify(d.node.get(n).r)
+            const grp = d.face.tag(d, node)+'__'+Array.from(d.node.get(node).back).map(([_,v])=>v.root).sort().join('_'); // const grp = d.spec.tag(d,n)+'__'+rt.sort().join('_');     //JSON.stringify(d.node.get(n).r)
             if(!level[lvl].group[grp]) level[lvl].group[grp] = {n:[], x:0, count:0};
-            level[lvl].group[grp].n.push(n);
+            level[lvl].group[grp].n.push(node);
             level[lvl].count++;
-            node.grp = grp; 
+            node_obj.grp = grp; 
         }
 
         var ly=0;
@@ -154,12 +155,12 @@ export const create_graph_slice = (set,get)=>({graph:{
                 const size = Math.round(Math.sqrt(g.n.length / 2));
                 var x = gx;//(gx > g.x ? gx : g.x);
                 var y = ly;
-                g.n.forEach(n=>{
+                g.n.forEach(node=>{
                     if(x > l.max_x) l.max_x = x;
                     if(y > max_y) max_y = y;
-                    d.graph.node.get(n).pos.set(x, -y, 0);
-                    for(const n of d.node.get(n).forw.values().flat()){
-                        const graph_node = d.graph.node.get(n);
+                    d.graph.node.get(node).pos.set(x, -y, 0);
+                    for(const [term, stem] of d.forw(d, node, {leafless:true})){ 
+                        const graph_node = d.graph.node.get(stem);
                         if(ll.group[graph_node.grp]){
                             ll.group[graph_node.grp].x+=x;
                             ll.group[graph_node.grp].count++;
@@ -190,9 +191,11 @@ export const create_graph_slice = (set,get)=>({graph:{
                 0
             ));
         }
+
+        console.log('updated graph');
     },
 
-}});
+};
 
 
 

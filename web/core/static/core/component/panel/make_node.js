@@ -33,8 +33,7 @@ export function Make_Node(){
     )
 }
 
-d.n[n].c.icon 
-d.n[n].c.tag
+
 
 //if(d.terminal_classes[t]){
                         //    d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});

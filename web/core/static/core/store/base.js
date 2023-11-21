@@ -5,6 +5,11 @@ import {readable, static_url, upper, theme, make_id} from '../app.js';
 import lodash from 'lodash';
 import {face} from './face.js';
 import {color} from './color.js';
+import {design} from './design.js';
+import {pick} from './pick.js';
+import {graph} from './graph.js';
+import {make} from './make.js';
+import {drop} from './drop.js';
 
 var next_funcs = [];
 var next_ids = [];
@@ -13,9 +18,22 @@ export const create_base_slice = (set,get)=>({
     team: new Map(),
     repo: new Map(),
     node: new Map(),
+    picked:{
+        repo: new Set(),
+        node: new Set(),
+    },
+    target:{
+        repo: null,
+        node: null,
+    },
 
     face,
     color,
+    design,
+    pick,
+    graph,
+    make,
+    drop,
 
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
@@ -33,7 +51,6 @@ export const create_base_slice = (set,get)=>({
         mode: 'repo',
         repo: {
             fetch(){},
-            target: null,
         },
         panel: {},
         cursor: '',
@@ -44,9 +61,21 @@ export const create_base_slice = (set,get)=>({
             for(const term of path.split(' ')){
                 node = d.node.get(node).forw.get(term)[0];
             }
-            return d.node.get(node).get('leaf')[0];
-        }catch{
+            console.log('almost have leaf');
+            console.log(d.node.get(node).forw.get('leaf'));
+            return d.node.get(node).forw.get('leaf')[0].leaf; // change to leaf?!
+        }catch(e){
+            //console.log(e);
             return alt;
+        }
+    },
+
+    forw: function* (d, root, a={}){
+        for(const [term, stems] of d.node.get(root).forw){
+            for(let indx = 0; indx < stems.length; indx++){
+                const stem = stems[indx];
+                if(!a.leafless || !stem.type) yield [term, stem, indx];
+            }
         }
     },
 
@@ -56,6 +85,7 @@ export const create_base_slice = (set,get)=>({
         );
         d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
         d.base_texture.anisotropy = 16;
+        d.color.compute(d);
     },
 
     add(array, item){ // static upgrade to do deep compare to find same object ?!?!?!?!
@@ -187,7 +217,7 @@ export const create_base_slice = (set,get)=>({
     receive_module:(d, module)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         console.log(module);
         const repo = module.repo.id;
-        d.pick.repo(repo, {weak:true}); 
+        d.pick.target.repo(d, repo, {weak:true}); 
         d.repo.set(repo,{
             name: module.repo.name,
             team: module.repo.team,
@@ -204,20 +234,41 @@ export const create_base_slice = (set,get)=>({
         for(const triple of module.triples){
             if(triple.term.slice(0, 8) == '@schema:'){
                 const r = triple.root;
-                const t = triple.tag.slice(8);
-                const s = triple.stem;
-                if(s['@class']) s = {type:s['@class'], leaf:s['@value']};
+                const t = triple.term.slice(8);
+                let s = triple.stem;
+                if(s['@type']) s = {type:s['@type'], leaf:s['@value']};
                 d.make.edge(d, r, t, s, {received:true});
+                // if(!s['@type']){
+                //     d.make.edge(d, r, t, s, {received:true});//s = s['@value'];//{type:s['@class'], leaf:s['@value']};
+                // }
             }
         }
-        if(module.triples.length){
-            d.graph.init(d);
-            d.studio.ready = true;
-            d.graph.increment();
-        }
-        console.log(current(Array.from(d.node.entries())));
+        if(module.triples.length) d.graph.increment(d);
+        //console.log(current(Array.from(d.node.entries())));
     },
 });
+
+
+
+        // const iter = {};
+        // iter[Symbol.iterator] = ()=>{
+        //     const entries = d.node.get(root).forw.entries();
+        //     let {value, done} = entries.next();
+        //     let indx = -1;
+        //     return{
+        //         next(){
+        //             if(done) return {done};
+        //             indx++;
+        //             if(indx < value[1].length){
+        //                 return {value:[value[0], value[1][indx], indx]};	
+        //             }
+        //             ({value, done} = entries.next());
+        //             if(done) return {done};
+        //             indx = 0;
+        //             return {value:[value[0], value[1][indx], indx]};	
+        //         }
+        //     };
+        // };
 
 
 

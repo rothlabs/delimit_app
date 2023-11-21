@@ -3,6 +3,7 @@ import graphene
 #from core.api.types import Pack_Type
 from graph.database import gdbc, gdb_connect, gdb_write_access
 from terminus import WOQLQuery as wq
+from core.models import Repo
 
 class Open_Module(graphene.Mutation): # rename to Open_Module?! #1
     class Arguments:
@@ -17,7 +18,7 @@ class Open_Module(graphene.Mutation): # rename to Open_Module?! #1
     def mutate(cls, root, info, team, repo): # , include, exclude): # offset, limit for pages
         try:
             team, gdb_user = gdb_connect(info.context.user, team=team, repo=repo)
-            triples = wq().triple('v:root', 'v:tag', 'v:stem').execute(gdbc)['bindings'] # star(subj='root', pred='tag', obj='stem')
+            triples = wq().triple('v:root', 'v:term', 'v:stem').execute(gdbc)['bindings'] # star(subj='root', pred='tag', obj='stem')
             rdb_repo = Repo.objects.get(repo=repo)
             return Open_Module(
                 reply = 'Opened nodes',
