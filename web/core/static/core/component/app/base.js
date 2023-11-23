@@ -16,7 +16,7 @@ export function Svg_Button({svg, text, func}){
 	return(
 		c(Button, {
 			//id:'make_'+text,
-			className: 'border-white text-start pt-0',//+d.node[t].css.icon,
+			className: 'border-0 text-start pt-0',//+d.node[t].css.icon,
 			variant:'outline-primary', //size:'lg',
 			style:{transition:'none', },
 			onClick: e=> func(),

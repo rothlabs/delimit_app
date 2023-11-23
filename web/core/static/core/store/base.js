@@ -1,20 +1,24 @@
 import {current} from 'immer';
 import {Vector3, Matrix4} from 'three';
 import * as THREE from 'three';
-import {readable, static_url, upper, theme, make_id} from '../app.js';
+import {static_url, ctx} from '../app.js';
 import lodash from 'lodash';
 import {face} from './face.js';
-import {color} from './color.js';
+import * as theme from './theme.js';
 import {design} from './design.js';
 import {pick} from './pick.js';
 import {graph} from './graph.js';
 import {make} from './make.js';
 import {drop} from './drop.js';
 
+console.log(theme);
+
 var next_funcs = [];
 var next_ids = [];
 
+
 export const create_base_slice = (set,get)=>({
+    mode: ctx.entry,
     team: new Map(),
     repo: new Map(),
     node: new Map(),
@@ -26,48 +30,70 @@ export const create_base_slice = (set,get)=>({
         repo: null,
         node: null,
     },
+    studio:{
+        mode: 'repo',
+        repo: {},
+        panel: {},
+        cursor: '',
+    },
+    confirm:{},
 
+    ...theme,
     face,
-    color,
     design,
     pick,
     graph,
     make,
     drop,
 
+    static_url: document.body.getAttribute('data-static-url') + 'core/',
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
-    base_font: static_url+'font/Inter-Medium.ttf',
     point_size: 6,
     easel_size: 400,
     cam_info: {matrix: new Matrix4(), dir: new Vector3()},
     scene: null,
 
-    mode: 'home',
     user_id: 0,
     search: {depth:null, ids:null},
-    studio: {
-        ready: false,
-        mode: 'repo',
-        repo: {
-            fetch(){},
-        },
-        panel: {},
-        cursor: '',
+    
+    init(d){
+        d.root = d.make.node(d);
+        console.log('root node', d.root);
+        d.make.edge(d, d.root, 'name', {type:'xsd:string', leaf:'root'});
+        d.base_texture = new THREE.TextureLoader().load(
+            static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
+        );
+        d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
+        d.base_texture.anisotropy = 16;
+        d.theme.compute(d);
     },
 
     leaf(d, node, path, alt){
+        for(const pth of d.array(path)){
+            try{
+                for(const term of pth.split(' ')){
+                    node = d.node.get(node).forw.get(term)[0];
+                }
+                if(node.leaf != null) return node.leaf;
+                const result = d.node.get(node).forw.get('leaf')[0].leaf;
+                if(result != null) return result; 
+            }catch{}
+        }
+        return alt;
+    },
+
+    list(d, node, path, alt){
         try{
-            for(const term of path.split(' ')){
+            const terms = path.split(' ');
+            const last_term = terms.pop();
+            for(const term of terms){
                 node = d.node.get(node).forw.get(term)[0];
             }
-            console.log('almost have leaf');
-            console.log(d.node.get(node).forw.get('leaf'));
-            return d.node.get(node).forw.get('leaf')[0].leaf; // change to leaf?!
-        }catch(e){
-            //console.log(e);
-            return alt;
-        }
+            const result = d.node.get(node).forw.get(last_term); 
+            if(result != null) return result;
+        }catch{}
+        return alt;
     },
 
     forw: function* (d, root, a={}){
@@ -77,15 +103,6 @@ export const create_base_slice = (set,get)=>({
                 if(!a.leafless || !stem.type) yield [term, stem, indx];
             }
         }
-    },
-
-    init(d){
-        d.base_texture = new THREE.TextureLoader().load(
-            static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
-        );
-        d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
-        d.base_texture.anisotropy = 16;
-        d.color.compute(d);
     },
 
     add(array, item){ // static upgrade to do deep compare to find same object ?!?!?!?!
@@ -113,12 +130,12 @@ export const create_base_slice = (set,get)=>({
         }
         return false;
     },
-    for(arg, func){ // need ability to break !!!!!!
-        if(arg != undefined){
-            if(Array.isArray(arg)){arg.forEach((a,i)=> func(a,i))}
-            else                  {func(arg,0)}
-        }
-    },
+    // for(arg, func){ // need ability to break !!!!!!
+    //     if(arg != undefined){
+    //         if(Array.isArray(arg)){arg.forEach((a,i)=> func(a,i))}
+    //         else                  {func(arg,0)}
+    //     }
+    // },
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
@@ -206,16 +223,22 @@ export const create_base_slice = (set,get)=>({
 
     write_access(d, node){
         if(Array.isArray(node)){
-            return node.filter(node=> d.repo.get(node.repo).write_access);
+            return node.filter(node=> {
+                //console.log(node, node.repo);
+                const repo = d.node.get(node).repo;
+                if(repo) return d.repo.get(repo).write_access;
+                return true;
+            });
         }
-        if(d.repo.has(node.repo)){
-            return d.repo.get(node.repo).write_access;
+        const repo = d.node.get(node)?.repo;
+        if(d.repo.has(repo)){
+            return d.repo.get(repo).write_access;
         }
         return true;
     },
 
     receive_module:(d, module)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        console.log(module);
+        //console.log(module);
         const repo = module.repo.id;
         d.pick.target.repo(d, repo, {weak:true}); 
         d.repo.set(repo,{
@@ -228,7 +251,7 @@ export const create_base_slice = (set,get)=>({
         const handled = new Set();
         for(const triple of module.triples){
             if(handled.has(triple.root)) continue;
-            d.make.node(d, {repo, node:triple.root, received:true});
+            d.make.node(d, {repo, node:triple.root, given:true});
             handled.add(triple.root);
         }
         for(const triple of module.triples){
@@ -237,17 +260,32 @@ export const create_base_slice = (set,get)=>({
                 const t = triple.term.slice(8);
                 let s = triple.stem;
                 if(s['@type']) s = {type:s['@type'], leaf:s['@value']};
-                d.make.edge(d, r, t, s, {received:true});
-                // if(!s['@type']){
-                //     d.make.edge(d, r, t, s, {received:true});//s = s['@value'];//{type:s['@class'], leaf:s['@value']};
-                // }
+                d.make.edge(d, r, t, s, {given:true});
+                if(t == 'delimit'){
+                    d.make.edge(d, d.root, 'delimit', r, {given:true})
+                }
             }
         }
         if(module.triples.length) d.graph.increment(d);
         //console.log(current(Array.from(d.node.entries())));
     },
+
+    close:{
+        repo(d, repo){
+            d.drop.node(d, d.repo.get(repo).node);
+            d.repo.delete(repo);
+        },
+    },
 });
 
+
+
+
+
+
+                // if(!s['@type']){
+                //     d.make.edge(d, r, t, s, {received:true});//s = s['@value'];//{type:s['@class'], leaf:s['@value']};
+                // }
 
 
         // const iter = {};

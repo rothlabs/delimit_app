@@ -106,13 +106,20 @@ export function Viewport(){ // for some reason this renders 5 times on load
         scene.add(camera);
         camera.add(light.current);
     },[]);
+    const d = gs();
     //console.log('render viewport');
     return (
-        c('group', {name:'viewport'}, 
+        c('group', {
+            name:'viewport',
+            onPointerMissed(e){
+                //e.stopPropagation();
+                if(e.which != 1) return;
+                rs(d=> d.pick.none(d));
+            },
+        }, 
             c(Viewport_Control),
             studio_mode=='graph'  && c(Graph),
             studio_mode=='design' && c(Design),
-            c(Board),
             c('directionalLight', { 
                 ref:light,
                 color: 'white',
@@ -127,33 +134,33 @@ export function Viewport(){ // for some reason this renders 5 times on load
     )
 }
 
-export function Board(){
-    const obj = useRef();
-    const {camera} = useThree(); 
-    useEffect(()=>{
-        camera.add(obj.current);
-    },[]);
-    //console.log('board render');
-    return (
-        c('mesh', { 
-            ref: obj,
-            name: 'board',
-            position:[0,0,-2000],
-            onClick(e){
-                e.stopPropagation();
-                ss(d=>{
-                    if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
-                        d.pick.none(d);
-                    }
-                    d.studio.gizmo_active = false;
-                });
+// export function Board(){
+//     const obj = useRef();
+//     const {camera} = useThree(); 
+//     useEffect(()=>{
+//         camera.add(obj.current);
+//     },[]);
+//     //console.log('board render');
+//     return (
+//         c('mesh', { 
+//             ref: obj,
+//             name: 'board',
+//             position:[0,0,-2000],
+//             onClick(e){
+//                 e.stopPropagation();
+//                 ss(d=>{
+//                     if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
+//                         d.pick.none(d);
+//                     }
+//                     d.studio.gizmo_active = false;
+//                 });
                 
-            },
-        },   
-            c('planeGeometry', {args:[20000, 20000],}),
-            c('meshBasicMaterial', {color:theme.bg_body, toneMapped:false}), // theme.bg_body
-        )
-    )
-}
+//             },
+//         },   
+//             c('planeGeometry', {args:[20000, 20000],}),
+//             c('meshBasicMaterial', {color:theme.bg_body, toneMapped:false}), // theme.bg_body
+//         )
+//     )
+// }
 
 

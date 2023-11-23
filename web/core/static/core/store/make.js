@@ -1,26 +1,35 @@
-import { make_id } from '../app.js';
+//import { make_id } from '../app.js';
 //import {current} from 'immer';
 
 export const make = {};
 
+make.id = (length=16)=>{
+    let result = '';
+    Array.from({length}).some(() => {
+        result += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
+      return result.length >= length;
+    });
+    return result;
+};
+
 make.node = (d, a={})=>{ 
-    const node = a.node ?? make_id();
-    if(!(a.received || d.write_access(d, node))) return;
-    const repo = a.repo ?? d.pick.repo();
-    d.drop.edge(d, {root:node}); // drop all edges for this node 
+    const node = a.node ?? d.make.id();
+    if(!(a.given || d.write_access(d, node))) return;
+    const repo = a.repo ?? d.target.repo;
+    d.drop.edge(d, {root:node}); 
     d.node.set(node, {
-        forw: new Map(), // key:term,           value:[stem_id or leaf_value]
-        back: new Map(), // key:(root+term+i),  value:{root, term, i}
+        forw: new Map(), // key:term,            value:[stem or leaf_obj]
+        back: new Map(), // key:root+term+indx,  value:[root, term, indx]
         repo,
     });
-    d.repo.get(repo).node.add(node);
+    if(d.repo.has(repo)) d.repo.get(repo).node.add(node);
     d.graph.increment(d);
     return node;
 };
 
 make.edge = (d, root, term, stem, a={})=>{ // if somehow this is called without permission, the server should kick back with failed 
     if(!(d.node.has(root) && (stem.type || d.node.has(stem)))) return;
-    if(!(a.received || d.write_access(d, root))) return;
+    if(!(a.given || d.write_access(d, root))) return;
     const forw = d.node.get(root).forw;
     const length = forw.get(term)?.length ?? 0;
     if(!length) forw.set(term, []); 
@@ -29,8 +38,9 @@ make.edge = (d, root, term, stem, a={})=>{ // if somehow this is called without 
     forw.get(term).splice(indx, 0, stem); 
     if(!stem.type) d.node.get(stem).back.set(root+':'+term+':'+indx, [root, term, indx]);
     d.graph.increment(d);
-    if(stem.type) console.log(stem);
 };
+
+
 
 // function List_Map(){
 //     const map = new Map();

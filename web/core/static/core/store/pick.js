@@ -6,11 +6,17 @@ export const pick = {
     multi: false,
     box: false,
     node(d, node){
-        d.picked.node = new Set(node);
+        d.picked.node.clear();
+        d.picked.node.add(node);
     },
     repo(d, repo){
-        d.picked.repo = new Set(repo);
+        d.picked.repo.clear();
+        d.picked.repo.add(repo);
     },
+    none(d){
+        d.picked.node.clear();
+        d.picked.repo.clear();
+    }
 };
 
 

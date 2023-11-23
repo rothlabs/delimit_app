@@ -335,7 +335,7 @@ export function use_window_size() {
     const [size, setSize] = useState([0, 0]);
     useLayoutEffect(() => {
         function updateSize() {
-        setSize([window.innerWidth, window.innerHeight]);
+            setSize([window.innerWidth, window.innerHeight]);
         }
         window.addEventListener('resize', updateSize);
         updateSize();
@@ -372,7 +372,7 @@ function compile_gql(name, gql_parts){
             if(i<q.length-1){
                 body += ', ';
             }else{ body += ')'; }
-            variables[q_var_meta[1]] = q[i][1];
+            variables[q_var_meta[1]] = q[i][1] ?? null;
             header_vars.push(q_var_meta[1]);
         }
         body += '{'+q[0].slice(q_words[0].length+1)+'} '; 
@@ -382,43 +382,47 @@ function compile_gql(name, gql_parts){
     //console.log({header, body, variables});
     return {header, body, variables}
 }
-function gql_status(loading, error, data, done){
-    var result = null;// {message: 'Idle'};
-	if (loading) result=()=> r(Query_Status, {message: 'Working...'});
-    if (error)   result=()=> r(Query_Status, {message: error.message});
-    if (data)    result=()=> r(Query_Status, {message: done()}); 
-    return result;
-}
-export function use_query(name, gql_parts, arg){ // 'cache-and-network'
+// function gql_status(loading, error, data, done){
+//     var result = null;// {message: 'Idle'};
+// 	if (loading) result=()=> r(Query_Status, {message: 'Working...'});
+//     if (error)   result=()=> r(Query_Status, {message: error.message});
+//     if (data)    result=()=> r(Query_Status, {message: done()}); 
+//     return result;
+// }
+export function use_query(name, gql_parts, arg={}){ // 'cache-and-network'
     //console.log(fetchPolicy);
     const {header, body, variables} = compile_gql(name, gql_parts);
     //console.log({header, body, variables});
-    const {loading, error, data, startPolling, refetch} = useQuery(
+    //const {loading, error, data, startPolling, refetch} = useQuery(
+    return useQuery(
         gql`query ${header}{${body}}`, {   
-        variables:    variables, 
-        fetchPolicy:  arg && arg.fetchPolicy, 
-        onCompleted:  arg && arg.onCompleted,
-        pollInterval: arg && arg.pollInterval,
-        notifyOnNetworkStatusChange: arg && arg.notifyOnNetworkStatusChange,
+        variables,
+        ...arg, 
+        // fetchPolicy:  arg && arg.fetchPolicy, 
+        // onCompleted:  arg && arg.onCompleted,
+        // pollInterval: arg && arg.pollInterval,
+        // notifyOnNetworkStatusChange: arg && arg.notifyOnNetworkStatusChange,
     }); 
 
     //if(reactive_var) reactive_var(data);
     //var alt = null;
 	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
     //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
-    return {data, status:gql_status(loading,error,data,()=>'Done'), startPolling, refetch};
+    //return {data, status:gql_status(loading,error,data,()=>'Done'), startPolling, refetch};
 }
-export function use_mutation(name, gql_parts, arg){
+export function use_mutation(name, gql_parts, arg={}){
     const {header, body, variables} = compile_gql(name, gql_parts);
     //console.log({header, body, variables});
-    const [mutate, {data, loading, error, reset}] = useMutation( 
+    //const [mutate, {data, loading, error, reset}] = useMutation( 
+    return useMutation( 
         gql`mutation ${header}{${body}}`, {
-        variables:variables, 
-        refetchQueries: arg && arg.refetch && arg.refetch.split(' '),
-        onCompleted: arg && arg.onCompleted,
+        variables, 
+        ...arg,
+        // refetchQueries: arg && arg.refetch && arg.refetch.split(' '),
+        // onCompleted: arg && arg.onCompleted,
     }); // Add option for cache
-    const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
-    return {mutate:mutate, data:data, status:gql_status(loading,error,data,done), reset:reset};
+    //const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
+    //return {mutate, data, status:gql_status(loading,error,data,done), reset};
 }
 
 export function use_media_glb(url){ // makes fresh copy of glb geom and such on each load so it actually changes
@@ -469,9 +473,11 @@ const termination_link = createHttpLink({
 //     },
 // });
 
+export const gql_client = new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()});
+
 createRoot(document.getElementById('app')).render(r(()=>r(StrictMode,{},
     //r(DndProvider, {backend:HTML5Backend},
-        r(ApolloProvider,{client:new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()})},
+        r(ApolloProvider, {client: gql_client},
             r(RouterProvider, {router:createBrowserRouter([
                 {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
                     {path:'',        element:r('p',{}, 'At Home')},

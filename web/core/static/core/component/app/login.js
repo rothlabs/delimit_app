@@ -2,7 +2,7 @@ import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, Row, InputGroup} from 'react-bootstrap';
 import {makeVar, useReactiveVar} from '../../apollo/ApolloClient.js';//'@apollo/client';
 import {Logo} from './logo.js';
-import {gs, ss, useS, use_mutation} from '../../app.js';
+import {gs, ss, rs, useS, use_mutation, gql_client} from '../../app.js';
 import {useNavigate} from 'react-router-dom';
 
 export const show_login = makeVar(false);
@@ -11,9 +11,12 @@ export function Login(){
 	const show = useReactiveVar(show_login);
     const [username, set_username] = useState('');
     const [password, set_password] = useState('');
-    const {mutate, data, status, reset} = use_mutation('Login',[
-        ['login reply user{firstName}', ['String! username', username], ['String! password', password]],
-    ], {refetch:'GetUser', onCompleted:data=>{
+    const [login, {loading, error, data, reset}] = use_mutation('Login',[
+        ['login reply user{firstName}', 
+            ['String! username', username], 
+            ['String! password', password]
+        ],
+    ], {refetchQueries:['GetUser'], onCompleted:data=>{
         const d = gs();
         if(d.open_pack) d.open_pack();
         if(data.login.user) setTimeout(()=> show_login(false), 1500);
@@ -24,22 +27,22 @@ export function Login(){
         if(show) reset(); else setTimeout(()=> reset(), 250);
     },[show]);
     //if(data && data.login.user) setTimeout(()=> show_login(false), 1500);
-    const key_press=(target)=> {if(target.charCode==13) mutate()}; //attempt_login(true);};
+    const key_press=(target)=> {if(target.charCode==13) login()}; //attempt_login(true);};
 	return (
-		r(Modal,{show:show, onHide:()=>show_login(false), autoFocus:false},
+		r(Modal,{show, onHide:()=>show_login(false), autoFocus:false},
       		r(Modal.Header, {closeButton:true},  
                 r(Modal.Title, {}, 'Sign In'),
       		),
             //alt ? r(Modal.Body, {}, r(alt)) :
             
                 //!data && //data.login.user &&
-            r(Fragment,{},
+            //r(Fragment,{},
                 r(Modal.Body, {}, 
                     r(Row,{className:'mb-3'},
                         r(Logo, {className:'mx-auto', height:70}),
                     ),
                     //data && r('p', {}, data.login.response),
-                    status && r(status),
+                    ///////////////status && r(status),
                     r(InputGroup, {className:'mb-3'}, 
                         r(InputGroup.Text, {}, 'Username'),
                         r(Form.Control, {id:'username_field', type:'text', value:username, onChange:(e)=>set_username(e.target.value), onKeyPress:key_press, autoFocus:true}),
@@ -50,9 +53,9 @@ export function Login(){
                     ),
                 ),
                 r(Modal.Footer, {},
-                    r(Button, {id:'modal_login', onClick:mutate}, 'Sign In'),
-                )
-            ),
+                    r(Button, {id:'modal_login', onClick:login}, 'Sign In'),
+                ),
+            //),
     	)
   	)
 }
@@ -62,36 +65,39 @@ export const show_logout = makeVar(false);
 export function Logout(){
     const show = useReactiveVar(show_logout);
     //const navigate = useNavigate();
-    const {mutate, data, status, reset} = use_mutation('Logout',[
+    const [logout, {loading, data, reset}] = use_mutation('Logout',[
         ['logout reply user{firstName}'],
-    ], {refetch:'GetUser', onCompleted:data=>{
+    ], {refetchQueries:['GetUser'], onCompleted:data=>{
         if(gs().close_pack){
-            const nodes = [];
-            ss(d=>{
-                Object.entries(d.n).forEach(([n,node],i)=> {
-                    if(node.asset) nodes.push(n);
-                });
-                d.close(d, nodes);
+            rs(d=>{
+                
             }); 
+            gql_client.resetStore();
         }
         setTimeout(()=> show_logout(false), 1500);
     }});
     //if(data) setTimeout(()=> show_logout(false), 1500);
     useEffect(()=> {if(show){
-        mutate(); // sign out
+        logout(); 
         //navigate('/');
     }},[show]);
     return (
-        r(Modal,{show:show, onHide:()=>show_logout(false)},
+        r(Modal,{show, onHide:()=>show_logout(false)},
       		r(Modal.Header, {closeButton:true},  
                 r(Modal.Title, {}, 'Sign Out'),
       		),
             r(Modal.Body, {}, 
-                status && r(status) 
+                'Signed out',//status && r(status) 
             )
     	)
     )
 }
+
+
+// Object.entries(d.n).forEach(([n,node],i)=> {
+                //     if(node.asset) nodes.push(n);
+                // });
+                // d.close(d, nodes);
 
 // function Attempt_Logout(){
 //     const {data, alt} = use_query('GetLogout',[

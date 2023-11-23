@@ -6,33 +6,17 @@ import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
 import {ss, rs, use_query, useS, use_window_size} from '../../app.js';
 import {Mode_Bar} from '../studio/mode_bar.js';
+import { Confirm } from './confirm.js';
 
 export function Root(){
-    const mode = useS(d=> d.mode);
+    const mode      = useS(d=> d.mode);
+    const theme_mode = useS(d=> d.theme.mode);
     //const studio_mode = useS(d=> d.studio.mode);
     const navigate = useNavigate();
-    const window_size = use_window_size();
-	const {data, status} = use_query('GetUser', [
-		['user id firstName'],
-	],{onCompleted:data=>{
-		try{
-			if(data.user){
-				rs(d=>{ 
-					d.user_id = data.user.id;
-					//console.log('user id', d.user_id);
-				}); 
-			}
-		}catch(e){
-			console.log('get user id error', e);
-		}
-	}}); 
+    const window_size = use_window_size(); 
     const buttons = [
         {name:'Shop',  icon:'bi-bag',  value:'shop'},
         {name:'Studio', icon:'bi-palette2', value:'studio'}, 
-    ];
-    const account_buttons = [
-        {name:()=>'Account ('+data.user.firstName+')',  icon:'bi-person', func(){}},
-        {name:()=>'Sign Out', icon:'bi-box-arrow-left', func:()=> show_logout(true)}, 
     ];
 	return (
 		//c(Row,{className:''},
@@ -45,15 +29,16 @@ export function Root(){
             c(Col, {className:'d-flex flex-column'}, 
                 c(Login),
 		        c(Logout),
+                c(Confirm),
                 c(Row, {}, 
-                    c(Col, {className:'col-auto',
+                    c(Col, {className:'col-auto ms-1 mt-1',
                         role: 'button',
                         onClick:e=> rs(d=>{
                             d.mode = '/';
                             navigate(d.mode);
                         }),
                     }, 
-                        c(Logo, {height:36}),
+                        c(Logo, {height:32}),
                     ),
                     c(Col, {},
                         buttons.map((button,i)=>
@@ -72,25 +57,21 @@ export function Root(){
                                 window_size.width > 576 ? ' '+button.name : '',
                             )
                         ),
-                        mode=='studio' && [c('span', {className:'ms-2 me-2 text-primary'}, '>'), c(Mode_Bar)],
+                        mode=='studio' && [c('span', {className:'ms-4 me-4 text-primary'}), c(Mode_Bar)],
                     ),
                     //mode=='studio' && c(Col, {}, c(Mode_Bar)),
                     c(Col, {className:'col-auto'},
-                        !data ? status && c(status) : 
-                            data.user ? 
-                                account_buttons.map((button,i)=>
-                                    c(Button,{
-                                        className: 'border-0 '+button.icon,
-                                        variant: 'outline-primary', 
-                                        onClick:e=> button.func(),
-                                    }, window_size.width > 576 ? ' '+button.name() : '')
-                                )
-                            : 
-                                c(Button,{
-                                    className: 'border-0 bi-box-arrow-in-right',
-                                    variant: 'outline-primary', 
-                                    onClick:e=> show_login(true),
-                                }, window_size.width > 576 ? ' Sign In' : '')
+                        c(ToggleButton,{
+                            id: 'dark_mode_button',
+                            type:'checkbox', variant:'outline-primary', 
+                            checked: theme_mode=='dark',
+                            className: 'border-0 bi-moon',
+                            onChange:e=> rs(d=> d.theme.toggle_mode(d)),
+                        }),
+                        c(Account_Menu),
+                        // !data ? status && c(status) : 
+                        //     data.user ? account_buttons.map((button,i)=> c(Account_Button, {button}))
+                        //     : c(Account_Button, {button:{name:()=>'Sign In', icon:'bi-box-arrow-in-right', func:()=> show_login(true)}}),
                     ),
                 ),
                 c(Row, {className:'flex-grow-1'},  
@@ -100,6 +81,59 @@ export function Root(){
     	//)
   	)
 } 
+
+function Account_Menu(){
+    const {data} = use_query('GetUser', [
+        ['user id firstName'],
+    ],{onCompleted:data=>{
+        try{ console.log('set user id'); rs(d=> d.user_id = data.user.id); }
+        catch(e){ console.log('Error fetching user info'); }
+    }});
+    if(!data) return 'Loading';
+    if(!data.user?.firstName) return 'Error fetching user info';
+    if(data.user) return [
+        {name:()=>'Account ('+data.user.firstName+')',  icon:'bi-person', func(){}},
+        {name:()=>'Sign Out', icon:'bi-box-arrow-left', func:()=> show_logout(true)}, 
+        ].map(button=> c(Account_Button, {button}));
+    return c(Account_Button, {
+        button:{name:()=>'Sign In', 
+        icon:'bi-box-arrow-in-right', 
+        func:()=> show_login(true)}});
+}
+
+
+function Account_Button({button}){
+    const window_size = use_window_size();
+    return( 
+        c(Button,{
+            className: 'border-0 '+button.icon,
+            variant: 'outline-primary', 
+            onClick:e=> button.func(),
+        }, 
+            window_size.width > 576 ? ' '+button.name() : ''
+        )
+    )
+}
+
+
+
+
+
+
+// data.user ? 
+//                                 account_buttons.map((button,i)=>
+//                                     c(Button,{
+//                                         className: 'border-0 '+button.icon,
+//                                         variant: 'outline-primary', 
+//                                         onClick:e=> button.func(),
+//                                     }, window_size.width > 576 ? ' '+button.name() : '')
+//                                 )
+//                             : 
+//                                 c(Button,{
+//                                     className: 'border-0 bi-box-arrow-in-right',
+//                                     variant: 'outline-primary', 
+//                                     onClick: e=> show_login(true),
+//                                 }, window_size.width > 576 ? ' Sign In' : '')
 
 // !data ? status && c(status) : 
 //                             data.user ? c(Fragment,{},

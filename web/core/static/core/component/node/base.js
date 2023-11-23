@@ -20,10 +20,9 @@ export function Pickable({node, penable, brushable, children}){
     return c('group', {
         name: 'pickable',
         pickable: node, // for accessing via three_object.__r3f.memoizedProps.pickable
-        onClick(e){ e.stopPropagation();//e.stopPropagation?.call(); 
+        onClick(e){ //e.stopPropagation();//e.stopPropagation?.call(); 
             ss(d=>{
-                console.log('clicked pickable');
-                //d.pick.node(d, node);
+                d.pick.node(d, node);
             });
             // ss(d=>{
             //     if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
@@ -41,6 +40,12 @@ export function Pickable({node, penable, brushable, children}){
             //     }
             //     d.studio.gizmo_active = false;
             // });
+        },
+        onPointerOver:(e)=>{
+            document.body.style.cursor = 'pointer';
+        },
+        onPointerOut(e){ 
+            document.body.style.cursor = 'auto';
         },
         // onPointerOver(e){ e.stopPropagation();  rs(d=>{
         //     d.pick.hover(d, n, true);

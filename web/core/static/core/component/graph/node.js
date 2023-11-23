@@ -1,4 +1,4 @@
-import {createElement as r, memo, useRef} from 'react';
+import {createElement as c, memo, useRef} from 'react';
 import {useS, gs, useSub, readable} from '../../app.js';
 //import {Text} from '@react-three/drei/Text';
 //import {Edges} from '@react-three/drei/Edges';
@@ -8,72 +8,71 @@ import { Pickable } from '../node/base.js';
 import {Svg} from '@react-three/drei/Svg';
 import {View_Transform} from '../node/base.js';
 
-export const circle_size = 1.25;
-const circle_geometry = new THREE.CircleGeometry(circle_size,16); // do this for the other geometries as well for reuse
-const background_material = new THREE.MeshBasicMaterial({color: 'white', toneMapped:false});
-//const tv = new THREE.Vector3();
 
 export const Node = memo(({node})=>{ 
-    const obj = useRef();
-    const name  = useS(d=> d.face.name(d, node));
-    const tag   = useS(d=> d.face.tag(d, node));
-    const icon  = useS(d=> d.face.icon(d, node));
-    const color = useS(d=> d.face.color.secondary(d, node));
-    useSub(d=> d.graph.node.get(node).pos, pos=>{ //useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
-        obj.current.position.copy(pos);
-    }); 
+    //const obj = useRef();
+    let name       = useS(d=> d.face.name(d, node)).trim();
+    const tag      = useS(d=> d.face.tag(d, node));
+    const icon     = useS(d=> d.face.icon(d, node));
+    const color    = useS(d=> d.face.color.primary(d, node));
+    const material = useS(d=> d.face.material.primary(d, node));
+    const position = useS(d=> d.graph.node.get(node).pos);
     const d = gs();
-    const material = {color, toneMapped:false};
+    const material_props = {color, toneMapped:false};
+    if(name.length > 24) name = name.substring(0, 24);
     //console.log('render node');
-    //console.log(color, name, tag);
     return(
-        r('group', {name: 'part'}, 
-            r(View_Transform, {
-                ref: obj,
-                size: 16, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
-            },
-                r(Pickable, {node},
-                    r('mesh', {
-                        //position:[0,0,0], 
-                        geometry: circle_geometry,
-                        material: background_material, //raycast:()=>null,
-                    }),
-                ),
-                r('text', {
-                    font: d.base_font, 
-                    fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                    position: [1.3, .5, 2],
-                    outlineWidth: '40%',
-                    outlineColor: 'white',
-                    anchorX: 'left',
-                    anchorY: 'middle',
-                    text: name,
-                },
-                    r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
-                ),
-                r(Svg, {
-                    src: 'data:image/svg+xml;utf8,'+icon,
-                    scale: 0.1,
-                    position: [-0.8, 0.8, 1],
-                    fillMaterial: material,
-                    strokeMaterial: material,
+        c(View_Transform, {
+            //ref: obj,
+            position, //[pos.x, pos.y, pos.z],
+            size: 14, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
+        },
+            c(Pickable, {node},
+                c('mesh', {
+                    geometry: d.geometry.circle,
+                    material: d.material.body_bg,
                 }),
-                r('text', {
-                    font: d.base_font, 
-                    fontSize: 0.75, //letterSpacing: 0, lineHeight: 1, 
-                    position: [1.3, -.5, 2],
+                c('text', {
+                    text: name,
+                    font: d.font.body, 
+                    outlineColor: d.color.body_bg,
+                    material,
+                    fontSize: 1, //letterSpacing: 0, lineHeight: 1, 
+                    position: [1.6, .6, 2],
                     outlineWidth: '40%',
-                    outlineColor: 'white',
                     anchorX: 'left',
                     anchorY: 'middle',
-                    text: tag,//d.spec.tag(d,n), //readable(d.n[n].t),//
-                },
-                    r('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
-                ),
-            )
+                }),
+                c(Svg, {
+                    src: 'data:image/svg+xml;utf8,' + icon,
+                    fillMaterial: material_props,
+                    strokeMaterial: material_props,
+                    scale: 0.13,
+                    position: [-1, 1, 1],
+                }),
+                c('text', {
+                    text: tag,
+                    font: d.font.body, 
+                    outlineColor: d.color.body_bg,
+                    material,
+                    fontSize: 1, //letterSpacing: 0, lineHeight: 1, 
+                    position: [1.6, -.6, 2],
+                    outlineWidth: '40%',
+                    anchorX: 'left',
+                    anchorY: 'middle',
+                }),
+            ),
         )
-    )
-})
+    );
+});
+
+
+// useSub(d=> d.graph.node.get(node).pos, pos=>{ //useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
+//     obj.current.position.copy(pos);
+// }); 
+
+
+//c('meshBasicMaterial', material), // causing unsupported texture colorspace: undefined
 
 
                 // icon ? 

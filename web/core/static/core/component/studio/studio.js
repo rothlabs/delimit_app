@@ -81,7 +81,7 @@ export function Studio(){
                 c(Col, {}, c(Toolbar)) 
             ),
             c(Row, {className: 'flex-grow-1 g-0'}, 
-                c(Col, {className:'col-auto d-flex flex-column'}, c(Panel_Bar)), // d-flex flex-column
+                c(Col, {className:'col-auto d-flex flex-column', style:{zIndex:1}}, c(Panel_Bar)), // d-flex flex-column
                 c(Col, {className:'d-flex flex-column'}, 
                     c(Row,{className:'g-0 flex-grow-1'}, c(Panel_Workspace)), // className:'col-auto'
                 )
@@ -104,12 +104,12 @@ function Panel_Workspace(){
     const panel_mode = useS(d=> d.studio.panel.mode);
     if(studio_mode == 'graph' || studio_mode == 'design'){
         return [
-            panel_mode && c(Col, {}, c(Panel)), // d-flex flex-column
+            panel_mode && c(Col, {className:'border-end', style:{zIndex:1, backgroundColor:'var(--bs-body-bg)'}}, c(Panel)), // d-flex flex-column
             c(Col, {className:'col-auto'}, c(Workspace)), // d-flex flex-column
         ]
     }else{
         return [
-            panel_mode && c(Col, {xs:'3'}, c(Panel)), // d-flex flex-column
+            panel_mode && c(Col, {xs:'3', className:'border-end'}, c(Panel)), // d-flex flex-column
             c(Col, {xs:panel_mode ? '9' : '12'}, c(Workspace)), // d-flex flex-column
         ]
     }
@@ -125,9 +125,8 @@ export function Workspace(){
     }else if(studio_mode == 'repo'){
         return c(Repo);
     }else{
-        let width = window_size.width - 52;
-        if(panel_mode) width = window_size.width * .75;
-        width = width + 'px';
+        let marginLeft = 0;
+        if(panel_mode) marginLeft = window_size.width * -.2;
         return(
             //c('p', {}, 'hello world')
             //c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
@@ -135,15 +134,24 @@ export function Workspace(){
             //c(Row, {
                 //className: 'flex-grow-1 '+cursor, 
             //},
-            c('div', {style:{position:'relative', width:width, height:'100%'}},
+            c('div', {style:{
+                position:'relative', 
+                width: (window_size.width - 52) + 'px', 
+                height: '100%',
+                marginLeft,
+            }}, 
                 c(Canvas,{
-                    className: cursor, // 'flex-grow-1 '+ 
+                    className: cursor, 
                     orthographic: true, 
                     camera: {far:10000}, 
-                }, //, far:10000 zoom:1    //frameloop:'demand', 
+                    //gl: {antialias: false},
+                    dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 
+                    //, far:10000 zoom:1    //frameloop:'demand', 
+                }, 
                     c(Viewport),
                 )
             )
+
         )
     }
 }

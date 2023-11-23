@@ -1,26 +1,56 @@
-
 export const face = {
-    name:(d, node)=> d.leaf(d, node, 'name', 'untitled'),
-    icon:(d, node)=> d.leaf(d, node, 'spec icon code', d.face.alt.icon),
-    tag: (d, node)=> d.leaf(d, node, 'spec tag', 'node'),
+    name:(d, node)=> d.leaf(d, node, ['name', 'leaf'], 'untitled'),
+    icon:(d, node)=> d.leaf(d, node, ['spec icon code', 'icon code'], d.face.alt.icon),
+    tag: (d, node)=> d.leaf(d, node, ['spec tag', 'tag'], 'node'),
 };
+
+const pick = (d, node, picked, alt) => d.picked.node.has(node) ? picked : alt;
 
 face.color = {
-    secondary(d, node){
-        return d.picked.node.has(node) ? d.color.primary : d.color.secondary;
-    },
-    background(d, node){
-        return d.picked.node.has(node) ? d.color.primary : d.color.background;
-    },
+    primary:(d, node)     => pick(d, node, d.color.body_fg, d.color.primary),
+    secondary:(d, node)   => pick(d, node, d.color.primary, d.color.secondary),
+    body:(d, node)        => pick(d, node, d.color.primary, d.color.body_bg),
+    tertiary_fg:(d, node) => pick(d, node, d.color.primary, d.color.tertiary_fg),
 };
 
+face.material = {
+    primary:(d, node)     => pick(d, node, d.material.body_fg, d.material.primary),
+    secondary:(d, node)   => pick(d, node, d.material.primary, d.material.secondary),
+    tertiary_fg:(d, node) => pick(d, node, d.material.primary, d.material.tertiary_fg),
+},
+
 face.alt = {
-    icon:`
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box" viewBox="0 0 16 16">
+    icon:`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box" viewBox="0 0 16 16">
             <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
-        </svg>
-    `,
+          </svg>`,
 };
+
+// face.color = {
+//     primary(d, node){
+//         return d.picked.node.has(node) ? d.color.body_fg : d.color.primary;
+//     },
+//     secondary(d, node){
+//         return d.picked.node.has(node) ? d.color.primary : d.color.secondary;
+//     },
+//     body(d, node){
+//         return d.picked.node.has(node) ? d.color.primary : d.color.body_bg;
+//     },
+//     tertiary_fg(d, node){
+//         return d.picked.node.has(node) ? d.color.primary : d.color.tertiary_fg;
+//     },
+// };
+
+// face.material = {
+//     primary(d, node){
+//         return d.picked.node.has(node) ? d.material.body_fg : d.material.primary;
+//     },
+//     secondary(d, node){
+//         return d.picked.node.has(node) ? d.material.primary : d.material.secondary;
+//     },
+//     tertiary_fg(d, node){
+//         return d.picked.node.has(node) ? d.material.primary : d.material.tertiary_fg;
+//     },
+// },
 
 
 

@@ -21,7 +21,7 @@ drop.node = (d, nodes, a={})=>{
         };
         get_stems(drops);
     }
-    if(!a.received) drops = d.write_access(d, drops);
+    if(!a.given) drops = d.write_access(d, [...drops]);
     for(const node of drops){
         d.drop.edge(d, {root:node});
         d.drop.edge(d, {stem:node});
@@ -34,7 +34,7 @@ drop.node = (d, nodes, a={})=>{
 
 
 drop.edge = (d, a={})=>{
-    const drops = []; 
+    let drops = []; 
     function forward_edge(func){
         if(!d.node.has(a.root)) return {};
         for(const [term, stem, indx] of d.forw(d, a.root)){ // d.flat(d.node.get(a.root).forw)
@@ -53,6 +53,7 @@ drop.edge = (d, a={})=>{
             drops.push({root, term, stem:a.stem, indx});
         }
     }
+    if(!a.given) drops = drops.filter(drp=> d.write_access(d, drp.root));
     drops.sort((a, b)=> b.indx - a.indx);
     for(const drp of drops){
         if(!d.node.has(drp.root)) continue;

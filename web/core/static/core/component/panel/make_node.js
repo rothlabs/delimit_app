@@ -1,6 +1,6 @@
 import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, Button, Container} from 'react-bootstrap';
-import {useS, ss, gs, static_url, readable, theme} from '../../app.js'
+import {useS, useSS, ss, gs, static_url, readable, theme} from '../../app.js'
 import { Svg_Button } from '../app/base.js';
 import { Make_Repo } from './make_repo.js';
 //import {Badge} from '../node/base.js'
@@ -10,28 +10,35 @@ import { Make_Repo } from './make_repo.js';
 
 
 export function Make_Node(){
-    const mode = useS(d=> d.studio.mode);
-    const panel = useS(d=> d.studio.panel.mode);
-    const limited = useS(d=> d.pick.limited); 
-    const terminal = useS(d=> d.pick.terminal); 
-    if(panel != 'make') return false;
-    if(mode == 'repo') return c(Make_Repo);
+    const specs = useSS(d=> d.list(d, d.root, 'delimit specs', [])); 
     const d = gs();
-    const specs = d.spec.all(d);
+    console.log('render make node');
     return(
-        specs.map((n,i)=>
-            c(Row, {className: 'mt-1 text-left '+(i==specs.length-1?'mb-4':'')},
-                c(Svg_Button, {
-                    svg: d.graph.path(d, n, 'icon code v', {default:d.spec.default.icon}), //d.n[d.n[d.n[n].n.icon[0]].n.name[0]].v, // d.spec.icon(d,n),
-                    text: d.graph.path(d, n, 'tag v', {default:'node'}), 
-                    func: ()=> ss(d=>{ 
-                        d.make.node(d, {spec:n, r:d.pick.n}) //d.make.part(d, t, {r:d.pick.n});
+        c('div', {className:'d-grid ps-2 pt-2'},
+            specs.map((spec,i)=>
+                //c(Row, {className: 'mt-1 text-left ' + ((i==specs.length-1) ? 'mb-4' : '')},
+                    c(Svg_Button, {
+                        //className:'w-100',
+                        svg:  d.leaf(d, spec, 'icon code', d.face.alt.icon), 
+                        text: d.leaf(d, spec, 'tag', 'Node'), 
+                        func:e=> ss(d=>{ 
+                            d.make.node(d, {spec, root:[...d.picked.node][0]}) 
+                        })
                     })
-                })
-            )
+                //)
+            ),
         )
     )
 }
+
+
+
+// const mode = useS(d=> d.studio.mode);
+// const panel = useS(d=> d.studio.panel.mode);
+// if(panel != 'make') return false;
+// if(mode == 'repo') return c(Make_Repo);
+// const limited = useS(d=> d.pick.limited); 
+// const terminal = useS(d=> d.pick.terminal); 
 
 
 
