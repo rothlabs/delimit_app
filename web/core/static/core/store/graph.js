@@ -41,12 +41,12 @@ export const graph = {
     
     node: new Map(),
     edge: [],
-    count: 0,
     scale: 1,
+    change: 0,
     
-    increment: d=> d.graph.count++,
+    increment: d=> d.graph.change++,
 
-    update(d){        
+    layout(d){        
         //console.log('update graph!!');
 
         d.graph.node.clear();

@@ -27,6 +27,7 @@ drop.node = (d, nodes, a={})=>{
         d.drop.edge(d, {stem:node});
         const repo = d.node.get(node).repo;
         d.repo.get(repo).node.delete(node);
+        d.unpick.node(d, node, {target:true});
         d.node.delete(node);
     }
     if(drops.length) d.graph.increment(d);

@@ -21,8 +21,9 @@ export function Pickable({node, penable, brushable, children}){
         name: 'pickable',
         pickable: node, // for accessing via three_object.__r3f.memoizedProps.pickable
         onClick(e){ //e.stopPropagation();//e.stopPropagation?.call(); 
+            e.stopPropagation();
             ss(d=>{
-                d.pick.node(d, node);
+                d.pick.node(d, node, {multi:e.ctrlKey});
             });
             // ss(d=>{
             //     if(!d.studio.gizmo_active && e.delta < d.max_click_delta){

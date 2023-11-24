@@ -6,7 +6,7 @@ import lodash from 'lodash';
 import {face} from './face.js';
 import * as theme from './theme.js';
 import {design} from './design.js';
-import {pick} from './pick.js';
+import * as pick from './pick.js';
 import {graph} from './graph.js';
 import {make} from './make.js';
 import {drop} from './drop.js';
@@ -39,9 +39,9 @@ export const create_base_slice = (set,get)=>({
     confirm:{},
 
     ...theme,
+    ...pick,
     face,
     design,
-    pick,
     graph,
     make,
     drop,
@@ -281,6 +281,7 @@ export const create_base_slice = (set,get)=>({
     close:{
         repo(d, repo){
             d.drop.node(d, d.repo.get(repo).node);
+            d.unpick.repo(d, repo, {target:true});
             d.repo.delete(repo);
         },
     },

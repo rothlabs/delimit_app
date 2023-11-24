@@ -10,6 +10,10 @@ $primary: #ff2391;
 $info:    #1ed1b9;
 $enable-rounded: false;
 
+// @import "bootstrap/scss/variables";
+
+$accordion-button-padding-y: .5rem;
+
 @import "bootstrap/scss/bootstrap";
 
 // 8. Add additional custom code here

@@ -240,7 +240,7 @@ export const rs = func=> {
         fork = applyPatches(fork, result.patches);
         //original_fork = applyPatches(original_fork, result.patches);
     }
-} ;
+};
 
 // set state (rename to commit state?)
 export const ss = func=> {

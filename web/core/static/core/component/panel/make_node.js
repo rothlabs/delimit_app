@@ -14,7 +14,7 @@ export function Make_Node(){
     const d = gs();
     console.log('render make node');
     return(
-        c('div', {className:'d-grid ps-2 pt-2'},
+        c('div', {className:'d-grid ms-2 mt-2'},
             specs.map((spec,i)=>
                 //c(Row, {className: 'mt-1 text-left ' + ((i==specs.length-1) ? 'mb-4' : '')},
                     c(Svg_Button, {

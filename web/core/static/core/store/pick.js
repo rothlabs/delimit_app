@@ -5,19 +5,39 @@ export const pick = {
     deep: false,
     multi: false,
     box: false,
-    node(d, node){
-        d.picked.node.clear();
+    node(d, node, a={}){
+        console.log('pick node', a.multi);
+        if(a.multi && d.picked.node.has(node)){
+            d.picked.node.delete(node);
+            return;
+        }
+        if(!a.multi) d.picked.node.clear();
         d.picked.node.add(node);
     },
-    repo(d, repo){
-        d.picked.repo.clear();
+    repo(d, repo, a={}){
+        if(a.multi && d.picked.repo.has(repo)){
+            d.picked.repo.delete(repo);
+            return;
+        }
+        if(!a.multi) d.picked.repo.clear();
         d.picked.repo.add(repo);
     },
-    none(d){
+};
+
+export const unpick = {
+    node(d, node, a={}){
+        d.picked.node.delete(node);
+        if(a.target && d.target.node == node) d.target.node = null;
+    },
+    repo(d, repo, a={}){
+        d.picked.repo.delete(repo);
+        if(a.target && d.target.repo == repo) d.target.repo = null;
+    },
+    all(d){
         d.picked.node.clear();
         d.picked.repo.clear();
-    }
-};
+    },
+}
 
 
 pick.target = {

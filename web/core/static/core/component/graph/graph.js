@@ -1,30 +1,16 @@
 import {createElement as c, memo, useEffect, useLayoutEffect} from 'react';
-import {rs, gs, useS} from '../../app.js';
-//import {useFrame, useThree} from '@react-three/fiber';
-//import {use_d, shallow} from '../../state/state.js';
 import {Node} from './node.js';
-//import {Atom} from './atom.js';
-//import {Vector3} from 'three';
 import {Edge} from './edge.js';
-//import {Bounds} from '@react-three/drei/Bounds';
-
-//export const graph_z = 300;
-
-// const repulsion = 100000;
-// const inward_force = 1; // make dynamic based on how many objects
-// const part_spring = 0.05;
-// const tv = new Vector3();
-
+import {use_store, set_store, get_store} from 'delimit';
 
 export const Graph = memo(()=>{
-    //const mounted = useRef(true);
-    useS(d=> d.graph.count); 
-    rs(d=> d.graph.update(d));
-    const d = gs();
-    console.log('render graph');
+    use_store(d=> d.graph.change); 
+    set_store(d=> d.graph.layout(d));
+    const d = get_store();
+    //console.log('render graph');
     return(
         c('group', {name:'graph'},
-            Array.from(d.graph.node.keys()).map(node=> 
+            [...d.graph.node.keys()].map(node=> 
 				c(Node, {node, key:node}),//d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
             ),
             d.graph.edge.map(edge=> 
@@ -33,6 +19,24 @@ export const Graph = memo(()=>{
 		)
     )
 });
+
+
+    //const mounted = useRef(true);
+
+
+//import {rs, gs, useS} from '../../app.js';
+//import {useFrame, useThree} from '@react-three/fiber';
+//import {use_d, shallow} from '../../state/state.js';
+//import {Atom} from './atom.js';
+//import {Vector3} from 'three';
+//import {Bounds} from '@react-three/drei/Bounds';
+
+//export const graph_z = 300;
+
+// const repulsion = 100000;
+// const inward_force = 1; // make dynamic based on how many objects
+// const part_spring = 0.05;
+// const tv = new Vector3();
 
 
 // export const Graph = memo(()=>{

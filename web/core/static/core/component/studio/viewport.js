@@ -112,9 +112,9 @@ export function Viewport(){ // for some reason this renders 5 times on load
         c('group', {
             name:'viewport',
             onPointerMissed(e){
-                //e.stopPropagation();
+                e.stopPropagation();
                 if(e.which != 1) return;
-                rs(d=> d.pick.none(d));
+                rs(d=> d.unpick.all(d));
             },
         }, 
             c(Viewport_Control),

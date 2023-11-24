@@ -4,20 +4,18 @@ import {useS, gs, useSub, readable} from '../../app.js';
 //import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
-import { Pickable } from '../node/base.js';
 import {Svg} from '@react-three/drei/Svg';
-import {View_Transform} from '../node/base.js';
-
+import {use_store, get_store, View_Transform, Pickable} from 'delimit';
 
 export const Node = memo(({node})=>{ 
     //const obj = useRef();
-    let name       = useS(d=> d.face.name(d, node)).trim();
-    const tag      = useS(d=> d.face.tag(d, node));
-    const icon     = useS(d=> d.face.icon(d, node));
-    const color    = useS(d=> d.face.color.primary(d, node));
-    const material = useS(d=> d.face.material.primary(d, node));
-    const position = useS(d=> d.graph.node.get(node).pos);
-    const d = gs();
+    let name       = use_store(d=> d.face.name(d, node)).trim();
+    const tag      = use_store(d=> d.face.tag(d, node));
+    const icon     = use_store(d=> d.face.icon(d, node));
+    const color    = use_store(d=> d.face.color.primary(d, node));
+    const material = use_store(d=> d.face.material.primary(d, node));
+    const position = use_store(d=> d.graph.node.get(node).pos);
+    const d = get_store();
     const material_props = {color, toneMapped:false};
     if(name.length > 24) name = name.substring(0, 24);
     //console.log('render node');
