@@ -57,7 +57,7 @@ export const graph = {
                 lvl: 0,
                 pos: new Vector3(),
             });
-            for(const [term, stem] of d.forw(d, root, {leafless:true})){
+            for(const [term, stem] of d.forw(d, root)){
                 d.graph.edge.push({root, term, stem});
             }
         }
@@ -68,7 +68,7 @@ export const graph = {
             setting_lvl = false;
             for(const [node, node_obj] of d.graph.node){
                 var lvl = 0;
-                for(const [root] of d.node.get(node).back.values()){
+                for(const root of d.node.get(node).back){//for(const [root] of d.node.get(node).back.values()){
                     if(d.graph.node.has(root)){
                         const root_lvl = d.graph.node.get(root).lvl;
                         if(lvl < root_lvl) lvl = root_lvl;
@@ -88,7 +88,8 @@ export const graph = {
         } 
         for(const [node, node_obj] of d.graph.node){
             const lvl = node_obj.lvl;
-            const grp = d.face.tag(d, node)+'__'+Array.from(d.node.get(node).back).map(([_,v])=>v.root).sort().join('_'); // const grp = d.spec.tag(d,n)+'__'+rt.sort().join('_');     //JSON.stringify(d.node.get(n).r)
+            ///const grp = d.face.tag(d, node)+'__'+Array.from(d.node.get(node).back.map(([_,v])=>v.root).sort().join('_');
+            const grp = d.face.tag(d, node)+'__'+[...d.node.get(node).back].sort().join('_'); // const grp = d.spec.tag(d,n)+'__'+rt.sort().join('_');     //JSON.stringify(d.node.get(n).r)
             if(!level[lvl].group[grp]) level[lvl].group[grp] = {n:[], y:0, count:0};
             level[lvl].group[grp].n.push(node);
             level[lvl].count++;
@@ -110,26 +111,25 @@ export const graph = {
                 if(a.y > b.y) return  1;    
                 return 0;
             }).forEach(g=>{
-                //const size = Math.round(Math.sqrt(g.n.length / 2));
+                ///////////////const size = Math.round(Math.sqrt(g.n.length / 2)); // used for grouping in blocks
                 var x = lx;//(gx > g.x ? gx : g.x);
                 var y = gy;
                 g.n.forEach(node=>{
                     if(x > max_x) max_x = x;
                     if(y > l.max_y) l.max_y = y;
                     d.graph.node.get(node).pos.set(x, y, 0); // did not change yet !!!!!!!!
-                    for(const [term, stem] of d.forw(d, node, {leafless:true})){ 
-                        console.log(stem);
+                    for(const [term, stem] of d.forw(d, node)){ 
                         const graph_node = d.graph.node.get(stem);
                         if(ll.group[graph_node.grp]){
                             ll.group[graph_node.grp].y += y;
                             ll.group[graph_node.grp].count ++;
                         }
                     }
-                    //x++;
-                    //if(x >= lx + size){
+                    ///////////x++; // used for grouping in blocks
+                    //////////if(x >= lx + size){
                         x = lx;  
                         y += y_step;
-                    //}
+                    ///////////}
                 });
                 gy = l.max_y + y_step * 1.5;
             });

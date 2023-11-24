@@ -95,12 +95,20 @@ export const create_base_slice = (set,get)=>({
         }catch{}
         return alt;
     },
-
     forw: function* (d, root, a={}){
         for(const [term, stems] of d.node.get(root).forw){
             for(let indx = 0; indx < stems.length; indx++){
                 const stem = stems[indx];
-                if(!a.leafless || !stem.type) yield [term, stem, indx];
+                if(!stem.type || a.leaf) yield [term, stem, indx];
+            }
+        }
+    },
+    back: function* (d, stem, a={}){
+        for(const root of d.node.get(stem).back){
+            for(const [term, stems] of d.node.get(root).forw){
+                for(let indx = 0; indx < stems.length; indx++){
+                    if(stems[indx] == stem) yield [root, term, indx];
+                }
             }
         }
     },

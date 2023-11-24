@@ -11,7 +11,7 @@ drop.node = (d, nodes, a={})=>{
             for(const node of nodes){
                 for(const [term, stem] of d.forw(d, node)){ // d.flat(d.node.get(node).forw)
                     if(!d.node.has(stem)) continue;
-                    if(d.node.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.node.has(root) 
+                    if([...d.node.get(stem).back].every(root=> drops.has(root))){//if(d.node.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.node.has(root) 
                         drops.add(stem);
                         next_nodes.add(stem);
                     }
@@ -37,7 +37,7 @@ drop.edge = (d, a={})=>{
     let drops = []; 
     function forward_edge(func){
         if(!d.node.has(a.root)) return {};
-        for(const [term, stem, indx] of d.forw(d, a.root)){ // d.flat(d.node.get(a.root).forw)
+        for(const [term, stem, indx] of d.forw(d, a.root, {leaf:true})){ // d.flat(d.node.get(a.root).forw)
             func({root:a.root, term, stem, indx});
         }
     }
@@ -49,7 +49,7 @@ drop.edge = (d, a={})=>{
         forward_edge(edge=> drops.push(edge));
     }else if(a.stem){
         if(!d.node.has(a.stem)) return;
-        for(const [root, term, indx] of d.node.get(a.stem).back.values()){
+        for(const [root, term, indx] of d.back(d, a.stem)){ //for(const [root, term, indx] of d.node.get(a.stem).back.values()){
             drops.push({root, term, stem:a.stem, indx});
         }
     }
@@ -66,7 +66,11 @@ drop.edge = (d, a={})=>{
     }
     for(const drp of drops){
         if(!d.node.has(drp.stem)) continue;
-        d.node.get(drp.stem).back.delete(drp.root+':'+drp.term+':'+drp.indx);
+        const delete_back = true;
+        for(const [term, stem] of d.forw(d, drp.root)){
+            if(stem == drp.stem) delete_back = false;
+        }
+        if(delete_back) d.node.get(drp.stem).back.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.indx);
     }
     if(drops.length) d.graph.increment(d);
 };

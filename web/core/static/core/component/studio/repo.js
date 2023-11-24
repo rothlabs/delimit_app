@@ -1,9 +1,10 @@
 import {createElement as c, useEffect} from 'react';
-import {use_query, use_mutation, ss, rs, gs} from '../../app.js';
+import {use_query, use_mutation, ss, rs, gs, useSS} from '../../app.js';
 import {Row, Col, Button, ButtonGroup, InputGroup, Form} from 'react-bootstrap';
 
 export function Repo(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
+    useSS(d=> [...d.repo]);
     const repos = use_query('GetRepos', [
 		['repos data'],
 	]);
