@@ -1,8 +1,8 @@
-import {createElement as c, Fragment, useState} from 'react';
-import {Row, Col, Button, Container} from 'react-bootstrap';
-import {useS, useSS, ss, gs, static_url, readable, theme} from '../../app.js'
+import {createElement as c} from 'react';
+//import {Row, Col, Button, Container} from 'react-bootstrap';
+import {use_store, set_store, get_store} from 'delimit';
 import { Svg_Button } from '../app/base.js';
-import { Make_Repo } from './make_repo.js';
+//import { Make_Repo } from './make_repo.js';
 //import {Badge} from '../node/base.js'
 
 //import { ReactComponent as PublicIcon } from '../../../icon/node/public.svg';
@@ -10,8 +10,8 @@ import { Make_Repo } from './make_repo.js';
 
 
 export function Make_Node(){
-    const specs = useSS(d=> d.list(d, d.root, 'delimit specs', [])); 
-    const d = gs();
+    const specs = use_store(d=> d.stems(d, d.root, 'delimit specs', [])); // {shallow:true} 
+    const d = get_store();
     console.log('render make node');
     return(
         c('div', {className:'d-grid ms-2 mt-2'},
@@ -19,9 +19,9 @@ export function Make_Node(){
                 //c(Row, {className: 'mt-1 text-left ' + ((i==specs.length-1) ? 'mb-4' : '')},
                     c(Svg_Button, {
                         //className:'w-100',
-                        svg:  d.leaf(d, spec, 'icon code', d.face.alt.icon), 
-                        text: d.leaf(d, spec, 'tag', 'Node'), 
-                        func:e=> ss(d=>{ 
+                        svg:  d.value(d, spec, 'icon code', d.face.alt.icon), 
+                        text: d.value(d, spec, 'tag', 'Node'), 
+                        func:e=> set_store(d=>{ 
                             d.make.node(d, {spec, root:[...d.picked.node][0]}) 
                         })
                     })
@@ -58,7 +58,7 @@ export function Make_Node(){
 //                         c(Svg_Button, {
 //                             svg: d.spec.icon(d,n),
 //                             text: readable(t), 
-//                             func: ()=> ss(d=>{ 
+//                             func: ()=> set_store(d=>{ 
 //                                 d.make.part(d, t, {r:d.pick.n});
 //                                 //if(d.terminal_classes[t]){
 //                                 //    d.make.atom(d, t, null, {r:d.pick.n, t:t, single:true});
@@ -84,7 +84,7 @@ export function Make_Node(){
 //                                     id:'make_'+t,
 //                                     className: 'border-white text-start bi-dot',
 //                                     variant:'outline-primary', size:'lg',
-//                                     onClick:e=> ss(d=>{ 
+//                                     onClick:e=> set_store(d=>{ 
 //                                         d.make.atom(d, item.cls, null, {r:d.pick.n, t:t, single:true});
 //                                         d.studio.panel.show = false;
 //                                     }),
@@ -126,7 +126,7 @@ export function Make_Node(){
 //                 id:'make_'+t,
 //                 className: 'border-white text-start '+d.node[t].css,
 //                 variant:'outline-primary', size:'lg',
-//                 onClick:e=> ss(d=>{ 
+//                 onClick:e=> set_store(d=>{ 
 //                     d.pick.n.forEach(n=> d.make.edge(d, d.cats[t], n)); 
 //                     d.studio.panel.show = false;
 //                 }),
@@ -145,7 +145,7 @@ export function Make_Node(){
                     //             id:'make_'+t,
                     //             className: 'border-white text-start bi-dot',
                     //             variant:'outline-primary', size:'lg',
-                    //             onClick:e=> ss(d=>{ 
+                    //             onClick:e=> set_store(d=>{ 
                     //                 d.make.atom(d, 'b', false, {r:d.pick.n, t:t});
                     //                 d.studio.panel.show = false;
                     //             }),
@@ -161,7 +161,7 @@ export function Make_Node(){
                     //             id:'make_'+t,
                     //             className: 'border-white text-start bi-dot',
                     //             variant:'outline-primary', size:'lg',
-                    //             onClick:e=> ss(d=>{ 
+                    //             onClick:e=> set_store(d=>{ 
                     //                 d.make.atom(d, 's', '', {r:d.pick.n, t:t});
                     //                 d.studio.panel.show = false;
                     //             }),
@@ -177,7 +177,7 @@ export function Make_Node(){
                     //             id:'make_'+t,
                     //             className: 'border-white text-start bi-dot',
                     //             variant:'outline-primary', size:'lg',
-                    //             onClick:e=> ss(d=>{ 
+                    //             onClick:e=> set_store(d=>{ 
                     //                 d.make.atom(d, 'i', 0, {r:d.pick.n, t:t});
                     //                 d.studio.panel.show = false;
                     //             }),
@@ -193,7 +193,7 @@ export function Make_Node(){
                     //             id:'make_'+t,
                     //             className: 'border-white text-start bi-dot',
                     //             variant:'outline-primary', size:'lg',
-                    //             onClick:e=> ss(d=>{ 
+                    //             onClick:e=> set_store(d=>{ 
                     //                 d.make.atom(d, 'f', 0, {r:d.pick.n, t:t});
                     //                 d.studio.panel.show = false;
                     //             }),
@@ -214,7 +214,7 @@ export function Make_Node(){
                 //                 id:'make_'+t,
                 //                 className: 'border-white text-start',
                 //                 variant:'outline-primary', size:'lg',
-                //                 onClick:e=> ss(d=>{ 
+                //                 onClick:e=> set_store(d=>{ 
                 //                     d.make.atom(d, 'f', 0, {r:d.pick.n, t:t});
                 //                     d.studio.panel.show = false;
                 //                 }),
@@ -267,7 +267,7 @@ export function Make_Node(){
 //                             id:'make_'+item.value,
 //                             className: 'border-white text-start '+item.icon,
 //                             variant:'outline-primary', size:'lg',
-//                             onClick:e=> ss(d=>{ 
+//                             onClick:e=> set_store(d=>{ 
 //                                 item.func(d);
 //                                 d.studio.panel.show = false;
 //                             }),

@@ -5,7 +5,7 @@ import {Draw} from './draw.js';
 import {Pick} from './pick.js';
 import {Move} from './move.js';
 
-import {useS, gs, ss, use_window_size} from '../../app.js';
+//import {useS, gs, ss, use_window_size} from '../../app.js';
 //import { Badge } from '../../node/base.js';
 //import {Panel} from '../panel/panel.js';
 

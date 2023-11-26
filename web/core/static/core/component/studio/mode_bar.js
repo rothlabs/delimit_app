@@ -1,13 +1,14 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, Container, ToggleButton, ButtonGroup, ButtonToolbar, Button, Badge} from 'react-bootstrap';
-import {useS, gs, ss, use_window_size} from '../../app.js';
+//import {useS, gs, ss, use_window_size} from '../../app.js';
+import {use_store, set_store, use_window_size} from 'delimit';
 
 export function Mode_Bar(){
-    const window_size = use_window_size();
-    const studio_mode = useS(d=> d.studio.mode);
+    const [window_width] = use_window_size();
+    const studio_mode = use_store(d=> d.studio.mode);
     //const design_part = useS(d=> d.design.part);
     const mode_buttons = [
-        {name:' Repo',    icon:'bi-box-seam',       value:'repo', disabled:false},
+        {name:' Repo',    icon:'bi-box-seam',       value:'repo',    disabled:false},
         {name:' Design',  icon:'bi-pencil-square',  value:'design',  disabled:false}, // design_part==null
         {name:' Graph',   icon:'bi-diagram-3',      value:'graph',   disabled:false},
         {name:' Code',    icon:'bi-braces',         value:'code',    disabled:false},
@@ -26,16 +27,16 @@ export function Mode_Bar(){
                     variant: 'outline-primary', //size: 'lg',
                     value: button.value,
                     checked: studio_mode == button.value,
-                    onChange:e=> ss(d=>{
+                    onChange:e=> set_store(d=>{
                         d.studio.mode = e.currentTarget.value
-                        if(d.studio.mode == 'design'){
-                            d.design.show(d); // should this be in NEXT statement ?!?!?!?!?!
-                            d.next('design.update'); 
-                        }
+                        // if(d.studio.mode == 'design'){
+                        //     d.design.show(d); // should this be in NEXT statement ?!?!?!?!?!
+                        //     d.next('design.update'); 
+                        // }
                     }),
                     disabled: button.disabled,
                 }, 
-                    window_size.width>576 ? button.name : '',
+                    (window_width > 576) ? button.name : '',
                 )
             )
         //)

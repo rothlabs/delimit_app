@@ -1,5 +1,4 @@
 import {createElement as c, memo, useRef} from 'react';
-import {useS, gs, useSub, readable} from '../../app.js';
 //import {Text} from '@react-three/drei/Text';
 //import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
@@ -21,6 +20,7 @@ export const Node = memo(({node})=>{
     //console.log('render node');
     return(
         c(View_Transform, {
+            name: 'node',
             //ref: obj,
             position, //[pos.x, pos.y, pos.z],
             size: 14, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items

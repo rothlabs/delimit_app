@@ -1,11 +1,12 @@
 import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
 //import {MeshLineRaycast} from '../../three/MeshLine.js';
 import {useThree, useFrame} from '@react-three/fiber';
-import {useS, gs, useSubS, theme, static_url, readable} from '../../app.js';
+//import {useS, gs, useSubS, theme, static_url, readable} from '../../app.js';
 //import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 import {Line} from '@react-three/drei/Line';
 //import {View_Transform} from '../node/base.js';
+import {use_store} from 'delimit';
 
 const root_pos = new Vector3();
 const stem_pos = new Vector3();
@@ -13,14 +14,15 @@ const offset = new Vector3(0, 0, -1);
 
 export function Edge({root, term, stem}){  // need to make edges their own object in store with reckon function
     //const line = useRef();
-    const color = useS(d=> d.color.border);
-    const rp    = useS(d=> d.graph.node.get(root).pos);
-    const sp    = useS(d=> d.graph.node.get(stem).pos);
+    const color = use_store(d=> d.color.border);
+    const rp    = use_store(d=> d.graph.node.get(root).pos);
+    const sp    = use_store(d=> d.graph.node.get(stem).pos);
     root_pos.copy(rp).add(offset);
     stem_pos.copy(sp).add(offset);
     //console.log('render edge');
     return(
         c(Line, {
+            name: 'edge',
             //ref: line,
             points:[root_pos, stem_pos],//[[rp.x, rp.y, rp.z+z_pos], [sp.x, sp.y, sp.z+z_pos]],       // Array of points, Array<Vector3 | Vector2 | [number, number, number] | [number, number] | number>
             color,                   // Default

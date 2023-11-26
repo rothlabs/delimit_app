@@ -1,12 +1,19 @@
 import {current} from 'immer';
-import { theme } from '../app.js';
+
+export const picked = {
+    repo: new Set(),
+    node: new Set(),
+};
+export const target = {
+    repo: null,
+    node: null,
+};
 
 export const pick = {
     deep: false,
     multi: false,
     box: false,
     node(d, node, a={}){
-        console.log('pick node', a.multi);
         if(a.multi && d.picked.node.has(node)){
             d.picked.node.delete(node);
             return;
@@ -24,6 +31,17 @@ export const pick = {
     },
 };
 
+pick.target = {
+    node(d, node){
+        d.target.node = node;
+    },
+    repo(d, repo, a={}){
+        if(a.weak && d.target.repo) return;
+        d.target.repo = repo;
+    },
+};
+
+
 export const unpick = {
     node(d, node, a={}){
         d.picked.node.delete(node);
@@ -38,18 +56,6 @@ export const unpick = {
         d.picked.repo.clear();
     },
 }
-
-
-pick.target = {
-    node(d, node){
-        d.target.node = node;
-    },
-    repo(d, repo, a={}){
-        if(a.weak && d.target.repo) return;
-        d.target.repo = repo;
-    },
-};
-
 
 // // export const create_pick_slice = (set,get)=>({pick:{
 // //     //reckon_tags: ['point'], // swap name with reckon_tags ?

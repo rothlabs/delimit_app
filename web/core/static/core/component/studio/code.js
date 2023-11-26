@@ -1,12 +1,12 @@
 import {createElement as c, useState} from 'react';
 //import Editor from 'react-simple-code-editor';
 import Editor from '@monaco-editor/react';
-import {ss, useS, gs} from '../../app.js';
+import {set_store, use_store, get_store} from 'delimit';
 
 
 export function Code(){
-    const n = useS(d=> d.pick.n[0]);
-    const d = gs();
+    const n = use_store(d=> d.pick.n[0]);
+    const d = get_store();
     let code = '// Select a Code node to edit.';
     try{
         code = d.n[d.n[n].n.code[0]].v;
@@ -17,7 +17,7 @@ export function Code(){
             defaultLanguage: 'javascript', 
             defaultValue: code,
             onChange: code=>{
-                ss(d=>{
+                set_store(d=>{
                     d.graph.set(d, n, {code});
                 });
             },

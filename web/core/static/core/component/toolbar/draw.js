@@ -1,10 +1,10 @@
 import {createElement as c} from 'react';
 import {ToggleButton, ButtonToolbar} from 'react-bootstrap';
-import {ss, useS} from '../../app.js';
+import {set_store, use_store} from 'delimit';
 
 export function Draw(){
-    const studio_mode = useS(d=> d.studio.mode);
-    const design_mode = useS(d=> d.design.mode);
+    const studio_mode = use_store(d=> d.studio.mode);
+    const design_mode = use_store(d=> d.design.mode);
     const buttons = [
         {name:'Pen',  icon:'bi bi-vector-pen', value:'pen'},
         {name:'Brush', icon:'bi bi-brush', value:'brush'},
@@ -22,7 +22,7 @@ export function Draw(){
                     value: button.value,
                     checked: design_mode == button.value,
                     className: button.icon + ' border-white',
-                    onChange:e=> ss(d=>{
+                    onChange:e=> set_store(d=>{
                         if(d.design.mode == e.currentTarget.value){
                             d.design.mode = '';
                             //d.studio.cursor = '';

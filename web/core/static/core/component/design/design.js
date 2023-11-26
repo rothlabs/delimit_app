@@ -1,42 +1,43 @@
 import {createElement as c, useRef, useEffect, useState} from 'react';
-import {useS, useSS, gs, ss, upper} from '../../app.js';
+import {use_store, get_store} from 'delimit';
+import {upper} from '../../app.js';
 import {View_Transform} from '../node/base.js';
 import {GizmoHelper} from '@react-three/drei/GizmoHelper';
 import {GizmoViewport} from '../../three/GizmoViewport.js';
 import {Mover} from '../studio/mover.js';
 
-import {Curve}     from './curve.js';
-//import {Ellipse}   from '../design/ellipse.js';
-import {Image}     from './image.js';
-import {Layer}     from './layer.js';
-import {Point}     from './point.js';
-//import {Post}      from '../design/post.js';
-import {Shape}     from './shape.js';
-//import {Slice}     from '../design/slice.js';
-import {Sketch}    from './sketch.js';
-import {Surface}   from './surface.js';
-//import {Transform} from '../design/transform.js';
+// import {Curve}     from './curve.js';
+// //import {Ellipse}   from '../design/ellipse.js';
+// import {Image}     from './image.js';
+// import {Layer}     from './layer.js';
+// import {Point}     from './point.js';
+// //import {Post}      from '../design/post.js';
+// import {Shape}     from './shape.js';
+// //import {Slice}     from '../design/slice.js';
+// import {Sketch}    from './sketch.js';
+// import {Surface}   from './surface.js';
+// //import {Transform} from '../design/transform.js';
 
 const design = {
-    Curve, 
-    //Ellipse, 
-    Image, 
-    Layer, 
-    Point, 
-    //Post,
-    Shape, 
-    //Slice, 
-    Sketch, 
-    Surface, 
-    //Transform,
+    // Curve, 
+    // //Ellipse, 
+    // Image, 
+    // Layer, 
+    // Point, 
+    // //Post,
+    // Shape, 
+    // //Slice, 
+    // Sketch, 
+    // Surface, 
+    // //Transform,
 };
 
 function Scene({scene}){
     const n = scene.n;
-    const part = useS(d=> d.n[n].p);
-    const visible = useS(d=> d.n[n].design.vis);
-    let transform = useS(d=> d.n[n].design.transform);
-    const d = gs();
+    const part = use_store(d=> d.n[n].p);
+    const visible = use_store(d=> d.n[n].design.vis);
+    let transform = use_store(d=> d.n[n].design.transform);
+    const d = get_store();
     const component = design[upper(d.n[n].t)] ?? (part && design[upper(part.design)]);
     if(!d.n[n].design.transform || d.design.scene.n == n) transform = {position:[0,0,0], rotation:[0,0,0]};
     return (
@@ -53,14 +54,14 @@ function Scene({scene}){
 export function Design(){
     //const obj = useRef();
     //const [id, set_id] = useState('123');
-    //const nodes = useS(d=> d.design.n);
-    const scene = useS(d=> d.design.scene);
+    //const nodes = use_store(d=> d.design.n);
+    const scene = use_store(d=> d.design.scene);
     // useEffect(()=>{
     //     //if(obj.current) ss(d=> d.design.group = obj.current);
     //     //set_id(Math.random().toString());
     // },[obj]);
-    const d = gs();
-    //const component = d.component[gs().n[part].t];
+    const d = get_store();
+    //const component = d.component[get_store().n[part].t];
     //console.log('render design');//, obj.current?.children);
     return (
         c('group', {
@@ -117,9 +118,9 @@ export function Design(){
 // export const compnt_list = Object.keys(compnt);
 
 // export function Part(){ // check if in design mode
-//     const part = useS(d=> d.design.part);
-//     const d = gs();
-//     const component = d.component[gs().n[part].t];
+//     const part = use_store(d=> d.design.part);
+//     const d = get_store();
+//     const component = d.component[get_store().n[part].t];
 //     //console.log('part render');
 //     return (
 //         component && c(component, {n:part})

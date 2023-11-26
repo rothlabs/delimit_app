@@ -1,10 +1,11 @@
 import {createElement as c, useRef, forwardRef, useState} from 'react';
 import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
-import {useS, useSub, useSubS, ss, gs, fs, sf, mf, rs, readable} from '../../app.js';
+//import {useS, useSub, useSubS, ss, gs, fs, sf, mf, rs, readable} from '../../app.js';
 import {Svg} from '../app/base.js';
 //import {createElement as c, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
 import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
+import {set_store} from 'delimit';
 
 const v1 = new Vector3();
 const v2 = new Vector3();
@@ -22,7 +23,7 @@ export function Pickable({node, penable, brushable, children}){
         pickable: node, // for accessing via three_object.__r3f.memoizedProps.pickable
         onClick(e){ //e.stopPropagation();//e.stopPropagation?.call(); 
             e.stopPropagation();
-            ss(d=>{
+            set_store(d=>{
                 d.pick.node(d, node, {multi:e.ctrlKey});
             });
             // ss(d=>{

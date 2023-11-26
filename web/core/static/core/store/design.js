@@ -1,6 +1,6 @@
 import {current} from 'immer';
 import { Vector3, Euler, Matrix4, CatmullRomCurve3 } from 'three';
-import { rs, theme } from '../app.js';
+
 
 
 export const design = {

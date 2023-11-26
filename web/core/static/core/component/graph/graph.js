@@ -1,12 +1,11 @@
 import {createElement as c, memo, useEffect, useLayoutEffect} from 'react';
 import {Node} from './node.js';
 import {Edge} from './edge.js';
-import {use_store, set_store, get_store} from 'delimit';
+import {use_store, set_store} from 'delimit';
 
 export const Graph = memo(()=>{
     use_store(d=> d.graph.change); 
-    set_store(d=> d.graph.layout(d));
-    const d = get_store();
+    const d = set_store(d=> d.graph.layout(d));
     //console.log('render graph');
     return(
         c('group', {name:'graph'},

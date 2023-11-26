@@ -1,10 +1,10 @@
 import {createElement as c} from 'react';
 import {ToggleButton, ButtonToolbar} from 'react-bootstrap';
-import {ss, useS} from '../../app.js';
+import {set_store, use_store} from 'delimit';
 
 export function Move(){
-    const studio_mode = useS(d=> d.studio.mode);
-    const move_mode = useS(d=> d.design.move.mode);
+    const studio_mode = use_store(d=> d.studio.mode);
+    const move_mode = use_store(d=> d.design.move.mode);
     const buttons = [
         {name:'Move', icon:'bi bi-arrows-move', value:'move'},
     ];
@@ -18,7 +18,7 @@ export function Move(){
                     value: button.value,
                     checked: move_mode == button.value,
                     className: button.icon+ ' border-white',
-                    onChange:e=> ss(d=>{
+                    onChange:e=> set_store(d=>{
                         if(d.design.move.mode == button.value){
                             d.design.move.mode = '';
                         }else{

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 import { Vector2 } from "three"
 import { SelectionBox } from "../../three/SelectionBox.js"
-import { useS } from '../../app.js';
+import { use_store } from 'delimit';
 
 const end_vector = new Vector2();
 const min_delta = 10;
@@ -25,9 +25,9 @@ const getCoords = (clientX, clientY) => [
 //}
 
 export const Pickbox = ({ style, onSelectionChanged }) => {
-  const design_act = useS(d=> d.design.act); // (d.design.moving || d.design.act) (d.design.act==null ? false:true)
-  //const painting = useS(d=> d.design.painting);
-  //const multi = useS(d=> d.pick.multi);
+  const design_act = use_store(d=> d.design.act); // (d.design.moving || d.design.act) (d.design.act==null ? false:true)
+  //const painting = use_store(d=> d.design.painting);
+  //const multi = use_store(d=> d.pick.multi);
 
   const { camera, scene, gl } = useThree()
   const [start, setStart] = useState()

@@ -6,48 +6,49 @@ import {CameraControls} from '@react-three/drei/CameraControls';
 import {Design} from '../design/design.js';
 import {Graph} from '../graph/graph.js';
 //import {Mover} from './mover.js';
-import {useS, ss, useSub, theme, gs, rs} from '../../app.js';
+//import {useS, ss, useSub, theme, gs, set_store} from '../../app.js';
 import {Pickbox} from './pickbox.js'; // selection box
 import {Vector3} from 'three';
+import {set_store, use_store} from 'delimit';
 
 const v1 = new Vector3();
 
 function Viewport_Control(){
     const camera_controls = useRef();
-    const pick_box = useS(d=> d.pick.box);
-    const acting = useS(d=> d.design.act);
-    const studio_mode = useS(d=> d.studio.mode);
+    const pick_box = use_store(d=> d.pick.box);
+    const acting = use_store(d=> d.design.act);
+    const studio_mode = use_store(d=> d.studio.mode);
     const {camera} = useThree(); 
-    useEffect(()=>rs(d=>{
+    useEffect(()=>{ set_store(d=>{
         d.camera_controls = camera_controls.current;
-        d.camera = camera;
-        d.camera_controls.addEventListener('controlend', (e)=>rs(d=>{
-            if(d.cam_info.dir.dot(camera.getWorldDirection(v1)) < 1){
-                d.cam_info = {matrix: camera.matrix, dir:camera.getWorldDirection(v1).clone()};
-            }
-        }));
-        d.camera_controls.addEventListener('control', ()=>rs(d=>{ // need to remove listener ?!?!?!?!
-            if(d.studio.mode=='graph' && d.design.part){
-                d.graph.c_c = {
+        //d.camera = camera;
+        // d.camera_controls.addEventListener('controlend', e=>set_store(d=>{
+        //     if(d.cam_info.dir.dot(camera.getWorldDirection(v1)) < 1){
+        //         d.cam_info = {matrix: camera.matrix, dir:camera.getWorldDirection(v1).clone()};
+        //     }
+        // }));
+        d.camera_controls.addEventListener('control', ()=>set_store(d=>{ // need to remove listener ?!?!?!?!
+            if(d.studio.mode == 'graph'){
+                d.graph.view = {
                     azimuth: d.camera_controls.azimuthAngle,
                     polar: d.camera_controls.polarAngle,
                     pos: d.camera_controls.getTarget(),
                     zoom: camera.zoom,
-                    matrix: camera.matrix.clone(),
-                    dir: camera.getWorldDirection(v1).clone(),
+                    //matrix: camera.matrix.clone(),
+                    //dir: camera.getWorldDirection(v1).clone(),
                 };
-            }else if(d.studio.mode=='design'){
-                d.n[d.design.part].c_c = {
-                    azimuth: d.camera_controls.azimuthAngle,
-                    polar: d.camera_controls.polarAngle,
-                    pos: d.camera_controls.getTarget(),
-                    zoom: camera.zoom,
-                    matrix: camera.matrix.clone(),
-                    dir: camera.getWorldDirection(v1).clone(),
-                };
+            }else if(d.studio.mode=='design'){ //  && d.design.part
+                // d.n[d.design.part].c_c = {
+                //     azimuth: d.camera_controls.azimuthAngle,
+                //     polar: d.camera_controls.polarAngle,
+                //     pos: d.camera_controls.getTarget(),
+                //     zoom: camera.zoom,
+                //     matrix: camera.matrix.clone(),
+                //     dir: camera.getWorldDirection(v1).clone(),
+                // };
             }
         }));
-    }),[camera_controls]);
+    })},[camera_controls]);
     return(c('group', {name:'viewport_parts'}, 
         c(CameraControls, {
             ref: camera_controls,
@@ -64,7 +65,7 @@ function Viewport_Control(){
                 border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",
                 position: "fixed",
             },
-            onSelectionChanged:objs=>ss(d=>{ // key pressing making this fire ?!?!?!?! wtf
+            onSelectionChanged:objs=>set_store(d=>{ // key pressing making this fire ?!?!?!?! wtf
                 if(!d.pick.multi) d.pick.none(d);
                 const nodes = [];
                 objs.forEach(obj=>{
@@ -78,21 +79,24 @@ function Viewport_Control(){
 }
 
 export function Viewport(){ // for some reason this renders 5 times on load
+    const scene = useRef();
     const light = useRef();
-    const {scene, camera} = useThree(); // raycaster 
-    const studio_mode = useS(d=> d.studio.mode);
+    const {camera} = useThree(); // raycaster 
+    const studio_mode = use_store(d=> d.studio.mode);
     useEffect(()=>{
-        rs(d=>{
+        set_store(d=>{
             if(d.camera_controls){
-                var cc = null;
-                if(studio_mode=='graph'){ cc = d.graph.c_c }
-                else if(studio_mode=='design'){ cc = d.n[d.design.part].c_c }
-                if(cc){
-                    d.camera_controls.rotateTo(cc.azimuth, cc.polar);
-                    d.camera_controls.moveTo(cc.pos.x, cc.pos.y, cc.pos.z);
-                    d.camera_controls.zoomTo(cc.zoom);
-                    d.cam_info = {matrix: cc.matrix, dir:cc.dir};
+                //console.log('Viewport use effect');
+                let view = null;
+                if(studio_mode=='graph'){ view = d.graph.view }
+                //else if(studio_mode=='design'){ view = d.n[d.design.part].c_c }
+                if(view){
+                    d.camera_controls.rotateTo(view.azimuth, view.polar);
+                    d.camera_controls.moveTo(view.pos.x, view.pos.y, view.pos.z);
+                    d.camera_controls.zoomTo(view.zoom);
+                    //d.cam_info = {matrix:view.matrix, dir:view.dir};
                 }else{
+                    // maybe fit to view here #1
                     d.camera_controls.rotateTo(0,Math.PI/2);
                     d.camera_controls.moveTo(0,0,0);
                     d.camera_controls.zoomTo(1);
@@ -102,19 +106,20 @@ export function Viewport(){ // for some reason this renders 5 times on load
         });
     },[studio_mode]);
     useEffect(()=>{
-        rs(d=> d.scene = scene);
-        scene.add(camera);
+        set_store(d=> d.scene = scene.current);
+        //scene.add(camera);
         camera.add(light.current);
     },[]);
-    const d = gs();
+    //const d = gs();
     //console.log('render viewport');
     return (
         c('group', {
+            ref: scene,
             name:'viewport',
             onPointerMissed(e){
                 e.stopPropagation();
                 if(e.which != 1) return;
-                rs(d=> d.unpick.all(d));
+                set_store(d=> d.unpick.all(d));
             },
         }, 
             c(Viewport_Control),

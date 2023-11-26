@@ -1,14 +1,12 @@
 import {createElement as c, Fragment} from 'react';
 import {Row, Col, Container, ToggleButton, ButtonGroup, Button, Badge} from 'react-bootstrap';
-
-//import {Group} from './group.js';
-import {useS, gs, ss, rs, use_window_size} from '../../app.js';
+import {use_store, set_store} from 'delimit';
 
 
 export function Panel_Bar(){
     //const mode = useS(d=> d.studio.mode);
     // const design_candidate = useS(d=> d.design.candidate);
-    const panel_mode = useS(d=> d.studio.panel.mode);
+    const panel_mode = use_store(d=> d.studio.panel.mode);
     const buttons = [
         {name:'Make',    icon:'bi-plus-square', value:'make',    disabled:false},
         {name:'Inspect', icon:'bi-file-ruled',  value:'inspect', disabled:false}, 
@@ -25,7 +23,7 @@ export function Panel_Bar(){
             disabled: button.disabled,
             value: button.value,
             checked: panel_mode == button.value,
-            onChange:e=> rs(d=>{
+            onChange:e=> set_store(d=>{
                 if(panel_mode == button.value){
                     d.studio.panel.mode = '';
                 }else{

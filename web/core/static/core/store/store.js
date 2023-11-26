@@ -1,7 +1,7 @@
 import {current} from 'immer';
 import {Vector3, Matrix4} from 'three';
 import * as THREE from 'three';
-import {static_url, ctx} from '../app.js';
+//import {static_url} from '../app.js';
 import lodash from 'lodash';
 import {face} from './face.js';
 import * as theme from './theme.js';
@@ -11,25 +11,19 @@ import {graph} from './graph.js';
 import {make} from './make.js';
 import {drop} from './drop.js';
 
-console.log(theme);
+//console.log(theme);
+
+const ctx = JSON.parse(document.getElementById('ctx').text);
 
 var next_funcs = [];
 var next_ids = [];
 
 
-export const create_base_slice = (set,get)=>({
+export const store = {//export const create_base_slice = (set,get)=>({
     mode: ctx.entry,
     team: new Map(),
     repo: new Map(),
     node: new Map(),
-    picked:{
-        repo: new Set(),
-        node: new Set(),
-    },
-    target:{
-        repo: null,
-        node: null,
-    },
     studio:{
         mode: 'repo',
         repo: {},
@@ -51,7 +45,7 @@ export const create_base_slice = (set,get)=>({
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
     point_size: 6,
     easel_size: 400,
-    cam_info: {matrix: new Matrix4(), dir: new Vector3()},
+    //cam_info: {matrix: new Matrix4(), dir: new Vector3()},
     scene: null,
 
     user_id: 0,
@@ -59,31 +53,71 @@ export const create_base_slice = (set,get)=>({
     
     init(d){
         d.root = d.make.node(d);
-        console.log('root node', d.root);
-        d.make.edge(d, d.root, 'name', {type:'xsd:string', leaf:'root'});
+        d.make.edge(d, d.root, 'name', {type:'xsd:string', value:'root'});
         d.base_texture = new THREE.TextureLoader().load(
-            static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
+            d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
         );
         d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
         d.base_texture.anisotropy = 16;
         d.theme.compute(d);
     },
 
-    leaf(d, node, path, alt){
+    mutate:{
+        leaf(d, root, term, indx, value){
+            const leaf = d.node.get(root).forw.get(term)[indx];
+            if(leaf.type == 'xsd:boolean' && typeof value == 'boolean'){
+                leaf.value = value;
+            }else if(leaf.type == 'xsd:integer' && typeof value == 'string'){
+                if((!isNaN(value) && parseInt(value) == value) || value=='-'){
+                    leaf.value = parseInt(value);
+                }
+            }else if(leaf.type == 'xsd:decimal' && typeof value == 'string'){
+                if((!isNaN(value) && parseFloat(value) == value) || ['.', '-', '-.'].includes(value)){
+                    leaf.value = parseFloat(value);
+                }
+            }else if(leaf.type == 'xsd:string' && typeof value == 'string'){
+                leaf.value = value;
+            }
+        },
+    },
+
+    leaf_node(d, root){
+        try{
+            const forw = d.node.get(root).forw;
+            if(forw.size != 1) return false;
+            const node = forw.get('leaf')[0];
+            if(node.type) return node;
+        }catch{}
+    },
+    leaf_term(d, root, term){
+        try{
+            const stems = d.node.get(root).forw.get(term);
+            if(stems.length != 1) return false;
+            if(stems[0].type) return stems[0];
+        }catch{}
+    },
+    leaf_node_term(d, root, term){
+        try{
+            const stems = d.node.get(root).forw.get(term);
+            if(stems.length != 1) return false;
+            return {root:stems[0], leaf:d.leaf_node(d, stems[0])};
+        }catch{}
+    },
+
+    value(d, node, path, alt){ // rename to value
         for(const pth of d.array(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).forw.get(term)[0];
                 }
-                if(node.leaf != null) return node.leaf;
-                const result = d.node.get(node).forw.get('leaf')[0].leaf;
-                if(result != null) return result; 
+                if(node.type) return node.value;
+                node = d.node.get(node).forw.get('leaf')[0];
+                if(node.type) return node.value;
             }catch{}
         }
         return alt;
     },
-
-    list(d, node, path, alt){
+    stems(d, node, path, alt){ // rename to stems?
         try{
             const terms = path.split(' ');
             const last_term = terms.pop();
@@ -113,37 +147,6 @@ export const create_base_slice = (set,get)=>({
         }
     },
 
-    add(array, item){ // static upgrade to do deep compare to find same object ?!?!?!?!
-        if(array.indexOf(item) === -1){
-            array.push(item);
-            return true;
-        }
-        return false;
-    },
-    pop(array, item){ // static
-        const index = array.indexOf(item);
-        if(index !== -1) array.splice(index, 1);
-        return index;
-    },
-    add_nc(array, item){ // item in the form of {n:n, c:c}
-        const target = array.find(v=> v.n==item.n);
-        if(target) target.c = item.c;
-        else array.push(item);
-    },
-    pop_nc(array, item){
-        const target = array.find(v=> v.n==item.n);
-        if(target){
-            array.splice(array.indexOf(target), 1);
-            return true;
-        }
-        return false;
-    },
-    // for(arg, func){ // need ability to break !!!!!!
-    //     if(arg != undefined){
-    //         if(Array.isArray(arg)){arg.forEach((a,i)=> func(a,i))}
-    //         else                  {func(arg,0)}
-    //     }
-    // },
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
@@ -267,7 +270,7 @@ export const create_base_slice = (set,get)=>({
                 const r = triple.root;
                 const t = triple.term.slice(8);
                 let s = triple.stem;
-                if(s['@type']) s = {type:s['@type'], leaf:s['@value']};
+                if(s['@type']) s = {type:s['@type'], value:s['@value']};
                 d.make.edge(d, r, t, s, {given:true});
                 if(t == 'delimit'){
                     d.make.edge(d, d.root, 'delimit', r, {given:true})
@@ -285,9 +288,46 @@ export const create_base_slice = (set,get)=>({
             d.repo.delete(repo);
         },
     },
-});
+};//);
 
 
+
+
+
+
+
+
+    // add(array, item){ // static upgrade to do deep compare to find same object ?!?!?!?!
+    //     if(array.indexOf(item) === -1){
+    //         array.push(item);
+    //         return true;
+    //     }
+    //     return false;
+    // },
+    // pop(array, item){ // static
+    //     const index = array.indexOf(item);
+    //     if(index !== -1) array.splice(index, 1);
+    //     return index;
+    // },
+    // add_nc(array, item){ // item in the form of {n:n, c:c}
+    //     const target = array.find(v=> v.n==item.n);
+    //     if(target) target.c = item.c;
+    //     else array.push(item);
+    // },
+    // pop_nc(array, item){
+    //     const target = array.find(v=> v.n==item.n);
+    //     if(target){
+    //         array.splice(array.indexOf(target), 1);
+    //         return true;
+    //     }
+    //     return false;
+    // },
+    // // for(arg, func){ // need ability to break !!!!!!
+    // //     if(arg != undefined){
+    // //         if(Array.isArray(arg)){arg.forEach((a,i)=> func(a,i))}
+    // //         else                  {func(arg,0)}
+    // //     }
+    // // },
 
 
 

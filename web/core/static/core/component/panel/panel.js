@@ -1,12 +1,12 @@
 import {createElement as c, useEffect, useState, Fragment} from 'react';
 import {Container, CloseButton, Row, Col, ButtonToolbar} from 'react-bootstrap';
-import {ss, gs, useS, use_window_size, static_url} from '../../app.js';
-import {Make_Node}    from './make_node.js';
+import {use_store} from 'delimit';
+import {Make_Node} from './make_node.js';
 import {Make_Repo} from './make_repo.js';
 import {Inspect} from './inspect.js';
 import {Modules} from './modules.js';
 import {Display} from './display.js';
-import {Badge} from '../node/base.js'
+//import {Badge} from '../node/base.js'
 // import {Visible} from '../toolbar/visible.js';
 // import {Remake} from '../toolbar/remake.js';
 // import {Apply} from '../toolbar/apply.js';
@@ -14,9 +14,9 @@ import {Badge} from '../node/base.js'
 // import {Close} from '../toolbar/close.js';
 
 export function Panel(){ 
-    const studio_mode = useS(d=> d.studio.mode);
+    const studio_mode = use_store(d=> d.studio.mode);
     //const show = useS(d=> d.studio.panel.show);
-    const mode = useS(d=> d.studio.panel.mode);
+    const mode = use_store(d=> d.studio.panel.mode);
     //if(!show) return false;
     if(mode == 'make'){
         if(studio_mode == 'repo') return c(Make_Repo);
@@ -24,7 +24,7 @@ export function Panel(){
     }
     if(mode == 'inspect') return c(Inspect);
     if(mode == 'modules') return c(Modules);
-    if(mode == 'display') return c(Display);
+    //if(mode == 'display') return c(Display);
     return false;
 }
 

@@ -2,8 +2,9 @@ import {createElement as r, useState, Fragment, useEffect} from 'react';
 import {Button, Modal, Form, Row, InputGroup} from 'react-bootstrap';
 import {makeVar, useReactiveVar} from '../../apollo/ApolloClient.js';//'@apollo/client';
 import {Logo} from './logo.js';
-import {gs, ss, rs, useS, use_mutation, gql_client} from '../../app.js';
+//import {gs, ss, rs, useS, use_mutation, gql_client} from '../../app.js';
 import {useNavigate} from 'react-router-dom';
+import {use_mutation, gql_client} from 'delimit';
 
 export const show_login = makeVar(false);
 
@@ -17,8 +18,6 @@ export function Login(){
             ['String! password', password]
         ],
     ], {refetchQueries:['GetUser'], onCompleted:data=>{
-        const d = gs();
-        if(d.open_pack) d.open_pack();
         if(data.login.user) setTimeout(()=> show_login(false), 1500);
     }});
     useEffect(()=>{
@@ -68,12 +67,7 @@ export function Logout(){
     const [logout, {loading, data, reset}] = use_mutation('Logout',[
         ['logout reply user{firstName}'],
     ], {refetchQueries:['GetUser'], onCompleted:data=>{
-        if(gs().close_pack){
-            rs(d=>{
-                
-            }); 
-            gql_client.resetStore();
-        }
+        gql_client.resetStore();
         setTimeout(()=> show_logout(false), 1500);
     }});
     //if(data) setTimeout(()=> show_logout(false), 1500);

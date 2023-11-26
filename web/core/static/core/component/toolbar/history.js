@@ -1,6 +1,6 @@
 import {createElement as c} from 'react';
 import {Button, ButtonGroup} from 'react-bootstrap';
-import {undo, redo} from '../../app.js';
+import {undo, redo} from 'delimit';
 
 export function History(){
     const mode_buttons = [

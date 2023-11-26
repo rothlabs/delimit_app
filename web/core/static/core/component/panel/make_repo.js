@@ -1,6 +1,6 @@
-import {createElement as c, Fragment, useState} from 'react';
-import {Row, Col, Button, Container, InputGroup, Form} from 'react-bootstrap';
-import {useS, gs, ss, rs, use_mutation} from '../../app.js'
+import {createElement as c, useState} from 'react';
+import {Col, Button, InputGroup, Form} from 'react-bootstrap';
+import {set_store, use_mutation} from 'delimit';
 
 export function Make_Repo(){
     const [name, set_name] = useState('');
@@ -37,7 +37,7 @@ export function Make_Repo(){
                 className: 'mb-2 bi-box-seam',
                 onClick:e=>{ 
                     make_repo({variables:{name, description}});
-                    rs(d=> d.studio.panel.show = false);
+                    set_store(d=> d.studio.panel.show = false);
                 },
             }, 
                 ' Make Repo'

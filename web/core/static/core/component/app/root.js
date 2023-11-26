@@ -4,16 +4,16 @@ import {Outlet, Link, useNavigate} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
-import {ss, rs, use_query, useS, use_window_size} from '../../app.js';
 import {Mode_Bar} from '../studio/mode_bar.js';
 import { Confirm } from './confirm.js';
+import {set_store, use_store, use_query, use_window_size} from 'delimit';
 
 export function Root(){
-    const mode      = useS(d=> d.mode);
-    const theme_mode = useS(d=> d.theme.mode);
-    //const studio_mode = useS(d=> d.studio.mode);
+    const mode      = use_store(d=> d.mode);
+    const theme_mode = use_store(d=> d.theme.mode);
+    //const studio_mode = use_store(d=> d.studio.mode);
     const navigate = useNavigate();
-    const window_size = use_window_size(); 
+    const [window_width] = use_window_size(); 
     const buttons = [
         {name:'Shop',  icon:'bi-bag',  value:'shop'},
         {name:'Studio', icon:'bi-palette2', value:'studio'}, 
@@ -33,7 +33,7 @@ export function Root(){
                 c(Row, {}, 
                     c(Col, {className:'col-auto ms-1 mt-1',
                         role: 'button',
-                        onClick:e=> rs(d=>{
+                        onClick:e=> set_store(d=>{
                             d.mode = '/';
                             navigate(d.mode);
                         }),
@@ -49,12 +49,12 @@ export function Root(){
                                 variant: 'outline-primary', //size: 'lg',
                                 value: button.value,
                                 checked: mode == button.value,
-                                onChange:e=> rs(d=>{
+                                onChange:e=> set_store(d=>{
                                     d.mode = e.currentTarget.value;
                                     navigate(d.mode);
                                 }),
                             }, 
-                                window_size.width > 576 ? ' '+button.name : '',
+                                window_width > 576 ? ' '+button.name : '',
                             )
                         ),
                         mode=='studio' && [c('span', {className:'ms-4 me-4 text-primary'}), c(Mode_Bar)],
@@ -66,7 +66,7 @@ export function Root(){
                             type:'checkbox', variant:'outline-primary', 
                             checked: theme_mode=='dark',
                             className: 'border-0 bi-moon',
-                            onChange:e=> rs(d=> d.theme.toggle_mode(d)),
+                            onChange:e=> set_store(d=> d.theme.toggle_mode(d)),
                         }),
                         c(Account_Menu),
                         // !data ? status && c(status) : 
@@ -86,7 +86,7 @@ function Account_Menu(){
     const {data} = use_query('GetUser', [
         ['user id firstName'],
     ],{onCompleted:data=>{
-        try{ console.log('set user id'); rs(d=> d.user_id = data.user.id); }
+        try{ set_store(d=> d.user_id = data.user.id); }
         catch(e){ console.log('Error fetching user info'); }
     }});
     if(!data) return 'Loading';
@@ -103,14 +103,14 @@ function Account_Menu(){
 
 
 function Account_Button({button}){
-    const window_size = use_window_size();
+    const [window_width] = use_window_size();
     return( 
         c(Button,{
             className: 'border-0 '+button.icon,
             variant: 'outline-primary', 
             onClick:e=> button.func(),
         }, 
-            window_size.width > 576 ? ' '+button.name() : ''
+            window_width > 576 ? ' '+button.name() : ''
         )
     )
 }

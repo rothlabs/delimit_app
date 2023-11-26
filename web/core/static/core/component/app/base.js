@@ -1,6 +1,6 @@
 import {createElement as c, useState} from 'react';
 import {Row, Col, Button, Container} from 'react-bootstrap';
-import { theme } from '../../app.js';
+import {use_store} from 'delimit';
 
 export function Svg({svg, color, className}) { 
     const colored_svg = svg.replace('fill="currentColor"', 
@@ -12,7 +12,8 @@ export function Svg({svg, color, className}) {
 }
 
 export function Svg_Button({svg, text, func}){
-	const [svg_color, set_svg_color] = useState(theme.primary);
+    const primary_color = use_store(d=> d.color.primary);
+	const [svg_color, set_svg_color] = useState(primary_color);
 	return(
 		c(Button, {
 			//id:'make_'+text,
@@ -24,7 +25,7 @@ export function Svg_Button({svg, text, func}){
 				set_svg_color('white');//console.log('hover');
 			},
 			onPointerLeave: e=> {
-				set_svg_color(theme.primary);//console.log('hover');
+				set_svg_color(primary_color);//console.log('hover');
 			},
 		}, 
 			c(Row, {xs:'auto'},

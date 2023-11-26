@@ -1,19 +1,7 @@
-import {createElement as c, Fragment} from 'react';
-import {Row, Col, ButtonToolbar, Button, Accordion} from 'react-bootstrap';
+import {createElement as c, Fragment, useState} from 'react';
+import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
 import {DragDropContext} from 'react-beautiful-dnd';
-import {ss, gs, useS, useSS, use_window_size} from '../../app.js';
-import {Visible} from '../toolbar/visible.js';
-import {Remake} from '../toolbar/remake.js';
-import {Apply} from '../toolbar/apply.js';
-import {Delete} from '../toolbar/delete.js';
-import {Close} from '../toolbar/close.js';
-//import {Badge} from '../node/base.js'
-//import {Cat_Badge} from '../../node/base.js'
-import {Boolean} from '../node/input/boolean.js';
-import {Integer} from '../node/input/integer.js';
-import {Decimal} from '../node/input/decimal.js';
-import {String} from '../node/input/string.js';
-import {Stem} from '../node/input/stem.js';
+import {use_store, get_store, set_store, Svg} from 'delimit';
 
 //https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
 
@@ -35,11 +23,16 @@ import {Stem} from '../node/input/stem.js';
 // if first level is grouped, second level still will not be grouped
 
 export function Inspect(){ 
-    useS(d=> d.graph.change);
-    const nodes = useSS(d=> [...d.picked.node]);
+    use_store(d=> d.graph.change);
+    const nodes = use_store(d=> [...d.picked.node]); //{shallow:true}
+    //const d = get_store();
+    // const header_color_list = (keys=[]) => {
+    //     return nodes.map(n=> keys.includes(n) ? d.color.primary : d.color.body_fg);
+    // }
+    // const [header_color, set_header_color] = useState(header_color_list());
     //rs(d=> d.inspect.update(d));
 
-    const d = gs();
+
     // const onDragEnd = result=>{
     //     const {source, destination} = result;
     //     ss(d=> d.reorder.stem(d, 
@@ -50,19 +43,16 @@ export function Inspect(){
     //     ));
     // };
     return(
-        c(Accordion, {className:'ms-2 mt-2', defaultActiveKey:['0'], alwaysOpen:true},
-            nodes.map((node,i)=>
-                c(Accordion.Item, {eventKey:i},
-                    c(Accordion.Header, {}, d.face.name(d, node) + '('+d.face.tag(d, node)+')'),
-                    c(Accordion.Body, {}, `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-                    minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                    aliquip ex ea commodo consequat. Duis aute irure dolor in
-                    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                    culpa qui officia deserunt mollit anim id est laborum.`),
-                )
-            )
+        c(Accordion, {
+            className:'ms-2 mt-2', 
+            defaultActiveKey:['0'], 
+            alwaysOpen:true,
+            onSelect(keys){
+                //set_header_color(header_color_list(keys));
+            }
+        },
+            //nodes.map(root=> c(Node, {root, key:root})),
+            nodes.map(root=> c(Node_Junction, {root, key:root})),
         )
             // c(ButtonToolbar, {className:'gap-2 mb-3'},
             //     c(Visible),
@@ -81,7 +71,184 @@ export function Inspect(){
     )
 }
 
+function Node({root}){
+    const icon     = use_store(d=> d.face.icon(d, root));
+    const tag      = use_store(d=> d.face.tag(d, root));
+    const name     = use_store(d=> d.face.name(d, root));
+    const color    = use_store(d=> d.color.body_fg);
+   // const root_obj = use_store(d=> d.node.get(root));
+    const terms    = use_store(d=> [...d.node.get(root).forw.keys()]); //use_store(d=> [...d.forw(d, node)]);
+    //const d = get_store();
+    return(
+        c(Accordion.Item, {
+            eventKey: root,
+            className: 'border-0',
+        },
+            c(Accordion.Header, {}, 
+            c(Svg, {svg:icon, color, className:'me-2'}), //color:header_color[i] ?? d.color.body_fg
+            name + ' ('+tag+')',
+            ),
+            c(Accordion.Body, {
+                className:'p-0 ps-4', 
+            }, 
+                c(Accordion, {
+                    defaultActiveKey:['0'], 
+                    alwaysOpen:true,
+                    onSelect(keys){
+                        //set_header_color(header_color_list(keys));
+                    }
+                },
+                    terms.map(term=> c(Term_Junction, {root, term, key:root+term})),
+                ),
+            ),
+        )
+    )
+}
 
+function Term_Junction({root, term}){
+    const leaf_node_term = use_store(d=> d.leaf_node_term(d, root, term));
+    const leaf_term = use_store(d=> d.leaf_term(d, root, term));
+    if(leaf_node_term.leaf){
+        console.log('leaf node term');
+        return(
+            //c('div', {
+            //    className: 'p-2 border bg-info-subtle',
+            //},
+                c(Leaf, {root:leaf_node_term.root, term:'leaf', indx:0, root_term:term, leaf_node:true})
+            //)
+        ) //c(Leaf_Term, {root, term});
+    }else if(leaf_term){
+        return(
+            // c('div', {
+            //     className: 'p-2 border bg-primary-subtle',
+            // },
+                c(Leaf, {root, term, indx:0, root_term:term})
+            //)
+        ) //c(Leaf_Term, {root, term});
+    }
+    return c(Stems_Term, {root, term});
+}
+
+function Stems_Term({root, term}){
+    const stems = use_store(d=> d.node.get(root).forw.get(term));
+    const d = get_store();
+    return(
+        c(Accordion.Item, {
+            eventKey:term,
+            className: 'border-0',
+        },
+            c(Accordion.Header, {}, 
+                term,
+            ),
+            c(Accordion.Body, {
+                className:'p-0 ps-4', 
+            }, 
+                stems.map((stem, indx)=>{
+                    const key = term + stem;
+                    if(stem.type) return c(Leaf, {root, term, indx, key});
+                    //if(d.node.has(stem)) return c(Node, {root:stem, key}); // should check if leaf_node !!!
+                    if(d.node.has(stem)) return c(Node_Junction, {root:stem, key});
+                }),
+            ),
+        )
+    )
+}
+
+function Node_Junction({root}){
+    const leaf_node = use_store(d=> d.leaf_node(d, root));
+    if(leaf_node){
+        return(
+            //c('div', {
+             //   className: 'p-2 border bg-secondary-subtle',
+            //},
+                c(Leaf, {root, term:'leaf', indx:0, root_term:'', leaf_node:true})
+            //)
+        ) //c(Leaf_Term, {root, term});
+    }
+    return c(Node, {root});
+}
+
+function Leaf({root, term, indx, root_term, leaf_node}){
+    const leaf = use_store(d=> d.node.get(root).forw.get(term)[indx]);
+    return(
+        c(InputGroup, {}, //className:'mb-2' 
+            root_term && c(InputGroup.Text, {}, root_term),
+            leaf_node && c(InputGroup.Text, {className:'bi-box'}, ''),
+            leaf.type == 'xsd:boolean'
+                ? c(Form.Check, {
+                    className:'flex-grow-1 ms-2 mt-2', //4 mt-2 me-4 
+                    //style: {transform:'scale(1.8);'},
+                    type:     'switch',
+                    //label:    readable(t), 
+                    //disabled: !asset, 
+                    checked: leaf.value, 
+                    onChange(e){
+                        set_store(d=> d.mutate.leaf(d, root, term, indx, e.target.checked));
+                    }, 
+                })
+                : c(Form.Control, {
+                    ///////// as:area_tags.includes(t) ? 'textarea' : 'input', 
+                    ///////// maxLength:64,
+                    ///////// placeholder:placeholder,  
+                    ///////// disabled:!asset, 
+                    value: leaf.value, 
+                    onChange(e){
+                        set_store(d=> d.mutate.leaf(d, root, term, indx, e.target.value));
+                    }, 
+                })
+            ///c(Buttons, {t:t}),
+        )
+    )
+}
+
+// // ? c(Boolean_Input, {root, term, indx, leaf}) 
+// //                 : c(String_Input, {root, term, indx, leaf}),
+
+// function Boolean_Input({root, term, indx, leaf}){
+//     return(
+//         c(Form.Check, {
+//             className:'flex-grow-1 ms-2 mt-2', //4 mt-2 me-4 
+//             //style: {transform:'scale(1.8);'},
+//             type:     'switch',
+//             //label:    readable(t), 
+//             //disabled: !asset, 
+//             checked: leaf.value, 
+//             onChange(e){
+//                 set_store(d=> d.mutate.leaf(d, root, term, indx, e.target.checked));
+//             }, 
+//         })
+//     )
+// }
+
+// function String_Input({root, term, indx, leaf}){
+//     return(
+//         c(Form.Control, {
+//             ///////// as:area_tags.includes(t) ? 'textarea' : 'input', 
+//             ///////// maxLength:64,
+//             ///////// placeholder:placeholder,  
+//             ///////// disabled:!asset, 
+//             value: leaf.value, 
+//             onChange(e){
+//                 set_store(d=> d.mutate.leaf(d, root, term, indx, e.target.value));
+//             }, 
+//         })
+//     )
+// }
+
+
+
+// import {Visible} from '../toolbar/visible.js';
+// import {Remake} from '../toolbar/remake.js';
+// import {Apply} from '../toolbar/apply.js';
+// import {Delete} from '../toolbar/delete.js';
+// import {Close} from '../toolbar/close.js';
+// //import {Badge} from '../node/base.js'
+// //import {Cat_Badge} from '../../node/base.js'
+// import {Boolean} from '../node/input/boolean.js';
+// import {Integer} from '../node/input/integer.js';
+// import {Decimal} from '../node/input/decimal.js';
+// import {String} from '../node/input/string.js';
+// import {Stem} from '../node/input/stem.js';
 
 
 

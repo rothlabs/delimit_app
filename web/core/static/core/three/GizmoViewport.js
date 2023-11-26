@@ -2,7 +2,7 @@ import * as React from "react"
 import { useThree } from "@react-three/fiber"
 import { CanvasTexture } from "three"
 //import { useGizmoContext } from "@react-three/drei/GizmoHelper"
-import {gs, ss} from '../app.js';
+import {get_store, set_store} from 'delimit';
 
 function Axis({ scale = [0.8, 0.05, 0.05], color, rotation }) {
   return (
@@ -105,7 +105,7 @@ export const GizmoViewport = ({
     onPointerDown: !disabled 
       ? e => {
             e.stopPropagation();
-            ss(d=>{
+            set_store(d=>{
                 if(e.object.position.x==1)  d.camera_controls.rotateTo(Math.PI/2, Math.PI/2);
                 if(e.object.position.x==-1) d.camera_controls.rotateTo(-Math.PI/2, Math.PI/2);
                 if(e.object.position.y==1)  d.camera_controls.rotateTo(0, 0);

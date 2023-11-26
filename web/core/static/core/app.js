@@ -1,5 +1,5 @@
 //import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql, createHttpLink} from '@apollo/client'; // apollo // gql  createHttpLink
-import {ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql, createHttpLink} from './apollo/ApolloClient.js';
+import {ApolloClient, InMemoryCache, ApolloProvider, createHttpLink} from './apollo/ApolloClient.js';
 import {setContext} from './apollo/ApolloContext.js';//'@apollo/client/link/context';//'aclc';
 //import {createUploadLink} from 'auc';
 import Cookie from "js-cookie";
@@ -14,16 +14,11 @@ import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
 import {extend} from '@react-three/fiber';
 import {Text} from './troika/troika-three-text.js';
-import {produce, applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'immer'; 
-enableMapSet();
-enablePatches();
-import {create} from 'zustand';
-import {subscribeWithSelector} from 'zustand/middleware';//'zmiddle';
-import {shallow} from 'zustand/shallow';//'shallow';
+
 //import { DndProvider } from 'react-dnd';
 //import { HTML5Backend } from 'react-dnd-html5-backend';
 
-import {create_base_slice} from './store/base.js';
+//////////import {create_base_slice} from './store/store.js';
 //import {create_graph_slice} from './store/graph.js';
 //import {create_pick_slice} from './store/pick.js';
 //import {create_inspect_slice} from './store/inspect.js';
@@ -43,44 +38,41 @@ extend({Text});
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
-export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
+//export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
 //export const canvas = document.getElementById('buffer_canvas');
 
 //export const base_font = static_url+'font/Inter-Medium.ttf';
 
 ColorManagement.enabled = true;
-const style = getComputedStyle(document.body);
-// export const color = {
-//     color:
-// }
-export const theme = {
-    bg_body: style.getPropertyValue('--bs-body-bg'),
+// const style = getComputedStyle(document.body);
+// export const theme = {
+//     bg_body: style.getPropertyValue('--bs-body-bg'),
 
-    primary: style.getPropertyValue('--bs-primary'),//new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)),
-    primary_s: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertLinearToSRGB(),
-    primary_l: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertSRGBToLinear(),
-    secondary: style.getPropertyValue('--bs-secondary'), // new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)),
-    secondary_s: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertLinearToSRGB(),
-    secondary_l: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertSRGBToLinear(),
-    success: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)), 
-    success_s: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertLinearToSRGB(), 
-    success_l: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertSRGBToLinear(), 
-    info: style.getPropertyValue('--bs-info'), // new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)),
-    info_s: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertLinearToSRGB(),
-    info_l: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertSRGBToLinear(),
-    warning: style.getPropertyValue('--bs-warning'), // warning: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)),
-    warning_s: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertLinearToSRGB(),
-    warning_l: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertSRGBToLinear(),
-    danger: style.getPropertyValue('--bs-danger'), // danger: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)),
-    danger_s: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertLinearToSRGB(),
-    danger_l: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertSRGBToLinear(),
-    light: style.getPropertyValue('--bs-light'), // light: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)),
-    light_s: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertLinearToSRGB(),
-    light_l: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertSRGBToLinear(),
-    dark: style.getPropertyValue('--bs-dark'), // dark: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)),
-    dark_s: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertLinearToSRGB(),
-    dark_l: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertSRGBToLinear(),
-};
+//     primary: style.getPropertyValue('--bs-primary'),//new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)),
+//     primary_s: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertLinearToSRGB(),
+//     primary_l: new Color(parseInt(style.getPropertyValue('--bs-primary').replace("#","0x"),16)).convertSRGBToLinear(),
+//     secondary: style.getPropertyValue('--bs-secondary'), // new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)),
+//     secondary_s: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertLinearToSRGB(),
+//     secondary_l: new Color(parseInt(style.getPropertyValue('--bs-secondary').replace("#","0x"),16)).convertSRGBToLinear(),
+//     success: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)), 
+//     success_s: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertLinearToSRGB(), 
+//     success_l: new Color(parseInt(style.getPropertyValue('--bs-success').replace("#","0x"),16)).convertSRGBToLinear(), 
+//     info: style.getPropertyValue('--bs-info'), // new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)),
+//     info_s: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertLinearToSRGB(),
+//     info_l: new Color(parseInt(style.getPropertyValue('--bs-info').replace("#","0x"),16)).convertSRGBToLinear(),
+//     warning: style.getPropertyValue('--bs-warning'), // warning: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)),
+//     warning_s: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertLinearToSRGB(),
+//     warning_l: new Color(parseInt(style.getPropertyValue('--bs-warning').replace("#","0x"),16)).convertSRGBToLinear(),
+//     danger: style.getPropertyValue('--bs-danger'), // danger: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)),
+//     danger_s: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertLinearToSRGB(),
+//     danger_l: new Color(parseInt(style.getPropertyValue('--bs-danger').replace("#","0x"),16)).convertSRGBToLinear(),
+//     light: style.getPropertyValue('--bs-light'), // light: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)),
+//     light_s: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertLinearToSRGB(),
+//     light_l: new Color(parseInt(style.getPropertyValue('--bs-light').replace("#","0x"),16)).convertSRGBToLinear(),
+//     dark: style.getPropertyValue('--bs-dark'), // dark: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)),
+//     dark_s: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertLinearToSRGB(),
+//     dark_l: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertSRGBToLinear(),
+// };
 
 export const make_id = (length=16)=> { // need to improve this so more random!!!!
     let s = '';
@@ -92,257 +84,13 @@ export const make_id = (length=16)=> { // need to improve this so more random!!!
 };
 export const client_instance = make_id('Client');
 
-export const useS = create(
-    subscribeWithSelector((...a) => ({ 
-        ...create_base_slice(...a),
-        // ...create_graph_slice(...a),
-        // ...create_pick_slice(...a),
-        // ...create_inspect_slice(...a),
-        // ...create_design_slice(...a),
-        // ...create_make_slice(...a),
-        // ...create_reckon_slice(...a),
-        // ...create_remake_slice(...a),
-        // ...create_drop_slice(...a),
-        // ...create_part_slice(...a),
-    }))
-);
-useS.setState(d=>{  d.init(d); return d;  });
-export const gs = ()=> useS.getState();
-export const useSS = selector=> useS(selector, shallow);
-export const useSub  = (selector, callback, triggers=[])=> useEffect(()=>useS.subscribe(selector, callback, {fireImmediately:true}), triggers);
-export const useSubS = (selector, callback)=> useEffect(()=>useS.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow}),[]);
-//export const subS  = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true});
-//export const subSS = (selector, callback)=> useS.subscribe(selector, callback, {fireImmediately:true, equalityFn:shallow});
-//export const subSSI = (selector, callback)=> useS.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
-
-var patch = 0;
-var patches = [];
-var inverse = [];
-var fork = null; // state fork for interactive stuff like dragging 
-var original_fork = null;
-
-function next_state(state, func){
-    var all_patches = [];
-    var all_inverse = [];
-    var result = produceWithPatches(state, d=>{ func(d) }); //[d, patches, inverse_patches] d.next_funcs=[]; d.next_ids=[]; 
-    while(result[1].length > 0){
-        all_patches = [...all_patches, ...result[1]];
-        all_inverse = [...result[2], ...all_inverse];
-        result = produceWithPatches(result[0], d=>{ if(d) d.continue(d); }); //result = produceWithPatches(result[0], d=>{ d.continue(d) }); 
-    }
-    useS.setState(result[0]); 
-    return {state:result[0], patches:all_patches, inverse:all_inverse}; // rename state to d
-}
-
-function ignore_patch(p){
-    const path = p.path.join('.');
-    if(path == 'studio.panel') return false;
-    if(path == 'studio.panel.show') return false;
-    if(path == 'studio.panel.mode') return false;
-    if(path == 'design.matrix') return false;
-    if(path == 'design.act') return false; // 'design.moving'
-    //if(path == 'graph.c_c') return false;
-    if(path == 'studio.gizmo_active') return false; 
-    //if(path == 'studio.cam_info') return false;
-    //if(path == 'design.n') return false;
-    //if(path == 'design.group') return false;
-    
-    //if(p.path.includes('pick')) return false;
-    return true;
-}
-const ignored_node_props = ['repo', 'pick', 'hover', 'pos', 'c_c'];
-function commit_state(arg){
-    arg.patches = arg.patches.filter(p=> ignore_patch(p));
-    arg.inverse = arg.inverse.filter(p=> ignore_patch(p));
-    var save_patches = false;
-    //console.log(patches);
-    arg.patches.forEach(p=>{
-        if(p.path[0]=='n'){
-            if(p.path.length > 2){
-                if(!ignored_node_props.includes(p.path[2])) save_patches = true;
-            }else{
-                save_patches = true;
-            }
-        }
-    });
-    // arg.patches.forEach(p=>{
-    //     if(p.op=='replace' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
-    // });
-    // arg.patches.forEach(p=>{
-    //     const path = p.path.join('.');
-    //     if(p.path.includes('pick')) save_patches = false;
-    //     if(path == 'design.mode') save_patches = false;
-    //     if(path == 'studio.mode') save_patches = false;
-    // });
-    // arg.patches.forEach(p=>{
-    //     if(p.op=='replace' && p.path.length==3 && p.path[2]=='deleted') save_patches = true;
-    // });
-    if(save_patches){
-        //console.log('Commit Patches');
-        arg.state.send(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
-        //console.log(arg.patches);
-        if(patches.length > patch){
-            patches.splice(patch, patches.length-patch);
-            inverse.splice(patch, inverse.length-patch);
-        }
-        const patches_extras = [];
-        const new_patches = arg.patches.map(p=>{ // replace add with deleted=false
-            var result = p;
-            if(p.op=='add' && p.path.length==2 && p.path[0]=='n'){//console.log('replace add with replace n.id.deleted=false');
-                result = {
-                    op:'replace',
-                    path: [...p.path, 'drop'],
-                    value:false,
-                };
-                patches_extras.push({
-                    op:'replace',
-                    path: [...p.path, 'open'],
-                    value:true,
-                });
-            }
-            //if(p.op=='add' && p.path.length==2 && p.path[0]=='n'){
-
-            //}
-            return result;
-        });
-        const inverse_extras = [];
-        const new_inverse = arg.inverse.map(p=>{ // replace remove with deleted=true
-            var result = p;
-            if(p.op=='remove' && p.path.length==2 && p.path[0]=='n'){//console.log('replace remove with replace n.id.deleted=true');
-                result = {
-                    op:'replace',
-                    path: [...p.path, 'drop'],
-                    value:true,
-                };
-                inverse_extras.push({
-                    op:'replace',
-                    path: [...p.path, 'open'],
-                    value:false,
-                });
-            }
-            return result;
-        });
-        patches.push([...new_patches, ...patches_extras]);
-        inverse.push([...new_inverse, ...inverse_extras]);
-        if(patches.length > 10){
-            patches = patches.slice(patches.length-10);
-            inverse = inverse.slice(inverse.length-10);
-        }
-        patch = patches.length;
-    }
-}
-
-// recieve state
-export const rs = func=> {
-    //console.log('recieve state');
-    const result = next_state(gs(), func); 
-    if(fork){
-        fork = applyPatches(fork, result.patches);
-        //original_fork = applyPatches(original_fork, result.patches);
-    }
-};
-
-// set state (rename to commit state?)
-export const ss = func=> {
-    //console.log('set state');
-    //console.trace();
-    commit_state(next_state(gs(), func)); 
-};
-
-// fork state
-export const fs = func=>{                 // this might be the secret sauce to async functions! #1
-    //console.log('fork state');
-    fork = next_state(gs(), func).state;
-    //original_fork = next_state(gs(), func).state;;
-}; 
-
-// set fork
-export const sf = func=>{
-    //console.log('set fork');
-    if(fork != null){
-        next_state(fork, func);//.state;
-        //fork = next_state(fork, func).state; 
-    }else{
-        console.log('TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
-        //assert(false, 'TRIED TO SET STATE FORK THAT DOES NOT EXIST!');
-    }
-    //next_state(fork, func);
-}; 
-
-// merge fork
-export const mf = func=>{ // watch out for no-change resulting in undefined d!?!?!
-    if(fork != null){
-        console.log('merge state!');
-        commit_state(next_state(fork, func));
-        //commit_state(next_state(original_fork, func));
-        fork = null;
-    }else{
-        console.log('TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
-        //assert(false, 'TRIED TO MERGE STATE FORK THAT DOES NOT EXIST!');
-    }
-}; 
-
-
-
-
 const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 const up = new THREE.Vector3(0,1,0);
 const m1 = new THREE.Matrix4();
 
 
-export function undo(){ 
-    if(patch > 0){
-        patch--;
-        //console.log('Undo');
-        //console.log(inverse[patch]);
-        useS.setState(d=>{
-            var d = applyPatches(d, inverse[patch]);
-            d.send(d, inverse[patch]);
-            d = produce(d, d=>{
-                d.cam_info = {...d.cam_info};
-                d.studio.gizmo_active = false;
-                d.design.update(d);
-                d.inspect.update(d);
-                d.graph.update(d);
-            });
-            return d;
-        });
-    }
-}
-export function redo(){ 
-    if(patch < patches.length){
-        //console.log('Redo');
-        //console.log(patches[patch]);
-        useS.setState(d=>{
-            var d = applyPatches(d, patches[patch]);
-            d.send(d, patches[patch]);
-            d = produce(d, d=>{
-                d.cam_info = {...d.cam_info};
-                d.studio.gizmo_active = false;
-                d.design.update(d);
-                d.inspect.update(d);
-                d.graph.update(d);
-            });
-            return d;
-        });
-        patch++;
-    }
-}
 
-
-export function use_window_size() {
-    const [size, setSize] = useState([0, 0]);
-    useLayoutEffect(() => {
-        function updateSize() {
-            setSize([window.innerWidth, window.innerHeight]);
-        }
-        window.addEventListener('resize', updateSize);
-        updateSize();
-        return () => window.removeEventListener('resize', updateSize);
-    }, []);
-    return {width:size[0], height:size[1]};
-}
 
 //export const random=(min, max)=> Math.random() * (max - min) + min;
 // export function random_vector({min, max, x, y, z}){ // just use vector3.randomDirection !!!!!!!!!
@@ -354,76 +102,6 @@ export function use_window_size() {
 // }
 
 
-
-function compile_gql(name, gql_parts){
-    const header_vars = [];
-    var header = '';
-    var body = '';
-    var variables = {};
-    //console.log('gql_parts', gql_parts);
-    gql_parts.forEach(q => {
-        const q_words = q[0].split(' ');
-        body += q_words[0];
-        if(q.length>1) body += '(';
-        for(var i=1; i<q.length; i++){ 
-            const q_var_meta = q[i][0].split(' ');
-            if(!header_vars.includes(q_var_meta[1])) header += ', $' + q_var_meta[1] + ': ' + q_var_meta[0];
-            body += q_var_meta[1] + ': $' + q_var_meta[1];
-            if(i<q.length-1){
-                body += ', ';
-            }else{ body += ')'; }
-            variables[q_var_meta[1]] = q[i][1] ?? null;
-            header_vars.push(q_var_meta[1]);
-        }
-        body += '{'+q[0].slice(q_words[0].length+1)+'} '; 
-    });
-    if(header.length>0) header = '(' + header.slice(2) + ')';
-    header = name + header;
-    //console.log({header, body, variables});
-    return {header, body, variables}
-}
-// function gql_status(loading, error, data, done){
-//     var result = null;// {message: 'Idle'};
-// 	if (loading) result=()=> r(Query_Status, {message: 'Working...'});
-//     if (error)   result=()=> r(Query_Status, {message: error.message});
-//     if (data)    result=()=> r(Query_Status, {message: done()}); 
-//     return result;
-// }
-export function use_query(name, gql_parts, arg={}){ // 'cache-and-network'
-    //console.log(fetchPolicy);
-    const {header, body, variables} = compile_gql(name, gql_parts);
-    //console.log({header, body, variables});
-    //const {loading, error, data, startPolling, refetch} = useQuery(
-    return useQuery(
-        gql`query ${header}{${body}}`, {   
-        variables,
-        ...arg, 
-        // fetchPolicy:  arg && arg.fetchPolicy, 
-        // onCompleted:  arg && arg.onCompleted,
-        // pollInterval: arg && arg.pollInterval,
-        // notifyOnNetworkStatusChange: arg && arg.notifyOnNetworkStatusChange,
-    }); 
-
-    //if(reactive_var) reactive_var(data);
-    //var alt = null;
-	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
-    //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
-    //return {data, status:gql_status(loading,error,data,()=>'Done'), startPolling, refetch};
-}
-export function use_mutation(name, gql_parts, arg={}){
-    const {header, body, variables} = compile_gql(name, gql_parts);
-    //console.log({header, body, variables});
-    //const [mutate, {data, loading, error, reset}] = useMutation( 
-    return useMutation( 
-        gql`mutation ${header}{${body}}`, {
-        variables, 
-        ...arg,
-        // refetchQueries: arg && arg.refetch && arg.refetch.split(' '),
-        // onCompleted: arg && arg.onCompleted,
-    }); // Add option for cache
-    //const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
-    //return {mutate, data, status:gql_status(loading,error,data,done), reset};
-}
 
 export function use_media_glb(url){ // makes fresh copy of glb geom and such on each load so it actually changes
     const {nodes} = useGLTF(media_url+url);

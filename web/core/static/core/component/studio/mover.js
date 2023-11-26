@@ -1,6 +1,6 @@
 import {createElement as c, useRef, useState, useEffect} from 'react';
 import {PivotControls} from '@react-three/drei/PivotControls';
-import {useS, gs, ss, fs, sf, mf} from '../../app.js';
+import {use_store, get_store, fork_store, set_fork, merge_fork} from 'delimit';
 import {useThree, useFrame} from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -10,10 +10,10 @@ import * as THREE from 'three';
 
 export function Mover(){
     //const obj = useRef();
-    //const studio_mode = useS(d=> d.studio.mode);
-    //const move_mode = useS(d=> d.design.move_mode);
-    //const pick_count = useS(d=> d.pick.n.length);
-    const mover = useS(d=> d.design.mover);
+    //const studio_mode = use_store(d=> d.studio.mode);
+    //const move_mode = use_store(d=> d.design.move_mode);
+    //const pick_count = use_store(d=> d.pick.n.length);
+    const mover = use_store(d=> d.design.mover);
     //const show 
     const [matrix, set_matrix] = useState(new THREE.Matrix4()); // keep this in d.design
     //console.log('render mover ', studio_mode, move_mode, pick_count, mover);
@@ -26,7 +26,7 @@ export function Mover(){
     //     }
     // });
 
-    const d = gs();
+    const d = get_store();
     //const mtx = new THREE.Matrix4();
     return (
         mover.show && c(PivotControls, { 
@@ -41,7 +41,7 @@ export function Mover(){
             /////rotation: [mover.rot.x, mover.rot.y, mover.rot.z],
             //autoTransform: false,
             //matrix: mtx,
-            onDragStart:e=> fs(d=>{ 
+            onDragStart:e=> fork_store(d=>{ 
                 //d.design.res = 'low';
                 d.design.pin_move(d);
                 d.design.act = 'moving'; //d.design.moving = true;
@@ -50,9 +50,9 @@ export function Mover(){
             onDrag:e=> {
                 set_matrix(e);
                 //mtx.copy(e);
-                sf(d=> d.design.move(d,e));
+                set_fork(d=> d.design.move(d,e));
             },
-            onDragEnd:()=> mf(d=>{ if(d){
+            onDragEnd:()=> merge_fork(d=>{ if(d){
                 //d.design.res = 'high';
                 d.design.move(d, matrix); 
                 d.design.act = null; //d.design.moving = false;
@@ -62,7 +62,7 @@ export function Mover(){
 }
 
 
-//const reset = useS(d=> d.design.mover_reset);
+//const reset = use_store(d=> d.design.mover_reset);
 
 //const [show, set_show] = useState(true);
     //useEffect(()=>{
