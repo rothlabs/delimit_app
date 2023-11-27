@@ -18,11 +18,12 @@ make.node = (d, a={})=>{
     const repo = a.repo ?? d.target.repo;
     d.drop.edge(d, {root:node}); 
     d.node.set(node, {
-        forw: new Map(), // key:term,            value:[stem or leaf_obj]
-        back: new Set(), // key:root+term+indx,  value:[root, term, indx]
+        forw: new Map(), // key:term,  value:[stem or leaf_obj]
+        back: new Set(), // key:root            
         repo,
     });
     if(d.repo.has(repo)) d.repo.get(repo).node.add(node);
+    if(a.type) build(d, node, a.type);
     d.graph.increment(d);
     return node;
 };
@@ -36,12 +37,59 @@ make.edge = (d, root, term, stem, a={})=>{ // if somehow this is called without 
     const indx = a.indx ?? length;
     if(indx > length || length >= a.max_length) return; 
     forw.get(term).splice(indx, 0, stem); 
-    //if(!stem.type) d.node.get(stem).back.set(root+':'+term+':'+indx, [root, term, indx]);
     if(!stem.type) d.node.get(stem).back.add(root);
     d.graph.increment(d);
 };
 
+//d.dig(d, node, ['all', 'any', 'one']);
 
+// required (pick all checked?)
+// optional (pick any checked)
+// separate (pick one checked)
+
+
+// required 
+// optional
+// exactly one
+// one or more
+
+
+function build(d, node, type){
+    if(d.target.node) d.make.edge(d, d.target.node, 'stem', node);
+    d.make.edge(d, node, 'type', type);
+    const type_forw = d.node.get(type).forw;
+    const type_stems = (type_forw.get('required') ?? []).concat(
+        type_forw.get('optional') ?? [], 
+        type_forw.get('separate') ?? [],
+    );
+    for(const stem of type_stems){ // needs to be recursive
+        try{
+            const term = d.value(d, stem, 'term').toLowerCase().replace(/ /g,'_'); //stem_obj.forw('term')[0].value.toLowerCase().replace(/ /g,'_');
+            const make = d.leaf(d, stem, 'make'); // d.node.get(stem).forw.get('make')[0];
+            if(make){
+                if(make.type) d.make.edge(d, node, term, {...make});
+            }
+            const stm = d.stem(d, stem, 'stem');
+            if(stm){
+                d.make.edge(d, node, term, stm);
+            }
+        }catch{}
+    }
+    if(d.value(d, type, 'tag') == 'Type'){
+        for(const delimit of d.stems(d, d.root, 'delimit')){
+            if(d.node.get(delimit).repo == d.target.repo){
+                d.make.edge(d, delimit, 'types', node);
+            }
+        }
+    }
+};
+
+//.toLowerCase()
+
+
+
+
+//if(!stem.type) d.node.get(stem).back.set(root+':'+term+':'+indx, [root, term, indx]);
 
 // function List_Map(){
 //     const map = new Map();

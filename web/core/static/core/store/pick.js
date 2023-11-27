@@ -20,6 +20,7 @@ export const pick = {
         }
         if(!a.multi) d.picked.node.clear();
         d.picked.node.add(node);
+        d.target.node = node;
     },
     repo(d, repo, a={}){
         if(a.multi && d.picked.repo.has(repo)){
@@ -32,9 +33,9 @@ export const pick = {
 };
 
 pick.target = {
-    node(d, node){
-        d.target.node = node;
-    },
+    // node(d, node){
+    //     d.target.node = node;
+    // },
     repo(d, repo, a={}){
         if(a.weak && d.target.repo) return;
         d.target.repo = repo;
@@ -52,6 +53,7 @@ export const unpick = {
         if(a.target && d.target.repo == repo) d.target.repo = null;
     },
     all(d){
+        d.target.node = null;
         d.picked.node.clear();
         d.picked.repo.clear();
     },

@@ -253,3 +253,7 @@ export function use_window_size(){
     }, []);
     return [size[0], size[1]];
 }
+
+export function readable(s){
+    return s.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+}

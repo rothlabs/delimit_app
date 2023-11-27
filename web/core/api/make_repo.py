@@ -20,7 +20,11 @@ braces_svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" f
 plus_square_svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-square" viewBox="0 0 16 16">
   <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
   <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
-</svg>''';
+</svg>'''
+
+abc_svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-alphabet-uppercase" viewBox="0 0 16 16">
+  <path d="M1.226 10.88H0l2.056-6.26h1.42l2.047 6.26h-1.29l-.48-1.61H1.707l-.48 1.61ZM2.76 5.818h-.054l-.75 2.532H3.51zm3.217 5.062V4.62h2.56c1.09 0 1.808.582 1.808 1.54 0 .762-.444 1.22-1.05 1.372v.055c.736.074 1.365.587 1.365 1.528 0 1.119-.89 1.766-2.133 1.766h-2.55ZM7.18 5.55v1.675h.8c.812 0 1.171-.308 1.171-.853 0-.51-.328-.822-.898-.822zm0 2.537V9.95h.903c.951 0 1.342-.312 1.342-.909 0-.591-.382-.954-1.095-.954H7.18Zm5.089-.711v.775c0 1.156.49 1.803 1.347 1.803.705 0 1.163-.454 1.212-1.096H16v.12C15.942 10.173 14.95 11 13.607 11c-1.648 0-2.573-1.073-2.573-2.849v-.78c0-1.775.934-2.871 2.573-2.871 1.347 0 2.34.849 2.393 2.087v.115h-1.172c-.05-.665-.516-1.156-1.212-1.156-.849 0-1.347.67-1.347 1.83Z"/>
+</svg>'''
 
 class Make_Repo(graphene.Mutation):
     class Arguments:
@@ -56,93 +60,163 @@ class Make_Repo(graphene.Mutation):
             gdbc.set_db(repo, team)
 
             #string_string = make_id()
-            icon_language = make_id()
+            #icon_language = make_id()
             #type_string = make_id()
             
-            type_icon = make_id()
-            code_icon = make_id()
-            make_icon = make_id()
-            type_type_tag = make_id()
-            type_type_name = make_id()
-            type_type_icon = make_id()
-            type_type_term = make_id()
-            type_type_leaf = make_id()
-            type_type_make = make_id()
-            type_type_any = make_id()
-            type_type_all = make_id()
-            type_type_one = make_id()
-            type_type_code = make_id()
-            type_type = make_id()
+            type_icon_code = make_id()
+            abc_icon_code  = make_id()
+            make_icon_code = make_id()
+            code_icon_code = make_id()
 
+            icon_term = make_id()
+
+            term_term = make_id()
+            stem_term = make_id()
+            make_term = make_id()
+            expect_term = make_id()
+
+            name_term = make_id()
+            type_term = make_id()
+            required_term = make_id()
+            optional_term = make_id()
+            separate_term = make_id()
+            code_term     = make_id()
+
+            #name_term_type_edge = make_id()
+
+            term_type = make_id()
+            type_type = make_id()
             delimit_root = make_id()
 
-            (wq()
+            (wq() 
                 #.add_triple(string_string, '@schema:leaf', wq().string('String'))
-                .add_triple(icon_language,  '@schema:leaf', wq().string('SVG'))
+                #.add_triple(icon_language,  '@schema:leaf', wq().string('SVG'))
                 #.add_triple(type_string,   '@schema:leaf', wq().string('type'))
 
-                .add_triple(type_icon, '@schema:code',     wq().string(menu_button_svg))
-                .add_triple(type_icon, '@schema:language', icon_language)
+                .add_triple(type_icon_code, '@schema:name',     wq().string('Type Icon'))
+                .add_triple(type_icon_code, '@schema:type',     wq().string('Code'))
+                .add_triple(type_icon_code, '@schema:code',     wq().string(menu_button_svg))
+                .add_triple(type_icon_code, '@schema:language', wq().string('SVG'))
 
-                .add_triple(make_icon, '@schema:code',     wq().string(plus_square_svg))
-                .add_triple(make_icon, '@schema:language', icon_language)
+                .add_triple(abc_icon_code, '@schema:name',     wq().string('Term Icon'))
+                .add_triple(abc_icon_code, '@schema:type',     wq().string('Code'))
+                .add_triple(abc_icon_code, '@schema:code',     wq().string(abc_svg))
+                .add_triple(abc_icon_code, '@schema:language', wq().string('SVG'))
 
-                .add_triple(code_icon, '@schema:code', wq().string(braces_svg))
-                .add_triple(code_icon, '@schema:language', icon_language)
+                .add_triple(make_icon_code, '@schema:name',     wq().string('Make Icon'))
+                .add_triple(make_icon_code, '@schema:type',     wq().string('Code'))
+                .add_triple(make_icon_code, '@schema:code',     wq().string(plus_square_svg))
+                .add_triple(make_icon_code, '@schema:language', wq().string('SVG'))
+
+                .add_triple(code_icon_code, '@schema:name',     wq().string('Code Icon'))
+                .add_triple(code_icon_code, '@schema:type',     wq().string('Code'))
+                .add_triple(code_icon_code, '@schema:code',     wq().string(braces_svg))
+                .add_triple(code_icon_code, '@schema:language', wq().string('SVG'))
                 
-                .add_triple(type_type_tag, '@schema:term', wq().string('Tag'))  
-                .add_triple(type_type_tag, '@schema:leaf', wq().string('String')) 
-                .add_triple(type_type_tag, '@schema:make', wq().string('')) # 'make' signifies to create a make stem when node created
+                # .add_triple(type_type_tag, '@schema:term', wq().string('Tag'))  
+                # .add_triple(type_type_tag, '@schema:leaf', wq().string('String')) 
+                # .add_triple(type_type_tag, '@schema:make', wq().string('')) # 'make' signifies to create a make stem when node created
 
-                .add_triple(type_type_name, '@schema:term', wq().string('Name'))  
-                .add_triple(type_type_name, '@schema:leaf', wq().string('String')) 
-                .add_triple(type_type_name, '@schema:make', wq().string('')) # 'make' signifies to create a make stem when node created
+                .add_triple(name_term, '@schema:name',   wq().string('Name'))  
+                .add_triple(name_term, '@schema:type',   wq().string('Term Type')) 
+                .add_triple(name_term, '@schema:icon',   abc_icon_code) 
+                #.add_triple(name_term, '@schema:term',   wq().string('Name'))   
+                .add_triple(name_term, '@schema:make',   wq().string('')) # 'make' signifies to create a make stem when node created
+                .add_triple(name_term, '@schema:expect', wq().string('String'))
+
+                # .add_triple(name_term_type_edge, '@schema:type', wq().string('type'))
+                # .add_triple(name_term_type_edge, '@schema:term', wq().string('Required'))  
+                # .add_triple(name_term_type_edge, '@schema:stem', name_term_type) 
                 
-                .add_triple(type_type_icon, '@schema:term', wq().string('Icon'))   
-                .add_triple(type_type_icon, '@schema:icon', code_icon) 
+                .add_triple(icon_term, '@schema:name',   wq().string('Icon'))  
+                .add_triple(icon_term, '@schema:type',   wq().string('Term Type')) 
+                .add_triple(icon_term, '@schema:icon',   code_icon_code) 
+                #.add_triple(icon_term, '@schema:term',   wq().string('Icon')) 
+                .add_triple(icon_term, '@schema:expect', wq().string('Code'))  
 
-                .add_triple(type_type_term, '@schema:term', wq().string('Term'))   
+                # .add_triple(term_term, '@schema:name',   wq().string('Term'))   
+                # .add_triple(term_term, '@schema:type',   wq().string('Term')) 
+                # .add_triple(term_term, '@schema:icon',   abc_icon_code)   
+                # .add_triple(term_term, '@schema:term',   wq().string('Term'))   
+                # .add_triple(term_term, '@schema:expect', wq().string('String')) 
+
+                # .add_triple(type_type_leaf,  '@schema:term', wq().string('Leaf')) 
+                # .add_triple(type_type_leaf,  '@schema:expect', wq().string('String'))  
+                # .add_triple(type_type_leaf,  '@schema:pick', wq().string('Boolean')) 
+                # .add_triple(type_type_leaf,  '@schema:pick', wq().string('Integer')) 
+                # .add_triple(type_type_leaf,  '@schema:pick', wq().string('Decimal')) 
+                # .add_triple(type_type_leaf,  '@schema:pick', wq().string('String')) 
+
+                .add_triple(make_term, '@schema:name', wq().string('Make'))   
+                .add_triple(make_term, '@schema:type', wq().string('Term Type')) 
+                .add_triple(make_term, '@schema:icon', make_icon_code) 
+                #.add_triple(make_term, '@schema:term', wq().string('Make'))  
+
+                .add_triple(stem_term, '@schema:name', wq().string('Stem'))   
+                .add_triple(stem_term, '@schema:type', wq().string('Term Type')) 
+                #.add_triple(stem_term, '@schema:term', wq().string('Stem')) 
+
+                .add_triple(expect_term, '@schema:name',   wq().string('Expect'))   
+                .add_triple(expect_term, '@schema:type',   wq().string('Term Type')) 
+                #.add_triple(expect_term, '@schema:term',   wq().string('Expect'))  # list of type names
+                #.add_triple(expect_term, '@schema:expect', wq().string('String')) 
+
+                .add_triple(code_term, '@schema:name',   wq().string('Code'))   
+                .add_triple(code_term, '@schema:type',   wq().string('Term Type'))
+                .add_triple(code_term, '@schema:icon',   code_icon_code)
+                #.add_triple(code_term, '@schema:term',   wq().string('Code'))  
+                .add_triple(code_term, '@schema:expect', wq().string('Code')) # type name
+
+                .add_triple(required_term, '@schema:name', wq().string('Required'))
+                .add_triple(required_term, '@schema:type', wq().string('Term Type'))
+                .add_triple(required_term, '@schema:icon', type_icon_code) 
+                #.add_triple(required_term, '@schema:term', wq().string('Required'))   
+                .add_triple(required_term, '@schema:stem', name_term) 
+                .add_triple(required_term, '@schema:expect', wq().string('Node Type'))
+                .add_triple(required_term, '@schema:expect', wq().string('Term Type'))
+
+                .add_triple(optional_term, '@schema:name', wq().string('Optional'))
+                .add_triple(optional_term, '@schema:type', wq().string('Term Type'))
+                .add_triple(optional_term, '@schema:icon', type_icon_code) 
+                #.add_triple(optional_term, '@schema:term', wq().string('Optional'))
                 
-                .add_triple(type_type_leaf,  '@schema:term', wq().string('Leaf')) 
-                .add_triple(type_type_leaf,  '@schema:leaf', wq().string('String'))  
-                .add_triple(type_type_leaf,  '@schema:pick', wq().string('Boolean')) 
-                .add_triple(type_type_leaf,  '@schema:pick', wq().string('Integer')) 
-                .add_triple(type_type_leaf,  '@schema:pick', wq().string('Decimal')) 
-                .add_triple(type_type_leaf,  '@schema:pick', wq().string('String')) 
+                .add_triple(separate_term, '@schema:name', wq().string('Separate'))
+                .add_triple(separate_term, '@schema:type', wq().string('Term Type'))
+                .add_triple(separate_term, '@schema:icon', type_icon_code) 
+                #.add_triple(separate_term, '@schema:term', wq().string('Separate'))   
 
-                .add_triple(type_type_make, '@schema:term', wq().string('Make'))  
-                .add_triple(type_type_make, '@schema:icon', make_icon) 
+                .add_triple(type_type, '@schema:name', wq().string('Node')) # node type
+                #.add_triple(type_type, '@schema:type', wq().string('Type'))
+                .add_triple(type_type, '@schema:icon', type_icon_code)
+                #.add_triple(type_type, '@schema:required', type_term)
+                .add_triple(type_type, '@schema:required', name_term) 
+                .add_triple(type_type, '@schema:optional', icon_term)
+                .add_triple(type_type, '@schema:optional', required_term)
+                .add_triple(type_type, '@schema:optional', optional_term)
+                .add_triple(type_type, '@schema:optional', separate_term)
+                .add_triple(type_type, '@schema:optional', code_term)
 
-                .add_triple(type_type_code, '@schema:term', wq().string('Code'))  
-                .add_triple(type_type_code, '@schema:icon', code_icon) 
+                .add_triple(term_type, '@schema:name', wq().string('Term'))
+                #.add_triple(term_type, '@schema:type', wq().string('Type'))
+                .add_triple(term_type, '@schema:icon', type_icon_code)
+                #.add_triple(term_type, '@schema:required', type_term)
+                #.add_triple(term_type, '@schema:required', term_term)
+                .add_triple(term_type, '@schema:required', name_term) 
+                .add_triple(term_type, '@schema:optional', icon_term)
+                .add_triple(term_type, '@schema:optional', stem_term)
+                .add_triple(term_type, '@schema:optional', make_term)
+                .add_triple(term_type, '@schema:optional', required_term)
+                .add_triple(term_type, '@schema:optional', optional_term)
+                .add_triple(term_type, '@schema:optional', separate_term)
+                #.add_triple(term_type, '@schema:optional', expect_term)
 
-                .add_triple(type_type_any, '@schema:term', wq().string('Any'))   
-                .add_triple(type_type_any, '@schema:icon', type_icon) 
-                
-                .add_triple(type_type_all, '@schema:term', wq().string('All'))   
-                .add_triple(type_type_all, '@schema:icon', type_icon) 
-                
-                .add_triple(type_type_one, '@schema:term', wq().string('One'))   
-                .add_triple(type_type_one, '@schema:icon', type_icon) 
-
-                .add_triple(type_type, '@schema:tag',  wq().string('Type'))
-                .add_triple(type_type, '@schema:name', wq().string('Type'))
-                .add_triple(type_type, '@schema:icon', type_icon)
-                .add_triple(type_type, '@schema:all',  type_type_tag) # all means required
-                .add_triple(type_type, '@schema:any',  type_type_name) # all means required
-                .add_triple(type_type, '@schema:any',  type_type_icon)
-                .add_triple(type_type, '@schema:any',  type_type_term)
-                .add_triple(type_type, '@schema:any',  type_type_leaf)
-                .add_triple(type_type, '@schema:any',  type_type_make)
-                .add_triple(type_type, '@schema:any',  type_type_code)
-                .add_triple(type_type, '@schema:any',  type_type_any)
-                .add_triple(type_type, '@schema:any',  type_type_all)
-                .add_triple(type_type, '@schema:any',  type_type_one)
-                
+                .add_triple(term_type, '@schema:name', wq().string('Stem'))
 
                 .add_triple(delimit_root, '@schema:delimit', wq().boolean(True))
                 .add_triple(delimit_root, '@schema:name',  wq().string('delimit'))
-                .add_triple(delimit_root, '@schema:types', type_type)
+                .add_triple(delimit_root, '@schema:types', node)
+                .add_triple(delimit_root, '@schema:types', term)
+                .add_triple(delimit_root, '@schema:types', stem)
             ).execute(gdbc)
 
             return Make_Repo(reply = 'Made repo')
@@ -312,9 +386,9 @@ class Make_Repo(graphene.Mutation):
 
             # spec_spec = make_id()
             # type_name = make_id()
-            # type_icon = make_id()
             # type_icon_code = make_id()
-            # type_icon_language = make_id()
+            # type_icon_code_code = make_id()
+            # type_icon_code_language = make_id()
 
             # # stem type
             # stem_type = make_id()
@@ -343,7 +417,7 @@ class Make_Repo(graphene.Mutation):
             #     .add_triple(specSpec_stem_stem, '@schema:icon', specSpec_stem_stem_icon) # '/' icon
                 
             #     .add_triple(specSpec_stem_code, '@schema:name', specSpec_stem_code_name) 
-            #     .add_triple(specSpec_stem_code, '@schema:icon', specSpec_stem_code_icon) 
+            #     .add_triple(specSpec_stem_code, '@schema:icon', specSpec_stem_code_icon_code) 
 
             #     .add_triple(specSpec, '@schema:name', specSpec_name)
             #     .add_triple(specSpec, '@schema:icon', spec_icon)
@@ -354,7 +428,7 @@ class Make_Repo(graphene.Mutation):
                 
 
             #     .add_triple(stemType, '@schema:name', stem_name)
-            #     .add_triple(stemType, '@schema:icon', type_icon)
+            #     .add_triple(stemType, '@schema:icon', type_icon_code)
             #     .add_triple(stemType, '@schema:stem', type_stem_stem)
             #     .add_triple(stemType, '@schema:stem', type_stem_compute)
             #     .add_triple(stemType, '@schema:stem', type_stem_name)

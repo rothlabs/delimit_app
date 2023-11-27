@@ -1,7 +1,7 @@
 import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
 import {DragDropContext} from 'react-beautiful-dnd';
-import {use_store, get_store, set_store, Svg} from 'delimit';
+import {use_store, get_store, set_store, Svg, readable} from 'delimit';
 
 //https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
 
@@ -71,6 +71,14 @@ export function Inspect(){
     )
 }
 
+function Node_Junction({root}){
+    const leaf_node = use_store(d=> d.leaf_node(d, root));
+    if(leaf_node){
+        return c(Leaf, {root, term:'leaf', indx:0, root_term:'', leaf_node:true})
+    }
+    return c(Node, {root});
+}
+
 function Node({root}){
     const icon     = use_store(d=> d.face.icon(d, root));
     const tag      = use_store(d=> d.face.tag(d, root));
@@ -109,22 +117,10 @@ function Term_Junction({root, term}){
     const leaf_node_term = use_store(d=> d.leaf_node_term(d, root, term));
     const leaf_term = use_store(d=> d.leaf_term(d, root, term));
     if(leaf_node_term.leaf){
-        console.log('leaf node term');
-        return(
-            //c('div', {
-            //    className: 'p-2 border bg-info-subtle',
-            //},
-                c(Leaf, {root:leaf_node_term.root, term:'leaf', indx:0, root_term:term, leaf_node:true})
-            //)
-        ) //c(Leaf_Term, {root, term});
+        return c(Leaf, {root:leaf_node_term.root, term:'leaf', indx:0, root_term:term, leaf_node:true})
+            
     }else if(leaf_term){
-        return(
-            // c('div', {
-            //     className: 'p-2 border bg-primary-subtle',
-            // },
-                c(Leaf, {root, term, indx:0, root_term:term})
-            //)
-        ) //c(Leaf_Term, {root, term});
+        return c(Leaf, {root, term, indx:0, root_term:term})
     }
     return c(Stems_Term, {root, term});
 }
@@ -134,11 +130,11 @@ function Stems_Term({root, term}){
     const d = get_store();
     return(
         c(Accordion.Item, {
-            eventKey:term,
+            eventKey: term,
             className: 'border-0',
         },
             c(Accordion.Header, {}, 
-                term,
+                readable(term),
             ),
             c(Accordion.Body, {
                 className:'p-0 ps-4', 
@@ -154,25 +150,11 @@ function Stems_Term({root, term}){
     )
 }
 
-function Node_Junction({root}){
-    const leaf_node = use_store(d=> d.leaf_node(d, root));
-    if(leaf_node){
-        return(
-            //c('div', {
-             //   className: 'p-2 border bg-secondary-subtle',
-            //},
-                c(Leaf, {root, term:'leaf', indx:0, root_term:'', leaf_node:true})
-            //)
-        ) //c(Leaf_Term, {root, term});
-    }
-    return c(Node, {root});
-}
-
 function Leaf({root, term, indx, root_term, leaf_node}){
     const leaf = use_store(d=> d.node.get(root).forw.get(term)[indx]);
     return(
         c(InputGroup, {}, //className:'mb-2' 
-            root_term && c(InputGroup.Text, {}, root_term),
+            root_term && c(InputGroup.Text, {}, readable(root_term)),
             leaf_node && c(InputGroup.Text, {className:'bi-box'}, ''),
             leaf.type == 'xsd:boolean'
                 ? c(Form.Check, {

@@ -9,7 +9,7 @@ import {use_store, get_store, View_Transform, Pickable} from 'delimit';
 export const Node = memo(({node})=>{ 
     //const obj = useRef();
     let name       = use_store(d=> d.face.name(d, node)).trim();
-    const tag      = use_store(d=> d.face.tag(d, node));
+    const type     = use_store(d=> d.face.type(d, node));
     const icon     = use_store(d=> d.face.icon(d, node));
     const color    = use_store(d=> d.face.color.primary(d, node));
     const material = use_store(d=> d.face.material.primary(d, node));
@@ -49,7 +49,7 @@ export const Node = memo(({node})=>{
                     position: [-1, 1, 1],
                 }),
                 c('text', {
-                    text: tag,
+                    text: type,
                     font: d.font.body, 
                     outlineColor: d.color.body_bg,
                     material,

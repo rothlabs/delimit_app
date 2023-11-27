@@ -103,17 +103,29 @@ export function Studio(){
 //     return c(Badge, {className:'position-absolute bottom-0 start-0 m-1'}, 'Computes: '+reckon_count);
 // }
 
+    // style:{
+    //                         maxHeight: height,
+    //                         overflow: 'auto',
+    //                         //scrollbarColor: 'red orange',
+    //                     },
+
 function Panel_Workspace(){
     const studio_mode = use_store(d=> d.studio.mode);
     const panel_mode = use_store(d=> d.studio.panel.mode);
+    //let [height] = use_window_size();
+    //height = height * .9 + '';
+    const height = '90vh';
     if(studio_mode == 'graph' || studio_mode == 'design'){
         return [
-            panel_mode && c(Col, {className:'border-end', style:{zIndex:1, backgroundColor:'var(--bs-body-bg)'}}, c(Panel)), // d-flex flex-column
+            panel_mode && c(Col, {
+                className:'border-end', 
+                style:{zIndex:1, backgroundColor:'var(--bs-body-bg)', maxHeight:height, overflow:'auto'}
+            }, c(Panel)), // d-flex flex-column
             c(Col, {className:'col-auto'}, c(Workspace)), // d-flex flex-column
         ]
     }else{
         return [
-            panel_mode && c(Col, {xs:'3', className:'border-end'}, c(Panel)), // d-flex flex-column
+            panel_mode && c(Col, {xs:'3', className:'border-end', style:{maxHeight:height, overflow:'auto'}}, c(Panel)), // d-flex flex-column
             c(Col, {xs:panel_mode ? '9' : '12'}, c(Workspace)), // d-flex flex-column
         ]
     }

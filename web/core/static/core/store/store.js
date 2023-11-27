@@ -81,53 +81,85 @@ export const store = {//export const create_base_slice = (set,get)=>({
         },
     },
 
+    // first(set_or_map){
+    //     return set_or_map.keys().next().value;
+    // },
+    
     leaf_node(d, root){
         try{
             const forw = d.node.get(root).forw;
-            if(forw.size != 1) return false;
-            const node = forw.get('leaf')[0];
-            if(node.type) return node;
+            if(forw.size != 1) return; 
+            const stems = forw.get('leaf');
+            if(stems.length != 1) return;
+            if(stems[0].type) return stems[0];
         }catch{}
     },
     leaf_term(d, root, term){
         try{
             const stems = d.node.get(root).forw.get(term);
-            if(stems.length != 1) return false;
+            if(stems.length != 1) return;
             if(stems[0].type) return stems[0];
         }catch{}
     },
     leaf_node_term(d, root, term){
         try{
             const stems = d.node.get(root).forw.get(term);
-            if(stems.length != 1) return false;
+            if(stems.length != 1) return;
             return {root:stems[0], leaf:d.leaf_node(d, stems[0])};
         }catch{}
     },
-
-    value(d, node, path, alt){ // rename to value
+    leaf(d, node, path, alt){
         for(const pth of d.array(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).forw.get(term)[0];
                 }
-                if(node.type) return node.value;
+                if(node.type) return node; //.value;
                 node = d.node.get(node).forw.get('leaf')[0];
-                if(node.type) return node.value;
+                if(node.type) return node; // .value;
             }catch{}
         }
         return alt;
     },
-    stems(d, node, path, alt){ // rename to stems?
+    value(d, node, path, alt){ 
         try{
-            const terms = path.split(' ');
-            const last_term = terms.pop();
-            for(const term of terms){
-                node = d.node.get(node).forw.get(term)[0];
-            }
-            const result = d.node.get(node).forw.get(last_term); 
-            if(result != null) return result;
+            const leaf = d.leaf(d, node, path);
+            if(leaf.type) return leaf.value;
         }catch{}
         return alt;
+    },
+    stem(d, node, path, alt){
+        for(const pth of d.array(path)){
+            try{
+                for(const term of pth.split(' ')){
+                    node = d.node.get(node).forw.get(term)[0];
+                }
+                return node;
+            }catch{}
+        }
+        return alt;
+    },
+    stems(d, root, path){ // rename to path? (like terminusdb path query)
+        const result = [];
+        const terms = path.split(' ');
+        const last_term = terms.at(-1);//terms.pop();
+        function get_stems(root, terms){
+            const term = terms.shift();
+            if(!d.node.has(root)) return;
+            const stems = d.node.get(root).forw.get(term);
+            if(!Array.isArray(stems)) return;
+            if(term == last_term){
+                for(let i = 0; i < stems.length; i++){
+                    if(d.node.has(stems[i])) result.push(stems[i]);
+                }
+            }else{
+                for(let i = 0; i < stems.length; i++){
+                    if(d.node.has(stems[i])) get_stems(stems[i], [...terms]);
+                }
+            }
+        }
+        get_stems(root, terms);
+        return result;
     },
     forw: function* (d, root, a={}){
         for(const [term, stems] of d.node.get(root).forw){
@@ -145,6 +177,21 @@ export const store = {//export const create_base_slice = (set,get)=>({
                 }
             }
         }
+    },
+    write_access(d, node){
+        if(Array.isArray(node)){
+            return node.filter(node=> {
+                //console.log(node, node.repo);
+                const repo = d.node.get(node).repo;
+                if(repo) return d.repo.get(repo).write_access;
+                return true;
+            });
+        }
+        const repo = d.node.get(node)?.repo;
+        if(d.repo.has(repo)){
+            return d.repo.get(repo).write_access;
+        }
+        return true;
     },
 
     rnd(v, sigfigs=100){
@@ -232,22 +279,6 @@ export const store = {//export const create_base_slice = (set,get)=>({
         // }
     },
 
-    write_access(d, node){
-        if(Array.isArray(node)){
-            return node.filter(node=> {
-                //console.log(node, node.repo);
-                const repo = d.node.get(node).repo;
-                if(repo) return d.repo.get(repo).write_access;
-                return true;
-            });
-        }
-        const repo = d.node.get(node)?.repo;
-        if(d.repo.has(repo)){
-            return d.repo.get(repo).write_access;
-        }
-        return true;
-    },
-
     receive_module:(d, module)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         //console.log(module);
         const repo = module.repo.id;
@@ -293,7 +324,24 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
 
 
+// const forw = d.node.get(root).forw;
+// if(forw.size != 1) return false; // should allow more. what matters is that it is looking for a leaf term leading to a leaf #1
+// const node = forw.get('leaf')[0];
+// if(node.type) return node;
 
+
+// stems(d, node, path, alt){ // rename to stems?
+//     try{
+//         const terms = path.split(' ');
+//         const last_term = terms.pop();
+//         for(const term of terms){
+//             node = d.node.get(node).forw.get(term)[0];
+//         }
+//         const result = d.node.get(node).forw.get(last_term); 
+//         if(result != null) return result;
+//     }catch{}
+//     return alt;
+// },
 
 
 

@@ -1,7 +1,8 @@
 export const face = {
-    name:(d, node)=> d.value(d, node, ['name', 'leaf'], 'untitled'),
-    icon:(d, node)=> d.value(d, node, ['spec icon code', 'icon code'], d.face.alt.icon),
-    tag: (d, node)=> d.value(d, node, ['spec tag', 'tag'], 'node'),
+    name: (d, node)=> d.value(d, node,  ['name', 'leaf'], ''),
+    type: (d, node)=> d.value(d, node,  ['type name', 'type'], ''),
+    icon: (d, node)=> d.value(d, node,  ['type icon code', 'icon code'], d.face.alt.icon),
+    title:(d, node) => node ? d.face.name(d, node)+ ' ('+d.face.type(d, node)+')' : '',
 };
 
 const pick = (d, node, picked, alt) => d.picked.node.has(node) ? picked : alt;

@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-//import {Row, Col, Button, Container} from 'react-bootstrap';
+import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
 import {use_store, set_store, get_store} from 'delimit';
 import { Svg_Button } from '../app/base.js';
 //import { Make_Repo } from './make_repo.js';
@@ -10,26 +10,54 @@ import { Svg_Button } from '../app/base.js';
 
 
 export function Make_Node(){
-    const specs = use_store(d=> d.stems(d, d.root, 'delimit specs', [])); // {shallow:true} 
-    const d = get_store();
-    console.log('render make node');
+    const root = use_store(d=> d.target.node);
+    const title = use_store(d=> d.face.title(d, root));
+    //console.log('render make node');
     return(
-        c('div', {className:'d-grid ms-2 mt-2'},
-            specs.map((spec,i)=>
-                //c(Row, {className: 'mt-1 text-left ' + ((i==specs.length-1) ? 'mb-4' : '')},
-                    c(Svg_Button, {
-                        //className:'w-100',
-                        svg:  d.value(d, spec, 'icon code', d.face.alt.icon), 
-                        text: d.value(d, spec, 'tag', 'Node'), 
-                        func:e=> set_store(d=>{ 
-                            d.make.node(d, {spec, root:[...d.picked.node][0]}) 
-                        })
-                    })
-                //)
-            ),
+        c('div', {className:'d-grid ms-3 mt-3'},
+            title && c('h5', {}, title),
+            root ? c(All_Any_One, {root}) : c(All_Types),
         )
     )
 }
+
+function All_Types(){
+    const types = use_store(d=> d.stems(d, d.root, 'delimit types')); // {shallow:true} 
+    const d = get_store();
+    //console.log('render make node');
+    return(
+        types.map((type,i)=>
+            c(Svg_Button, {
+                //className:'w-100',
+                svg:  d.value(d, type, 'icon code', d.face.alt.icon), 
+                text: d.value(d, type, 'name', 'Node'), 
+                func:e=> set_store(d=>{ 
+                    d.make.node(d, {type});  //[...d.picked.node][0]
+                })
+            })
+        )
+    )
+}
+
+function All_Any_One({root}){
+    const required = use_store(d=> d.stems(d, root, 'type required'));
+    const optional = use_store(d=> d.stems(d, root, 'type optional'));
+    const separate = use_store(d=> d.stems(d, root, 'type separate'));
+    return(
+        c(Accordion, {
+            className:'ms-2 mt-2', 
+            defaultActiveKey:['0'], 
+            alwaysOpen:true,
+            //onSelect(keys){}
+        },
+            //required.map(root=> c(Node_Junction, {root, key:root})),
+        )
+    )
+}
+
+//d.first(d, d.picked.node)
+
+
 
 
 
