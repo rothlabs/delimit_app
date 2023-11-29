@@ -4,6 +4,7 @@ import * as THREE from 'three';
 //import {static_url} from '../app.js';
 import lodash from 'lodash';
 import {face} from './face.js';
+import * as schema from './schema.js';
 import * as theme from './theme.js';
 import {design} from './design.js';
 import * as pick from './pick.js';
@@ -32,6 +33,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     },
     confirm:{},
 
+    ...schema,
     ...theme,
     ...pick,
     face,
@@ -50,32 +52,6 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
     user_id: 0,
     search: {depth:null, ids:null},
-
-    root_type:{
-        logic(d, root){ 
-            const type = d.stem(d, root, 'type'); // d.node.get(root).forw.get('type')[0];
-            if(!d.node.has(type)) return true;
-            function truths(logic_type){
-                let truth_count = 0;
-                const stems = d.stems(d, type, logic_type);
-                for(const stem of stems){
-                    const stem_type = d.face.type(d, lgc);
-                    if(stem_type == 'root' && d.root_type.logic(d, stem)) truth_count++;
-                    if(stem_type == 'term' && d.term_type.logic(d, stem)) truth_count++;
-                }
-                return [stems.length, truth_count];
-            }
-            [stem_count, truth_count] = truths('required');
-            if(stem_count > truth_count) return;
-            [stem_count, truth_count] = truths('exactly_one');
-            if(stem_count > 0 && truth_count != 1) return;
-            [stem_count, truth_count] = truths('one_or_more');
-            if(stem_count > 0 && truth_count < 1) return;
-            return true;
-        },
-    },
-
-    
     
     init(d){
         d.root = d.make.node(d);
