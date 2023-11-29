@@ -9,7 +9,7 @@ export function Panel_Bar(){
     const panel_mode = use_store(d=> d.studio.panel.mode);
     const buttons = [
         {name:'Make',    icon:'bi-plus-square', value:'make',    disabled:false},
-        {name:'Inspect', icon:'bi-file-ruled',  value:'inspect', disabled:false}, 
+        {name:'Inspect', icon:'bi-menu-button', value:'inspect', disabled:false}, 
         {name:'Modules', icon:'bi-boxes',       value:'modules', disabled:false},
         {name:'Display', icon:'bi-eye',         value:'display', disabled:false}, 
     ];

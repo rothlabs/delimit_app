@@ -57,25 +57,43 @@ make.edge = (d, root, term, stem, a={})=>{ // if somehow this is called without 
 function build(d, node, type){
     if(d.target.node) d.make.edge(d, d.target.node, 'stem', node);
     d.make.edge(d, node, 'type', type);
-    const type_forw = d.node.get(type).forw;
-    const type_stems = (type_forw.get('required') ?? []).concat(
-        type_forw.get('optional') ?? [], 
-        type_forw.get('separate') ?? [],
-    );
-    for(const stem of type_stems){ // needs to be recursive
-        try{
-            const term = d.value(d, stem, 'term').toLowerCase().replace(/ /g,'_'); //stem_obj.forw('term')[0].value.toLowerCase().replace(/ /g,'_');
-            const make = d.leaf(d, stem, 'make'); // d.node.get(stem).forw.get('make')[0];
-            if(make){
-                if(make.type) d.make.edge(d, node, term, {...make});
-            }
-            const stm = d.stem(d, stem, 'stem');
-            if(stm){
-                d.make.edge(d, node, term, stm);
-            }
-        }catch{}
+    //const type_forw = d.node.get(type).forw;
+    function add_or_make_stems(root){
+        // const logics = (d.node.get(root).get('required') ?? []).concat(
+        //     type_forw.get('optional') ?? [], 
+        //     type_forw.get('exactly_one') ?? [],
+        //     type_forw.get('one_or_more') ?? [],
+        // );
+        const logics = d.stems(d, root, ['required', 'optional', 'exactly_one', 'one_or_more']);
+        for(const logic of logics){ // needs to be recursive
+            //try{
+                const logic_type = d.face.type(d, logic);
+                if(logic_type == 'Root'){
+                    add_or_make_stems(logic);
+                }else if(logic_type == 'Term'){
+                    const term = d.value(d, logic, 'name', '').toLowerCase().replace(/ /g,'_'); //stem_obj.forw('term')[0].value.toLowerCase().replace(/ /g,'_');
+                    if(!term.length) continue;
+                    for(const to_be_made of d.stems(d, logic, 'make')){ // d.node.get(logic).forw.get('make')
+                        //console.log('trying to make stem', term);
+                        if(to_be_made.type){
+                            d.make.edge(d, node, term, {...to_be_made});
+                        }else if(d.face.type(d, to_be_made) == 'Stem'){
+                            console.log('find type of same name in same namespace, make instance, make edge');
+                            // find type of same name in same namespace, make instance, make edge
+                        }else{
+                            const stem = d.make.node(d, {type:to_be_made});
+                            d.make.edge(d, node, term, stem);   
+                        }
+                    }
+                    for(const stem of d.stems(d, logic, 'add')){
+                        if(!stem.type) d.make.edge(d, node, term, stem);
+                    }
+                }
+            //}catch{}
+        }
     }
-    if(d.value(d, type, 'tag') == 'Type'){
+    add_or_make_stems(type);
+    if(d.face.type(d, node) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
         for(const delimit of d.stems(d, d.root, 'delimit')){
             if(d.node.get(delimit).repo == d.target.repo){
                 d.make.edge(d, delimit, 'types', node);

@@ -10,9 +10,21 @@ $primary: #ff2391;
 $info:    #1ed1b9;
 $enable-rounded: false;
 
-// @import "bootstrap/scss/variables";
+$accordion-padding-x: 0px;
+$accordion-padding-y: 0px;
 
-$accordion-button-padding-y: .5rem;
+@import "bootstrap/scss/variables";
+
+
+//$accordion-button-padding-x: 0px; //.5rem;
+//$accordion-button-padding-y: 0px;
+$accordion-button-active-bg: $accordion-button-bg;
+$accordion-button-active-color: $accordion-button-color;
+$accordion-border-width: 0px;
+
+$input-border-width: 0px;
+$input-group-addon-color: var(--#{$prefix}primary);
+$input-group-addon-bg: var(--#{$prefix}body-bg);
 
 @import "bootstrap/scss/bootstrap";
 

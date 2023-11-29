@@ -44,7 +44,7 @@ export function Inspect(){
     // };
     return(
         c(Accordion, {
-            className:'ms-2 mt-2', 
+            className:'ms-2 mt-2 me-1', 
             defaultActiveKey:['0'], 
             alwaysOpen:true,
             onSelect(keys){
@@ -52,7 +52,7 @@ export function Inspect(){
             }
         },
             //nodes.map(root=> c(Node, {root, key:root})),
-            nodes.map(root=> c(Node_Junction, {root, key:root})),
+            nodes.map(root=> c(Root_Junction, {root, key:root})),
         )
             // c(ButtonToolbar, {className:'gap-2 mb-3'},
             //     c(Visible),
@@ -71,18 +71,17 @@ export function Inspect(){
     )
 }
 
-function Node_Junction({root}){
-    const leaf_node = use_store(d=> d.leaf_node(d, root));
-    if(leaf_node){
-        return c(Leaf, {root, term:'leaf', indx:0, root_term:'', leaf_node:true})
-    }
-    return c(Node, {root});
+function Root_Junction({root, label}){
+    const node_genre = use_store(d=> d.node_genre(d, root));
+    if(node_genre == 'leaf') return c(Leaf, {root, term:'leaf', label}); 
+    return c(Node, {root, label});
 }
 
-function Node({root}){
+function Node({root, label}){
     const icon     = use_store(d=> d.face.icon(d, root));
-    const tag      = use_store(d=> d.face.tag(d, root));
-    const name     = use_store(d=> d.face.name(d, root));
+    //const tag      = use_store(d=> d.face.tag(d, root));
+    //const name     = use_store(d=> d.face.name(d, root));
+    const title    = use_store(d=> d.face.title(d, root));
     const color    = use_store(d=> d.color.body_fg);
    // const root_obj = use_store(d=> d.node.get(root));
     const terms    = use_store(d=> [...d.node.get(root).forw.keys()]); //use_store(d=> [...d.forw(d, node)]);
@@ -90,14 +89,20 @@ function Node({root}){
     return(
         c(Accordion.Item, {
             eventKey: root,
-            className: 'border-0',
+            //className: 'border-0',
         },
-            c(Accordion.Header, {}, 
-            c(Svg, {svg:icon, color, className:'me-2'}), //color:header_color[i] ?? d.color.body_fg
-            name + ' ('+tag+')',
+            c(Accordion.Header, {className:'pe-2'}, 
+                label  && c(InputGroup.Text, {}, readable(label)), // bg-body text-primary border-0    
+                 
+                //c(Svg, {svg:icon, color, className:'ms-2 me-2'}), //color:header_color[i] ?? d.color.body_fg
+                c(InputGroup.Text, {className:'text-body'}, 
+                    c(Svg, {svg:icon, color, className:'me-1'}),
+                    readable(title),
+                ), 
+                //title, // name + ' ('+tag+')',
             ),
             c(Accordion.Body, {
-                className:'p-0 ps-4', 
+                className:'ps-4', 
             }, 
                 c(Accordion, {
                     defaultActiveKey:['0'], 
@@ -114,48 +119,53 @@ function Node({root}){
 }
 
 function Term_Junction({root, term}){
-    const leaf_node_term = use_store(d=> d.leaf_node_term(d, root, term));
-    const leaf_term = use_store(d=> d.leaf_term(d, root, term));
-    if(leaf_node_term.leaf){
-        return c(Leaf, {root:leaf_node_term.root, term:'leaf', indx:0, root_term:term, leaf_node:true})
-            
-    }else if(leaf_term){
-        return c(Leaf, {root, term, indx:0, root_term:term})
+    const term_genre = use_store(d=> d.term_genre(d, root, term));
+    if(term_genre.name == 'stem'){
+        return c(Root_Junction, {root:term_genre.stem, label:term});
+    //}else if(term_genre.name == 'stem_leaf'){
+    //    return c(Leaf, {root:term_genre.stem, term:'leaf', label:term}) // indx:0,
+    }else if(term_genre == 'leaf'){
+        return c(Leaf, {root, term, label:term});
     }
-    return c(Stems_Term, {root, term});
+    return c(Stems, {root, term});
 }
 
-function Stems_Term({root, term}){
+function Stems({root, term}){
     const stems = use_store(d=> d.node.get(root).forw.get(term));
     const d = get_store();
     return(
         c(Accordion.Item, {
             eventKey: term,
-            className: 'border-0',
+            //className: 'border-0',
         },
-            c(Accordion.Header, {}, 
-                readable(term),
+            c(Accordion.Header, {className:'pe-2'}, 
+                // need icon
+                c(InputGroup.Text, {}, readable(term)),
+                //c('div',{className:'text-primary'},readable(term)),
             ),
             c(Accordion.Body, {
-                className:'p-0 ps-4', 
+                className:'ps-4', 
             }, 
                 stems.map((stem, indx)=>{
                     const key = term + stem;
                     if(stem.type) return c(Leaf, {root, term, indx, key});
                     //if(d.node.has(stem)) return c(Node, {root:stem, key}); // should check if leaf_node !!!
-                    if(d.node.has(stem)) return c(Node_Junction, {root:stem, key});
+                    if(d.node.has(stem)) return c(Root_Junction, {root:stem, key});
                 }),
             ),
         )
     )
 }
 
-function Leaf({root, term, indx, root_term, leaf_node}){
+function Leaf({root, term, indx, label}){ // node_genre 
+    //const node_genre = use_store(d=> d.node_genre(d, root));
+    //const term_genre = use_store(d=> d.term_genre(d, root, term));
+    if(term == 'leaf' || label) indx = 0;
     const leaf = use_store(d=> d.node.get(root).forw.get(term)[indx]);
     return(
         c(InputGroup, {}, //className:'mb-2' 
-            root_term && c(InputGroup.Text, {}, readable(root_term)),
-            leaf_node && c(InputGroup.Text, {className:'bi-box'}, ''),
+            label  && c(InputGroup.Text, {}, readable(label)), // bg-body text-primary border-0
+            term=='leaf' && c(InputGroup.Text, {className:'bi-box text-body'}, ''),
             leaf.type == 'xsd:boolean'
                 ? c(Form.Check, {
                     className:'flex-grow-1 ms-2 mt-2', //4 mt-2 me-4 

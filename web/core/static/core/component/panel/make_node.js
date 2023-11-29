@@ -1,4 +1,4 @@
-import {createElement as c} from 'react';
+import {createElement as c, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
 import {use_store, set_store, get_store} from 'delimit';
 import { Svg_Button } from '../app/base.js';
@@ -10,14 +10,10 @@ import { Svg_Button } from '../app/base.js';
 
 
 export function Make_Node(){
-    const root = use_store(d=> d.target.node);
-    const title = use_store(d=> d.face.title(d, root));
+    const target = use_store(d=> d.target.node);
     //console.log('render make node');
-    return(
-        c('div', {className:'d-grid ms-3 mt-3'},
-            title && c('h5', {}, title),
-            root ? c(All_Any_One, {root}) : c(All_Types),
-        )
+    return(    
+        target ? c(Node_Structure, {target}) : c(All_Types)
     )
 }
 
@@ -26,34 +22,74 @@ function All_Types(){
     const d = get_store();
     //console.log('render make node');
     return(
-        types.map((type,i)=>
-            c(Svg_Button, {
-                //className:'w-100',
-                svg:  d.value(d, type, 'icon code', d.face.alt.icon), 
-                text: d.value(d, type, 'name', 'Node'), 
-                func:e=> set_store(d=>{ 
-                    d.make.node(d, {type});  //[...d.picked.node][0]
+        c('div', {className:'d-grid ms-3 mt-3'},
+            types.map((type,i)=>
+                c(Svg_Button, {
+                    //className:'w-100',
+                    svg:  d.value(d, type, 'icon code', d.face.alt.icon), 
+                    text: d.value(d, type, 'name', 'Node'), 
+                    func:e=> set_store(d=>{ 
+                        d.make.node(d, {type});  //[...d.picked.node][0]
+                    })
                 })
-            })
+            )
         )
     )
 }
 
-function All_Any_One({root}){
-    const required = use_store(d=> d.stems(d, root, 'type required'));
-    const optional = use_store(d=> d.stems(d, root, 'type optional'));
-    const separate = use_store(d=> d.stems(d, root, 'type separate'));
+const logic_types = ['required', 'optional', 'exactly_one', 'one_or_more'];
+
+function Node_Structure({root}){ // bi-check-square // bi-x-square // acting as root logic
+    const [logics, set_logics] = useState(new Map(logic_types.map(k=>[k,false])));
+    const title = use_store(d=> d.face.title(d, root));
+    // const required = use_store(d=> d.stems(d, root, 'type required'));
+    // const optional = use_store(d=> d.stems(d, root, 'type optional'));
+    // const exactly_one = use_store(d=> d.stems(d, root, 'type exactly_one'));
+    // const one_or_more = use_store(d=> d.stems(d, root, 'type one_or_more'));
+    const set_logic = (logic, value) => {
+        set_logics(new Map(logics.set(logic, value)));
+    };
     return(
-        c(Accordion, {
-            className:'ms-2 mt-2', 
-            defaultActiveKey:['0'], 
-            alwaysOpen:true,
-            //onSelect(keys){}
-        },
-            //required.map(root=> c(Node_Junction, {root, key:root})),
+        c('div', {className:'ms-3 mt-3'},
+            c('h5', {}, title),
+            c(Accordion, {//onSelect(keys){}
+                className:'ms-2 mt-2', 
+                defaultActiveKey:['0'], 
+                alwaysOpen:true,
+            },
+                Object.keys(logics).map(logic=> c(Logic, {root, logic, set_upper_logic:set_logic})),
+            )
         )
     )
 }
+
+function Logic({root, logic, set_upper_logic}){
+    const stems = use_store(d=> d.stems(d, root, 'type '+logic));
+    const [logics, set_logics] = useState(new Map(stems.map(k=>[k,false])));
+    //const [truths, set_truths] = useState()
+    const set_logic = (stem, value) => {
+        set_logics({...stem, [stem]:value});
+        if(logic == 'required' && Object.entrie)
+    };
+    return(
+        c(Accordion.Item, {eventKey:logic},  
+            c(Accordion.Header, {className:'pe-2'}, 
+                
+            ),
+            c(Accordion.Body, {
+                className:'ps-4', 
+            }, 
+                c(Accordion, { // onSelect(keys){}
+                    defaultActiveKey:['0'], 
+                    alwaysOpen:true,
+                },
+                    terms.map(term=> c(Term_Junction, {root, term, key:root+term})),
+                ),
+            )
+        )
+    )
+}
+
 
 //d.first(d, d.picked.node)
 

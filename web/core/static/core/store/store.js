@@ -50,6 +50,32 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
     user_id: 0,
     search: {depth:null, ids:null},
+
+    root_type:{
+        logic(d, root){ 
+            const type = d.stem(d, root, 'type'); // d.node.get(root).forw.get('type')[0];
+            if(!d.node.has(type)) return true;
+            function truths(logic_type){
+                let truth_count = 0;
+                const stems = d.stems(d, type, logic_type);
+                for(const stem of stems){
+                    const stem_type = d.face.type(d, lgc);
+                    if(stem_type == 'root' && d.root_type.logic(d, stem)) truth_count++;
+                    if(stem_type == 'term' && d.term_type.logic(d, stem)) truth_count++;
+                }
+                return [stems.length, truth_count];
+            }
+            [stem_count, truth_count] = truths('required');
+            if(stem_count > truth_count) return;
+            [stem_count, truth_count] = truths('exactly_one');
+            if(stem_count > 0 && truth_count != 1) return;
+            [stem_count, truth_count] = truths('one_or_more');
+            if(stem_count > 0 && truth_count < 1) return;
+            return true;
+        },
+    },
+
+    
     
     init(d){
         d.root = d.make.node(d);
@@ -84,29 +110,41 @@ export const store = {//export const create_base_slice = (set,get)=>({
     // first(set_or_map){
     //     return set_or_map.keys().next().value;
     // },
+
+    // leaf_term(d, root, term){
+    //     try{
+    //         const stems = d.node.get(root).forw.get(term);
+    //         if(stems.length != 1) return;
+    //         if(stems[0].type) return stems[0];
+    //     }catch{}
+    // },
+    // leaf_node_term(d, root, term){
+    //     try{
+    //         const stems = d.node.get(root).forw.get(term);
+    //         if(stems.length != 1) return;
+    //         if(d.node_style(d, stems[0]) != 'leaf') return;
+    //         return stems[0];//{root:stems[0], leaf:d.leaf_node(d, stems[0])};
+    //     }catch{}
+    // },
     
-    leaf_node(d, root){
+    node_genre(d, root){
         try{
             const forw = d.node.get(root).forw;
             if(forw.size != 1) return; 
             const stems = forw.get('leaf');
             if(stems.length != 1) return;
-            if(stems[0].type) return stems[0];
+            if(stems[0].type) return 'leaf'; // stems[0];
         }catch{}
     },
-    leaf_term(d, root, term){
+    term_genre(d, root, term){
         try{
             const stems = d.node.get(root).forw.get(term);
-            if(stems.length != 1) return;
-            if(stems[0].type) return stems[0];
+            if(stems.length != 1) return 'default';
+            if(stems[0].type) return 'leaf';
+            //if(d.node_genre(d, stems[0]) == 'leaf') return {name:'stem_leaf', stem:stems[0]};
+            if(d.node.has(stems[0])) return {name:'stem', stem:stems[0]};
         }catch{}
-    },
-    leaf_node_term(d, root, term){
-        try{
-            const stems = d.node.get(root).forw.get(term);
-            if(stems.length != 1) return;
-            return {root:stems[0], leaf:d.leaf_node(d, stems[0])};
-        }catch{}
+        return 'default';
     },
     leaf(d, node, path, alt){
         for(const pth of d.array(path)){
@@ -122,10 +160,12 @@ export const store = {//export const create_base_slice = (set,get)=>({
         return alt;
     },
     value(d, node, path, alt){ 
-        try{
-            const leaf = d.leaf(d, node, path);
-            if(leaf.type) return leaf.value;
-        }catch{}
+        for(const pth of d.array(path)){
+            try{
+                const leaf = d.leaf(d, node, pth);
+                if(leaf.type) return leaf.value;
+            }catch{}
+        }
         return alt;
     },
     stem(d, node, path, alt){
@@ -141,24 +181,26 @@ export const store = {//export const create_base_slice = (set,get)=>({
     },
     stems(d, root, path){ // rename to path? (like terminusdb path query)
         const result = [];
-        const terms = path.split(' ');
-        const last_term = terms.at(-1);//terms.pop();
-        function get_stems(root, terms){
-            const term = terms.shift();
-            if(!d.node.has(root)) return;
-            const stems = d.node.get(root).forw.get(term);
-            if(!Array.isArray(stems)) return;
-            if(term == last_term){
-                for(let i = 0; i < stems.length; i++){
-                    if(d.node.has(stems[i])) result.push(stems[i]);
-                }
-            }else{
-                for(let i = 0; i < stems.length; i++){
-                    if(d.node.has(stems[i])) get_stems(stems[i], [...terms]);
+        for(const pth of d.array(path)){
+            const terms = pth.split(' ');
+            const last_term = terms.at(-1);//terms.pop();
+            function get_stems(root, terms){
+                const term = terms.shift();
+                if(!d.node.has(root)) return;
+                const stems = d.node.get(root).forw.get(term);
+                if(!Array.isArray(stems)) return;
+                if(term == last_term){
+                    for(let i = 0; i < stems.length; i++){
+                        if(stems[i].type || d.node.has(stems[i])) result.push(stems[i]);
+                    }
+                }else{
+                    for(let i = 0; i < stems.length; i++){
+                        if(d.node.has(stems[i])) get_stems(stems[i], [...terms]);
+                    }
                 }
             }
+            get_stems(root, terms);
         }
-        get_stems(root, terms);
         return result;
     },
     forw: function* (d, root, a={}){
