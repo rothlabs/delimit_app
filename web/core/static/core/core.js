@@ -10,7 +10,7 @@ export {gql_client} from './app.js';
 export {use_query, use_mutation} from './gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
-export {Svg} from './component/app/base.js';
+export {Svg, Svg_Button} from './component/app/base.js';
 
 enableMapSet();
 enablePatches();
@@ -256,4 +256,8 @@ export function use_window_size(){
 
 export function readable(s){
     return s.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+}
+
+export function snake_case(s){
+    return s.toLowerCase().replace(/ /g,'_');
 }

@@ -106,7 +106,10 @@ export function Viewport(){ // for some reason this renders 5 times on load
         });
     },[studio_mode]);
     useEffect(()=>{
-        set_store(d=> d.scene = scene.current);
+        set_store(d=>{
+            d.scene = scene.current;
+            //d.invalidate = invalidate;
+        });
         //scene.add(camera);
         camera.add(light.current);
     },[]);

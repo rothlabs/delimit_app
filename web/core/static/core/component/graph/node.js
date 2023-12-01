@@ -1,22 +1,35 @@
-import {createElement as c, memo, useRef} from 'react';
+import {createElement as c, memo, useRef, useEffect} from 'react';
 //import {Text} from '@react-three/drei/Text';
 //import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
 import {Svg} from '@react-three/drei/Svg';
 import {use_store, get_store, View_Transform, Pickable} from 'delimit';
+import {useThree} from '@react-three/fiber';
 
 export const Node = memo(({node})=>{ 
-    //const obj = useRef();
+    const name_obj = useRef();
+    const type_obj = useRef();
     let name       = use_store(d=> d.face.name(d, node)).trim();
     const type     = use_store(d=> d.face.type(d, node));
     const icon     = use_store(d=> d.face.icon(d, node));
     const color    = use_store(d=> d.face.color.primary(d, node));
     const material = use_store(d=> d.face.material.primary(d, node));
     const position = use_store(d=> d.graph.node.get(node).pos);
+    const forw_size = use_store(d=> d.node.get(node).forw.size);
+    const {invalidate} = useThree();
+    useEffect(()=>{
+        name_obj.current.sync(() => invalidate());
+        type_obj.current.sync(() => invalidate());
+    }, [name, type]);
     const d = get_store();
     const material_props = {color, toneMapped:false};
     if(name.length > 24) name = name.substring(0, 24);
+    let font_style = 'normal';
+    if(forw_size < 1){
+        name = 'emtpy';
+        font_style = 'italic';
+    }
     //console.log('render node');
     return(
         c(View_Transform, {
@@ -31,8 +44,10 @@ export const Node = memo(({node})=>{
                     material: d.material.body_bg,
                 }),
                 c('text', {
+                    ref: name_obj,
                     text: name,
                     font: d.font.body, 
+                    fontStyle: font_style,
                     outlineColor: d.color.body_bg,
                     material,
                     fontSize: 1, //letterSpacing: 0, lineHeight: 1, 
@@ -49,6 +64,7 @@ export const Node = memo(({node})=>{
                     position: [-1, 1, 1],
                 }),
                 c('text', {
+                    ref: type_obj,
                     text: type,
                     font: d.font.body, 
                     outlineColor: d.color.body_bg,

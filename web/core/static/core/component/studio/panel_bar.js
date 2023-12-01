@@ -10,6 +10,7 @@ export function Panel_Bar(){
     const buttons = [
         {name:'Make',    icon:'bi-plus-square', value:'make',    disabled:false},
         {name:'Inspect', icon:'bi-menu-button', value:'inspect', disabled:false}, 
+        {name:'Schema',  icon:'bi-ui-checks',   value:'schema',  disabled:false},
         {name:'Modules', icon:'bi-boxes',       value:'modules', disabled:false},
         {name:'Display', icon:'bi-eye',         value:'display', disabled:false}, 
     ];

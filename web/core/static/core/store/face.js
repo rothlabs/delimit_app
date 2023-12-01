@@ -1,8 +1,13 @@
+import {readable} from 'delimit';
+
 export const face = {
     name: (d, node)=> d.value(d, node,  ['name', 'leaf'], ''),
     type: (d, node)=> d.value(d, node,  ['type name', 'type'], ''),
     icon: (d, node)=> d.value(d, node,  ['type icon code', 'icon code'], d.face.alt.icon),
-    title:(d, node) => node ? d.face.name(d, node)+ ' ('+d.face.type(d, node)+')' : '',
+    title(d, node){ //node ? d.face.name(d, node)+ ' ('+d.face.type(d, node)+')' : ''
+        const type_name = d.face.type(d, node);
+        return d.face.name(d, node) + (type_name ? ' ('+d.face.type(d, node)+')' : '');
+    }
 };
 
 const pick = (d, node, picked, alt) => d.picked.node.has(node) ? picked : alt;

@@ -35,7 +35,7 @@ export function Make_Repo(){
             ),
             c(Button, {
                 className: 'mb-2 bi-box-seam',
-                onClick:e=>{ 
+                onClick(){ 
                     make_repo({variables:{name, description}});
                     set_store(d=> d.studio.panel.show = false);
                 },

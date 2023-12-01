@@ -15,20 +15,26 @@ $accordion-padding-y: 0px;
 
 @import "bootstrap/scss/variables";
 
+//$btn-border-width: 0px;
+$input-btn-padding-y-sm: .05rem;
+$btn-padding-y-sm: .05rem;
 
-//$accordion-button-padding-x: 0px; //.5rem;
-//$accordion-button-padding-y: 0px;
 $accordion-button-active-bg: $accordion-button-bg;
 $accordion-button-active-color: $accordion-button-color;
+$accordion-button-focus-box-shadow: none;
 $accordion-border-width: 0px;
 
 $input-border-width: 0px;
 $input-group-addon-color: var(--#{$prefix}primary);
-$input-group-addon-bg: var(--#{$prefix}body-bg);
+$input-group-addon-bg: none;//var(--#{$prefix}body-bg);
 
 @import "bootstrap/scss/bootstrap";
 
 // 8. Add additional custom code here
+//.btn-primary {
+//    @include button-variant($mynewcolor, darken($mynewcolor, 7.5%), darken($mynewcolor, 10%), lighten($mynewcolor,5%), lighten($mynewcolor, 10%), darken($mynewcolor,30%));
+//}
+
 .modal{
     word-wrap: break-word !important;  // maybe this doesn't need !important and should go before bootstrap import 
     word-break: break-word !important;

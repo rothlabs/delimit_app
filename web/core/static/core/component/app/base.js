@@ -3,6 +3,8 @@ import {Row, Col, Button, Container} from 'react-bootstrap';
 import {use_store} from 'delimit';
 
 export function Svg({svg, color, className}) { 
+    const default_color = use_store(d=> d.color.body_fg);
+    if(!color) color = default_color;
     const colored_svg = svg.replace('fill="currentColor"', 
 		'fill="'+color.replace('#','%23')+'"'// transform="translate(0 -2)"'
 		);

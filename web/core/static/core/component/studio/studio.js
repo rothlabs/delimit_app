@@ -170,6 +170,7 @@ function Canvas_Box(){
                 camera: {far:10000}, 
                 //gl: {antialias: false},
                 dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 
+                frameloop: 'demand',
                 //, far:10000 zoom:1    //frameloop:'demand', 
             }, 
                 c(Viewport),

@@ -6,6 +6,7 @@ import {Make_Repo} from './make_repo.js';
 import {Inspect} from './inspect.js';
 import {Modules} from './modules.js';
 import {Display} from './display.js';
+import {Schema} from './schema.js';
 //import {Badge} from '../node/base.js'
 // import {Visible} from '../toolbar/visible.js';
 // import {Remake} from '../toolbar/remake.js';
@@ -24,8 +25,8 @@ export function Panel(){
     }
     if(mode == 'inspect') return c(Inspect);
     if(mode == 'modules') return c(Modules);
+    if(mode == 'schema')  return c(Schema);
     //if(mode == 'display') return c(Display);
-    return false;
 }
 
 // export function Panel(){ 

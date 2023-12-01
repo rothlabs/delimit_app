@@ -9,7 +9,7 @@ import * as theme from './theme.js';
 import {design} from './design.js';
 import * as pick from './pick.js';
 import {graph} from './graph.js';
-import {make} from './make.js';
+import * as make from './make.js';
 import {drop} from './drop.js';
 
 //console.log(theme);
@@ -36,10 +36,10 @@ export const store = {//export const create_base_slice = (set,get)=>({
     ...schema,
     ...theme,
     ...pick,
+    ...make,
     face,
     design,
     graph,
-    make,
     drop,
 
     static_url: document.body.getAttribute('data-static-url') + 'core/',
@@ -54,8 +54,8 @@ export const store = {//export const create_base_slice = (set,get)=>({
     search: {depth:null, ids:null},
     
     init(d){
-        d.root = d.make.node(d);
-        d.make.edge(d, d.root, 'name', {type:'xsd:string', value:'root'});
+        d.entry = d.make.node(d);
+        d.make.edge(d, d.entry, 'name', {type:'xsd:string', value:'Entry'});
         d.base_texture = new THREE.TextureLoader().load(
             d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
         );
@@ -103,24 +103,23 @@ export const store = {//export const create_base_slice = (set,get)=>({
     //     }catch{}
     // },
     
-    node_genre(d, root){
-        try{
-            const forw = d.node.get(root).forw;
-            if(forw.size != 1) return; 
-            const stems = forw.get('leaf');
-            if(stems.length != 1) return;
-            if(stems[0].type) return 'leaf'; // stems[0];
-        }catch{}
+    node_joint(d, root){
+        if(!d.node.has(root)) return;
+        const forw = d.node.get(root).forw;
+        //if(forw.size == 0) return 'empty';
+        if(forw.size != 1 || !forw.has('leaf')) return 'node'; 
+        const leaf = forw.get('leaf');
+        if(leaf.length != 1) return 'node';
+        if(leaf[0].type) return 'leaf'; 
+        return 'node';
     },
-    term_genre(d, root, term){
-        try{
-            const stems = d.node.get(root).forw.get(term);
-            if(stems.length != 1) return 'default';
-            if(stems[0].type) return 'leaf';
-            //if(d.node_genre(d, stems[0]) == 'leaf') return {name:'stem_leaf', stem:stems[0]};
-            if(d.node.has(stems[0])) return {name:'stem', stem:stems[0]};
-        }catch{}
-        return 'default';
+    term_joint(d, root, term){
+        if(!d.node.has(root)) return;
+        const stems = d.node.get(root).forw.get(term);
+        if(!stems) return;
+        if(stems.length != 1) return 'term';
+        if(stems[0].type) return 'leaf';
+        if(d.node.has(stems[0])) return {name:'node', node:stems[0]};
     },
     leaf(d, node, path, alt){
         for(const pth of d.array(path)){
@@ -321,8 +320,8 @@ export const store = {//export const create_base_slice = (set,get)=>({
                 let s = triple.stem;
                 if(s['@type']) s = {type:s['@type'], value:s['@value']};
                 d.make.edge(d, r, t, s, {given:true});
-                if(t == 'delimit'){
-                    d.make.edge(d, d.root, 'delimit', r, {given:true})
+                if(t == 'delimit_app'){
+                    d.make.edge(d, d.entry, 'app', r, {given:true})
                 }
             }
         }

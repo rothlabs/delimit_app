@@ -1,7 +1,7 @@
 import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
 import {DragDropContext} from 'react-beautiful-dnd';
-import {use_store, get_store, set_store, Svg, readable} from 'delimit';
+import {use_store, set_store, Svg, readable} from 'delimit';
 
 //https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
 
@@ -23,7 +23,7 @@ import {use_store, get_store, set_store, Svg, readable} from 'delimit';
 // if first level is grouped, second level still will not be grouped
 
 export function Inspect(){ 
-    use_store(d=> d.graph.change);
+    //use_store(d=> d.graph.change);
     const nodes = use_store(d=> [...d.picked.node]); //{shallow:true}
     //const d = get_store();
     // const header_color_list = (keys=[]) => {
@@ -43,16 +43,14 @@ export function Inspect(){
     //     ));
     // };
     return(
-        c(Accordion, {
+        c(Accordion, { // onSelect(keys){}
             className:'ms-2 mt-2 me-1', 
-            defaultActiveKey:['0'], 
+            key: nodes[0],
+            defaultActiveKey: ['inspect'+nodes[0]], 
             alwaysOpen:true,
-            onSelect(keys){
-                //set_header_color(header_color_list(keys));
-            }
         },
             //nodes.map(root=> c(Node, {root, key:root})),
-            nodes.map(root=> c(Root_Junction, {root, key:root})),
+            nodes.map(root=> c(Node_Joint, {root, key:root, accordion_root:'inspect'})),
         )
             // c(ButtonToolbar, {className:'gap-2 mb-3'},
             //     c(Visible),
@@ -71,86 +69,68 @@ export function Inspect(){
     )
 }
 
-function Root_Junction({root, label}){
-    const node_genre = use_store(d=> d.node_genre(d, root));
-    if(node_genre == 'leaf') return c(Leaf, {root, term:'leaf', label}); 
-    return c(Node, {root, label});
+function Node_Joint({root, label, accordion_root}){
+    const node_joint = use_store(d=> d.node_joint(d, root));
+    if(!node_joint) return;
+    if(node_joint == 'leaf') return c(Leaf, {root, term:'leaf', label}); 
+    return c(Node, {root, label, accordion_root});
 }
 
-function Node({root, label}){
+function Node({root, label, accordion_root}){
     const icon     = use_store(d=> d.face.icon(d, root));
-    //const tag      = use_store(d=> d.face.tag(d, root));
-    //const name     = use_store(d=> d.face.name(d, root));
     const title    = use_store(d=> d.face.title(d, root));
-    const color    = use_store(d=> d.color.body_fg);
-   // const root_obj = use_store(d=> d.node.get(root));
     const terms    = use_store(d=> [...d.node.get(root).forw.keys()]); //use_store(d=> [...d.forw(d, node)]);
-    //const d = get_store();
-    return(
-        c(Accordion.Item, {
-            eventKey: root,
-            //className: 'border-0',
-        },
-            c(Accordion.Header, {className:'pe-2'}, 
-                label  && c(InputGroup.Text, {}, readable(label)), // bg-body text-primary border-0    
-                 
-                //c(Svg, {svg:icon, color, className:'ms-2 me-2'}), //color:header_color[i] ?? d.color.body_fg
+    if(!terms.length){
+        return(
+            c(InputGroup, {},
+                label  && c(InputGroup.Text, {}, readable(label)), 
                 c(InputGroup.Text, {className:'text-body'}, 
-                    c(Svg, {svg:icon, color, className:'me-1'}),
-                    readable(title),
+                    c(Svg, {svg:icon, className:'me-1'}),
+                    c('span', {className:'fst-italic'}, 'emtpy'),
+                ),    
+            )
+        )
+    }
+    return(
+        c(Accordion.Item, {eventKey:accordion_root+root, className:'show'}, // , className:'show'
+            c(Accordion.Header, {className:'pe-2',},  //disabled
+                label  && c(InputGroup.Text, {}, readable(label)), 
+                c(InputGroup.Text, {className:'text-body'}, 
+                    c(Svg, {svg:icon, className:'me-1'}),
+                    title,
                 ), 
-                //title, // name + ' ('+tag+')',
+                
             ),
-            c(Accordion.Body, {
-                className:'ps-4', 
-            }, 
-                c(Accordion, {
-                    defaultActiveKey:['0'], 
-                    alwaysOpen:true,
-                    onSelect(keys){
-                        //set_header_color(header_color_list(keys));
-                    }
-                },
-                    terms.map(term=> c(Term_Junction, {root, term, key:root+term})),
-                ),
+            c(Accordion.Body, {className:'ps-4'}, 
+                terms.map(term=> c(Term_Joint, {root, term, key:root+term})),
             ),
         )
     )
 }
 
-function Term_Junction({root, term}){
-    const term_genre = use_store(d=> d.term_genre(d, root, term));
-    if(term_genre.name == 'stem'){
-        return c(Root_Junction, {root:term_genre.stem, label:term});
-    //}else if(term_genre.name == 'stem_leaf'){
-    //    return c(Leaf, {root:term_genre.stem, term:'leaf', label:term}) // indx:0,
-    }else if(term_genre == 'leaf'){
+function Term_Joint({root, term}){
+    const term_joint = use_store(d=> d.term_joint(d, root, term));
+    if(!term_joint) return;
+    if(term_joint.name == 'node'){
+        return c(Node_Joint, {root:term_joint.node, label:term, accordion_root:root});
+    }else if(term_joint == 'leaf'){
         return c(Leaf, {root, term, label:term});
     }
-    return c(Stems, {root, term});
+    return c(Term, {root, term});
 }
 
-function Stems({root, term}){
+function Term({root, term}){
     const stems = use_store(d=> d.node.get(root).forw.get(term));
-    const d = get_store();
     return(
-        c(Accordion.Item, {
-            eventKey: term,
-            //className: 'border-0',
-        },
+        c(Accordion.Item, {eventKey:root+term},
             c(Accordion.Header, {className:'pe-2'}, 
-                // need icon
                 c(InputGroup.Text, {}, readable(term)),
-                //c('div',{className:'text-primary'},readable(term)),
             ),
-            c(Accordion.Body, {
-                className:'ps-4', 
-            }, 
+            c(Accordion.Body, {className:'ps-4'}, 
                 stems.map((stem, indx)=>{
                     const key = term + stem;
                     if(stem.type) return c(Leaf, {root, term, indx, key});
-                    //if(d.node.has(stem)) return c(Node, {root:stem, key}); // should check if leaf_node !!!
-                    if(d.node.has(stem)) return c(Root_Junction, {root:stem, key});
+                    return c(Node_Joint, {root:stem, key, accordion_root:root});
                 }),
             ),
         )
@@ -158,8 +138,6 @@ function Stems({root, term}){
 }
 
 function Leaf({root, term, indx, label}){ // node_genre 
-    //const node_genre = use_store(d=> d.node_genre(d, root));
-    //const term_genre = use_store(d=> d.term_genre(d, root, term));
     if(term == 'leaf' || label) indx = 0;
     const leaf = use_store(d=> d.node.get(root).forw.get(term)[indx]);
     return(
