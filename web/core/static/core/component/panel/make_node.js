@@ -11,7 +11,8 @@ export function Make_Node(){
     return(
         c(Accordion, { // onSelect(keys){}
             className:'ms-2 mt-2 me-1', 
-            defaultActiveKey:['0'], 
+            key: contexts[0],
+            defaultActiveKey: [contexts[0]], 
             alwaysOpen:true,
         },
             contexts.map(root=> c(Context, {root})),

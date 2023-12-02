@@ -1,6 +1,6 @@
 import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {DragDropContext} from 'react-beautiful-dnd';
+import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
 import {use_store, set_store, Svg, readable} from 'delimit';
 
 //https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
@@ -22,36 +22,68 @@ import {use_store, set_store, Svg, readable} from 'delimit';
 
 // if first level is grouped, second level still will not be grouped
 
+const onDragEnd = ({source, destination}) => {
+    console.log(source, destination);
+    //const {source, destination} = result;
+    // set_store(d=> d.reorder(d, 
+    //     source.droppableId,      // term
+    //     source.index,          
+    //     destination.droppableId, // term 
+    //     destination.index
+    // ));
+};
+
 export function Inspect(){ 
     //use_store(d=> d.graph.change);
     const nodes = use_store(d=> [...d.picked.node]); //{shallow:true}
+    const drop_hover_color = use_store(d=> d.color.secondary_bg);
     //const d = get_store();
     // const header_color_list = (keys=[]) => {
     //     return nodes.map(n=> keys.includes(n) ? d.color.primary : d.color.body_fg);
     // }
     // const [header_color, set_header_color] = useState(header_color_list());
-    //rs(d=> d.inspect.update(d));
-
-
-    // const onDragEnd = result=>{
-    //     const {source, destination} = result;
-    //     ss(d=> d.reorder.stem(d, 
-    //         source.droppableId, 
-    //         source.index, 
-    //         destination.droppableId, 
-    //         destination.index
-    //     ));
-    // };
+    //rs(d=> d.inspect.update(d));    
     return(
-        c(Accordion, { // onSelect(keys){}
-            className:'ms-2 mt-2 me-1', 
-            key: nodes[0],
-            defaultActiveKey: ['inspect'+nodes[0]], 
-            alwaysOpen:true,
-        },
-            //nodes.map(root=> c(Node, {root, key:root})),
-            nodes.map(root=> c(Node_Joint, {root, key:root, accordion_root:'inspect'})),
-        )
+        
+            c(Accordion, { // onSelect(keys){}
+                className: 'ms-2 mt-2 me-1', 
+                key: nodes[0],
+                defaultActiveKey: ['inspect'+nodes[0]], 
+                alwaysOpen: true,
+            },
+                //nodes.map(root=> c(Node, {root, key:root})),
+                c(DragDropContext, {onDragEnd},
+                    c(Droppable, {direction:'vertical', droppableId:'inspect'}, (provided, snapshot) => (
+                        c('div',{
+                            ref: provided.innerRef,
+                            style: {background: snapshot.isDraggingOver ? drop_hover_color : 'none',},
+                            ...provided.droppableProps,
+                        },
+                            nodes.map((root, index)=>(
+                                c(Node_Joint, {root, index, key:root, accordion_root:'inspect'})
+                            )),
+                            provided.placeholder,
+                        )
+                    ))
+                )
+            )
+            // c(Droppable, {droppableId:'ahhhhhhh'}, (provided, snapshot) => ( 
+            //     c('div',{
+            //         ref: provided.innerRef,
+            //         style: {background: snapshot.isDraggingOver ? 'yellow' : 'transparent',},
+            //         ...provided.droppableProps,
+            //     },
+            //         c(Draggable, {draggableId:'test', index:0, key:'test'}, (provided, snapshot) => (
+            //             c('div',{
+            //                 ref: provided.innerRef,
+            //                 ...provided.draggableProps,
+            //                 ...provided.dragHandleProps,
+            //             },
+            //             )
+            //         ))
+            //     )
+            // ))
+        
             // c(ButtonToolbar, {className:'gap-2 mb-3'},
             //     c(Visible),
             //     c(Remake),
@@ -69,21 +101,28 @@ export function Inspect(){
     )
 }
 
-function Node_Joint({root, label, accordion_root}){
+function Node_Joint({root, label, index, accordion_root}){
     const node_joint = use_store(d=> d.node_joint(d, root));
     if(!node_joint) return;
-    if(node_joint == 'leaf') return c(Leaf, {root, term:'leaf', label}); 
-    return c(Node, {root, label, accordion_root});
+    if(node_joint == 'leaf') return c(Leaf, {root, term:'leaf', index:0, label}); 
+    return c(Node, {root, label, index, accordion_root});
 }
 
-function Node({root, label, accordion_root}){
+function Node({root, label, index, accordion_root}){
     const icon     = use_store(d=> d.face.icon(d, root));
     const title    = use_store(d=> d.face.title(d, root));
     const terms    = use_store(d=> [...d.node.get(root).forw.keys()]); //use_store(d=> [...d.forw(d, node)]);
+    const drop_hover_color = use_store(d=> d.color.secondary_bg);
     if(!terms.length){
         return(
             c(InputGroup, {},
-                label  && c(InputGroup.Text, {}, readable(label)), 
+                // label && c(Droppable, {droppableId:root+':'+label}, (provided, snapshot) => ( // direction: 'vertical', key:root+label
+                //     c(InputGroup.Text, {
+                //         ref: provided.innerRef,
+                //         style: {background: snapshot.isDraggingOver ? 'yellow' : 'transparent',},
+                //         ...provided.droppableProps,
+                //     }, readable(label))
+                // )),
                 c(InputGroup.Text, {className:'text-body'}, 
                     c(Svg, {svg:icon, className:'me-1'}),
                     c('span', {className:'fst-italic'}, 'emtpy'),
@@ -92,29 +131,88 @@ function Node({root, label, accordion_root}){
         )
     }
     return(
-        c(Accordion.Item, {eventKey:accordion_root+root, className:'show'}, // , className:'show'
-            c(Accordion.Header, {className:'pe-2',},  //disabled
-                label  && c(InputGroup.Text, {}, readable(label)), 
-                c(InputGroup.Text, {className:'text-body'}, 
-                    c(Svg, {svg:icon, className:'me-1'}),
-                    title,
-                ), 
-                
-            ),
-            c(Accordion.Body, {className:'ps-4'}, 
-                terms.map(term=> c(Term_Joint, {root, term, key:root+term})),
-            ),
-        )
+        c(Draggable, {draggableId:root, index}, (provided, snapshot) => ( // , key:root
+            // c(Row, {
+            //     //ref: provided.innerRef,
+            //     //...provided.draggableProps,
+            // },
+            //     // label && c(Col, {className:'col-auto',},
+            //     //     c(InputGroup.Text, {}, readable(label)), 
+            //     // ),
+            //     c(Col, {
+            //         //...provided.dragHandleProps,
+            //         className:'bi-grip-vertical pt-1 pe-0 me-0 col-auto',
+            //     }),
+            //     c(Col, {},
+                c('div', {
+                    ref: provided.innerRef,
+                    ...provided.draggableProps,
+                },
+                    c('div', {
+                        ...provided.dragHandleProps,
+                        className:'bi-grip-vertical pt-1 pe-0 me-0',
+                        style:{position:'absolute', zIndex:100},
+                    }),
+                    c(Accordion.Item, {
+                        eventKey:accordion_root+root,
+                        //style:{overflow:'visible'},
+                    }, // , className:'show'
+                        //c(Draggable, {draggableId:root, index}, (provided, snapshot) => ( // , key:root
+                            c(Accordion.Header, {
+                                //ref: provided.innerRef,
+                                //...provided.draggableProps,
+                                //...provided.dragHandleProps,
+                                className:'pe-2',
+                            },  //disabled
+                                label  && c(InputGroup.Text, {}, readable(label)), 
+                                c(InputGroup.Text, {className:'text-body'}, 
+                                    c(Svg, {svg:icon, className:'me-1'}),
+                                    title,
+                                ), 
+                                
+                            ),
+                        //)),
+                        c(Accordion.Body, {className:'ps-4'}, // , style:{paddingLeft:'-60px', overflow:'visible'} 
+                            terms.map(term=>(
+                                c(Droppable, {direction:'vertical', droppableId:root+':'+term, key:root+':'+term}, (provided, snapshot) => (
+                                    c('div',{
+                                        ref: provided.innerRef,
+                                        style: {background: snapshot.isDraggingOver ? drop_hover_color : 'none',},
+                                        ...provided.droppableProps,
+                                    },
+                                        c(Term_Joint, {root, term, key:root+term})
+                                    )
+                                ))
+                            )),
+                        ),
+                    )
+            //     )
+                )
+        ))
     )
 }
 
-function Term_Joint({root, term}){
+function Term_Joint({root, term, dnd_provided, dnd_snapshot}){
     const term_joint = use_store(d=> d.term_joint(d, root, term));
     if(!term_joint) return;
+    // if(term_joint.name == 'node' || term_joint == 'leaf'){
+    //     return(
+    //         c(Row, {},
+    //             c(Col, {className:'col-auto'},
+    //                 c(InputGroup.Text, {}, readable(term)), 
+    //             ),
+    //             c(Col, {},
+    //                 term_joint.name == 'node' ?
+    //                     c(Node_Joint, {root:term_joint.node, label:term, index:0, accordion_root:root}) :
+    //                     c(Leaf, {root, term, index:0, label:term})
+    //             )   
+    //         )
+    //     )
+    // }
     if(term_joint.name == 'node'){
-        return c(Node_Joint, {root:term_joint.node, label:term, accordion_root:root});
+        return c(Node_Joint, {root:term_joint.node, label:term, index:0, accordion_root:root});
     }else if(term_joint == 'leaf'){
-        return c(Leaf, {root, term, label:term});
+        return c(Leaf, {root, term, index:0, label:term});
     }
     return c(Term, {root, term});
 }
@@ -127,19 +225,19 @@ function Term({root, term}){
                 c(InputGroup.Text, {}, readable(term)),
             ),
             c(Accordion.Body, {className:'ps-4'}, 
-                stems.map((stem, indx)=>{
+                stems.map((stem, index)=>{
                     const key = term + stem;
-                    if(stem.type) return c(Leaf, {root, term, indx, key});
-                    return c(Node_Joint, {root:stem, key, accordion_root:root});
+                    if(stem.type) return c(Leaf, {root, term, index, key});
+                    return c(Node_Joint, {root:stem, index, key, accordion_root:root});
                 }),
             ),
         )
     )
 }
 
-function Leaf({root, term, indx, label}){ // node_genre 
-    if(term == 'leaf' || label) indx = 0;
-    const leaf = use_store(d=> d.node.get(root).forw.get(term)[indx]);
+function Leaf({root, term, index, label}){ // node_genre 
+    //if(term == 'leaf' || label) index = 0;
+    const leaf = use_store(d=> d.node.get(root).forw.get(term)[index]);
     return(
         c(InputGroup, {}, //className:'mb-2' 
             label  && c(InputGroup.Text, {}, readable(label)), // bg-body text-primary border-0
@@ -153,7 +251,7 @@ function Leaf({root, term, indx, label}){ // node_genre
                     //disabled: !asset, 
                     checked: leaf.value, 
                     onChange(e){
-                        set_store(d=> d.mutate.leaf(d, root, term, indx, e.target.checked));
+                        set_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
                     }, 
                 })
                 : c(Form.Control, {
@@ -163,7 +261,7 @@ function Leaf({root, term, indx, label}){ // node_genre
                     ///////// disabled:!asset, 
                     value: leaf.value, 
                     onChange(e){
-                        set_store(d=> d.mutate.leaf(d, root, term, indx, e.target.value));
+                        set_store(d=> d.mutate.leaf(d, root, term, index, e.target.value));
                     }, 
                 })
             ///c(Buttons, {t:t}),

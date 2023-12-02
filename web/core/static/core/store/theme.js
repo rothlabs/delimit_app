@@ -24,6 +24,7 @@ theme.compute = d =>{
     d.color.body_fg     = css('--bs-body-color');
     d.color.body_bg     = css('--bs-body-bg');
     d.color.border      = css('--bs-border-color');
+    d.color.secondary_bg = css('--bs-secondary-bg');
     d.color.tertiary_fg = css('--bs-tertiary-color');
     d.material.primary = new THREE.MeshBasicMaterial({color:d.color.primary, toneMapped:false});
     d.material.secondary = new THREE.MeshBasicMaterial({color:d.color.secondary, toneMapped:false});
