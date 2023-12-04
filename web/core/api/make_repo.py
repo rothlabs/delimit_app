@@ -125,7 +125,7 @@ class Make_Repo(graphene.Mutation):
                 #.add_triple(name_term, '@schema:context',  delimit_leaf_node) 
                 .add_triple(name_term, '@schema:icon',     abc_icon_code)  
                 .add_triple(name_term, '@schema:required', wq().string('String')) # interface automatically makes this a drop down and shoes 'boolean, integer, etc'
-                .add_triple(name_term, '@schema:make',     wq().string('New Type')) # drop down for boolean, string, etc but you can type/edit
+                .add_triple(name_term, '@schema:make',     wq().string('New')) # drop down for boolean, string, etc but you can type/edit
 
                 .add_triple(context_term, '@schema:name',     wq().string('Context'))   
                 .add_triple(context_term, '@schema:type',     wq().string('Term')) 

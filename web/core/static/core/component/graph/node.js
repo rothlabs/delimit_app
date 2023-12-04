@@ -4,50 +4,45 @@ import {createElement as c, memo, useRef, useEffect} from 'react';
 //import {Edge} from './edge.js';
 import * as THREE from 'three';
 import {Svg} from '@react-three/drei/Svg';
-import {use_store, get_store, View_Transform, Pickable} from 'delimit';
+import {use_store, set_store, get_store, View_Transform, pickable, draggable, droppable} from 'delimit';
 import {useThree} from '@react-three/fiber';
 
 export const Node = memo(({node})=>{ 
-    const name_obj = useRef();
-    const type_obj = useRef();
-    let name       = use_store(d=> d.face.name(d, node)).trim();
-    const type     = use_store(d=> d.face.type(d, node));
-    const icon     = use_store(d=> d.face.icon(d, node));
-    const color    = use_store(d=> d.face.color.primary(d, node));
-    const material = use_store(d=> d.face.material.primary(d, node));
-    const position = use_store(d=> d.graph.node.get(node).pos);
-    const forw_size = use_store(d=> d.node.get(node).forw.size);
+    //console.log('render node');
+    const name_obj  = useRef();
+    const type_obj  = useRef();
+    const {name, type, icon} = use_store(d=> d.face.primary(d, node));
+    const color     = use_store(d=> d.face.color.primary(d, node));
+    const material  = use_store(d=> d.face.material.primary(d, node));
+    const position  = use_store(d=> d.graph.node.get(node).pos);
     const {invalidate} = useThree();
     useEffect(()=>{
         name_obj.current.sync(() => invalidate());
         type_obj.current.sync(() => invalidate());
     }, [name, type]);
     const d = get_store();
-    const material_props = {color, toneMapped:false};
-    if(name.length > 24) name = name.substring(0, 24);
-    let font_style = 'normal';
-    if(forw_size < 1){
-        name = 'emtpy';
-        font_style = 'italic';
-    }
-    //console.log('render node');
+    const material_props = {color, toneMapped:false};    
     return(
         c(View_Transform, {
             name: 'node',
-            //ref: obj,
             position, //[pos.x, pos.y, pos.z],
             size: 14, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
+            ...pickable(node),
+            ...draggable({node}),
+            ...droppable({root:node}),
         },
-            c(Pickable, {node},
+            //c('group', {...pickable}, // c(Pickable, {node},
+            
                 c('mesh', {
                     geometry: d.geometry.circle,
                     material: d.material.body_bg,
                 }),
                 c('text', {
+                    
                     ref: name_obj,
                     text: name,
                     font: d.font.body, 
-                    fontStyle: font_style,
+                    //fontStyle: font_style,
                     outlineColor: d.color.body_bg,
                     material,
                     fontSize: 1, //letterSpacing: 0, lineHeight: 1, 
@@ -55,6 +50,7 @@ export const Node = memo(({node})=>{
                     outlineWidth: '40%',
                     anchorX: 'left',
                     anchorY: 'middle',
+                    
                 }),
                 c(Svg, {
                     src: 'data:image/svg+xml;utf8,' + icon,
@@ -75,10 +71,19 @@ export const Node = memo(({node})=>{
                     anchorX: 'left',
                     anchorY: 'middle',
                 }),
-            ),
+            //),
         )
     );
 });
+
+
+
+    //if(name.length > 24) name = name.substring(0, 24);
+    //let font_style = 'normal';
+    // if(forw_size < 1){
+    //     name = 'emtpy';
+    //     font_style = 'italic';
+    // }
 
 
 // useSub(d=> d.graph.node.get(node).pos, pos=>{ //useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 

@@ -1,4 +1,4 @@
-import {useQuery, useMutation, gql} from './apollo/ApolloClient.js';
+import {useQuery, useMutation, gql} from '../apollo/ApolloClient.js';
 
 function compile_gql(name, gql_parts){
     const header_vars = [];

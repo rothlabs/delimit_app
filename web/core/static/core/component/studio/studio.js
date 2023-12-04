@@ -171,6 +171,9 @@ function Canvas_Box(){
                 //gl: {antialias: false},
                 dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 
                 frameloop: 'demand',
+                // onClick(e){
+                //     console.log('canvas click!!!');
+                // },
                 //, far:10000 zoom:1    //frameloop:'demand', 
             }, 
                 c(Viewport),

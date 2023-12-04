@@ -2,7 +2,7 @@ import {current} from 'immer';
 import {Vector3, Matrix4} from 'three';
 import * as THREE from 'three';
 //import {static_url} from '../app.js';
-import lodash from 'lodash';
+//import lodash from 'lodash';
 import {face} from './face.js';
 import * as schema from './schema.js';
 import * as theme from './theme.js';
@@ -16,8 +16,8 @@ import {drop} from './drop.js';
 
 const ctx = JSON.parse(document.getElementById('ctx').text);
 
-var next_funcs = [];
-var next_ids = [];
+// var next_funcs = [];
+// var next_ids = [];
 
 
 export const store = {//export const create_base_slice = (set,get)=>({
@@ -55,7 +55,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     
     init(d){
         d.entry = d.make.node(d);
-        d.make.edge(d, d.entry, 'name', {type:'xsd:string', value:'Entry'});
+        d.make.edge(d, {root:d.entry, term:'name', stem:{type:'xsd:string', value:'Entry'}});
         d.base_texture = new THREE.TextureLoader().load(
             d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
         );
@@ -65,8 +65,8 @@ export const store = {//export const create_base_slice = (set,get)=>({
     },
 
     mutate:{
-        leaf(d, root, term, indx, value){
-            const leaf = d.node.get(root).forw.get(term)[indx];
+        leaf(d, root, term, index, value){
+            const leaf = d.node.get(root).forw.get(term)[index];
             if(leaf.type == 'xsd:boolean' && typeof value == 'boolean'){
                 leaf.value = value;
             }else if(leaf.type == 'xsd:integer' && typeof value == 'string'){
@@ -102,7 +102,9 @@ export const store = {//export const create_base_slice = (set,get)=>({
     //         return stems[0];//{root:stems[0], leaf:d.leaf_node(d, stems[0])};
     //     }catch{}
     // },
-    
+    type_name(d, root){
+        return d.value(d, root, ['type name', 'type'], '');
+    },
     node_joint(d, root){
         if(!d.node.has(root)) return;
         const forw = d.node.get(root).forw;
@@ -110,7 +112,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
         if(forw.size != 1 || !forw.has('leaf')) return 'node'; 
         const leaf = forw.get('leaf');
         if(leaf.length != 1) return 'node';
-        if(leaf[0].type) return 'leaf'; 
+        if(leaf[0].type) return {name:'leaf', leaf:leaf[0]}; 
         return 'node';
     },
     term_joint(d, root, term){
@@ -118,7 +120,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
         const stems = d.node.get(root).forw.get(term);
         if(!stems) return;
         if(stems.length != 1) return 'term';
-        if(stems[0].type) return 'leaf';
+        if(stems[0].type) return {name:'leaf', leaf:stems[0]};
         if(d.node.has(stems[0])) return {name:'node', node:stems[0]};
     },
     leaf(d, node, path, alt){
@@ -180,17 +182,17 @@ export const store = {//export const create_base_slice = (set,get)=>({
     },
     forw: function* (d, root, a={}){
         for(const [term, stems] of d.node.get(root).forw){
-            for(let indx = 0; indx < stems.length; indx++){
-                const stem = stems[indx];
-                if(!stem.type || a.leaf) yield [term, stem, indx];
+            for(let index = 0; index < stems.length; index++){
+                const stem = stems[index];
+                if(!stem.type || a.leaf) yield [term, stem, index];
             }
         }
     },
     back: function* (d, stem, a={}){
         for(const root of d.node.get(stem).back){
             for(const [term, stems] of d.node.get(root).forw){
-                for(let indx = 0; indx < stems.length; indx++){
-                    if(stems[indx] == stem) yield [root, term, indx];
+                for(let index = 0; index < stems.length; index++){
+                    if(stems[index] == stem) yield [root, term, index];
                 }
             }
         }
@@ -218,37 +220,37 @@ export const store = {//export const create_base_slice = (set,get)=>({
         return obj ? (Array.isArray(obj) ? obj : [obj]) : [];
     },
 
-    next(...a){ // static
-        const d = get();
-        const id = a.filter(a=>!Array.isArray(a)).map(a=>String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!
-        if(d.add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
-            //console.log(id);
-            //console.log(id, get().n[a[1]] ? get().n[a[1]].t : 'unknown');
-            next_funcs.push({a:a, id:id});
-        }//else{
-        //     if(Array.isArray(a.at(-1))){
-        //         const f = next_funcs.find(f=>(f.id==id));
-        //         if(Array.isArray(f.a.at(-1))){
-        //             //const d = get();
-        //             a.at(-1).forEach(cumulative=>{
-        //                 d.add(f.a[f.a.length-1], cumulative);
-        //             });
-        //         }
-        //     }
-        // }
-    },
-    continue(d){
-        //console.log(current(d).next_funcs);
-        const funcs = [...next_funcs];
-        next_funcs = [];//d.empty_list;
-        next_ids = [];//d.empty_list;
-        //console.log(current(d).empty_list);
-        //console.log(funcs);
-        funcs.forEach(f=>{
-            //console.log(current(a));
-            lodash.get(d, f.a[0])(d, ...f.a.slice(1));
-        });// 0   1
-    },
+    // // next(...a){ // static
+    // //     const d = get();
+    // //     const id = a.filter(a=>!Array.isArray(a)).map(a=>String(a)).join('_'); //check if one of a is an object and iterate that to stringify parts //must make sure this is stringifying function args right {key:value}?!?!?!
+    // //     if(d.add(next_ids, id)){// add every func and then use set method to make entries unique  //JSON.stringify(a).split('').sort().join()
+    // //         //console.log(id);
+    // //         //console.log(id, get().n[a[1]] ? get().n[a[1]].t : 'unknown');
+    // //         next_funcs.push({a:a, id:id});
+    // //     }//else{
+    // //     //     if(Array.isArray(a.at(-1))){
+    // //     //         const f = next_funcs.find(f=>(f.id==id));
+    // //     //         if(Array.isArray(f.a.at(-1))){
+    // //     //             //const d = get();
+    // //     //             a.at(-1).forEach(cumulative=>{
+    // //     //                 d.add(f.a[f.a.length-1], cumulative);
+    // //     //             });
+    // //     //         }
+    // //     //     }
+    // //     // }
+    // // },
+    // // continue(d){
+    // //     //console.log(current(d).next_funcs);
+    // //     const funcs = [...next_funcs];
+    // //     next_funcs = [];//d.empty_list;
+    // //     next_ids = [];//d.empty_list;
+    // //     //console.log(current(d).empty_list);
+    // //     //console.log(funcs);
+    // //     funcs.forEach(f=>{
+    // //         //console.log(current(a));
+    // //         lodash.get(d, f.a[0])(d, ...f.a.slice(1));
+    // //     });// 0   1
+    // // },
 
     send_triples(d, patches){ // change to send patches directly to server (filtering for patches that matter)
         console.log(patches);
@@ -308,20 +310,18 @@ export const store = {//export const create_base_slice = (set,get)=>({
             node: d.repo.get(repo)?.node ?? new Set(),
         });
         const handled = new Set();
-        for(const triple of module.triples){
-            if(handled.has(triple.root)) continue;
-            d.make.node(d, {repo, node:triple.root, given:true});
-            handled.add(triple.root);
+        for(const {root} of module.triples){
+            if(handled.has(root)) continue;
+            d.make.node(d, {repo, node:root, given:true});
+            handled.add(root);
         }
-        for(const triple of module.triples){
-            if(triple.term.slice(0, 8) == '@schema:'){
-                const r = triple.root;
-                const t = triple.term.slice(8);
-                let s = triple.stem;
-                if(s['@type']) s = {type:s['@type'], value:s['@value']};
-                d.make.edge(d, r, t, s, {given:true});
-                if(t == 'delimit_app'){
-                    d.make.edge(d, d.entry, 'app', r, {given:true})
+        for(let {root, term, stem} of module.triples){
+            if(term.slice(0, 8) == '@schema:'){ //if(triple.term.slice(0, 8) == '@schema:'){
+                term = term.slice(8);
+                if(stem['@type']) stem = {type:stem['@type'], value:stem['@value']};
+                d.make.edge(d, {root, term, stem, given:true});
+                if(term == 'delimit_app'){
+                    d.make.edge(d, {root:d.entry, term:'app', stem:root, given:true});
                 }
             }
         }

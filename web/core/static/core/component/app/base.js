@@ -9,7 +9,7 @@ export function Svg({svg, color, className}) {
 		'fill="'+color.replace('#','%23')+'"'// transform="translate(0 -2)"'
 		);
 	return (
-		c('img', {src:'data:image/svg+xml,'+colored_svg, className})
+		c('img', {src:'data:image/svg+xml,'+colored_svg, className, draggable:false})
 	)
 }
 

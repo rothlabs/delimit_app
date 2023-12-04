@@ -35,43 +35,44 @@ drop.node = (d, nodes, a={})=>{
 
 
 drop.edge = (d, a={})=>{
+    console.log('drop edge');
     let drops = []; 
     function forward_edge(func){
         if(!d.node.has(a.root)) return {};
-        for(const [term, stem, indx] of d.forw(d, a.root, {leaf:true})){ // d.flat(d.node.get(a.root).forw)
-            func({root:a.root, term, stem, indx});
+        for(const [term, stem, index] of d.forw(d, a.root, {leaf:true})){ // d.flat(d.node.get(a.root).forw)
+            func({root:a.root, term, stem, index});
         }
     }
     if(a.root && a.term && a.stem){ 
-        drops.push({root:a.root, term:a.term, stem:a.stem, indx:a.indx ?? 0});
+        drops.push({root:a.root, term:a.term, stem:a.stem, index:a.index ?? 0});
     }else if(a.root && a.stem){
         forward_edge(edge=> edge.stem==a.stem && drops.push(edge));
     }else if(a.root){  
         forward_edge(edge=> drops.push(edge));
     }else if(a.stem){
         if(!d.node.has(a.stem)) return;
-        for(const [root, term, indx] of d.back(d, a.stem)){ //for(const [root, term, indx] of d.node.get(a.stem).back.values()){
-            drops.push({root, term, stem:a.stem, indx});
+        for(const [root, term, index] of d.back(d, a.stem)){ //for(const [root, term, index] of d.node.get(a.stem).back.values()){
+            drops.push({root, term, stem:a.stem, index});
         }
     }
     if(!a.given) drops = drops.filter(drp=> d.write_access(d, drp.root));
-    drops.sort((a, b)=> b.indx - a.indx);
+    drops.sort((a, b)=> b.index - a.index);
     for(const drp of drops){
         if(!d.node.has(drp.root)) continue;
         const forw = d.node.get(drp.root).forw;
         if(!forw.has(drp.term)) continue;
         const stems = forw.get(drp.term);
-        if(drp.indx >= stems.length) continue;
-        stems.splice(drp.indx, 1);
+        if(drp.index >= stems.length) continue;
+        stems.splice(drp.index, 1);
         if(!stems.length) forw.delete(drp.term);
     }
     for(const drp of drops){
         if(!d.node.has(drp.stem)) continue;
-        const delete_back = true;
+        let delete_back = true;
         for(const [term, stem] of d.forw(d, drp.root)){
             if(stem == drp.stem) delete_back = false;
         }
-        if(delete_back) d.node.get(drp.stem).back.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.indx);
+        if(delete_back) d.node.get(drp.stem).back.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
     }
     if(drops.length) d.graph.increment(d);
 };

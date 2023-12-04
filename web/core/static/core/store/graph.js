@@ -7,8 +7,8 @@ export const graph = {
     node: new Map(),
     edge: [],
     scale: 1,
-    change: 0,   
-    increment: d=> d.graph.change++,
+    tick: 0,   
+    increment: d=> d.graph.tick++,
 };
 
 graph.layout = d => {        
@@ -54,7 +54,7 @@ graph.layout = d => {
     for(const [node, node_obj] of d.graph.node){
         const lvl = node_obj.lvl;
         ///const grp = d.face.tag(d, node)+'__'+Array.from(d.node.get(node).back.map(([_,v])=>v.root).sort().join('_');
-        const grp = d.face.type(d, node)+'__'+[...d.node.get(node).back].sort().join('_'); // const grp = d.spec.type(d,n)+'__'+rt.sort().join('_');     //JSON.stringify(d.node.get(n).r)
+        const grp = d.type_name(d, node)+'__'+[...d.node.get(node).back].sort().join('_'); // const grp = d.spec.type(d,n)+'__'+rt.sort().join('_');     //JSON.stringify(d.node.get(n).r)
         if(!level[lvl].group[grp]) level[lvl].group[grp] = {n:[], y:0, count:0};
         level[lvl].group[grp].n.push(node);
         level[lvl].count++;

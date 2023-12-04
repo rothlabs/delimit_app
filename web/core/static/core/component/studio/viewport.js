@@ -7,7 +7,7 @@ import {Design} from '../design/design.js';
 import {Graph} from '../graph/graph.js';
 //import {Mover} from './mover.js';
 //import {useS, ss, useSub, theme, gs, set_store} from '../../app.js';
-import {Pickbox} from './pickbox.js'; // selection box
+//import {Pickbox} from './pickbox.js'; // selection box
 import {Vector3} from 'three';
 import {set_store, use_store} from 'delimit';
 
@@ -60,21 +60,21 @@ function Viewport_Control(){
             draggingSmoothTime: 0.01,
             dollyToCursor: true,
         }), 
-        pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
-            style:{
-                border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",
-                position: "fixed",
-            },
-            onSelectionChanged:objs=>set_store(d=>{ // key pressing making this fire ?!?!?!?! wtf
-                if(!d.pick.multi) d.pick.none(d);
-                const nodes = [];
-                objs.forEach(obj=>{
-                    const pickable = obj.parent?.__r3f?.memoizedProps.pickable;
-                    if(pickable) nodes.push(pickable);
-                });
-                d.pick.set(d, nodes, true);
-            }),
-        }),
+        // // pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
+        // //     style:{
+        // //         border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",
+        // //         position: "fixed",
+        // //     },
+        // //     onSelectionChanged:objs=>set_store(d=>{ // key pressing making this fire ?!?!?!?! wtf
+        // //         if(!d.pick.multi) d.pick.none(d);
+        // //         const nodes = [];
+        // //         objs.forEach(obj=>{
+        // //             const pickable = obj.parent?.__r3f?.memoizedProps.pickable;
+        // //             if(pickable) nodes.push(pickable);
+        // //         });
+        // //         d.pick.set(d, nodes, true);
+        // //     }),
+        // // }),
     ))
 }
 

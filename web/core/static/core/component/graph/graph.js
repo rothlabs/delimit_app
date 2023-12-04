@@ -4,7 +4,7 @@ import {Edge} from './edge.js';
 import {use_store, set_store} from 'delimit';
 
 export const Graph = memo(()=>{
-    use_store(d=> d.graph.change); 
+    use_store(d=> d.graph.tick); 
     const d = set_store(d=> d.graph.layout(d));
     //console.log('render graph');
     return(

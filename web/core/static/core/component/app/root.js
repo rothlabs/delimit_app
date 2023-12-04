@@ -1,12 +1,42 @@
 import {createElement as c, Fragment, useEffect} from 'react';
-import {Container, Row, Col, Nav, Navbar, ToggleButton, ButtonGroup, Button} from 'react-bootstrap';//'boot';
+import {Container, Row, Col, Nav, Navbar, ToggleButton, InputGroup, Button} from 'react-bootstrap';//'boot';
 import {Outlet, Link, useNavigate} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
 import {Mode_Bar} from '../studio/mode_bar.js';
 import { Confirm } from './confirm.js';
-import {set_store, use_store, use_query, use_window_size} from 'delimit';
+import {set_store, use_store, use_query, use_window_size, Svg, pointer} from 'delimit';
+import {animated, useSpring} from '@react-spring/web';
+import {Vector2} from 'three';
+
+const vector = new Vector2();
+
+function Drag(){
+    //console.log('render drag');
+    const {root, node} = use_store(d=> d.drag.data);
+    const {title, icon} = use_store(d=> d.face.primary(d, node));
+    const [springs, api] = useSpring(() => ({x:0, y:0}));
+    pointer.spring = api;
+    if(!node) return;
+    return(
+        c(animated.div,{
+            style:{
+                position: 'absolute',
+                zIndex: 1000,
+                ...springs,
+            },
+        },
+            c(InputGroup.Text, {className:'text-body'},
+                c(Svg, {svg:icon, className:'me-1'}),
+                title,
+            ),
+            root && c(InputGroup.Text, {},
+                'removed from ' + root,
+            ),
+        )
+    )
+}
 
 export function Root(){
     const mode      = use_store(d=> d.mode);
@@ -26,7 +56,34 @@ export function Root(){
             //     className: 'h-100 g-0',
             // },
             //c(Row, {},
-            c(Col, {className:'d-flex flex-column'}, 
+            c(Col, {
+                className:'d-flex flex-column',
+                onPointerMove(e){ // Capture  
+                    pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
+                    pointer.position.set(e.clientX, e.clientY);
+                    if(!pointer.dragging) return; 
+                    if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
+                    set_store(d=>{
+                        if(d.drag.data.node) return;
+                        const data = d.drag.staged;
+                        if(e.ctrlKey){
+                            if(data.root && data.term && data.index != null){
+                                d.drop.edge(d, {...data, stem:data.node});
+                            }
+                            d.drag.data = data;
+                        }else{
+                            d.drag.data = {node:data.node};
+                        }
+                    });
+                },
+                onPointerUp(e){
+                    pointer.dragging = false;
+                    set_store(d=>{
+                        d.drag.data = {};
+                    });
+                },
+            }, 
+                c(Drag),
                 c(Login),
 		        c(Logout),
                 c(Confirm),

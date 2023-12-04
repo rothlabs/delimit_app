@@ -1,7 +1,8 @@
 import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
-import {use_store, set_store, Svg, readable} from 'delimit';
+import {use_store, set_store, Svg, readable, draggable, droppable} from 'delimit';
+import {animated, useSpring} from '@react-spring/web';
+//import {useDrag, useGesture} from 'react-use-gesture';
 
 //https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
 
@@ -22,107 +23,67 @@ import {use_store, set_store, Svg, readable} from 'delimit';
 
 // if first level is grouped, second level still will not be grouped
 
-const onDragEnd = ({source, destination}) => {
-    console.log(source, destination);
-    //const {source, destination} = result;
-    // set_store(d=> d.reorder(d, 
-    //     source.droppableId,      // term
-    //     source.index,          
-    //     destination.droppableId, // term 
-    //     destination.index
-    // ));
-};
+// const onDragEnd = ({source, destination}) => {
+//     console.log(source, destination);
+//     //const {source, destination} = result;
+//     // set_store(d=> d.reorder(d, 
+//     //     source.droppableId,      // term
+//     //     source.index,          
+//     //     destination.droppableId, // term 
+//     //     destination.index
+//     // ));
+// };
 
 export function Inspect(){ 
-    //use_store(d=> d.graph.change);
     const nodes = use_store(d=> [...d.picked.node]); //{shallow:true}
-    const drop_hover_color = use_store(d=> d.color.secondary_bg);
-    //const d = get_store();
-    // const header_color_list = (keys=[]) => {
-    //     return nodes.map(n=> keys.includes(n) ? d.color.primary : d.color.body_fg);
-    // }
-    // const [header_color, set_header_color] = useState(header_color_list());
-    //rs(d=> d.inspect.update(d));    
+    //const drop_hover_color = use_store(d=> d.color.secondary_bg);
+    // const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }));
+    // const bind = useDrag(({ active, down, movement: [mx, my] }) => {
+    //     console.log('dragging!!!!', down, mx, my);
+    //     api.start({ x: down ? mx : 0, y: down ? my : 0, immediate: down });
+    // })
+    //const bind = useDrag(state => {return {mything:5};}, {axis:'x'});
+
+    // const bind = useGesture(
+    //     {
+    //       onDrag: ({ down, movement: [mx, my] }) => {console.log('crazy dude')},
+    //       //onPinch: (state) => doSomethingWith(state)
+    //       // ...
+    //     },
+    //     //{
+    //         //enabled: true,
+    //     //}
+    //   );
+    
     return(
-        
-            c(Accordion, { // onSelect(keys){}
-                className: 'ms-2 mt-2 me-1', 
-                key: nodes[0],
-                defaultActiveKey: ['inspect'+nodes[0]], 
-                alwaysOpen: true,
-            },
-                //nodes.map(root=> c(Node, {root, key:root})),
-                c(DragDropContext, {onDragEnd},
-                    c(Droppable, {direction:'vertical', droppableId:'inspect'}, (provided, snapshot) => (
-                        c('div',{
-                            ref: provided.innerRef,
-                            style: {background: snapshot.isDraggingOver ? drop_hover_color : 'none',},
-                            ...provided.droppableProps,
-                        },
-                            nodes.map((root, index)=>(
-                                c(Node_Joint, {root, index, key:root, accordion_root:'inspect'})
-                            )),
-                            provided.placeholder,
-                        )
-                    ))
-                )
-            )
-            // c(Droppable, {droppableId:'ahhhhhhh'}, (provided, snapshot) => ( 
-            //     c('div',{
-            //         ref: provided.innerRef,
-            //         style: {background: snapshot.isDraggingOver ? 'yellow' : 'transparent',},
-            //         ...provided.droppableProps,
-            //     },
-            //         c(Draggable, {draggableId:'test', index:0, key:'test'}, (provided, snapshot) => (
-            //             c('div',{
-            //                 ref: provided.innerRef,
-            //                 ...provided.draggableProps,
-            //                 ...provided.dragHandleProps,
-            //             },
-            //             )
-            //         ))
-            //     )
-            // ))
-        
-            // c(ButtonToolbar, {className:'gap-2 mb-3'},
-            //     c(Visible),
-            //     c(Remake),
-            //     c(Delete),
-            //     c(Close),
-            //     c(Apply),
-            // ),
-            // [...d.string_tags,  'string'].map(t=>  c(String,  {t})),
-            // [...d.boolean_tags, 'boolean'].map(t=> c(Boolean, {t})),
-            // [...d.integer_tags, 'integer'].map(t=> c(Integer, {t})),
-            // [...d.decimal_tags, 'decimal'].map(t=> c(Decimal, {t})),
-            // c(DragDropContext, {onDragEnd},
-            //     d.stem_tags.map(t=> c(Stem, {t:t})),
-            // ),
+        c(Accordion, { // onSelect(keys){}
+            className: 'ms-2 mt-2 me-1', 
+            key: nodes[0],
+            defaultActiveKey: [nodes[0]+0], 
+            alwaysOpen: true,
+        },
+            nodes.map(node=> c(Node_Joint, {node, key:node})),
+        )
     )
 }
 
-function Node_Joint({root, label, index, accordion_root}){
-    const node_joint = use_store(d=> d.node_joint(d, root));
+function Node_Joint({root, term, node, index, show_term}){
+    const node_joint = use_store(d=> d.node_joint(d, node));
     if(!node_joint) return;
-    if(node_joint == 'leaf') return c(Leaf, {root, term:'leaf', index:0, label}); 
-    return c(Node, {root, label, index, accordion_root});
+    if(node_joint.name == 'leaf'){
+        return c(Leaf, {root:node, term, ...node_joint.leaf, show_term:true, show_icon:term}); 
+    }
+    return c(Node, {root, term, node, index, show_term});
 }
 
-function Node({root, label, index, accordion_root}){
-    const icon     = use_store(d=> d.face.icon(d, root));
-    const title    = use_store(d=> d.face.title(d, root));
-    const terms    = use_store(d=> [...d.node.get(root).forw.keys()]); //use_store(d=> [...d.forw(d, node)]);
-    const drop_hover_color = use_store(d=> d.color.secondary_bg);
+function Node({root, term, node, index=0, show_term}){
+    const {title, icon} = use_store(d=> d.face.primary(d, node));
+    const terms         = use_store(d=> [...d.node.get(node).forw.keys()]); 
+    const eventKey = (root ?? '') + (term ?? '') + node + index;
     if(!terms.length){
         return(
             c(InputGroup, {},
-                // label && c(Droppable, {droppableId:root+':'+label}, (provided, snapshot) => ( // direction: 'vertical', key:root+label
-                //     c(InputGroup.Text, {
-                //         ref: provided.innerRef,
-                //         style: {background: snapshot.isDraggingOver ? 'yellow' : 'transparent',},
-                //         ...provided.droppableProps,
-                //     }, readable(label))
-                // )),
+                show_term && c(InputGroup.Text, {...droppable({root, term, index})}, readable(term)),
                 c(InputGroup.Text, {className:'text-body'}, 
                     c(Svg, {svg:icon, className:'me-1'}),
                     c('span', {className:'fst-italic'}, 'emtpy'),
@@ -131,88 +92,32 @@ function Node({root, label, index, accordion_root}){
         )
     }
     return(
-        c(Draggable, {draggableId:root, index}, (provided, snapshot) => ( // , key:root
-            // c(Row, {
-            //     //ref: provided.innerRef,
-            //     //...provided.draggableProps,
-            // },
-            //     // label && c(Col, {className:'col-auto',},
-            //     //     c(InputGroup.Text, {}, readable(label)), 
-            //     // ),
-            //     c(Col, {
-            //         //...provided.dragHandleProps,
-            //         className:'bi-grip-vertical pt-1 pe-0 me-0 col-auto',
-            //     }),
-            //     c(Col, {},
-                c('div', {
-                    ref: provided.innerRef,
-                    ...provided.draggableProps,
-                },
-                    c('div', {
-                        ...provided.dragHandleProps,
-                        className:'bi-grip-vertical pt-1 pe-0 me-0',
-                        style:{position:'absolute', zIndex:100},
-                    }),
-                    c(Accordion.Item, {
-                        eventKey:accordion_root+root,
-                        //style:{overflow:'visible'},
-                    }, // , className:'show'
-                        //c(Draggable, {draggableId:root, index}, (provided, snapshot) => ( // , key:root
-                            c(Accordion.Header, {
-                                //ref: provided.innerRef,
-                                //...provided.draggableProps,
-                                //...provided.dragHandleProps,
-                                className:'pe-2',
-                            },  //disabled
-                                label  && c(InputGroup.Text, {}, readable(label)), 
-                                c(InputGroup.Text, {className:'text-body'}, 
-                                    c(Svg, {svg:icon, className:'me-1'}),
-                                    title,
-                                ), 
-                                
-                            ),
-                        //)),
-                        c(Accordion.Body, {className:'ps-4'}, // , style:{paddingLeft:'-60px', overflow:'visible'} 
-                            terms.map(term=>(
-                                c(Droppable, {direction:'vertical', droppableId:root+':'+term, key:root+':'+term}, (provided, snapshot) => (
-                                    c('div',{
-                                        ref: provided.innerRef,
-                                        style: {background: snapshot.isDraggingOver ? drop_hover_color : 'none',},
-                                        ...provided.droppableProps,
-                                    },
-                                        c(Term_Joint, {root, term, key:root+term})
-                                    )
-                                ))
-                            )),
-                        ),
-                    )
-            //     )
-                )
-        ))
+        c(Accordion.Item, {eventKey}, 
+            c(Accordion.Header, {
+                className:'pe-2',
+                ...draggable({root, term, node, index}),
+                ...droppable({root, term, index}),
+            },  
+                show_term && c(InputGroup.Text, {}, readable(term)), 
+                c(InputGroup.Text, {className:'text-body'}, 
+                    c(Svg, {svg:icon, className:'me-1'}),
+                    title,
+                ), 
+            ),
+            c(Accordion.Body, {className:'ps-4'}, 
+                terms.map(term=> c(Term_Joint, {root:node, term, key:term})),
+            ),
+        )
     )
 }
 
-function Term_Joint({root, term, dnd_provided, dnd_snapshot}){
+function Term_Joint({root, term}){
     const term_joint = use_store(d=> d.term_joint(d, root, term));
     if(!term_joint) return;
-    // if(term_joint.name == 'node' || term_joint == 'leaf'){
-    //     return(
-    //         c(Row, {},
-    //             c(Col, {className:'col-auto'},
-    //                 c(InputGroup.Text, {}, readable(term)), 
-    //             ),
-    //             c(Col, {},
-    //                 term_joint.name == 'node' ?
-    //                     c(Node_Joint, {root:term_joint.node, label:term, index:0, accordion_root:root}) :
-    //                     c(Leaf, {root, term, index:0, label:term})
-    //             )   
-    //         )
-    //     )
-    // }
     if(term_joint.name == 'node'){
-        return c(Node_Joint, {root:term_joint.node, label:term, index:0, accordion_root:root});
-    }else if(term_joint == 'leaf'){
-        return c(Leaf, {root, term, index:0, label:term});
+        return c(Node_Joint, {root, term, node:term_joint.node, show_term:true});
+    }else if(term_joint.name == 'leaf'){
+        return c(Leaf, {root, term, ...term_joint.leaf, show_term:true});
     }
     return c(Term, {root, term});
 }
@@ -221,45 +126,51 @@ function Term({root, term}){
     const stems = use_store(d=> d.node.get(root).forw.get(term));
     return(
         c(Accordion.Item, {eventKey:root+term},
-            c(Accordion.Header, {className:'pe-2'}, 
+            c(Accordion.Header, {
+                className:'pe-2',
+                ...droppable({root, term}),
+            }, 
                 c(InputGroup.Text, {}, readable(term)),
             ),
             c(Accordion.Body, {className:'ps-4'}, 
                 stems.map((stem, index)=>{
-                    const key = term + stem;
-                    if(stem.type) return c(Leaf, {root, term, index, key});
-                    return c(Node_Joint, {root:stem, index, key, accordion_root:root});
+                    if(stem.type) return c(Leaf, {root, term, index, key:index});
+                    return c(Node_Joint, {root, term, node:stem, index, key:index});
                 }),
             ),
         )
     )
 }
 
-function Leaf({root, term, index, label}){ // node_genre 
-    //if(term == 'leaf' || label) index = 0;
-    const leaf = use_store(d=> d.node.get(root).forw.get(term)[index]);
+function Leaf({root, term='leaf', type, value, index=0, show_term, show_icon}){ // ...droppable({node, term})
+
+    //if(term == 'leaf' || role) index = 0;
+    //const leaf = use_store(d=> d.node.get(root).forw.get(term)[index]);
     return(
-        c(InputGroup, {}, //className:'mb-2' 
-            label  && c(InputGroup.Text, {}, readable(label)), // bg-body text-primary border-0
-            term=='leaf' && c(InputGroup.Text, {className:'bi-box text-body'}, ''),
-            leaf.type == 'xsd:boolean'
-                ? c(Form.Check, {
+        c(InputGroup, {
+            ...droppable({root, term, index})
+        }, //className:'mb-2' 
+            show_term && c(InputGroup.Text, {}, readable(term)), // bg-body text-primary border-0
+            show_icon && c(InputGroup.Text, {className:'bi-box text-body'}, ''),
+            type == 'xsd:boolean' ?
+                c(Form.Check, {
                     className:'flex-grow-1 ms-2 mt-2', //4 mt-2 me-4 
                     //style: {transform:'scale(1.8);'},
                     type:     'switch',
                     //label:    readable(t), 
                     //disabled: !asset, 
-                    checked: leaf.value, 
+                    checked: value, 
                     onChange(e){
                         set_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
                     }, 
-                })
-                : c(Form.Control, {
+                }) :
+                c(Form.Control, {
+
                     ///////// as:area_tags.includes(t) ? 'textarea' : 'input', 
                     ///////// maxLength:64,
                     ///////// placeholder:placeholder,  
                     ///////// disabled:!asset, 
-                    value: leaf.value, 
+                    value: value, 
                     onChange(e){
                         set_store(d=> d.mutate.leaf(d, root, term, index, e.target.value));
                     }, 
@@ -268,6 +179,29 @@ function Leaf({root, term, index, label}){ // node_genre
         )
     )
 }
+
+
+                    // draggable:"true",
+                    // onDrag(e){
+                    //     console.log('dragging on leaf');
+                    //     e.stopPropagation();
+                    //     e.preventDefault();
+                    // },
+                    // onDragOver(e){
+                    //     console.log('dragging on leaf');
+                    //     e.stopPropagation();
+                    //     e.preventDefault();
+                    // },
+                    // onDragEnter(e){
+                    //     console.log('dragging on leaf');
+                    //     e.stopPropagation();
+                    //     e.preventDefault();
+                    // },
+                    // onDragStart(e){
+                    //     console.log('dragging on leaf');
+                    //     e.stopPropagation();
+                    //     e.preventDefault();
+                    // },
 
 // // ? c(Boolean_Input, {root, term, indx, leaf}) 
 // //                 : c(String_Input, {root, term, indx, leaf}),

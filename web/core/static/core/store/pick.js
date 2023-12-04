@@ -42,7 +42,6 @@ pick.target = {
     },
 };
 
-
 export const unpick = {
     node(d, node, a={}){
         d.picked.node.delete(node);
@@ -58,6 +57,149 @@ export const unpick = {
         d.picked.repo.clear();
     },
 }
+
+export const drag = {
+    data: {},
+};
+
+// export const pickable = node => {
+//     return () => {
+//         const events = {};
+//         events.onClick = e => { 
+//             //e.stopPropagation();
+//             set_store(d=> d.pick.node(d, node, {multi:e.ctrlKey}));
+//         }
+//         events.onPointerEnter = e => {
+//             document.body.style.cursor = 'pointer';
+//         };
+//         events.onPointerLeave = e => { 
+//             document.body.style.cursor = 'auto';
+//         };
+//         return events;
+//     }
+// };
+
+
+    //start: new Vector2(),
+
+
+// export const draggable = (node) => {
+//     return () => {
+//         //const delta = new Vector2();
+//         const events = {};
+//         //event.onMouseDown = ( {event} ) => event.stopPropagation();
+//         //event.onPointerMove = e => e.stopPropagation();
+//         events.onPointerDown = e => {
+//             //event.stopPropagation();
+//             //console.log('onPointerDown', );
+//             pointer.dragging = true;
+//             set_store(d=>{
+//                 //console.log('onPointerDown', d.value(d, node, 'name'));
+//                 d.drag.staged = node;
+//                 pointer.start.set(e.clientX, e.clientY);
+//                 //d.drag.start.set(e.clientX, e.clientY);
+//             });
+//             // set_store(d=> d.drag.face = {
+//             //     name: d.value(d, node, 'name', ''), 
+//             //     type: d.value(d, node, 'type', ''),
+//             // });
+//         };
+
+//         // events.onPointerEnter = e => {
+//         //     document.body.style.cursor = 'move';
+//         // };
+//         // events.onPointerLeave = e => { 
+//         //     document.body.style.cursor = 'auto';
+//         // };
+
+//         // events.onDrag = ({xy:[x, y], movement:[mx, my]}) => {  // args:[name, type, icon], 
+//         //     set_transient(d=>{
+//         //         d.drag.pos = {x:x+5, y:y+5};
+//         //         d.drag.delta = delta.set(mx, my);
+//         //     });
+//         // };
+//         // events.onDragEnd = ({event}) => {
+//         //     //console.log(event);
+//         //     //event.stopPropagation();
+//         //     set_store(d=> d.drag.node = null);
+//         // };
+//         // events.onHover = (e) => {
+//         //     const d = get_store();
+//         //     console.log('event', d.value(d, node, 'name'))
+//         // };
+//         //events.onMouseUp = (event) => event.stopPropagation();
+//         return events;
+//     }
+// };
+
+
+// export const draggable = (node) => {
+//     const delta = new Vector2();
+//     const events = {};
+//     //event.onMouseDown = ( {event} ) => event.stopPropagation();
+//     //event.onPointerMove = e => e.stopPropagation();
+//     events.onDragStart = ({event}) => {
+//         //event.stopPropagation();
+//         set_store(d=> d.drag.node = node);
+//         // set_store(d=> d.drag.face = {
+//         //     name: d.value(d, node, 'name', ''), 
+//         //     type: d.value(d, node, 'type', ''),
+//         // });
+//     };
+//     events.onDrag = ({xy:[x, y], movement:[mx, my]}) => {  // args:[name, type, icon], 
+//         set_transient(d=>{
+//             d.drag.pos = {x:x+5, y:y+5};
+//             d.drag.delta = delta.set(mx, my);
+//         });
+//     };
+//     events.onDragEnd = ({event}) => {
+//         //console.log(event);
+//         //event.stopPropagation();
+//         set_store(d=> d.drag.node = null);
+//     };
+//     // events.onHover = (e) => {
+//     //     const d = get_store();
+//     //     console.log('event', d.value(d, node, 'name'))
+//     // };
+//     //events.onMouseUp = (event) => event.stopPropagation();
+//     return useGesture(events); // , {drag:{threshold:10, preventDefault:true,}}
+// };
+
+// export const draggable = (node) => {
+//     const delta = new Vector2();
+//     //const event_handlers = {};
+//     //event.onMouseDown = ( {event} ) => event.stopPropagation();
+//     //event.onPointerMove = e => e.stopPropagation();
+    
+//     onDragStart = e => {
+//         event.stopPropagation();
+//         set_store(d=> d.drag.face = {
+//             name: d.value(d, node, 'name', ''), 
+//             type: d.value(d, node, 'type', ''),
+//         });
+//     };
+//     onDrag = e => {  // args:[name, type, icon], 
+//         set_transient(d=>{
+//             d.drag.pos = {x, y};
+//             d.drag.delta = delta.set(mx, my);
+//         });
+//     };
+//     onDragEnd = e => set_store(d=> d.drag.face = null);
+
+
+
+
+//     return {
+//         onmousedown
+//         onmousemove
+//     }; 
+// };
+
+
+
+
+
+
 
 // // export const create_pick_slice = (set,get)=>({pick:{
 // //     //reckon_tags: ['point'], // swap name with reckon_tags ?

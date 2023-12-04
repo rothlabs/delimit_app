@@ -27,9 +27,9 @@ function Node_Joint({root, label, target, target_term, accordion_root}){
 }
 
 function Node({root, label, target, target_term, is_target, accordion_root}){
-    const name       = use_store(d=> d.face.name(d, root));
+    const name       = use_store(d=> d.value(d, root, 'name', '')); // d.face.name(d, root)
     const type       = use_store(d=> d.stem(d, root, 'type'));
-    const type_name  = use_store(d=> d.face.type(d, root)); // rename face.type to type_name
+    const type_name  = use_store(d=> d.type_name(d, root)); // change from face.type to type_name
     const icon       = use_store(d=> d.face.icon(d, root));
     const root_terms = use_store(d=> [...d.node.get(root).forw.keys()]);
     const terms      = use_store(d=> is_target ? [...d.node.get(type).forw.keys()] : root_terms);
@@ -70,7 +70,7 @@ function node_header(root, label, icon, name, target, target_term, is_target, ty
                     }else if(type_name == 'Term'){
                         d.build.term(d, target, root);
                     }else if(type_name == 'Stem'){ 
-                        d.build.stem(d, target, target_term, root);
+                        d.build.stem(d, {root:target, term:target_term, stem:root});
                     }
                 });
             }
@@ -102,9 +102,9 @@ function Term({root, term, target, target_term}){
                 c(InputGroup.Text, {}, readable(term)),
             ),
             c(Accordion.Body, {className:'ps-4'}, 
-                stems.map((stem, indx)=>{
+                stems.map((stem, index)=>{
                     const key = term + stem;
-                    if(stem.type) return c(Leaf, {root, term, indx, key});
+                    if(stem.type) return c(Leaf, {root, term, index, key});
                     return c(Node_Joint, {root:stem, target, target_term, accordion_root:root, key,});
                 }),
             ),
@@ -112,9 +112,9 @@ function Term({root, term, target, target_term}){
     )
 }
 
-function Leaf({root, term, indx, label}){ // need MAKE button for leaf?! #1 
-    if(term == 'leaf' || label) indx = 0;
-    const leaf = use_store(d=> d.node.get(root).forw.get(term)[indx]);
+function Leaf({root, term, index, label}){ // need MAKE button for leaf?! #1 
+    if(term == 'leaf' || label) index = 0;
+    const leaf = use_store(d=> d.node.get(root).forw.get(term)[index]);
     return(
         c(InputGroup, {}, //className:'mb-2' 
             label  && c(InputGroup.Text, {}, readable(label)), 

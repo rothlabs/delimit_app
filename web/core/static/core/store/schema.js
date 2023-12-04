@@ -10,7 +10,7 @@ schema.root_type = {
             let truth_count = 0;
             const stems = d.stems(d, type, logic_type);
             for(const stem of stems){
-                const stem_type = d.face.type(d, lgc);
+                const stem_type = d.type_name(d, lgc);
                 if(stem_type == 'root' && d.root_type.logic(d, stem)) truth_count++;
                 if(stem_type == 'term' && d.term_type.logic(d, stem)) truth_count++;
             }
@@ -40,21 +40,21 @@ build.term = (d, root, term_type) =>{
     //console.log('build term', root, term);
     let empty = true;
     for(const stem of d.stems(d, term_type, 'add')){
-        if(d.make.edge(d, root, term, stem)) empty = false;
+        if(d.make.edge(d, {root, term, stem})) empty = false;
     }
     for(const stem of d.stems(d, term_type, 'make')){
-        if(d.build.stem(d, root, term, stem)) empty = false;
+        if(d.build.stem(d, {root, term, stem})) empty = false;
     }
     if(empty){
-        d.make.edge(d, root, term, d.make.node(d));
+        d.make.edge(d, {root, term, stem:d.make.node(d)});
     }
 }
 
-build.stem = (d, root, term, stem) =>{
+build.stem = (d, {root, term, stem}) =>{
     //term = snake_case(term);
     //console.log('build stem', root, term, stem);
     if(stem.type){
-        d.make.edge(d, root, term, {...stem});
+        d.make.edge(d, {root, term, stem:{...stem}});
         return true;
     }
     const stem_type_name = d.value(d, stem, 'name');
@@ -62,9 +62,9 @@ build.stem = (d, root, term, stem) =>{
     for(const context of d.stems(d, d.entry, 'app contexts')){
         if(stem_type_context == d.value(d, context, 'name')){
             for(const type of d.stems(d, context, 'types')){
-                if(stem_type_name == d.face.name(d, type)){
+                if(stem_type_name == d.value(d, type, 'name')){ // d.face.name(d, type)
                     const stem = d.make.node(d, {type});
-                    d.make.edge(d, root, term, stem);
+                    d.make.edge(d, {root, term, stem});
                     return true;
                 }
             }

@@ -34,16 +34,17 @@ make.node = (d, a={})=>{
     return node;
 };
 
-make.edge = (d, root, term, stem, a={})=>{ // if somehow this is called without permission, the server should kick back with failed 
+make.edge = (d, {root, term, stem, index, given})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
     if(!(d.node.has(root) && (stem.type || d.node.has(stem)))) return;
-    if(!(a.given || d.write_access(d, root))) return;
+    if(!(given || d.write_access(d, root))) return;
     const forw = d.node.get(root).forw;
     //term = snake_case(term);//term.toLowerCase().replace(/ /g,'_');
+    term = term ?? 'stem';
     const length = forw.get(term)?.length ?? 0;
     if(!length) forw.set(term, []); 
-    const indx = a.indx ?? length;
-    if(indx > length || length >= a.max_length) return; 
-    forw.get(term).splice(indx, 0, stem); 
+    index = index ?? length; 
+    if(index > length) return; //  || length >= a.max_length 
+    forw.get(term).splice(index, 0, stem); 
     if(!stem.type) d.node.get(stem).back.add(root);
     d.graph.increment(d);
     return true;
@@ -52,11 +53,11 @@ make.edge = (d, root, term, stem, a={})=>{ // if somehow this is called without 
 
 function build(d, root, type){
     ////////if(d.target.node) d.make.edge(d, d.target.node, 'stem', root);
-    d.make.edge(d, root, 'type', type);
-    if(d.face.type(d, root) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
+    d.make.edge(d, {root, term:'type', stem:type});
+    if(d.type_name(d, root) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
         for(const context of d.stems(d, d.entry, 'app contexts')){
             if(d.node.get(context).repo == d.target.repo){
-                d.make.edge(d, context, 'types', root);
+                d.make.edge(d, {root:context, term:'types', stem:root});
             }
         }
     }

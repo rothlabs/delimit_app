@@ -5,33 +5,52 @@ import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';//'shallow';
 import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
 import {store} from './store/store.js';
+import {transient} from './transient/transient.js';
+import {Vector2} from 'three';
 
 export {gql_client} from './app.js';
-export {use_query, use_mutation} from './gql.js';
+export {use_query, use_mutation} from './app/gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
 export {Svg, Svg_Button} from './component/app/base.js';
+export {pickable, draggable, droppable} from './app/pick.js';
 
 enableMapSet();
 enablePatches();
-const store_core = createWithEqualityFn(subscribeWithSelector(() => store), shallow);
-store_core.setState(d=>{  d.init(d); return d;  });
-export const get_store = () => store_core.getState();
+const core_store = createWithEqualityFn(subscribeWithSelector(() => store), shallow);
+core_store.setState(d=>{  d.init(d); return d;  });
+export const get_store = () => core_store.getState();
 export function use_store(selector, a={}){
     if(a.subscribe){
         const args = {fireImmediately:true};
         //if(a.shallow) args.equalityFn = shallow;
-        return useEffect(()=>store_core.subscribe(selector, a.subscribe, args), []);
+        return useEffect(()=>core_store.subscribe(selector, a.subscribe, args), []);
     }
-    //if(a.shallow) return store_core(selector, shallow);
-    return store_core(selector);
+    //if(a.shallow) return core_store(selector, shallow);
+    return core_store(selector);
 }
-//export const use_store_shallow = selector=> store_core(selector, shallow);
-export const use_subscription  = (selector, callback, triggers=[])=> useEffect(()=>store_core.subscribe(selector, callback, {fireImmediately:true}), triggers);
-////////export const subscribe_shallow = (selector, callback)=> useEffect(()=>store_core.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow}),[]);
-//export const subS  = (selector, callback)=> store_core.subscribe(selector, callback, {fireImmediately:true});
-//export const subSS = (selector, callback)=> store_core.subscribe(selector, callback, {fireImmediately:true, equalityFn:shallow});
-//export const subSSI = (selector, callback)=> store_core.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
+//export const use_store_shallow = selector=> core_store(selector, shallow);
+///////export const use_subscription  = (selector, callback, triggers=[])=> useEffect(()=>core_store.subscribe(selector, callback, {fireImmediately:true}), triggers);
+////////export const subscribe_shallow = (selector, callback)=> useEffect(()=>core_store.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow}),[]);
+//export const subS  = (selector, callback)=> core_store.subscribe(selector, callback, {fireImmediately:true});
+//export const subSS = (selector, callback)=> core_store.subscribe(selector, callback, {fireImmediately:true, equalityFn:shallow});
+//export const subSSI = (selector, callback)=> core_store.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
+
+export const pointer = {
+    position: new Vector2(),
+    start: new Vector2(),
+};
+// const transient_store = createWithEqualityFn(subscribeWithSelector(() => transient), shallow);
+// export function use_transient(selector, a={}){
+//     if(a.subscribe){
+//         const args = {fireImmediately:true};
+//         return useEffect(()=>transient_store.subscribe(selector, a.subscribe, args), []);
+//     }
+//     return transient_store(selector);
+// }
+// export function set_transient(func){
+//     transient_store.setState(produce(d=>{ func(d) }));
+// }
 
 var patch = 0;
 var patches = [];
@@ -43,12 +62,12 @@ function next_state(state, func){
     var all_patches = [];
     var all_inverse = [];
     var result = produceWithPatches(state, d=>{ func(d) }); //[d, patches, inverse_patches] d.next_funcs=[]; d.next_ids=[]; 
-    while(result[1].length > 0){
-        all_patches = [...all_patches, ...result[1]];
-        all_inverse = [...result[2], ...all_inverse];
-        result = produceWithPatches(result[0], d=>{ if(d) d.continue(d); }); //result = produceWithPatches(result[0], d=>{ d.continue(d) }); 
-    }
-    store_core.setState(result[0]); 
+    // while(result[1].length > 0){
+    //     all_patches = [...all_patches, ...result[1]];
+    //     all_inverse = [...result[2], ...all_inverse];
+    //     result = produceWithPatches(result[0], d=>{ if(d) d.continue(d); }); //result = produceWithPatches(result[0], d=>{ d.continue(d) }); 
+    // }
+    core_store.setState(result[0]); 
     return {state:result[0], patches:all_patches, inverse:all_inverse}; // rename state to d
 }
 
@@ -207,7 +226,7 @@ export function undo(){
         patch--;
         //console.log('Undo');
         //console.log(inverse[patch]);
-        store_core.setState(d=>{
+        core_store.setState(d=>{
             var d = applyPatches(d, inverse[patch]);
             d.send(d, inverse[patch]);
             d = produce(d, d=>{
@@ -225,7 +244,7 @@ export function redo(){
     if(patch < patches.length){
         //console.log('Redo');
         //console.log(patches[patch]);
-        store_core.setState(d=>{
+        core_store.setState(d=>{
             var d = applyPatches(d, patches[patch]);
             d.send(d, patches[patch]);
             d = produce(d, d=>{

@@ -1,13 +1,27 @@
 import {readable} from 'delimit';
 
 export const face = {
-    name: (d, node)=> d.value(d, node,  ['name', 'leaf'], ''),
-    type: (d, node)=> d.value(d, node,  ['type name', 'type'], ''),
+    name: (d, node)=> {
+        let result = d.value(d, node,  ['name', 'leaf'], '').trim();
+        if(!d.node.has(node) || d.node.get(node).forw.size < 1){
+            result = 'empty';
+        }else{
+            if(result.length > 24) result = result.substring(0, 24);
+        }
+        return result;
+    },
+    type: (d, node)=> d.type_name(d, node),
     icon: (d, node)=> d.value(d, node,  ['type icon code', 'icon code'], d.face.alt.icon),
     title(d, node){ //node ? d.face.name(d, node)+ ' ('+d.face.type(d, node)+')' : ''
         const type_name = d.face.type(d, node);
         return d.face.name(d, node) + (type_name ? ' ('+d.face.type(d, node)+')' : '');
-    }
+    },
+    primary: (d, node)=>({
+        name: d.face.name(d,node), 
+        type: d.face.type(d,node), 
+        icon: d.face.icon(d,node),
+        title: d.face.title(d, node),
+    }),
 };
 
 const pick = (d, node, picked, alt) => d.picked.node.has(node) ? picked : alt;
