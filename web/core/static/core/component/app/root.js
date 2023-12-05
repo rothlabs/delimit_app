@@ -6,7 +6,7 @@ import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
 import {Mode_Bar} from '../studio/mode_bar.js';
 import { Confirm } from './confirm.js';
-import {set_store, use_store, use_query, use_window_size, Svg, pointer} from 'delimit';
+import {set_store, commit_store, use_store, use_query, use_window_size, Svg, pointer} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
@@ -16,6 +16,7 @@ function Drag(){
     //console.log('render drag');
     const {root, node} = use_store(d=> d.drag.data);
     const {title, icon} = use_store(d=> d.face.primary(d, node));
+    const root_face = use_store(d=> d.face.primary(d, root));
     const [springs, api] = useSpring(() => ({x:0, y:0}));
     pointer.spring = api;
     if(!node) return;
@@ -31,8 +32,12 @@ function Drag(){
                 c(Svg, {svg:icon, className:'me-1'}),
                 title,
             ),
-            root && c(InputGroup.Text, {},
-                'removed from ' + root,
+            root_face.title && root_face.icon && c(InputGroup, {className:'ps-4'},
+                c(InputGroup.Text, {}, 'Removed from '),
+                c(InputGroup.Text, {className:'text-body'},
+                    c(Svg, {svg:root_face.icon, className:'me-1'}),
+                    root_face.title,
+                )
             ),
         )
     )
@@ -63,13 +68,16 @@ export function Root(){
                     pointer.position.set(e.clientX, e.clientY);
                     if(!pointer.dragging) return; 
                     if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
+                    commit_store(d=>{
+                        if(d.drag.data.node) return 'cancel';
+                        const data = d.drag.staged;
+                        if(!e.ctrlKey || !data.root || !data.term || data.index == null) return 'cancel';
+                        d.drop.edge(d, {...data, stem:data.node});
+                    });
                     set_store(d=>{
                         if(d.drag.data.node) return;
                         const data = d.drag.staged;
                         if(e.ctrlKey){
-                            if(data.root && data.term && data.index != null){
-                                d.drop.edge(d, {...data, stem:data.node});
-                            }
                             d.drag.data = data;
                         }else{
                             d.drag.data = {node:data.node};

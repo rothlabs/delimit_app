@@ -1,6 +1,6 @@
 import {createElement as c, Fragment, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, Svg, readable, draggable, droppable} from 'delimit';
+import {use_store, set_store, commit_store, Svg, readable, draggable, droppable} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 //import {useDrag, useGesture} from 'react-use-gesture';
 
@@ -36,25 +36,6 @@ import {animated, useSpring} from '@react-spring/web';
 
 export function Inspect(){ 
     const nodes = use_store(d=> [...d.picked.node]); //{shallow:true}
-    //const drop_hover_color = use_store(d=> d.color.secondary_bg);
-    // const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }));
-    // const bind = useDrag(({ active, down, movement: [mx, my] }) => {
-    //     console.log('dragging!!!!', down, mx, my);
-    //     api.start({ x: down ? mx : 0, y: down ? my : 0, immediate: down });
-    // })
-    //const bind = useDrag(state => {return {mything:5};}, {axis:'x'});
-
-    // const bind = useGesture(
-    //     {
-    //       onDrag: ({ down, movement: [mx, my] }) => {console.log('crazy dude')},
-    //       //onPinch: (state) => doSomethingWith(state)
-    //       // ...
-    //     },
-    //     //{
-    //         //enabled: true,
-    //     //}
-    //   );
-    
     return(
         c(Accordion, { // onSelect(keys){}
             className: 'ms-2 mt-2 me-1', 
@@ -82,8 +63,8 @@ function Node({root, term, node, index=0, show_term}){
     const eventKey = (root ?? '') + (term ?? '') + node + index;
     if(!terms.length){
         return(
-            c(InputGroup, {},
-                show_term && c(InputGroup.Text, {...droppable({root, term, index})}, readable(term)),
+            c(InputGroup, {...droppable({root, term, index})},
+                show_term && c(InputGroup.Text, {}, readable(term)),
                 c(InputGroup.Text, {className:'text-body'}, 
                     c(Svg, {svg:icon, className:'me-1'}),
                     c('span', {className:'fst-italic'}, 'emtpy'),
@@ -161,18 +142,18 @@ function Leaf({root, term='leaf', type, value, index=0, show_term, show_icon}){ 
                     //disabled: !asset, 
                     checked: value, 
                     onChange(e){
-                        set_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
+                        commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
                     }, 
                 }) :
                 c(Form.Control, {
-
                     ///////// as:area_tags.includes(t) ? 'textarea' : 'input', 
                     ///////// maxLength:64,
                     ///////// placeholder:placeholder,  
                     ///////// disabled:!asset, 
                     value: value, 
                     onChange(e){
-                        set_store(d=> d.mutate.leaf(d, root, term, index, e.target.value));
+                        //if(e.target.value == value) return;
+                        commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.value));
                     }, 
                 })
             ///c(Buttons, {t:t}),

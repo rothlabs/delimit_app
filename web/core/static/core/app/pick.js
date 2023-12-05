@@ -1,4 +1,4 @@
-import {set_store, pointer} from 'delimit';
+import {set_store, commit_store, pointer} from 'delimit';
 
 export const pickable = node => {
     const result = {};
@@ -20,9 +20,7 @@ export const draggable = data => {
     result.onPointerDown = e => {
         pointer.dragging = true;
         pointer.start.set(e.clientX, e.clientY);
-        set_store(d=>{
-            d.drag.staged = data;
-        });
+        set_store(d=> d.drag.staged = data);
     };
     return result;
 };
@@ -30,11 +28,11 @@ export const draggable = data => {
 export const droppable = ({root, term, index}) => {
     const result = {};
     result.onPointerUp = e => {
-        set_store(d=>{
-            if(!d.drag.data.node) return;
+        commit_store(d=>{
+            if(!d.drag.data.node) return 'cancel';
             d.make.edge(d, {root, term, stem:d.drag.data.node, index});
-            d.drag.data = {};
         });
+        set_store(d=> d.drag.data = {});
     };
     return result;
 };

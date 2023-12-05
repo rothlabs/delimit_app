@@ -33,7 +33,6 @@ drop.node = (d, nodes, a={})=>{
     if(drops.length) d.graph.increment(d);
 };
 
-
 drop.edge = (d, a={})=>{
     console.log('drop edge');
     let drops = []; 
@@ -75,6 +74,22 @@ drop.edge = (d, a={})=>{
         if(delete_back) d.node.get(drp.stem).back.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
     }
     if(drops.length) d.graph.increment(d);
+};
+
+export const close = {};
+export const closed = {
+    repo: new Set(),
+    node: new Set(),
+};
+close.node = (d, node) => {
+    d.closed.node.add(node);
+    d.drop.node(d, node);
+};
+close.repo = (d, repo) => {
+    d.close.node(d, d.repo.get(repo).node);//d.drop.node(d, d.repo.get(repo).node);
+    d.unpick.repo(d, repo, {target:true});
+    d.closed.repo.add(repo);
+    d.repo.delete(repo);
 };
 
 

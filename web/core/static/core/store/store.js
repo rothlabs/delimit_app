@@ -10,7 +10,7 @@ import {design} from './design.js';
 import * as pick from './pick.js';
 import {graph} from './graph.js';
 import * as make from './make.js';
-import {drop} from './drop.js';
+import * as drop from './drop.js';
 
 //console.log(theme);
 
@@ -37,10 +37,10 @@ export const store = {//export const create_base_slice = (set,get)=>({
     ...theme,
     ...pick,
     ...make,
+    ...drop,
     face,
     design,
     graph,
-    drop,
 
     static_url: document.body.getAttribute('data-static-url') + 'core/',
     max_click_delta: 7,
@@ -329,13 +329,6 @@ export const store = {//export const create_base_slice = (set,get)=>({
         //console.log(current(Array.from(d.node.entries())));
     },
 
-    close:{
-        repo(d, repo){
-            d.drop.node(d, d.repo.get(repo).node);
-            d.unpick.repo(d, repo, {target:true});
-            d.repo.delete(repo);
-        },
-    },
 };//);
 
 

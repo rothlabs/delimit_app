@@ -4,7 +4,7 @@ import {upper} from '../../app.js';
 import {View_Transform} from '../node/base.js';
 import {GizmoHelper} from '@react-three/drei/GizmoHelper';
 import {GizmoViewport} from '../../three/GizmoViewport.js';
-import {Mover} from '../studio/mover.js';
+//import {Mover} from '../studio/mover.js';
 
 // import {Curve}     from './curve.js';
 // //import {Ellipse}   from '../design/ellipse.js';
@@ -78,7 +78,7 @@ export function Design(){
             //     if(!component) return;
             //     return c(component, {key:n, n:n})
             // }),
-            c(Mover),
+            //c(Mover),
             c(View_Transform, {
                 name:'center_point',
                 size:6,

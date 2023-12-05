@@ -34,13 +34,16 @@ make.node = (d, a={})=>{
     return node;
 };
 
-make.edge = (d, {root, term, stem, index, given})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
+make.edge = (d, {root, term='stem', stem, index, given})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
     if(!(d.node.has(root) && (stem.type || d.node.has(stem)))) return;
     if(!(given || d.write_access(d, root))) return;
     const forw = d.node.get(root).forw;
-    //term = snake_case(term);//term.toLowerCase().replace(/ /g,'_');
-    term = term ?? 'stem';
-    const length = forw.get(term)?.length ?? 0;
+    let stems = forw.get(term);
+    let length = stems?.length ?? 0;
+    if(length == 1 && d.node.has(stems[0]) && d.node.get(stems[0]).forw.size == 0){
+        d.drop.node(d, stems[0]);
+        length = 0;
+    }
     if(!length) forw.set(term, []); 
     index = index ?? length; 
     if(index > length) return; //  || length >= a.max_length 
@@ -71,7 +74,7 @@ function build(d, root, type){
 
 
 
-
+//term = snake_case(term);//term.toLowerCase().replace(/ /g,'_');
 
 
 

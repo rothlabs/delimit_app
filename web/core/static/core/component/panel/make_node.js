@@ -1,6 +1,6 @@
 import {createElement as c, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, get_store, Svg, Svg_Button} from 'delimit';
+import {use_store, set_store, commit_store, get_store, Svg, Svg_Button} from 'delimit';
 //import { Make_Repo } from './make_repo.js';
 //import {Badge} from '../node/base.js'
 
@@ -49,7 +49,7 @@ function Root_Type({type}){
             //className:'w-100',
             svg:  icon, 
             text: name, 
-            func:e=> set_store(d=>{ 
+            func:e=> commit_store(d=>{ 
                 d.make.node(d, {type});  //[...d.picked.node][0]
             })
         })

@@ -1,6 +1,6 @@
 import {createElement as c, useEffect} from 'react';
 import {Row, Col, Button, ButtonGroup} from 'react-bootstrap';
-import {use_store, get_store, set_store, use_query, use_mutation} from 'delimit';
+import {use_store, get_store, set_store, commit_store, use_query, use_mutation} from 'delimit';
 
 export function Repo(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
@@ -14,7 +14,7 @@ export function Repo(){
             ['String repo'], 
         ]  
     ],{refetchQueries:['GetRepos']});//],{onCompleted:data=> repos.refetch() }); 
-    const [open_module] = use_mutation('OpenModule', [  
+    const [open_module] = use_mutation('OpenModule', [
         ['openModule reply module',  
             ['String team'], 
             ['String repo'], 
@@ -36,7 +36,7 @@ export function Repo(){
     }catch{
         return 'Error retrieving repositories';
     }
-    const d = get_store();
+    const d = get_store(); 
     return(
         pckgs.map(pkg=>
             c(Row, {className:'mt-2 w-75 ms-auto me-auto'}, //
@@ -57,7 +57,7 @@ export function Repo(){
                         d.repo.get(pkg.repo) && c(Button, {
                             className: 'border-0 mb-2 bi-x-lg',
                             variant: 'outline-primary',
-                            onClick:e=> set_store(d=> d.close.repo(d, pkg.repo)),
+                            onClick:e=> commit_store(d=> d.close.repo(d, pkg.repo)), // maybe should be set_store?! #1
                         }, ' Close'),
                         c(Button, {
                             className: 'border-0 mb-2 bi-x-lg',

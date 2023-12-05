@@ -1,6 +1,6 @@
 import {createElement as c, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, get_store, Svg, readable, snake_case} from 'delimit';
+import {use_store, set_store, commit_store, get_store, Svg, readable, snake_case} from 'delimit';
 
 const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
@@ -64,13 +64,15 @@ function node_header(root, label, icon, name, target, target_term, is_target, ty
         !is_target && c(Button, {variant:'outline-primary', className:'bi-plus-square border-0',
             onClick(e){
                 e.stopPropagation();
-                set_store(d=>{
+                commit_store(d=>{
                     if(type_name == 'Root'){
                         d.build.root(d, target, root);
                     }else if(type_name == 'Term'){
                         d.build.term(d, target, root);
                     }else if(type_name == 'Stem'){ 
                         d.build.stem(d, {root:target, term:target_term, stem:root});
+                    }else{
+                        return 'cancel';
                     }
                 });
             }
