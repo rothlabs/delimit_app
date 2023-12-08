@@ -1,12 +1,12 @@
 import {createElement as c, Fragment, useEffect} from 'react';
-import {Container, Row, Col, Nav, Navbar, ToggleButton, InputGroup, Button} from 'react-bootstrap';//'boot';
+import {Container, Row, Col, Nav, Navbar, ToggleButton, InputGroup, Button, Form} from 'react-bootstrap';//'boot';
 import {Outlet, Link, useNavigate} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
 import {Mode_Bar} from '../studio/mode_bar.js';
 import { Confirm } from './confirm.js';
-import {set_store, commit_store, use_store, use_query, use_window_size, Svg, pointer} from 'delimit';
+import {set_store, commit_store, use_store, use_query, use_window_size, Svg, pointer, use_mutation, Icon_Title} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
@@ -14,12 +14,12 @@ const vector = new Vector2();
 
 function Drag(){
     //console.log('render drag');
-    const {root, node} = use_store(d=> d.drag.data);
-    const {title, icon} = use_store(d=> d.face.primary(d, node));
-    const root_face = use_store(d=> d.face.primary(d, root));
+    const {root, stem} = use_store(d=> d.drag.data);
+    //const {title, icon} = use_store(d=> d.face.primary(d, node));
+    //const root_face = use_store(d=> d.face.primary(d, root));
     const [springs, api] = useSpring(() => ({x:0, y:0}));
     pointer.spring = api;
-    if(!node) return;
+    if(!stem) return;
     return(
         c(animated.div,{
             style:{
@@ -28,16 +28,10 @@ function Drag(){
                 ...springs,
             },
         },
-            c(InputGroup.Text, {className:'text-body'},
-                c(Svg, {svg:icon, className:'me-1'}),
-                title,
-            ),
-            root_face.title && root_face.icon && c(InputGroup, {className:'ps-4'},
-                c(InputGroup.Text, {}, 'Removed from '),
-                c(InputGroup.Text, {className:'text-body'},
-                    c(Svg, {svg:root_face.icon, className:'me-1'}),
-                    root_face.title,
-                )
+            c(Icon_Title, {node:stem}),
+            root && c(InputGroup, {className:'ps-4'},
+                c(InputGroup.Text, {}, 'Removed from'),
+                c(Icon_Title, {node:root}),
             ),
         )
     )
@@ -69,18 +63,19 @@ export function Root(){
                     if(!pointer.dragging) return; 
                     if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
                     commit_store(d=>{
-                        if(d.drag.data.node) return 'cancel';
+                        if(d.drag.data.stem) return;// 'cancel'; // could just check if anything actually changed
                         const data = d.drag.staged;
-                        if(!e.ctrlKey || !data.root || !data.term || data.index == null) return 'cancel';
-                        d.drop.edge(d, {...data, stem:data.node});
+                        if(!e.ctrlKey || !data.root || !data.term || data.index == null) return;
+                        const placeholder = data.stem.type ? true : d.node.get(data.stem).forw.size;
+                        d.drop.edge(d, {...data, placeholder}); // stem:data.stem
                     });
                     set_store(d=>{
-                        if(d.drag.data.node) return;
+                        if(d.drag.data.stem) return;
                         const data = d.drag.staged;
                         if(e.ctrlKey){
                             d.drag.data = data;
                         }else{
-                            d.drag.data = {node:data.node};
+                            d.drag.data = {stem:data.stem};
                         }
                     });
                 },
@@ -109,7 +104,7 @@ export function Root(){
                         buttons.map((button,i)=>
                             c(ToggleButton,{
                                 id: 'mode'+i,
-                                className: button.icon + ' border-0',
+                                className: button.icon + ' border-0 rounded-4 rounded-top-0',
                                 type: 'radio',
                                 variant: 'outline-primary', //size: 'lg',
                                 value: button.value,
@@ -130,10 +125,11 @@ export function Root(){
                             id: 'dark_mode_button',
                             type:'checkbox', variant:'outline-primary', 
                             checked: theme_mode=='dark',
-                            className: 'border-0 bi-moon',
+                            className: 'border-0 bi-moon rounded-4 rounded-top-0',
                             onChange:e=> set_store(d=> d.theme.toggle_mode(d)),
                         }),
                         c(Account_Menu),
+                        c(Mutations),
                         // !data ? status && c(status) : 
                         //     data.user ? account_buttons.map((button,i)=> c(Account_Button, {button}))
                         //     : c(Account_Button, {button:{name:()=>'Sign In', icon:'bi-box-arrow-in-right', func:()=> show_login(true)}}),
@@ -148,15 +144,14 @@ export function Root(){
 } 
 
 function Account_Menu(){
-    const {data} = use_query('GetUser', [
-        ['user id firstName'],
-    ],{onCompleted:data=>{
+    const {data, loading, error} = use_query('GetUser', {onCompleted:data=>{
         try{ set_store(d=> d.user_id = data.user.id); }
         catch(e){ console.log('Error fetching user info'); }
     }});
-    if(!data) return 'Loading';
-    if(!data.user?.firstName) return 'Error fetching user info';
-    if(data.user) return [
+    if(loading) return 'Loading';
+    if(error) return `Error! ${error}`;
+    //if(!data.user?.firstName) return 'Error fetching user info';
+    if(data?.user) return [
         {name:()=>'Account ('+data.user.firstName+')',  icon:'bi-person', func(){}},
         {name:()=>'Sign Out', icon:'bi-box-arrow-left', func:()=> show_logout(true)}, 
         ].map(button=> c(Account_Button, {button}));
@@ -165,7 +160,6 @@ function Account_Menu(){
         icon:'bi-box-arrow-in-right', 
         func:()=> show_login(true)}});
 }
-
 
 function Account_Button({button}){
     const [window_width] = use_window_size();
@@ -180,7 +174,32 @@ function Account_Button({button}){
     )
 }
 
+function Mutations(){
+    const [shut_repo] = use_mutation('ShutRepo', {refetchQueries:['GetRepo']});
+    const [drop_repo] = use_mutation('DropRepo', {refetchQueries:['GetRepo']});
+    const [shut_node] = use_mutation('ShutNode');
+    const [drop_node] = use_mutation('DropNode');
+    const [push_node] = use_mutation('PushNode');
+    set_store(d=>{ 
+        d.mutation = {
+            shut_repo,
+            drop_repo,
+            shut_node,
+            drop_node,
+            push_node,
+        };
+    });
+}
 
+
+
+            // stem.type == 'xsd:boolean' ?
+            //         c(Form.Check, {
+            //             className: 'flex-grow-1 ms-2 mt-2', 
+            //             type: 'switch',
+            //             checked: stem.value, 
+            //         }) :
+            //         //c(InputGroup.Text, {className:'text-body'}, stem.value) :
 
 
 

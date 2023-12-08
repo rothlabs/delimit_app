@@ -5,13 +5,7 @@ import {set_store, use_mutation} from 'delimit';
 export function Make_Repo(){
     const [name, set_name] = useState('');
     const [description, set_description] = useState('');
-    const [make_repo] = use_mutation('MakeRepo', [  
-        ['makeRepo reply',  
-            ['String team'], 
-            ['String name'], 
-            ['String description'], 
-        ],
-    ],{refetchQueries:['GetRepos']}); 
+    const [make_repo] = use_mutation('MakeRepo', {refetchQueries:['GetRepo']}); 
     return(
         c(Col, {className:'ps-2 pt-2 pe-2'},//{className:'grid gap-0 row-gap-3'},//{className:'mb-0 ms-0 me-0'},
             c(InputGroup, {className:'mt-2 mb-2'}, 

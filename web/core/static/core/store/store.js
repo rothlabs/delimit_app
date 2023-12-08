@@ -54,7 +54,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     search: {depth:null, ids:null},
     
     init(d){
-        d.entry = d.make.node(d);
+        d.entry = d.make.node(d, {});
         d.make.edge(d, {root:d.entry, term:'name', stem:{type:'xsd:string', value:'Entry'}});
         d.base_texture = new THREE.TextureLoader().load(
             d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
@@ -67,18 +67,37 @@ export const store = {//export const create_base_slice = (set,get)=>({
     mutate:{
         leaf(d, root, term, index, value){
             const leaf = d.node.get(root).forw.get(term)[index];
-            if(leaf.type == 'xsd:boolean' && typeof value == 'boolean'){
-                leaf.value = value;
-            }else if(leaf.type == 'xsd:integer' && typeof value == 'string'){
-                if((!isNaN(value) && parseInt(value) == value) || value=='-'){
-                    leaf.value = parseInt(value);
+            let coerced = value;
+            if(typeof coerced == 'boolean' && leaf.type == 'xsd:boolean'){
+                leaf.value = coerced;
+                return coerced;
+            }
+            if(typeof coerced == 'string'){
+                if(leaf.type == 'xsd:string'){
+                    leaf.value = coerced;
+                    return coerced;
                 }
-            }else if(leaf.type == 'xsd:decimal' && typeof value == 'string'){
-                if((!isNaN(value) && parseFloat(value) == value) || ['.', '-', '-.'].includes(value)){
-                    leaf.value = parseFloat(value);
+                //coerced = coerced.replace(/^0+/, '');
+                if(['', '-'].includes(coerced)){
+                    leaf.value = 0;
+                    return coerced;
                 }
-            }else if(leaf.type == 'xsd:string' && typeof value == 'string'){
-                leaf.value = value;
+                if(leaf.type == 'xsd:integer'){
+                    coerced = coerced.replace(/\./g, '');
+                    if(!isNaN(coerced) && Number.isInteger(parseFloat(coerced))){
+                        leaf.value = parseInt(coerced);
+                        return coerced;
+                    }
+                }else if(leaf.type == 'xsd:decimal'){
+                    if(['.', '-.'].includes(coerced)){
+                        leaf.value = 0;
+                        return coerced;
+                    }
+                    if(!isNaN(coerced)){
+                        leaf.value = parseFloat(coerced);
+                        return coerced;
+                    }
+                }
             }
         },
     },
@@ -106,10 +125,10 @@ export const store = {//export const create_base_slice = (set,get)=>({
         return d.value(d, root, ['type name', 'type'], '');
     },
     node_joint(d, root){
-        if(!d.node.has(root)) return;
+        if(!d.node.has(root)) return 'missing';
         const forw = d.node.get(root).forw;
-        //if(forw.size == 0) return 'empty';
-        if(forw.size != 1 || !forw.has('leaf')) return 'node'; 
+        if(!forw.size) return 'empty';
+        if(forw.size > 1 || !forw.has('leaf')) return 'node'; 
         const leaf = forw.get('leaf');
         if(leaf.length != 1) return 'node';
         if(leaf[0].type) return {name:'leaf', leaf:leaf[0]}; 
@@ -119,12 +138,15 @@ export const store = {//export const create_base_slice = (set,get)=>({
         if(!d.node.has(root)) return;
         const stems = d.node.get(root).forw.get(term);
         if(!stems) return;
-        if(stems.length != 1) return 'term';
+        //if(!stems.length) return 'empty';
+        if(stems.length > 1) return 'term';
         if(stems[0].type) return {name:'leaf', leaf:stems[0]};
-        if(d.node.has(stems[0])) return {name:'node', node:stems[0]};
+        //if(d.node.has(stems[0])) 
+        return {name:'node', node:stems[0]};
+        //return {name:'missing', node:stems[0]};
     },
     leaf(d, node, path, alt){
-        for(const pth of d.array(path)){
+        for(const pth of d.iterable(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).forw.get(term)[0];
@@ -137,7 +159,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
         return alt;
     },
     value(d, node, path, alt){ 
-        for(const pth of d.array(path)){
+        for(const pth of d.iterable(path)){
             try{
                 const leaf = d.leaf(d, node, pth);
                 if(leaf.type) return leaf.value;
@@ -146,7 +168,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
         return alt;
     },
     stem(d, node, path, alt){
-        for(const pth of d.array(path)){
+        for(const pth of d.iterable(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).forw.get(term)[0];
@@ -158,7 +180,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     },
     stems(d, root, path){ // rename to path? (like terminusdb path query)
         const result = [];
-        for(const pth of d.array(path)){
+        for(const pth of d.iterable(path)){
             const terms = pth.split(' ');
             const last_term = terms.at(-1);//terms.pop();
             function get_stems(root, terms){
@@ -216,9 +238,98 @@ export const store = {//export const create_base_slice = (set,get)=>({
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    array(obj){
-        return obj ? (Array.isArray(obj) ? obj : [obj]) : [];
+    iterable(obj){ // rename to as_iterator ?! or iterable #1
+        if(obj == null) return [];
+        if(typeof obj === 'string') return [obj];
+        if(typeof obj[Symbol.iterator] === 'function') return obj;
+        return [obj];
+        //return obj ? (Array.isArray(obj) ? obj : [obj]) : [];
     },
+
+    send_data(d, patches){ // change to send patches directly to server (filtering for patches that matter)
+        //console.log('patches', patches);
+        let push = new Map();
+        const shut = [];
+        const drop = [];
+        function handle_repo(repo){
+            if(d.closed.repo.has(repo))  shut.push(repo);
+            if(d.dropped.repo.has(repo)) drop.push(repo);
+        }
+        function handle_node(node){
+            let repo = d.closed.node.get(node);
+            let action = 'shut';
+            if(d.node.has(node)){
+                repo = d.node.get(node).repo;
+                action = 'push';
+            }else if(d.dropped.node.has(node)){
+                repo = d.dropped.node.get(node);
+                action = 'drop';
+            }
+            if(!push.has(repo)) push.set(repo, {push: new Set(), shut: new Set(), drop: new Set(), triples:[]});
+            if(action == 'shut') push.get(repo).shut.add(node);
+            if(action == 'push') push.get(repo).push.add(node);
+            if(action == 'drop') push.get(repo).drop.add(node);
+        }
+        for(const patch of patches){ // top level patch.path[0]=='n' ?
+            if(patch.path[0] == 'repo') handle_repo(patch.path[1]);
+            if(patch.path[0] == 'node') handle_node(patch.path[1]);
+        }
+        for(const [repo, obj] of push.entries()){
+            for(const root of obj.push){
+                for(let [term, stem] of d.forw(d, root, {leaf:true})){
+                    if(stem.type) stem = {'@type':stem.type, '@value':stem.value};
+                    obj.triples.push({root, term, stem}); // '@schema:':
+                }
+            }
+            if(obj.push.size) d.mutation.push_node({variables:{repo, triples:obj.triples}});
+            if(obj.shut.size) d.mutation.shut_node({variables:{repo, nodes:[...obj.shut]}});
+            if(obj.drop.size) d.mutation.drop_node({variables:{repo, nodes:[...obj.drop]}});
+        }
+        if(shut.length) d.mutation.shut_repo({variables:{repos:shut}});
+        if(drop.length) d.mutation.drop_repo({variables:{repos:drop}});
+        const data = {push:Object.fromEntries(push), shut, drop}
+        console.log('send data', data);
+    },
+
+    receive_data:(d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
+        //console.log(data);
+        const repo = data.repo.repo;
+        d.pick.target.repo(d, repo, {weak:true}); 
+        d.repo.set(repo, {
+            name: data.repo.name,
+            team: data.repo.team,
+            description: data.repo.description,
+            write_access: data.repo.write_access,
+            node: d.repo.get(repo)?.node ?? new Set(),
+        });
+        d.dropped.repo.delete(repo);
+        d.closed.repo.delete(repo);
+        const handled = new Set();
+        for(const {root} of data.triples){
+            if(handled.has(root)) continue;
+            d.make.node(d, {repo, node:root, given:true});
+            handled.add(root);
+        }
+        for(let {root, term, stem} of data.triples){
+            if(term.slice(0, 8) == '@schema:'){ //if(triple.term.slice(0, 8) == '@schema:'){
+                term = term.slice(8);
+                if(stem['@type']) stem = {type:stem['@type'], value:stem['@value']};
+                d.make.edge(d, {root, term, stem, given:true});
+                if(term == 'delimit_app'){
+                    //if(!d.stems(d, d.entry, 'app').includes(root)){ // d.node.get(d.entry).forw.get('app').get)
+                    d.make.edge(d, {root:d.entry, term:'app', stem:root, given:true, single:true});
+                    //}
+                }
+            }
+        }
+        if(data.triples.length) d.graph.increment(d);
+        //console.log(current(Array.from(d.node.entries())));
+    },
+
+};//);
+
+
+
 
     // // next(...a){ // static
     // //     const d = get();
@@ -252,8 +363,8 @@ export const store = {//export const create_base_slice = (set,get)=>({
     // //     });// 0   1
     // // },
 
-    send_triples(d, patches){ // change to send patches directly to server (filtering for patches that matter)
-        console.log(patches);
+
+
         // const nodes = [];
         // patches.forEach(patch=>{ // top level patch.path[0]=='n' ?
         //     if(patch.path[0]=='n'){
@@ -296,41 +407,28 @@ export const store = {//export const create_base_slice = (set,get)=>({
         // if(triples.length){
         //     d.push_pack({variables:{triples:JSON.stringify({list:triples})}});
         // }
-    },
 
-    receive_module:(d, module)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        //console.log(module);
-        const repo = module.repo.id;
-        d.pick.target.repo(d, repo, {weak:true}); 
-        d.repo.set(repo,{
-            name: module.repo.name,
-            team: module.repo.team,
-            description: module.repo.description,
-            write_access: module.repo.write_access,
-            node: d.repo.get(repo)?.node ?? new Set(),
-        });
-        const handled = new Set();
-        for(const {root} of module.triples){
-            if(handled.has(root)) continue;
-            d.make.node(d, {repo, node:root, given:true});
-            handled.add(root);
-        }
-        for(let {root, term, stem} of module.triples){
-            if(term.slice(0, 8) == '@schema:'){ //if(triple.term.slice(0, 8) == '@schema:'){
-                term = term.slice(8);
-                if(stem['@type']) stem = {type:stem['@type'], value:stem['@value']};
-                d.make.edge(d, {root, term, stem, given:true});
-                if(term == 'delimit_app'){
-                    d.make.edge(d, {root:d.entry, term:'app', stem:root, given:true});
-                }
-            }
-        }
-        if(module.triples.length) d.graph.increment(d);
-        //console.log(current(Array.from(d.node.entries())));
-    },
 
-};//);
 
+// if(patch.path.length == 2){
+//     if(action == 'close') repo_obj.nodes.add(node);
+//     // if(patch.op == 'add') repo_obj.nodes.add(node);
+//     // if(patch.op == 'remove'){
+//     //     if(d.dropped.has(node)) repo_obj.drops.add(node);
+//     //     else                    repo_obj.shuts.add(node);
+//     // }
+//     continue;
+// }
+// if(patch.path[2] != 'forw') continue;
+// // if(patch.op == 'replace' && patch.path[5] == 'value'){
+// //     const term  = patch.path[3];
+// //     const index = patch.path[4];
+// //     const type  = d.node.get(root).forw.get(term)[index].type;
+// //     const stem  = {'@type':type, '@value':patch.value};
+// //     repo_obj.quads.push({root, '@schema:':term, stem, index});
+// //     continue;
+// // }
+// repo_obj.nodes.add(node);
 
 
 
@@ -707,7 +805,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
 
 
-// receive_triples: (d, triples)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
+// receive_data: (d, triples)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
 //     console.log(triples);
 //     for(const triple of triples){
 //         if(triple.root.slice(0,5) == 'Class') console.log(triple);

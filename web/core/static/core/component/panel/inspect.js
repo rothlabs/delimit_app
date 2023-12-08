@@ -1,38 +1,8 @@
-import {createElement as c, Fragment, useState} from 'react';
+import {createElement as c, useEffect, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, commit_store, Svg, readable, draggable, droppable} from 'delimit';
+import {use_store, set_store, commit_store, Svg, readable, draggable, droppable, Icon_Title, icon} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
-//import {useDrag, useGesture} from 'react-use-gesture';
-
-//https://medium.com/nerd-for-tech/implement-drag-and-drop-between-multiple-lists-in-a-react-app-and-renders-web-content-in-a-react-d9378a49be3d
-
-// Vector
-    // X
-        // 5.0  make_leaf_node
-
-
-// merge picked nodes
-// split for all roots
-
-// merge, edit, drop buttons for stem in tree that have same term path from one of the picked nodes  
-
-
-// icon term edit pick_nodes_under_this_term drop (alphabetical)
-    // icon stem pick drop  (node, leaf, or node-with-leaf-edit-box)
-        // icon term edit drop
-
-// if first level is grouped, second level still will not be grouped
-
-// const onDragEnd = ({source, destination}) => {
-//     console.log(source, destination);
-//     //const {source, destination} = result;
-//     // set_store(d=> d.reorder(d, 
-//     //     source.droppableId,      // term
-//     //     source.index,          
-//     //     destination.droppableId, // term 
-//     //     destination.index
-//     // ));
-// };
+import classNames from 'classnames';
 
 export function Inspect(){ 
     const nodes = use_store(d=> [...d.picked.node]); //{shallow:true}
@@ -50,25 +20,32 @@ export function Inspect(){
 
 function Node_Joint({root, term, node, index, show_term}){
     const node_joint = use_store(d=> d.node_joint(d, node));
-    if(!node_joint) return;
+    //if(!node_joint) return;
     if(node_joint.name == 'leaf'){
         return c(Leaf, {root:node, term, ...node_joint.leaf, show_term:true, show_icon:term}); 
+    }else if(node_joint == 'missing'){
+        return(
+            c(InputGroup, {...droppable({root, term, index})}, 
+                c(InputGroup.Text, {}, readable(term)), 
+                c(Icon_Title, {node}),
+            )
+        )
     }
     return c(Node, {root, term, node, index, show_term});
 }
 
 function Node({root, term, node, index=0, show_term}){
-    const {title, icon} = use_store(d=> d.face.primary(d, node));
+    //const {title, icon} = use_store(d=> d.face.primary(d, node));
     const terms         = use_store(d=> [...d.node.get(node).forw.keys()]); 
     const eventKey = (root ?? '') + (term ?? '') + node + index;
     if(!terms.length){
         return(
-            c(InputGroup, {...droppable({root, term, index})},
-                show_term && c(InputGroup.Text, {}, readable(term)),
-                c(InputGroup.Text, {className:'text-body'}, 
-                    c(Svg, {svg:icon, className:'me-1'}),
-                    c('span', {className:'fst-italic'}, 'emtpy'),
-                ),    
+            c(InputGroup, {
+                ...draggable({root, term, stem:node, index}),
+                ...droppable({root, term, index}),
+            },
+                show_term && c(InputGroup.Text, {className:'user-select-none'}, readable(term)),
+                c(Icon_Title, {node}), 
             )
         )
     }
@@ -76,14 +53,11 @@ function Node({root, term, node, index=0, show_term}){
         c(Accordion.Item, {eventKey}, 
             c(Accordion.Header, {
                 className:'pe-2',
-                ...draggable({root, term, node, index}),
+                ...draggable({root, term, stem:node, index}),
                 ...droppable({root, term, index}),
             },  
-                show_term && c(InputGroup.Text, {}, readable(term)), 
-                c(InputGroup.Text, {className:'text-body'}, 
-                    c(Svg, {svg:icon, className:'me-1'}),
-                    title,
-                ), 
+                show_term && c(InputGroup.Text, {className:'user-select-none'}, readable(term)), 
+                c(Icon_Title, {node}),
             ),
             c(Accordion.Body, {className:'ps-4'}, 
                 terms.map(term=> c(Term_Joint, {root:node, term, key:term})),
@@ -115,7 +89,7 @@ function Term({root, term}){
             ),
             c(Accordion.Body, {className:'ps-4'}, 
                 stems.map((stem, index)=>{
-                    if(stem.type) return c(Leaf, {root, term, index, key:index});
+                    if(stem.type) return c(Leaf, {root, term, ...stem, index, key:index});
                     return c(Node_Joint, {root, term, node:stem, index, key:index});
                 }),
             ),
@@ -124,43 +98,93 @@ function Term({root, term}){
 }
 
 function Leaf({root, term='leaf', type, value, index=0, show_term, show_icon}){ // ...droppable({node, term})
-
-    //if(term == 'leaf' || role) index = 0;
-    //const leaf = use_store(d=> d.node.get(root).forw.get(term)[index]);
+    const [input_value, set_input_value] = useState(value);
+    const [sync_input, set_sync_input] = useState(true);
+    useEffect(()=>{
+        if(sync_input) set_input_value(value);
+    },[value]);
+    const drag = draggable({root, term, stem:{type, value}, index});
+    const drop = droppable({root, term, index});
+    const icon_css = classNames(
+        'h5 me-2 text-primary position-absolute top-50 end-0 translate-middle-y', 
+        icon.css[type],
+    );
     return(
-        c(InputGroup, {
-            ...droppable({root, term, index})
-        }, //className:'mb-2' 
-            show_term && c(InputGroup.Text, {}, readable(term)), // bg-body text-primary border-0
-            show_icon && c(InputGroup.Text, {className:'bi-box text-body'}, ''),
-            type == 'xsd:boolean' ?
-                c(Form.Check, {
-                    className:'flex-grow-1 ms-2 mt-2', //4 mt-2 me-4 
-                    //style: {transform:'scale(1.8);'},
-                    type:     'switch',
-                    //label:    readable(t), 
-                    //disabled: !asset, 
-                    checked: value, 
-                    onChange(e){
-                        commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
-                    }, 
-                }) :
-                c(Form.Control, {
-                    ///////// as:area_tags.includes(t) ? 'textarea' : 'input', 
-                    ///////// maxLength:64,
-                    ///////// placeholder:placeholder,  
-                    ///////// disabled:!asset, 
-                    value: value, 
-                    onChange(e){
-                        //if(e.target.value == value) return;
-                        commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.value));
-                    }, 
-                })
-            ///c(Buttons, {t:t}),
+        c('div', {className:'position-relative', tabIndex:0},
+            c(InputGroup, {//className:'rounded-pill',
+                ...drop,
+                tabIndex:1,
+            }, //className:'mb-2' 
+                show_term && c(InputGroup.Text, {...drag, className:'user-select-none'}, readable(term)), // bg-body text-primary border-0
+                show_icon && c(InputGroup.Text, {...drag, className:icon.css.generic+' text-body'}, ''),
+                //!show_term && !show_icon && c(InputGroup.Text, {...drag, className:'bi-grip-vertical'}),
+                type == 'xsd:boolean' ?
+                    c(Form.Check, {
+                        className:'flex-grow-1 ms-2 mt-2 shadow-none', //4 mt-2 me-4 
+                        //style: {transform:'scale(1.8);'},
+                        type:     'switch',
+                        //label:    readable(t), 
+                        //disabled: !asset, 
+                        checked: value, 
+                        onChange(e){
+                            commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
+                        }, 
+                        ...drag,
+                    }) : 
+                    c(Form.Control, {
+                        //className:'rounded-pill',
+                        ///////// as:area_tags.includes(t) ? 'textarea' : 'input', 
+                        ///////// maxLength:64,
+                        ///////// placeholder:placeholder,  
+                        ///////// disabled:!asset, 
+                        value: input_value, 
+                        onFocus: ()=> set_sync_input(false),
+                        onBlur(e){
+                            set_sync_input(true);
+                            if(type != 'xsd:string'){
+                                if(value == '') value = '0';
+                                set_input_value(''+parseFloat(value));
+                            }
+                        },
+                        onChange(e){
+                            commit_store(d=>{
+                                const coerced = d.mutate.leaf(d, root, term, index, e.target.value);
+                                if(coerced != null) set_input_value(coerced); 
+                            });
+                        }, 
+                    }),
+            ),
+            c('div', {className:icon_css, ...drag, ...drop, style:{zIndex:10}}),
         )
     )
 }
 
+
+
+// merge picked nodes
+// split for all roots
+// merge, edit, drop buttons for stem in tree that have same term path from one of the picked nodes  
+// icon term edit pick_nodes_under_this_term drop (alphabetical)
+    // icon stem pick drop  (node, leaf, or node-with-leaf-edit-box)
+        // icon term edit drop
+// if first level is grouped, second level still will not be grouped
+// const onDragEnd = ({source, destination}) => {
+//     console.log(source, destination);
+//     //const {source, destination} = result;
+//     // set_store(d=> d.reorder(d, 
+//     //     source.droppableId,      // term
+//     //     source.index,          
+//     //     destination.droppableId, // term 
+//     //     destination.index
+//     // ));
+// };
+
+
+    // const icon_css = classNames('h5 me-2 text-primary position-absolute top-50 end-0 translate-middle-y', { 
+    //     'bi-123':  type == 'xsd:integer', // bi-0-square
+    //     'bi-hash': type == 'xsd:decimal', // bi-0-circle
+    //     'bi-type': type == 'xsd:string',
+    // });
 
                     // draggable:"true",
                     // onDrag(e){

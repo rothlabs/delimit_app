@@ -22,7 +22,7 @@ export function Mode_Bar(){
             mode_buttons.map((button,i)=>
                 c(ToggleButton,{
                     id: 'studio_mode'+i,
-                    className: button.icon + ' border-0',
+                    className: button.icon + ' border-0 rounded-4 rounded-top-0',
                     type: 'radio',
                     variant: 'outline-primary', //size: 'lg',
                     value: button.value,

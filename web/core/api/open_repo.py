@@ -5,26 +5,38 @@ from graph.database import gdbc, gdb_connect, gdb_write_access
 from terminus import WOQLQuery as wq
 from core.models import Repo
 
-class Open_Module(graphene.Mutation): # rename to Open_Module?! #1
+# data = json.loads(data)
+
+# '::next::'
+#'name___delimit|||app___{'type':'xsd:boolean','value':true}|||'
+
+class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
     class Arguments:
+        client = graphene.String()
         team = graphene.String()
         repo = graphene.String()
         #nodes = graphene.List(graphene.String())
     #pack = graphene.Field(Pack_Type)
     #write = graphene.Boolean(default_value = False)
-    module = graphene.String(default_value = 'null')
-    reply = graphene.String(default_value = 'Failed to open nodes')
+    data = graphene.String(default_value = 'null')
+    reply = graphene.String(default_value = 'Failed to open repo')
     @classmethod
-    def mutate(cls, root, info, team, repo): # , include, exclude): # offset, limit for pages
+    def mutate(cls, root, info, client, team, repo): # , include, exclude): # offset, limit for pages
         try:
             team, gdb_user = gdb_connect(info.context.user, team=team, repo=repo)
-            triples = wq().triple('v:root', 'v:term', 'v:stem').execute(gdbc)['bindings'] # star(subj='root', pred='tag', obj='stem')
+            #triples = wq().star(subj='v:root', pred='v:term', obj='v:stem').execute(gdbc)['bindings']
             rdb_repo = Repo.objects.get(repo=repo)
-            return Open_Module(
+            sequence = wq().triple('v:root', '@schema:__sequence__', 'v:stem').execute(gdbc)['bindings']
+            # data = {}
+            # for item in sequence.split(']::['):
+            #     data[item] = []
+            #     for item in item.split('>>>'):
+            #         data[item].append()
+            return Open_Repo(
                 reply = 'Opened nodes',
-                module = json.dumps({
+                data = json.dumps({
                     'repo':{
-                        'id': repo,
+                        'repo': repo,
                         'team': team,
                         'name': rdb_repo.name, 
                         'description': rdb_repo.description,
@@ -34,9 +46,23 @@ class Open_Module(graphene.Mutation): # rename to Open_Module?! #1
                 }),
             )
         except Exception as e: 
-            print('Error: Open_Module')
+            print('Error: Open_Repo')
             print(e)
-        return Open_Module()
+        return Open_Repo()
+
+
+
+#triples = wq().triple('v:root', 'v:term', 'v:stem').execute(gdbc)['bindings'] # star(subj='root', pred='term', obj='stem')
+
+
+            # triples = wq().select('v:root', 'v:term', 'v:stem').woql_or(
+            #     wq().triple('v:root', 'v:term', 'v:stem'),
+            #     wq().woql_and(
+            #         wq().triple('v:root', 'v:term', 'v:cons'),
+            #         wq().path('v:cons', 'rdf:rest*,rdf:first', 'v:stem'),
+            #     )
+            # ).execute(gdbc)['bindings']    
+
 
 
         # triples = wq().select('v:root', 'v:tag', 'v:stem').woql_and(

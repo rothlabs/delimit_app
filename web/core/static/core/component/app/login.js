@@ -12,21 +12,19 @@ export function Login(){
 	const show = useReactiveVar(show_login);
     const [username, set_username] = useState('');
     const [password, set_password] = useState('');
-    const [login, {loading, error, data, reset}] = use_mutation('Login',[
-        ['login reply user{firstName}', 
-            ['String! username', username], 
-            ['String! password', password]
-        ],
-    ], {refetchQueries:['GetUser'], onCompleted:data=>{
-        if(data.login.user) setTimeout(()=> show_login(false), 1500);
-    }});
+    const [login, {loading, error, data, reset}] = use_mutation('Login', {
+        refetchQueries:['GetUser'], 
+        onCompleted(data){
+            if(data.login.user) setTimeout(()=> show_login(false), 1500);
+        },
+    });
     useEffect(()=>{
         set_username('');
         set_password('');
         if(show) reset(); else setTimeout(()=> reset(), 250);
     },[show]);
     //if(data && data.login.user) setTimeout(()=> show_login(false), 1500);
-    const key_press=(target)=> {if(target.charCode==13) login()}; //attempt_login(true);};
+    const key_press=(target)=> {if(target.charCode==13) login({variables:{username, password}})}; //attempt_login(true);};
 	return (
 		r(Modal,{show, onHide:()=>show_login(false), autoFocus:false},
       		r(Modal.Header, {closeButton:true},  
@@ -52,7 +50,10 @@ export function Login(){
                     ),
                 ),
                 r(Modal.Footer, {},
-                    r(Button, {id:'modal_login', onClick:login}, 'Sign In'),
+                    r(Button, {
+                        id:'modal_login',
+                        onClick:e=> login({variables:{username, password}}),
+                    }, 'Sign In'),
                 ),
             //),
     	)
@@ -64,12 +65,13 @@ export const show_logout = makeVar(false);
 export function Logout(){
     const show = useReactiveVar(show_logout);
     //const navigate = useNavigate();
-    const [logout, {loading, data, reset}] = use_mutation('Logout',[
-        ['logout reply user{firstName}'],
-    ], {refetchQueries:['GetUser'], onCompleted:data=>{
-        gql_client.resetStore();
-        setTimeout(()=> show_logout(false), 1500);
-    }});
+    const [logout, {loading, data, reset}] = use_mutation('Logout',{
+        refetchQueries:['GetUser'], 
+        onCompleted(data){
+            gql_client.resetStore();
+            setTimeout(()=> show_logout(false), 1500);
+        }
+    });
     //if(data) setTimeout(()=> show_logout(false), 1500);
     useEffect(()=> {if(show){
         logout(); 

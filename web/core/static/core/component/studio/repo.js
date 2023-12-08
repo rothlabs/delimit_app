@@ -4,72 +4,58 @@ import {use_store, get_store, set_store, commit_store, use_query, use_mutation} 
 
 export function Repo(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
-    use_store(d=> [...d.repo]); //{shallow:true}
-    const repos = use_query('GetRepos', [
-		['repos data'],
-	]);
-    const [drop_repo] = use_mutation('DropRepo', [  
-        ['dropRepo reply',  
-            ['String team'], 
-            ['String repo'], 
-        ]  
-    ],{refetchQueries:['GetRepos']});//],{onCompleted:data=> repos.refetch() }); 
-    const [open_module] = use_mutation('OpenModule', [
-        ['openModule reply module',  
-            ['String team'], 
-            ['String repo'], 
-        ]  
-    ],{onCompleted:data=>{
-        set_store(d=>{
-            d.receive_module(d, JSON.parse(data.openModule.module));
-            d.studio.mode = 'graph';
-        }); 
-    }});
-    const open_action = pkg =>{
-        open_module({variables:{team:pkg.team, repo:pkg.repo}});
-    }
-    if(repos.loading) return 'Loading';
-    if(repos.error) return `Error! ${repos.error}`;
-    let pckgs = [];
+    const repo_map = use_store(d=> d.repo);//const repos = use_store(d=> [...d.repo]); //{shallow:true}
+    const {data, error, loading} = use_query('GetRepo');
+    const [open_repo] = use_mutation('OpenRepo', {
+        onCompleted:data=>{
+            set_store(d=>{
+                d.receive_data(d, JSON.parse(data.openRepo.data));
+                d.studio.mode = 'graph';
+            }); 
+        },
+    });
+    if(loading) return 'Loading';
+    if(error) return `Error! ${error}`;
+    let repos = [];
     try{
-        pckgs = JSON.parse(repos.data.repos.data).list;
+        repos = JSON.parse(data.repo.data).list;
     }catch{
         return 'Error retrieving repositories';
     }
-    const d = get_store(); 
     return(
-        pckgs.map(pkg=>
+        repos.map(({team, repo, name, description, write_access})=>
             c(Row, {className:'mt-2 w-75 ms-auto me-auto'}, //
                 c(Col, {xs:'5'},
                     c('img', {className:'hjs', src:'holder.js/100px180', role:'button',
-                        onClick:e=> open_action(pkg),
+                        onClick:e=> open_repo({variables:{team, repo}}),
                     }),
                 ),
                 c(Col, {xs:'auto'},
-                    d.repo.get(pkg.repo) ? c('div', {},
-                        c('h5', {}, pkg.name + ' - Loaded'),
-                    ) : c(Button, {className:'mb-3', onClick:e=> open_action(pkg)}, pkg.name),
-                    c('p', {}, pkg.description),
-                    c('p', {className:'bi-pen'}, pkg.write_access ? ' Write Access' : ' Read Only'),
+                    repo_map.get(repo) ? c('div', {},
+                        c('h5', {}, name + ' - Loaded'),
+                    ) : c(Button, {className:'mb-3', onClick:e=> open_repo({variables:{team, repo}})}, name),
+                    c('p', {}, description),
+                    c('p', {className:'bi-pen'}, write_access ? ' Write Access' : ' Read Only'),
                 ),
                 c(Col, {}, 
                     c(ButtonGroup, {vertical:true},
-                        d.repo.get(pkg.repo) && c(Button, {
-                            className: 'border-0 mb-2 bi-x-lg',
+                        repo_map.get(repo) && c(Button, {
+                            className: 'border-0 bi-x-lg', // mb-2
                             variant: 'outline-primary',
-                            onClick:e=> commit_store(d=> d.close.repo(d, pkg.repo)), // maybe should be set_store?! #1
+                            onClick:e=> commit_store(d=> d.shut.repo(d, {repo})), // maybe should be set_store?! #1
                         }, ' Close'),
                         c(Button, {
-                            className: 'border-0 mb-2 bi-x-lg',
+                            className: 'border-0 bi-x-lg', // mb-2
                             variant: 'outline-danger', size: 'sm',
                             onClick:e=>{ 
-                                set_store(d=> d.confirm = {
-                                    title: `Delete: ${pkg.name}`,
-                                    body: `${pkg.name} - All data will be irreversibly destroyed in the repository. Proceed with caution.`,
-                                    func(){
-                                        drop_repo({variables:{team:pkg.team, repo:pkg.repo}});
+                                set_store(d=>
+                                    d.confirm = {
+                                        title: `Delete: ${name}`,
+                                        body: `${name} - All data will be irreversibly destroyed in the repository. Proceed with caution.`,
+                                        func:()=> commit_store(d=> d.shut.repo(d, {repo, drop:true})),
+                                            //d.mutation.drop_repo({variables:{team:pkg.team, repo:pkg.repo}});
                                     }
-                                });
+                                );
                             },
                         }, ' Delete')
                     ),

@@ -6,7 +6,6 @@ import {Viewport} from './viewport.js';
 import {Code} from './code.js';
 import {Repo} from './repo.js';
 import {Panel} from '../panel/panel.js';
-import {Mode_Bar} from './mode_bar.js';
 import {Panel_Bar} from './panel_bar.js';
 import {Container, Row, Col, Badge, Button, InputGroup, Form} from 'react-bootstrap';
 import {Box3} from 'three';
@@ -238,9 +237,9 @@ function Canvas_Box(){
 //         //if(result.openPack.pack) 
 //         rs(d=>{
 //             try{
-//                 d.receive_triples(d, JSON.parse(result.openPack.pack.data).list); 
+//                 d.receive_data(d, JSON.parse(result.openPack.pack.data).list); 
 //             }catch(e){
-//                 console.log('receive_triples Error', e);
+//                 console.log('receive_data Error', e);
 //             }
 //         });
 //         //console.log(data);
@@ -292,7 +291,7 @@ function Canvas_Box(){
 //             if(data.pollPack) console.log('poll pack recieved', data.pollPack);
 //             //if(data.deletePack && data.deletePack.p.length > 0) console.log('delete pack part recieved', data.deletePack.p);
 //             //console.log(data.pollPack.s.find(s=> s.v==instance));
-//             rs(d=> d.receive_triples(d, data.pollPack)); // do not read anything older than when loader!!!!!!!
+//             rs(d=> d.receive_data(d, data.pollPack)); // do not read anything older than when loader!!!!!!!
 //         }
 //         //if(data.deletePack) rs(d=> d.receive_instance_deleted(d, data.deletePack) ); 
 //         //cycle_poll.mutate(); // very bad because the server might actually clear poll right after it gets new content and then never sends it on next request

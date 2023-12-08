@@ -71,8 +71,6 @@ function node_header(root, label, icon, name, target, target_term, is_target, ty
                         d.build.term(d, target, root);
                     }else if(type_name == 'Stem'){ 
                         d.build.stem(d, {root:target, term:target_term, stem:root});
-                    }else{
-                        return 'cancel';
                     }
                 });
             }

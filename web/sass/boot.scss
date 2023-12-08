@@ -8,16 +8,27 @@
 $min-contrast-ratio: 3;
 $primary: #ff2391;
 $info:    #1ed1b9;
-$enable-rounded: false;
+//$enable-rounded: false;
 
 $accordion-padding-x: 0px;
 $accordion-padding-y: 0px;
 
 @import "bootstrap/scss/variables";
 
+$border-radius: 1.25rem;
+
 //$btn-border-width: 0px;
-$input-btn-padding-y-sm: .05rem;
-$btn-padding-y-sm: .05rem;
+//$input-btn-padding-y-sm: .05rem;
+//$btn-padding-y-sm: .05rem;
+
+//$input-bg: none;
+$input-border-width: 0px;
+$input-group-addon-color: var(--#{$prefix}primary);
+$input-group-addon-bg: none;//var(--#{$prefix}body-bg);
+
+$form-check-min-height: $font-size-base * $line-height-base * 1.25 !default;
+$form-switch-width: 2.25em;
+$form-check-input-focus-box-shadow: none;
 
 $accordion-bg: none;
 $accordion-button-bg: none;
@@ -27,16 +38,14 @@ $accordion-button-active-color: $accordion-button-color;
 $accordion-button-focus-box-shadow: none;
 $accordion-border-width: 0px;
 
-$input-border-width: 0px;
-$input-group-addon-color: var(--#{$prefix}primary);
-$input-group-addon-bg: none;//var(--#{$prefix}body-bg);
-
 @import "bootstrap/scss/bootstrap";
 
 // 8. Add additional custom code here
 //.btn-primary {
 //    @include button-variant($mynewcolor, darken($mynewcolor, 7.5%), darken($mynewcolor, 10%), lighten($mynewcolor,5%), lighten($mynewcolor, 10%), darken($mynewcolor,30%));
 //}
+
+
 
 .modal{
     word-wrap: break-word !important;  // maybe this doesn't need !important and should go before bootstrap import 

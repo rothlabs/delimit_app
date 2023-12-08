@@ -23,6 +23,7 @@ graph.layout = d => {
             pos: new Vector3(),
         });
         for(const [term, stem] of d.forw(d, root)){
+            if(!d.node.has(stem)) continue;
             d.graph.edge.push({root, term, stem});
         }
     }
@@ -84,6 +85,7 @@ graph.layout = d => {
                 if(y > l.max_y) l.max_y = y;
                 d.graph.node.get(node).pos.set(x, y, 0); // did not change yet !!!!!!!!
                 for(const [term, stem] of d.forw(d, node)){ 
+                    if(!d.graph.node.has(stem)) continue;
                     const graph_node = d.graph.node.get(stem);
                     if(ll.group[graph_node.grp]){
                         ll.group[graph_node.grp].y += y;

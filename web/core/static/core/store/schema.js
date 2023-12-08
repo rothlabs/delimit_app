@@ -46,7 +46,8 @@ build.term = (d, root, term_type) =>{
         if(d.build.stem(d, {root, term, stem})) empty = false;
     }
     if(empty){
-        d.make.edge(d, {root, term, stem:d.make.node(d)});
+        const empty = d.make.node(d, {});
+        d.make.edge(d, {root, term, stem:empty});
     }
 }
 

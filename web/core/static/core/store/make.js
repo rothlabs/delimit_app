@@ -18,38 +18,42 @@ make.id = (length=16)=>{
 //             for(const [root, term] of d.back(d, type)){
 //                 if(term != 'type') continue;
 
-make.node = (d, a={})=>{ 
-    const node = a.node ?? d.make.id();
-    if(!(a.given || d.write_access(d, node))) return;
-    const repo = a.repo ?? d.target.repo;
-    d.drop.edge(d, {root:node}); 
+make.node = (d, {node, repo, given, type})=>{ 
+    node = node ?? d.make.id();
+    if(!(given || d.write_access(d, node))) return;
+    repo = repo ?? d.target.repo;
+    d.drop.edge(d, {root:node, given}); 
     d.node.set(node, {
         forw: new Map(), // key:term,  value:[stem or leaf_obj]
         back: new Set(), // key:root            
         repo,
     });
     if(d.repo.has(repo)) d.repo.get(repo).node.add(node);
-    if(a.type) build(d, node, a.type);
+    if(type) build(d, node, type);
+    d.dropped.node.delete(node);
+    d.closed.node.delete(node);
     d.graph.increment(d);
     return node;
 };
 
-make.edge = (d, {root, term='stem', stem, index, given})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
-    if(!(d.node.has(root) && (stem.type || d.node.has(stem)))) return;
+make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
+    if(!d.node.has(root)) return; //  && (stem.type || d.node.has(stem)))
     if(!(given || d.write_access(d, root))) return;
     const forw = d.node.get(root).forw;
     let stems = forw.get(term);
     let length = stems?.length ?? 0;
-    if(length == 1 && d.node.has(stems[0]) && d.node.get(stems[0]).forw.size == 0){
-        d.drop.node(d, stems[0]);
+    if(length == 1 && stem != stems[0] && d.node.has(stems[0]) && d.node.get(stems[0]).forw.size == 0){
+        d.drop.edge(d, {root, term, stem:stems[0]}); //d.shut.node(d, {node:stems[0], drop:true});
         length = 0;
     }
     if(!length) forw.set(term, []); 
     index = index ?? length; 
     if(index > length) return; //  || length >= a.max_length 
-    forw.get(term).splice(index, 0, stem); 
-    if(!stem.type) d.node.get(stem).back.add(root);
-    d.graph.increment(d);
+    if(!(single && forw.get(term).includes(stem))) forw.get(term).splice(index, 0, stem); 
+    if(d.node.has(stem)){
+        d.node.get(stem).back.add(root); //if(!stem.type) d.node.get(stem).back.add(root);
+        d.graph.increment(d);
+    }
     return true;
 };
 

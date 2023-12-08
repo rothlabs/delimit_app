@@ -1,25 +1,25 @@
-import {readable} from 'delimit';
+import {readable, icon} from 'delimit';
 
 export const face = {
     name: (d, node)=> {
-        let result = d.value(d, node,  ['name', 'leaf'], '').trim();
-        if(!d.node.has(node) || d.node.get(node).forw.size < 1){
-            result = 'empty';
-        }else{
-            if(result.length > 24) result = result.substring(0, 24);
-        }
-        return result;
+        if(node.type) return (''+node.value).trim().substring(0, 24);
+        if(!d.node.has(node)) return node;
+        if(d.node.get(node).forw.size < 1) return 'empty';
+        return (''+d.value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
     },
     type: (d, node)=> d.type_name(d, node),
-    icon: (d, node)=> d.value(d, node,  ['type icon code', 'icon code'], d.face.alt.icon),
+    icon(d, node){
+        if(node.type) return icon.svg[node.type];
+        return d.value(d, node,  ['type icon code', 'icon code'], icon.svg.generic);
+    },
     title(d, node){ //node ? d.face.name(d, node)+ ' ('+d.face.type(d, node)+')' : ''
         const type_name = d.face.type(d, node);
         return d.face.name(d, node) + (type_name ? ' ('+d.face.type(d, node)+')' : '');
     },
     primary: (d, node)=>({
-        name: d.face.name(d,node), 
-        type: d.face.type(d,node), 
-        icon: d.face.icon(d,node),
+        name: d.face.name(d, node), 
+        type: d.face.type(d, node), 
+        icon: d.face.icon(d, node),
         title: d.face.title(d, node),
     }),
 };
@@ -37,12 +37,6 @@ face.material = {
     primary:(d, node)     => pick(d, node, d.material.body_fg, d.material.primary),
     secondary:(d, node)   => pick(d, node, d.material.primary, d.material.secondary),
     tertiary_fg:(d, node) => pick(d, node, d.material.primary, d.material.tertiary_fg),
-},
-
-face.alt = {
-    icon:`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box" viewBox="0 0 16 16">
-            <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
-          </svg>`,
 };
 
 // face.color = {

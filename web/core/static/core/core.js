@@ -5,15 +5,16 @@ import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';//'shallow';
 import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
 import {store} from './store/store.js';
-import {transient} from './transient/transient.js';
+//import {transient} from './transient/transient.js';
 import {Vector2} from 'three';
 
 export {gql_client} from './app.js';
 export {use_query, use_mutation} from './app/gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
-export {Svg, Svg_Button} from './component/app/base.js';
+export {Icon_Title, Svg, Svg_Button} from './component/app/base.js';
 export {pickable, draggable, droppable} from './app/pick.js';
+export {icon} from './app/icon.js';
 
 enableMapSet();
 enablePatches();
@@ -52,9 +53,9 @@ export const pointer = {
 //     transient_store.setState(produce(d=>{ func(d) }));
 // }
 
-var patch = 0;
-var patches = [];
-var inverse = [];
+let patch_index = 0;
+let patches_history = [];
+let inverse_history = [];
 // var fork = null; // state fork for interactive stuff like dragging 
 // var original_fork = null;
 
@@ -68,38 +69,40 @@ export const set_store = func => {
     //     fork = applyPatches(fork, result.patches);
     //     //original_fork = applyPatches(original_fork, result.patches);
     // }
-    var [nextState] = produceWithPatches(get_store(), d=>{ func(d) }); 
-    core_store.setState(nextState); 
-    return nextState;
+    //var [nextState] = produceWithPatches(get_store(), d=>{ func(d) }); 
+    //core_store.setState(nextState); 
+    let next_state = produce(get_store(), d=>{ func(d) });
+    core_store.setState(next_state); 
+    return next_state;
 };
 
 export const commit_store = func => {
-    let cancel = false;
-    var [state, new_patches, new_inverse] = produceWithPatches(get_store(), d=>{ 
-        cancel = func(d); 
-    }); 
-    if(cancel) return;
-    core_store.setState(state); 
-    if(patches.length > patch){
-        patches.splice(patch, patches.length - patch);
-        inverse.splice(patch, inverse.length - patch);
+    var [state, new_patches, new_inverse] = produceWithPatches(get_store(), d=>{ func(d) }); 
+    if(!new_patches.length){
+        //console.log('no change');
+        return;
     }
-    patches.push(new_patches);
-    inverse.push(new_inverse);
-    patch = patches.length;
-    state.send_triples(state, new_patches); 
+    core_store.setState(state); 
+    if(patches_history.length > patch_index){
+        patches_history.splice(patch_index, patches_history.length - patch_index);
+        inverse_history.splice(patch_index, inverse_history.length - patch_index);
+    }
+    patches_history.push(new_patches);
+    inverse_history.push(new_inverse);
+    patch_index = patches_history.length;
+    state.send_data(state, new_patches);
+    //d.mutation.drop_node({variables:{team:repo_obj.team, repo}});
 };
 
 
-
 export function undo(){ 
-    if(patch > 0){
-        patch--;
+    if(patch_index > 0){
+        patch_index--;
         //console.log('Undo');
-        //console.log(inverse[patch]);
+        //console.log(inverse_history[patch_index]);
         core_store.setState(d=>{
-            var d = applyPatches(d, inverse[patch]);
-            d.send_triples(d, inverse[patch]);
+            let draft = applyPatches(d, inverse_history[patch_index]);
+            draft.make_triples(draft, inverse_history[patch_index]);
             // d = produce(d, d=>{
             //     d.cam_info = {...d.cam_info};
             //     d.studio.gizmo_active = false;
@@ -107,18 +110,18 @@ export function undo(){
             //     d.inspect.update(d);
             //     d.graph.update(d);
             // });
-            //console.log('undo!!!!', inverse[patch]);
-            return d;
+            //console.log('undo!!!!', inverse_history[patch_index]);
+            return draft;
         });
     }
 }
 export function redo(){ 
-    if(patch < patches.length){
+    if(patch_index < patches_history.length){
         //console.log('Redo');
-        //console.log(patches[patch]);
+        //console.log(patches_history[patch_index]);
         core_store.setState(d=>{
-            var d = applyPatches(d, patches[patch]);
-            d.send_triples(d, patches[patch]);
+            let draft = applyPatches(d, patches_history[patch_index]);
+            draft.send_data(draft, patches_history[patch_index]);
             // d = produce(d, d=>{
             //     d.cam_info = {...d.cam_info};
             //     d.studio.gizmo_active = false;
@@ -126,9 +129,9 @@ export function redo(){
             //     d.inspect.update(d);
             //     d.graph.update(d);
             // });
-            return d;
+            return draft;
         });
-        patch++;
+        patch_index++;
     }
 }
 
@@ -152,6 +155,7 @@ export function readable(s){
 export function snake_case(s){
     return s.toLowerCase().replace(/ /g,'_');
 }
+
 
 
 
@@ -254,7 +258,7 @@ export function snake_case(s){
 //     // });
 //     //if(save_patches){
 //         //console.log('Commit Patches');
-//         arg.state.send_triples(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
+//         arg.state.send_data(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
 //         //console.log(arg.patches);
 //         if(patches.length > patch){
 //             patches.splice(patch, patches.length-patch);

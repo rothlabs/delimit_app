@@ -3,22 +3,28 @@ from graph.database import gdbc, gdb_connect, gdb_write_access
 from terminus import WOQLQuery as wq # terminusdb_client
 from core.api.login import Login
 from core.api.logout import Logout
-from core.api.open_module import Open_Module
-from core.api.push_nodes import Push_Nodes
-from core.api.drop_repo import Drop_Repo
-from core.api.make_repo import Make_Repo
 from core.api.types import Authenticated_User_Type, Pack_Type
 from core.models import Repo
 
+from core.api.open_repo import Open_Repo
+from core.api.shut_repo import Shut_Repo
+from core.api.make_repo import Make_Repo
+from core.api.drop_repo import Drop_Repo
+
+from core.api.open_node import Open_Node
+from core.api.shut_node import Shut_Node
+from core.api.push_node import Push_Node
+from core.api.drop_node import Drop_Node
+
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    repos = graphene.Field(Pack_Type)
+    repo = graphene.Field(Pack_Type)
     def resolve_user(root, info):
         if info.context.user.is_authenticated: 
             return info.context.user
         else: 
             return None
-    def resolve_repos(root, info):
+    def resolve_repo(root, info):
         try:
             team, gdb_user = gdb_connect(info.context.user)
             databases = gdbc.get_databases()
@@ -32,20 +38,25 @@ class Query(graphene.ObjectType):
                     'description': p.description,
                     'write_access': gdb_write_access(p.team, p.repo, gdb_user),
                 })
-            return Pack_Type(data = {'list':result})
+            return Pack_Type(data = {'list':result}) # add reply
         except Exception as e: 
-            print('Error: Query repos') 
+            print('Error: Query repo') 
             print(e)
         return None
 
 class Mutation(graphene.ObjectType):
-    login = Login.Field()
-    logout = Logout.Field()
-    makeRepo = Make_Repo.Field()
+    login    = Login.Field()
+    logout   = Logout.Field()
+    openRepo = Open_Repo.Field()
+    shutRepo = Shut_Repo.Field()
+    makeRepo = Make_Repo.Field() # rename to push repo and include edits
     dropRepo = Drop_Repo.Field()
-    openModule = Open_Module.Field()
-    pushNodes = Push_Nodes.Field()
-
+    openNode = Open_Node.Field()
+    shutNode = Shut_Node.Field()
+    pushNode = Push_Node.Field() 
+    dropNode = Drop_Node.Field()
+    #pullNode = Drop_Node.Field() should be query 
+    
 api = graphene.Schema(query=Query, mutation=Mutation)
 
 
