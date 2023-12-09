@@ -1,6 +1,6 @@
 import {createElement as c, useEffect} from 'react';
 import {Row, Col, Button, ButtonGroup} from 'react-bootstrap';
-import {use_store, get_store, set_store, commit_store, use_query, use_mutation} from 'delimit';
+import {use_store, client, set_store, commit_store, use_query, use_mutation} from 'delimit';
 
 export function Repo(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
@@ -27,13 +27,13 @@ export function Repo(){
             c(Row, {className:'mt-2 w-75 ms-auto me-auto'}, //
                 c(Col, {xs:'5'},
                     c('img', {className:'hjs', src:'holder.js/100px180', role:'button',
-                        onClick:e=> open_repo({variables:{team, repo}}),
+                        onClick:e=> open_repo({variables:{client, repo}}),
                     }),
                 ),
                 c(Col, {xs:'auto'},
                     repo_map.get(repo) ? c('div', {},
                         c('h5', {}, name + ' - Loaded'),
-                    ) : c(Button, {className:'mb-3', onClick:e=> open_repo({variables:{team, repo}})}, name),
+                    ) : c(Button, {className:'mb-3', onClick:e=> open_repo({variables:{client, repo}})}, name),
                     c('p', {}, description),
                     c('p', {className:'bi-pen'}, write_access ? ' Write Access' : ' Read Only'),
                 ),

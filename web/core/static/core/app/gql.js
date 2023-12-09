@@ -10,7 +10,7 @@ const queries = compile_gql('query', [
     ]],
 ]);
 
-const repo = ['String client', 'String team', 'String repo'];
+const repo = ['String client', 'String repo'];
 //const node = [...repo, ''];
 
 const mutations = compile_gql('mutation', [
@@ -40,19 +40,19 @@ const mutations = compile_gql('mutation', [
         ['dropRepo reply', ...repo],
     ]],
     ['OpenNode', [
-        ['openNode reply data', ...repo, '[String] nodes'],
+        ['openNode reply data', ...repo, '[String] node'],
     ]],
     ['ShutNode', [
-        ['shutRepo reply', ...repo, '[String] nodes'],
+        ['shutNode reply', ...repo, '[String] node'],
     ]],
     ['DropNode', [  
-        ['dropRepo reply', ...repo, '[String] nodes'],
+        ['dropNode reply', ...repo, '[String] node'],
     ]],
     ['PushNode', [  
-        ['dropRepo reply', ...repo, '[String] triples'],
+        ['pushNode reply', ...repo, '[String] node', '[String] forw'],
     ]],
     ['PullNode', [  
-        ['dropRepo reply data', 'String client'], // client instance
+        ['pullNode reply data', 'String client'], // client instance
     ]],
 ]);
 

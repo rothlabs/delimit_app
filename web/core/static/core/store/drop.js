@@ -1,3 +1,5 @@
+import {client} from 'delimit';
+
 export const dropped = {
     repo: new Set(),
     node: new Map(),
@@ -47,12 +49,16 @@ shut.node = (d, {node, given, drop, deep})=>{
     if(targets.length) d.graph.increment(d);
 };
 shut.repo = (d, {repo, drop}) => {
-    d.shut.node(d, {node:d.repo.get(repo).node, drop});
-    d.unpick.repo(d, repo, {target:true});
+    if(d.repo.has(repo)){
+        d.shut.node(d, {node:d.repo.get(repo).node, drop});
+        d.unpick.repo(d, repo, {target:true});
+    }
     if(drop){
         d.dropped.repo.add(repo);
+        d.mutation.drop_repo({variables:{client, repo}});
     }else{
         d.closed.repo.add(repo);
+        d.mutation.shut_repo({variables:{client, repo}});
     }
     d.repo.delete(repo);
 };

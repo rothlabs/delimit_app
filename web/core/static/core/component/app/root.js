@@ -179,7 +179,11 @@ function Mutations(){
     const [drop_repo] = use_mutation('DropRepo', {refetchQueries:['GetRepo']});
     const [shut_node] = use_mutation('ShutNode');
     const [drop_node] = use_mutation('DropNode');
-    const [push_node] = use_mutation('PushNode');
+    const [push_node] = use_mutation('PushNode',{
+        onCompleted:data=>{
+            console.log(data.pushNode.reply);
+        },
+    });
     set_store(d=>{ 
         d.mutation = {
             shut_repo,

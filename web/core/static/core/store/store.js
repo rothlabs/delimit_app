@@ -11,6 +11,7 @@ import * as pick from './pick.js';
 import {graph} from './graph.js';
 import * as make from './make.js';
 import * as drop from './drop.js';
+import {client} from 'delimit';
 
 //console.log(theme);
 
@@ -247,52 +248,76 @@ export const store = {//export const create_base_slice = (set,get)=>({
     },
 
     send_data(d, patches){ // change to send patches directly to server (filtering for patches that matter)
-        //console.log('patches', patches);
-        let push = new Map();
-        const shut = [];
-        const drop = [];
-        function handle_repo(repo){
-            if(d.closed.repo.has(repo))  shut.push(repo);
-            if(d.dropped.repo.has(repo)) drop.push(repo);
-        }
+        console.log('patches', patches);
+        //let repos = new Map();
+        const push = new Map();
+        const shut = new Map();
+        const drop = new Map();
+        // const shut = [];
+        // const drop = [];
+        // function handle_repo(repo){
+        //     if(d.closed.repo.has(repo))  shut.push(repo);
+        //     if(d.dropped.repo.has(repo)) drop.push(repo);
+        // }
         function handle_node(node){
-            let repo = d.closed.node.get(node);
-            let action = 'shut';
             if(d.node.has(node)){
-                repo = d.node.get(node).repo;
-                action = 'push';
+                const repo = d.node.get(node).repo;
+                if(!push.has(repo)) push.set(repo, {node:[], forw:[]});
+                push.get(repo).node.push(node);
+                push.get(repo).forw.push(JSON.stringify(Object.fromEntries(d.node.get(node).forw)));
+            }else if(d.closed.node.has(node)){
+                const repo = d.closed.node.get(node);
+                if(!shut.has(repo)) shut.set(repo, []);
+                shut.get(repo).push(node);
             }else if(d.dropped.node.has(node)){
-                repo = d.dropped.node.get(node);
-                action = 'drop';
+                const repo = d.dropped.node.get(node);
+                if(!drop.has(repo)) drop.set(repo, []);
+                drop.get(repo).push(node);
             }
-            if(!push.has(repo)) push.set(repo, {push: new Set(), shut: new Set(), drop: new Set(), triples:[]});
-            if(action == 'shut') push.get(repo).shut.add(node);
-            if(action == 'push') push.get(repo).push.add(node);
-            if(action == 'drop') push.get(repo).drop.add(node);
+            
+            // if(!repos.has(repo)) repos.set(repo, {push: new Set(), shut: new Set(), drop: new Set(), node:[]});
+            // if(action == 'shut') repos.get(repo).shut.add(node);
+            // if(action == 'push'){repos.get(repo).push.add(node);
+            // if(action == 'drop') repos.get(repo).drop.add(node);
         }
         for(const patch of patches){ // top level patch.path[0]=='n' ?
-            if(patch.path[0] == 'repo') handle_repo(patch.path[1]);
+            //if(patch.path[0] == 'repo') handle_repo(patch.path[1]);
             if(patch.path[0] == 'node') handle_node(patch.path[1]);
         }
-        for(const [repo, obj] of push.entries()){
-            for(const root of obj.push){
-                for(let [term, stem] of d.forw(d, root, {leaf:true})){
-                    if(stem.type) stem = {'@type':stem.type, '@value':stem.value};
-                    obj.triples.push({root, term, stem}); // '@schema:':
-                }
-            }
-            if(obj.push.size) d.mutation.push_node({variables:{repo, triples:obj.triples}});
-            if(obj.shut.size) d.mutation.shut_node({variables:{repo, nodes:[...obj.shut]}});
-            if(obj.drop.size) d.mutation.drop_node({variables:{repo, nodes:[...obj.drop]}});
+        
+        for(let [repo, {node, forw}] of push){
+            //console.log(repo, node, forw);
+            d.mutation.push_node({variables:{client, repo, node, forw}});
         }
-        if(shut.length) d.mutation.shut_repo({variables:{repos:shut}});
-        if(drop.length) d.mutation.drop_repo({variables:{repos:drop}});
-        const data = {push:Object.fromEntries(push), shut, drop}
-        console.log('send data', data);
+        for(const [repo, node] of shut){
+            d.mutation.shut_node({variables:{client, repo, node}});
+        }
+        for(const [repo, node] of drop){
+            d.mutation.drop_node({variables:{client, repo, node}});
+        }
+        // for(const [repo, obj] of repos.entries()){
+        //     [...obj.push].map()
+        //     const node_obj = {};
+        //     for(const node of obj.push){
+        //         Object.from(d.node.get(node).forw)
+        //         // for(let [term, stem] of d.forw(d, root, {leaf:true})){
+        //         //     if(node_obj)
+        //         //     if(stem.type) stem = {'@type':stem.type, '@value':stem.value};
+        //         //     obj.triples.push({root, term, stem}); // '@schema:':
+        //         // }
+        //     }
+        //     if(obj.push.size) d.mutation.push_node({variables:{repo, triples:obj.triples}});
+        //     if(obj.shut.size) d.mutation.shut_node({variables:{repo, nodes:[...obj.shut]}});
+        //     if(obj.drop.size) d.mutation.drop_node({variables:{repo, nodes:[...obj.drop]}});
+        // }
+        // // if(shut.length) d.mutation.shut_repo({variables:{repos:shut}});
+        // // if(drop.length) d.mutation.drop_repo({variables:{repos:drop}});
+        // const data = {push:Object.fromEntries(push), shut, drop}
+        // console.log('send data', data);
     },
 
     receive_data:(d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        //console.log(data);
+        //console.log(JSON.stringify(data));
         const repo = data.repo.repo;
         d.pick.target.repo(d, repo, {weak:true}); 
         d.repo.set(repo, {
@@ -304,30 +329,54 @@ export const store = {//export const create_base_slice = (set,get)=>({
         });
         d.dropped.repo.delete(repo);
         d.closed.repo.delete(repo);
-        const handled = new Set();
-        for(const {root} of data.triples){
-            if(handled.has(root)) continue;
-            d.make.node(d, {repo, node:root, given:true});
-            handled.add(root);
+        for(const triple of data.node){
+            d.make.node(d, {repo, node:triple.node, given:true});
         }
-        for(let {root, term, stem} of data.triples){
-            if(term.slice(0, 8) == '@schema:'){ //if(triple.term.slice(0, 8) == '@schema:'){
-                term = term.slice(8);
-                if(stem['@type']) stem = {type:stem['@type'], value:stem['@value']};
-                d.make.edge(d, {root, term, stem, given:true});
-                if(term == 'delimit_app'){
-                    //if(!d.stems(d, d.entry, 'app').includes(root)){ // d.node.get(d.entry).forw.get('app').get)
-                    d.make.edge(d, {root:d.entry, term:'app', stem:root, given:true, single:true});
-                    //}
+        for(const triple of data.node){
+            const node = triple.node;
+            const obj = JSON.parse(triple.obj['@value']) //console.log(obj)
+            for(const [term, stems] of Object.entries(obj)){
+                for(const stem of stems){
+                    d.make.edge(d, {root:node, term, stem, given:true});
+                    if(term == 'delimit_app'){
+                        d.make.edge(d, {root:d.entry, term:'app', stem:node, given:true, single:true});
+                    }
                 }
             }
         }
-        if(data.triples.length) d.graph.increment(d);
-        //console.log(current(Array.from(d.node.entries())));
+        d.graph.increment(d);
+        // if(increment_graph) d.graph.increment(d);
+        // for(let {root, term, stem} of data.triples){
+        //     if(term.slice(0, 8) == '@schema:'){ //if(triple.term.slice(0, 8) == '@schema:'){
+        //         term = term.slice(8);
+        //         if(stem['@type']) stem = {type:stem['@type'], value:stem['@value']};
+        //         d.make.edge(d, {root, term, stem, given:true});
+        //         if(term == 'delimit_app'){
+        //             //if(!d.stems(d, d.entry, 'app').includes(root)){ // d.node.get(d.entry).forw.get('app').get)
+        //             d.make.edge(d, {root:d.entry, term:'app', stem:root, given:true, single:true});
+        //             //}
+        //         }
+        //     }
+        // }
+        // if(data.triples.length) d.graph.increment(d);
+        // //console.log(current(Array.from(d.node.entries())));
     },
 
 };//);
 
+
+
+// for(const [repo, obj] of repos.entries()){
+//     for(const root of obj.push){
+//         for(let [term, stem] of d.forw(d, root, {leaf:true})){
+//             if(stem.type) stem = {'@type':stem.type, '@value':stem.value};
+//             obj.triples.push({root, term, stem}); // '@schema:':
+//         }
+//     }
+//     if(obj.push.size) d.mutation.push_node({variables:{repo, triples:obj.triples}});
+//     if(obj.shut.size) d.mutation.shut_node({variables:{repo, nodes:[...obj.shut]}});
+//     if(obj.drop.size) d.mutation.drop_node({variables:{repo, nodes:[...obj.drop]}});
+// }
 
 
 

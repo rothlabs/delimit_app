@@ -2,32 +2,34 @@ import json
 import graphene
 from core.api.types import Pack_Type
 from core.api.config import auth_required_message
-from graph.database import gdbc
+from graph.database import gdbc, gdb_connect, gdb_write_access
 from terminus import WOQLQuery as wq
+from core.models import Repo
 
 class Push_Node(graphene.Mutation):
     class Arguments:
         client = graphene.String()
-        team = graphene.String()
-        repo = graphene.String()
-        triples = graphene.String()
-    reply = graphene.String(default_value = 'Failed to push node')
+        repo   = graphene.String()
+        node   = graphene.List(graphene.String)
+        forw   = graphene.List(graphene.String)
+    reply = graphene.String() # default_value = 'Failed to push node'
     @classmethod
-    def mutate(cls, root, info, client, team, repo, triples):
-        try: # must make sure nodes do not get added to poll_pack if set for delete!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            team, gdb_user = gdb_connect(info.context.user, team=team, repo=repo)
-            roots = set()
-            for triple_string in triples:
-                roots.add(json.loads(triple_string).root)
-            for root in roots:
-                wq().delete_triple(root, 'v:term', 'v:stem').execute(gdbc)['bindings']
-            
-            
+    def mutate(cls, root, info, client, repo, node, forw):
+        try: 
+            user = info.context.user
+            if not user.is_authenticated:
+                return Push_Node(reply = auth_required_message)
+            team = Repo.objects.get(repo=repo).team
+            team, gdb_user = gdb_connect(user, team=team, repo=repo)
+            for node, forw in zip(node, forw):#for node, obj in json.loads(node):
+                (wq().triple      (node, '@schema:__forw__', 'v:obj')
+                    .delete_triple(node, '@schema:__forw__', 'v:obj').execute(gdbc))  
+                wq().add_triple(node, '@schema:__forw__', wq().string(forw)).execute(gdbc)
             return Push_Node(reply='Push Node') 
         except Exception as e: 
             print('Error: Push_Node')
-            print(e)
-        return Push_Node()
+            print(str(e))
+            return Push_Node(reply = 'Error, Push_Node: '+str(e))
 
 
         #     delete_triples = wq().select(root, 'v:term', 'v:stem').woql_and(

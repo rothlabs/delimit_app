@@ -13,7 +13,6 @@ from core.models import Repo
 class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
     class Arguments:
         client = graphene.String()
-        team = graphene.String()
         repo = graphene.String()
         #nodes = graphene.List(graphene.String())
     #pack = graphene.Field(Pack_Type)
@@ -21,17 +20,13 @@ class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
     data = graphene.String(default_value = 'null')
     reply = graphene.String(default_value = 'Failed to open repo')
     @classmethod
-    def mutate(cls, root, info, client, team, repo): # , include, exclude): # offset, limit for pages
+    def mutate(cls, root, info, client, repo): # , include, exclude): # offset, limit for pages
         try:
+            team = Repo.objects.get(repo=repo).team
             team, gdb_user = gdb_connect(info.context.user, team=team, repo=repo)
             #triples = wq().star(subj='v:root', pred='v:term', obj='v:stem').execute(gdbc)['bindings']
             rdb_repo = Repo.objects.get(repo=repo)
-            sequence = wq().triple('v:root', '@schema:__sequence__', 'v:stem').execute(gdbc)['bindings']
-            # data = {}
-            # for item in sequence.split(']::['):
-            #     data[item] = []
-            #     for item in item.split('>>>'):
-            #         data[item].append()
+            node = wq().triple('v:node', '@schema:__forw__', 'v:obj').execute(gdbc)['bindings']
             return Open_Repo(
                 reply = 'Opened nodes',
                 data = json.dumps({
@@ -42,7 +37,7 @@ class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
                         'description': rdb_repo.description,
                         'write_access': gdb_write_access(team, repo, gdb_user),
                     },
-                    'triples': triples,
+                    'node': node,
                 }),
             )
         except Exception as e: 
@@ -50,6 +45,12 @@ class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
             print(e)
         return Open_Repo()
 
+
+            # data = {}
+            # for item in sequence.split(']::['):
+            #     data[item] = []
+            #     for item in item.split('>>>'):
+            #         data[item].append()
 
 
 #triples = wq().triple('v:root', 'v:term', 'v:stem').execute(gdbc)['bindings'] # star(subj='root', pred='term', obj='stem')

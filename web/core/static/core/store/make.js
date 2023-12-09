@@ -1,25 +1,17 @@
 //import { make_id } from '../app.js';
 //import {current} from 'immer';
 
-//import {snake_case} from 'delimit';
+import {make_id} from 'delimit';
 
 export const make = {};
 
-make.id = (length=16)=>{
-    let result = '';
-    Array.from({length}).some(() => {
-        result += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
-      return result.length >= length;
-    });
-    return result;
-};
 
 // if(d.face.name(d, type) != 'Root') continue;
 //             for(const [root, term] of d.back(d, type)){
 //                 if(term != 'type') continue;
 
 make.node = (d, {node, repo, given, type})=>{ 
-    node = node ?? d.make.id();
+    node = node ?? make_id();
     if(!(given || d.write_access(d, node))) return;
     repo = repo ?? d.target.repo;
     d.drop.edge(d, {root:node, given}); 
@@ -42,7 +34,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     const forw = d.node.get(root).forw;
     let stems = forw.get(term);
     let length = stems?.length ?? 0;
-    if(length == 1 && stem != stems[0] && d.node.has(stems[0]) && d.node.get(stems[0]).forw.size == 0){
+    if(!given && length == 1 && stem != stems[0] && d.node.has(stems[0]) && d.node.get(stems[0]).forw.size == 0){
         d.drop.edge(d, {root, term, stem:stems[0]}); //d.shut.node(d, {node:stems[0], drop:true});
         length = 0;
     }

@@ -1,4 +1,4 @@
-import re
+import json, re
 import graphene
 from graph.database import gdbc, gdb_connect
 from core.api.config import auth_required_message
@@ -88,140 +88,104 @@ class Make_Repo(graphene.Mutation):
             delimit_app = make_id()
 
             (wq() 
-                .add_triple(delimit_leaf_node, '@schema:leaf', wq().string('delimit')) 
-
-                .add_triple(code_stem, '@schema:name',    wq().string('Code')) # defaults to min=1 and max=1
-                .add_triple(code_stem, '@schema:type',    wq().string('Stem')) 
-                .add_triple(code_stem, '@schema:context', delimit_leaf_node) 
-
-                .add_triple(type_icon_code, '@schema:name',     wq().string('Type Icon'))
-                #.add_triple(type_icon_code, '@schema:type',     wq().string('Code'))
-                .add_triple(type_icon_code, '@schema:code',     wq().string(menu_button_svg))
-                .add_triple(type_icon_code, '@schema:language', wq().string('SVG'))
-
-                .add_triple(abc_icon_code, '@schema:name',      wq().string('Term Icon'))
-                #.add_triple(abc_icon_code, '@schema:type',      wq().string('Code'))
-                .add_triple(abc_icon_code, '@schema:code',      wq().string(abc_svg))
-                .add_triple(abc_icon_code, '@schema:language',  wq().string('SVG'))
-
-                .add_triple(plus_icon_code, '@schema:name',     wq().string('Make Icon'))
-                #.add_triple(plus_icon_code, '@schema:type',     wq().string('Code'))
-                .add_triple(plus_icon_code, '@schema:code',     wq().string(plus_square_svg))
-                .add_triple(plus_icon_code, '@schema:language', wq().string('SVG'))
-
-                .add_triple(code_icon_code, '@schema:name',     wq().string('Code Icon'))
-                #.add_triple(code_icon_code, '@schema:type',     wq().string('Code'))
-                .add_triple(code_icon_code, '@schema:code',     wq().string(braces_svg))
-                .add_triple(code_icon_code, '@schema:language', wq().string('SVG'))
-                
-                .add_triple(icon_term, '@schema:name',      wq().string('Icon'))  
-                .add_triple(icon_term, '@schema:type',      wq().string('Term')) 
-                #.add_triple(icon_term, '@schema:context',   delimit_leaf_node) 
-                .add_triple(icon_term, '@schema:icon',      code_icon_code) 
-                .add_triple(icon_term, '@schema:required',  code_stem) # no auto make for stems
-
-                .add_triple(name_term, '@schema:name',     wq().string('Name'))  
-                .add_triple(name_term, '@schema:type',     wq().string('Term')) 
-                #.add_triple(name_term, '@schema:context',  delimit_leaf_node) 
-                .add_triple(name_term, '@schema:icon',     abc_icon_code)  
-                .add_triple(name_term, '@schema:required', wq().string('String')) # interface automatically makes this a drop down and shoes 'boolean, integer, etc'
-                .add_triple(name_term, '@schema:make',     wq().string('New')) # drop down for boolean, string, etc but you can type/edit
-
-                .add_triple(context_term, '@schema:name',     wq().string('Context'))   
-                .add_triple(context_term, '@schema:type',     wq().string('Term')) 
-                #.add_triple(context_term, '@schema:context',  delimit_leaf_node) 
-                .add_triple(context_term, '@schema:required', wq().string('String')) # literal string or a leaf node
-                .add_triple(context_term, '@schema:add',      delimit_leaf_node)
-
-                .add_triple(make_term, '@schema:name',    wq().string('Make'))   
-                .add_triple(make_term, '@schema:type',    wq().string('Term')) 
-                #.add_triple(make_term, '@schema:context', delimit_leaf_node) 
-                .add_triple(make_term, '@schema:icon',    plus_icon_code) 
-
-                .add_triple(add_term, '@schema:name',    wq().string('Add'))   
-                .add_triple(add_term, '@schema:type',    wq().string('Term')) 
-                #.add_triple(add_term, '@schema:context', delimit_leaf_node) 
-                .add_triple(add_term, '@schema:icon',    plus_icon_code) 
-
-                .add_triple(minimum_term, '@schema:name',    wq().string('Minimum'))   
-                .add_triple(minimum_term, '@schema:type',    wq().string('Term')) 
-                #.add_triple(minimum_term, '@schema:context', delimit_leaf_node) 
-
-                .add_triple(maximum_term, '@schema:name',    wq().string('Maximum'))   
-                .add_triple(maximum_term, '@schema:type',    wq().string('Term')) 
-                #.add_triple(maximum_term, '@schema:context', delimit_leaf_node) 
-
-                .add_triple(code_term, '@schema:name',     wq().string('Code'))   
-                .add_triple(code_term, '@schema:type',     wq().string('Term'))
-                #.add_triple(code_term, '@schema:context',  delimit_leaf_node) 
-                .add_triple(code_term, '@schema:icon',     code_icon_code)
-                .add_triple(code_term, '@schema:required', code_stem)  
-
-                .add_triple(required_term, '@schema:name',    wq().string('Required'))
-                .add_triple(required_term, '@schema:type',    wq().string('Term'))
-                #.add_triple(required_term, '@schema:context', delimit_leaf_node) 
-                .add_triple(required_term, '@schema:icon',    type_icon_code)  
-
-                .add_triple(optional_term, '@schema:name',    wq().string('Optional'))
-                .add_triple(optional_term, '@schema:type',    wq().string('Term'))
-                #.add_triple(optional_term, '@schema:context', delimit_leaf_node) 
-                .add_triple(optional_term, '@schema:icon',    type_icon_code) 
-                
-                .add_triple(pick_one_term, '@schema:name',    wq().string('Pick One'))
-                .add_triple(pick_one_term, '@schema:type',    wq().string('Term'))
-                #.add_triple(pick_one_term, '@schema:context', delimit_leaf_node) 
-                .add_triple(pick_one_term, '@schema:icon',    type_icon_code) 
-
-                .add_triple(one_or_more_term, '@schema:name',    wq().string('One or More'))
-                .add_triple(one_or_more_term, '@schema:type',    wq().string('Term'))
-                #.add_triple(one_or_more_term, '@schema:context', delimit_leaf_node) 
-                .add_triple(one_or_more_term, '@schema:icon',    type_icon_code) 
-
-                .add_triple(root_type, '@schema:name',     wq().string('Root')) # node type
-                .add_triple(root_type, '@schema:icon',     type_icon_code)
-                #.add_triple(root_type, '@schema:make',     name_term)
-                #.add_triple(root_type, '@schema:make',     context_term)
-                .add_triple(root_type, '@schema:required', name_term)     # auto make required terms
-                #.add_triple(root_type, '@schema:required', context_term) 
-                .add_triple(root_type, '@schema:optional', icon_term)
-                .add_triple(root_type, '@schema:optional', required_term)
-                .add_triple(root_type, '@schema:optional', optional_term)
-                .add_triple(root_type, '@schema:optional', pick_one_term)
-                .add_triple(root_type, '@schema:optional', one_or_more_term)
-                .add_triple(root_type, '@schema:optional', make_term)
-                .add_triple(root_type, '@schema:optional', code_term)
-
-                .add_triple(term_type, '@schema:name',     wq().string('Term'))
-                .add_triple(term_type, '@schema:icon',     type_icon_code)
-                .add_triple(term_type, '@schema:required', name_term) 
-                #.add_triple(term_type, '@schema:required', context_term)
-                .add_triple(term_type, '@schema:optional', icon_term)
-                .add_triple(term_type, '@schema:optional', required_term)
-                .add_triple(term_type, '@schema:optional', optional_term)
-                .add_triple(term_type, '@schema:optional', pick_one_term)
-                .add_triple(term_type, '@schema:optional', one_or_more_term)
-                .add_triple(term_type, '@schema:optional', add_term)
-                .add_triple(term_type, '@schema:optional', make_term)
-
-                .add_triple(stem_type, '@schema:name',     wq().string('Stem')) # repo.context.
-                .add_triple(stem_type, '@schema:icon',     type_icon_code)
-                .add_triple(stem_type, '@schema:required', name_term) 
-                .add_triple(stem_type, '@schema:required', context_term)
-                .add_triple(stem_type, '@schema:optional', icon_term)
-                .add_triple(stem_type, '@schema:optional', minimum_term)
-                .add_triple(stem_type, '@schema:optional', maximum_term)
-
-                .add_triple(delimit_context, '@schema:name',  delimit_leaf_node)
-                .add_triple(delimit_context, '@schema:type',  wq().string('Context'))
-                .add_triple(delimit_context, '@schema:types', root_type)
-                .add_triple(delimit_context, '@schema:types', term_type)
-                .add_triple(delimit_context, '@schema:types', stem_type)
-
-                .add_triple(delimit_app, '@schema:name',        delimit_leaf_node)
-                .add_triple(delimit_app, '@schema:type',        wq().string('App'))
-                .add_triple(delimit_app, '@schema:delimit_app', wq().boolean(True))
-                .add_triple(delimit_app, '@schema:contexts',    delimit_context)
-                
+                .add_triple(delimit_leaf_node, '@schema:__forw__', wq().string(json.dumps({
+                    'leaf':[{'type':'xsd:string', 'value':'delimit'}],
+                }))).add_triple(code_stem, '@schema:__forw__', wq().string(json.dumps({
+                    'name':    [{'type':'xsd:string', 'value':'Code'}],
+                    'type':    [{'type':'xsd:string', 'value':'Stem'}],
+                    'context': [delimit_leaf_node],
+                }))).add_triple(type_icon_code, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Type Icon'}],
+                    'code':     [{'type':'xsd:string', 'value':menu_button_svg}],
+                    'language': [{'type':'xsd:string', 'value':'SVG'}],
+                }))).add_triple(abc_icon_code, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Term Icon'}],
+                    'code':     [{'type':'xsd:string', 'value':abc_svg}],
+                    'language': [{'type':'xsd:string', 'value':'SVG'}],
+                }))).add_triple(plus_icon_code, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Make Icon'}],
+                    'code':     [{'type':'xsd:string', 'value':plus_square_svg}],
+                    'language': [{'type':'xsd:string', 'value':'SVG'}],
+                }))).add_triple(code_icon_code, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Code Icon'}],
+                    'code':     [{'type':'xsd:string', 'value':braces_svg}],
+                    'language': [{'type':'xsd:string', 'value':'SVG'}],
+                }))).add_triple(icon_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Icon'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [code_icon_code],
+                    'required': [code_stem],
+                }))).add_triple(name_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Name'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [abc_icon_code],
+                    'required': [{'type':'xsd:string', 'value':'String'}],
+                    'make':     [{'type':'xsd:string', 'value':'New'}],
+                }))).add_triple(context_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Context'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'required': [{'type':'xsd:string', 'value':'String'}],
+                    'add':      [delimit_leaf_node],
+                }))).add_triple(make_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Make'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [plus_icon_code],
+                }))).add_triple(add_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Add'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [plus_icon_code],
+                }))).add_triple(minimum_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Minimum'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                }))).add_triple(maximum_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Maximum'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                }))).add_triple(code_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Code'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [code_icon_code],
+                    'required': [code_stem],
+                }))).add_triple(required_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Required'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [type_icon_code],
+                }))).add_triple(optional_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Optional'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [type_icon_code],
+                }))).add_triple(pick_one_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Pick One'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [type_icon_code],
+                }))).add_triple(one_or_more_term, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'One or More'}],
+                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [type_icon_code],
+                }))).add_triple(root_type, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Root'}],
+                    'icon':     [type_icon_code],
+                    'required': [name_term],
+                    'optional': [icon_term, required_term, optional_term, pick_one_term, one_or_more_term, make_term, code_term],
+                }))).add_triple(term_type, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Term'}],
+                    'icon':     [type_icon_code],
+                    'required': [name_term],
+                    'optional': [icon_term, required_term, optional_term, pick_one_term, one_or_more_term, make_term, add_term],
+                }))).add_triple(stem_type, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [{'type':'xsd:string', 'value':'Stem'}],
+                    'icon':     [type_icon_code],
+                    'required': [name_term, context_term],
+                    'optional': [icon_term, minimum_term, maximum_term],
+                }))).add_triple(delimit_context, '@schema:__forw__', wq().string(json.dumps({
+                    'name':     [delimit_leaf_node],
+                    'type':     [{'type':'xsd:string', 'value':'Context'}],
+                    'types':    [root_type, term_type, stem_type],
+                }))).add_triple(delimit_app, '@schema:__forw__', wq().string(json.dumps({
+                    'name':        [delimit_leaf_node],
+                    'type':        [{'type':'xsd:string', 'value':'App'}],
+                    'delimit_app': [{'type':'xsd:boolean', 'value':True}],
+                    'contexts':    [delimit_context],
+                })))                
             ).execute(gdbc)
 
             return Make_Repo(reply = 'Made repo')
