@@ -1,31 +1,24 @@
-import json
 import graphene
-from core.api.types import Pack_Type
+from graph.database import gdbc, gdb_connect
 from core.api.config import auth_required_message
-from graph.database import gdbc, gdb_connect, gdb_write_access
-from terminus import WOQLQuery as wq
 from core.models import Repo
 
 class Drop_Repo(graphene.Mutation):
     class Arguments:
-        client = graphene.String()
-        repo   = graphene.String()
-        node   = graphene.List(graphene.String)
+        team = graphene.String()
+        repo = graphene.String()
     reply = graphene.String(default_value = 'Failed to drop repo')
     @classmethod
-    def mutate(cls, root, info, client, repo, node):
+    def mutate(cls, root, info, team, repo):
         try:
             user = info.context.user
             if not user.is_authenticated:
-                return Push_Node(reply = auth_required_message)
-            team = Repo.objects.get(repo=repo).team
-            team, gdb_user = gdb_connect(user, team=team, repo=repo)
-            for node in node:
-                (wq().triple      (node, '@schema:__forw__', 'v:obj')
-                    .delete_triple(node, '@schema:__forw__', 'v:obj')
-                    .execute(gdbc))      
-            return Drop_Repo(reply = 'Drop Node')
+                return Drop_Repo(reply = auth_required_message)
+            team, gdb_user = gdb_connect(user, team=team)
+            gdbc.delete_database(repo, team)
+            Repo.objects.get(repo = repo).delete()
+            return Drop_Repo(reply = 'Dropped repo')
         except Exception as e: 
             print('Error: Drop_Repo')
             print(e)
-            return Drop_Repo(reply = 'Error Drop Node: '+str(e))
+        return Drop_Repo()
