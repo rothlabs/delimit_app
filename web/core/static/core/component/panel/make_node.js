@@ -1,6 +1,6 @@
 import {createElement as c, useState} from 'react';
-import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, commit_store, get_store, Svg, Svg_Button, icon} from 'delimit';
+import {Row, Col, ButtonToolbar, Form, Accordion, InputGroup} from 'react-bootstrap';
+import {use_store, set_store, commit_store, get_store, Svg, Button, icon} from 'delimit';
 //import { Make_Repo } from './make_repo.js';
 //import {Badge} from '../node/base.js'
 
@@ -43,13 +43,12 @@ function Context({root}){
 
 function Root_Type({type}){
     const svg = use_store(d=> d.value(d, type, 'icon code', icon.svg.generic));
-    const text = use_store(d=> d.value(d, type, 'name', 'Node'));
+    const name = use_store(d=> d.value(d, type, 'name', 'Node'));
     return(
-        c(Svg_Button, {
-            //className:'w-100',
+        c(Button, {
             svg, 
-            text, 
-            func:e=> commit_store(d=>{ 
+            name, 
+            onClick:e=> commit_store(d=>{ 
                 d.make.node(d, {type});  //[...d.picked.node][0]
             })
         })

@@ -1,7 +1,7 @@
 {% load static %}
 {% load hosts %}
 <!DOCTYPE html>
-<html lang='en' data-bs-theme='dark'>
+<html lang='en' data-bs-theme='light'>
 
 <head>
   <title>Delimit</title>
@@ -63,7 +63,7 @@
 
 <body data-media-url='{% get_media_prefix %}' data-static-url='{% get_static_prefix %}'>
   {{ ctx | json_script:"ctx" }}
-  <div id='app' class='row g-0 vh-100 overflow-hidden'></div>
+  <div id='app' class='position-relative vh-100'></div>
   <script src='{% static "core/app.js" %}' type='module'></script>
   <iframe id='graph_container' sandbox='allow-scripts allow-same-origin' style="display: none;" src='{% host_url "index" host "graph" %}'></iframe>
 </body>
@@ -72,6 +72,8 @@
 
 
 <!-- 
+
+     class='row g-0 vh-100 overflow-hidden'
 
 "lodash":                           "https://cdn.jsdelivr.net/npm/lodash@4.17.21/+esm",
 "react-use":                        "https://cdn.jsdelivr.net/npm/react-use@17.4.0/+esm",

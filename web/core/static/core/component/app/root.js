@@ -4,9 +4,10 @@ import {Outlet, Link, useNavigate} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
-import {Mode_Bar} from '../studio/mode_bar.js';
+import {Studio_Mode} from '../studio/mode.js';
 import { Confirm } from './confirm.js';
-import {set_store, commit_store, use_store, use_query, use_window_size, Svg, pointer, use_mutation, Icon_Title} from 'delimit';
+import {set_store, commit_store, use_store, use_query, use_window_size, 
+        History, pointer, use_mutation, Icon_Title, readable} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
@@ -14,12 +15,12 @@ const vector = new Vector2();
 
 function Drag(){
     //console.log('render drag');
-    const {root, stem} = use_store(d=> d.drag.data);
+    const {root, term, stem} = use_store(d=> d.drag.data);
     //const {title, icon} = use_store(d=> d.face.primary(d, node));
     //const root_face = use_store(d=> d.face.primary(d, root));
     const [springs, api] = useSpring(() => ({x:0, y:0}));
     pointer.spring = api;
-    if(!stem) return;
+    if(!root && !stem) return;
     return(
         c(animated.div,{
             style:{
@@ -28,7 +29,7 @@ function Drag(){
                 ...springs,
             },
         },
-            c(Icon_Title, {node:stem}),
+            stem ? c(Icon_Title, {node:stem}) : c(InputGroup.Text, {}, readable(term)),
             root && c(InputGroup, {className:'ps-4'},
                 c(InputGroup.Text, {}, 'Removed from'),
                 c(Icon_Title, {node:root}),
@@ -42,105 +43,77 @@ export function Root(){
     const theme_mode = use_store(d=> d.theme.mode);
     //const studio_mode = use_store(d=> d.studio.mode);
     const navigate = useNavigate();
-    const [window_width] = use_window_size(); 
-    const buttons = [
-        {name:'Shop',  icon:'bi-bag',  value:'shop'},
-        {name:'Studio', icon:'bi-palette2', value:'studio'}, 
-    ];
-	return (
-		//c(Row,{className:''},
-		
-            // c(Container,{
-            //     fluid: true,
-            //     className: 'h-100 g-0',
-            // },
-            //c(Row, {},
-            c(Col, {
-                className:'d-flex flex-column',
-                onPointerMove(e){ // Capture  
-                    pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
-                    pointer.position.set(e.clientX, e.clientY);
-                    if(!pointer.dragging) return; 
-                    if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
-                    commit_store(d=>{
-                        if(d.drag.data.stem) return;// 'cancel'; // could just check if anything actually changed
-                        const data = d.drag.staged;
-                        if(!e.ctrlKey || !data.root || !data.term || data.index == null) return;
-                        const placeholder = data.stem.type ? true : d.node.get(data.stem).forw.size;
-                        d.drop.edge(d, {...data, placeholder}); // stem:data.stem
-                    });
-                    set_store(d=>{
-                        if(d.drag.data.stem) return;
-                        const data = d.drag.staged;
-                        if(e.ctrlKey){
-                            d.drag.data = data;
-                        }else{
-                            d.drag.data = {stem:data.stem};
-                        }
-                    });
+    // const [window_width] = use_window_size(); 
+    // const buttons = [
+    //     {name:'Shop',  icon:'bi-bag',  value:'shop'},
+    //     {name:'Studio', icon:'bi-palette2', value:'studio'}, 
+    // ];
+    return(
+        c('div', {
+            id: 'root', 
+            className: 'vh-100',
+            onPointerMove(e){ // Capture  
+                pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
+                pointer.position.set(e.clientX, e.clientY);
+                if(!pointer.dragging) return; 
+                if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
+                commit_store(d=>{
+                    if(Object.keys(d.drag.data).length) return;// 'cancel'; // could just check if anything actually changed
+                    const data = d.drag.staged;
+                    if(!e.ctrlKey || !data.root || !data.term) return; //  || data.index == null
+                    //const placeholder = data.stem ? data.stem.type ? true : d.node.get(data.stem).forw.size : false;
+                    d.drop.edge(d, {...data}); // stem:data.stem
+                });
+                set_store(d=>{
+                    if(Object.keys(d.drag.data).length) return;
+                    const data = d.drag.staged;
+                    if(e.ctrlKey){
+                        d.drag.data = data;
+                    }else{
+                        d.drag.data = {stem:data.stem};
+                    }
+                });
+            },
+            onPointerUp(e){
+                pointer.dragging = false;
+                set_store(d=>{
+                    d.drag.data = {};
+                });
+            },
+        },
+            c('div',{
+                className:'position-absolute top-0 start-0 z-1 mt-1', 
+            },
+                c(Logo),
+                c('span', {className:'me-4'}),
+                mode=='studio' && c('div', {
+                   className:'position-relative d-inline-flex',
                 },
-                onPointerUp(e){
-                    pointer.dragging = false;
-                    set_store(d=>{
-                        d.drag.data = {};
-                    });
-                },
-            }, 
-                c(Drag),
-                c(Login),
-		        c(Logout),
-                c(Confirm),
-                c(Row, {}, 
-                    c(Col, {className:'col-auto ms-1 mt-1',
-                        role: 'button',
-                        onClick:e=> set_store(d=>{
-                            d.mode = '/';
-                            navigate(d.mode);
-                        }),
-                    }, 
-                        c(Logo, {height:32}),
-                    ),
-                    c(Col, {},
-                        buttons.map((button,i)=>
-                            c(ToggleButton,{
-                                id: 'mode'+i,
-                                className: button.icon + ' border-0 rounded-4 rounded-top-0',
-                                type: 'radio',
-                                variant: 'outline-primary', //size: 'lg',
-                                value: button.value,
-                                checked: mode == button.value,
-                                onChange:e=> set_store(d=>{
-                                    d.mode = e.currentTarget.value;
-                                    navigate(d.mode);
-                                }),
-                            }, 
-                                window_width > 576 ? ' '+button.name : '',
-                            )
-                        ),
-                        mode=='studio' && [c('span', {className:'ms-4 me-4 text-primary'}), c(Mode_Bar)],
-                    ),
-                    //mode=='studio' && c(Col, {}, c(Mode_Bar)),
-                    c(Col, {className:'col-auto'},
-                        c(ToggleButton,{
-                            id: 'dark_mode_button',
-                            type:'checkbox', variant:'outline-primary', 
-                            checked: theme_mode=='dark',
-                            className: 'border-0 bi-moon rounded-4 rounded-top-0',
-                            onChange:e=> set_store(d=> d.theme.toggle_mode(d)),
-                        }),
-                        c(Account_Menu),
-                        c(Mutations),
-                        // !data ? status && c(status) : 
-                        //     data.user ? account_buttons.map((button,i)=> c(Account_Button, {button}))
-                        //     : c(Account_Button, {button:{name:()=>'Sign In', icon:'bi-box-arrow-in-right', func:()=> show_login(true)}}),
-                    ),
+                    c(Studio_Mode),
+                    c('span', {className:'me-4'}), 
+                    c(History),
                 ),
-                c(Row, {className:'flex-grow-1'},  
-                    c(Outlet),
-                ),
-            )//,
-    	//)
-  	)
+            ),
+            c('div',{
+                className:'position-absolute top-0 end-0 z-1',
+            },
+                c(ToggleButton,{
+                    id: 'dark_mode_button',
+                    type:'checkbox', variant:'outline-primary', 
+                    checked: theme_mode=='dark',
+                    className: 'border-0 bi-moon rounded-4 rounded-top-0',
+                    onChange:e=> set_store(d=> d.theme.toggle_mode(d)),
+                }),
+                c(Account_Menu),
+            ),
+            c(Outlet),
+            c(Drag),
+            c(Login),
+            c(Logout),
+            c(Confirm),
+            c(Mutations),
+        )
+    );
 } 
 
 function Account_Menu(){
@@ -194,6 +167,106 @@ function Mutations(){
         };
     });
 }
+
+
+// return (
+//     //c(Row,{className:''},
+    
+//         // c(Container,{
+//         //     fluid: true,
+//         //     className: 'h-100 g-0',
+//         // },
+//         //c(Row, {},
+//         c(Col, {
+//             className:'d-flex flex-column',
+//             onPointerMove(e){ // Capture  
+//                 pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
+//                 pointer.position.set(e.clientX, e.clientY);
+//                 if(!pointer.dragging) return; 
+//                 if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
+//                 commit_store(d=>{
+//                     if(d.drag.data.stem) return;// 'cancel'; // could just check if anything actually changed
+//                     const data = d.drag.staged;
+//                     if(!e.ctrlKey || !data.root || !data.term || data.index == null) return;
+//                     const placeholder = data.stem.type ? true : d.node.get(data.stem).forw.size;
+//                     d.drop.edge(d, {...data, placeholder}); // stem:data.stem
+//                 });
+//                 set_store(d=>{
+//                     if(d.drag.data.stem) return;
+//                     const data = d.drag.staged;
+//                     if(e.ctrlKey){
+//                         d.drag.data = data;
+//                     }else{
+//                         d.drag.data = {stem:data.stem};
+//                     }
+//                 });
+//             },
+//             onPointerUp(e){
+//                 pointer.dragging = false;
+//                 set_store(d=>{
+//                     d.drag.data = {};
+//                 });
+//             },
+//         }, 
+//             c(Drag),
+//             c(Login),
+//             c(Logout),
+//             c(Confirm),
+//             c(Row, {}, 
+//                 c(Col, {className:'col-auto ms-1 mt-1',
+//                     role: 'button',
+//                     onClick:e=> set_store(d=>{
+//                         d.mode = '/';
+//                         navigate(d.mode);
+//                     }),
+//                 }, 
+//                     c(Logo, {height:32}),
+//                 ),
+//                 c(Col, {},
+//                     // buttons.map((button,i)=>
+//                     //     c(ToggleButton,{
+//                     //         id: 'mode'+i,
+//                     //         className: button.icon + ' border-0 rounded-4 rounded-top-0',
+//                     //         type: 'radio',
+//                     //         variant: 'outline-primary', //size: 'lg',
+//                     //         value: button.value,
+//                     //         checked: mode == button.value,
+//                     //         onChange:e=> set_store(d=>{
+//                     //             d.mode = e.currentTarget.value;
+//                     //             navigate(d.mode);
+//                     //         }),
+//                     //     }, 
+//                     //         window_width > 576 ? ' '+button.name : '',
+//                     //     )
+//                     // ),
+//                     mode=='studio' && [
+//                         c(Mode_Bar),
+//                         c('span', {className:'me-4'}), 
+//                         c(History),
+//                     ],
+//                 ),
+//                 //mode=='studio' && c(Col, {}, c(Mode_Bar)),
+//                 c(Col, {className:'col-auto'},
+//                     c(ToggleButton,{
+//                         id: 'dark_mode_button',
+//                         type:'checkbox', variant:'outline-primary', 
+//                         checked: theme_mode=='dark',
+//                         className: 'border-0 bi-moon rounded-4 rounded-top-0',
+//                         onChange:e=> set_store(d=> d.theme.toggle_mode(d)),
+//                     }),
+//                     c(Account_Menu),
+//                     c(Mutations),
+//                     // !data ? status && c(status) : 
+//                     //     data.user ? account_buttons.map((button,i)=> c(Account_Button, {button}))
+//                     //     : c(Account_Button, {button:{name:()=>'Sign In', icon:'bi-box-arrow-in-right', func:()=> show_login(true)}}),
+//                 ),
+//             ),
+//             c(Row, {className:'flex-grow-1'},  
+//                 c(Outlet),
+//             ),
+//         )//,
+//     //)
+//   )
 
 
 

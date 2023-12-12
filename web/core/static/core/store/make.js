@@ -13,7 +13,7 @@ export const make = {};
 make.node = (d, {node, repo, given, type})=>{ 
     node = node ?? make_id();
     if(!(given || d.write_access(d, node))) return;
-    repo = repo ?? d.target.repo;
+    repo = repo ?? d.picked.target.repo;
     d.drop.edge(d, {root:node, given}); 
     d.node.set(node, {
         forw: new Map(), // key:term,  value:[stem or leaf_obj]
@@ -34,14 +34,29 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     const forw = d.node.get(root).forw;
     let stems = forw.get(term);
     let length = stems?.length ?? 0;
-    if(!given && length == 1 && stem != stems[0] && d.node.has(stems[0]) && d.node.get(stems[0]).forw.size == 0){
-        d.drop.edge(d, {root, term, stem:stems[0]}); //d.shut.node(d, {node:stems[0], drop:true});
-        length = 0;
-    }
     if(!length) forw.set(term, []); 
+    if(stem == null) return;
     index = index ?? length; 
     if(index > length) return; //  || length >= a.max_length 
-    if(!(single && forw.get(term).includes(stem))) forw.get(term).splice(index, 0, stem); 
+    if(single && forw.get(term).includes(stem)) return;
+    function cycle(node){
+        //console.log('next: ', d.face.title(d, node));
+        if(node == root) return true;
+        if(!d.node.has(node)) return;
+        for(const [term, stem] of d.forw(d, node)){
+            if(stem == root){
+                return true;
+            }else{
+                if(cycle(stem)) return true;
+            }
+        }
+    }
+    if(cycle(stem)){
+        console.log('Error: Cannot make edge because it would cause a cycle in the graph.');
+        console.log({root:d.face.title(d, root), term, stem:d.face.title(d, stem)});
+        return;
+    }
+    forw.get(term).splice(index, 0, stem); 
     if(d.node.has(stem)){
         d.node.get(stem).back.add(root); //if(!stem.type) d.node.get(stem).back.add(root);
         d.graph.increment(d);
@@ -65,6 +80,15 @@ function build(d, root, type){
 
 
 
+// if(stem == null & !length){
+//     forw.set(term, []); 
+//     return;
+// }
+
+// if(!given && length == 1 && stem != stems[0] && d.node.has(stems[0]) && d.node.get(stems[0]).forw.size == 0){
+//     d.drop.edge(d, {root, term, stem:stems[0]}); //d.shut.node(d, {node:stems[0], drop:true});
+//     length = 0;
+// }
 
 
 

@@ -17,6 +17,8 @@ graph.layout = d => {
     d.graph.node.clear();
     d.graph.edge = []; 
 
+    //console.log([...d.node.keys()]);
+
     for(const [root] of d.node){
         d.graph.node.set(root, {
             lvl: 0,
@@ -27,13 +29,48 @@ graph.layout = d => {
             d.graph.edge.push({root, term, stem});
         }
     }
+
+    // const visited = new Set();
+    // function find_cycle_edge(root, collected){
+    //     console.log('next: ', d.face.title(d, root));
+    //     visited.add(root);
+    //     if(!d.node.has(root)) return;
+    //     for(const [term, stem] of d.forw(d, root)){
+    //         if(collected.has(stem)){
+    //             return {root, term, stem};
+    //         }else{
+    //             collected.add(stem);
+    //             const edge = find_cycle_edge(stem, collected);
+    //             if(edge) return edge;
+    //         }
+    //         collected.delete(stem);
+    //     }
+    // }
+    // for(const root of d.node.keys()){
+    //     if(!visited.has(root)){
+    //         console.log('start');
+    //         const edge = find_cycle_edge(root, new Set(root));
+    //         console.log('end');
+    //         if(edge){
+    //             console.log('cycled!');
+    //             console.log('start: ', d.face.title(d, root));
+    //             console.log(d.face.title(d, edge.root));
+    //             console.log(edge.term);
+    //             console.log(d.face.title(d, edge.stem));
+    //             //d.drop.edge(d, {...edge});
+    //             break;
+    //         }
+    //     }
+    // }
+
+
     
     var highest_lvl = 0;
     var setting_lvl = true; 
-    while(setting_lvl){
+    while(setting_lvl){ // while(d.graph.node.size && setting_lvl){
         setting_lvl = false;
         for(const [node, node_obj] of d.graph.node){
-            var lvl = 0;
+            let lvl = 0;
             for(const root of d.node.get(node).back){//for(const [root] of d.node.get(node).back.values()){
                 if(d.graph.node.has(root)){
                     const root_lvl = d.graph.node.get(root).lvl;
@@ -47,6 +84,8 @@ graph.layout = d => {
             }
         }
     }
+
+    //console.log('scream!!!!!!!!!!');
 
     const level = [];
     for(var i=0; i <= highest_lvl+10; i++){ // WHY 10 ?!?!?! #1

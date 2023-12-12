@@ -5,16 +5,174 @@ import {Toolbar} from '../toolbar/toolbar.js';
 import {Viewport} from './viewport.js';
 import {Code} from './code.js';
 import {Repo} from './repo.js';
-import {Panel} from '../panel/panel.js';
-import {Panel_Bar} from './panel_bar.js';
+//import {Panel} from '../panel/panel.js';
+import {Panel_Mode} from '../panel/mode.js';
+import {Leaf_Bar} from './leaf_bar.js';
 import {Container, Row, Col, Badge, Button, InputGroup, Form} from 'react-bootstrap';
 import {Box3} from 'three';
-
-import {use_store, get_store, use_window_size} from 'delimit';
+import {use_store, Inspect, Schema, Make_Node, Make_Repo} from 'delimit';
 
 
 // useLazyQuery!!!
 // https://www.apollographql.com/docs/react/data/queries
+
+
+
+export function Studio(){
+    return[
+        c('div', {
+            className: 'z-1 position-absolute top-0 start-0 mt-5 d-flex flex-column',
+        },
+            c(Panel_Mode),
+        ),
+        c('div', {
+            className: 'z-1 position-absolute bottom-0 start-0 d-flex flex-column',
+        },
+            c(Leaf_Bar),
+        ),
+        c('div', {
+            className: 'z-1 position-absolute top-0 start-0 mt-5 ms-5',
+        },
+            c(Panel),
+        ),
+        c(Topic),
+    ]
+}
+//c(Get_Schema),
+//c(Open_Push_Close),
+//ready && c(Poll),
+// function Reckon_Count(){
+//     const reckon_count = use_store(d=> d.reckon.count);
+//     return c(Badge, {className:'position-absolute bottom-0 start-0 m-1'}, 'Computes: '+reckon_count);
+// }
+
+    // style:{
+    //                         maxHeight: height,
+    //                         overflow: 'auto',
+    //                         //scrollbarColor: 'red orange',
+    //                     },
+function Panel(){ 
+    const studio_mode = use_store(d=> d.studio.mode);
+    const mode = use_store(d=> d.studio.panel.mode);
+    if(mode == 'make'){
+        if(studio_mode == 'repo') return c(Make_Repo);
+        return c(Make_Node);
+    }
+    if(mode == 'inspect') return c(Inspect);
+    if(mode == 'schema')  return c(Schema);
+    //if(mode == 'modules') return c(Modules);
+    //if(mode == 'display') return c(Display);
+}
+// function Panel_Workspace(){
+//     const studio_mode = use_store(d=> d.studio.mode);
+//     const panel_mode = use_store(d=> d.studio.panel.mode);
+//     //let [height] = use_window_size();
+//     //height = height * .9 + '';
+//     const height = '90vh';
+//     // if(studio_mode == 'graph' || studio_mode == 'design'){
+//     //     return [
+//     //         panel_mode && c(Col, {
+//     //             className:'border-end', 
+//     //             style:{zIndex:1, backgroundColor:'var(--bs-body-bg)', maxHeight:height, overflow:'auto'}
+//     //         }, c(Panel)), // d-flex flex-column
+//     //         c(Col, {className:'col-auto'}, c(Workspace)), // d-flex flex-column
+//     //     ]
+//     // }else{
+//         return [
+//             panel_mode && c(Col, {xs:'3', className:'border-end', style:{maxHeight:height, overflow:'auto'}}, c(Panel)), // d-flex flex-column
+//             c(Col, {xs:panel_mode ? '9' : '12'}, c(Workspace)), // d-flex flex-column
+//         ]
+//     //}
+// }
+
+export function Topic(){
+    const studio_mode = use_store(d=> d.studio.mode);
+    if(studio_mode == 'code'){
+        //return c(Code);
+    }else if(studio_mode == 'repo'){
+        return(
+            c('div', {
+                className: 'position-absolute top-0 start-50 translate-middle-x mt-5',
+            },
+                c(Repo),
+            )
+        )
+    }else{
+        return(
+            c('div',{
+                className: 'position-absolute start-0 end-0 top-0 bottom-0',
+            },
+                c(Canvas_3D),
+            )
+        ) 
+    }
+}
+
+
+function Canvas_3D(){
+    const cursor = use_store(d=> d.studio.cursor);
+    // const [window_width] = use_window_size();
+    // const panel_mode = use_store(d=> d.studio.panel.mode);
+    // //const {camera, size:{width, height}} = useThree();
+    // let marginLeft = 0;
+    // //if(panel_mode) marginLeft = window_width * -.225;
+    // //const width = window_width - 52;
+    return(
+        //c('p', {}, 'hello world')
+        //c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
+        //c('div', {name:'r3f', className: 'flex-grow-1 '+cursor, style:{zIndex:-1}},
+        //c(Row, {
+            //className: 'flex-grow-1 '+cursor, 
+        //},
+        // c('div', {
+        //     className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-10},
+        //     // style:{
+        //     //     position:'relative', 
+        //     //     width: width + 'px', 
+        //     //     height: '100%',
+        //     //     marginLeft,
+        //     // }
+        // }, 
+            c(Canvas,{
+                className: cursor, 
+                orthographic: true, 
+                camera: {far:10000}, 
+                //gl: {antialias: false},
+                dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 
+                frameloop: 'demand',
+                // onClick(e){
+                //     console.log('canvas click!!!');
+                // },
+                //, far:10000 zoom:1    //frameloop:'demand', 
+            }, 
+                c(Viewport),
+            )
+            // c(Button, {
+            //     className: 'position-absolute top-0 end-0',
+            //     onClick(e){
+            //         const d = get_store();
+            //         console.log(d.scene.getObjectByName('graph'));
+            //         const aabb = new Box3().setFromObject(d.scene.getObjectByName('graph'));
+            //         // const zoom = Math.min(
+            //         //     width / (aabb.max.x - aabb.min.x),
+            //         //     height / (aabb.max.y - aabb.min.y)
+            //         // );
+            //         console.log('width', width);
+            //         console.log('box', aabb);
+            //         const zoom = width / (aabb.max.x - aabb.min.x);
+            //         console.log('zoom', zoom);
+            //         d.camera_controls.zoomTo(zoom);
+            //         //camera.updateProjectionMatrix();
+            //     },
+            // },
+            //     ' Fit View'
+            // )
+        //)
+
+    )
+}
+
+
 
 
 //document.getElementById('sandbox').contentWindow.postMessage();
@@ -72,137 +230,6 @@ import {use_store, get_store, use_window_size} from 'delimit';
 //   //const iframe = document.getElementById('sandbox'); //document.querySelector('#iframe')
 //   //iframe.src = url;
   
-
-
-//const edges = ['p','b','i','f','s','u'].map(m=> m+'e{r t n} ').join(' ');
-//const atoms = ['b','i','f','s'].map(m=> m+'{id v}').join(' ');  // const atoms = ['b','i','f','s'].map(m=> m+'{id v e{t{v} r{id}}} ').join(' '); // can use r{id} instead
-
-export function Studio(){
-    return (
-        c(Col, {className:'d-flex flex-column'}, 
-            c(Row, {},
-                c(Col, {}, c(Toolbar)) 
-            ),
-            c(Row, {className: 'flex-grow-1 g-0'}, 
-                c(Col, {className:'col-auto d-flex flex-column', style:{zIndex:1}}, c(Panel_Bar)), // d-flex flex-column
-                c(Col, {className:'d-flex flex-column'}, 
-                    c(Row,{className:'g-0 flex-grow-1'}, c(Panel_Workspace)), // className:'col-auto'
-                )
-            ),
-            //),
-            //c(Reckon_Count),
-        )
-    )
-}
-//c(Get_Schema),
-//c(Open_Push_Close),
-//ready && c(Poll),
-// function Reckon_Count(){
-//     const reckon_count = use_store(d=> d.reckon.count);
-//     return c(Badge, {className:'position-absolute bottom-0 start-0 m-1'}, 'Computes: '+reckon_count);
-// }
-
-    // style:{
-    //                         maxHeight: height,
-    //                         overflow: 'auto',
-    //                         //scrollbarColor: 'red orange',
-    //                     },
-
-function Panel_Workspace(){
-    const studio_mode = use_store(d=> d.studio.mode);
-    const panel_mode = use_store(d=> d.studio.panel.mode);
-    //let [height] = use_window_size();
-    //height = height * .9 + '';
-    const height = '90vh';
-    if(studio_mode == 'graph' || studio_mode == 'design'){
-        return [
-            panel_mode && c(Col, {
-                className:'border-end', 
-                style:{zIndex:1, backgroundColor:'var(--bs-body-bg)', maxHeight:height, overflow:'auto'}
-            }, c(Panel)), // d-flex flex-column
-            c(Col, {className:'col-auto'}, c(Workspace)), // d-flex flex-column
-        ]
-    }else{
-        return [
-            panel_mode && c(Col, {xs:'3', className:'border-end', style:{maxHeight:height, overflow:'auto'}}, c(Panel)), // d-flex flex-column
-            c(Col, {xs:panel_mode ? '9' : '12'}, c(Workspace)), // d-flex flex-column
-        ]
-    }
-}
-
-export function Workspace(){
-    const studio_mode = use_store(d=> d.studio.mode);
-    if(studio_mode == 'code'){
-        return c(Code);
-    }else if(studio_mode == 'repo'){
-        return c(Repo);
-    }else{
-        return c(Canvas_Box);
-    }
-}
-
-
-function Canvas_Box(){
-    const cursor = use_store(d=> d.studio.cursor);
-    const [window_width] = use_window_size();
-    const panel_mode = use_store(d=> d.studio.panel.mode);
-    //const {camera, size:{width, height}} = useThree();
-    let marginLeft = 0;
-    if(panel_mode) marginLeft = window_width * -.225;
-    const width = window_width - 52;
-    return(
-        //c('p', {}, 'hello world')
-        //c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
-        //c('div', {name:'r3f', className: 'flex-grow-1 '+cursor, style:{zIndex:-1}},
-        //c(Row, {
-            //className: 'flex-grow-1 '+cursor, 
-        //},
-        c('div', {style:{
-            position:'relative', 
-            width: width + 'px', 
-            height: '100%',
-            marginLeft,
-        }}, 
-            c(Canvas,{
-                className: cursor, 
-                orthographic: true, 
-                camera: {far:10000}, 
-                //gl: {antialias: false},
-                dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 
-                frameloop: 'demand',
-                // onClick(e){
-                //     console.log('canvas click!!!');
-                // },
-                //, far:10000 zoom:1    //frameloop:'demand', 
-            }, 
-                c(Viewport),
-            ),
-            // c(Button, {
-            //     className: 'position-absolute top-0 end-0',
-            //     onClick(e){
-            //         const d = get_store();
-            //         console.log(d.scene.getObjectByName('graph'));
-            //         const aabb = new Box3().setFromObject(d.scene.getObjectByName('graph'));
-            //         // const zoom = Math.min(
-            //         //     width / (aabb.max.x - aabb.min.x),
-            //         //     height / (aabb.max.y - aabb.min.y)
-            //         // );
-            //         console.log('width', width);
-            //         console.log('box', aabb);
-            //         const zoom = width / (aabb.max.x - aabb.min.x);
-            //         console.log('zoom', zoom);
-            //         d.camera_controls.zoomTo(zoom);
-            //         //camera.updateProjectionMatrix();
-            //     },
-            // },
-            //     ' Fit View'
-            // )
-        )
-
-    )
-}
-
-
 
 // // function Get_Schema(){
 // //     const {data, status} = use_query('Schema', [ 

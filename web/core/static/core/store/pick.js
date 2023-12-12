@@ -1,66 +1,117 @@
 import {current} from 'immer';
 
-export const picked = {
+export const picked = {};
+picked.primary = {
     repo: new Set(),
     node: new Set(),
 };
-export const target = {
-    repo: null,
-    node: null,
+picked.secondary = {
+    repo: new Set(),
+    node: new Set(),
 };
-
-export const pick = {
-    deep: false,
-    multi: false,
-    box: false,
-    node(d, node, a={}){
-        if(a.multi && d.picked.node.has(node)){
-            d.picked.node.delete(node);
-            return;
-        }
-        if(!a.multi) d.picked.node.clear();
-        d.picked.node.add(node);
-        d.target.node = node;
-    },
-    repo(d, repo, a={}){
-        if(a.multi && d.picked.repo.has(repo)){
-            d.picked.repo.delete(repo);
-            return;
-        }
-        if(!a.multi) d.picked.repo.clear();
-        d.picked.repo.add(repo);
-    },
+picked.target = {
+    repo: new Set(),
 };
-
-pick.target = {
-    // node(d, node){
-    //     d.target.node = node;
-    // },
-    repo(d, repo, a={}){
-        if(a.weak && d.target.repo) return;
-        d.target.repo = repo;
-    },
-};
-
-export const unpick = {
-    node(d, node, a={}){
-        d.picked.node.delete(node);
-        if(a.target && d.target.node == node) d.target.node = null;
-    },
-    repo(d, repo, a={}){
-        d.picked.repo.delete(repo);
-        if(a.target && d.target.repo == repo) d.target.repo = null;
-    },
-    all(d){
-        d.target.node = null;
-        d.picked.node.clear();
-        d.picked.repo.clear();
-    },
-}
 
 export const drag = {
     data: {},
 };
+
+export const pick = (d, {node, repo, multi, weak, mode='primary'}) => {
+    let item = node;
+    let type = 'node';
+    if(repo){
+        item = repo;
+        type = 'repo';
+    }
+    const picked = d.picked[mode][type];
+    console.log(mode, type);
+    if(multi && picked.has(item)){
+        picked.delete(item);
+        return;
+    }
+    if(!multi) picked.clear();
+    if(!(weak && picked.size)) picked.add(item);
+};
+
+export const unpick = (d, {node, repo, mode='all', type='all'}) => {
+    let item = 'all';
+    if(node){
+        item = node;
+        type = 'node';
+    }
+    if(repo){
+        item = repo;
+        type = 'repo';
+    }
+    function unpick_type(mode_obj){
+        function unpick_item(picked){
+            if(item == 'all') picked.clear();
+            else              picked.delete(item);
+        }
+        if(type == 'all'){
+            for(const picked of Object.values(mode_obj)) unpick_item(picked);
+        }else{
+            if(mode_obj[type]) unpick_item(mode_obj[type]);
+        }
+    }
+    if(mode == 'all'){
+        for(const mode_obj of Object.values(d.picked)) unpick_type(mode_obj);
+    }else{
+        unpick_type(d.picked[mode]);
+    }
+};
+
+// for(const mode_obj of Object.keys(d.picked)){
+//     for(const picked of Object.keys(mode_obj)){
+//         picked.delete(item);
+//     }
+// }
+
+// export const picked = {
+//     repo: new Set(),
+//     node: new Set(),
+//     aux: {
+//         repo: new Set(),
+//         node: new Set(),
+//     }
+// };
+
+// pick.target = {
+//     // node(d, node){
+//     //     d.target.node = node;
+//     // },
+//     repo(d, repo, a={}){
+//         if(a.weak && d.target.repo) return;
+//         d.target.repo = repo;
+//     },
+// };
+
+
+// export const pick = {
+//     deep: false,
+//     multi: false,
+//     box: false,
+//     node(d, {item, mode='primary', type='node', multi}){
+//         const picked = d.picked.get(mode).get(type);
+//         if(multi && picked.has(item)){
+//             picked.delete(item);
+//             return;
+//         }
+//         if(!multi) picked.clear();
+//         picked.add(item);
+//     },
+//     // repo(d, repo, a={}){
+//     //     if(a.multi && d.picked.repo.has(repo)){
+//     //         d.picked.repo.delete(repo);
+//     //         return;
+//     //     }
+//     //     if(!a.multi) d.picked.repo.clear();
+//     //     d.picked.repo.add(repo);
+//     // },
+// };
+
+
 
 // export const pickable = node => {
 //     return () => {

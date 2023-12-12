@@ -34,6 +34,7 @@ shut.node = (d, {node, given, drop, deep})=>{
     }
     if(!given && drop) targets = d.write_access(d, [...targets]);
     for(const node of targets){
+        if(!d.node.has(node)) continue;
         d.drop.edge(d, {root:node});
         const repo = d.node.get(node).repo;
         if(drop){
@@ -43,7 +44,7 @@ shut.node = (d, {node, given, drop, deep})=>{
             d.closed.node.set(node, repo);
         }
         d.repo.get(repo).node.delete(node);
-        d.unpick.node(d, node, {target:true});
+        d.unpick(d, {node});
         d.node.delete(node);
     }
     if(targets.length) d.graph.increment(d);
@@ -51,7 +52,7 @@ shut.node = (d, {node, given, drop, deep})=>{
 shut.repo = (d, {repo, drop}) => {
     if(d.repo.has(repo)){
         d.shut.node(d, {node:d.repo.get(repo).node, drop});
-        d.unpick.repo(d, repo, {target:true});
+        d.unpick(d, {repo});
     }
     if(drop){
         d.dropped.repo.add(repo);
@@ -74,8 +75,14 @@ drop.edge = (d, a={})=>{
             func({root:a.root, term, stem, index});
         }
     }
-    if(a.root && a.term && a.stem){ 
-        drops.push({root:a.root, term:a.term, stem:a.stem, index:a.index ?? 0});
+    if(a.root && a.term && a.stem && a.index != null){ // should drop all if no index specified
+        drops.push({root:a.root, term:a.term, stem:a.stem, index:a.index}); //drops.push({root:a.root, term:a.term, stem:a.stem, index:a.index ?? 0});
+    }else if(a.root && a.term && a.stem){
+        forward_edge(edge=> edge.term==a.term && edge.stem==a.stem && drops.push(edge));
+    }else if(a.root && a.term && !a.stem){
+        const forw = d.node.get(a.root).forw;
+        if(forw.has(a.term) && !forw.get(a.term).length) forw.delete(a.term);
+        return;
     }else if(a.root && a.stem){
         forward_edge(edge=> edge.stem==a.stem && drops.push(edge));
     }else if(a.root){  
@@ -95,14 +102,14 @@ drop.edge = (d, a={})=>{
         const stems = forw.get(drp.term);
         if(drp.index >= stems.length) continue;
         stems.splice(drp.index, 1);
-        if(!stems.length){
-            if(a.placeholder){
-                const empty = d.make.node(d, {});
-                d.make.edge(d, {...drp, stem:empty});
-            }else{
-                forw.delete(drp.term);
-            }
-        }
+        // if(!stems.length){
+        //     if(a.placeholder){
+        //         const empty = d.make.node(d, {});
+        //         d.make.edge(d, {...drp, stem:empty});
+        //     }else{
+        //         forw.delete(drp.term);
+        //     }
+        // }
     }
     let increment_graph = false;
     for(const drp of drops){

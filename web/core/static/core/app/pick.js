@@ -26,7 +26,7 @@ export const droppable = ({root, term, index}) => {
     };
     result.onPointerUp = e => {
         commit_store(d=>{
-            if(!d.drag.data.stem) return;// 'cancel';
+            if(!d.drag.data.stem) return;
             d.make.edge(d, {root, term, stem:d.drag.data.stem, index});
         });
         set_store(d=> d.drag.data = {});
@@ -37,8 +37,12 @@ export const droppable = ({root, term, index}) => {
 export const pickable = node => {
     const result = {...pointer_style};
     result.onClick = e => { 
-        e.stopPropagation();
-        set_store(d=> d.pick.node(d, node, {multi:e.ctrlKey}));
+        //e.stopPropagation();
+        set_store(d=> d.pick(d, {node, multi:e.shiftKey}));
+    }
+    result.onContextMenu = e => {
+        console.log('right click');
+        set_store(d=> d.pick(d, {node, multi:e.shiftKey, mode:'secondary'}));
     }
     return result;
 };

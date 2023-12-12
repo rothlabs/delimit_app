@@ -5,13 +5,14 @@ import {animated, useSpring} from '@react-spring/web';
 import classNames from 'classnames';
 
 export function Inspect(){ 
-    const nodes = use_store(d=> [...d.picked.node]); //{shallow:true}
+    const nodes = use_store(d=> [...d.picked.primary.node]); //{shallow:true}
     return(
-        c(Accordion, { // onSelect(keys){}
-            className: 'ms-2 mt-2 me-1', 
+        c(Accordion, { 
+            //className: 'ms-2 mt-2 me-1', 
             key: nodes[0],
             defaultActiveKey: [nodes[0]+0], 
             alwaysOpen: true,
+            //onSelect(open_keys){},
         },
             nodes.map(node=> c(Node_Joint, {node, key:node})),
         )
@@ -25,8 +26,11 @@ function Node_Joint({root, term, node, index, show_term}){
         return c(Leaf, {root:node, term, ...node_joint.leaf, show_term:true, show_icon:term}); 
     }else if(node_joint == 'missing'){
         return(
-            c(InputGroup, {...droppable({root, term, index})}, 
-                c(InputGroup.Text, {}, readable(term)), 
+            c(InputGroup, {
+                ...droppable({root, term, index}), 
+                ...draggable({root, term, stem:node, index})
+            }, 
+                show_term && c(InputGroup.Text, {}, readable(term)), 
                 c(Icon_Title, {node}),
             )
         )
@@ -41,8 +45,8 @@ function Node({root, term, node, index=0, show_term}){
     if(!terms.length){
         return(
             c(InputGroup, {
-                ...draggable({root, term, stem:node, index}),
                 ...droppable({root, term, index}),
+                ...draggable({root, term, stem:node, index}),
             },
                 show_term && c(InputGroup.Text, {className:'user-select-none'}, readable(term)),
                 c(Icon_Title, {node}), 
@@ -53,8 +57,8 @@ function Node({root, term, node, index=0, show_term}){
         c(Accordion.Item, {eventKey}, 
             c(Accordion.Header, {
                 className:'pe-2',
-                ...draggable({root, term, stem:node, index}),
                 ...droppable({root, term, index}),
+                ...draggable({root, term, stem:node, index}),
             },  
                 show_term && c(InputGroup.Text, {className:'user-select-none'}, readable(term)), 
                 c(Icon_Title, {node}),
@@ -69,7 +73,18 @@ function Node({root, term, node, index=0, show_term}){
 function Term_Joint({root, term}){
     const term_joint = use_store(d=> d.term_joint(d, root, term));
     if(!term_joint) return;
-    if(term_joint.name == 'node'){
+    if(term_joint == 'empty'){
+        console.log('empty term!!!!');
+        return(
+            c(InputGroup, {
+                ...droppable({root, term}),
+                ...draggable({root, term}),
+            },
+                c(InputGroup.Text, {className:'user-select-none'}, readable(term)),
+                c(InputGroup.Text, {className:'user-select-none text-body'}, 'emtpy'), 
+            )
+        )
+    }else if(term_joint.name == 'node'){
         return c(Node_Joint, {root, term, node:term_joint.node, show_term:true});
     }else if(term_joint.name == 'leaf'){
         return c(Leaf, {root, term, ...term_joint.leaf, show_term:true});

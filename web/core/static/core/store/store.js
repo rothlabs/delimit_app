@@ -123,6 +123,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     //     }catch{}
     // },
     type_name(d, root){
+        if(!root) return '';
         return d.value(d, root, ['type name', 'type'], '');
     },
     node_joint(d, root){
@@ -139,12 +140,10 @@ export const store = {//export const create_base_slice = (set,get)=>({
         if(!d.node.has(root)) return;
         const stems = d.node.get(root).forw.get(term);
         if(!stems) return;
-        //if(!stems.length) return 'empty';
+        if(!stems.length) return 'empty';
         if(stems.length > 1) return 'term';
         if(stems[0].type) return {name:'leaf', leaf:stems[0]};
-        //if(d.node.has(stems[0])) 
         return {name:'node', node:stems[0]};
-        //return {name:'missing', node:stems[0]};
     },
     leaf(d, node, path, alt){
         for(const pth of d.iterable(path)){
@@ -319,7 +318,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     receive_data:(d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         //console.log(JSON.stringify(data));
         const repo = data.repo.repo;
-        d.pick.target.repo(d, repo, {weak:true}); 
+        d.pick(d, {repo, mode:'target', weak:true}); 
         d.repo.set(repo, {
             name: data.repo.name,
             team: data.repo.team,
@@ -336,6 +335,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
             const node = triple.node;
             const obj = JSON.parse(triple.obj['@value']) //console.log(obj)
             for(const [term, stems] of Object.entries(obj)){
+                if(!stems.length) d.make.edge(d, {root:node, term, given:true}); // making empty term
                 for(const stem of stems){
                     d.make.edge(d, {root:node, term, stem, given:true});
                     if(term == 'delimit_app'){
@@ -344,6 +344,9 @@ export const store = {//export const create_base_slice = (set,get)=>({
                 }
             }
         }
+
+
+
         d.graph.increment(d);
         // if(increment_graph) d.graph.increment(d);
         // for(let {root, term, stem} of data.triples){

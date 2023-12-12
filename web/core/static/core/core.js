@@ -12,9 +12,14 @@ export {gql_client} from './app.js';
 export {use_query, use_mutation} from './app/gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
-export {Icon_Title, Svg, Svg_Button} from './component/app/base.js';
+export {Button, Mode_Menu, Icon_Title, Svg} from './component/app/app.js';
 export {pickable, draggable, droppable} from './app/pick.js';
 export {icon} from './app/icon.js';
+export {History} from './component/toolbar/history.js';
+export {Make_Node} from './component/panel/make_node.js';
+export {Make_Repo} from './component/panel/make_repo.js';
+export {Inspect} from './component/panel/inspect.js';
+export {Schema} from './component/panel/schema.js';
 
 export const make_id = (length=16)=>{
     let result = '';
@@ -112,7 +117,7 @@ export function undo(){
         //console.log(inverse_history[patch_index]);
         core_store.setState(d=>{
             let draft = applyPatches(d, inverse_history[patch_index]);
-            draft.make_triples(draft, inverse_history[patch_index]);
+            draft.send_data(draft, inverse_history[patch_index]);
             // d = produce(d, d=>{
             //     d.cam_info = {...d.cam_info};
             //     d.studio.gizmo_active = false;

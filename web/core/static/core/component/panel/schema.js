@@ -6,10 +6,10 @@ const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
 
 export function Schema(){ // bi-check-square // bi-x-square // acting as root logic
-    const nodes = use_store(d=> [...d.picked.node].filter(root=> d.node.has(d.stem(d, root, 'type'))));
+    const nodes = use_store(d=> [...d.picked.primary.node].filter(root=> d.node.has(d.stem(d, root, 'type'))));
     return(
         c(Accordion, { // onSelect(keys){}
-            className:'ms-2 mt-2 me-1', 
+            //className:'ms-2 mt-2 me-1', 
             key: nodes[0],
             defaultActiveKey: ['schema'+nodes[0]], 
             alwaysOpen:true,

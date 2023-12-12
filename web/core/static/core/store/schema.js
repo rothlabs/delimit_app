@@ -38,17 +38,20 @@ build.root = (d, root, root_type) =>{
 build.term = (d, root, term_type) =>{
     const term = snake_case(d.value(d, term_type, 'name'));
     //console.log('build term', root, term);
-    let empty = true;
+    //let empty = true;
+    d.make.edge(d, {root, term});
     for(const stem of d.stems(d, term_type, 'add')){
-        if(d.make.edge(d, {root, term, stem})) empty = false;
+        d.make.edge(d, {root, term, stem});
+        //if(d.make.edge(d, {root, term, stem})) empty = false;
     }
     for(const stem of d.stems(d, term_type, 'make')){
-        if(d.build.stem(d, {root, term, stem})) empty = false;
+        d.build.stem(d, {root, term, stem});
+        //if(d.build.stem(d, {root, term, stem})) empty = false;
     }
-    if(empty){
-        const empty = d.make.node(d, {});
-        d.make.edge(d, {root, term, stem:empty});
-    }
+    //if(empty){
+        // const empty = d.make.node(d, {});
+        // d.make.edge(d, {root, term, stem:empty});
+    //}
 }
 
 build.stem = (d, {root, term, stem}) =>{

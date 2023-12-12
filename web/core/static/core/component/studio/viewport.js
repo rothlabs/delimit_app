@@ -122,7 +122,7 @@ export function Viewport(){ // for some reason this renders 5 times on load
             onPointerMissed(e){
                 e.stopPropagation();
                 if(e.which != 1) return;
-                set_store(d=> d.unpick.all(d));
+                set_store(d=> d.unpick(d, {mode:'primary'}));
             },
         }, 
             c(Viewport_Control),

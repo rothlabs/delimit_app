@@ -2,6 +2,7 @@ import {readable, icon} from 'delimit';
 
 export const face = {
     name: (d, node)=> {
+        if(!node) return 'none';
         if(node.type) return (''+node.value).trim().substring(0, 24);
         if(!d.node.has(node)) return node;
         if(d.node.get(node).forw.size < 1) return 'empty';
@@ -9,6 +10,7 @@ export const face = {
     },
     type: (d, node)=> d.type_name(d, node),
     icon(d, node){
+        if(!node) return icon.svg.generic;
         if(node.type) return icon.svg[node.type];
         return d.value(d, node,  ['type icon code', 'icon code'], icon.svg.generic);
     },
@@ -24,7 +26,7 @@ export const face = {
     }),
 };
 
-const pick = (d, node, picked, alt) => d.picked.node.has(node) ? picked : alt;
+const pick = (d, node, picked, alt) => d.picked.primary.node.has(node) ? picked : alt;
 
 face.color = {
     primary:(d, node)     => pick(d, node, d.color.body_fg, d.color.primary),
