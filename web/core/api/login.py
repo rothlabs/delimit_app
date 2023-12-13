@@ -4,8 +4,8 @@ from django.contrib.auth import authenticate, login
 
 class Login(graphene.Mutation):
     class Arguments:
-        username = graphene.String(required=True)
-        password = graphene.String(required=True)
+        username = graphene.String() # required=True
+        password = graphene.String() # required=True
     user = graphene.Field(User_Type)
     reply = graphene.String(default_value = 'Failed to sign in.')
     @classmethod

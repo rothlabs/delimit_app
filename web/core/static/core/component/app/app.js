@@ -67,7 +67,7 @@ export function Icon_Title({node}){
     //console.log(node);
     const {icon, title} = use_store(d=> d.face.primary(d, node));
     const node_joint = use_store(d=> d.node_joint(d, node));
-    const className = classNames('text-body user-select-none', {
+    const className = classNames('text-body user-select-none rounded-pill', {
         'text-body-secondary': node_joint != 'node',
     });
     const color = use_store(d=> node.type ? d.color.primary : d.color.body_fg);

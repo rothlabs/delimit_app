@@ -26,19 +26,23 @@ export const face = {
     }),
 };
 
-const pick = (d, node, picked, alt) => d.picked.primary.node.has(node) ? picked : alt;
+const pick = (d, node, primary, secondary, alt) => {
+    if(d.picked.primary.node.has(node)) return primary;
+    if(d.picked.secondary.node.has(node)) return secondary;
+    return alt;
+}
 
 face.color = {
-    primary:(d, node)     => pick(d, node, d.color.body_fg, d.color.primary),
-    secondary:(d, node)   => pick(d, node, d.color.primary, d.color.secondary),
-    body:(d, node)        => pick(d, node, d.color.primary, d.color.body_bg),
-    tertiary_fg:(d, node) => pick(d, node, d.color.primary, d.color.tertiary_fg),
+    primary:(d, node)     => pick(d, node, d.color.primary, d.color.secondary, d.color.info),
+    // secondary:(d, node)   => pick(d, node, [d.color.primary], d.color.secondary),
+    // body:(d, node)        => pick(d, node, [d.color.primary], d.color.body_bg),
+    // tertiary_fg:(d, node) => pick(d, node, [d.color.primary], d.color.tertiary_fg),
 };
 
 face.material = {
-    primary:(d, node)     => pick(d, node, d.material.body_fg, d.material.primary),
-    secondary:(d, node)   => pick(d, node, d.material.primary, d.material.secondary),
-    tertiary_fg:(d, node) => pick(d, node, d.material.primary, d.material.tertiary_fg),
+    primary:(d, node)     => pick(d, node, d.material.primary, d.material.secondary, d.material.info),
+    // secondary:(d, node)   => pick(d, node, d.material.primary, d.material.secondary),
+    // tertiary_fg:(d, node) => pick(d, node, d.material.primary, d.material.tertiary_fg),
 };
 
 // face.color = {

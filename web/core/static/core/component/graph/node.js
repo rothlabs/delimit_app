@@ -29,7 +29,7 @@ export const Node = memo(({node})=>{
             size: 14, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             ...draggable({stem:node}),
             ...droppable({root:node}),
-            ...pickable(node),
+            ...pickable({node}),
         },
             //c('group', {...pickable}, // c(Pickable, {node},
             

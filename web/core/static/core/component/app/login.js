@@ -13,7 +13,7 @@ export function Login(){
     const [username, set_username] = useState('');
     const [password, set_password] = useState('');
     const [login, {loading, error, data, reset}] = use_mutation('Login', {
-        refetchQueries:['GetUser'], 
+        refetchQueries:['GetUser', 'GetRepo'], 
         onCompleted(data){
             if(data.login.user) setTimeout(()=> show_login(false), 1500);
         },
@@ -52,7 +52,10 @@ export function Login(){
                 r(Modal.Footer, {},
                     r(Button, {
                         id:'modal_login',
-                        onClick:e=> login({variables:{username, password}}),
+                        onClick(e){
+                            console.log({variables:{username, password}});
+                            login({variables:{username, password}});
+                        },
                     }, 'Sign In'),
                 ),
             //),

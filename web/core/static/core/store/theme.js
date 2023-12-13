@@ -28,6 +28,7 @@ theme.compute = d =>{
     d.color.tertiary_fg = css('--bs-tertiary-color');
     d.material.primary = new THREE.MeshBasicMaterial({color:d.color.primary, toneMapped:false});
     d.material.secondary = new THREE.MeshBasicMaterial({color:d.color.secondary, toneMapped:false});
+    d.material.info = new THREE.MeshBasicMaterial({color:d.color.info, toneMapped:false});
     d.material.tertiary_fg = new THREE.MeshBasicMaterial({color:d.color.tertiary_fg, toneMapped:false});
     d.material.body_fg = new THREE.MeshBasicMaterial({color:d.color.body_fg, toneMapped:false});
     d.material.body_bg = new THREE.MeshBasicMaterial({color:d.color.body_bg, toneMapped:false});

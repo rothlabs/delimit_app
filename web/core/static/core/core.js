@@ -172,6 +172,10 @@ export function snake_case(s){
 }
 
 
+document.addEventListener('contextmenu', event => {
+    event.preventDefault();
+});
+
 
 
 

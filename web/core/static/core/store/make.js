@@ -34,11 +34,10 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     const forw = d.node.get(root).forw;
     let stems = forw.get(term);
     let length = stems?.length ?? 0;
-    if(!length) forw.set(term, []); 
-    if(stem == null) return;
-    index = index ?? length; 
-    if(index > length) return; //  || length >= a.max_length 
-    if(single && forw.get(term).includes(stem)) return;
+    if(stem == null){
+        if(!length) forw.set(term, []); 
+        return;
+    }
     function cycle(node){
         //console.log('next: ', d.face.title(d, node));
         if(node == root) return true;
@@ -56,6 +55,10 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
         console.log({root:d.face.title(d, root), term, stem:d.face.title(d, stem)});
         return;
     }
+    if(!length) forw.set(term, []); 
+    if(single && forw.get(term).includes(stem)) return;
+    index = index ?? length; 
+    if(index > length) return; //  || length >= a.max_length 
     forw.get(term).splice(index, 0, stem); 
     if(d.node.has(stem)){
         d.node.get(stem).back.add(root); //if(!stem.type) d.node.get(stem).back.add(root);

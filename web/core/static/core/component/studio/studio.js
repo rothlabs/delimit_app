@@ -21,7 +21,7 @@ import {use_store, Inspect, Schema, Make_Node, Make_Repo} from 'delimit';
 export function Studio(){
     return[
         c('div', {
-            className: 'z-1 position-absolute top-0 start-0 mt-5 d-flex flex-column',
+            className: 'z-1 position-absolute top-0 start-0 mt-5 d-flex flex-column ms-1',
         },
             c(Panel_Mode),
         ),

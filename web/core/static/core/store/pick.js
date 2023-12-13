@@ -25,7 +25,7 @@ export const pick = (d, {node, repo, multi, weak, mode='primary'}) => {
         type = 'repo';
     }
     const picked = d.picked[mode][type];
-    console.log(mode, type);
+    //console.log(mode, type);
     if(multi && picked.has(item)){
         picked.delete(item);
         return;

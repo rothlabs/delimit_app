@@ -5,6 +5,7 @@ const pointer_style = {
         document.body.style.cursor = 'pointer';
     },
     onPointerLeave(e){ 
+        e.stopPropagation();
         document.body.style.cursor = 'auto';
     },
 };
@@ -12,6 +13,7 @@ const pointer_style = {
 export const draggable = data => {
     const result = {...pointer_style};
     result.onPointerDown = e => {
+        if(e.nativeEvent.button != 0) return;
         pointer.dragging = true;
         pointer.start.set(e.clientX, e.clientY);
         set_store(d=> d.drag.staged = data);
@@ -34,15 +36,19 @@ export const droppable = ({root, term, index}) => {
     return result;
 };
 
-export const pickable = node => {
+export const pickable = ({node, mode='all'}) => {
     const result = {...pointer_style};
-    result.onClick = e => { 
-        //e.stopPropagation();
-        set_store(d=> d.pick(d, {node, multi:e.shiftKey}));
-    }
-    result.onContextMenu = e => {
-        console.log('right click');
-        set_store(d=> d.pick(d, {node, multi:e.shiftKey, mode:'secondary'}));
-    }
+    if(mode == 'all' || mode == 'primary') result.onClick = e => { 
+        e.stopPropagation();
+        set_store(d=> d.pick(d, {node, multi:e.ctrlKey}));
+    };
+    if(mode == 'all' || mode == 'secondary') result.onContextMenu = e => {
+        e.stopPropagation();
+        e.nativeEvent.preventDefault();
+        set_store(d=> d.pick(d, {node, multi:e.ctrlKey, mode:'secondary'}));
+    };
     return result;
 };
+
+        //if(e.preventDefault) e.preventDefault();
+        //if(e.nativeEvent) 

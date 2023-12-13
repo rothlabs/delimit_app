@@ -120,9 +120,11 @@ export function Viewport(){ // for some reason this renders 5 times on load
             ref: scene,
             name:'viewport',
             onPointerMissed(e){
-                e.stopPropagation();
-                if(e.which != 1) return;
-                set_store(d=> d.unpick(d, {mode:'primary'}));
+                //console.log(e.which);
+                //e.stopPropagation();
+                if(e.which == 1) set_store(d=> d.unpick(d, {})); //mode:'primary'
+                //if(e.which == 3) set_store(d=> d.unpick(d, {mode:'secondary'})); 
+                //set_store(d=> d.unpick(d, {mode:'primary'}));
             },
         }, 
             c(Viewport_Control),
