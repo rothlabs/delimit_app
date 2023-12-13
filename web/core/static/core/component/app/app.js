@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import {animated, useSpring} from '@react-spring/web';
 
 export function Button({id, name, cls, svg, width = 32, height = 32, onClick, onPointerDown, onPointerUp, onPointerEnter, onPointerLeave, onContextMenu}){
-    const [springs, api] = useSpring(() => ({from:{backgroundColor: 'var(--bs-body-bg)'}, to:{backgroundColor: 'var(--bs-body-bg)'}})); 
+    const [springs, api] = useSpring(() => ({from:{backgroundColor: 'var(--bs-body-bg)'}})); 
     const content_cls = classNames('mx-auto my-auto',
         cls, 
         {'h5': !name},

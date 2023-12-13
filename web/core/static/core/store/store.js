@@ -11,6 +11,7 @@ import * as pick from './pick.js';
 import {graph} from './graph.js';
 import * as make from './make.js';
 import * as drop from './drop.js';
+import * as inspect from './inspect.js';
 import {client} from 'delimit';
 
 //console.log(theme);
@@ -39,6 +40,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     ...pick,
     ...make,
     ...drop,
+    ...inspect,
     face,
     design,
     graph,
