@@ -48,9 +48,11 @@ function Root_Type({type}){
         c(Button, {
             svg, 
             name, 
-            onClick:e=> commit_store(d=>{ 
-                d.make.node(d, {type});  //[...d.picked.node][0]
-            })
+            show_name: true,
+            commit: d => d.make.node(d, {type, repo:'target'}),
+            // onClick:e=> commit_store(d=>{ 
+            //     d.make.node(d, {type, repo:'target'});  //[...d.picked.node][0]
+            // })
         })
     )
 }

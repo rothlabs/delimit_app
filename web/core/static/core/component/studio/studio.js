@@ -6,6 +6,7 @@ import {Viewport} from './viewport.js';
 import {Code} from './code.js';
 import {Repo} from './repo.js';
 //import {Panel} from '../panel/panel.js';
+import {Secondary_Action} from './secondary_action.js';
 import {Panel_Mode} from '../panel/mode.js';
 import {Leaf_Bar} from './leaf_bar.js';
 import {Container, Row, Col, Badge, Button, InputGroup, Form} from 'react-bootstrap';
@@ -20,10 +21,20 @@ import {use_store, Inspect, Schema, Make_Node, Make_Repo} from 'delimit';
 
 export function Studio(){
     return[
+        c('div',{
+            className: 'position-absolute start-0 end-0 top-0 bottom-0',
+        },
+            c(Canvas_3D),
+        ),
         c('div', {
             className: 'z-1 position-absolute top-0 start-0 mt-5 d-flex flex-column ms-1',
         },
             c(Panel_Mode),
+        ),
+        c('div', {
+            className: 'z-1 position-absolute top-0 start-0 mt-5 ms-5',
+        },
+            c(Panel),
         ),
         c('div', {
             className: 'z-1 position-absolute bottom-0 start-0 d-flex flex-column',
@@ -31,9 +42,9 @@ export function Studio(){
             c(Leaf_Bar),
         ),
         c('div', {
-            className: 'z-1 position-absolute top-0 start-0 mt-5 ms-5',
+            className: 'z-1 position-absolute top-0 end-0 d-flex flex-column mt-5 me-2',
         },
-            c(Panel),
+            c(Secondary_Action),
         ),
         c(Topic),
     ]
@@ -97,15 +108,16 @@ export function Topic(){
                 c(Repo),
             )
         )
-    }else{
-        return(
-            c('div',{
-                className: 'position-absolute start-0 end-0 top-0 bottom-0',
-            },
-                c(Canvas_3D),
-            )
-        ) 
     }
+    // }else{
+    //     return(
+    //         c('div',{
+    //             className: 'position-absolute start-0 end-0 top-0 bottom-0',
+    //         },
+    //             c(Canvas_3D),
+    //         )
+    //     ) 
+    // }
 }
 
 

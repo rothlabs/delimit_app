@@ -1,28 +1,24 @@
-import {createElement as c, useEffect, useRef, useState} from 'react';
-import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, get_store, commit_store, Svg, 
+import {createElement as c, useEffect, useState} from 'react';
+import {Form, InputGroup} from 'react-bootstrap';
+import {use_store, set_store, commit_store, List_View, 
     readable, draggable, droppable, pickable, Icon_Title, icon} from 'delimit';
-import {animated, useSpring, useTransition} from '@react-spring/web';
 import classNames from 'classnames';
 
-function div_height(ref){
-    return (ref.current?.offsetHeight ? ref.current.offsetHeight : 0);
-}
-
-const transition_config = {
-    from:  {o: 1, marginLeft:'-100%', opacity:0, transform: 'scaleY(0%)'},
-    enter: {o: 0, marginLeft:'0%',    opacity:1, transform: 'scaleY(100%)'},
-    leave: {o: 1, marginLeft:'-100%', opacity:0, transform: 'scaleY(0%)'},
-    config: { tension: 210, friction: 20, mass: 0.5 },
-};
-
+//let wow = 0;
 export function Inspect(){ 
-    const nodes = use_store(d=> [...d.picked.primary.node]); 
+    const items = use_store(d=> [...d.picked.primary.node]); 
+   // console.log(items);
+   //wow++;
     return(
         c('div', { 
-            style: {maxHeight: '90vh'}, //overflow:'auto'
+            className:'ms-2',
+            style: {maxHeight: '90vh', overflow:'auto'}, //overflow:'auto'
         },
-            nodes.map(node=> c(Node_Joint, {node, key:node, path:node})),
+            // c(List_View, {items, //key:wow,
+            //     //render_header: () => c(InputGroup.Text, {}, 'Inspector'),
+            //     render_item: (node, index) => c(Node_Joint, {node, term:'node', path:'inspect', key:node}), // , key:index 
+            // }),
+            items.map(node=> c(Node_Joint, {node, term:'node', path:'inspect', key:node})),
         )
     )
 }
@@ -48,59 +44,29 @@ function Node_Joint({root, term, node, index, show_term, path}){
 
 function Node({root, term, node, index=0, show_term, path}){
     path = path + term + node + index;
-    const stem_div = useRef();
     const open  = use_store(d=> d.inspected.has(path));
-    //const color = use_store(d=> d.face.color.primary(d, node));
-    //const picked = use_store(d=> d.picked.primary.node.has(node) || d.picked.secondary.node.has(node));
+    //console.log('path', path, open);
     const primary_pick = use_store(d=> d.picked.primary.node.has(node));
     const secondary_pick = use_store(d=> d.picked.secondary.node.has(node));
-    const terms = use_store(d=> [...d.node.get(node).forw.keys()]); 
-    const transitions = useTransition(open, transition_config);
-    const arrow_css = classNames(
-        'h5 me-2 text-info position-absolute top-50 end-0 translate-middle-y', 
-        (open ? icon.css.chevron_down : icon.css.chevron_left),
-    );
-    if(!terms.length){
-        return(
-            c(InputGroup, {
-                ...droppable({root, term, index}),
-                ...draggable({root, term, stem:node, index}),
-                ...pickable({node, mode:'secondary'}),
-            },
-                show_term && c(InputGroup.Text, {className:'user-select-none'}, readable(term)),
-                c(Icon_Title, {node}), 
-            )
-        )
-    }
-    return[
-        c(InputGroup, {
-            style: {
-                borderLeft:  (primary_pick ?   ('thick solid var(--bs-primary)')   : 'none'),
-                borderRight: (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none'),
-            },
-            role: 'button',
-            ...droppable({root, term, index}), 
-            ...draggable({root, term, stem:node, index}),
-            ...pickable({node, mode:'secondary'}),
-            onClick(e){
-                set_store(d=>{
-                    d.inspect.toggle(d, {path});
-                });
-            },
+    const items = use_store(d=> [...d.node.get(node).forw.keys()]); 
+    const render_header = () => ([
+        show_term && c(InputGroup.Text, {className:'user-select-none'}, readable(term)),
+        c(Icon_Title, {node}),
+    ]);
+    const header_props = {
+        style: {
+            borderLeft:  (primary_pick ?   ('thick solid var(--bs-primary)')   : 'none'),
+            borderRight: (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none'),
         },
-            show_term && c(InputGroup.Text, {className:'user-select-none'}, readable(term)), 
-            c(Icon_Title, {node}),
-            c('div', {className:'me-4'}),
-            c('div', {className:arrow_css, style:{zIndex:10}}),
-        ),
-        c('div', {ref:stem_div, className:'ms-4'},
-            transitions((style, open)=> 
-                open && c(animated.div, {style:{...style, marginTop: style.o.to(v=> -div_height(stem_div) * v)}}, 
-                    terms.map(term=> c(Term_Joint, {root:node, term, key:term, path})),
-                )
-            )
-        ),
-    ]
+        ...droppable({root, term, index}),
+        ...draggable({root, term, stem:node, index}),
+        ...pickable({node, mode:'secondary'}),
+    };
+    return(
+        c(List_View, {open, items, path, header_props, render_header,
+            render_item: term => c(Term_Joint, {root:node, term, path}), // key:term
+        })
+    )
 }
 
 function Term_Joint({root, term, path}){
@@ -125,32 +91,19 @@ function Term_Joint({root, term, path}){
 }
 
 function Term({root, term, path}){
-    const stem_div = useRef();
     const pth = path + term;
     const open = use_store(d=> d.inspected.has(pth));
-    const stems = use_store(d=> d.node.get(root).forw.get(term));
-    const transitions = useTransition(open, transition_config);
-    return[
-        c(InputGroup, {
-            role: 'button',
-            ...droppable({root, term}), 
-            onClick(e){
-                set_store(d=> d.inspect.toggle(d, {path:pth}));
-            },
-        },
-            c(InputGroup.Text, {}, readable(term)),
-        ),
-        c('div', {ref:stem_div, className:'ms-4'},
-            transitions((style, open)=> 
-                open && c(animated.div, {style:{...style, marginTop: style.o.to(v=> -div_height(stem_div) * v)}}, 
-                    stems.map((stem, index)=>{
-                        if(stem.type) return c(Leaf, {root, term, ...stem, index, key:index});
-                        return c(Node_Joint, {root, term, node:stem, index, key:index, path});
-                    }),
-                )
-            )
-        ),
-    ]
+    const items = use_store(d=> d.node.get(root).forw.get(term));
+    return(
+        c(List_View, {open, items, path:pth,
+            header_props: droppable({root, term}), 
+            render_header:()=> c(InputGroup.Text, {className:'rounded-pill'}, readable(term)),
+            render_item(stem, index){
+                if(stem.type) return c(Leaf, {root, term, ...stem, index}); // key:index
+                return c(Node_Joint, {root, term, node:stem, index, path}); // key:index,
+            }
+        })
+    )
 }
 
 function Leaf({root, term='leaf', type, value, index=0, show_term, show_icon}){ // ...droppable({node, term})
@@ -163,7 +116,7 @@ function Leaf({root, term='leaf', type, value, index=0, show_term, show_icon}){ 
     const drop = droppable({root, term, index});
     const icon_css = classNames(
         'h5 me-2 text-info position-absolute top-50 end-0 translate-middle-y', 
-        icon.css[type],
+        icon.css.cls[type],
     );
     return(
         c('div', {className:'position-relative', tabIndex:0},
@@ -172,7 +125,7 @@ function Leaf({root, term='leaf', type, value, index=0, show_term, show_icon}){ 
                 tabIndex:1,
             }, //className:'mb-2' 
                 show_term && c(InputGroup.Text, {...drag, className:'user-select-none'}, readable(term)), // bg-body text-primary border-0
-                show_icon && c(InputGroup.Text, {...drag, className:icon.css.generic+' text-body'}, ''),
+                show_icon && c(InputGroup.Text, {...drag, className:icon.css.cls.generic+' text-body'}, ''),
                 //!show_term && !show_icon && c(InputGroup.Text, {...drag, className:'bi-grip-vertical'}),
                 type == 'xsd:boolean' ?
                     c(Form.Check, {

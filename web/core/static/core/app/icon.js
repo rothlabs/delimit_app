@@ -1,12 +1,14 @@
 export const icon = {    
     css:{
-        'xsd:boolean': 'bi-toggles',
-        'xsd:integer': 'bi-123',
-        'xsd:decimal': 'bi-hash',
-        'xsd:string':  'bi-type',
-        generic:       'bi-box',
-        chevron_left:  'bi-chevron-left',
-        chevron_down:  'bi-chevron-down',
+        cls:{
+            'xsd:boolean': 'bi-toggles',
+            'xsd:integer': 'bi-123',
+            'xsd:decimal': 'bi-hash',
+            'xsd:string':  'bi-type',
+            generic:       'bi-box',
+            chevron_left:  'bi-chevron-left',
+            chevron_down:  'bi-chevron-down',
+        },
     },
     svg:{
         'xsd:boolean': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-toggles" viewBox="0 0 16 16">

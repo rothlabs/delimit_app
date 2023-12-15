@@ -9,9 +9,6 @@ picked.secondary = {
     repo: new Set(),
     node: new Set(),
 };
-picked.target = {
-    repo: new Set(),
-};
 
 export const drag = {
     data: {},
@@ -25,13 +22,15 @@ export const pick = (d, {node, repo, multi, weak, mode='primary'}) => {
         type = 'repo';
     }
     const picked = d.picked[mode][type];
-    //console.log(mode, type);
     if(multi && picked.has(item)){
         picked.delete(item);
         return;
     }
     if(!multi) picked.clear();
-    if(!(weak && picked.size)) picked.add(item);
+    if(!(weak && picked.size)){
+        picked.add(item);
+        if(type == 'node' && mode == 'primary') d.inspect.open(d, {path:'inspectnode'+item+'0'});
+    }
 };
 
 export const unpick = (d, {node, repo, mode='all', type='all'}) => {
@@ -61,6 +60,16 @@ export const unpick = (d, {node, repo, mode='all', type='all'}) => {
         unpick_type(d.picked[mode]);
     }
 };
+
+export const targeted = {
+    repo: null,
+};
+
+export const target = {};
+target.repo = (d, repo) => {
+    d.targeted.repo = repo;
+}
+
 
 // for(const mode_obj of Object.keys(d.picked)){
 //     for(const picked of Object.keys(mode_obj)){

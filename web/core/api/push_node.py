@@ -1,4 +1,4 @@
-import json
+import json, time
 import graphene
 from core.api.types import Pack_Type
 from core.api.config import auth_required_message
@@ -16,16 +16,21 @@ class Push_Node(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, client, repo, node, forw):
         try: 
+            #print('push node start time: '+str(time.time()));
+            #print('repo, node: '+str(repo)+', '+str(node))
             user = info.context.user
             if not user.is_authenticated:
                 return Push_Node(reply = auth_required_message)
             team = Repo.objects.get(repo=repo).team
             team, gdb_user = gdb_connect(user, team=team, repo=repo)
-            for node, forw in zip(node, forw):#for node, obj in json.loads(node):
-                (wq().triple      (node, '@schema:__forw__', 'v:obj')
-                    .delete_triple(node, '@schema:__forw__', 'v:obj').execute(gdbc))  
-                wq().add_triple(node, '@schema:__forw__', wq().string(forw)).execute(gdbc)
-            return Push_Node(reply='Push Node') 
+            query = wq()
+            for node, forw in zip(node, forw):
+                delete = wq().triple(node, '@schema:__forw__', 'v:obj').delete_triple(node, '@schema:__forw__', 'v:obj')
+                query.woql_or(delete, wq().add_triple(node, '@schema:__forw__', wq().string(forw))) 
+                #print('add and delete triple time: '+str(time.time()))
+            query.execute(gdbc)
+            #print('end time: '+str(time.time()));
+            return Push_Node(reply='Push node complete') 
         except Exception as e: 
             print('Error: Push_Node')
             print(str(e))

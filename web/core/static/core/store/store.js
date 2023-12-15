@@ -30,7 +30,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     studio:{
         mode: 'repo',
         repo: {},
-        panel: {},
+        panel: {mode:'inspect'},
         cursor: '',
     },
     confirm:{},
@@ -263,17 +263,22 @@ export const store = {//export const create_base_slice = (set,get)=>({
         function handle_node(node){
             if(d.node.has(node)){
                 const repo = d.node.get(node).repo;
-                if(!push.has(repo)) push.set(repo, {node:[], forw:[]});
-                push.get(repo).node.push(node);
-                push.get(repo).forw.push(JSON.stringify(Object.fromEntries(d.node.get(node).forw)));
+                if(!d.repo.has(repo)) return;
+                if(!push.has(repo)) push.set(repo, {node:new Set(), forw:new Set()});
+                const repo_push = push.get(repo);
+                if(repo_push.node.size < repo_push.node.add(node).size){
+                    repo_push.forw.add(JSON.stringify(Object.fromEntries(d.node.get(node).forw)));
+                }
             }else if(d.closed.node.has(node)){
                 const repo = d.closed.node.get(node);
-                if(!shut.has(repo)) shut.set(repo, []);
-                shut.get(repo).push(node);
+                if(!d.repo.has(repo)) return;
+                if(!shut.has(repo)) shut.set(repo, new Set());
+                shut.get(repo).add(node);
             }else if(d.dropped.node.has(node)){
                 const repo = d.dropped.node.get(node);
-                if(!drop.has(repo)) drop.set(repo, []);
-                drop.get(repo).push(node);
+                if(!d.repo.has(repo)) return;
+                if(!drop.has(repo)) drop.set(repo, new Set());
+                drop.get(repo).add(node);
             }
             
             // if(!repos.has(repo)) repos.set(repo, {push: new Set(), shut: new Set(), drop: new Set(), node:[]});
@@ -283,18 +288,23 @@ export const store = {//export const create_base_slice = (set,get)=>({
         }
         for(const patch of patches){ // top level patch.path[0]=='n' ?
             //if(patch.path[0] == 'repo') handle_repo(patch.path[1]);
-            if(patch.path[0] == 'node') handle_node(patch.path[1]);
+            if(patch.path[0] == 'node' && patch.path[2] != 'back') handle_node(patch.path[1]);
         }
         
         for(let [repo, {node, forw}] of push){
-            //console.log(repo, node, forw);
-            d.mutation.push_node({variables:{client, repo, node, forw}});
+            //if(!repo) continue;
+            console.log('push node', repo, node, forw);
+            d.mutation.push_node({variables:{client, repo, node:[...node], forw:[...forw]}});
         }
         for(const [repo, node] of shut){
-            d.mutation.shut_node({variables:{client, repo, node}});
+            //if(!repo) continue;
+            console.log('shut node', node);
+            d.mutation.shut_node({variables:{client, repo, node:[...node]}});
         }
         for(const [repo, node] of drop){
-            d.mutation.drop_node({variables:{client, repo, node}});
+            //if(!repo) continue;
+            console.log('drop node', node);
+            d.mutation.drop_node({variables:{client, repo, node:[...node]}});
         }
         // for(const [repo, obj] of repos.entries()){
         //     [...obj.push].map()
@@ -320,7 +330,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     receive_data:(d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         //console.log(JSON.stringify(data));
         const repo = data.repo.repo;
-        d.pick(d, {repo, mode:'target', weak:true}); 
+        d.target.repo(d, repo);
         d.repo.set(repo, {
             name: data.repo.name,
             team: data.repo.team,
@@ -330,7 +340,10 @@ export const store = {//export const create_base_slice = (set,get)=>({
         });
         d.dropped.repo.delete(repo);
         d.closed.repo.delete(repo);
+        //const nodes = new Set();
         for(const triple of data.node){
+            //if(nodes.has(triple.node)) console.log('duplicate!!!!');
+            //nodes.add(triple.node);
             d.make.node(d, {repo, node:triple.node, given:true});
         }
         for(const triple of data.node){
@@ -346,25 +359,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
                 }
             }
         }
-
-
-
         d.graph.increment(d);
-        // if(increment_graph) d.graph.increment(d);
-        // for(let {root, term, stem} of data.triples){
-        //     if(term.slice(0, 8) == '@schema:'){ //if(triple.term.slice(0, 8) == '@schema:'){
-        //         term = term.slice(8);
-        //         if(stem['@type']) stem = {type:stem['@type'], value:stem['@value']};
-        //         d.make.edge(d, {root, term, stem, given:true});
-        //         if(term == 'delimit_app'){
-        //             //if(!d.stems(d, d.entry, 'app').includes(root)){ // d.node.get(d.entry).forw.get('app').get)
-        //             d.make.edge(d, {root:d.entry, term:'app', stem:root, given:true, single:true});
-        //             //}
-        //         }
-        //     }
-        // }
-        // if(data.triples.length) d.graph.increment(d);
-        // //console.log(current(Array.from(d.node.entries())));
     },
 
 };//);

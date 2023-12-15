@@ -20,10 +20,11 @@ class Drop_Node(graphene.Mutation):
                 return Push_Node(reply = auth_required_message)
             team = Repo.objects.get(repo=repo).team
             team, gdb_user = gdb_connect(user, team=team, repo=repo)
+            query = wq()
             for node in node:
-                (wq().triple      (node, '@schema:__forw__', 'v:obj')
-                    .delete_triple(node, '@schema:__forw__', 'v:obj')
-                    .execute(gdbc))      
+                delete = wq().triple(node, '@schema:__forw__', 'v:obj').delete_triple(node, '@schema:__forw__', 'v:obj')
+                query.woql_or(delete, wq().star())
+            query.execute(gdbc)     
             return Drop_Node(reply = 'Drop Node')
         except Exception as e: 
             print('Error: Drop_Node')

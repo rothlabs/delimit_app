@@ -2,21 +2,18 @@ import {createElement as c} from 'react';
 import {Mode_Menu} from 'delimit';
 
 const items = [
-    {name:' Make',    cls:'bi-plus-square', value:'make'},
-    {name:' Inspect', cls:'bi-menu-button', value:'inspect'}, 
-    {name:' Schema',  cls:'bi-ui-checks',   value:'schema'},
-    {name:' Modules', cls:'bi-boxes',       value:'modules'},
-    {name:' Display', cls:'bi-eye',         value:'display'}, 
+    {name:' Inspect', css_cls:'bi-menu-button', mode:'inspect'}, 
+    {name:' Make',    css_cls:'bi-plus-square', mode:'make'},
+    {name:' Schema',  css_cls:'bi-ui-checks',   mode:'schema'},
+    {name:' Modules', css_cls:'bi-boxes',       mode:'modules'},
+    {name:' Display', css_cls:'bi-eye',         mode:'display'}, 
 ];
 
 export function Panel_Mode(){
     return c(Mode_Menu, {
         state: d => d.studio.panel.mode,
-        action: (d, v) => d.studio.panel.mode = v,
+        action: (d, mode) => d.studio.panel.mode = mode,
         items, 
-        width: 45, 
-        height: 45, 
-        show_name: false,
     });
 }
 

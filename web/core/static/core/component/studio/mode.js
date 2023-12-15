@@ -2,19 +2,18 @@ import {createElement as c} from 'react';
 import {Mode_Menu} from 'delimit';
 
 const items = [
-    {name:' Repo',    cls:'bi-box-seam',       value:'repo'},
-    {name:' Graph',   cls:'bi-diagram-3',      value:'graph'},
-    {name:' Scene',   cls:'bi-pencil-square',  value:'design'}, // design_part==null
-    {name:' Code',    cls:'bi-braces',         value:'code'},
+    {name:'Repo',    css_cls:'bi-box-seam',       mode:'repo'},
+    {name:'Graph',   css_cls:'bi-diagram-3',      mode:'graph'},
+    {name:'Scene',   css_cls:'bi-pencil-square',  mode:'design'}, // design_part==null
+    {name:'Code',    css_cls:'bi-braces',         mode:'code'},
 ];
 
 export function Studio_Mode(){
     return c(Mode_Menu, {
         state: d => d.studio.mode,
-        action: (d, v) => d.studio.mode = v,
+        action: (d, mode) => d.studio.mode = mode,
         items, 
         width: 110, 
-        height: 32, 
     });
 }
 

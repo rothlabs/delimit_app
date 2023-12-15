@@ -13,7 +13,11 @@ export const make = {};
 make.node = (d, {node, repo, given, type})=>{ 
     node = node ?? make_id();
     if(!(given || d.write_access(d, node))) return;
-    repo = repo ?? d.picked.target.repo;
+    if(repo == 'target'){
+        //if(d.picked.target.repo.size) repo = d.picked.target.repo.keys()[0];
+        repo = d.targeted.repo;
+    }
+    //repo = repo ?? d.picked.target.repo;
     d.drop.edge(d, {root:node, given}); 
     d.node.set(node, {
         forw: new Map(), // key:term,  value:[stem or leaf_obj]
@@ -73,7 +77,7 @@ function build(d, root, type){
     d.make.edge(d, {root, term:'type', stem:type});
     if(d.type_name(d, root) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
         for(const context of d.stems(d, d.entry, 'app contexts')){
-            if(d.node.get(context).repo == d.target.repo){
+            if(d.node.get(context).repo == d.targeted.repo){ // if(d.node.get(context).repo == d.target.repo){
                 d.make.edge(d, {root:context, term:'types', stem:root});
             }
         }

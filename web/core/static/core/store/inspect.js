@@ -12,7 +12,8 @@ inspect.toggle = (d, {path}) => {
         d.inspected.add(path);
         return true;
     }
-    //d.inspect.tick++;
 };
-    //open: (d, {path}) => d.inspecting.add(path),
-    //shut: (d, {path}) => d.inspecting.delete(path),
+
+inspect.open = (d, {path}) => {
+    d.inspected.add(path);
+};
