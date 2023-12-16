@@ -7,6 +7,7 @@ import {createElement as r, StrictMode, useEffect, useState, useLayoutEffect} fr
 import {createRoot} from 'react-dom/client';//'rdc';
 import {createBrowserRouter, RouterProvider, Outlet} from 'react-router-dom';//'rrd';
 import {Root} from './component/app/root.js';
+import {Home} from './component/home/home.js';
 import {Studio} from './component/studio/studio.js';
 import {Router_Error, Query_Status} from './component/app/feedback.js';
 import {Color, ColorManagement} from 'three'; 
@@ -161,7 +162,7 @@ createRoot(document.getElementById('app')).render(r(()=>
         r(ApolloProvider, {client: gql_client},
             r(RouterProvider, {router:createBrowserRouter([
                 {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
-                    {path:'',        element:r('p',{}, 'At Home')},
+                    {path:'',        element:r(Home)},
                     {path:'shop',    element:r('p',{}, 'At Shop')},
                     {path:'studio',  element:r(Studio), errorElement:r(Router_Error)},  // {path:'studio',  element:r(Outlet), errorElement:r(Router_Error), children:[
                         //{path:'',       element:r(Studio_Browser)},

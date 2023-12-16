@@ -1,27 +1,31 @@
 import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas, useThree} from '@react-three/fiber';
-//import {useS, gs, ss, rs, use_query, use_mutation, client_instance} from '../../app.js';
-import {Toolbar} from '../toolbar/toolbar.js';
 import {Viewport} from './viewport.js';
 import {Code} from './code.js';
 import {Repo} from './repo.js';
-//import {Panel} from '../panel/panel.js';
-import {Secondary_Action} from './secondary_action.js';
-import {Panel_Mode} from '../panel/mode.js';
-import {Leaf_Bar} from './leaf_bar.js';
-import {Container, Row, Col, Badge, Button, InputGroup, Form} from 'react-bootstrap';
+//import {Container, Row, Col, Badge, InputGroup, Form} from 'react-bootstrap';
 import {Box3} from 'three';
-import {use_store, Inspect, Schema, Make_Node, Make_Repo} from 'delimit';
-
+import {use_store, Inspect, Schema, Mode_Menu, Make_Node, Make_Repo, undo, redo, Button, icon, draggable} from 'delimit';
+import {useOutletContext} from 'react-router-dom';
+import {animated, useSpring, useTransition} from '@react-spring/web';
 
 // useLazyQuery!!!
 // https://www.apollographql.com/docs/react/data/queries
 
 
-
 export function Studio(){
+    const {render_header} = useOutletContext();
     return[
-        c('div',{
+        render_header(() => 
+            c('div', {
+                className:'position-relative d-inline-flex',
+            },
+                c(Mode),
+                c('span', {className:'me-4'}), 
+                c(History),
+            ),
+        ),
+        c('div', {
             className: 'position-absolute start-0 end-0 top-0 bottom-0',
         },
             c(Canvas_3D),
@@ -42,26 +46,64 @@ export function Studio(){
             c(Leaf_Bar),
         ),
         c('div', {
-            className: 'z-1 position-absolute top-0 end-0 d-flex flex-column mt-5 me-2',
+            className: 'z-1 position-absolute bottom-0 end-0 mb-2 me-2',
         },
             c(Secondary_Action),
         ),
         c(Topic),
     ]
 }
-//c(Get_Schema),
-//c(Open_Push_Close),
-//ready && c(Poll),
-// function Reckon_Count(){
-//     const reckon_count = use_store(d=> d.reckon.count);
-//     return c(Badge, {className:'position-absolute bottom-0 start-0 m-1'}, 'Computes: '+reckon_count);
-// }
 
-    // style:{
-    //                         maxHeight: height,
-    //                         overflow: 'auto',
-    //                         //scrollbarColor: 'red orange',
-    //                     },
+export function Mode(){
+    return c(Mode_Menu, {
+        group: 'studio_mode',
+        items:[
+            {mode:'repo',  icon:'bi-box-seam'},
+            {mode:'graph', icon:'bi-diagram-3'},
+            {mode:'scene', icon:'bi-pencil-square'}, 
+            {mode:'code',  icon:'bi-braces'},
+        ], 
+        width: 110, 
+        state: d => d.studio.mode,
+        action: (d, mode) => d.studio.mode = mode,
+    });
+}
+
+function History(){
+    return [
+        {name:'Undo', onClick:()=>undo(), icon:'bi-arrow-left'},
+        {name:'Redo', onClick:()=>redo(), icon:'bi-arrow-right'},
+    ].map(props => c(Button, {group:'history', ...props}))
+}
+
+export function Panel_Mode(){
+    return c(Mode_Menu, {
+        group: 'panel_mode',
+        items:[
+            {mode:'inspect', icon:'bi-menu-button'}, 
+            {mode:'make',    icon:'bi-plus-square'},
+            {mode:'schema',  icon:'bi-ui-checks'},
+            {mode:'modules', icon:'bi-boxes'},
+            {mode:'display', icon:'bi-eye'}, 
+        ], 
+        state: d => d.studio.panel.mode,
+        action: (d, mode) => d.studio.panel.mode = mode,
+    });
+}
+
+export function Leaf_Bar(){
+    //console.log('render panel bar');
+    return [
+        {name:'Decimal', stem:{type:'xsd:decimal', value:0}},
+        {name:'Integer', stem:{type:'xsd:integer', value:0}},
+        {name:'String',  stem:{type:'xsd:string',  value:'new'}},
+        {name:'Boolean', stem:{type:'xsd:boolean', value:true}},
+    ].map(({name, stem}) => c(Button, {group:'new_leaf', name,
+        icon: icon.css.cls[stem.type],
+        ...draggable({stem}),
+    }))
+}
+
 function Panel(){ 
     const studio_mode = use_store(d=> d.studio.mode);
     const mode = use_store(d=> d.studio.panel.mode);
@@ -74,6 +116,52 @@ function Panel(){
     //if(mode == 'modules') return c(Modules);
     //if(mode == 'display') return c(Display);
 }
+
+export function Secondary_Action(){
+    const node = use_store(d=> [...d.picked.secondary.node]);
+    const transition = useTransition((node.length > 0), {
+        from:  {x:'100%'}, 
+        enter: {x:'0%'},    
+        leave: {x:'100%'}, 
+    });
+    return transition((style, item) => item && c(animated.div,{
+        className: 'd-flex flex-column',
+        style: {...style, borderRight:'thick solid var(--bs-secondary)'},
+    },[
+        {name:'Delete', icon:'bi-x-lg', commit:d=> d.shut.node(d, {node, drop:true})},
+    ].map(button => c(Button, {...button, group:'secondary_action'}))))
+}
+
+export function Topic(){
+    const studio_mode = use_store(d=> d.studio.mode);
+    if(studio_mode == 'code'){
+        //return c(Code);
+    }else if(studio_mode == 'repo'){
+        return(
+            c('div', {
+                className: 'position-absolute top-0 start-50 translate-middle-x mt-5',
+            },
+                c(Repo),
+            )
+        )
+    }
+}
+
+function Canvas_3D(){
+    const cursor = use_store(d=> d.studio.cursor);
+    return c(Canvas,{
+        className: cursor + ' bg-primary-subtle', 
+        orthographic: true, 
+        camera: {far:10000}, //gl: {antialias: false},
+        dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 
+        frameloop: 'demand',
+    }, 
+        c(Viewport),
+    )
+}
+
+
+
 // function Panel_Workspace(){
 //     const studio_mode = use_store(d=> d.studio.mode);
 //     const panel_mode = use_store(d=> d.studio.panel.mode);
@@ -96,69 +184,14 @@ function Panel(){
 //     //}
 // }
 
-export function Topic(){
-    const studio_mode = use_store(d=> d.studio.mode);
-    if(studio_mode == 'code'){
-        //return c(Code);
-    }else if(studio_mode == 'repo'){
-        return(
-            c('div', {
-                className: 'position-absolute top-0 start-50 translate-middle-x mt-5',
-            },
-                c(Repo),
-            )
-        )
-    }
-    // }else{
-    //     return(
-    //         c('div',{
-    //             className: 'position-absolute start-0 end-0 top-0 bottom-0',
-    //         },
-    //             c(Canvas_3D),
-    //         )
-    //     ) 
-    // }
-}
 
-
-function Canvas_3D(){
-    const cursor = use_store(d=> d.studio.cursor);
     // const [window_width] = use_window_size();
     // const panel_mode = use_store(d=> d.studio.panel.mode);
     // //const {camera, size:{width, height}} = useThree();
     // let marginLeft = 0;
     // //if(panel_mode) marginLeft = window_width * -.225;
     // //const width = window_width - 52;
-    return(
-        //c('p', {}, 'hello world')
-        //c('div', {name:'r3f', className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-1}},
-        //c('div', {name:'r3f', className: 'flex-grow-1 '+cursor, style:{zIndex:-1}},
-        //c(Row, {
-            //className: 'flex-grow-1 '+cursor, 
-        //},
-        // c('div', {
-        //     className: cursor+' position-absolute start-0 end-0 top-0 bottom-0', style:{zIndex:-10},
-        //     // style:{
-        //     //     position:'relative', 
-        //     //     width: width + 'px', 
-        //     //     height: '100%',
-        //     //     marginLeft,
-        //     // }
-        // }, 
-            c(Canvas,{
-                className: cursor, 
-                orthographic: true, 
-                camera: {far:10000}, 
-                //gl: {antialias: false},
-                dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 
-                frameloop: 'demand',
-                // onClick(e){
-                //     console.log('canvas click!!!');
-                // },
-                //, far:10000 zoom:1    //frameloop:'demand', 
-            }, 
-                c(Viewport),
-            )
+
             // c(Button, {
             //     className: 'position-absolute top-0 end-0',
             //     onClick(e){
@@ -181,10 +214,11 @@ function Canvas_3D(){
             // )
         //)
 
-    )
-}
-
-
+    // style:{
+    //                         maxHeight: height,
+    //                         overflow: 'auto',
+    //                         //scrollbarColor: 'red orange',
+    //                     },
 
 
 //document.getElementById('sandbox').contentWindow.postMessage();

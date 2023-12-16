@@ -1,5 +1,5 @@
 import {createElement as c, Fragment, useEffect} from 'react';
-import {Container, Row, Col, Nav, Navbar, ToggleButton, InputGroup, Button, Form} from 'react-bootstrap';//'boot';
+import {Container, Row, Col, Nav, Navbar, ToggleButton, InputGroup, Form} from 'react-bootstrap';//'boot';
 import {Outlet, Link, useNavigate} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
@@ -7,47 +7,31 @@ import {Logo} from './logo.js';
 import {Studio_Mode} from '../studio/mode.js';
 import { Confirm } from './confirm.js';
 import {set_store, commit_store, use_store, use_query, use_window_size, 
-        History, pointer, use_mutation, Icon_Title, readable} from 'delimit';
+        History, pointer, use_mutation, Icon_Title, readable, Button, Toggle_Button} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
 const vector = new Vector2();
 
-function Drag(){
-    //console.log('render drag');
-    const {root, term, stem} = use_store(d=> d.drag.data);
-    //const {title, icon} = use_store(d=> d.face.primary(d, node));
-    //const root_face = use_store(d=> d.face.primary(d, root));
-    const [springs, api] = useSpring(() => ({x:0, y:0}));
-    pointer.spring = api;
-    if(!root && !stem) return;
-    return(
-        c(animated.div,{
-            style:{
-                position: 'absolute',
-                zIndex: 1000,
-                ...springs,
-            },
-        },
-            stem ? c(Icon_Title, {node:stem}) : c(InputGroup.Text, {}, readable(term)),
-            root && c(InputGroup, {className:'ps-4'},
-                c(InputGroup.Text, {}, 'Removed from'),
-                c(Icon_Title, {node:root}),
-            ),
-        )
-    )
-}
-
 export function Root(){
-    const mode      = use_store(d=> d.mode);
-    const theme_mode = use_store(d=> d.theme.mode);
+    //const mode      = use_store(d=> d.mode);
+    //const theme_mode = use_store(d=> d.theme.mode);
     //const studio_mode = use_store(d=> d.studio.mode);
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     // const [window_width] = use_window_size(); 
     // const buttons = [
     //     {name:'Shop',  icon:'bi-bag',  value:'shop'},
     //     {name:'Studio', icon:'bi-palette2', value:'studio'}, 
     // ];
+    //const render_root_header = () => null;
+    const render_header = (render_outlet_header = () => null) => 
+        c('div',{
+            className:'position-absolute top-0 start-0 z-1 ms-1 mt-1', 
+        },
+            c(Logo),
+            c('span', {className:'me-4'}),
+            render_outlet_header(),
+        );
     return(
         c('div', {
             id: 'root', 
@@ -82,31 +66,17 @@ export function Root(){
             },
         },
             c('div',{
-                className:'position-absolute top-0 start-0 z-1 mt-1', 
+                className: 'z-1 position-absolute top-0 end-0 d-inline-flex', 
             },
-                c(Logo),
-                c('span', {className:'me-4'}),
-                mode=='studio' && c('div', {
-                   className:'position-relative d-inline-flex',
-                },
-                    c(Studio_Mode),
-                    c('span', {className:'me-4'}), 
-                    c(History),
-                ),
-            ),
-            c('div',{
-                className:'position-absolute top-0 end-0 z-1',
-            },
-                c(ToggleButton,{
-                    id: 'dark_mode_button',
-                    type:'checkbox', variant:'outline-primary', 
-                    checked: theme_mode=='dark',
-                    className: 'border-0 bi-moon rounded-4 rounded-top-0',
-                    onChange:e=> set_store(d=> d.theme.toggle_mode(d)),
+                c(Toggle_Button,{
+                    name: 'dark_mode',
+                    icon: 'bi-moon',
+                    active: d => d.theme.mode == 'dark',
+                    action: d => d.theme.toggle(d),
                 }),
                 c(Account_Menu),
             ),
-            c(Outlet),
+            c(Outlet, {context:{render_header}}),
             c(Drag),
             c(Login),
             c(Logout),
@@ -125,26 +95,14 @@ function Account_Menu(){
     if(error) return `Error! ${error}`;
     //if(!data.user?.firstName) return 'Error fetching user info';
     if(data?.user) return [
-        {name:()=>'Account ('+data.user.firstName+')',  icon:'bi-person', func(){}},
-        {name:()=>'Sign Out', icon:'bi-box-arrow-left', func:()=> show_logout(true)}, 
-        ].map(button=> c(Account_Button, {button}));
-    return c(Account_Button, {
-        button:{name:()=>'Sign In', 
-        icon:'bi-box-arrow-in-right', 
-        func:()=> show_login(true)}});
-}
-
-function Account_Button({button}){
-    const [window_width] = use_window_size();
-    return( 
-        c(Button,{
-            className: 'border-0 '+button.icon,
-            variant: 'outline-primary', 
-            onClick:e=> button.func(),
-        }, 
-            window_width > 576 ? ' '+button.name() : ''
-        )
-    )
+        {name:'Account ('+data.user.firstName+')',  icon:'bi-person', onClick:()=>null},
+        {name:'Sign Out', icon:'bi-box-arrow-left', onClick:()=> show_logout(true)}, 
+        ].map(button => c(Button, {group:'account', ...button}));
+    return c(Button, {
+        name: 'Sign In', 
+        icon: 'bi-box-arrow-in-right', 
+        onClick: () => show_login(true),
+    });
 }
 
 function Mutations(){
@@ -171,6 +129,59 @@ function Mutations(){
         };
     });
 }
+
+function Drag(){
+    //console.log('render drag');
+    const {root, term, stem} = use_store(d=> d.drag.data);
+    //const {title, icon} = use_store(d=> d.face.primary(d, node));
+    //const root_face = use_store(d=> d.face.primary(d, root));
+    const [springs, api] = useSpring(() => ({x:0, y:0}));
+    pointer.spring = api;
+    if(!root && !stem) return;
+    return(
+        c(animated.div,{
+            style:{
+                position: 'absolute',
+                zIndex: 1000,
+                ...springs,
+            },
+        },
+            stem ? c(Icon_Title, {node:stem}) : c(InputGroup.Text, {}, readable(term)),
+            root && c(InputGroup, {className:'ps-4'},
+                c(InputGroup.Text, {}, 'Removed from'),
+                c(Icon_Title, {node:root}),
+            ),
+        )
+    )
+}
+
+
+
+// c(ToggleButton,{
+//     id: 'dark_mode_button',
+//     type:'checkbox', variant:'outline-primary', 
+//     checked: theme_mode=='dark',
+//     className: 'border-0 bi-moon rounded-4 rounded-top-0',
+//     onChange:e=> set_store(d=> d.theme.toggle_mode(d)),
+// }),
+
+// function Account_Button({button}){
+//     //const [window_width] = use_window_size();
+//     return( 
+//         c(Button,{
+//             group: 'account',
+//             name: button.name(),
+//             css_cls: button.icon,
+//             onClick: e => button.func(),
+//             //className: 'border-0 '+button.icon,
+//             //variant: 'outline-primary', 
+//             //onClick:e=> button.func(),
+//         }, 
+//             //window_width > 576 ? ' '+button.name() : ''
+//         )
+//     )
+// }
+
 
 
 // return (

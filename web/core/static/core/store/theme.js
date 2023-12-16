@@ -37,7 +37,7 @@ theme.compute = d =>{
 
 };
 
-theme.toggle_mode = d =>{
+theme.toggle = d =>{
     d.theme.mode = (d.theme.mode=='light') ? 'dark' : 'light';
     document.documentElement.setAttribute('data-bs-theme', d.theme.mode)
     theme.compute(d);

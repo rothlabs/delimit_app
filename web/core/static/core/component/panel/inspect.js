@@ -45,7 +45,6 @@ function Node_Joint({root, term, node, index, show_term, path}){
 function Node({root, term, node, index=0, show_term, path}){
     path = path + term + node + index;
     const open  = use_store(d=> d.inspected.has(path));
-    //console.log('path', path, open);
     const primary_pick = use_store(d=> d.picked.primary.node.has(node));
     const secondary_pick = use_store(d=> d.picked.secondary.node.has(node));
     const items = use_store(d=> [...d.node.get(node).forw.keys()]); 
@@ -97,7 +96,7 @@ function Term({root, term, path}){
     return(
         c(List_View, {open, items, path:pth,
             header_props: droppable({root, term}), 
-            render_header:()=> c(InputGroup.Text, {className:'rounded-pill'}, readable(term)),
+            render_header:()=> c(InputGroup.Text, {}, readable(term)), // className:'rounded-pill'
             render_item(stem, index){
                 if(stem.type) return c(Leaf, {root, term, ...stem, index}); // key:index
                 return c(Node_Joint, {root, term, node:stem, index, path}); // key:index,

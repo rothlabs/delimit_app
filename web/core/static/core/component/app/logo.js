@@ -7,7 +7,6 @@ export const Logo = ({height=32}) => {
     return(
         c('svg', {
             xmlns: 'http://www.w3.org/2000/svg', 
-            className: 'ms-1',
             height, 
             width: height*2.2555, 
             viewBox: '0 0 541.86666 240.24166',

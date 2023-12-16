@@ -12,7 +12,7 @@ export {gql_client} from './app.js';
 export {use_query, use_mutation} from './app/gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
-export {List_View, Button, Mode_Menu, Icon_Title, Svg} from './component/app/app.js';
+export {List_View, Button, Toggle_Button, Mode_Menu, Icon_Title, Svg} from './component/app/app.js';
 export {pickable, draggable, droppable} from './app/pick.js';
 export {icon} from './app/icon.js';
 export {History} from './component/toolbar/history.js';
