@@ -7,7 +7,6 @@ import {animated, useSpring, useTransition} from '@react-spring/web';
 function get_height(ref){
     return (ref.current?.offsetHeight ? ref.current.offsetHeight : 0);
 }
-
 const transition_config = {
     from:  {t: 1, opacity:0, y:'50%', transform: 'scaleY(0%)'}, // marginLeft:'-100%',   translateY(150%)
     enter: {t: 0, opacity:1, y:'0%',   transform: 'scaleY(100%)'}, // marginLeft:'0%',    
@@ -15,7 +14,6 @@ const transition_config = {
     //keys: p => p,
     config: { tension: 210, friction: 20, mass: 0.5 },
 };
-
 export const List_View = ({path, open=true, items, header_props={}, render_header, render_item}) => { 
     const body_div = useRef();
     const item_div = useRef();
@@ -72,7 +70,7 @@ export function Toggle_Button(props){
     return c(Button, {...props, active});
 }
 
-export function Button({inner_ref, group, name, show_name, icon, width, height, active, action, commit, onClick, onPointerDown, onPointerUp, onContextMenu}){
+export function Button({inner_ref, group, name, show_name, icon, width, height, active, action, commit, onClick, onPointerDown, onPointerUp, onContextMenu, children}){
     const target = useRef();
     const size = make_size(show_name, width, height);
     //const [springs, api] = useSpring(() => ({from:{backgroundColor: 'var(--bs-body-bg)'}})); 
@@ -81,13 +79,13 @@ export function Button({inner_ref, group, name, show_name, icon, width, height, 
         'my-auto', icon, {'h5': !show_name},
         (size.width ? 'mx-auto' : 'mx-3'), 
     );
-    const className = classNames('d-flex text-info rounded-pill bg-body', {
+    const className = classNames('d-inline-flex text-info rounded-pill bg-body', {
         'bg-info-subtle': hover,
         'border border-2 border-info': active,
     });
     return(
         //(active != null) && c(Active_Ring, {size, target: (active ? target.current : null)}),
-        c(animated.div, {
+        c('div', {
             ref: ref => {
                 target.current = ref;
                 if(inner_ref) inner_ref.current[name] = ref;
@@ -110,6 +108,7 @@ export function Button({inner_ref, group, name, show_name, icon, width, height, 
             },
         }, 
             c('div', {className:content_css_cls}, show_name ? ' '+name : null), // (window_width > 576) ? name : '',
+
         )
     )
 }
@@ -148,7 +147,7 @@ export function Mode_Menu({group, items, state, action, width, height}){
     ]
 }
 
-export function Icon_Title({node}){
+export function Icon_Title({node}){ // badge for node (Node_Badge)
     //console.log(node);
     const {icon, title} = use_store(d=> d.face.primary(d, node));
     const node_joint = use_store(d=> d.node_joint(d, node));
