@@ -17,21 +17,21 @@ export const droppable = ({root, term, index}) => {
     };
     result.onPointerUp = e => {
         commit_store(d=>{
-            if(!d.drag.data.stem) return;
-            d.make.edge(d, {root, term, stem:d.drag.data.stem, index});
+            if(!d.drag.edge.stem) return;
+            d.make.edge(d, {root, term, stem:d.drag.edge.stem, index});
         });
-        set_store(d=> d.drag.data = {});
+        set_store(d=> d.drag.edge = {});
     };
     return result;
 };
 
-export const draggable = data => { // rename data to edge
+export const draggable = edge => {
     const result = {...pointer_style};
     result.onPointerDown = e => {
         if(e.nativeEvent.button != 0) return;
         pointer.dragging = true;
         pointer.start.set(e.clientX, e.clientY);
-        set_store(d=> d.drag.staged = data);
+        set_store(d=> d.drag.staged = edge);
     };
     return result;
 };

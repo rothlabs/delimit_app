@@ -12,13 +12,15 @@ export {gql_client} from './app.js';
 export {use_query, use_mutation} from './app/gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
-export {List_View, Token, Mode_Menu, Node_Badge, Svg} from './component/app/app.js';
+export {List_View, Token, Mode_Menu, Badge, Svg} from './component/app/app.js';
 export {pickable, draggable, droppable, drag_drop} from './app/pick.js';
 export {icons} from './app/icon.js';
 export {Make_Node} from './component/panel/make_node.js';
 export {Make_Repo} from './component/panel/make_repo.js';
 export {Inspect} from './component/panel/inspect.js';
 export {Schema} from './component/panel/schema.js';
+
+export const assess = fn => (typeof fn === 'function' ? fn() : fn);
 
 export const make_id = (length=16)=>{
     let result = '';

@@ -4,7 +4,6 @@ export const picked = {};
 picked.primary = {
     repo: new Set(),
     node: new Set(),
-    //node_array: [],
 };
 picked.secondary = {
     repo: new Set(),
@@ -12,7 +11,7 @@ picked.secondary = {
 };
 
 export const drag = {
-    data: {},
+    edge: {},
 };
 
 export const pick = (d, {node, repo, multi, weak, mode='primary'}) => {
@@ -24,27 +23,14 @@ export const pick = (d, {node, repo, multi, weak, mode='primary'}) => {
     }
     const picked = d.picked[mode][type];
     if(multi && picked.has(item)){
-       //const old_size = picked.size;
-        const deleted = picked.delete(item);//.size;
-        // if(type == 'node' && mode == 'primary' && deleted){
-        //     const index = d.picked.primary.node_array.indexOf(item);
-        //     console.log('unpick primary', d.picked.primary.node_array.length, index);
-        //     d.picked.primary.node_array.splice(index, 1);
-        // }
+        picked.delete(item);
         return;
     }
-    if(!multi){
-        picked.clear();
-        //if(type == 'node' && mode == 'primary') d.picked.primary.node_array.length = 0;
-    }
+    if(!multi) picked.clear();
     if(!(weak && picked.size)){
-        const old_size = picked.size;
-        const new_size = picked.add(item).size;
+        picked.add(item);
         if(type == 'node' && mode == 'primary'){
             d.inspect.open(d, {path:'inspect'+item+'0'});
-            // if(new_size > old_size){
-            //     d.picked.primary.node_array.push(item);
-            // }
         }
     }
 };

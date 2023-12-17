@@ -1,12 +1,9 @@
 import {createElement as c, useRef, useState, useEffect} from 'react';
 import {Row, Col, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, commit_store, icons, readable} from 'delimit';
+import {use_store, set_store, commit_store, icons, readable, assess} from 'delimit';
 import classNames from 'classnames';
 import {animated, useSpring, useTransition} from '@react-spring/web';
 
-// function get_height(ref){
-//     return (ref.current?.offsetHeight ? ref.current.offsetHeight : 0);
-// }
 function get_height(id){
     const element = document.getElementById(id);
     return (element ? element.offsetHeight : 0);
@@ -23,7 +20,7 @@ export const List_View = ({path, items, header_props={}, header, render_item}) =
     const transition = useTransition(open, transition_config);
     const item_transitions = useTransition(items, transition_config);
     const render_header = () => [
-        header(),
+        assess(header),
         items.length ? c('div', {className:(open ? icons.css.cls.chevron_down : icons.css.cls.chevron_left)}) : null, 
     ];
     return[
@@ -99,7 +96,7 @@ export function Token_Base({inner_ref, group, icon, name, content, width, height
         if(content == null) return c(Icon, {icon, size:'h5', color:'info'});//c('div', {className:content_css_cls});
         if(content == 'badge')
             return c('div', {className:'d-flex gap-1'}, c(Icon, {icon, color:'info'}), name ?? 'untitled'); 
-        return content();
+        return assess(content);//return content();
     }
     return(
         //(active != null) && c(Active_Ring, {size, target: (active ? target.current : null)}),
@@ -164,7 +161,7 @@ export function Mode_Menu({group, items, state, action, width, height}){
     ]
 }
 
-export function Node_Badge({node}){ // badge for node (Node_Badge)
+export function Badge({node}){ // badge for node (Node_Badge)
     //console.log(node);
     const {icon, title} = use_store(d=> d.face.primary(d, node));
     const node_case = use_store(d=> d.node_case(d, node));
@@ -215,6 +212,11 @@ export function Svg({svg, color, size, className}) {
 	)
 }
 
+
+
+// function get_height(ref){
+//     return (ref.current?.offsetHeight ? ref.current.offsetHeight : 0);
+// }
 
         //     },
         //         //render_header(),

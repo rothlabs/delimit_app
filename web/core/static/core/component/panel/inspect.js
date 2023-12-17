@@ -1,19 +1,13 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {Form} from 'react-bootstrap';
 import {use_store, commit_store, List_View, drag_drop,
-    readable, droppable, pickable, Node_Badge, icons, Token} from 'delimit';
+    readable, droppable, pickable, Badge, icons, Token} from 'delimit';
 
 export function Inspect(){ 
-    const items = use_store(d=> [...d.picked.primary.node]); // const items = use_store(d=> d.picked.primary.node_array); //
-    return(
-        c('div', { 
-            style: {maxHeight: '90vh'}, // overflow:'auto' // only turn on auto overflow when too high
-        },
-            c(List_View, {items, 
-                render_item: node => c(Node_Case, {node, path:'inspect'}), // term:'node'
-            }),
-        )
-    )
+    const items = use_store(d=> [...d.picked.primary.node]); 
+    return c(List_View, {items, 
+        render_item: node => c(Node_Case, {node, path:'inspect'}), 
+    })  
 }
 
 function Node_Case({root, term, node, index, show_term, path}){
@@ -26,9 +20,9 @@ function Node_Case({root, term, node, index, show_term, path}){
         return c(Leaf, {root:node, ...node_case.leaf, proxy, show_term:term, show_icon:true}); 
     }else if(node_case == 'missing'){
         return Token({node, ...dnd, ...pickable({node, mode:'secondary'}),
-            content:()=>[
+            content:[
                 show_term && readable(term), 
-                c(Node_Badge, {node}),
+                c(Badge, {node}),
             ],
         })
     }
@@ -38,9 +32,9 @@ function Node_Case({root, term, node, index, show_term, path}){
 function Node({dnd, term='', node, index=0, show_term, path}){
     path = path + term + node + index;
     const items = use_store(d=> [...d.node.get(node).forw.keys()]); 
-    const header = () => [
+    const header = [
         show_term && readable(term),
-        c(Node_Badge, {node}), 
+        c(Badge, {node}), 
     ];
     const header_props = {node, ...dnd, ...pickable({node, mode:'secondary'})};
     return c(List_View, {items, path, header_props, header,
@@ -53,7 +47,7 @@ function Term_Case({root, term, path}){
     if(!term_case) return;
     if(term_case == 'empty'){
         return Token({...drag_drop({root, term}),
-            content:()=>[
+            content:[
                 readable(term),
                 c('div', {className:'text-body'}, 'emtpy'), 
             ],
@@ -72,7 +66,7 @@ function Term({root, term, path}){
     return(
         c(List_View, {items, path:pth,
             header_props: droppable({root, term}), 
-            header:()=> readable(term),
+            header: readable(term),
             render_item(stem, index){
                 if(stem.type) return c(Leaf, {root, term, ...stem, index}); // key:index
                 return c(Node_Case, {root, term, node:stem, index, path}); // key:index,
@@ -124,6 +118,21 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
     ];
     return Token({content, name:'leaf'});
 }
+
+
+
+// export function Inspect(){ 
+//     const items = use_store(d=> [...d.picked.primary.node]); // const items = use_store(d=> d.picked.primary.node_array); //
+//     return(
+//         c('div', { 
+//             style: {maxHeight: '90vh'}, // overflow:'auto' // only turn on auto overflow when too high
+//         },
+//             c(List_View, {items, 
+//                 render_item: node => c(Node_Case, {node, path:'inspect'}), // term:'node'
+//             }),
+//         )
+//     )
+// }
 
 
 

@@ -36,7 +36,7 @@ export function Studio(){
             c(Panel_Mode),
         ),
         c('div', {
-            className: 'z-1 position-absolute top-0 start-0 mt-5 ms-5',
+            className: 'z-1 position-absolute top-0 start-0 mt-5 ms-5 90vh', // put scroll bar crap here ?! #1
         },
             c(Panel),
         ),

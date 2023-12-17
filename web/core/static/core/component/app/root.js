@@ -6,23 +6,13 @@ import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
 import { Confirm } from './confirm.js';
 import {set_store, commit_store, use_store, use_query, 
-        pointer, use_mutation, Node_Badge, readable, Token} from 'delimit';
+        pointer, use_mutation, Badge, readable, Token} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
 const vector = new Vector2();
 
 export function Root(){
-    //const mode      = use_store(d=> d.mode);
-    //const theme_mode = use_store(d=> d.theme.mode);
-    //const studio_mode = use_store(d=> d.studio.mode);
-    //const navigate = useNavigate();
-    // const [window_width] = use_window_size(); 
-    // const buttons = [
-    //     {name:'Shop',  icon:'bi-bag',  value:'shop'},
-    //     {name:'Studio', icon:'bi-palette2', value:'studio'}, 
-    // ];
-    //const render_root_header = () => null;
     const render_header = (render_outlet_header = () => null) => 
         c('div',{
             className:'position-absolute top-0 start-0 z-1 ms-1 mt-1', 
@@ -41,27 +31,21 @@ export function Root(){
                 if(!pointer.dragging) return; 
                 if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
                 commit_store(d=>{
-                    if(Object.keys(d.drag.data).length) return;// 'cancel'; // could just check if anything actually changed
-                    const data = d.drag.staged;
-                    if(!e.ctrlKey || !data.root || !data.term) return; //  || data.index == null
-                    //const placeholder = data.stem ? data.stem.type ? true : d.node.get(data.stem).forw.size : false;
-                    d.drop.edge(d, {...data}); // stem:data.stem
+                    if(Object.keys(d.drag.edge).length) return;
+                    const edge = d.drag.staged;
+                    if(!e.ctrlKey || !edge.root || !edge.term) return; 
+                    d.drop.edge(d, edge); 
                 });
                 set_store(d=>{
-                    if(Object.keys(d.drag.data).length) return;
-                    const data = d.drag.staged;
-                    if(e.ctrlKey){
-                        d.drag.data = data;
-                    }else{
-                        d.drag.data = {stem:data.stem};
-                    }
+                    if(Object.keys(d.drag.edge).length) return;
+                    const edge = d.drag.staged;
+                    if(e.ctrlKey) d.drag.edge = edge;
+                    else d.drag.edge = {stem:edge.stem};
                 });
             },
             onPointerUp(e){
                 pointer.dragging = false;
-                set_store(d=>{
-                    d.drag.data = {};
-                });
+                set_store(d=> d.drag.edge = {});
             },
         },
             c('div',{
@@ -76,7 +60,7 @@ export function Root(){
                 c(Account_Menu),
             ),
             c(Outlet, {context:{render_header}}),
-            c(Drag),
+            c(Dragged),
             c(Login),
             c(Logout),
             c(Confirm),
@@ -129,29 +113,32 @@ function Mutations(){
     });
 }
 
-function Drag(){
+function Dragged(){
     //console.log('render drag');
-    const {root, term, stem} = use_store(d=> d.drag.data);
-    //const {title, icon} = use_store(d=> d.face.primary(d, node));
-    //const root_face = use_store(d=> d.face.primary(d, root));
+    const {root, term, stem} = use_store(d=> d.drag.edge);
     const [springs, api] = useSpring(() => ({x:0, y:0}));
     pointer.spring = api;
     if(!root && !stem) return;
-    const content = () => stem ? c(Node_Badge, {node:stem}) : readable(term);
-    const root_content = () => ['Removed from', c(Node_Badge, {node:root})];
     return(
         c(animated.div,{
-            style:{
-                position: 'absolute',
-                zIndex: 1000,
-                ...springs,
-            },
+            style:{position:'absolute', zIndex:1000, ...springs},
         },
-            Token({content}),
-            root && Token({content:root_content, className:'ps-4'}),
+            Token({content: stem ? c(Badge, {node:stem}) : readable(term)}),
+            root && Token({content:['Removed from', c(Badge, {node:root})]}), // className:'ps-4'
         )
     )
 }
+
+    //const mode      = use_store(d=> d.mode);
+    //const theme_mode = use_store(d=> d.theme.mode);
+    //const studio_mode = use_store(d=> d.studio.mode);
+    //const navigate = useNavigate();
+    // const [window_width] = use_window_size(); 
+    // const buttons = [
+    //     {name:'Shop',  icon:'bi-bag',  value:'shop'},
+    //     {name:'Studio', icon:'bi-palette2', value:'studio'}, 
+    // ];
+    //const render_root_header = () => null;
 
 
 // stem ? c(Node_Badge, {node:stem}) : c(InputGroup.Text, {}, readable(term)),

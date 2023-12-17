@@ -21,10 +21,7 @@ theme.compute = d =>{
     d.color.info         = css('--bs-info');
     d.color.warning      = css('--bs-warning');
     d.color.danger       = css('--bs-danger');
-    d.color.body      = css('--bs-body');////////////
-    console.log('body color!!!!!!', d.color.body);
     d.color.body_fg      = css('--bs-body-color');
-    console.log('body_fg color!!!!!!', d.color.body_fg);
     d.color.body_bg      = css('--bs-body-bg');
     d.color.border       = css('--bs-border-color');
     d.color.secondary_bg = css('--bs-secondary-bg');
