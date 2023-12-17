@@ -69,6 +69,8 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
     mutate:{
         leaf(d, root, term, index, value){
+            console.log(root, term);
+            console.log([...d.node.get(root).forw]);
             const leaf = d.node.get(root).forw.get(term)[index];
             let coerced = value;
             if(typeof coerced == 'boolean' && leaf.type == 'xsd:boolean'){

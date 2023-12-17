@@ -1,4 +1,4 @@
-export const icon = {    
+export const icons = {    
     css:{
         cls:{
             'xsd:boolean': 'bi-toggles',

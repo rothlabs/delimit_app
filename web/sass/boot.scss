@@ -14,13 +14,15 @@ $secondary: #6fdd00; //#83e720 #91FF23
 $accordion-padding-x: 0px;
 $accordion-padding-y: 0px;
 
+$focus-ring-width: 1px;//.15rem !default;
 $focus-ring-color: rgba($info, 0.35) !default;
+
 
 @import "bootstrap/scss/variables";
 
 
 
-
+//$input-bg: 'transparent';
 
 $border-radius: 1.25rem;
 

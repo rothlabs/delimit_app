@@ -5,7 +5,7 @@ import {Code} from './code.js';
 import {Repo} from './repo.js';
 //import {Container, Row, Col, Badge, InputGroup, Form} from 'react-bootstrap';
 import {Box3} from 'three';
-import {use_store, Inspect, Schema, Mode_Menu, Make_Node, Make_Repo, undo, redo, Button, icon, draggable} from 'delimit';
+import {use_store, Inspect, Schema, Mode_Menu, Make_Node, Make_Repo, undo, redo, Token, icons, draggable} from 'delimit';
 import {useOutletContext} from 'react-router-dom';
 import {animated, useSpring, useTransition} from '@react-spring/web';
 
@@ -73,7 +73,7 @@ function History(){
     return [
         {name:'Undo', onClick:()=>undo(), icon:'bi-arrow-left'},
         {name:'Redo', onClick:()=>redo(), icon:'bi-arrow-right'},
-    ].map(props => c(Button, {group:'history', ...props}))
+    ].map(props => c(Token, {group:'history', ...props}))
 }
 
 export function Panel_Mode(){
@@ -98,8 +98,8 @@ export function Leaf_Bar(){
         {name:'Integer', stem:{type:'xsd:integer', value:0}},
         {name:'String',  stem:{type:'xsd:string',  value:'new'}},
         {name:'Boolean', stem:{type:'xsd:boolean', value:true}},
-    ].map(({name, stem}) => c(Button, {group:'new_leaf', name,
-        icon: icon.css.cls[stem.type],
+    ].map(({name, stem}) => c(Token, {group:'new_leaf', name,
+        icon: icons.css.cls[stem.type],
         ...draggable({stem}),
     }))
 }
@@ -129,7 +129,7 @@ export function Secondary_Action(){
         style: {...style, borderRight:'thick solid var(--bs-secondary)'},
     },[
         {name:'Delete', icon:'bi-x-lg', commit:d=> d.shut.node(d, {node, drop:true})},
-    ].map(button => c(Button, {...button, group:'secondary_action'}))))
+    ].map(button => c(Token, {...button, group:'secondary_action'}))))
 }
 
 export function Topic(){
@@ -150,7 +150,7 @@ export function Topic(){
 function Canvas_3D(){
     const cursor = use_store(d=> d.studio.cursor);
     return c(Canvas,{
-        className: cursor + ' bg-primary-subtle', 
+        className: cursor,// + ' bg-primary-subtle', 
         orthographic: true, 
         camera: {far:10000}, //gl: {antialias: false},
         dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 

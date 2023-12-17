@@ -1,68 +1,59 @@
 import {createElement as c, useEffect, useState} from 'react';
-import {Form, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, commit_store, List_View, 
-    readable, draggable, droppable, pickable, Icon_Title, icon} from 'delimit';
+import {Form} from 'react-bootstrap';
+import {use_store, set_store, commit_store, List_View, Node_Token,
+    readable, draggable, droppable, pickable, Node_Badge, icons, Token} from 'delimit';
 import classNames from 'classnames';
 
-//let wow = 0;
 export function Inspect(){ 
-    const items = use_store(d=> [...d.picked.primary.node]); 
-   // console.log(items);
-   //wow++;
+    const items = use_store(d=> [...d.picked.primary.node]); // const items = use_store(d=> d.picked.primary.node_array); //
     return(
         c('div', { 
             className:'ms-2',
-            style: {maxHeight: '90vh', overflow:'auto'}, //overflow:'auto'
+            style: {maxHeight: '90vh'}, //overflow:'auto'
         },
-            // c(List_View, {items, //key:wow,
-            //     //render_header: () => c(InputGroup.Text, {}, 'Inspector'),
-            //     render_item: (node, index) => c(Node_Joint, {node, term:'node', path:'inspect', key:node}), // , key:index 
-            // }),
-            items.map(node=> c(Node_Joint, {node, term:'node', path:'inspect', key:node})),
+            c(List_View, {items, 
+                render_item: (node, index) => c(Node_Joint, {node, path:'inspect'}), // term:'node'
+            }),
+            //items.map(node=> c(Node_Joint, {node, term:'node', path:'inspect', key:node})),
         )
     )
 }
 
 function Node_Joint({root, term, node, index, show_term, path}){
     const node_joint = use_store(d=> d.node_joint(d, node));
-    //if(!node_joint) return;
     if(node_joint.name == 'leaf'){
-        return c(Leaf, {root:node, term, ...node_joint.leaf, show_term:true, show_icon:term}); 
+        term = term ?? 'leaf';
+        const proxy = root ? {root, term, stem:node, index} : null;
+        return c(Leaf, {root:node, ...node_joint.leaf, proxy, show_term:term, show_icon:true}); 
     }else if(node_joint == 'missing'){
-        return(
-            c(InputGroup, {
-                ...droppable({root, term, index}), 
-                ...draggable({root, term, stem:node, index})
-            }, 
-                show_term && c(InputGroup.Text, {}, readable(term)), 
-                c(Icon_Title, {node}),
-            )
-        )
+        return c(Node_Token, {node,
+            ...droppable({root, term, index}), 
+            ...draggable({root, term, stem:node, index}),
+            content:()=>[
+                show_term && readable(term), 
+                c(Node_Badge, {node}),
+            ],
+        })
     }
     return c(Node, {root, term, node, index, show_term, path});
 }
 
 function Node({root, term, node, index=0, show_term, path}){
     path = path + term + node + index;
-    const open  = use_store(d=> d.inspected.has(path));
-    const primary_pick = use_store(d=> d.picked.primary.node.has(node));
-    const secondary_pick = use_store(d=> d.picked.secondary.node.has(node));
-    const items = use_store(d=> [...d.node.get(node).forw.keys()]); 
-    const render_header = () => ([
-        show_term && c(InputGroup.Text, {className:'user-select-none'}, readable(term)),
-        c(Icon_Title, {node}),
-    ]);
+    //const open  = use_store(d=> d.inspected.has(path));
+    const items = use_store(d=> [...d.node.get(node).forw.keys()]); // produce changing order of keys ?!?!?!?!
+    const header = () => [
+        show_term && readable(term),//c('div', {}, readable(term)), //className:'user-select-none'
+        c(Node_Badge, {node}), // rename to badge
+    ];
     const header_props = {
-        style: {
-            borderLeft:  (primary_pick ?   ('thick solid var(--bs-primary)')   : 'none'),
-            borderRight: (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none'),
-        },
+        node,
         ...droppable({root, term, index}),
         ...draggable({root, term, stem:node, index}),
         ...pickable({node, mode:'secondary'}),
     };
     return(
-        c(List_View, {open, items, path, header_props, render_header,
+        c(List_View, {items, path, header_props, header,
             render_item: term => c(Term_Joint, {root:node, term, path}), // key:term
         })
     )
@@ -72,15 +63,14 @@ function Term_Joint({root, term, path}){
     const term_joint = use_store(d=> d.term_joint(d, root, term));
     if(!term_joint) return;
     if(term_joint == 'empty'){
-        return(
-            c(InputGroup, {
-                ...droppable({root, term}),
-                ...draggable({root, term}),
-            },
-                c(InputGroup.Text, {className:'user-select-none'}, readable(term)),
-                c(InputGroup.Text, {className:'user-select-none text-body'}, 'emtpy'), 
-            )
-        )
+        return c(Token, {
+            ...droppable({root, term}),
+            ...draggable({root, term}),
+            content:()=>[
+                readable(term),
+                c('div', {className:'text-body'}, 'emtpy'), 
+            ],
+        })
     }else if(term_joint.name == 'node'){
         return c(Node_Joint, {root, term, node:term_joint.node, show_term:true, path});
     }else if(term_joint.name == 'leaf'){
@@ -91,12 +81,12 @@ function Term_Joint({root, term, path}){
 
 function Term({root, term, path}){
     const pth = path + term;
-    const open = use_store(d=> d.inspected.has(pth));
+    //const open = use_store(d=> d.inspected.has(pth));
     const items = use_store(d=> d.node.get(root).forw.get(term));
     return(
-        c(List_View, {open, items, path:pth,
+        c(List_View, {items, path:pth,
             header_props: droppable({root, term}), 
-            render_header:()=> c(InputGroup.Text, {}, readable(term)), // className:'rounded-pill'
+            header:()=> readable(term),//c('div', {}, readable(term)), // className:'rounded-pill'
             render_item(stem, index){
                 if(stem.type) return c(Leaf, {root, term, ...stem, index}); // key:index
                 return c(Node_Joint, {root, term, node:stem, index, path}); // key:index,
@@ -105,67 +95,126 @@ function Term({root, term, path}){
     )
 }
 
-function Leaf({root, term='leaf', type, value, index=0, show_term, show_icon}){ // ...droppable({node, term})
+function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_icon}){ // ...droppable({node, term})
     const [input_value, set_input_value] = useState(value);
     const [sync_input, set_sync_input] = useState(true);
     useEffect(()=>{
         if(sync_input) set_input_value(value);
     },[value]);
-    const drag = draggable({root, term, stem:{type, value}, index});
-    const drop = droppable({root, term, index});
-    const icon_css = classNames(
-        'h5 me-2 text-info position-absolute top-50 end-0 translate-middle-y', 
-        icon.css.cls[type],
-    );
-    return(
-        c('div', {className:'position-relative', tabIndex:0},
-            c(InputGroup, {//className:'rounded-pill',
-                ...drop,
-                tabIndex:1,
-            }, //className:'mb-2' 
-                show_term && c(InputGroup.Text, {...drag, className:'user-select-none'}, readable(term)), // bg-body text-primary border-0
-                show_icon && c(InputGroup.Text, {...drag, className:icon.css.cls.generic+' text-body'}, ''),
-                //!show_term && !show_icon && c(InputGroup.Text, {...drag, className:'bi-grip-vertical'}),
-                type == 'xsd:boolean' ?
-                    c(Form.Check, {
-                        className:'flex-grow-1 ms-2 mt-2 shadow-none', //4 mt-2 me-4 
-                        //style: {transform:'scale(1.8);'},
-                        type:     'switch',
-                        //label:    readable(t), 
-                        //disabled: !asset, 
-                        checked: value, 
-                        onChange(e){
-                            commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
-                        }, 
-                        ...drag,
-                    }) : 
-                    c(Form.Control, {
-                        //className:'rounded-pill',
-                        ///////// as:area_tags.includes(t) ? 'textarea' : 'input', 
-                        ///////// maxLength:64,
-                        ///////// placeholder:placeholder,  
-                        ///////// disabled:!asset, 
-                        value: input_value, 
-                        onFocus: ()=> set_sync_input(false),
-                        onBlur(e){
-                            set_sync_input(true);
-                            if(type != 'xsd:string'){
-                                if(value == '') value = '0';
-                                set_input_value(''+parseFloat(value));
-                            }
-                        },
-                        onChange(e){
-                            commit_store(d=>{
-                                const coerced = d.mutate.leaf(d, root, term, index, e.target.value);
-                                if(coerced != null) set_input_value(coerced); 
-                            });
-                        }, 
-                    }),
-            ),
-            c('div', {className:icon_css, ...drag, ...drop, style:{zIndex:10}}),
-        )
-    )
+    const drag = draggable(proxy ?? {root, term, stem:{type, value}, index});
+    const drop = droppable(proxy ?? {root, term, index});
+    const content = () => [
+        show_term && c('div', {...drag, ...drop}, readable((typeof show_term==='string') ? show_term : term)),
+        show_icon && c('div', {className:icons.css.cls.generic + ' text-body', ...drag, ...drop}),
+        type == 'xsd:boolean' ? 
+            c(Form.Check, {
+                className:'flex-grow-1 ms-2 mt-2 shadow-none', //4 mt-2 me-4 //style: {transform:'scale(1.8);'},
+                type: 'switch',
+                checked: value, 
+                onChange(e){
+                    commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
+                }, 
+                ...drag,
+            }) : 
+            c('input', {
+                className: 'form-control',
+                style: {height:28, background:'transparent'},
+                value: input_value, 
+                onFocus: ()=> set_sync_input(false),
+                onBlur(e){
+                    set_sync_input(true);
+                    if(type != 'xsd:string'){
+                        if(value == '') value = '0';
+                        set_input_value(''+parseFloat(value));
+                    }
+                },
+                onChange(e){
+                    commit_store(d=>{
+                        const coerced = d.mutate.leaf(d, root, term, index, e.target.value);
+                        if(coerced != null) set_input_value(coerced); 
+                    });
+                }, 
+            }),
+        c('div', {className:icons.css.cls[type], ...drag, ...drop}),
+    ];
+    return c(Token, {content, name:'leaf'});
 }
+
+
+    // const icon_css = classNames(
+    //     'h5 me-2 text-info position-absolute top-50 end-0 translate-middle-y', 
+    //     icons.css.cls[type],
+    // );
+
+// function Leaf({root, term='leaf', type, value, index=0, show_term, show_icon}){ // ...droppable({node, term})
+//     const [input_value, set_input_value] = useState(value);
+//     const [sync_input, set_sync_input] = useState(true);
+//     useEffect(()=>{
+//         if(sync_input) set_input_value(value);
+//     },[value]);
+//     const drag = draggable({root, term, stem:{type, value}, index});
+//     const drop = droppable({root, term, index});
+//     const icon_css = classNames(
+//         'h5 me-2 text-info position-absolute top-50 end-0 translate-middle-y', 
+//         icons.css.cls[type],
+//     );
+//     return(
+//         c('div', {className:'position-relative', tabIndex:0},
+//             c(InputGroup, {//className:'rounded-pill',
+//                 ...drop,
+//                 tabIndex:1,
+//             }, //className:'mb-2' 
+//                 show_term && c(InputGroup.Text, {...drag, className:'user-select-none'}, readable(term)), // bg-body text-primary border-0
+//                 show_icon && c(InputGroup.Text, {...drag, className:icons.css.cls.generic+' text-body'}, ''),
+//                 //!show_term && !show_icon && c(InputGroup.Text, {...drag, className:'bi-grip-vertical'}),
+//                 type == 'xsd:boolean' ?
+//                     c(Form.Check, {
+//                         className:'flex-grow-1 ms-2 mt-2 shadow-none', //4 mt-2 me-4 
+//                         //style: {transform:'scale(1.8);'},
+//                         type:     'switch',
+//                         //label:    readable(t), 
+//                         //disabled: !asset, 
+//                         checked: value, 
+//                         onChange(e){
+//                             commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
+//                         }, 
+//                         ...drag,
+//                     }) : 
+//                     c(Form.Control, {
+//                         //className:'rounded-pill',
+//                         ///////// as:area_tags.includes(t) ? 'textarea' : 'input', 
+//                         ///////// maxLength:64,
+//                         ///////// placeholder:placeholder,  
+//                         ///////// disabled:!asset, 
+//                         value: input_value, 
+//                         onFocus: ()=> set_sync_input(false),
+//                         onBlur(e){
+//                             set_sync_input(true);
+//                             if(type != 'xsd:string'){
+//                                 if(value == '') value = '0';
+//                                 set_input_value(''+parseFloat(value));
+//                             }
+//                         },
+//                         onChange(e){
+//                             commit_store(d=>{
+//                                 const coerced = d.mutate.leaf(d, root, term, index, e.target.value);
+//                                 if(coerced != null) set_input_value(coerced); 
+//                             });
+//                         }, 
+//                     }),
+//             ),
+//             c('div', {className:icon_css, ...drag, ...drop, style:{zIndex:10}}),
+//         )
+//     )
+// }
+
+
+
+
+
+
+
+
 
 
 // c('div', {ref:stem_div},

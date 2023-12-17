@@ -1,4 +1,4 @@
-import {readable, icon} from 'delimit';
+import {readable, icons} from 'delimit';
 
 export const face = {
     name: (d, node)=> {
@@ -10,9 +10,9 @@ export const face = {
     },
     type: (d, node)=> d.type_name(d, node),
     icon(d, node){
-        if(!node) return icon.svg.generic;
-        if(node.type) return icon.svg[node.type];
-        return d.value(d, node,  ['type icon code', 'icon code'], icon.svg.generic);
+        if(!node) return icons.svg.generic;
+        if(node.type) return icons.svg[node.type];
+        return d.value(d, node,  ['type icon code', 'icon code'], icons.svg.generic);
     },
     title(d, node){ //node ? d.face.name(d, node)+ ' ('+d.face.type(d, node)+')' : ''
         const type_name = d.face.type(d, node);

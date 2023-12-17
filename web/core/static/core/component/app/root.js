@@ -4,10 +4,9 @@ import {Outlet, Link, useNavigate} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
-import {Studio_Mode} from '../studio/mode.js';
 import { Confirm } from './confirm.js';
-import {set_store, commit_store, use_store, use_query, use_window_size, 
-        History, pointer, use_mutation, Icon_Title, readable, Button, Toggle_Button} from 'delimit';
+import {set_store, commit_store, use_store, use_query, 
+        pointer, use_mutation, Node_Badge, readable, Token, Toggle_Token} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
@@ -68,7 +67,7 @@ export function Root(){
             c('div',{
                 className: 'z-1 position-absolute top-0 end-0 d-inline-flex', 
             },
-                c(Toggle_Button,{
+                c(Toggle_Token,{
                     name: 'dark_mode',
                     icon: 'bi-moon',
                     active: d => d.theme.mode == 'dark',
@@ -97,8 +96,8 @@ function Account_Menu(){
     if(data?.user) return [
         {name:'Account ('+data.user.firstName+')',  icon:'bi-person', onClick:()=>null},
         {name:'Sign Out', icon:'bi-box-arrow-left', onClick:()=> show_logout(true)}, 
-        ].map(button => c(Button, {group:'account', ...button}));
-    return c(Button, {
+        ].map(button => c(Token, {group:'account', ...button}));
+    return c(Token, {
         name: 'Sign In', 
         icon: 'bi-box-arrow-in-right', 
         onClick: () => show_login(true),
@@ -138,6 +137,8 @@ function Drag(){
     const [springs, api] = useSpring(() => ({x:0, y:0}));
     pointer.spring = api;
     if(!root && !stem) return;
+    const content = () => stem ? c(Node_Badge, {node:stem}) : readable(term);
+    const root_content = () => ['Removed from', c(Node_Badge, {node:root})];
     return(
         c(animated.div,{
             style:{
@@ -146,15 +147,18 @@ function Drag(){
                 ...springs,
             },
         },
-            stem ? c(Icon_Title, {node:stem}) : c(InputGroup.Text, {}, readable(term)),
-            root && c(InputGroup, {className:'ps-4'},
-                c(InputGroup.Text, {}, 'Removed from'),
-                c(Icon_Title, {node:root}),
-            ),
+            c(Token, {content}),
+            root && c(Token, {content:root_content, className:'ps-4'}),
         )
     )
 }
 
+
+// stem ? c(Node_Badge, {node:stem}) : c(InputGroup.Text, {}, readable(term)),
+// root && c(InputGroup, {className:'ps-4'},
+//     c(InputGroup.Text, {}, 'Removed from'),
+//     c(Node_Badge, {node:root}),
+// ),
 
 
 // c(ToggleButton,{
