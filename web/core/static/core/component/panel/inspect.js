@@ -1,95 +1,81 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {Form} from 'react-bootstrap';
-import {use_store, set_store, commit_store, List_View, Node_Token,
-    readable, draggable, droppable, pickable, Node_Badge, icons, Token} from 'delimit';
-import classNames from 'classnames';
+import {use_store, commit_store, List_View, drag_drop,
+    readable, droppable, pickable, Node_Badge, icons, Token} from 'delimit';
 
 export function Inspect(){ 
     const items = use_store(d=> [...d.picked.primary.node]); // const items = use_store(d=> d.picked.primary.node_array); //
     return(
         c('div', { 
-            className:'ms-2',
-            style: {maxHeight: '90vh'}, //overflow:'auto'
+            style: {maxHeight: '90vh'}, // overflow:'auto' // only turn on auto overflow when too high
         },
             c(List_View, {items, 
-                render_item: (node, index) => c(Node_Joint, {node, path:'inspect'}), // term:'node'
+                render_item: node => c(Node_Case, {node, path:'inspect'}), // term:'node'
             }),
-            //items.map(node=> c(Node_Joint, {node, term:'node', path:'inspect', key:node})),
         )
     )
 }
 
-function Node_Joint({root, term, node, index, show_term, path}){
-    const node_joint = use_store(d=> d.node_joint(d, node));
-    if(node_joint.name == 'leaf'){
+function Node_Case({root, term, node, index, show_term, path}){
+    const node_case = use_store(d=> d.node_case(d, node));
+    const edge = {root, term, stem:node, index};
+    const dnd = drag_drop(edge);
+    if(node_case.name == 'leaf'){
         term = term ?? 'leaf';
-        const proxy = root ? {root, term, stem:node, index} : null;
-        return c(Leaf, {root:node, ...node_joint.leaf, proxy, show_term:term, show_icon:true}); 
-    }else if(node_joint == 'missing'){
-        return c(Node_Token, {node,
-            ...droppable({root, term, index}), 
-            ...draggable({root, term, stem:node, index}),
+        const proxy = root ? edge : null;
+        return c(Leaf, {root:node, ...node_case.leaf, proxy, show_term:term, show_icon:true}); 
+    }else if(node_case == 'missing'){
+        return Token({node, ...dnd, ...pickable({node, mode:'secondary'}),
             content:()=>[
                 show_term && readable(term), 
                 c(Node_Badge, {node}),
             ],
         })
     }
-    return c(Node, {root, term, node, index, show_term, path});
+    return c(Node, {dnd, term, node, index, show_term, path});
 }
 
-function Node({root, term, node, index=0, show_term, path}){
+function Node({dnd, term='', node, index=0, show_term, path}){
     path = path + term + node + index;
-    //const open  = use_store(d=> d.inspected.has(path));
-    const items = use_store(d=> [...d.node.get(node).forw.keys()]); // produce changing order of keys ?!?!?!?!
+    const items = use_store(d=> [...d.node.get(node).forw.keys()]); 
     const header = () => [
-        show_term && readable(term),//c('div', {}, readable(term)), //className:'user-select-none'
-        c(Node_Badge, {node}), // rename to badge
+        show_term && readable(term),
+        c(Node_Badge, {node}), 
     ];
-    const header_props = {
-        node,
-        ...droppable({root, term, index}),
-        ...draggable({root, term, stem:node, index}),
-        ...pickable({node, mode:'secondary'}),
-    };
-    return(
-        c(List_View, {items, path, header_props, header,
-            render_item: term => c(Term_Joint, {root:node, term, path}), // key:term
-        })
-    )
+    const header_props = {node, ...dnd, ...pickable({node, mode:'secondary'})};
+    return c(List_View, {items, path, header_props, header,
+        render_item: term => c(Term_Case, {root:node, term, path}), // key:term
+    });
 }
 
-function Term_Joint({root, term, path}){
-    const term_joint = use_store(d=> d.term_joint(d, root, term));
-    if(!term_joint) return;
-    if(term_joint == 'empty'){
-        return c(Token, {
-            ...droppable({root, term}),
-            ...draggable({root, term}),
+function Term_Case({root, term, path}){
+    const term_case = use_store(d=> d.term_case(d, root, term));
+    if(!term_case) return;
+    if(term_case == 'empty'){
+        return Token({...drag_drop({root, term}),
             content:()=>[
                 readable(term),
                 c('div', {className:'text-body'}, 'emtpy'), 
             ],
         })
-    }else if(term_joint.name == 'node'){
-        return c(Node_Joint, {root, term, node:term_joint.node, show_term:true, path});
-    }else if(term_joint.name == 'leaf'){
-        return c(Leaf, {root, term, ...term_joint.leaf, show_term:true});
+    }else if(term_case.name == 'node'){
+        return c(Node_Case, {root, term, node:term_case.node, show_term:true, path});
+    }else if(term_case.name == 'leaf'){
+        return c(Leaf, {root, term, ...term_case.leaf, show_term:true});
     }
     return c(Term, {root, term, path});
 }
 
 function Term({root, term, path}){
     const pth = path + term;
-    //const open = use_store(d=> d.inspected.has(pth));
     const items = use_store(d=> d.node.get(root).forw.get(term));
     return(
         c(List_View, {items, path:pth,
             header_props: droppable({root, term}), 
-            header:()=> readable(term),//c('div', {}, readable(term)), // className:'rounded-pill'
+            header:()=> readable(term),
             render_item(stem, index){
                 if(stem.type) return c(Leaf, {root, term, ...stem, index}); // key:index
-                return c(Node_Joint, {root, term, node:stem, index, path}); // key:index,
+                return c(Node_Case, {root, term, node:stem, index, path}); // key:index,
             }
         })
     )
@@ -101,11 +87,10 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
     useEffect(()=>{
         if(sync_input) set_input_value(value);
     },[value]);
-    const drag = draggable(proxy ?? {root, term, stem:{type, value}, index});
-    const drop = droppable(proxy ?? {root, term, index});
+    const dnd = drag_drop(proxy ?? {root, term, stem:{type, value}, index});
     const content = () => [
-        show_term && c('div', {...drag, ...drop}, readable((typeof show_term==='string') ? show_term : term)),
-        show_icon && c('div', {className:icons.css.cls.generic + ' text-body', ...drag, ...drop}),
+        show_term && c('div', dnd, readable((typeof show_term==='string') ? show_term : term)),
+        show_icon && c('div', {className:icons.css.cls.generic + ' text-body', ...dnd}),
         type == 'xsd:boolean' ? 
             c(Form.Check, {
                 className:'flex-grow-1 ms-2 mt-2 shadow-none', //4 mt-2 me-4 //style: {transform:'scale(1.8);'},
@@ -114,7 +99,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                 onChange(e){
                     commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
                 }, 
-                ...drag,
+                ...dnd,
             }) : 
             c('input', {
                 className: 'form-control',
@@ -135,10 +120,25 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                     });
                 }, 
             }),
-        c('div', {className:icons.css.cls[type], ...drag, ...drop}),
+        c('div', {className:icons.css.cls[type], ...dnd}),
     ];
-    return c(Token, {content, name:'leaf'});
+    return Token({content, name:'leaf'});
 }
+
+
+
+//items.map(node=> c(Node_Case, {node, term:'node', path:'inspect', key:node})),
+
+
+        // ...droppable({root, term, index}),
+        // ...draggable({root, term, stem:node, index}),
+
+    //const drag = draggable(proxy ?? {root, term, stem:{type, value}, index});
+    //const drop = droppable(proxy ?? {root, term, index});
+
+
+            // ...droppable({root, term, index}), 
+            // ...draggable({root, term, stem:node, index}),
 
 
     // const icon_css = classNames(
@@ -221,7 +221,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
 //             (open || vis) && c(animated.div, {style:{...springs}}, //  overflow-hidden className:'ms-4', 
             
 //                 //c('div', {},
-//                     terms.map(term=> c(Term_Joint, {root:node, term, key:term, path})),
+//                     terms.map(term=> c(Term_Case, {root:node, term, key:term, path})),
 //                 //),
 //             ),
 //         ),
@@ -236,7 +236,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
 //         c(Icon_Title, {node}),
 //     ),
 //     c(Accordion.Body, {className:'ps-4'}, 
-//         terms.map(term=> c(Term_Joint, {root:node, term, key:term})),
+//         terms.map(term=> c(Term_Case, {root:node, term, key:term})),
 //     ),
 // )
 
@@ -247,7 +247,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
 //     alwaysOpen: true,
 //     //onSelect(open_keys){},
 // },
-//     nodes.map(node=> c(Node_Joint, {node, key:node})),
+//     nodes.map(node=> c(Node_Case, {node, key:node})),
 // )
 
 
@@ -261,7 +261,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
 //     c(Accordion.Body, {className:'ps-4'}, 
 //         stems.map((stem, index)=>{
 //             if(stem.type) return c(Leaf, {root, term, ...stem, index, key:index});
-//             return c(Node_Joint, {root, term, node:stem, index, key:index, path});
+//             return c(Node_Case, {root, term, node:stem, index, key:index, path});
 //         }),
 //     ),
 // )

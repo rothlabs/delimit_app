@@ -1,12 +1,12 @@
-import {createElement as c, Fragment, useEffect} from 'react';
-import {Container, Row, Col, Nav, Navbar, ToggleButton, InputGroup, Form} from 'react-bootstrap';//'boot';
-import {Outlet, Link, useNavigate} from 'react-router-dom';
+import {createElement as c} from 'react';
+//import {Container, Row, Col, Nav, Navbar, ToggleButton, InputGroup, Form} from 'react-bootstrap';//'boot';
+import {Outlet} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
 import { Confirm } from './confirm.js';
 import {set_store, commit_store, use_store, use_query, 
-        pointer, use_mutation, Node_Badge, readable, Token, Toggle_Token} from 'delimit';
+        pointer, use_mutation, Node_Badge, readable, Token} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
@@ -67,7 +67,7 @@ export function Root(){
             c('div',{
                 className: 'z-1 position-absolute top-0 end-0 d-inline-flex', 
             },
-                c(Toggle_Token,{
+                Token({
                     name: 'dark_mode',
                     icon: 'bi-moon',
                     active: d => d.theme.mode == 'dark',
@@ -96,8 +96,8 @@ function Account_Menu(){
     if(data?.user) return [
         {name:'Account ('+data.user.firstName+')',  icon:'bi-person', onClick:()=>null},
         {name:'Sign Out', icon:'bi-box-arrow-left', onClick:()=> show_logout(true)}, 
-        ].map(button => c(Token, {group:'account', ...button}));
-    return c(Token, {
+        ].map(button => Token({group:'account', ...button}));
+    return Token({
         name: 'Sign In', 
         icon: 'bi-box-arrow-in-right', 
         onClick: () => show_login(true),
@@ -147,8 +147,8 @@ function Drag(){
                 ...springs,
             },
         },
-            c(Token, {content}),
-            root && c(Token, {content:root_content, className:'ps-4'}),
+            Token({content}),
+            root && Token({content:root_content, className:'ps-4'}),
         )
     )
 }

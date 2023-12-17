@@ -130,7 +130,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
         if(!root) return '';
         return d.value(d, root, ['type name', 'type'], '');
     },
-    node_joint(d, root){
+    node_case(d, root){
         if(!d.node.has(root)) return 'missing';
         const forw = d.node.get(root).forw;
         if(!forw.size) return 'empty';
@@ -140,7 +140,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
         if(leaf[0].type) return {name:'leaf', leaf:leaf[0]}; 
         return 'node';
     },
-    term_joint(d, root, term){
+    term_case(d, root, term){
         if(!d.node.has(root)) return;
         const stems = d.node.get(root).forw.get(term);
         if(!stems) return;

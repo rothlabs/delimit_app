@@ -10,17 +10,6 @@ const pointer_style = {
     },
 };
 
-export const draggable = data => {
-    const result = {...pointer_style};
-    result.onPointerDown = e => {
-        if(e.nativeEvent.button != 0) return;
-        pointer.dragging = true;
-        pointer.start.set(e.clientX, e.clientY);
-        set_store(d=> d.drag.staged = data);
-    };
-    return result;
-};
-
 export const droppable = ({root, term, index}) => {
     const result = {...pointer_style};
     result.onPointerEnter = e => {
@@ -35,6 +24,19 @@ export const droppable = ({root, term, index}) => {
     };
     return result;
 };
+
+export const draggable = data => { // rename data to edge
+    const result = {...pointer_style};
+    result.onPointerDown = e => {
+        if(e.nativeEvent.button != 0) return;
+        pointer.dragging = true;
+        pointer.start.set(e.clientX, e.clientY);
+        set_store(d=> d.drag.staged = data);
+    };
+    return result;
+};
+
+export const drag_drop = edge => ({...droppable(edge), ...draggable(edge)});
 
 export const pickable = ({node, mode='all'}) => {
     const result = {...pointer_style};

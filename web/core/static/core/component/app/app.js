@@ -12,28 +12,22 @@ function get_height(id){
     return (element ? element.offsetHeight : 0);
 }
 const transition_config = {
-    from:  {t: 1, opacity:0, y:'50%', transform: 'scaleY(0%)'}, // marginLeft:'-100%',   translateY(150%)
+    from:  {t: 1, opacity:0, y:'-50%', transform: 'scaleY(0%)'}, // marginLeft:'-100%',   translateY(150%)
     enter: {t: 0, opacity:1, y:'0%',   transform: 'scaleY(100%)'}, // marginLeft:'0%',    
-    leave: {t: 1, opacity:0, y:'50%', transform: 'scaleY(0%)'}, // marginLeft:'-100%', 
+    leave: {t: 1, opacity:0, y:'-50%', transform: 'scaleY(0%)'}, // marginLeft:'-100%', 
     //keys: p => p,
     config: { tension: 210, friction: 20, mass: 0.5 },
 };
 export const List_View = ({path, items, header_props={}, header, render_item}) => { 
-    //const body_div = useRef();
-    //const item_div = useRef();
     const open  = use_store(d=> path ? d.inspected.has(path) : true);
     const transition = useTransition(open, transition_config);
     const item_transitions = useTransition(items, transition_config);
-    const arrow_css = classNames(  
-        //'h5', // position-absolute top-50 start-100 translate-middle-y  //  mx-2 mt-2 text-info
-        (open ? icons.css.cls.chevron_down : icons.css.cls.chevron_left),
-    );
     const render_header = () => [
         header(),
-        items.length ? c('div', {className:arrow_css}) : null, 
+        items.length ? c('div', {className:(open ? icons.css.cls.chevron_down : icons.css.cls.chevron_left)}) : null, 
     ];
     return[
-        header && c(header_props.node ? Node_Token : Token, { 
+        header && Token({ 
             name: path, 
             ...header_props,
             onClick: items.length ? e => set_store(d=> d.inspect.toggle(d, {path})) : null,
@@ -41,9 +35,9 @@ export const List_View = ({path, items, header_props={}, header, render_item}) =
         }),
         c('div', {id:'list_header_'+path, className:'ms-4'},
             transition((style, open) => 
-                open && c(animated.div, {style:{...style,  marginTop:style.t.to(t => -get_height('list_header_'+path) * t)  }}, // marginTop:style.t.to(t => -get_height(body_div) * t)  
+                open && c(animated.div, {style:{...style,  marginBottom:style.t.to(t => -get_height('list_header_'+path) * t)  }}, // marginTop:style.t.to(t => -get_height(body_div) * t)  
                     item_transitions((style, item, t, index) => 
-                        c(animated.div, {style:{...style,  marginTop:style.t.to(t => -get_height('list_item_'+path+item+index) * t) }},  // marginTop:style.t.to(t => -get_height(item_div) * t)  
+                        c(animated.div, {style:{...style,  marginBottom:style.t.to(t => -get_height('list_item_'+path+item+index) * t) }},  // marginTop:style.t.to(t => -get_height(item_div) * t)  
                             c('div', {id:'list_item_'+path+item+index},
                                 render_item(item, index),
                             ),
@@ -67,24 +61,22 @@ function make_size(content, width, height){
 }
 
 export function Token(props){
-    if()
+    if(props.active) return c(Toggle_Token, props);
+    if(props.node)   return c(Node_Token, props);
+    return c(Token_Base, props);
 }
-
 export function Toggle_Token(props){
     const active = use_store(d=> props.active(d));
-    return c(Token, {...props, active});
+    return c(Token_Base, {...props, active});
 }
-
 export function Node_Token(props){
     const primary_pick = use_store(d=> d.picked.primary.node.has(props.node));
     const secondary_pick = use_store(d=> d.picked.secondary.node.has(props.node));
-    props.style = {...props.style, 
-        borderLeft:  (primary_pick ?   ('thick solid var(--bs-primary)')   : 'none'),
-        borderRight: (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none'),
-    };
-    return c(Token, props);
+    props.style = props.style ?? {};
+    props.style.borderLeft  = (primary_pick ?   ('thick solid var(--bs-primary)')   : 'none');
+    props.style.borderRight = (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none');
+    return c(Token_Base, props);
 }
-
 export function Token_Base({inner_ref, group, icon, name, content, width, height, style, active, action, commit,
                         onClick, onPointerDown, onPointerUp, onContextMenu}){
     const target = useRef();
@@ -154,7 +146,7 @@ export function Mode_Menu({group, items, state, action, width, height}){
     });
     return[
         items.map(({mode, icon})=>
-            c(Token, {
+            Token({
                 inner_ref: ref,
                 group, 
                 name: readable(mode),//: show_name ? name : null, 
@@ -175,13 +167,12 @@ export function Mode_Menu({group, items, state, action, width, height}){
 export function Node_Badge({node}){ // badge for node (Node_Badge)
     //console.log(node);
     const {icon, title} = use_store(d=> d.face.primary(d, node));
-    const node_joint = use_store(d=> d.node_joint(d, node));
-    
+    const node_case = use_store(d=> d.node_case(d, node));
     //const color = use_store(d=> node.type ? d.color.primary : d.color.body_fg);
     const color = node.type ? 'info' : 'body';
     const size = node.type ? 'h5' : null;
     const className = classNames('user-select-none', 'text-'+color, { // rounded-pill
-        'text-body-secondary': node_joint != 'node',
+        'text-body-secondary': node_case != 'node',
     });
     return c('div', {className:'d-flex gap-1'},
         c(Icon, {icon, color, size}),//c(Svg, {svg:icon, className:'me-1', color, size}),

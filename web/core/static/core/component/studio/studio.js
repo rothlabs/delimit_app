@@ -73,7 +73,7 @@ function History(){
     return [
         {name:'Undo', onClick:()=>undo(), icon:'bi-arrow-left'},
         {name:'Redo', onClick:()=>redo(), icon:'bi-arrow-right'},
-    ].map(props => c(Token, {group:'history', ...props}))
+    ].map(props => Token({group:'history', ...props}))
 }
 
 export function Panel_Mode(){
@@ -98,7 +98,7 @@ export function Leaf_Bar(){
         {name:'Integer', stem:{type:'xsd:integer', value:0}},
         {name:'String',  stem:{type:'xsd:string',  value:'new'}},
         {name:'Boolean', stem:{type:'xsd:boolean', value:true}},
-    ].map(({name, stem}) => c(Token, {group:'new_leaf', name,
+    ].map(({name, stem}) => Token({group:'new_leaf', name,
         icon: icons.css.cls[stem.type],
         ...draggable({stem}),
     }))
@@ -129,7 +129,7 @@ export function Secondary_Action(){
         style: {...style, borderRight:'thick solid var(--bs-secondary)'},
     },[
         {name:'Delete', icon:'bi-x-lg', commit:d=> d.shut.node(d, {node, drop:true})},
-    ].map(button => c(Token, {...button, group:'secondary_action'}))))
+    ].map(button => Token({...button, group:'secondary_action'}))))
 }
 
 export function Topic(){

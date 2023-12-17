@@ -19,10 +19,10 @@ export function Schema(){ // bi-check-square // bi-x-square // acting as root lo
     )
 }
 
-function Node_Joint({root, label, target, target_term, accordion_root}){
-    const node_joint = use_store(d=> d.node_joint(d, root));
-    if(!node_joint) return;
-    if(node_joint == 'leaf') return c(Leaf, {root, term:'leaf', label}); 
+function node_case({root, label, target, target_term, accordion_root}){
+    const node_case = use_store(d=> d.node_case(d, root));
+    if(!node_case) return;
+    if(node_case == 'leaf') return c(Leaf, {root, term:'leaf', label}); 
     return c(Node, {root, label, target, target_term, accordion_root});
 }
 
@@ -53,7 +53,7 @@ function Node({root, label, target, target_term, is_target, accordion_root}){
                 node_header(root, label, icon, name, target, target_term, is_target, type_name)
             ),
             c(Accordion.Body, {className:'ps-4'}, 
-                outlet_terms.map(term=> c(Term_Joint, {root:outlet_root, term, target, target_term, key:outlet_root+term}))
+                outlet_terms.map(term=> c(term_case, {root:outlet_root, term, target, target_term, key:outlet_root+term}))
             )
         )
     )
@@ -83,12 +83,12 @@ function node_header(root, label, icon, name, target, target_term, is_target, ty
     ]
 }
 
-function Term_Joint({root, term, target, target_term}){
-    const term_joint = use_store(d=> d.term_joint(d, root, term));
-    if(!term_joint) return;
-    if(term_joint.name == 'node'){
-        return c(Node_Joint, {root:term_joint.node, label:term, target, target_term, accordion_root:root});
-    }else if(term_joint == 'leaf'){
+function term_case({root, term, target, target_term}){
+    const term_case = use_store(d=> d.term_case(d, root, term));
+    if(!term_case) return;
+    if(term_case.name == 'node'){
+        return c(node_case, {root:term_case.node, label:term, target, target_term, accordion_root:root});
+    }else if(term_case == 'leaf'){
         return c(Leaf, {root, term, label:term});
     }
     return c(Term, {root, term, target, target_term});
@@ -105,7 +105,7 @@ function Term({root, term, target, target_term}){
                 stems.map((stem, index)=>{
                     const key = term + stem;
                     if(stem.type) return c(Leaf, {root, term, index, key});
-                    return c(Node_Joint, {root:stem, target, target_term, accordion_root:root, key,});
+                    return c(node_case, {root:stem, target, target_term, accordion_root:root, key,});
                 }),
             ),
         )
@@ -139,18 +139,18 @@ function Leaf({root, term, index, label}){ // need MAKE button for leaf?! #1
 // function node_content(root, target, target_term, is_target, type_name){
 //     if(is_target) return c(Target_Content, {root, target});
 //     if(['Root', 'Term'].includes(type_name)){
-//         return logic_terms.map(term=> c(Term_Joint, {root, term, target, target_term, key:root+term}));
+//         return logic_terms.map(term=> c(term_case, {root, term, target, target_term, key:root+term}));
 //     }else if(type_name == 'Stem'){
-//         return stem_type_terms.map(term=> c(Term_Joint, {root, term, key:root+term})); //return c(Stem_Type_Content, {root});
+//         return stem_type_terms.map(term=> c(term_case, {root, term, key:root+term})); //return c(Stem_Type_Content, {root});
 //     }
 // }
 // function Target_Content({root, target}){
 //     const type  = use_store(d=> d.stem(d, root, 'type'));
-//     return logic_terms.map(term=> c(Term_Joint, {root:type, term, target, key:type+term}));
+//     return logic_terms.map(term=> c(term_case, {root:type, term, target, key:type+term}));
 // }
 
 
 //function Stem_Type_Content({root}){
     //const terms = use_store(d=> [...d.node.get(root).forw.keys()]); 
-    //return terms.map(term=> c(Term_Joint, {root, term, key:root+term}));
+    //return terms.map(term=> c(term_case, {root, term, key:root+term}));
 //}

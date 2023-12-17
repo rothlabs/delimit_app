@@ -45,10 +45,7 @@ function Root_Type({type}){
     const icon = use_store(d=> d.value(d, type, 'icon code', icons.css.cls.generic));
     const name = use_store(d=> d.value(d, type, 'name', 'Node'));
     return(
-        c(Token, {
-            icon, 
-            name, 
-            content: 'badge',
+        Token({icon, name, content:'badge',
             commit: d => d.make.node(d, {type, repo:'target'}),
         })
     )

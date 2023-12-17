@@ -7,7 +7,7 @@ export function Home(){
     return[
         render_header(() => 
             c('div', {
-                className:'position-relative d-inline-flex',
+                className:'d-inline-flex', // position-relative 
             },
                 c(Nav_Menu),
             ),
@@ -20,5 +20,5 @@ function Nav_Menu(){
     return [
         {name:'Shop',   onClick:()=>navigate('shop'),   icon:'bi-bag'},
         {name:'Studio', onClick:()=>navigate('studio'), icon:'bi-palette2'},
-    ].map(props => c(Token, {group:'history', ...props, content:'badge'}))
+    ].map(props => Token({group:'history', ...props, content:'badge'}))
 }

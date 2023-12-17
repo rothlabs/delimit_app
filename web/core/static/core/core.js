@@ -13,7 +13,7 @@ export {use_query, use_mutation} from './app/gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
 export {List_View, Token, Mode_Menu, Node_Badge, Svg} from './component/app/app.js';
-export {pickable, draggable, droppable} from './app/pick.js';
+export {pickable, draggable, droppable, drag_drop} from './app/pick.js';
 export {icons} from './app/icon.js';
 export {Make_Node} from './component/panel/make_node.js';
 export {Make_Repo} from './component/panel/make_repo.js';
