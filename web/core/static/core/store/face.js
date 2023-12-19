@@ -1,4 +1,5 @@
 import {readable, icons} from 'delimit';
+import isSvg from 'is-svg';
 
 export const face = {
     name: (d, node)=> {
@@ -12,7 +13,8 @@ export const face = {
     icon(d, node){
         if(!node) return icons.svg.generic;
         if(node.type) return icons.svg[node.type];
-        return d.value(d, node,  ['type icon code', 'icon code'], icons.svg.generic);
+        const icon_string = d.value(d, node,  ['type icon source', 'icon source'], icons.svg.generic);
+        return isSvg(icon_string) ? icon_string : icons.svg.generic;
     },
     title(d, node){ //node ? d.face.name(d, node)+ ' ('+d.face.type(d, node)+')' : ''
         const type_name = d.face.type(d, node);

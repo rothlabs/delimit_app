@@ -96,19 +96,19 @@ class Make_Repo(graphene.Mutation):
                     'context': [delimit_leaf_node],
                 }))).add_triple(type_icon_code, '@schema:__forw__', wq().string(json.dumps({
                     'name':     [{'type':'xsd:string', 'value':'Type Icon'}],
-                    'code':     [{'type':'xsd:string', 'value':menu_button_svg}],
+                    'source':   [{'type':'xsd:string', 'value':menu_button_svg}],
                     'language': [{'type':'xsd:string', 'value':'SVG'}],
                 }))).add_triple(abc_icon_code, '@schema:__forw__', wq().string(json.dumps({
-                    'name':     [{'type':'xsd:string', 'value':'Term Icon'}],
-                    'code':     [{'type':'xsd:string', 'value':abc_svg}],
+                    'name':     [{'type':'xsd:string', 'value':'Text Icon'}],
+                    'source':   [{'type':'xsd:string', 'value':abc_svg}],
                     'language': [{'type':'xsd:string', 'value':'SVG'}],
                 }))).add_triple(plus_icon_code, '@schema:__forw__', wq().string(json.dumps({
-                    'name':     [{'type':'xsd:string', 'value':'Make Icon'}],
-                    'code':     [{'type':'xsd:string', 'value':plus_square_svg}],
+                    'name':     [{'type':'xsd:string', 'value':'Plus Icon'}],
+                    'source':     [{'type':'xsd:string', 'value':plus_square_svg}],
                     'language': [{'type':'xsd:string', 'value':'SVG'}],
                 }))).add_triple(code_icon_code, '@schema:__forw__', wq().string(json.dumps({
-                    'name':     [{'type':'xsd:string', 'value':'Code Icon'}],
-                    'code':     [{'type':'xsd:string', 'value':braces_svg}],
+                    'name':     [{'type':'xsd:string', 'value':'Braces Icon'}],
+                    'source':   [{'type':'xsd:string', 'value':braces_svg}],
                     'language': [{'type':'xsd:string', 'value':'SVG'}],
                 }))).add_triple(icon_term, '@schema:__forw__', wq().string(json.dumps({
                     'name':     [{'type':'xsd:string', 'value':'Icon'}],
@@ -136,15 +136,16 @@ class Make_Repo(graphene.Mutation):
                     'icon':     [plus_icon_code],
                 }))).add_triple(minimum_term, '@schema:__forw__', wq().string(json.dumps({
                     'name':     [{'type':'xsd:string', 'value':'Minimum'}],
-                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'type':     [term_type],
                 }))).add_triple(maximum_term, '@schema:__forw__', wq().string(json.dumps({
                     'name':     [{'type':'xsd:string', 'value':'Maximum'}],
-                    'type':     [{'type':'xsd:string', 'value':'Term'}],
+                    'type':     [term_type],
                 }))).add_triple(code_term, '@schema:__forw__', wq().string(json.dumps({
                     'name':     [{'type':'xsd:string', 'value':'Code'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [code_icon_code],
                     'required': [code_stem],
+                    'make':     [code_stem],
                 }))).add_triple(required_term, '@schema:__forw__', wq().string(json.dumps({
                     'name':     [{'type':'xsd:string', 'value':'Required'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],

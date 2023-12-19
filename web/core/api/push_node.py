@@ -16,25 +16,43 @@ class Push_Node(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, client, repo, node, forw):
         try: 
-            #print('push node start time: '+str(time.time()));
+            
             #print('repo, node: '+str(repo)+', '+str(node))
             user = info.context.user
             if not user.is_authenticated:
                 return Push_Node(reply = auth_required_message)
             team = Repo.objects.get(repo=repo).team
             team, gdb_user = gdb_connect(user, team=team, repo=repo)
+            #print('push node start time: '+str(time.time()))
             query = wq()
             for node, forw in zip(node, forw):
                 delete = wq().triple(node, '@schema:__forw__', 'v:obj').delete_triple(node, '@schema:__forw__', 'v:obj')
                 query.woql_or(delete, wq().add_triple(node, '@schema:__forw__', wq().string(forw))) 
                 #print('add and delete triple time: '+str(time.time()))
             query.execute(gdbc)
-            #print('end time: '+str(time.time()));
+            #print('end time: '+str(time.time()))
             return Push_Node(reply='Push node complete') 
         except Exception as e: 
             print('Error: Push_Node')
             print(str(e))
             return Push_Node(reply = 'Error, Push_Node: '+str(e))
+
+
+
+
+# subj = 'id_string' 
+# obj = 'some string' # 200 to 300 characters
+# delete_query = wq().triple(subj, '@schema:predicate', 'v:obj')
+#     .delete_triple(subj, '@schema:predicate', 'v:obj')
+# query.woql_or(
+#     delete_query, 
+#     wq().add_triple(subj, '@schema:predicate', wq().string(obj))) 
+# print('start time: '+str(time.time()))
+# query.execute(client)
+# print('end time: '+str(time.time())) 
+
+
+
 
 
         #     delete_triples = wq().select(root, 'v:term', 'v:stem').woql_and(

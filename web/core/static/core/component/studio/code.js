@@ -1,29 +1,57 @@
-import {createElement as c, useState} from 'react';
+import {createElement as c, useEffect, useState} from 'react';
 //import Editor from 'react-simple-code-editor';
 import Editor from '@monaco-editor/react';
-import {set_store, use_store, get_store} from 'delimit';
+import {use_store, commit_store} from 'delimit';
+
+//const default_code = '// Select a Code node';
 
 
 export function Code(){
-    const n = use_store(d=> d.pick.n[0]);
-    const d = get_store();
-    let code = '// Select a Code node to edit.';
-    try{
-        code = d.n[d.n[n].n.code[0]].v;
-    }catch{}
-    return(
-        c(Editor, {
-            height: '80vh', 
-            defaultLanguage: 'javascript', 
-            defaultValue: code,
-            onChange: code=>{
-                set_store(d=>{
-                    d.graph.set(d, n, {code});
-                });
-            },
-        }) 
-    );
+    const node = use_store(d=> d.picked.primary.node.keys().next().value);
+    let code = use_store(d=> d.value(d, node, 'source', '// Select a Code node'))
+    useEffect(() => {
+        return () => {
+            commit_store(d=> {
+                if(!d.value(d, node, 'source')) return;//if(!d.node.get(node).forw.get('code')[0].value) return;
+                d.mutate.leaf(d, node, 'source', 0, code);
+            });
+        }
+    }, []);
+    return c(Editor, {
+        height: '100%', //height: '100vh', 
+        defaultLanguage: 'javascript', 
+        defaultValue: code,
+        onChange: new_code=>{
+            code = new_code;
+        },
+    });
 }
+
+            // setTimeout(()=>{
+
+            // }, 4000);
+            // set_store(d=>{
+            //     d.mutate.leaf(d, root, term, index, code)
+            //     d.graph.set(d, n, {code});
+            // });
+
+    // let code = use_store(d=> {
+    //     try{
+    //         const code_string = d.node.get(node).forw.get('code')[0].value;
+    //         return code_string ?? default_code;
+    //     }catch{}
+    //     return default_code;
+    // });
+
+// c('div', {
+//     classname:'',
+// },
+// )
+
+// commit_store(d=>{
+//     const coerced = d.mutate.leaf(d, root, term, index, e.target.value);
+//     if(coerced != null) set_input_value(coerced); 
+// });
 
 
 

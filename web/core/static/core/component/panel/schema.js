@@ -1,156 +1,98 @@
 import {createElement as c, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, set_store, commit_store, get_store, Svg, readable, snake_case} from 'delimit';
+import {use_store, Token, List_View, Badge, readable, snake_case} from 'delimit';
 
 const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
 
-export function Schema(){ // bi-check-square // bi-x-square // acting as root logic
-    const nodes = use_store(d=> [...d.picked.primary.node].filter(root=> d.node.has(d.stem(d, root, 'type'))));
-    return(
-        c(Accordion, { // onSelect(keys){}
-            //className:'ms-2 mt-2 me-1', 
-            key: nodes[0],
-            defaultActiveKey: ['schema'+nodes[0]], 
-            alwaysOpen:true,
-        },
-            nodes.map(root=> c(Node, {root, target:root, is_target:true, key:root, accordion_root:'schema'})), 
-        )
-    )
+export function Schema(){ 
+    const items = use_store(d=> [...d.picked.primary.node].filter(node=> d.node.has(d.stem(d, node, 'type')))); 
+    return c(List_View, {items, 
+        render_item: node => c(Node, {node, target:node, path:'schema'}), 
+    })  
 }
 
-function node_case({root, label, target, target_term, accordion_root}){
-    const node_case = use_store(d=> d.node_case(d, root));
-    if(!node_case) return;
-    if(node_case == 'leaf') return c(Leaf, {root, term:'leaf', label}); 
-    return c(Node, {root, label, target, target_term, accordion_root});
+function Node_Case({term, node, index, target, target_term, show_term, path}){
+    const node_case = use_store(d=> d.node_case(d, node));
+    if(node_case == 'missing'){
+        return Token({node,
+            content:[
+                show_term && readable(term), 
+                c(Badge, {node}),
+            ],
+        })
+    }
+    if(node_case.name == 'leaf') return Leaf({term, ...node_case.leaf, show_term}); 
+    return c(Node, {term, node, index, target, target_term, show_term, path});
 }
 
-function Node({root, label, target, target_term, is_target, accordion_root}){
-    const name       = use_store(d=> d.value(d, root, 'name', '')); // d.face.name(d, root)
-    const type       = use_store(d=> d.stem(d, root, 'type'));
-    const type_name  = use_store(d=> d.type_name(d, root)); // change from face.type to type_name
-    const icon       = use_store(d=> d.face.icon(d, root));
-    const root_terms = use_store(d=> [...d.node.get(root).forw.keys()]);
-    const terms      = use_store(d=> is_target ? [...d.node.get(type).forw.keys()] : root_terms);
-    let outlet_root = root;
-    let outlet_terms = [];
-    if(is_target){
-        outlet_root = type;
-        outlet_terms = logic_terms;
+function Node({term='', node, index, target, target_term, show_term, path}){ // , is_target, accordion_node
+    path = path + term + node + index;
+    const targeted = (node == target);
+    const name       = use_store(d=> d.value(d, node, 'name', '')); // d.face.name(d, node)
+    const type       = use_store(d=> d.stem(d, node, 'type'));
+    const type_name  = use_store(d=> d.type_name(d, node)); // change from face.type to type_name
+    let root = node;
+    let terms = [];
+    if(targeted){
+        root = type;
+        terms = logic_terms;
     }else if(['Root', 'Term'].includes(type_name)){
         if(type_name == 'Term') target_term = snake_case(name);
-        outlet_terms = logic_terms;
+        terms = logic_terms;
     }else if(type_name == 'Stem'){
-        outlet_terms = stem_type_terms;
+        terms = stem_type_terms;
     }
-    if(!terms.some(term => outlet_terms.includes(term))){
-        return c(InputGroup, {}, node_header(root, label, icon, name, target, target_term, is_target, type_name));
-    }
-    return(
-        c(Accordion.Item, {eventKey:accordion_root+root},  
-            c(Accordion.Header, {className:'pe-2'}, 
-                node_header(root, label, icon, name, target, target_term, is_target, type_name)
-            ),
-            c(Accordion.Body, {className:'ps-4'}, 
-                outlet_terms.map(term=> c(term_case, {root:outlet_root, term, target, target_term, key:outlet_root+term}))
-            )
-        )
-    )
-}
-
-function node_header(root, label, icon, name, target, target_term, is_target, type_name){
-    return[
-        !is_target && c(Button, {variant:'outline-primary', className:'bi-plus-square border-0',
-            onClick(e){
-                e.stopPropagation();
-                commit_store(d=>{
-                    if(type_name == 'Root'){
-                        d.build.root(d, target, root);
-                    }else if(type_name == 'Term'){
-                        d.build.term(d, target, root);
-                    }else if(type_name == 'Stem'){ 
-                        d.build.stem(d, {root:target, term:target_term, stem:root});
-                    }
-                });
+    const items = use_store(d=> [...d.node.get(root).forw.keys()].filter(term=> terms.includes(term)));
+    const header = [
+        show_term && readable(term),
+        c(Badge, {node}),
+    ];
+    const header_addon = !targeted && {
+        icon:'bi-plus-square', 
+        commit(d){
+            if(type_name == 'Root'){
+                d.build.root(d, target, node);
+            }else if(type_name == 'Term'){
+                d.build.term(d, target, node);
+            }else if(type_name == 'Stem'){ 
+                d.build.stem(d, {root:target, term:target_term, stem:node});
             }
-        }),
-        label  && c(InputGroup.Text, {}, readable(label)), 
-        c(InputGroup.Text, {className:'text-body'}, 
-            c(Svg, {svg:icon, className:'me-1'}), 
-            name + ' ('+type_name+')',
-        ),
-    ]
+        }
+    };
+    return c(List_View, {items, path, header, header_addon,
+        render_item: term => c(Term_Case, {root, term, target, target_term, path}), // key:term
+    });
 }
 
-function term_case({root, term, target, target_term}){
+function Term_Case({root, term, target, target_term, path}){
     const term_case = use_store(d=> d.term_case(d, root, term));
     if(!term_case) return;
     if(term_case.name == 'node'){
-        return c(node_case, {root:term_case.node, label:term, target, target_term, accordion_root:root});
-    }else if(term_case == 'leaf'){
-        return c(Leaf, {root, term, label:term});
+        return c(Node_Case, {term, node:term_case.node, target, target_term, show_term:true, path});
+    }else if(term_case.name == 'leaf'){
+        return Leaf({term, ...term_case.leaf, show_term:true});
     }
-    return c(Term, {root, term, target, target_term});
+    return c(Term, {root, term, target, target_term, path});
 }
 
-function Term({root, term, target, target_term}){
-    const stems = use_store(d=> d.node.get(root).forw.get(term));
+function Term({root, term, target, target_term, path}){
+    const pth = path + term;
+    const items = use_store(d=> d.node.get(root).forw.get(term));
     return(
-        c(Accordion.Item, {eventKey:root+term},
-            c(Accordion.Header, {className:'pe-2'}, 
-                c(InputGroup.Text, {}, readable(term)),
-            ),
-            c(Accordion.Body, {className:'ps-4'}, 
-                stems.map((stem, index)=>{
-                    const key = term + stem;
-                    if(stem.type) return c(Leaf, {root, term, index, key});
-                    return c(node_case, {root:stem, target, target_term, accordion_root:root, key,});
-                }),
-            ),
-        )
+        c(List_View, {items, path:pth,
+            header: readable(term),
+            render_item(stem, index){
+                if(stem.type) return Leaf({term, ...stem}); // key:index
+                return c(Node_Case, {term, node:stem, target, target_term, index, path}); // key:index,
+            }
+        })
     )
 }
 
-function Leaf({root, term, index, label}){ // need MAKE button for leaf?! #1 
-    if(term == 'leaf' || label) index = 0;
-    const leaf = use_store(d=> d.node.get(root).forw.get(term)[index]);
-    return(
-        c(InputGroup, {}, //className:'mb-2' 
-            label  && c(InputGroup.Text, {}, readable(label)), 
-            term == 'leaf' && c(InputGroup.Text, {className:'bi-box text-body'}, ''),
-            leaf.type == 'xsd:boolean' ?
-                c(Form.Check, {
-                    className:'flex-grow-1 ms-2 mt-2',
-                    type:     'switch',
-                    checked:  leaf.value, 
-                }) :  
-                c(Form.Control, {
-                    value: leaf.value, 
-                }),
-            ///c(Buttons, {t:t}),
-        )
-    )
+function Leaf({term, type, value, show_term}){ // need MAKE button for leaf?! #1 
+    return Token({content:[
+        show_term && readable(term),
+        c('div', {className:'text-body'} ,''+value),
+    ]});
 }
-
-
-//node_content(root, target, target_term, is_target, type_name), // c(Node_Content_Joint, {target, type_name}),
-
-// function node_content(root, target, target_term, is_target, type_name){
-//     if(is_target) return c(Target_Content, {root, target});
-//     if(['Root', 'Term'].includes(type_name)){
-//         return logic_terms.map(term=> c(term_case, {root, term, target, target_term, key:root+term}));
-//     }else if(type_name == 'Stem'){
-//         return stem_type_terms.map(term=> c(term_case, {root, term, key:root+term})); //return c(Stem_Type_Content, {root});
-//     }
-// }
-// function Target_Content({root, target}){
-//     const type  = use_store(d=> d.stem(d, root, 'type'));
-//     return logic_terms.map(term=> c(term_case, {root:type, term, target, key:type+term}));
-// }
-
-
-//function Stem_Type_Content({root}){
-    //const terms = use_store(d=> [...d.node.get(root).forw.keys()]); 
-    //return terms.map(term=> c(term_case, {root, term, key:root+term}));
-//}

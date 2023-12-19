@@ -44,10 +44,13 @@ build.term = (d, root, term_type) =>{
         d.make.edge(d, {root, term, stem});
         //if(d.make.edge(d, {root, term, stem})) empty = false;
     }
-    for(const stem of d.stems(d, term_type, 'make')){
+    for(const stem of d.stems(d, term_type, 'make')){ // ['make', 'required']
         d.build.stem(d, {root, term, stem});
         //if(d.build.stem(d, {root, term, stem})) empty = false;
     }
+    // for(const stem of d.stems(d, term_type, 'required')){
+
+    // }
     //if(empty){
         // const empty = d.make.node(d, {});
         // d.make.edge(d, {root, term, stem:empty});
@@ -67,7 +70,7 @@ build.stem = (d, {root, term, stem}) =>{
         if(stem_type_context == d.value(d, context, 'name')){
             for(const type of d.stems(d, context, 'types')){
                 if(stem_type_name == d.value(d, type, 'name')){ // d.face.name(d, type)
-                    const stem = d.make.node(d, {type});
+                    const stem = d.make.node(d, {type, repo:'target'});
                     d.make.edge(d, {root, term, stem});
                     return true;
                 }

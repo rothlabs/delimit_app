@@ -12,6 +12,7 @@ import {graph} from './graph.js';
 import * as make from './make.js';
 import * as drop from './drop.js';
 import * as inspect from './inspect.js';
+import * as remake from './remake.js';
 import {client} from 'delimit';
 
 //console.log(theme);
@@ -41,6 +42,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
     ...make,
     ...drop,
     ...inspect,
+    ...remake,
     face,
     design,
     graph,
@@ -69,8 +71,8 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
     mutate:{
         leaf(d, root, term, index, value){
-            console.log(root, term);
-            console.log([...d.node.get(root).forw]);
+            //console.log(root, term);
+            //console.log([...d.node.get(root).forw]);
             const leaf = d.node.get(root).forw.get(term)[index];
             let coerced = value;
             if(typeof coerced == 'boolean' && leaf.type == 'xsd:boolean'){
@@ -251,82 +253,67 @@ export const store = {//export const create_base_slice = (set,get)=>({
     },
 
     send_data(d, patches){ // change to send patches directly to server (filtering for patches that matter)
-        console.log('patches', patches);
-        //let repos = new Map();
+        //console.log('patches', patches);
         const push = new Map();
         const shut = new Map();
         const drop = new Map();
-        // const shut = [];
-        // const drop = [];
-        // function handle_repo(repo){
-        //     if(d.closed.repo.has(repo))  shut.push(repo);
-        //     if(d.dropped.repo.has(repo)) drop.push(repo);
-        // }
-        function handle_node(node){
-            if(d.node.has(node)){
-                const repo = d.node.get(node).repo;
+        function handle_node({path, op, value}){
+            console.log('patch', path, op);
+            const node = path[1];
+            function push_node(node_obj){
+                const repo = node_obj.repo;
                 if(!d.repo.has(repo)) return;
                 if(!push.has(repo)) push.set(repo, {node:new Set(), forw:new Set()});
                 const repo_push = push.get(repo);
                 if(repo_push.node.size < repo_push.node.add(node).size){
-                    repo_push.forw.add(JSON.stringify(Object.fromEntries(d.node.get(node).forw)));
+                    repo_push.forw.add(JSON.stringify(Object.fromEntries(node_obj.forw)));
                 }
-            }else if(d.closed.node.has(node)){
-                const repo = d.closed.node.get(node);
-                if(!d.repo.has(repo)) return;
-                if(!shut.has(repo)) shut.set(repo, new Set());
-                shut.get(repo).add(node);
-            }else if(d.dropped.node.has(node)){
-                const repo = d.dropped.node.get(node);
+            }
+            function drop_node(repo){
                 if(!d.repo.has(repo)) return;
                 if(!drop.has(repo)) drop.set(repo, new Set());
                 drop.get(repo).add(node);
             }
-            
-            // if(!repos.has(repo)) repos.set(repo, {push: new Set(), shut: new Set(), drop: new Set(), node:[]});
-            // if(action == 'shut') repos.get(repo).shut.add(node);
-            // if(action == 'push'){repos.get(repo).push.add(node);
-            // if(action == 'drop') repos.get(repo).drop.add(node);
+            if(op == 'add' || op == 'replace'){
+                if(d.node.has(node)){
+                    console.log('send push node');
+                    push_node(d.node.get(node));
+                }else if(path.length == 2){
+                    console.log('undo send push node');
+                    push_node(value);
+                }
+            }else if(op == 'remove'){
+                if(d.closed.node.has(node)){
+                    console.log('send close node');
+                    const repo = d.closed.node.get(node);
+                    if(!d.repo.has(repo)) return;
+                    if(!shut.has(repo)) shut.set(repo, new Set());
+                    shut.get(repo).add(node);
+                }else if(d.dropped.node.has(node)){
+                    console.log('send drop node');
+                    drop_node(d.dropped.node.get(node));
+                }else if(path.length == 2){
+                    console.log('undo send drop node');
+                    drop_node(d.node.get(node).repo);
+                }
+            }
         }
-        for(const patch of patches){ // top level patch.path[0]=='n' ?
-            //if(patch.path[0] == 'repo') handle_repo(patch.path[1]);
-            if(patch.path[0] == 'node' && patch.path[2] != 'back') handle_node(patch.path[1]);
+        for(const patch of patches){ 
+            if(patch.path[0] == 'node' && patch.path[2] != 'back') handle_node(patch);
         }
         
         for(let [repo, {node, forw}] of push){
-            //if(!repo) continue;
-            console.log('push node', repo, node, forw);
+            //console.log('push node', repo, node, forw);
             d.mutation.push_node({variables:{client, repo, node:[...node], forw:[...forw]}});
         }
         for(const [repo, node] of shut){
-            //if(!repo) continue;
-            console.log('shut node', node);
+            //console.log('shut node', node);
             d.mutation.shut_node({variables:{client, repo, node:[...node]}});
         }
         for(const [repo, node] of drop){
-            //if(!repo) continue;
-            console.log('drop node', node);
+            //console.log('drop node', node);
             d.mutation.drop_node({variables:{client, repo, node:[...node]}});
         }
-        // for(const [repo, obj] of repos.entries()){
-        //     [...obj.push].map()
-        //     const node_obj = {};
-        //     for(const node of obj.push){
-        //         Object.from(d.node.get(node).forw)
-        //         // for(let [term, stem] of d.forw(d, root, {leaf:true})){
-        //         //     if(node_obj)
-        //         //     if(stem.type) stem = {'@type':stem.type, '@value':stem.value};
-        //         //     obj.triples.push({root, term, stem}); // '@schema:':
-        //         // }
-        //     }
-        //     if(obj.push.size) d.mutation.push_node({variables:{repo, triples:obj.triples}});
-        //     if(obj.shut.size) d.mutation.shut_node({variables:{repo, nodes:[...obj.shut]}});
-        //     if(obj.drop.size) d.mutation.drop_node({variables:{repo, nodes:[...obj.drop]}});
-        // }
-        // // if(shut.length) d.mutation.shut_repo({variables:{repos:shut}});
-        // // if(drop.length) d.mutation.drop_repo({variables:{repos:drop}});
-        // const data = {push:Object.fromEntries(push), shut, drop}
-        // console.log('send data', data);
     },
 
     receive_data:(d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
@@ -366,6 +353,49 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
 };//);
 
+
+
+            // if(d.node.has(node)){
+            //     console.log('send push node');
+            //     //const repo = d.node.get(node).repo;
+            //     push_node(d.node.get(node));
+            //     // if(!d.repo.has(repo)) return;
+            //     // if(!push.has(repo)) push.set(repo, {node:new Set(), forw:new Set()});
+            //     // const repo_push = push.get(repo);
+            //     // if(repo_push.node.size < repo_push.node.add(node).size){
+            //     //     repo_push.forw.add(JSON.stringify(Object.fromEntries(d.node.get(node).forw)));
+            //     // }
+            // }else if(d.closed.node.has(node)){
+            //     console.log('send close node');
+            //     const repo = d.closed.node.get(node);
+            //     if(!d.repo.has(repo)) return;
+            //     if(!shut.has(repo)) shut.set(repo, new Set());
+            //     shut.get(repo).add(node);
+            // }else if(d.dropped.node.has(node)){
+            //     console.log('send drop node');
+            //     drop_node(d.dropped.node.get(node));
+            //     // const repo = d.dropped.node.get(node);
+            //     // if(!d.repo.has(repo)) return;
+            //     // if(!drop.has(repo)) drop.set(repo, new Set());
+            //     // drop.get(repo).add(node);
+            // }else if(op == 'add' && path.length == 2){
+            //     console.log('undo send push node');
+            //     push_node(value);
+            //     //const repo = value.repo;
+            //     // if(!d.repo.has(repo)) return;
+            //     // if(!push.has(repo)) push.set(repo, {node:new Set(), forw:new Set()});
+            //     // const repo_push = push.get(repo);
+            //     // if(repo_push.node.size < repo_push.node.add(node).size){
+            //     //     repo_push.forw.add(JSON.stringify(Object.fromEntries(value.forw)));
+            //     // }
+            // }else if(path.length == 2 && op == 'remove'){
+            //     console.log('undo send drop node');
+            //     drop_node(d.node.get(node).repo);
+            //     // const repo = d.node.get(node).repo;
+            //     // if(!d.repo.has(repo)) return;
+            //     // if(!drop.has(repo)) drop.set(repo, new Set());
+            //     // drop.get(repo).add(node);
+            // }
 
 
 // for(const [repo, obj] of repos.entries()){

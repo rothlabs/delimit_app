@@ -13,11 +13,7 @@ export const make = {};
 make.node = (d, {node, repo, given, type})=>{ 
     node = node ?? make_id();
     if(!(given || d.write_access(d, node))) return;
-    if(repo == 'target'){
-        //if(d.picked.target.repo.size) repo = d.picked.target.repo.keys()[0];
-        repo = d.targeted.repo;
-    }
-    //repo = repo ?? d.picked.target.repo;
+    if(repo == 'target') repo = d.targeted.repo;
     d.drop.edge(d, {root:node, given}); 
     d.node.set(node, {
         forw: new Map(), // key:term,  value:[stem or leaf_obj]

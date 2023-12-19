@@ -72,6 +72,13 @@ target.repo = (d, repo) => {
     d.targeted.repo = repo;
 }
 
+export function pick_back(d, {node}){
+    d.unpick(d, {mode:'primary'});
+    for(const n of d.iterable(node)){
+        for(const [root] of d.back(d, n)) d.pick(d, {node:root, multi:true});
+    }
+};
+
 
 // for(const mode_obj of Object.keys(d.picked)){
 //     for(const picked of Object.keys(mode_obj)){

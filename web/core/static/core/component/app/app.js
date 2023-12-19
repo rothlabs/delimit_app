@@ -4,6 +4,20 @@ import {use_store, set_store, commit_store, icons, readable, assess} from 'delim
 import classNames from 'classnames';
 import {animated, useSpring, useTransition} from '@react-spring/web';
 
+const square_size = 45;
+const rect_height = 32;
+
+function make_size(content, width, height){
+    if(width == null){
+        if(!content) width = square_size;
+    }
+    if(height == null){
+        if(!content) height = square_size;
+        else height = rect_height;
+    }
+    return {width, height};
+}
+
 function get_height(id){
     const element = document.getElementById(id);
     return (element ? element.offsetHeight : 0);
@@ -15,7 +29,7 @@ const transition_config = {
     //keys: p => p,
     config: { tension: 210, friction: 20, mass: 0.5 },
 };
-export const List_View = ({path, items, header_props={}, header, render_item}) => { 
+export const List_View = ({path, items, header_props={}, header, render_item, header_addon}) => { 
     const open  = use_store(d=> path ? d.inspected.has(path) : true);
     const transition = useTransition(open, transition_config);
     const item_transitions = useTransition(items, transition_config);
@@ -24,12 +38,15 @@ export const List_View = ({path, items, header_props={}, header, render_item}) =
         items.length ? c('div', {className:(open ? icons.css.cls.chevron_down : icons.css.cls.chevron_left)}) : null, 
     ];
     return[
-        header && Token({ 
-            name: path, 
-            ...header_props,
-            onClick: items.length ? e => set_store(d=> d.inspect.toggle(d, {path})) : null,
-            content: render_header,
-        }),
+        header && c('div', {className:'d-inline-flex'}, 
+            header_addon && Token({...header_addon, width:rect_height, height:rect_height}),
+            Token({ 
+                name: path, 
+                ...header_props,
+                onClick: items.length ? e => set_store(d=> d.inspect.toggle(d, {path})) : null,
+                content: render_header,
+            }),
+        ),
         c('div', {id:'list_header_'+path, className:'ms-4'},
             transition((style, open) => 
                 open && c(animated.div, {style:{...style,  marginBottom:style.t.to(t => -get_height('list_header_'+path) * t)  }}, // marginTop:style.t.to(t => -get_height(body_div) * t)  
@@ -45,17 +62,6 @@ export const List_View = ({path, items, header_props={}, header, render_item}) =
         )
     ];
 };
-
-function make_size(content, width, height){
-    if(width == null){
-        if(!content) width = 45;
-    }
-    if(height == null){
-        if(!content) height = 45;
-        else height = 32;
-    }
-    return {width, height};
-}
 
 export function Token(props){
     if(props.active) return c(Toggle_Token, props);
@@ -74,12 +80,13 @@ export function Node_Token(props){
     props.style.borderRight = (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none');
     return c(Token_Base, props);
 }
-export function Token_Base({inner_ref, group, icon, name, content, width, height, style, active, action, commit,
-                        onClick, onPointerDown, onPointerUp, onContextMenu}){
+export function Token_Base({inner_ref, group, icon, name, content, width, height, style, active, action, commit, button,
+                        onClick, onPointerDown, onPointerUp, onContextMenu, onPointerEnter, onPointerLeave}){
     const target = useRef();
     const size = make_size(content, width, height);
     //const [springs, api] = useSpring(() => ({from:{backgroundColor: 'var(--bs-body-bg)'}})); 
     const [hover, set_hover] = useState(false);
+    if(!content && !name && !icon) return;
     //let icon_cls = null;
     //if(icon.length < 32) icon_cls = icon;
     const className = classNames('text-info rounded-pill bg-body user-select-none', {  // position-static 
@@ -92,6 +99,7 @@ export function Token_Base({inner_ref, group, icon, name, content, width, height
     );
     //if(!size.width) size.width = 'fit-content';
     size.width = size.width ?? 'fit-content';
+    button = (button || action || commit || onClick || onPointerEnter);
     const render_content = () => {
         if(content == null) return c(Icon, {icon, size:'h5', color:'info'});//c('div', {className:content_css_cls});
         if(content == 'badge')
@@ -106,20 +114,25 @@ export function Token_Base({inner_ref, group, icon, name, content, width, height
                 if(inner_ref) inner_ref.current[name] = ref;
             },
             id: group + '__' + name, // group ? group + '__' + name : name,
-            role: 'button',
+            role: button ? 'button' : null,
             className, //: 'd-flex text-info rounded-pill ' + (active ? 'border border-2 border-info' : ''), // bg-info-subtle 
             style: {...style, ...size},//{...size, ...springs},
             onClick(e){
+                //e.stopPropagation();
                 if(action)  set_store(d => action(d));
                 if(commit)  commit_store(d => commit(d));
                 if(onClick) onClick(e);
             },
             onPointerDown, onPointerUp, onContextMenu,
             onPointerEnter(e){
-                if(name) set_hover(true);//api.start({backgroundColor: 'var(--bs-info-bg-subtle)'}); // var(--bs-info-bg-subtle)
+                //e.stopPropagation();
+                if(button) set_hover(true);//api.start({backgroundColor: 'var(--bs-info-bg-subtle)'}); // var(--bs-info-bg-subtle)
+                //if(onPointerEnter) onPointerEnter(e);
             },
             onPointerLeave(e){
-                if(name) set_hover(false);//api.start({backgroundColor: 'var(--bs-body-bg)'});
+                //e.stopPropagation();
+                if(button) set_hover(false);//api.start({backgroundColor: 'var(--bs-body-bg)'});
+                //if(onPointerLeave) onPointerLeave(e);
             },
         }, 
             c('div', {className:content_css_cls}, render_content()),
@@ -186,6 +199,7 @@ export function Badge({node}){ // badge for node (Node_Badge)
 
 
 export function Icon({icon, color='', size='', className=''}) { 
+    icon = icon ?? icons.css.cls.generic;
     if(icon.length < 32){
         color = 'text-'+color;
         return c('div', {className: icon +' '+ color +' '+ size +' '+ className + ' mb-0'});

@@ -25,7 +25,7 @@ class Drop_Node(graphene.Mutation):
                 delete = wq().triple(node, '@schema:__forw__', 'v:obj').delete_triple(node, '@schema:__forw__', 'v:obj')
                 query.woql_or(delete, wq().star())
             query.execute(gdbc)     
-            return Drop_Node(reply = 'Drop Node')
+            return Drop_Node(reply = 'Drop node complete')
         except Exception as e: 
             print('Error: Drop_Node')
             print(e)

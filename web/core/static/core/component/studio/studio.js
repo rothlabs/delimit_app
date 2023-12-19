@@ -18,11 +18,10 @@ export function Studio(){
     return[
         render_header(() => 
             c('div', {
-                className:'position-relative d-inline-flex',
+                className:'position-relative d-inline-flex gap-3',
             },
-                c(Mode),
-                c('span', {className:'me-4'}), 
-                c(History),
+                Mode(),
+                History(),
             ),
         ),
         c('div', {
@@ -118,24 +117,34 @@ function Panel(){
 }
 
 export function Secondary_Action(){
-    const node = use_store(d=> [...d.picked.secondary.node]);
-    const transition = useTransition((node.length > 0), {
+    const prm_nodes = use_store(d=> [...d.picked.primary.node]);
+    const scd_nodes = use_store(d=> [...d.picked.secondary.node]);
+    const transition = useTransition((scd_nodes.length > 0), {
         from:  {x:'100%'}, 
         enter: {x:'0%'},    
         leave: {x:'100%'}, 
     });
-    return transition((style, item) => item && c(animated.div,{
+    return transition((style, item) => item && c(animated.div, {
         className: 'd-flex flex-column',
         style: {...style, borderRight:'thick solid var(--bs-secondary)'},
     },[
-        {name:'Delete', icon:'bi-x-lg', commit:d=> d.shut.node(d, {node, drop:true})},
+        (prm_nodes[0] && prm_nodes[0] != scd_nodes[0]) 
+            && {name:'Replace', icon:'bi-repeat', commit:d=> d.replace(d, {source:prm_nodes[0], target:scd_nodes[0]})},
+        {name:'Roots',   icon:'bi-arrow-left-circle', commit:d=> d.pick_back(d, {node:scd_nodes})},
+        {name:'Delete',  icon:'bi-x-lg', commit:d=> d.shut.node(d, {node:scd_nodes, drop:true})},
     ].map(button => Token({...button, group:'secondary_action'}))))
 }
 
 export function Topic(){
     const studio_mode = use_store(d=> d.studio.mode);
     if(studio_mode == 'code'){
-        //return c(Code);
+        return(
+            c('div', {
+                className: 'position-absolute start-0 end-0 top-0 bottom-0 ms-5 mt-5',
+            },
+                c(Code),
+            )
+        )
     }else if(studio_mode == 'repo'){
         return(
             c('div', {

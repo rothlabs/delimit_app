@@ -20,7 +20,7 @@ export {Make_Repo} from './component/panel/make_repo.js';
 export {Inspect} from './component/panel/inspect.js';
 export {Schema} from './component/panel/schema.js';
 
-export const assess = fn => (typeof fn === 'function' ? fn() : fn);
+export const assess = obj => (typeof obj === 'function' ? obj() : obj); // (Object.keys(obj).length ? obj : null) 
 
 export const make_id = (length=16)=>{
     let result = '';
@@ -117,8 +117,9 @@ export function undo(){
         //console.log('Undo');
         //console.log(inverse_history[patch_index]);
         core_store.setState(d=>{
+            d.send_data(d, inverse_history[patch_index]);
             let draft = applyPatches(d, inverse_history[patch_index]);
-            draft.send_data(draft, inverse_history[patch_index]);
+            //draft.send_data(draft, inverse_history[patch_index]);
             // d = produce(d, d=>{
             //     d.cam_info = {...d.cam_info};
             //     d.studio.gizmo_active = false;
@@ -136,6 +137,7 @@ export function redo(){
         //console.log('Redo');
         //console.log(patches_history[patch_index]);
         core_store.setState(d=>{
+            //d.send_data(d, patches_history[patch_index]);
             let draft = applyPatches(d, patches_history[patch_index]);
             draft.send_data(draft, patches_history[patch_index]);
             // d = produce(d, d=>{

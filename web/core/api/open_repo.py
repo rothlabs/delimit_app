@@ -22,11 +22,12 @@ class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
     @classmethod
     def mutate(cls, root, info, client, repo): # , include, exclude): # offset, limit for pages
         try:
-            #print('open repo start time: '+str(time.time()));
+            
             team = Repo.objects.get(repo=repo).team
             team, gdb_user = gdb_connect(info.context.user, team=team, repo=repo)
             #triples = wq().star(subj='v:root', pred='v:term', obj='v:stem').execute(gdbc)['bindings']
             rdb_repo = Repo.objects.get(repo=repo)
+            #print('open repo start time: '+str(time.time()));
             node = wq().triple('v:node', '@schema:__forw__', 'v:obj').execute(gdbc)['bindings']
             #print('end time: '+str(time.time()));
             return Open_Repo(
