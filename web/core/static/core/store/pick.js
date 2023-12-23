@@ -2,24 +2,29 @@ import {current} from 'immer';
 
 export const picked = {};
 picked.primary = {
-    repo: new Set(),
-    node: new Set(),
+    commit: new Set(),
+    repo:   new Set(),
+    node:   new Set(),
 };
 picked.secondary = {
-    repo: new Set(),
-    node: new Set(),
+    commit: new Set(),
+    repo:   new Set(),
+    node:   new Set(),
 };
 
 export const drag = {
     edge: {},
 };
 
-export const pick = (d, {node, repo, multi, weak, mode='primary'}) => {
+export const pick = (d, {node, repo, commit, multi, weak, mode='primary'}) => {
     let item = node;
     let type = 'node';
     if(repo){
         item = repo;
         type = 'repo';
+    }else if(commit){
+        item = commit;
+        type = 'commit';
     }
     const picked = d.picked[mode][type];
     if(multi && picked.has(item)){
@@ -35,15 +40,17 @@ export const pick = (d, {node, repo, multi, weak, mode='primary'}) => {
     }
 };
 
-export const unpick = (d, {node, repo, mode='all', type='all'}) => {
+export const unpick = (d, {node, repo, commit, mode='all', type='all'}) => {
     let item = 'all';
     if(node){
         item = node;
         type = 'node';
-    }
-    if(repo){
+    }else if(repo){
         item = repo;
         type = 'repo';
+    }else if(commit){
+        item = commit;
+        type = 'commit';
     }
     function unpick_type(mode_obj){
         function unpick_item(picked){
@@ -64,12 +71,12 @@ export const unpick = (d, {node, repo, mode='all', type='all'}) => {
 };
 
 export const targeted = {
-    repo: null,
+    commit: null,
 };
 
 export const target = {};
-target.repo = (d, repo) => {
-    d.targeted.repo = repo;
+target.commit = (d, commit) => {
+    d.targeted.commit = commit;
 }
 
 export function pick_back(d, {node}){

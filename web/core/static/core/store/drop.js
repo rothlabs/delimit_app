@@ -1,17 +1,19 @@
 import {client} from 'delimit';
 
 export const dropped = {
-    repo: new Set(),
-    node: new Map(),
+    commit: new Set(),
+    repo:   new Map(),
+    node:   new Map(),
 };
 
 export const closed = {
-    repo: new Set(),
-    node: new Map(),
+    commit: new Set(),
+    repo:   new Map(),
+    node:   new Map(),
 };
 
 export const shut = {};
-shut.node = (d, {node, given, drop, deep})=>{ 
+shut.node = (d, {node, given, drop, deep})=>{  // shut by commit
     let targets = new Set();
     for(const n of d.iterable(node)){
         if(d.node.has(n)) targets.add(n);
@@ -32,36 +34,50 @@ shut.node = (d, {node, given, drop, deep})=>{
         };
         get_stems(targets);
     }
-    if(!given && drop) targets = d.write_access(d, [...targets]);
+    if(!given && drop) targets = d.writable(d, [...targets]);
     for(const node of targets){
         if(!d.node.has(node)) continue;
         d.drop.edge(d, {root:node});
-        const repo = d.node.get(node).repo;
+        const commit = d.node.get(node).commit;
         if(drop){
             d.drop.edge(d, {stem:node});
-            d.dropped.node.set(node, repo);
+            d.dropped.node.set(node, commit);
         }else{
-            d.closed.node.set(node, repo);
+            d.closed.node.set(node, commit);
         }
-        d.repo.get(repo).node.delete(node);
+        d.commit.get(commit).nodes.delete(node);
         d.unpick(d, {node});
         d.node.delete(node);
     }
     if(targets.length) d.graph.increment(d);
 };
+shut.commit = (d, {commit, drop}) => { 
+    for(const cmt of d.iterable(commit)){
+        if(!d.commit.has(cmt)) continue;
+        const commit_obj = d.commit.get(cmt);
+        if(!commit_obj.writable) continue;
+        d.repo.get(commit_obj.repo).commits.delete(cmt);
+        d.shut.node(d, {node:commit_obj.nodes, drop});
+        d.unpick(d, {cmt});
+        if(drop) d.dropped.commit.add(cmt);
+        else d.closed.commit.add(cmt);
+        d.commit.delete(cmt);
+    }
+    // if(drop) d.mutation.drop_commit({variables:{cmt}});
+    // else d.mutation.shut_commit({variables:{cmt}});
+};
 shut.repo = (d, {repo, drop}) => {
-    if(d.repo.has(repo)){
-        d.shut.node(d, {node:d.repo.get(repo).node, drop});
-        d.unpick(d, {repo});
-    }
-    if(drop){
-        d.dropped.repo.add(repo);
-        d.mutation.drop_repo({variables:{client, repo}});
-    }else{
-        d.closed.repo.add(repo);
-        d.mutation.shut_repo({variables:{client, repo}});
-    }
+    if(!d.repo.has(repo)) return;
+    const repo_obj = d.repo.get(repo);
+    if(!repo_obj.writable) return;
+    const commits = repo_obj.commits;
+    d.shut.commit(d, {commit:commits, drop});
+    d.unpick(d, {repo});
+    if(drop) d.dropped.repo.set(repo, commits);
+    else d.closed.repo.set(repo, commits);
     d.repo.delete(repo);
+    // d.mutation.drop_repo({variables:{client, repo}});
+    // d.mutation.shut_repo({variables:{client, repo}});
 };
 
 
@@ -93,7 +109,7 @@ drop.edge = (d, a={})=>{
             drops.push({root, term, stem:a.stem, index});
         }
     }
-    if(!a.given) drops = drops.filter(drp=> d.write_access(d, drp.root));
+    if(!a.given) drops = drops.filter(drp=> d.writable(d, drp.root));
     drops.sort((a, b)=> b.index - a.index);
     for(const drp of drops){
         if(!d.node.has(drp.root)) continue;

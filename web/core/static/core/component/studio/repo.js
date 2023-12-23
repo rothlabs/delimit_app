@@ -1,6 +1,6 @@
 import {createElement as c, useEffect} from 'react';
 import {Row, Col, Button, ButtonGroup, Container} from 'react-bootstrap';
-import {use_store, client, set_store, commit_store, use_query, use_mutation} from 'delimit';
+import {use_store, client, set_store, commit_store, use_query, use_mutation, Token} from 'delimit';
 
 export function Repo(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
@@ -18,56 +18,67 @@ export function Repo(){
     if(error) return `Error! ${error}`;
     let repos = [];
     try{
-        repos = JSON.parse(data.repo.data).list;
+        repos = Object.entries(JSON.parse(data.repo.data));
+        
     }catch{
         return 'Error retrieving repositories';
     }
-    return(
+    return repos.map(([id, {flex:{name, story}, branch}])=> // write_access
+        c('div', {className:'mb-3'},
+            c('img', {className:'hjs', src:'holder.js/128x128', role:'button', // style:{width:128, height:128}
+                onClick:e=>{
+                    const [commit] = [...Object.entries(branch)].find(([id, o]) => o.flex.name == 'main');
+                    open_repo({variables:{commit}});
+                },
+            }),
+                //repo_map.get(repo) ? 
+                //    c('h5', {}, name + ' - Loaded') :
+                
+                c('div', {className:'mt-2'}, name),
+                c('div', {className:'mt-2 mb-2'}, story),
+                //c(Token, {name, content:'name'}),
+                //c(Token, {name, content:'name'}),
+                Object.entries(branch).map(([commit, {flex:{name}}])=>
+                    c(Token, {
+                        icon: 'bi-box-seam',
+                        name,
+                        content:'badge',
+                        onClick:e=> open_repo({variables:{commit}})
+                    })
+                ),
+                ////c('p', {className:'bi-pen'}, write_access ? ' Write Access' : ' Read Only'),
+
+                // c(ButtonGroup, {vertical:true},
+                //     repo_map.get(repo) && c(Button, {
+                //         className: 'border-0 bi-x-lg', // mb-2
+                //         variant: 'outline-primary',
+                //         onClick:e=> commit_store(d=> d.shut.repo(d, {repo})), // maybe should be set_store?! #1
+                //     }, ' Close'),
+                //     c(Button, {
+                //         className: 'border-0 bi-x-lg', // mb-2
+                //         variant: 'outline-danger', size: 'sm',
+                //         onClick:e=>{ 
+                //             set_store(d=>
+                //                 d.confirm = {
+                //                     title: `Delete: ${name}`,
+                //                     body: `${name} - All data will be irreversibly destroyed in the repository. Proceed with caution.`,
+                //                     func:()=> commit_store(d=> d.shut.repo(d, {repo, drop:true})),
+                //                         //d.mutation.drop_repo({variables:{team:pkg.team, repo:pkg.repo}});
+                //                 }
+                //             );
+                //         },
+                //     }, ' Delete')
+                // ),
+        )
+    ) 
+}
+
+// tip:{commit:{flex:{name, story}}}
+
         //c(Container, {fluid:true},
         //c('div', {className:'position-absolute top-0 start-50 translate-middle-x mt-5'},
-            repos.map(({team, repo, name, description, write_access})=>
-        //        c(Row, {className:'w-75 ms-auto me-auto mt-5'}, //
-                c('div', {},
-                    //c(Col, {xs:'5'},
-                        c('img', {className:'hjs', src:'holder.js/100px180', role:'button',
-                            onClick:e=> open_repo({variables:{client, repo}}),
-                        }),
-                    //),
-                    //c(Col, {xs:'auto'},
-                        repo_map.get(repo) ? c('div', {},
-                            c('h5', {}, name + ' - Loaded'),
-                        ) : c(Button, {className:'mb-3', onClick:e=> open_repo({variables:{client, repo}})}, name),
-                        c('p', {}, description),
-                        c('p', {className:'bi-pen'}, write_access ? ' Write Access' : ' Read Only'),
-                    //),
-                    //c(Col, {}, 
-                        c(ButtonGroup, {vertical:true},
-                            repo_map.get(repo) && c(Button, {
-                                className: 'border-0 bi-x-lg', // mb-2
-                                variant: 'outline-primary',
-                                onClick:e=> commit_store(d=> d.shut.repo(d, {repo})), // maybe should be set_store?! #1
-                            }, ' Close'),
-                            c(Button, {
-                                className: 'border-0 bi-x-lg', // mb-2
-                                variant: 'outline-danger', size: 'sm',
-                                onClick:e=>{ 
-                                    set_store(d=>
-                                        d.confirm = {
-                                            title: `Delete: ${name}`,
-                                            body: `${name} - All data will be irreversibly destroyed in the repository. Proceed with caution.`,
-                                            func:()=> commit_store(d=> d.shut.repo(d, {repo, drop:true})),
-                                                //d.mutation.drop_repo({variables:{team:pkg.team, repo:pkg.repo}});
-                                        }
-                                    );
-                                },
-                            }, ' Delete')
-                        ),
-                    //),
-                )
-            ) 
-        //)
-    )
-}
+
+                //        c(Row, {className:'w-75 ms-auto me-auto mt-5'}, //
 
 //],{onCompleted:data=>{
     //    rs(d=> d.studio.repo.fetch = repos.refetch);

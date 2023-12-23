@@ -24,6 +24,6 @@ function Make_Button({node}){
     const icon = use_store(d=> d.value(d, node, 'icon code', icons.css.cls.generic));
     const name = use_store(d=> d.value(d, node, 'name', 'Node'));
     return Token({icon, name, content:'badge',
-            commit: d => d.make.node(d, {type:node, repo:'target'}),
+            commit: d => d.make.node(d, {type:node, commit:'target'}),
     });
 }

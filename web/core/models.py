@@ -1,32 +1,109 @@
 import os
 from django.db import models
 from django.contrib.auth.models import User
+from core.api.util import make_id
 
 id_length = 16
 name_length = 64
-description_length = 512
-
-class Account(models.Model):
-    user         = models.ForeignKey(User, on_delete=models.CASCADE) 
-    gdb_user     = models.CharField(default='', max_length=id_length)
-    gdb_key      = models.CharField(default='', max_length=id_length)
-    def __str__(self): 
-       return str(self.user) + ' ('+str(self.id)+')'
-
-class Team(models.Model):
-    team = models.CharField(default='', max_length=id_length) 
-    name = models.CharField(default='', max_length=name_length)
-    description = models.TextField(default='', max_length=description_length, blank=True)
-    def __str__(self): 
-       return str(self.name) + ' ('+str(self.team)+')'
 
 class Repo(models.Model):
-    repo = models.CharField(default='', max_length=id_length) 
-    team = models.CharField(default='', max_length=id_length) 
-    name = models.CharField(default='', max_length=name_length)
-    description = models.TextField(default='', max_length=description_length, blank=True)
-    def __str__(self): 
-       return str(self.name) + ' ('+str(self.repo)+')'
+    id        = models.CharField(max_length=id_length, primary_key=True, default=make_id) 
+    readers   = models.ManyToManyField(User, related_name='readable_repos') 
+    writers   = models.ManyToManyField(User, related_name='writable_repos') 
+    make_time = models.DateTimeField(auto_now_add=True)
+    edit_time = models.DateTimeField(auto_now=True)
+    flex      = models.JSONField()
+
+class Snap(models.Model):
+    id   = models.CharField(max_length=id_length, primary_key=True, default=make_id) 
+    node = models.CharField(max_length=id_length) 
+    forw = models.JSONField()
+
+class Commit(models.Model):
+    id        = models.CharField(max_length=id_length, primary_key=True, default=make_id) 
+    repo      = models.ForeignKey(Repo,        related_name='commits', on_delete=models.CASCADE) 
+    committer = models.ForeignKey(User,        related_name='commits', on_delete=models.SET_NULL, null=True) 
+    authors   = models.ManyToManyField(User,   related_name='contributions') 
+    snaps     = models.ManyToManyField(Snap,   related_name='commits') 
+    roots     = models.ManyToManyField('self', related_name='stems', symmetrical=False)
+    readers   = models.ManyToManyField(User,   related_name='readable_commits') 
+    writers   = models.ManyToManyField(User,   related_name='writable_commits') 
+    make_time = models.DateTimeField(auto_now_add=True)
+    edit_time = models.DateTimeField(auto_now=True)
+    flex      = models.JSONField()
+
+
+#repo = models.ForeignKey(Repo, related_name='snaps', on_delete=models.CASCADE) 
+
+# class Perm(models.Model):
+#     perm = models.CharField(max_length=id_length, primary_key=True) 
+#     flex = models.JSONField()
+
+ #def __str__(self): return str(self.flex) + ' ('+str(self.repo)+')'
+
+# name      = models.CharField(default='', blank=True, max_length=name_length)
+#     story     = models.TextField(default='', blank=True)
+#    name      = models.CharField(default='', blank=True, max_length=name_length) # also effectively works ase branch name
+#    story     = models.TextField(default='', blank=True)
+
+# class Branch(models.Model):
+#     branch    = models.CharField(max_length=id_length, primary_key=True) 
+#     commit    = models.ForeignKey(Commit, on_delete=models.CASCADE) 
+#     name      = models.CharField(default='', blank=True, max_length=name_length)
+#     story     = models.TextField(default='', blank=True)
+#     make_time = models.DateTimeField(auto_now_add=True)
+#     edit_time = models.DateTimeField(auto_now=True)
+#     def __str__(self): return str(self.name) + ' ('+str(self.branch)+')'
+
+# class Node(models.Model):
+#     branch = models.ForeignKey(Branch, on_delete=models.CASCADE) 
+#     node   = models.CharField(max_length=id_length) 
+#     data   = models.JSONField() # null=True
+
+#     user    = models.ForeignKey(User, on_delete=models.CASCADE) 
+
+    #parent    = models.ForeignKey(Commit, on_delete=models.CASCADE) 
+    #repo      = models.ForeignKey(Repo,   on_delete=models.CASCADE) 
+
+
+#repo      = models.ForeignKey(Repo, on_delete=models.CASCADE) 
+
+# first construct requested repo
+#   find dependant repos and construct them and recursively find dependants 
+
+# commit
+#   parent
+#   patch
+
+
+# repo: CeoJpV7qQ4Im5Q9d
+# team: 7Yl2byU8Y05Z7xmn
+# gdb_user: 7Yl2byU8Y05Z7xmn
+# gdb_key: Ya5FChrBxYlHaLQr
+
+
+
+# class Account(models.Model):
+#     user         = models.ForeignKey(User, on_delete=models.CASCADE) 
+#     gdb_user     = models.CharField(default='', max_length=id_length)
+#     gdb_key      = models.CharField(default='', max_length=id_length)
+#     def __str__(self): 
+#        return str(self.user) + ' ('+str(self.id)+')'
+
+# class Team(models.Model):
+#     team = models.CharField(default='', max_length=id_length) 
+#     name = models.CharField(default='', max_length=name_length)
+#     description = models.TextField(default='', max_length=description_length, blank=True)
+#     def __str__(self): 
+#        return str(self.name) + ' ('+str(self.team)+')'
+
+# class Repo(models.Model):
+#     repo = models.CharField(default='', max_length=id_length) 
+#     team = models.CharField(default='', max_length=id_length) 
+#     name = models.CharField(default='', max_length=name_length)
+#     description = models.TextField(default='', max_length=description_length, blank=True)
+#     def __str__(self): 
+#        return str(self.name) + ' ('+str(self.repo)+')'
 
 
 #from django.dispatch import receiver

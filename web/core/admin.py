@@ -1,9 +1,9 @@
 from django.contrib import admin
 from . import models
 
-admin.site.register(models.Account)
-admin.site.register(models.Team)
 admin.site.register(models.Repo)
+admin.site.register(models.Snap)
+admin.site.register(models.Commit)
 
 # admin.site.register(models.Bool)
 # admin.site.register(models.Int)

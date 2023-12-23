@@ -10,9 +10,6 @@ const queries = compile_gql('query', [
     ]],
 ]);
 
-const repo = ['String client', 'String repo'];
-//const node = [...repo, ''];
-
 const mutations = compile_gql('mutation', [
     ['Login',[
         ['login reply user{firstName}', 
@@ -24,32 +21,31 @@ const mutations = compile_gql('mutation', [
         ['logout reply user{firstName}'],
     ]],
     ['MakeRepo', [  
-        ['makeRepo reply',  
-            'String team', 
+        ['makeRepo reply',   
             'String name', 
-            'String description', 
+            'String story', 
         ],
     ]],
     ['OpenRepo', [
-        ['openRepo reply data', ...repo],
+        ['openRepo reply data', 'String commit'],
     ]],
     ['ShutRepo', [
-        ['shutRepo reply', ...repo],
+        ['shutRepo reply', 'String commit'],
     ]],
     ['DropRepo', [  
-        ['dropRepo reply', ...repo],
+        ['dropRepo reply', 'String commit'],
     ]],
     ['OpenNode', [
-        ['openNode reply data', ...repo, '[String] node'],
+        ['openNode reply data', 'String commit', '[String] node'],
     ]],
     ['ShutNode', [
-        ['shutNode reply', ...repo, '[String] node'],
+        ['shutNode reply', 'String commit', '[String] node'],
     ]],
     ['DropNode', [  
-        ['dropNode reply', ...repo, '[String] node'],
+        ['dropNode reply', 'String commit', '[String] node'],
     ]],
     ['PushNode', [  
-        ['pushNode reply', ...repo, '[String] node', '[String] forw'],
+        ['pushNode reply', 'String commit', '[String] node', '[String] forw'],
     ]],
     ['PullNode', [  
         ['pullNode reply data', 'String client'], // client instance

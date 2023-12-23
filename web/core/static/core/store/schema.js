@@ -70,7 +70,7 @@ build.stem = (d, {root, term, stem}) =>{
         if(stem_type_context == d.value(d, context, 'name')){
             for(const type of d.stems(d, context, 'types')){
                 if(stem_type_name == d.value(d, type, 'name')){ // d.face.name(d, type)
-                    const stem = d.make.node(d, {type, repo:'target'});
+                    const stem = d.make.node(d, {type, commit:'target'});
                     d.make.edge(d, {root, term, stem});
                     return true;
                 }

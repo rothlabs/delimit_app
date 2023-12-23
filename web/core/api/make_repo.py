@@ -1,10 +1,10 @@
 import json, re
 import graphene
-from graph.database import gdbc, gdb_connect
+#from graph.database import gdbc, gdb_connect
 from core.api.config import auth_required_message
-from terminus import WOQLQuery as wq # terminusdb_client
+#from terminus import WOQLQuery as wq # terminusdb_client
 from core.api.util import conform, make_id
-from core.models import Repo
+from core.models import Repo, Commit, Snap
 
 menu_button_svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-menu-button" viewBox="0 0 16 16">
   <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0h8A1.5 1.5 0 0 1 11 1.5v2A1.5 1.5 0 0 1 9.5 5h-8A1.5 1.5 0 0 1 0 3.5v-2zM1.5 1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5h-8z"/>
@@ -28,46 +28,31 @@ abc_svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill
 
 class Make_Repo(graphene.Mutation):
     class Arguments:
-        team = graphene.String()
         name = graphene.String()
-        description = graphene.String()
+        story = graphene.String()
     reply = graphene.String(default_value = 'Failed to make repo')
     @classmethod
-    def mutate(cls, root, info, team, name, description):
+    def mutate(cls, root, info, name, story):
         try:
             user = info.context.user
             if not user.is_authenticated:
                 return Make_Repo(reply = auth_required_message)
-            team, gdb_user = gdb_connect(user, team=team)
-            name = conform(name, max_length=64, name=True)
-            repo = make_id() 
-            description = conform(description, max_length=512)
-            #prefixes = {'@base' : 'iri:///'+repo+'/', '@schema':'iri:///'+repo+'#'} # iri prefix needs to be the same for every database for cross coms?! #1
-            gdbc.create_database(
-                repo, # name
-                team, 
-                label = name,
-                description = description, # comment
-                #prefixes = prefixes,
-                include_schema = False,
+
+            repo = Repo.objects.create(
+                flex = {
+                    'name':  conform(name, max_length=64, name=True),
+                    'story': conform(story, max_length=512),
+                }
             )
-            Repo.objects.create(
-                repo = repo,
-                team = team,
-                name = name,
-                description = description,
-            )
-            gdbc.set_db(repo, team)
+            repo.writers.add(user)
+            repo.readers.add(user)
 
-            delimit_leaf_node = make_id()
-
-            code_stem = make_id()
-
-            type_icon_code = make_id()
-            abc_icon_code  = make_id()
-            plus_icon_code = make_id()
-            code_icon_code = make_id()
-
+            delimit_leaf_node= make_id()
+            code_stem        = make_id()
+            type_icon_code   = make_id()
+            abc_icon_code    = make_id()
+            plus_icon_code   = make_id()
+            code_icon_code   = make_id()
             name_term        = make_id()
             context_term     = make_id()
             icon_term        = make_id()
@@ -80,125 +65,182 @@ class Make_Repo(graphene.Mutation):
             minimum_term     = make_id()
             maximum_term     = make_id()
             code_term        = make_id()
+            root_type        = make_id()
+            term_type        = make_id()
+            stem_type        = make_id()
+            delimit_context  = make_id()
+            delimit_app      = make_id()
 
-            root_type    = make_id()
-            term_type    = make_id()
-            stem_type    = make_id()
-            delimit_context = make_id()
-            delimit_app = make_id()
-
-            (wq() 
-                .add_triple(delimit_leaf_node, '@schema:__forw__', wq().string(json.dumps({
+            snaps = Snap.objects.bulk_create([
+                Snap(node=delimit_leaf_node, forw={ 
                     'leaf':[{'type':'xsd:string', 'value':'delimit'}],
-                }))).add_triple(code_stem, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=code_stem, forw={
                     'name':    [{'type':'xsd:string', 'value':'Code'}],
                     'type':    [{'type':'xsd:string', 'value':'Stem'}],
                     'context': [delimit_leaf_node],
-                }))).add_triple(type_icon_code, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=type_icon_code, forw={
                     'name':     [{'type':'xsd:string', 'value':'Type Icon'}],
                     'source':   [{'type':'xsd:string', 'value':menu_button_svg}],
                     'language': [{'type':'xsd:string', 'value':'SVG'}],
-                }))).add_triple(abc_icon_code, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=abc_icon_code, forw={
                     'name':     [{'type':'xsd:string', 'value':'Text Icon'}],
                     'source':   [{'type':'xsd:string', 'value':abc_svg}],
                     'language': [{'type':'xsd:string', 'value':'SVG'}],
-                }))).add_triple(plus_icon_code, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=plus_icon_code, forw={
                     'name':     [{'type':'xsd:string', 'value':'Plus Icon'}],
-                    'source':     [{'type':'xsd:string', 'value':plus_square_svg}],
+                    'source':   [{'type':'xsd:string', 'value':plus_square_svg}],
                     'language': [{'type':'xsd:string', 'value':'SVG'}],
-                }))).add_triple(code_icon_code, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=code_icon_code, forw={
                     'name':     [{'type':'xsd:string', 'value':'Braces Icon'}],
                     'source':   [{'type':'xsd:string', 'value':braces_svg}],
                     'language': [{'type':'xsd:string', 'value':'SVG'}],
-                }))).add_triple(icon_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=icon_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Icon'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [code_icon_code],
                     'required': [code_stem],
-                }))).add_triple(name_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=name_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Name'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [abc_icon_code],
                     'required': [{'type':'xsd:string', 'value':'String'}],
                     'make':     [{'type':'xsd:string', 'value':'New'}],
-                }))).add_triple(context_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=context_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Context'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'required': [{'type':'xsd:string', 'value':'String'}],
                     'add':      [delimit_leaf_node],
-                }))).add_triple(make_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=make_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Make'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [plus_icon_code],
-                }))).add_triple(add_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=add_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Add'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [plus_icon_code],
-                }))).add_triple(minimum_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=minimum_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Minimum'}],
                     'type':     [term_type],
-                }))).add_triple(maximum_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=maximum_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Maximum'}],
                     'type':     [term_type],
-                }))).add_triple(code_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=code_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Code'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [code_icon_code],
                     'required': [code_stem],
                     'make':     [code_stem],
-                }))).add_triple(required_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=required_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Required'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [type_icon_code],
-                }))).add_triple(optional_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=optional_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Optional'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [type_icon_code],
-                }))).add_triple(pick_one_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=pick_one_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'Pick One'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [type_icon_code],
-                }))).add_triple(one_or_more_term, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=one_or_more_term, forw={
                     'name':     [{'type':'xsd:string', 'value':'One or More'}],
                     'type':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [type_icon_code],
-                }))).add_triple(root_type, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=root_type, forw={
                     'name':     [{'type':'xsd:string', 'value':'Root'}],
                     'icon':     [type_icon_code],
                     'required': [name_term],
                     'optional': [icon_term, required_term, optional_term, pick_one_term, one_or_more_term, make_term, code_term],
-                }))).add_triple(term_type, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=term_type, forw={
                     'name':     [{'type':'xsd:string', 'value':'Term'}],
                     'icon':     [type_icon_code],
                     'required': [name_term],
                     'optional': [icon_term, required_term, optional_term, pick_one_term, one_or_more_term, make_term, add_term],
-                }))).add_triple(stem_type, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=stem_type, forw={
                     'name':     [{'type':'xsd:string', 'value':'Stem'}],
                     'icon':     [type_icon_code],
                     'required': [name_term, context_term],
                     'optional': [icon_term, minimum_term, maximum_term],
-                }))).add_triple(delimit_context, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=delimit_context, forw={
                     'name':     [delimit_leaf_node],
                     'type':     [{'type':'xsd:string', 'value':'Context'}],
                     'types':    [root_type, term_type, stem_type],
-                }))).add_triple(delimit_app, '@schema:__forw__', wq().string(json.dumps({
+                }),Snap(node=delimit_app, forw={
                     'name':        [delimit_leaf_node],
                     'type':        [{'type':'xsd:string', 'value':'App'}],
                     'delimit_app': [{'type':'xsd:boolean', 'value':True}],
                     'contexts':    [delimit_context],
-                })))                
-            ).execute(gdbc)
+                }),
+            ])
 
-            return Make_Repo(reply = 'Made repo')
+            commit = Commit.objects.create(
+                repo      = repo,
+                committer = user,
+                flex = {
+                    'name': 'main',
+                    'story': 'start',
+                },
+            )
+            commit.authors.add(user)
+            commit.snaps.set(snaps)
+
+            return Make_Repo(reply = 'Make repo complete')
         except Exception as e: 
             print('Error: Make_Repo')
             print(e)
         return Make_Repo()
 
 
+#snap_id = [make_id() for x in range(23)]
+# id=snap_id.pop(), 
 
 
+                    # 'user':{
+                    #     user_obj.id: {'perm': 'read write'},
+                    # },
 
+            # Perm.objects.create(
+            #     perm = make_id(),
+            #     flex = {
+            #         'actor': user.id,#{'type':'user', 'value':user.id}, 
+            #         'asset': repo,#{'type':'repo', 'value':repo},
+            #         'ability': 'all',
+            #     },
+            # )
+
+            # branch = make_id()
+            # Branch.objects.create(
+            #     branch = branch,
+            #     commit = commit,
+            #     name   = 'main',
+            # )
+
+
+            # Node.objects.bulk_create([
+            #     Node(commit=commit, node=delimit_leaf_node, forw=delimit_leaf_node),
+            #     Node(commit=commit, node=code_stem, forw=code_stem),
+            #     Node(commit=commit, node=type_icon_code, forw=type_icon_code),
+            #     Node(commit=commit, node=abc_icon_code, forw=abc_icon_code),
+            #     Node(commit=commit, node=plus_icon_code, forw=plus_icon_code),
+            #     Node(commit=commit, node=code_icon_code, forw=code_icon_code),
+            #     Node(commit=commit, node=name_term, forw=name_term),
+            #     Node(commit=commit, node=context_term, forw=context_term),
+            #     Node(commit=commit, node=icon_term, forw=icon_term),
+            #     Node(commit=commit, node=required_term, forw=required_term),
+            #     Node(commit=commit, node=optional_term, forw=optional_term),
+            #     Node(commit=commit, node=pick_one_term, forw=pick_one_term),
+            #     Node(commit=commit, node=one_or_more_term, forw=one_or_more_term),
+            #     Node(commit=commit, node=add_term, forw=add_term),
+            #     Node(commit=commit, node=make_term, forw=make_term),
+            #     Node(commit=commit, node=minimum_term, forw=minimum_term),
+            #     Node(commit=commit, node=maximum_term, forw=maximum_term),
+            #     Node(commit=commit, node=code_term, forw=code_term),
+            #     Node(commit=commit, node=root_type, forw=root_type),
+            #     Node(commit=commit, node=term_type, forw=term_type),
+            #     Node(commit=commit, node=stem_type, forw=stem_type),
+            #     Node(commit=commit, node=delimit_context, forw=delimit_context),
+            #     Node(commit=commit, node=delimit_app, forw=delimit_app),
+            # ])
 
 
 

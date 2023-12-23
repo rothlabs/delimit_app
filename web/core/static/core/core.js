@@ -26,8 +26,11 @@ export const make_id = (length=16)=>{
     let result = '';
     Array.from({length}).some(() => {
         result += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
-      return result.length >= length;
+        return result.length >= length;
     });
+    //console.log('new id', result);
+    result = result.substring(0, 16)
+    //console.log('new id', result);
     return result;
 };
 export const client = make_id();

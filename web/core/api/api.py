@@ -1,20 +1,21 @@
 import graphene
-from graph.database import gdbc, gdb_connect, gdb_write_access
-from terminus import WOQLQuery as wq # terminusdb_client
+#from graph.database import gdbc, gdb_connect, gdb_write_access
+#from terminus import WOQLQuery as wq # terminusdb_client
+from core.api.util import readable_repo
 from core.api.login import Login
 from core.api.logout import Logout
 from core.api.types import Authenticated_User_Type, Pack_Type
 from core.models import Repo
 
 from core.api.open_repo import Open_Repo
-from core.api.shut_repo import Shut_Repo
+# from core.api.shut_repo import Shut_Repo
 from core.api.make_repo import Make_Repo
-from core.api.drop_repo import Drop_Repo
+# from core.api.drop_repo import Drop_Repo
 
-from core.api.open_node import Open_Node
-from core.api.shut_node import Shut_Node
+# from core.api.open_node import Open_Node
+# from core.api.shut_node import Shut_Node
 from core.api.push_node import Push_Node
-from core.api.drop_node import Drop_Node
+# from core.api.drop_node import Drop_Node
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
@@ -26,19 +27,20 @@ class Query(graphene.ObjectType):
             return None
     def resolve_repo(root, info):
         try:
-            team, gdb_user = gdb_connect(info.context.user)
-            databases = gdbc.get_databases()
-            repos = Repo.objects.filter(repo__in=[p['name'] for p in databases]) # p['name'] is the id
-            result = []
-            for p in repos:
-                result.append({
-                    'repo': p.repo, 
-                    'team': p.team,
-                    'name': p.name, 
-                    'description': p.description,
-                    'write_access': gdb_write_access(p.team, p.repo, gdb_user),
-                })
-            return Pack_Type(data = {'list':result}) # add reply
+            user = info.context.user
+            return Pack_Type(data = { 
+                repo.id:{
+                    'flex': repo.flex,
+                    'branch': {
+                        commit.id:{
+                            'flex': commit.flex,
+                        } for commit in repo.commits.all() # try commits__stems__isnull in main filter
+                    },
+                } for repo in Repo.objects.prefetch_related('commits').filter(
+                    readable_repo(user),
+                    commits__stems__isnull = True,
+                )
+            }) # add reply
         except Exception as e: 
             print('Error: Query repo') 
             print(e)
@@ -48,17 +50,93 @@ class Mutation(graphene.ObjectType):
     login    = Login.Field()
     logout   = Logout.Field()
     openRepo = Open_Repo.Field()
-    shutRepo = Shut_Repo.Field()
+    # shutRepo = Shut_Repo.Field()
     makeRepo = Make_Repo.Field() # rename to push repo and include edits
-    dropRepo = Drop_Repo.Field()
-    openNode = Open_Node.Field()
-    shutNode = Shut_Node.Field()
+    # dropRepo = Drop_Repo.Field()
+    # openNode = Open_Node.Field()
+    # shutNode = Shut_Node.Field()
     pushNode = Push_Node.Field() 
-    dropNode = Drop_Node.Field()
+    # dropNode = Drop_Node.Field()
     #pullNode = Drop_Node.Field() should be query 
     
 api = graphene.Schema(query=Query, mutation=Mutation)
 
+            # Repo.objects.prefetch_related('commits').filter(
+            #     Q(flex__has_key = 'public') | Q(readers = user),
+            #     commits__stems__isnull = True,
+            # ).values('flex', 'commits__flex')
+
+# commits = Commit.objects.select_related('repo').filter(
+#                 readable(user),
+#                 stems__isnull = True,
+#             ).values('flex', 'repo__flex')
+
+                # repo.id:{
+                #     'flex': repo.flex,
+                #     'tip': {
+                #         commit.id:{
+                #             'flex': commit.flex,
+                #         } for commit in repo.commits #.filter(stems__isnull = True) # try commits__stems__isnull in main filter
+                #     },
+                # } for repo in Repo.objects.prefetch_related('commits').filter(
+                #     readable(user),
+                #     commits__stems__isnull = True,
+                # )
+
+                # commit.id:{
+                #     'flex': commit.repo.flex,
+                #     'tip': {
+                #         commit.id:{
+                #             'flex': commit.flex,
+                #         } for commit in repo.commits #.filter(stems__isnull = True) # try commits__stems__isnull in main filter
+                #     },
+                # } for commit in Commit.objects.select_related('repo').filter(
+                #     readable(user),
+                #     stems__isnull = True,
+                # )
+
+
+# for x in Repo.objects.annotate(user_perm = KT('flex__'+str(user.id)+'__perm')).filter(
+#                     Q(flex__has_key = 'public') | Q(user_perm__contains = 'read')
+#                 )
+
+# for repo in Repo.objects.all():
+#                 result.append({
+#                     'repo': p.repo, 
+#                     'name': p.name, 
+#                     'description': p.description,
+#                     'write_access': True,
+#                     'team': 'null',
+#                 })
+
+
+# class Query(graphene.ObjectType):
+#     user = graphene.Field(Authenticated_User_Type)
+#     repo = graphene.Field(Pack_Type)
+#     def resolve_user(root, info):
+#         if info.context.user.is_authenticated: 
+#             return info.context.user
+#         else: 
+#             return None
+#     def resolve_repo(root, info):
+#         try:
+#             team, gdb_user = gdb_connect(info.context.user)
+#             databases = gdbc.get_databases()
+#             repos = Repo.objects.filter(repo__in=[p['name'] for p in databases]) # p['name'] is the id
+#             result = []
+#             for p in repos:
+#                 result.append({
+#                     'repo': p.repo, 
+#                     'team': p.team,
+#                     'name': p.name, 
+#                     'description': p.description,
+#                     'write_access': gdb_write_access(p.team, p.repo, gdb_user),
+#                 })
+#             return Pack_Type(data = {'list':result}) # add reply
+#         except Exception as e: 
+#             print('Error: Query repo') 
+#             print(e)
+#         return None
 
 
 

@@ -25,9 +25,10 @@ const ctx = JSON.parse(document.getElementById('ctx').text);
 
 export const store = {//export const create_base_slice = (set,get)=>({
     mode: ctx.entry,
-    team: new Map(),
-    repo: new Map(),
-    node: new Map(),
+    //team: new Map(),
+    repo:   new Map(),
+    commit: new Map(),
+    node:   new Map(),
     studio:{
         mode: 'repo',
         repo: {},
@@ -225,19 +226,17 @@ export const store = {//export const create_base_slice = (set,get)=>({
             }
         }
     },
-    write_access(d, node){
+    writable(d, node){
         if(Array.isArray(node)){
             return node.filter(node=> {
                 //console.log(node, node.repo);
-                const repo = d.node.get(node).repo;
-                if(repo) return d.repo.get(repo).write_access;
+                const commit = d.node.get(node)?.commit;
+                if(d.commit.has(commit)) return d.commit.get(commit).writable;
                 return true;
             });
         }
-        const repo = d.node.get(node)?.repo;
-        if(d.repo.has(repo)){
-            return d.repo.get(repo).write_access;
-        }
+        const commit = d.node.get(node)?.commit;
+        if(d.commit.has(commit)) return d.commit.get(commit).writable;
         return true;
     },
 
@@ -261,18 +260,18 @@ export const store = {//export const create_base_slice = (set,get)=>({
             console.log('patch', path, op);
             const node = path[1];
             function push_node(node_obj){
-                const repo = node_obj.repo;
-                if(!d.repo.has(repo)) return;
-                if(!push.has(repo)) push.set(repo, {node:new Set(), forw:new Set()});
-                const repo_push = push.get(repo);
-                if(repo_push.node.size < repo_push.node.add(node).size){
-                    repo_push.forw.add(JSON.stringify(Object.fromEntries(node_obj.forw)));
+                const commit = node_obj.commit;
+                if(!d.commit.has(commit)) return;
+                if(!push.has(commit)) push.set(commit, {node:new Set(), forw:new Set()});
+                const commit_push = push.get(commit);
+                if(commit_push.node.size < commit_push.node.add(node).size){
+                    commit_push.forw.add(JSON.stringify(Object.fromEntries(node_obj.forw)));
                 }
             }
-            function drop_node(repo){
-                if(!d.repo.has(repo)) return;
-                if(!drop.has(repo)) drop.set(repo, new Set());
-                drop.get(repo).add(node);
+            function drop_node(commit){
+                if(!d.commit.has(commit)) return;
+                if(!drop.has(commit)) drop.set(commit, new Set());
+                drop.get(commit).add(node);
             }
             if(op == 'add' || op == 'replace'){
                 if(d.node.has(node)){
@@ -285,16 +284,16 @@ export const store = {//export const create_base_slice = (set,get)=>({
             }else if(op == 'remove'){
                 if(d.closed.node.has(node)){
                     console.log('send close node');
-                    const repo = d.closed.node.get(node);
-                    if(!d.repo.has(repo)) return;
-                    if(!shut.has(repo)) shut.set(repo, new Set());
-                    shut.get(repo).add(node);
+                    const commit = d.closed.node.get(node);
+                    if(!d.commit.has(commit)) return;
+                    if(!shut.has(commit)) shut.set(commit, new Set());
+                    shut.get(commit).add(node);
                 }else if(d.dropped.node.has(node)){
                     console.log('send drop node');
                     drop_node(d.dropped.node.get(node));
                 }else if(path.length == 2){
                     console.log('undo send drop node');
-                    drop_node(d.node.get(node).repo);
+                    drop_node(d.node.get(node).commit);
                 }
             }
         }
@@ -302,43 +301,41 @@ export const store = {//export const create_base_slice = (set,get)=>({
             if(patch.path[0] == 'node' && patch.path[2] != 'back') handle_node(patch);
         }
         
-        for(let [repo, {node, forw}] of push){
-            //console.log('push node', repo, node, forw);
-            d.mutation.push_node({variables:{client, repo, node:[...node], forw:[...forw]}});
+        for(let [commit, {node, forw}] of push){
+            // console.log('push node', commit, node, forw);
+            d.mutation.push_node({variables:{commit, node:[...node], forw:[...forw]}});
         }
-        for(const [repo, node] of shut){
-            //console.log('shut node', node);
-            d.mutation.shut_node({variables:{client, repo, node:[...node]}});
+        for(const [commit, node] of shut){
+            // console.log('shut node', node);
+            d.mutation.shut_node({variables:{commit, node:[...node]}});
         }
-        for(const [repo, node] of drop){
-            //console.log('drop node', node);
-            d.mutation.drop_node({variables:{client, repo, node:[...node]}});
+        for(const [commit, node] of drop){
+            // console.log('drop node', node);
+            d.mutation.drop_node({variables:{commit, node:[...node]}});
         }
     },
 
     receive_data:(d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        //console.log(JSON.stringify(data));
-        const repo = data.repo.repo;
-        d.target.repo(d, repo);
-        d.repo.set(repo, {
-            name: data.repo.name,
-            team: data.repo.team,
-            description: data.repo.description,
-            write_access: data.repo.write_access,
-            node: d.repo.get(repo)?.node ?? new Set(),
+        console.log(JSON.stringify(data));
+        Object.entries(data.repos).map(([repo, {flex:{name, story}, writable}])=>{ // writable
+            d.repo.set(repo, {name, story, writable, commits:new Set()});
+            d.dropped.repo.delete(repo);
+            d.closed.repo.delete(repo);
         });
-        d.dropped.repo.delete(repo);
-        d.closed.repo.delete(repo);
-        //const nodes = new Set();
-        for(const triple of data.node){
-            //if(nodes.has(triple.node)) console.log('duplicate!!!!');
-            //nodes.add(triple.node);
-            d.make.node(d, {repo, node:triple.node, given:true});
-        }
-        for(const triple of data.node){
-            const node = triple.node;
-            const obj = JSON.parse(triple.obj['@value']) //console.log(obj)
-            for(const [term, stems] of Object.entries(obj)){
+        Object.entries(data.commits).map(([commit, {top, repo, flex:{name, story}, writable}])=>{
+            d.commit.set(commit, {repo, name, story, writable, nodes:new Set()});
+            d.repo.get(repo).commits.add(commit);
+            d.dropped.commit.delete(commit);
+            d.closed.commit.delete(commit);
+            if(top) d.target.commit(d, commit);
+        });
+        const nodes = Object.entries(data.nodes);
+        nodes.map(([node])=>{
+            const commit = node.substring(16);
+            d.make.node(d, {node, commit, given:true});
+        });
+        nodes.map(([node, forw])=>{
+            for(const [term, stems] of Object.entries(forw)){
                 if(!stems.length) d.make.edge(d, {root:node, term, given:true}); // making empty term
                 for(const stem of stems){
                     d.make.edge(d, {root:node, term, stem, given:true});
@@ -347,11 +344,41 @@ export const store = {//export const create_base_slice = (set,get)=>({
                     }
                 }
             }
-        }
+        });
         d.graph.increment(d);
     },
 
 };//);
+
+
+
+        // //const nodes = new Set();
+        // for(const triple of data.node){
+        //     //if(nodes.has(triple.node)) console.log('duplicate!!!!');
+        //     //nodes.add(triple.node);
+        //     d.make.node(d, {repo, node:triple.node, given:true});
+        // }
+        // for(const triple of data.node){
+        //     const node = triple.node;
+        //     const obj = JSON.parse(triple.obj['@value']) //console.log(obj)
+        //     for(const [term, stems] of Object.entries(obj)){
+        //         if(!stems.length) d.make.edge(d, {root:node, term, given:true}); // making empty term
+        //         for(const stem of stems){
+        //             d.make.edge(d, {root:node, term, stem, given:true});
+        //             if(term == 'delimit_app'){
+        //                 d.make.edge(d, {root:d.entry, term:'app', stem:node, given:true, single:true});
+        //             }
+        //         }
+        //     }
+        // }
+
+
+// d.repo.set(repo, {
+//     name: data.repo.name,
+//     story: data.repo.story,
+//     write_access: data.repo.write_access,
+//     node: d.repo.get(repo)?.node ?? new Set(),
+// });
 
 
 

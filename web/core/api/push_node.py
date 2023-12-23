@@ -2,25 +2,31 @@ import json, time
 import graphene
 from core.api.types import Pack_Type
 from core.api.config import auth_required_message
-from graph.database import gdbc, gdb_connect, gdb_write_access
-from terminus import WOQLQuery as wq
-from core.models import Repo
+#from graph.database import gdbc, gdb_connect, gdb_write_access
+#from terminus import WOQLQuery as wq
+from core.models import Repo, Commit, Snap
 
 class Push_Node(graphene.Mutation):
     class Arguments:
-        client = graphene.String()
-        repo   = graphene.String()
+        #commit = graphene.String()
         node   = graphene.List(graphene.String)
         forw   = graphene.List(graphene.String)
     reply = graphene.String() # default_value = 'Failed to push node'
     @classmethod
-    def mutate(cls, root, info, client, repo, node, forw):
+    def mutate(cls, root, info, node, forw):
         try: 
-            
             #print('repo, node: '+str(repo)+', '+str(node))
             user = info.context.user
             if not user.is_authenticated:
                 return Push_Node(reply = auth_required_message)
+
+            for node_commit, forw in zip(node, forw):
+                node = node_commit[:16]
+                commit = node_commit[16:]
+                # Snap.objects.bulk_create([
+                # ])
+            Snap.objects.filter()
+
             team = Repo.objects.get(repo=repo).team
             team, gdb_user = gdb_connect(user, team=team, repo=repo)
             #print('push node start time: '+str(time.time()))
@@ -38,6 +44,12 @@ class Push_Node(graphene.Mutation):
             return Push_Node(reply = 'Error, Push_Node: '+str(e))
 
 
+
+    # class Arguments:
+    #     client = graphene.String()
+    #     repo   = graphene.String()
+    #     node   = graphene.List(graphene.String)
+    #     forw   = graphene.List(graphene.String)
 
 
 # subj = 'id_string' 

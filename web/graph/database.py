@@ -1,35 +1,38 @@
 import os, time
 from django.conf import settings
-from core.models import Account
-from terminus import Client           # terminusdb_client
-from terminus import WOQLQuery as wq  # terminusdb_client
+# from core.models import Account
+# from terminus import Client           # terminusdb_client
+# from terminus import WOQLQuery as wq  # terminusdb_client
 
-GRAPH = settings.GRAPH
+# GRAPH = settings.GRAPH
 
-#os.system('nc -4 -vz '+GRAPH['socket']['host']+' '+GRAPH['socket']['port']) # trigger terminusdb.socket
+# #os.system('nc -4 -vz '+GRAPH['socket']['host']+' '+GRAPH['socket']['port']) # trigger terminusdb.socket
 
-gdbc = Client('http://'+GRAPH['server']['host']+':'+GRAPH['server']['port']+'/')
+# gdbc = Client('http://'+GRAPH['server']['host']+':'+GRAPH['server']['port']+'/')
 
-def gdb_connect(user, team=None, repo=None):
-    gdb_user = 'anonymous'
-    gdb_key = 'anonymous'
-    if user.is_authenticated:
-        account = Account.objects.get(user = user)
-        if not team: team = account.gdb_user
-        gdb_user = account.gdb_user
-        gdb_key = account.gdb_key
-    if not team: team = 'anonymous'
-    if repo: gdbc.connect(user=gdb_user, key=gdb_key, team=team, db=repo)
-    else: gdbc.connect(user=gdb_user, key=gdb_key, team=team)
-    return (team, gdb_user)
+# def gdb_connect(user, team=None, repo=None):
+#     gdb_user = 'anonymous'
+#     gdb_key = 'anonymous'
+#     if user.is_authenticated:
+#         account = Account.objects.get(user = user)
+#         if not team: team = account.gdb_user
+#         gdb_user = account.gdb_user
+#         gdb_key = account.gdb_key
+#     if not team: team = 'anonymous'
+#     if repo: gdbc.connect(user=gdb_user, key=gdb_key, team=team, db=repo)
+#     else: gdbc.connect(user=gdb_user, key=gdb_key, team=team)
+#     return (team, gdb_user)
 
-def gdb_write_access(team, repo, user):
-    for capability in gdbc.get_organization_user(team, user)['capability']:
-        if capability['scope']=='Organization/'+team or capability['scope']=='UserDatabase/'+repo: 
-            for role in capability['role']:
-                if 'instance_write_access' in role['action']:
-                    return True
-    return False
+# def gdb_write_access(team, repo, user):
+#     for capability in gdbc.get_organization_user(team, user)['capability']:
+#         if capability['scope']=='Organization/'+team or capability['scope']=='UserDatabase/'+repo: 
+#             for role in capability['role']:
+#                 if 'instance_write_access' in role['action']:
+#                     return True
+#     return False
+
+
+
 
 
 

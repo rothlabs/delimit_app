@@ -10,17 +10,17 @@ export const make = {};
 //             for(const [root, term] of d.back(d, type)){
 //                 if(term != 'type') continue;
 
-make.node = (d, {node, repo, given, type})=>{ 
+make.node = (d, {node, commit, given, type})=>{ 
     node = node ?? make_id();
-    if(!(given || d.write_access(d, node))) return;
-    if(repo == 'target') repo = d.targeted.repo;
+    if(!(given || d.writable(d, node))) return;
+    if(commit == 'target') commit = d.targeted.commit;
     d.drop.edge(d, {root:node, given}); 
     d.node.set(node, {
         forw: new Map(), // key:term,  value:[stem or leaf_obj]
         back: new Set(), // key:root            
-        repo,
+        commit,
     });
-    if(d.repo.has(repo)) d.repo.get(repo).node.add(node);
+    if(d.commit.has(commit)) d.commit.get(commit).nodes.add(commit);
     if(type) build(d, node, type);
     d.dropped.node.delete(node);
     d.closed.node.delete(node);
@@ -30,7 +30,7 @@ make.node = (d, {node, repo, given, type})=>{
 
 make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
     if(!d.node.has(root)) return; //  && (stem.type || d.node.has(stem)))
-    if(!(given || d.write_access(d, root))) return;
+    if(!(given || d.writable(d, root))) return;
     const forw = d.node.get(root).forw;
     let stems = forw.get(term);
     let length = stems?.length ?? 0;
@@ -73,7 +73,7 @@ function build(d, root, type){
     d.make.edge(d, {root, term:'type', stem:type});
     if(d.type_name(d, root) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
         for(const context of d.stems(d, d.entry, 'app contexts')){
-            if(d.node.get(context).repo == d.targeted.repo){ // if(d.node.get(context).repo == d.target.repo){
+            if(d.node.get(context).commit == d.targeted.commit){ // if(d.node.get(context).repo == d.target.repo){
                 d.make.edge(d, {root:context, term:'types', stem:root});
             }
         }

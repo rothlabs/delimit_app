@@ -1,9 +1,11 @@
 import json, time
 import graphene
+from core.api.config import auth_required_message
 #from core.api.types import Pack_Type
-from graph.database import gdbc, gdb_connect, gdb_write_access
-from terminus import WOQLQuery as wq
-from core.models import Repo
+#from graph.database import gdbc, gdb_connect, gdb_write_access
+#from terminus import WOQLQuery as wq
+from core.models import Repo, Commit, Snap
+from core.api.util import readable_commit
 
 # data = json.loads(data)
 
@@ -12,41 +14,168 @@ from core.models import Repo
 
 class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
     class Arguments:
-        client = graphene.String()
-        repo = graphene.String()
-        #nodes = graphene.List(graphene.String())
-    #pack = graphene.Field(Pack_Type)
-    #write = graphene.Boolean(default_value = False)
+        commit = graphene.String()
     data = graphene.String(default_value = 'null')
     reply = graphene.String(default_value = 'Failed to open repo')
     @classmethod
-    def mutate(cls, root, info, client, repo): # , include, exclude): # offset, limit for pages
+    def mutate(cls, root, info, commit): # , include, exclude): # offset, limit for pages
         try:
-            
-            team = Repo.objects.get(repo=repo).team
-            team, gdb_user = gdb_connect(info.context.user, team=team, repo=repo)
-            #triples = wq().star(subj='v:root', pred='v:term', obj='v:stem').execute(gdbc)['bindings']
-            rdb_repo = Repo.objects.get(repo=repo)
-            #print('open repo start time: '+str(time.time()));
-            node = wq().triple('v:node', '@schema:__forw__', 'v:obj').execute(gdbc)['bindings']
-            #print('end time: '+str(time.time()));
+            user = info.context.user
+            repos = {}
+            commits = {}
+            nodes = {}
+            commit_id = commit 
+            top_nodes = set()
+            node_map = {}
+            def build_map(inner_commit_id):
+                if inner_commit_id in commits: return
+                try: 
+                    commit = Commit.objects.select_related('repo').prefetch_related('snaps').get(
+                        readable_commit(user),
+                        id = inner_commit_id,
+                    )
+                except: return
+                top = (commit.id == commit_id)
+                repos[commit.repo.id] = {
+                    'flex': commit.repo.flex, 
+                    'writable': True,
+                    #'writable': user.writable_repos.filter(id=repo.id).exists()
+                }
+                commits[commit.id] = {
+                    'top':   top,
+                    'repo':  commit.repo.id,
+                    'flex':  commit.flex,
+                    'writable': True,
+                    #'roots': commit.roots 
+                    #'branch': commit.filter(stems__isnull = True),
+                }
+                for snap in commit.snaps.all():#repo.commit.snaps.all():  #Snap.objects.filter(commits = inner_commit_id)
+                    forw = snap.forw.copy()
+                    for term in snap.forw.keys():
+                        for index, stem in enumerate(snap.forw[term]):
+                            if isinstance(stem, str): 
+                                if len(stem) > 16: build_map(stem[16:])
+                                else: forw[term][index] = snap.forw[term][index] + commit.id # if not hasattr(stem, 'type'):
+                    if top: top_nodes.add(snap.node + commit.id)
+                    node_map[snap.node + commit.id] = forw #{'forw':forw, 'commit':commit.id}
+            build_map(commit_id)
+            if len(commits) == 1: 
+                nodes = node_map
+            else:
+                def select_nodes(node):
+                    if node in nodes: return
+                    nodes[node] = node_map[node]
+                    for term in nodes[node]:
+                        for stem in term:
+                            if isinstance(stem, str): select_nodes(stem)
+                for node in top_nodes: select_nodes(node)
             return Open_Repo(
-                reply = 'Opened nodes',
+                reply = 'Open repo successful',
                 data = json.dumps({
-                    'repo':{
-                        'repo': repo,
-                        'team': team,
-                        'name': rdb_repo.name, 
-                        'description': rdb_repo.description,
-                        'write_access': gdb_write_access(team, repo, gdb_user),
-                    },
-                    'node': node,
+                    'commits': commits,
+                    'repos':   repos,
+                    'nodes':   nodes,
                 }),
             )
         except Exception as e: 
             print('Error: Open_Repo')
             print(e)
         return Open_Repo()
+
+
+                    # 'commit':{
+                    #     commit.id:{
+                    #         'tip':  commit.
+                    #         'repo': commit.repo, # 'committer': commit.committer,
+                    #         #'roots': x.roots,
+                    #         'flex':  commit.flex,
+                    #     } for commit in Commit.objects.filter(commit__in = commits)
+                    # },
+
+#flex__perm__contains = {user.id:'read'}
+
+
+# user = info.context.user
+#             if not user.is_authenticated:
+#                 return Push_Node(reply = auth_required_message)
+#             repos = {}
+#             node_map = {}
+#             roots = set()
+#             commits = set()
+#             def build_node_map(current_commit):
+#                 if current_commit in commits: return
+#                 try:
+#                     repo = Repo.objects.get(commits = current_commit, readers = user) #flex__perm__contains = {user.id:'read'}
+#                     repos[repo.repo] = {'flex':repo.flex}
+#                 except: return
+#                 commits.add(current_commit)
+#                 for snap in Snap.objects.filter(commits = current_commit):
+#                     forw = snap.forw.copy()
+#                     for term in snap.forw.keys():
+#                         for stem, index in enumerate(term):
+#                             if isinstance(stem, str): 
+#                                 if len(stem) > 16: build_node_map(stem[16:])
+#                                 else: forw[term][index] = snap.forw[term][index] + current_commit # if not hasattr(stem, 'type'):
+#                     if commit == current_commit:
+#                         roots.add(snap.node + current_commit)
+#                     node_map[snap.node + current_commit] = forw
+#             build_node_map(commit)
+#             nodes = {}
+#             if len(commit) == 1: 
+#                 nodes = node_map
+#             else:
+#                 def build_nodes(node):
+#                     if node in nodes: return
+#                     nodes[node] = node_map[node]
+#                     for term in nodes[node].keys():
+#                         for stem in term:
+#                             if isinstance(stem, str): build_nodes(stem)
+#                 for node in roots: build_nodes(node)
+#             return Open_Repo(
+#                 reply = 'Open repo successful',
+#                 data = json.dumps({
+#                     'repo': repos,
+#                     'commit':{
+#                         commit.id:{
+#                             'repo':  commit.repo, # 'committer': commit.committer,
+#                             #'roots': x.roots,
+#                             'flex':  commit.flex,
+#                         } for commit in Commit.objects.filter(commit__in = commits)
+#                     },
+#                     'node': nodes,
+#                 }),
+#             )
+
+
+
+
+
+
+                    # 'repos':{repo.repo:{
+                    #     'flex': repo.flex,
+                    #     } for repo in Repo.objects.get(commits__in = commits)},
+
+    # class Arguments:
+    #     #client = graphene.String()
+    #     commit = graphene.String()
+    #     #nodes = graphene.List(graphene.String())
+    # #pack = graphene.Field(Pack_Type)
+    # #write = graphene.Boolean(default_value = False)
+
+            #repo_obj = Repo.objects.get(branch=branch)
+            #branch_obj = Branch.objects.get(branch=branch)
+            #node = {branch+x.node:x.data for x in Node.objects.filter(branch=branch)} # Node.objects.filter(branch=branch).values('node', 'data')
+
+            #repo_obj = Repo.objects.get(branch=branch)
+            #branch_obj = Branch.objects.get(branch=branch)
+            #node = {branch+x.node:x.data for x in Node.objects.filter(branch=branch)} # Node.objects.filter(branch=branch).values('node', 'data')
+                                    # stem_commit = stem[16:]
+                                    # if not stem_commit in all_commits:
+                                    #     all_commits.add(stem_commit)
+                                    #     stem_commits.add(stem_commit)
+
+                                                    # for stem_commit in stem_commits:
+                #     build_node_map(stem_commit)
 
 
             # data = {}
