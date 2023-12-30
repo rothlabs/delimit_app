@@ -39,13 +39,13 @@ const mutations = compile_gql('mutation', [
         ['openNode reply data', 'String commit', '[String] node'],
     ]],
     ['ShutNode', [
-        ['shutNode reply', 'String commit', '[String] node'],
+        ['shutNode reply', 'String commit', '[String] nodes'],
     ]],
     ['DropNode', [  
-        ['dropNode reply', 'String commit', '[String] node'],
+        ['dropNode reply', 'String commit', '[String] nodes'],
     ]],
     ['PushNode', [  
-        ['pushNode reply', 'String commit', '[String] node', '[String] forw'],
+        ['pushNode reply', 'String nodes'], // , '[String] forw'
     ]],
     ['PullNode', [  
         ['pullNode reply data', 'String client'], // client instance

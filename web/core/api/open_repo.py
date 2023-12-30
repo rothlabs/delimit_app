@@ -25,7 +25,7 @@ class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
             commits = {}
             nodes = {}
             commit_id = commit 
-            top_nodes = set()
+            top_node_ids = set()
             node_map = {}
             def build_map(inner_commit_id):
                 if inner_commit_id in commits: return
@@ -56,7 +56,7 @@ class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
                             if isinstance(stem, str): 
                                 if len(stem) > 16: build_map(stem[16:])
                                 else: forw[term][index] = snap.forw[term][index] + commit.id # if not hasattr(stem, 'type'):
-                    if top: top_nodes.add(snap.node + commit.id)
+                    if top: top_node_ids.add(snap.node + commit.id)
                     node_map[snap.node + commit.id] = forw #{'forw':forw, 'commit':commit.id}
             build_map(commit_id)
             if len(commits) == 1: 
@@ -68,7 +68,7 @@ class Open_Repo(graphene.Mutation): # rename to Open_Module?! #1
                     for term in nodes[node]:
                         for stem in term:
                             if isinstance(stem, str): select_nodes(stem)
-                for node in top_nodes: select_nodes(node)
+                for node in top_node_ids: select_nodes(node)
             return Open_Repo(
                 reply = 'Open repo successful',
                 data = json.dumps({

@@ -253,70 +253,77 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
     send_data(d, patches){ // change to send patches directly to server (filtering for patches that matter)
         //console.log('patches', patches);
-        const push = new Map();
-        const shut = new Map();
-        const drop = new Map();
+        const push_nodes = new Map();
+        const shut_nodes = new Map();
+        const drop_nodes = new Map();
         function handle_node({path, op, value}){
             console.log('patch', path, op);
             const node = path[1];
-            function push_node(node_obj){
-                const commit = node_obj.commit;
-                if(!d.commit.has(commit)) return;
-                if(!push.has(commit)) push.set(commit, {node:new Set(), forw:new Set()});
-                const commit_push = push.get(commit);
-                if(commit_push.node.size < commit_push.node.add(node).size){
-                    commit_push.forw.add(JSON.stringify(Object.fromEntries(node_obj.forw)));
-                }
-            }
-            function drop_node(commit){
-                if(!d.commit.has(commit)) return;
-                if(!drop.has(commit)) drop.set(commit, new Set());
-                drop.get(commit).add(node);
-            }
+            // function push_node(node_obj){
+            //     const commit = node_obj.commit;
+            //     if(!d.commit.has(commit)) return;
+            //     if(!push.has(commit)) push.set(commit, {node:new Set(), forw:new Set()});
+            //     const commit_push = push.get(commit);
+            //     if(commit_push.node.size < commit_push.node.add(node).size){
+            //         commit_push.forw.add(JSON.stringify(Object.fromEntries(node_obj.forw)));
+            //     }
+            // }
+            // function drop_node(commit){
+            //     if(!d.commit.has(commit)) return;
+            //     if(!drop.has(commit)) drop.set(commit, new Set());
+            //     drop.get(commit).add(node);
+            // }
             if(op == 'add' || op == 'replace'){
                 if(d.node.has(node)){
                     console.log('send push node');
-                    push_node(d.node.get(node));
+                    push_nodes.set(node, Object.fromEntries(d.node.get(node).forw)); // push_node(d.node.get(node));
                 }else if(path.length == 2){
                     console.log('undo send push node');
-                    push_node(value);
+                    console.log(value);
+                    //push_nodes.set(node, Object.fromEntries(value)); // push_node(value);
                 }
             }else if(op == 'remove'){
                 if(d.closed.node.has(node)){
                     console.log('send close node');
-                    const commit = d.closed.node.get(node);
-                    if(!d.commit.has(commit)) return;
-                    if(!shut.has(commit)) shut.set(commit, new Set());
-                    shut.get(commit).add(node);
-                }else if(d.dropped.node.has(node)){
+                    shut_nodes.add(node);
+                    // const commit = d.closed.node.get(node);
+                    // if(!d.commit.has(commit)) return;
+                    // if(!shut.has(commit)) shut.set(commit, new Set());
+                    // shut.get(commit).add(node);
+                }else if(d.dropped.node.has(node) || path.length == 2){
                     console.log('send drop node');
-                    drop_node(d.dropped.node.get(node));
-                }else if(path.length == 2){
-                    console.log('undo send drop node');
-                    drop_node(d.node.get(node).commit);
+                    drop_nodes.add(node);// drop_node(d.dropped.node.get(node));
                 }
+                // }else if(path.length == 2){
+                //     console.log('undo send drop node');
+                //     drop_node(d.node.get(node).commit);
+                // }
             }
         }
         for(const patch of patches){ 
             if(patch.path[0] == 'node' && patch.path[2] != 'back') handle_node(patch);
         }
         
-        for(let [commit, {node, forw}] of push){
-            // console.log('push node', commit, node, forw);
-            d.mutation.push_node({variables:{commit, node:[...node], forw:[...forw]}});
+        if(push_nodes.size){//for(let [commit, {node, forw}] of push){
+            //console.log('try to push nodes');
+            //console.log(push_nodes);
+            //console.log(Object.fromEntries(push_nodes));
+            const nodes = JSON.stringify(Object.fromEntries(push_nodes));
+            console.log('push node', nodes);
+            d.mutation.push_node({variables:{nodes}}); // {commit, node:[...node], forw:[...forw]}
         }
-        for(const [commit, node] of shut){
-            // console.log('shut node', node);
-            d.mutation.shut_node({variables:{commit, node:[...node]}});
+        if(shut_nodes.size){//for(const [commit, node] of shut){
+            console.log('shut node', node);
+            d.mutation.shut_node({variables:{nodes:[...shut_nodes]}});
         }
-        for(const [commit, node] of drop){
-            // console.log('drop node', node);
-            d.mutation.drop_node({variables:{commit, node:[...node]}});
+        if(drop_nodes.size){//for(const [commit, node] of drop){
+            console.log('drop node', node);
+            d.mutation.drop_node({variables:{nodes:[...drop_nodes]}});
         }
     },
 
     receive_data:(d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
-        console.log(JSON.stringify(data));
+        //console.log(JSON.stringify(data));
         Object.entries(data.repos).map(([repo, {flex:{name, story}, writable}])=>{ // writable
             d.repo.set(repo, {name, story, writable, commits:new Set()});
             d.dropped.repo.delete(repo);

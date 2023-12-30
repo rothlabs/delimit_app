@@ -1,48 +1,188 @@
-import json, time
+import json, time, hashlib
 import graphene
+from django.db.models import Prefetch, Count
 from core.api.types import Pack_Type
 from core.api.config import auth_required_message
-#from graph.database import gdbc, gdb_connect, gdb_write_access
-#from terminus import WOQLQuery as wq
-from core.models import Repo, Commit, Snap
+from core.models import Commit, Snap
+from core.api.util import writable_commit, make_id
 
 class Push_Node(graphene.Mutation):
     class Arguments:
-        #commit = graphene.String()
-        node   = graphene.List(graphene.String)
-        forw   = graphene.List(graphene.String)
+        nodes = graphene.String()#forw   = graphene.List(graphene.String)
     reply = graphene.String() # default_value = 'Failed to push node'
     @classmethod
-    def mutate(cls, root, info, node, forw):
+    def mutate(cls, root, info, nodes):
         try: 
             #print('repo, node: '+str(repo)+', '+str(node))
             user = info.context.user
             if not user.is_authenticated:
                 return Push_Node(reply = auth_required_message)
-
-            for node_commit, forw in zip(node, forw):
-                node = node_commit[:16]
-                commit = node_commit[16:]
-                # Snap.objects.bulk_create([
-                # ])
-            Snap.objects.filter()
-
-            team = Repo.objects.get(repo=repo).team
-            team, gdb_user = gdb_connect(user, team=team, repo=repo)
-            #print('push node start time: '+str(time.time()))
-            query = wq()
-            for node, forw in zip(node, forw):
-                delete = wq().triple(node, '@schema:__forw__', 'v:obj').delete_triple(node, '@schema:__forw__', 'v:obj')
-                query.woql_or(delete, wq().add_triple(node, '@schema:__forw__', wq().string(forw))) 
-                #print('add and delete triple time: '+str(time.time()))
-            query.execute(gdbc)
-            #print('end time: '+str(time.time()))
+            commits = normalize_to_commits(json.loads(nodes))
+            for target_commit in filter_commits(commits, user):
+                push_snaps(target_commit, commits)
             return Push_Node(reply='Push node complete') 
         except Exception as e: 
             print('Error: Push_Node')
             print(str(e))
             return Push_Node(reply = 'Error, Push_Node: '+str(e))
 
+def normalize_to_commits(nodes):
+    commits = {}
+    for comp_id, forw in nodes.items():
+        node_id = comp_id[:16]
+        commit_id = comp_id[16:]
+        if not commit_id in commits: 
+            commits[commit_id] = {}
+        new_forw = forw.copy()
+        for term, stems in forw.items():
+            for index, stem in enumerate(stems):
+                if isinstance(stem, str): 
+                    if stem[16:] == commit_id:
+                        new_forw[term][index] = stem[:16]
+        commits[commit_id][node_id] = new_forw
+    return commits
+
+def filter_commits(commits, user):
+    return Commit.objects.annotate(stem_count=Count('stems')).prefetch_related(
+        'snaps' # Prefetch("snaps", queryset = Snap.objects.filter(node__in = node_ids))
+    ).filter( 
+        writable_commit(user),
+        id__in = commits.keys(), 
+    )
+
+def push_snaps(target_commit, commits):
+    new_snaps = []
+    for snap in target_commit.snaps.filter(node__in = commits[target_commit.id].keys()): # add_commit_count.filter(node__in = node_ids):
+        forw = commits[target_commit.id][snap.node]
+        forw_hash = hashlib.sha256(json.dumps(forw)).hexdigest()
+        if snap.commit_count > 1:
+            print('new snap!!!')
+            new_snaps.append(Snap(node=snap.node, forw=forw))
+        else:
+            print('update snap!!!')
+            new_snaps.append(Snap(node=snap.node, forw=forw, id=snap.id))
+        commits[target_commit.id][snap.node] = None
+    for node_id in commits[target_commit.id]:
+        if commits[target_commit.id][node_id]:
+            print('new node!!!')
+            new_snaps.append(Snap(node=make_id(), forw=commits[target_commit.id][node_id]))
+    snaps = Snap.objects.bulk_create(
+        new_snaps, 
+        update_conflicts = True,
+        update_fields = ['forw'],
+        unique_fields = ['id'],
+    )
+    target_commit.snaps.add(*snaps)
+
+
+# def push_snaps(target_commit, commits):
+#     new_snaps = []
+#     for snap in target_commit.snaps.annotate(commit_count=Count('commits')).filter(node__in = commits[target_commit.id].keys()): # add_commit_count.filter(node__in = node_ids):
+#         forw = commits[target_commit.id][snap.node]
+#         forw_hash = hashlib.sha256(json.dumps(forw)).hexdigest()
+#         if snap.commit_count > 1:
+#             print('new snap!!!')
+#             new_snaps.append(Snap(node=snap.node, forw=forw))
+#         else:
+#             print('update snap!!!')
+#             new_snaps.append(Snap(node=snap.node, forw=forw, id=snap.id))
+#         commits[target_commit.id][snap.node] = None
+#     for node_id in commits[target_commit.id]:
+#         if commits[target_commit.id][node_id]:
+#             print('new node!!!')
+#             new_snaps.append(Snap(node=make_id(), forw=commits[target_commit.id][node_id]))
+#     snaps = Snap.objects.bulk_create(
+#         new_snaps, 
+#         update_conflicts = True,
+#         update_fields = ['forw'],
+#         unique_fields = ['id'],
+#     )
+#     target_commit.snaps.add(*snaps)
+
+
+#from graph.database import gdbc, gdb_connect, gdb_write_access
+#from terminus import WOQLQuery as wq
+
+            # node_ids = set()
+            # commit_ids = set()
+            # for node_commit in nodes.items():
+            #     node_ids.add(node_commit[:16])
+            #     commit_ids.add(node_commit[16:])
+
+#  nodes = json.loads(nodes)
+#             node_ids = set()
+#             commit_ids = set()
+#             for node_commit in nodes.items():
+#                 node_ids.add(node_commit[:16])
+#                 commit_ids.add(node_commit[16:])
+#             commits = Commit.objects.add_stem_count().prefetch_related(
+#                 Prefetch("snaps", queryset = Snap.objects.filter(node__in = node_ids))
+#             ).filter( 
+#                 writable_commit(user),
+#                 id__in = commit_ids, 
+#             )
+#             for commit in commits:
+#                 new_snaps = []
+#                 for snap in commit.snaps: # add_commit_count.filter(node__in = node_ids):
+#                     node_commit = snap.node + commit.id
+#                     if not node_commit in nodes: continue
+#                     forw = nodes[node_commit]
+#                     if snap.commit_count > 1:
+#                         new_snaps.append(Snap(node=snap.node, forw=forw))
+#                     else:
+#                         new_snaps.append(Snap(node=snap.node, forw=forw, id=snap.id))
+                
+#                 snaps = Snap.objects.bulk_create(
+#                     new_snaps, 
+#                     update_conflicts = True,
+#                     update_fields = ['forw'],
+#                     unique_fields = ['id'],
+#                 )
+#                 commit.snaps.add(new_snaps)
+#             return Push_Node(reply='Push node complete') 
+
+
+            # commits = Commit.objects.add_stem_count().prefetch_related(
+            #     Prefetch("snaps", queryset = Snap.objects.filter(node__in = node_ids))
+            # ).filter( 
+            #     writable_commit(user),
+            #     id__in = commit_ids, 
+            # )
+
+            # nodes = json.loads(nodes)
+            # node_ids = set()
+            # commit_ids = set()
+            # for node_commit, forw in nodes.items():
+            #     node = node_commit[:16]
+            #     node_ids.add(node)
+            #     commit_id = node_commit[16:]
+            #     commit_ids.add(commit_id)
+            #     # Snap(node=node, forw=forw)
+            # snaps = Snap.objects.prefetch_related('commits').add_counts().filter(
+            #     writable_snap(user),
+            #     node__in = node_ids,
+            #     commits__in = commit_ids,
+            # )
+            # new_snaps = []
+            # for snap in snaps:
+            #     forw = nodes[snap.node + snap.commits[-1].id]
+            #     if snap.commit_count > 1:
+            #         new_snaps.append(Snap(node=snap.node, forw=forw))
+                    
+            #     else:
+            #         new_snaps.append(Snap(node=snap.node, forw=forw, id=snap.id))
+            # snaps = Snap.objects.bulk_create(
+            #     new_snaps, 
+            #     update_conflicts = True,
+            #     update_fields = ['node', 'forw'],
+            #     unique_fields = ['id'],
+            # )
+            # commits = Commit.objects.filter(
+            #     writable_commit(user),
+            # )
+            # # for commit in snap
+            # # for snap in snaps:
+            # #     snap.add
 
 
     # class Arguments:

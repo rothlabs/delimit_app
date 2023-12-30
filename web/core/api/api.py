@@ -7,15 +7,15 @@ from core.api.logout import Logout
 from core.api.types import Authenticated_User_Type, Pack_Type
 from core.models import Repo
 
-from core.api.open_repo import Open_Repo
-# from core.api.shut_repo import Shut_Repo
-from core.api.make_repo import Make_Repo
-# from core.api.drop_repo import Drop_Repo
+# from core.api.open_repo import Open_Repo
+# # from core.api.shut_repo import Shut_Repo
+# from core.api.make_repo import Make_Repo
+# # from core.api.drop_repo import Drop_Repo
 
-# from core.api.open_node import Open_Node
-# from core.api.shut_node import Shut_Node
-from core.api.push_node import Push_Node
-# from core.api.drop_node import Drop_Node
+# # from core.api.open_node import Open_Node
+# # from core.api.shut_node import Shut_Node
+# from core.api.push_node import Push_Node
+# # from core.api.drop_node import Drop_Node
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
@@ -49,15 +49,15 @@ class Query(graphene.ObjectType):
 class Mutation(graphene.ObjectType):
     login    = Login.Field()
     logout   = Logout.Field()
-    openRepo = Open_Repo.Field()
-    # shutRepo = Shut_Repo.Field()
-    makeRepo = Make_Repo.Field() # rename to push repo and include edits
-    # dropRepo = Drop_Repo.Field()
-    # openNode = Open_Node.Field()
-    # shutNode = Shut_Node.Field()
-    pushNode = Push_Node.Field() 
-    # dropNode = Drop_Node.Field()
-    #pullNode = Drop_Node.Field() should be query 
+    # openRepo = Open_Repo.Field()
+    # # shutRepo = Shut_Repo.Field()
+    # makeRepo = Make_Repo.Field() # rename to push repo and include edits
+    # # dropRepo = Drop_Repo.Field()
+    # # openNode = Open_Node.Field()
+    # # shutNode = Shut_Node.Field()
+    # pushNode = Push_Node.Field() 
+    # # dropNode = Drop_Node.Field()
+    # #pullNode = Drop_Node.Field() should be query 
     
 api = graphene.Schema(query=Query, mutation=Mutation)
 

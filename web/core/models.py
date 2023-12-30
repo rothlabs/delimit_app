@@ -1,13 +1,13 @@
 import os
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Count
 from core.api.util import make_id
 
 id_length = 16
-name_length = 64
 
 class Repo(models.Model):
-    id        = models.CharField(max_length=id_length, primary_key=True, default=make_id) 
+    id        = models.CharField(max_length=id_length, primary_key=True, default=make_id)  # unique=True
     readers   = models.ManyToManyField(User, related_name='readable_repos') 
     writers   = models.ManyToManyField(User, related_name='writable_repos') 
     make_time = models.DateTimeField(auto_now_add=True)
@@ -15,22 +15,43 @@ class Repo(models.Model):
     flex      = models.JSONField()
 
 class Snap(models.Model):
-    id   = models.CharField(max_length=id_length, primary_key=True, default=make_id) 
-    node = models.CharField(max_length=id_length) 
-    forw = models.JSONField()
+    digest  = models.CharField(max_length=64, primary_key=True) 
+    content = models.JSONField()  
 
 class Commit(models.Model):
     id        = models.CharField(max_length=id_length, primary_key=True, default=make_id) 
     repo      = models.ForeignKey(Repo,        related_name='commits', on_delete=models.CASCADE) 
     committer = models.ForeignKey(User,        related_name='commits', on_delete=models.SET_NULL, null=True) 
     authors   = models.ManyToManyField(User,   related_name='contributions') 
-    snaps     = models.ManyToManyField(Snap,   related_name='commits') 
-    roots     = models.ManyToManyField('self', related_name='stems', symmetrical=False)
     readers   = models.ManyToManyField(User,   related_name='readable_commits') 
     writers   = models.ManyToManyField(User,   related_name='writable_commits') 
+    roots     = models.ManyToManyField('self', related_name='stems', symmetrical=False)
+    content   = models.JSONField()  # nodes     = models.ManyToManyField(Node,   related_name='commits') 
+    committed = models.BooleanField(default=False)
     make_time = models.DateTimeField(auto_now_add=True)
     edit_time = models.DateTimeField(auto_now=True)
     flex      = models.JSONField()
+    # def add_stem_count(self):
+    #     return self.annotate(stem_count=Count('stems'))
+
+
+# class Node(models.Model):
+#     key  = models.CharField(max_length=id_length, default=make_id) 
+#     snap = models.ForeignKey(Snap, related_name='nodes', on_delete=models.CASCADE)  
+
+
+
+    #id   = models.CharField(max_length=id_length, primary_key=True, default=make_id) 
+
+    #forw = models.JSONField()
+    # def add_commit_count(self):
+    #     return self.annotate(commit_count=Count('commits'))#, commit_stem_count=Count('commits__stems'))
+
+
+
+# class Commit_Snap(models.Model):
+#     fueltype = models.ForeignKey(FuelType, on_delete=models.CASCADE)
+#     carmodel = models.ForeignKey(CarModel, on_delete=models.CASCADE)
 
 
 #repo = models.ForeignKey(Repo, related_name='snaps', on_delete=models.CASCADE) 

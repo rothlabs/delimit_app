@@ -173,7 +173,7 @@ class Make_Repo(graphene.Mutation):
                 }),
             ])
 
-            commit = Commit.objects.create(
+            commit = Commit.objects.create( # pre select authors and snaps ?!
                 repo      = repo,
                 committer = user,
                 flex = {
