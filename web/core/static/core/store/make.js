@@ -6,14 +6,10 @@ import {make_id} from 'delimit';
 export const make = {};
 
 
-// if(d.face.name(d, type) != 'Root') continue;
-//             for(const [root, term] of d.back(d, type)){
-//                 if(term != 'type') continue;
-
-make.node = (d, {node, commit, given, type})=>{ 
-    node = node ?? make_id();
+make.node = (d, {node, commit, given, type})=>{
+    if(commit == 'target') commit = d.targeted.commit; 
+    node = node ?? commit + make_id();
     if(!(given || d.writable(d, node))) return;
-    if(commit == 'target') commit = d.targeted.commit;
     d.drop.edge(d, {root:node, given}); 
     d.node.set(node, {
         forw: new Map(), // key:term,  value:[stem or leaf_obj]

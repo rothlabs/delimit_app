@@ -26,26 +26,27 @@ const mutations = compile_gql('mutation', [
             'String story', 
         ],
     ]],
-    ['OpenRepo', [
-        ['openRepo reply data', 'String commit'],
+    ['OpenCommit', [
+        ['openCommit reply result', 'String commitId'],
     ]],
+    ['MakeNodes', [  
+        ['makeNodes reply result', 'String nodes'], 
+    ]],
+    ['CloseNodes', [
+        ['closeNodes reply result', '[String] nodes'],
+    ]],
+    ['DropNodes', [  
+        ['dropNodes reply result', '[String] nodes'],
+    ]],
+
     ['ShutRepo', [
-        ['shutRepo reply', 'String commit'],
+        ['shutRepo reply', 'String commitId'],
     ]],
     ['DropRepo', [  
-        ['dropRepo reply', 'String commit'],
+        ['dropRepo reply', 'String commitId'],
     ]],
     ['OpenNode', [
-        ['openNode reply data', 'String commit', '[String] node'],
-    ]],
-    ['ShutNode', [
-        ['shutNode reply', 'String commit', '[String] nodes'],
-    ]],
-    ['DropNode', [  
-        ['dropNode reply', 'String commit', '[String] nodes'],
-    ]],
-    ['PushNode', [  
-        ['pushNode reply', 'String nodes'], // , '[String] forw'
+        ['openNode reply data', 'String commitId', '[String] node'],
     ]],
     ['PullNode', [  
         ['pullNode reply data', 'String client'], // client instance

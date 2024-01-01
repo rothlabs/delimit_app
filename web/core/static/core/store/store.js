@@ -253,9 +253,9 @@ export const store = {//export const create_base_slice = (set,get)=>({
 
     send_data(d, patches){ // change to send patches directly to server (filtering for patches that matter)
         //console.log('patches', patches);
-        const push_nodes = new Map();
-        const shut_nodes = new Map();
-        const drop_nodes = new Map();
+        const make_nodes = new Map();
+        const close_nodes = new Set();
+        const drop_nodes = new Set();
         function handle_node({path, op, value}){
             console.log('patch', path, op);
             const node = path[1];
@@ -276,7 +276,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
             if(op == 'add' || op == 'replace'){
                 if(d.node.has(node)){
                     console.log('send push node');
-                    push_nodes.set(node, Object.fromEntries(d.node.get(node).forw)); // push_node(d.node.get(node));
+                    make_nodes.set(node, Object.fromEntries(d.node.get(node).forw)); // push_node(d.node.get(node));
                 }else if(path.length == 2){
                     console.log('undo send push node');
                     console.log(value);
@@ -285,7 +285,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
             }else if(op == 'remove'){
                 if(d.closed.node.has(node)){
                     console.log('send close node');
-                    shut_nodes.add(node);
+                    close_nodes.add(node);
                     // const commit = d.closed.node.get(node);
                     // if(!d.commit.has(commit)) return;
                     // if(!shut.has(commit)) shut.set(commit, new Set());
@@ -303,33 +303,29 @@ export const store = {//export const create_base_slice = (set,get)=>({
         for(const patch of patches){ 
             if(patch.path[0] == 'node' && patch.path[2] != 'back') handle_node(patch);
         }
-        
-        if(push_nodes.size){//for(let [commit, {node, forw}] of push){
-            //console.log('try to push nodes');
-            //console.log(push_nodes);
-            //console.log(Object.fromEntries(push_nodes));
-            const nodes = JSON.stringify(Object.fromEntries(push_nodes));
+        if(make_nodes.size){
+            const nodes = JSON.stringify(Object.fromEntries(make_nodes));
             console.log('push node', nodes);
-            d.mutation.push_node({variables:{nodes}}); // {commit, node:[...node], forw:[...forw]}
+            d.server.make_nodes({variables:{nodes}}); 
         }
-        if(shut_nodes.size){//for(const [commit, node] of shut){
-            console.log('shut node', node);
-            d.mutation.shut_node({variables:{nodes:[...shut_nodes]}});
+        if(close_nodes.size){
+            console.log('shut node', close_nodes);
+            d.server.close_nodes({variables:{nodes:[...close_nodes]}});
         }
-        if(drop_nodes.size){//for(const [commit, node] of drop){
-            console.log('drop node', node);
-            d.mutation.drop_node({variables:{nodes:[...drop_nodes]}});
+        if(drop_nodes.size){
+            console.log('drop node', drop_nodes);
+            d.server.drop_nodes({variables:{nodes:[...drop_nodes]}});
         }
     },
 
     receive_data:(d, data)=>{// change to receive patches directly from server    must check if this data has been processed already, use d.make.part, d.make.edge, etc!!!!!!
         //console.log(JSON.stringify(data));
-        Object.entries(data.repos).map(([repo, {flex:{name, story}, writable}])=>{ // writable
+        Object.entries(data.repos).map(([repo, {metadata:{name, story}, writable}])=>{ // writable
             d.repo.set(repo, {name, story, writable, commits:new Set()});
             d.dropped.repo.delete(repo);
             d.closed.repo.delete(repo);
         });
-        Object.entries(data.commits).map(([commit, {top, repo, flex:{name, story}, writable}])=>{
+        Object.entries(data.commits).map(([commit, {top, repo, metadata:{name, story}, writable}])=>{
             d.commit.set(commit, {repo, name, story, writable, nodes:new Set()});
             d.repo.get(repo).commits.add(commit);
             d.dropped.commit.delete(commit);
@@ -338,7 +334,7 @@ export const store = {//export const create_base_slice = (set,get)=>({
         });
         const nodes = Object.entries(data.nodes);
         nodes.map(([node])=>{
-            const commit = node.substring(16);
+            const commit = node.slice(0, 16);
             d.make.node(d, {node, commit, given:true});
         });
         nodes.map(([node, forw])=>{

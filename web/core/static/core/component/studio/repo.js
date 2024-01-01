@@ -6,10 +6,11 @@ export function Repo(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
     const repo_map = use_store(d=> d.repo);//const repos = use_store(d=> [...d.repo]); //{shallow:true}
     const {data, error, loading} = use_query('GetRepo');
-    const [open_repo] = use_mutation('OpenRepo', {
+    const [open_commit] = use_mutation('OpenCommit', {
         onCompleted:data=>{
+            console.log(data.openCommit.reply);
             set_store(d=>{
-                d.receive_data(d, JSON.parse(data.openRepo.data));
+                d.receive_data(d, JSON.parse(data.openCommit.result));
                 d.studio.mode = 'graph';
             }); 
         },
@@ -23,12 +24,12 @@ export function Repo(){
     }catch{
         return 'Error retrieving repositories';
     }
-    return repos.map(([id, {flex:{name, story}, branch}])=> // write_access
+    return repos.map(([id, {metadata:{name, story}, branch}])=> // write_access
         c('div', {className:'mb-3'},
             c('img', {className:'hjs', src:'holder.js/128x128', role:'button', // style:{width:128, height:128}
                 onClick:e=>{
-                    const [commit] = [...Object.entries(branch)].find(([id, o]) => o.flex.name == 'main');
-                    open_repo({variables:{commit}});
+                    const [commitId] = [...Object.entries(branch)].find(([id, o]) => o.metadata.name == 'main');
+                    open_commit({variables:{commitId}});
                 },
             }),
                 //repo_map.get(repo) ? 
@@ -38,12 +39,12 @@ export function Repo(){
                 c('div', {className:'mt-2 mb-2'}, story),
                 //c(Token, {name, content:'name'}),
                 //c(Token, {name, content:'name'}),
-                Object.entries(branch).map(([commit, {flex:{name}}])=>
+                Object.entries(branch).map(([commitId, {metadata:{name}}])=>
                     c(Token, {
                         icon: 'bi-box-seam',
                         name,
                         content:'badge',
-                        onClick:e=> open_repo({variables:{commit}})
+                        onClick:e=> open_commit({variables:{commitId}})
                     })
                 ),
                 ////c('p', {className:'bi-pen'}, write_access ? ' Write Access' : ' Read Only'),

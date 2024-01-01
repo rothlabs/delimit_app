@@ -131,7 +131,7 @@ export function Secondary_Action(){
         (prm_nodes[0] && prm_nodes[0] != scd_nodes[0]) 
             && {name:'Replace', icon:'bi-repeat', commit:d=> d.replace(d, {source:prm_nodes[0], target:scd_nodes[0]})},
         {name:'Roots',   icon:'bi-arrow-left-circle', commit:d=> d.pick_back(d, {node:scd_nodes})},
-        {name:'Delete',  icon:'bi-x-lg', commit:d=> d.shut.node(d, {node:scd_nodes, drop:true})},
+        {name:'Delete',  icon:'bi-x-lg', commit:d=> d.drop.nodes(d, {nodes:scd_nodes})},
     ].map(button => Token({...button, group:'secondary_action'}))))
 }
 

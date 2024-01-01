@@ -91,24 +91,24 @@ function Account_Menu(){
 function Mutations(){
     const [shut_repo] = use_mutation('ShutRepo', {refetchQueries:['GetRepo']});
     const [drop_repo] = use_mutation('DropRepo', {refetchQueries:['GetRepo']});
-    const [shut_node] = use_mutation('ShutNode');
-    const [drop_node] = use_mutation('DropNode',{
+    const [close_nodes] = use_mutation('CloseNodes');
+    const [drop_nodes] = use_mutation('DropNodes',{
         onCompleted:data=>{
-            console.log(data.dropNode.reply);
+            console.log(data.dropNodes.reply);
         },
     });
-    const [push_node] = use_mutation('PushNode',{
+    const [make_nodes] = use_mutation('MakeNodes', {
         onCompleted:data=>{
-            console.log(data.pushNode.reply);
+            console.log(data.makeNodes.reply);
         },
     });
     set_store(d=>{ 
-        d.mutation = {
+        d.server = {
             shut_repo,
             drop_repo,
-            shut_node,
-            drop_node,
-            push_node,
+            make_nodes,
+            close_nodes,
+            drop_nodes,
         };
     });
 }
