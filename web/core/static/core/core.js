@@ -120,9 +120,9 @@ export function undo(){
         //console.log('Undo');
         //console.log(inverse_history[patch_index]);
         core_store.setState(d=>{
-            d.send_data(d, inverse_history[patch_index]);
+            //d.send_data(d, inverse_history[patch_index], true);
             let draft = applyPatches(d, inverse_history[patch_index]);
-            //draft.send_data(draft, inverse_history[patch_index]);
+            draft.send_data(draft, inverse_history[patch_index]);
             // d = produce(d, d=>{
             //     d.cam_info = {...d.cam_info};
             //     d.studio.gizmo_active = false;

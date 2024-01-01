@@ -6,7 +6,7 @@ export const face = {
         if(!node) return 'none';
         if(node.type) return (''+node.value).trim().substring(0, 24);
         if(!d.node.has(node)) return node;
-        if(d.node.get(node).forw.size < 1) return 'empty';
+        if(d.node.get(node).terms.size < 1) return 'empty';
         return (''+d.value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
     },
     type: (d, node)=> d.type_name(d, node),

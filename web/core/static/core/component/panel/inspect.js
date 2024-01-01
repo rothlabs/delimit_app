@@ -31,7 +31,7 @@ function Node_Case({root, term, node, index, show_term, path}){
 
 function Node({dnd, term='', node, index=0, show_term, path}){
     path = path + term + node + index;
-    const items = use_store(d=> [...d.node.get(node).forw.keys()]); 
+    const items = use_store(d=> [...d.node.get(node).terms.keys()]); 
     const header = [
         show_term && readable(term),
         c(Badge, {node}), 
@@ -62,7 +62,7 @@ function Term_Case({root, term, path}){
 
 function Term({root, term, path}){
     const pth = path + term;
-    const items = use_store(d=> d.node.get(root).forw.get(term));
+    const items = use_store(d=> d.node.get(root).terms.get(term));
     return(
         c(List_View, {items, path:pth,
             header_props: droppable({root, term}), 

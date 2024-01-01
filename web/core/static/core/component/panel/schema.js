@@ -43,7 +43,7 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
     }else if(type_name == 'Stem'){
         terms = stem_type_terms;
     }
-    const items = use_store(d=> [...d.node.get(root).forw.keys()].filter(term=> terms.includes(term)));
+    const items = use_store(d=> [...d.node.get(root).terms.keys()].filter(term=> terms.includes(term)));
     const header = [
         show_term && readable(term),
         c(Badge, {node}),
@@ -78,7 +78,7 @@ function Term_Case({root, term, target, target_term, path}){
 
 function Term({root, term, target, target_term, path}){
     const pth = path + term;
-    const items = use_store(d=> d.node.get(root).forw.get(term));
+    const items = use_store(d=> d.node.get(root).terms.get(term));
     return(
         c(List_View, {items, path:pth,
             header: readable(term),

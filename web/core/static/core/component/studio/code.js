@@ -12,7 +12,7 @@ export function Code(){
     useEffect(() => {
         return () => {
             commit_store(d=> {
-                if(!d.value(d, node, 'source')) return;//if(!d.node.get(node).forw.get('code')[0].value) return;
+                if(!d.value(d, node, 'source')) return;//if(!d.node.get(node).terms.get('code')[0].value) return;
                 d.mutate.leaf(d, node, 'source', 0, code);
             });
         }
@@ -37,7 +37,7 @@ export function Code(){
 
     // let code = use_store(d=> {
     //     try{
-    //         const code_string = d.node.get(node).forw.get('code')[0].value;
+    //         const code_string = d.node.get(node).terms.get('code')[0].value;
     //         return code_string ?? default_code;
     //     }catch{}
     //     return default_code;

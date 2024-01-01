@@ -1,7 +1,7 @@
 export function replace(d, {source, target}){
     d.drop.edge(d, {root:target});
-    d.node.get(target).forw = new Map();
-    for(const [term, stem] of d.forw(d, source, {leaf:true})){
+    d.node.get(target).terms = new Map();
+    for(const [term, stem] of d.terms(d, source, {leaf:true})){
         d.make.edge(d, {root:target, term, stem});
     }
 }
