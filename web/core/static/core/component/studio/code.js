@@ -13,7 +13,7 @@ export function Code(){
         return () => {
             commit_store(d=> {
                 if(!d.value(d, node, 'source')) return;//if(!d.node.get(node).terms.get('code')[0].value) return;
-                d.mutate.leaf(d, node, 'source', 0, code);
+                d.set_leaf(d, node, 'source', 0, code);
             });
         }
     }, []);

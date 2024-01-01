@@ -91,7 +91,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                 type: 'switch',
                 checked: value, 
                 onChange(e){
-                    commit_store(d=> d.mutate.leaf(d, root, term, index, e.target.checked));
+                    commit_store(d=> d.set_leaf(d, root, term, index, e.target.checked));
                 }, 
                 ...dnd,
             }) : 
@@ -109,7 +109,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                 },
                 onChange(e){
                     commit_store(d=>{
-                        const coerced = d.mutate.leaf(d, root, term, index, e.target.value);
+                        const coerced = d.set_leaf(d, root, term, index, e.target.value);
                         if(coerced != null) set_input_value(coerced); 
                     });
                 }, 
