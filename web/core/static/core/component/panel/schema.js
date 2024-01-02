@@ -1,6 +1,6 @@
 import {createElement as c, useState} from 'react';
 import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, Token, List_View, Badge, readable, snake_case} from 'delimit';
+import {use_store, render_token, List_View, Badge, readable, snake_case} from 'delimit';
 
 const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
@@ -15,7 +15,7 @@ export function Schema(){
 function Node_Case({term, node, index, target, target_term, show_term, path}){
     const node_case = use_store(d=> d.node_case(d, node));
     if(node_case == 'missing'){
-        return Token({node,
+        return render_token({node,
             content:[
                 show_term && readable(term), 
                 c(Badge, {node}),
@@ -91,7 +91,7 @@ function Term({root, term, target, target_term, path}){
 }
 
 function Leaf({term, type, value, show_term}){ // need MAKE button for leaf?! #1 
-    return Token({content:[
+    return render_token({content:[
         show_term && readable(term),
         c('div', {className:'text-body'} ,''+value),
     ]});

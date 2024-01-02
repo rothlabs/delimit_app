@@ -12,15 +12,17 @@ export {gql_client} from './app.js';
 export {use_query, use_mutation} from './app/gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
-export {List_View, Token, Mode_Menu, Badge, Svg} from './component/app/app.js';
-export {pickable, draggable, droppable, drag_drop} from './app/pick.js';
+export * from './component/app/app.js'; 
+export * from './component/app/token.js';
+export * from './app/pick.js';
 export {icons} from './app/icon.js';
 export {Make_Node} from './component/panel/make_node.js';
 export {Make_Repo} from './component/panel/make_repo.js';
+export * from './component/panel/edit_repos.js';
 export {Inspect} from './component/panel/inspect.js';
 export {Schema} from './component/panel/schema.js';
 
-export const assess = obj => (typeof obj === 'function' ? obj() : obj); // (Object.keys(obj).length ? obj : null) 
+export const assess = (obj, args) => (typeof obj === 'function' ? obj(args) : obj); // (Object.keys(obj).length ? obj : null) 
 
 export const make_id = (length=16)=>{
     let result = '';

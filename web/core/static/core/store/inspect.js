@@ -23,12 +23,12 @@ export const set_leaf = (d, root, term, index, value) => {
     //console.log([...d.node.get(root).terms]);
     const leaf = d.node.get(root).terms.get(term)[index];
     let coerced = value;
-    if(typeof coerced == 'boolean' && leaf.type == 'xsd:boolean'){
+    if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
         leaf.value = coerced;
         return coerced;
     }
     if(typeof coerced == 'string'){
-        if(leaf.type == 'xsd:string'){
+        if(leaf.type == 'string'){
             leaf.value = coerced;
             return coerced;
         }
@@ -37,13 +37,13 @@ export const set_leaf = (d, root, term, index, value) => {
             leaf.value = 0;
             return coerced;
         }
-        if(leaf.type == 'xsd:integer'){
+        if(leaf.type == 'integer'){
             coerced = coerced.replace(/\./g, '');
             if(!isNaN(coerced) && Number.isInteger(parseFloat(coerced))){
                 leaf.value = parseInt(coerced);
                 return coerced;
             }
-        }else if(leaf.type == 'xsd:decimal'){
+        }else if(leaf.type == 'decimal'){
             if(['.', '-.'].includes(coerced)){
                 leaf.value = 0;
                 return coerced;

@@ -6,7 +6,7 @@ import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
 import { Confirm } from './confirm.js';
 import {set_store, commit_store, use_store, use_query, 
-        pointer, use_mutation, Badge, readable, Token} from 'delimit';
+        pointer, use_mutation, Badge, readable, render_token} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
@@ -51,7 +51,7 @@ export function Root(){
             c('div',{
                 className: 'z-1 position-absolute top-0 end-0 d-inline-flex', 
             },
-                Token({
+                render_token({
                     name: 'dark_mode',
                     icon: 'bi-moon',
                     active: d => d.theme.mode == 'dark',
@@ -80,8 +80,8 @@ function Account_Menu(){
     if(data?.user) return [
         {name:'Account ('+data.user.firstName+')',  icon:'bi-person', onClick:()=>null},
         {name:'Sign Out', icon:'bi-box-arrow-left', onClick:()=> show_logout(true)}, 
-        ].map(button => Token({group:'account', ...button}));
-    return Token({
+        ].map(button => render_token({group:'account', ...button}));
+    return render_token({
         name: 'Sign In', 
         icon: 'bi-box-arrow-in-right', 
         onClick: () => show_login(true),
@@ -123,8 +123,8 @@ function Dragged(){
         c(animated.div,{
             style:{position:'absolute', zIndex:1000, ...springs},
         },
-            Token({content: stem ? c(Badge, {node:stem}) : readable(term)}),
-            root && Token({content:['Removed from', c(Badge, {node:root})]}), // className:'ps-4'
+            render_token({content: stem ? c(Badge, {node:stem}) : readable(term)}),
+            root && render_token({content:['Removed from', c(Badge, {node:root})]}), // className:'ps-4'
         )
     )
 }

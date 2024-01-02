@@ -5,7 +5,8 @@ import {Code} from './code.js';
 import {Repo} from './repo.js';
 //import {Container, Row, Col, Badge, InputGroup, Form} from 'react-bootstrap';
 import {Box3} from 'three';
-import {use_store, Inspect, Schema, Mode_Menu, Make_Node, Make_Repo, undo, redo, Token, icons, draggable} from 'delimit';
+import {use_store, Inspect, Schema, Edit_Repos, Mode_Menu, 
+    Make_Node, Make_Repo, undo, redo, render_token, icons, draggable} from 'delimit';
 import {useOutletContext} from 'react-router-dom';
 import {animated, useSpring, useTransition} from '@react-spring/web';
 
@@ -72,7 +73,7 @@ function History(){
     return [
         {name:'Undo', onClick:()=>undo(), icon:'bi-arrow-left'},
         {name:'Redo', onClick:()=>redo(), icon:'bi-arrow-right'},
-    ].map(props => Token({group:'history', ...props}))
+    ].map(props => render_token({group:'history', ...props}))
 }
 
 export function Panel_Mode(){
@@ -82,7 +83,7 @@ export function Panel_Mode(){
             {mode:'inspect', icon:'bi-menu-button'}, 
             {mode:'make',    icon:'bi-plus-square'},
             {mode:'schema',  icon:'bi-ui-checks'},
-            {mode:'modules', icon:'bi-boxes'},
+            {mode:'repos',   icon:'bi-box-seam'},
             {mode:'display', icon:'bi-eye'}, 
         ], 
         state: d => d.studio.panel.mode,
@@ -93,11 +94,11 @@ export function Panel_Mode(){
 export function Leaf_Bar(){
     //console.log('render panel bar');
     return [
-        {name:'Decimal', stem:{type:'xsd:decimal', value:0}},
-        {name:'Integer', stem:{type:'xsd:integer', value:0}},
-        {name:'String',  stem:{type:'xsd:string',  value:'new'}},
-        {name:'Boolean', stem:{type:'xsd:boolean', value:true}},
-    ].map(({name, stem}) => Token({group:'new_leaf', name,
+        {name:'Decimal', stem:{type:'decimal', value:0}},
+        {name:'Integer', stem:{type:'integer', value:0}},
+        {name:'String',  stem:{type:'string',  value:'new'}},
+        {name:'Boolean', stem:{type:'boolean', value:true}},
+    ].map(({name, stem}) => render_token({group:'new_leaf', name,
         icon: icons.css.cls[stem.type],
         ...draggable({stem}),
     }))
@@ -112,6 +113,7 @@ function Panel(){
     }
     if(mode == 'inspect') return c(Inspect);
     if(mode == 'schema')  return c(Schema);
+    if(mode == 'repos')    return c(Edit_Repos);
     //if(mode == 'modules') return c(Modules);
     //if(mode == 'display') return c(Display);
 }
@@ -132,7 +134,7 @@ export function Secondary_Action(){
             && {name:'Replace', icon:'bi-repeat', commit:d=> d.replace(d, {source:prm_nodes[0], target:scd_nodes[0]})},
         {name:'Roots',   icon:'bi-arrow-left-circle', commit:d=> d.pick_back(d, {node:scd_nodes})},
         {name:'Delete',  icon:'bi-x-lg', commit:d=> d.drop.nodes(d, {nodes:scd_nodes})},
-    ].map(button => Token({...button, group:'secondary_action'}))))
+    ].map(button => render_token({...button, group:'secondary_action'}))))
 }
 
 export function Topic(){

@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-import {Token} from 'delimit';
+import {render_token} from 'delimit';
 import {useOutletContext, useNavigate} from 'react-router-dom';
 
 export function Home(){
@@ -20,5 +20,5 @@ function Nav_Menu(){
     return [
         {name:'Shop',   onClick:()=>navigate('shop'),   icon:'bi-bag'},
         {name:'Studio', onClick:()=>navigate('studio'), icon:'bi-palette2'},
-    ].map(props => Token({group:'history', ...props, content:'badge'}))
+    ].map(props => render_token({group:'history', ...props, content:'badge'}))
 }

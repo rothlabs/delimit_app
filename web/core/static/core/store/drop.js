@@ -14,7 +14,8 @@ export const dropped = {
 export const close = {};
 export const drop = {};
 
-close.nodes = (d, {nodes, given, drop, deep})=>{  // shut by commit
+close.nodes = (d, {nodes, drop, given, deep})=>{  // shut by commit
+    console.log('close nodes', nodes.size);
     let targets = new Set();
     for(const node of d.iterable(nodes)){
         if(d.node.has(node)) targets.add(node);
@@ -35,7 +36,7 @@ close.nodes = (d, {nodes, given, drop, deep})=>{  // shut by commit
         };
         get_stems(targets);
     }
-    if(!given && drop) targets = d.writable(d, [...targets]);
+    if(drop && !given) targets = d.writable(d, [...targets]);
     for(const node of targets){
         if(!d.node.has(node)) continue;
         d.drop.edge(d, {root:node});
@@ -54,33 +55,35 @@ close.nodes = (d, {nodes, given, drop, deep})=>{  // shut by commit
 };
 drop.nodes = (d, args) => close.nodes(d, {...args, drop:true});
 
-close.commits = (d, {commits, drop}) => { 
+close.commits = (d, {commits, drop, given}) => { 
     for(const commit of d.iterable(commits)){
         if(!d.commit.has(commit)) continue;
         const commit_obj = d.commit.get(commit);
-        if(!commit_obj.writable) continue;
-        d.repo.get(commit_obj.repo).commits.delete(commit);
-        d.close.nodes(d, {nodes:commit_obj.nodes, drop});
+        const repo_obj = d.repo.get(commit_obj.repo);
+        if(drop && !given && !(repo_obj.writable || commit_obj.writable)) continue;
+        repo_obj.commits.delete(commit);
+        d.close.nodes(d, {nodes:commit_obj.nodes, drop, given});
         d.unpick(d, {commit});
         if(drop) d.dropped.commit.add(commit);
         else d.closed.commit.add(commit);
         d.commit.delete(commit);
     }
 };
-drop.commits = (draft, args) => close.commits(draft, {...args, drop:true});
+drop.commits = (d, args) => close.commits(d, {...args, drop:true});
 
-close.repo = (d, {repo, drop}) => {
+close.repo = (d, {repo, drop, given}) => {
+    if(drop && !given) d.server.drop_repo({variables:{repoId:repo}});
     if(!d.repo.has(repo)) return;
     const repo_obj = d.repo.get(repo);
-    if(!repo_obj.writable) return;
+    if(drop && !given && !repo_obj.writable) return;
     const commits = repo_obj.commits;
-    d.close.commits(d, {commits, drop});
+    d.close.commits(d, {commits, drop, given});
     d.unpick(d, {repo});
     if(drop) d.dropped.repo.add(repo);
     else d.closed.repo.add(repo);
     d.repo.delete(repo);
 };
-drop.repo = (draft, args) => close.repo(draft, {...args, drop:true});
+drop.repo = (d, args) => close.repo(d, {...args, drop:true});
 
 
 drop.edge = (d, a={})=>{

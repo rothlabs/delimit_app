@@ -1,7 +1,7 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {Form} from 'react-bootstrap';
 import {use_store, commit_store, List_View, drag_drop,
-    readable, droppable, pickable, Badge, icons, Token} from 'delimit';
+    readable, droppable, pickable, Badge, icons, render_token} from 'delimit';
 
 export function Inspect(){ 
     const items = use_store(d=> [...d.picked.primary.node]); 
@@ -19,7 +19,7 @@ function Node_Case({root, term, node, index, show_term, path}){
         const proxy = root ? edge : null;
         return c(Leaf, {root:node, ...node_case.leaf, proxy, show_term:term, show_icon:true}); 
     }else if(node_case == 'missing'){
-        return Token({node, ...dnd, ...pickable({node, mode:'secondary'}),
+        return render_token({node, ...dnd, ...pickable({node, mode:'secondary'}),
             content:[
                 show_term && readable(term), 
                 c(Badge, {node}),
@@ -46,7 +46,7 @@ function Term_Case({root, term, path}){
     const term_case = use_store(d=> d.term_case(d, root, term));
     if(!term_case) return;
     if(term_case == 'empty'){
-        return Token({...drag_drop({root, term}),
+        return render_token({...drag_drop({root, term}),
             content:[
                 readable(term),
                 c('div', {className:'text-body'}, 'emtpy'), 
@@ -82,10 +82,11 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
         if(sync_input) set_input_value(value);
     },[value]);
     const dnd = drag_drop(proxy ?? {root, term, stem:{type, value}, index});
-    const content = () => [
-        show_term && c('div', dnd, readable((typeof show_term==='string') ? show_term : term)),
+    const name = readable((typeof show_term==='string') ? show_term : term);
+    const content = ({render_input}) => [
+        show_term && c('div', dnd, name), // render_name({props}),
         show_icon && c('div', {className:icons.css.cls.generic + ' text-body', ...dnd}),
-        type == 'xsd:boolean' ? 
+        type == 'boolean' ? 
             c(Form.Check, {
                 className:'flex-grow-1 ms-2 mt-2 shadow-none', //4 mt-2 me-4 //style: {transform:'scale(1.8);'},
                 type: 'switch',
@@ -95,14 +96,12 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                 }, 
                 ...dnd,
             }) : 
-            c('input', {
-                className: 'form-control',
-                style: {height:28, background:'transparent'},
+            render_input({
                 value: input_value, 
                 onFocus: ()=> set_sync_input(false),
                 onBlur(e){
                     set_sync_input(true);
-                    if(type != 'xsd:string'){
+                    if(type != 'string'){
                         if(value == '') value = '0';
                         set_input_value(''+parseFloat(value));
                     }
@@ -116,5 +115,8 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
             }),
         c('div', {className:icons.css.cls[type], ...dnd}),
     ];
-    return Token({content, button:true});
+    return render_token({
+        name,
+        content,
+    });
 }

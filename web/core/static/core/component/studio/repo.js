@@ -1,6 +1,6 @@
 import {createElement as c, useEffect} from 'react';
 import {Row, Col, Button, ButtonGroup, Container} from 'react-bootstrap';
-import {use_store, client, set_store, commit_store, use_query, use_mutation, Token} from 'delimit';
+import {use_store, List_View, set_store, commit_store, use_query, use_mutation, render_token} from 'delimit';
 
 export function Repo(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
@@ -24,11 +24,11 @@ export function Repo(){
     }catch{
         return 'Error retrieving repositories';
     }
-    return repos.map(([id, {metadata:{name, story}, branch}])=> // write_access
+    return repos.map(([repo, {metadata:{name, story}, versions}])=> // write_access
         c('div', {className:'mb-3'},
             c('img', {className:'hjs', src:'holder.js/128x128', role:'button', // style:{width:128, height:128}
                 onClick:e=>{
-                    const [commitId] = [...Object.entries(branch)].find(([id, o]) => o.metadata.name == 'main');
+                    const [commitId] = [...Object.entries(versions)].find(([id, o]) => o.metadata.name == 'main');
                     open_commit({variables:{commitId}});
                 },
             }),
@@ -37,16 +37,47 @@ export function Repo(){
                 
                 c('div', {className:'mt-2'}, name),
                 c('div', {className:'mt-2 mb-2'}, story),
-                //c(Token, {name, content:'name'}),
-                //c(Token, {name, content:'name'}),
-                Object.entries(branch).map(([commitId, {metadata:{name}}])=>
-                    c(Token, {
+                //c(render_token, {name, content:'name'}),
+                //c(render_token, {name, content:'name'}),
+
+
+                Object.entries(versions).map(([commitId, {metadata:{name}}])=>
+                    render_token({
                         icon: 'bi-box-seam',
                         name,
                         content:'badge',
                         onClick:e=> open_commit({variables:{commitId}})
                     })
                 ),
+                // c(List_View, {
+                //     items: Object.entries(versions), 
+                //     keys: version => version[0],
+                //     render_item: ([commitId, {metadata:{name}}]) => {
+                //         render_token({
+                //             icon: 'bi-box-seam',
+                //             name,
+                //             content:'badge',
+                //             onClick:e=> open_commit({variables:{commitId}})
+                //         })
+                //     }, 
+                // }),
+
+
+                render_token({
+                    icon:    'bi-x-lg',
+                    name:    'Delete',
+                    content: 'badge', // rename to display ?
+                    onClick: e=> {
+                        set_store(d=>
+                            d.confirm = {
+                                title: `Delete: ${name}`,
+                                body: `${name} - All data will be irreversibly destroyed in the repository. Proceed with caution.`,
+                                func:()=> commit_store(d=> d.drop.repo(d, {repo})),
+                            }
+                        );
+                    },
+                }),
+
                 ////c('p', {className:'bi-pen'}, write_access ? ' Write Access' : ' Read Only'),
 
                 // c(ButtonGroup, {vertical:true},

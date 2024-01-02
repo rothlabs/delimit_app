@@ -1,5 +1,5 @@
 import {createElement as c} from 'react';
-import {use_store, List_View, Token, Badge, icons} from 'delimit';
+import {use_store, List_View, render_token, Badge} from 'delimit';
 
 export function Make_Node(){ 
     const items = use_store(d=> d.stems(d, d.entry, 'app contexts')); 
@@ -21,9 +21,9 @@ function Context({node, path}){
 }
 
 function Make_Button({node}){
-    const icon = use_store(d=> d.value(d, node, 'icon code', icons.css.cls.generic));
-    const name = use_store(d=> d.value(d, node, 'name', 'Node'));
-    return Token({icon, name, content:'badge',
-            commit: d => d.make.node(d, {type:node, commit:'target'}),
+    const icon = use_store(d=> d.face.icon(d, node)); // d.value(d, node, 'icon code', icons.css.cls.generic));
+    const name = use_store(d=> d.face.name(d, node)); // d.value(d, node, 'name', 'Node'));
+    return render_token({icon, name, content:'badge',
+        commit: d => d.make.node(d, {type:node, commit:'targeted'}),
     });
 }

@@ -42,6 +42,8 @@ def readable_repo(user):
         Q(commits__metadata__has_key = 'public') |
         Q(commits__readers = user)
     )
+def writable_repo(user):
+    return Q(writers = user) 
 def readable_commit(user):
     return(
         Q(metadata__has_key = 'public') |

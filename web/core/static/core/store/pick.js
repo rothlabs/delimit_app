@@ -26,6 +26,7 @@ export const pick = (d, {node, repo, commit, multi, weak, mode='primary'}) => {
         item = commit;
         type = 'commit';
     }
+    //if(type == 'node') console.log([...d.node.get(node).back]);
     const picked = d.picked[mode][type];
     if(multi && picked.has(item)){
         picked.delete(item);

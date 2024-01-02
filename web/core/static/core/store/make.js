@@ -2,17 +2,19 @@ import {make_id} from 'delimit';
 
 export const make = {};
 
-make.node = (d, {node, commit, given, type})=>{
-    if(commit == 'target') commit = d.targeted.commit; 
+make.node = (d, {node, commit='none', given, type})=>{
+    if(commit == 'targeted') commit = d.targeted.commit; 
     node = node ?? commit + make_id();
     if(!(given || d.writable(d, node))) return;
     d.drop.edge(d, {root:node, given}); 
+    let back = new Set();
+    if(d.node.has(node)) back = d.node.get(node).back;
     d.node.set(node, {
-        terms: new Map(), // key:term,  value:[stem or leaf_obj]
-        back:  new Set(), // key:root            
         commit,
+        terms: new Map(),
+        back,            
     });
-    if(d.commit.has(commit)) d.commit.get(commit).nodes.add(commit);
+    if(d.commit.has(commit)) d.commit.get(commit).nodes.add(node);
     if(type) build(d, node, type);
     d.dropped.node.delete(node);
     d.closed.node.delete(node);
@@ -31,7 +33,6 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
         return;
     }
     function cycle(node){
-        //console.log('next: ', d.face.title(d, node));
         if(node == root) return true;
         if(!d.node.has(node)) return;
         for(const [term, stem] of d.terms(d, node)){

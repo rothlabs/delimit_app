@@ -36,32 +36,36 @@ export const send_data = (d, patches) => {
     const close_nodes = new Set();
     const drop_nodes = new Set();
     function handle_node({path, op}){
-        console.log('patch', path, op);
         const node = path[1];
         if(d.node.has(node)){
             make_nodes.set(node, Object.fromEntries(d.node.get(node).terms)); 
         }else if(d.closed.node.has(node)){
-            console.log('send close node');
             close_nodes.add(node);
         }else if(d.dropped.node.has(node) || path.length == 2){
-            console.log('send drop node');
             drop_nodes.add(node);
         }
     }
+    // function handle_repo({path}){
+    //     const repoId = path[1];
+    //     if(d.dropped.repo.has(repoId)){
+    //         d.server.drop_repo({variables:{repoId}});
+    //     }
+    // }
     for(const patch of patches){ 
         if(patch.path[0] == 'node' && patch.path[2] != 'back') handle_node(patch);
+        //if(patch.path[0] == 'repo') handle_repo(patch);
     }
     if(make_nodes.size){
         const nodes = JSON.stringify(Object.fromEntries(make_nodes));
-        console.log('push node', nodes);
+        //console.log('push node', nodes);
         d.server.make_nodes({variables:{nodes}}); 
     }
     if(close_nodes.size){
-        console.log('shut node', close_nodes);
+        //console.log('shut node', close_nodes);
         d.server.close_nodes({variables:{nodes:[...close_nodes]}});
     }
     if(drop_nodes.size){
-        console.log('drop node', drop_nodes);
+        //console.log('drop node', drop_nodes);
         d.server.drop_nodes({variables:{nodes:[...drop_nodes]}});
     }
 };

@@ -51,7 +51,7 @@ export const store = {
     
     init(d){
         d.entry = d.make.node(d, {});
-        d.make.edge(d, {root:d.entry, term:'name', stem:{type:'xsd:string', value:'Entry'}});
+        d.make.edge(d, {root:d.entry, term:'name', stem:{type:'string', value:'Entry'}});
         d.base_texture = new THREE.TextureLoader().load(
             d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
         );

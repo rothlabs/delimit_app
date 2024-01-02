@@ -1,0 +1,102 @@
+import {createElement as c, useRef, useState} from 'react';
+import {use_store, set_store, commit_store, assess, Icon, block_size} from 'delimit';
+import classNames from 'classnames';
+import {make_size} from 'delimit';
+
+export function render_token(props){
+    if(props.active) return c(Toggle_Token, props);
+    if(props.node)   return c(Node_Token, props);
+    return c(Token_Base, props);
+}
+
+function Toggle_Token(props){
+    const active = use_store(d=> props.active(d));
+    return c(Token_Base, {...props, active});
+}
+
+function Node_Token(props){
+    const primary_pick = use_store(d=> d.picked.primary.node.has(props.node));
+    const secondary_pick = use_store(d=> d.picked.secondary.node.has(props.node));
+    props.style = props.style ?? {};
+    props.style.borderLeft  = (primary_pick ?   ('thick solid var(--bs-primary)')   : 'none');
+    props.style.borderRight = (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none');
+    return c(Token_Base, props);
+}
+
+function render_input({type='input', maxLength, placeholder, value, onFocus, onBlur, onChange}){
+    return c(type, {
+        className: 'form-control h-100',
+        style: {
+            background: 'transparent',
+            resize: 'none',
+        },
+        maxLength, placeholder, value, onFocus, onBlur, onChange, 
+    })
+}
+
+function Token_Base({inner_ref, group, icon, name, content, width, height, style, active, action, commit,
+                        onClick, onPointerDown, onPointerUp, onContextMenu, onPointerEnter, onPointerLeave}){
+    const target = useRef();
+    const size = make_size(content, width, height);
+    const [hover, set_hover] = useState(false);
+    if(!content && !name && !icon) return;
+    const tall = (height > block_size);
+    const className = classNames(
+        'text-info bg-body user-select-none', 
+        tall ? 'rounded' : 'rounded-pill', 
+        {'bg-info-subtle': hover,
+        'border border-2 border-info': active,}
+    );
+    const content_css_cls = classNames(
+        'd-flex h-100 gap-3', //icon_cls, {'h5': !items},
+        {'align-items-center': !tall},
+        (size.width ? 'justify-content-center' : 'mx-3'), //mx-auto
+    );
+    //if(!size.width) size.width = 'fit-content';
+    size.width = size.width ?? 'fit-content';
+    let button = (action || commit || onClick || onPointerEnter);
+    const render_name = ({minWidth}) => c('div', {className: tall ? 'mt-1' : '', style:{minWidth}}, name ?? 'untitled');
+    const render_badge = () => c('div', {className:'d-flex gap-2 h-100 align-items-center'}, c(Icon, {icon, color:'info'}), name ?? 'untitled');
+    const render_token_input = props => {
+        button = true;
+        const type = tall ? 'textarea' : 'input';
+        return render_input({...props, height, type});
+    };
+    const render_content = () => {
+        if(content == null) return c(Icon, {icon, size:'h5', color:'info'});//c('div', {className:content_css_cls});
+        if(content == 'badge') return render_badge(); 
+        return assess(content, {render_name, render_badge, render_input:render_token_input});
+    }
+    return(
+        //(active != null) && c(Active_Ring, {size, target: (active ? target.current : null)}),
+        c('div', {
+            ref: ref => {
+                target.current = ref;
+                if(inner_ref) inner_ref.current[name] = ref;
+            },
+            id: group + '__' + name, // group ? group + '__' + name : name,
+            role: button ? 'button' : null,
+            className, //: 'd-flex text-info rounded-pill ' + (active ? 'border border-2 border-info' : ''), // bg-info-subtle 
+            style: {...style, ...size},//{...size, ...springs},
+            onClick(e){
+                //e.stopPropagation();
+                if(action)  set_store(d => action(d));
+                if(commit)  commit_store(d => commit(d));
+                if(onClick) onClick(e);
+            },
+            onPointerDown, onPointerUp, onContextMenu,
+            onPointerEnter(e){
+                //e.stopPropagation();
+                if(button) set_hover(true);//api.start({backgroundColor: 'var(--bs-info-bg-subtle)'}); // var(--bs-info-bg-subtle)
+                //if(onPointerEnter) onPointerEnter(e);
+            },
+            onPointerLeave(e){
+                //e.stopPropagation();
+                if(button) set_hover(false);//api.start({backgroundColor: 'var(--bs-body-bg)'});
+                //if(onPointerLeave) onPointerLeave(e);
+            },
+        }, 
+            c('div', {className:content_css_cls}, render_content()),
+        )
+    )
+}

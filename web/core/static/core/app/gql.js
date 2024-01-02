@@ -26,6 +26,9 @@ const mutations = compile_gql('mutation', [
             'String story', 
         ],
     ]],
+    ['DropRepo', [  
+        ['dropRepo reply', 'String repoId'],
+    ]],
     ['OpenCommit', [
         ['openCommit reply result', 'String commitId'],
     ]],
@@ -41,9 +44,6 @@ const mutations = compile_gql('mutation', [
 
     ['ShutRepo', [
         ['shutRepo reply', 'String commitId'],
-    ]],
-    ['DropRepo', [  
-        ['dropRepo reply', 'String commitId'],
     ]],
     ['OpenNode', [
         ['openNode reply data', 'String commitId', '[String] node'],

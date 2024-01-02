@@ -6,10 +6,11 @@ from core.api.types import Authenticated_User_Type, Pack_Type
 from core.models import Repo
 
 from core.api.make_repo    import Make_Repo
+from core.api.drop_repo    import Drop_Repo
 from core.api.open_commit  import Open_Commit
 from core.api.make_nodes   import Make_Nodes
-# from core.api.close_nodes  import Close_Nodes
-from core.api.drop_nodes import Drop_Nodes
+from core.api.close_nodes  import Close_Nodes
+from core.api.drop_nodes   import Drop_Nodes
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
@@ -25,7 +26,7 @@ class Query(graphene.ObjectType):
             return Pack_Type(data = { 
                 repo.id:{
                     'metadata': repo.metadata,
-                    'branch': {
+                    'versions': {
                         commit.id:{
                             'metadata': commit.metadata,
                         } for commit in repo.commits.all() # try commits__stems__isnull in main filter
@@ -44,9 +45,10 @@ class Mutation(graphene.ObjectType):
     login       = Login.Field()
     logout      = Logout.Field()
     makeRepo    = Make_Repo.Field() 
+    dropRepo    = Drop_Repo.Field() 
     openCommit  = Open_Commit.Field()
     makeNodes   = Make_Nodes.Field()
-    # closeNodes  = CloseNodes.Field()
+    closeNodes  = Close_Nodes.Field()
     dropNodes = Drop_Nodes.Field()
     
 api = graphene.Schema(query=Query, mutation=Mutation)
