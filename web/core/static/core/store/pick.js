@@ -2,61 +2,45 @@ import {current} from 'immer';
 
 export const picked = {};
 picked.primary = {
-    commit: new Set(),
-    repo:   new Set(),
-    node:   new Set(),
+    node:    new Set(),
+    repo:    new Set(),
+    version: new Set(),
 };
 picked.secondary = {
-    commit: new Set(),
-    repo:   new Set(),
-    node:   new Set(),
+    node:    new Set(),
+    repo:    new Set(),
+    version: new Set(),
 };
 
 export const drag = {
     edge: {},
 };
 
-export const pick = (d, {node, repo, commit, multi, weak, mode='primary'}) => {
-    let item = node;
-    let type = 'node';
-    if(repo){
-        item = repo;
-        type = 'repo';
-    }else if(commit){
-        item = commit;
-        type = 'commit';
-    }
-    //if(type == 'node') console.log([...d.node.get(node).back]);
+export const pick = (d, {mode='primary', item, multi, weak}) => {
+    d.unpick(d, {mode:'secondary', item:{repo:'all'}});
+    d.unpick(d, {mode:'secondary', item:{version:'all'}});
+    const [type, id] = Object.entries(item)[0];
+    if(['repo', 'version'].includes(type)) d.unpick(d, {mode:'secondary', item:{node:'all'}});
     const picked = d.picked[mode][type];
-    if(multi && picked.has(item)){
-        picked.delete(item);
+    if(multi && picked.has(id)){
+        picked.delete(id);
         return;
     }
     if(!multi) picked.clear();
     if(!(weak && picked.size)){
-        picked.add(item);
+        picked.add(id);
         if(type == 'node' && mode == 'primary'){
-            d.inspect.open(d, {path:'inspect'+item+'0'});
+            d.inspect.open(d, {path:'inspect'+id+'0'});
         }
     }
 };
 
-export const unpick = (d, {node, repo, commit, mode='all', type='all'}) => {
-    let item = 'all';
-    if(node){
-        item = node;
-        type = 'node';
-    }else if(repo){
-        item = repo;
-        type = 'repo';
-    }else if(commit){
-        item = commit;
-        type = 'commit';
-    }
+export const unpick = (d, {mode='all', item={all:'all'}}) => {
+    const [type, id] = Object.entries(item)[0];
     function unpick_type(mode_obj){
         function unpick_item(picked){
-            if(item == 'all') picked.clear();
-            else              picked.delete(item);
+            if(id == 'all') picked.clear();
+            else            picked.delete(id);
         }
         if(type == 'all'){
             for(const picked of Object.values(mode_obj)) unpick_item(picked);
@@ -72,20 +56,47 @@ export const unpick = (d, {node, repo, commit, mode='all', type='all'}) => {
 };
 
 export const targeted = {
-    commit: null,
+    version: null,
 };
 
 export const target = {};
-target.commit = (d, commit) => {
-    d.targeted.commit = commit;
+target.version = (d, version) => {
+    d.targeted.version = version;
 }
 
 export function pick_back(d, {node}){
     d.unpick(d, {mode:'primary'});
-    for(const n of d.iterable(node)){
-        for(const [root] of d.back(d, n)) d.pick(d, {node:root, multi:true});
+    for(const n of d.as_iterable(node)){
+        for(const [root] of d.back(d, n)) d.pick(d, {item:{node:root}, multi:true});
     }
 };
+
+
+
+
+    // let item = node;
+    // let type = 'node';
+    // d.unpick(d, {mode:'secondary', type:'repo'});
+    // if(repo){
+    //     item = repo;
+    //     type = 'repo';
+    //     d.unpick(d, {mode:'secondary'});
+    // }else if(version){
+    //     item = version;
+    //     type = 'version';
+    // }
+
+        // let item = 'all';
+    // if(node){
+    //     item = node;
+    //     type = 'node';
+    // }else if(repo){
+    //     item = repo;
+    //     type = 'repo';
+    // }else if(version){
+    //     item = version;
+    //     type = 'version';
+    // }
 
 
 // for(const mode_obj of Object.keys(d.picked)){

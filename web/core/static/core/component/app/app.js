@@ -63,7 +63,7 @@ export const List_View = ({path, items, header_props={}, header, render_item, he
     ];
 };
 
-export function Mode_Menu({group, items, state, action, width, height}){
+export function Mode_Menu({group, items, state, store_setter, width, height}){
     let badge = (width > 65) ? 'badge' : null;
     const size = make_size(badge, width, height);
     const ref = useRef({});
@@ -86,7 +86,7 @@ export function Mode_Menu({group, items, state, action, width, height}){
                 content: badge,
                 icon, 
                 ...size,
-                action: d => action(d, mode),
+                store_setter: d => store_setter(d, mode),
             }),
         ),
         //c(Active_Ring, {size, target}),
@@ -97,43 +97,66 @@ export function Mode_Menu({group, items, state, action, width, height}){
     ]
 }
 
-export function Badge({node}){ // badge for node (Node_Badge)
-    const {icon, title} = use_store(d=> d.face.primary(d, node));
-    const node_case = use_store(d=> d.node_case(d, node));
-    const color = node.type ? 'info' : 'body';
-    const size = node.type ? 'h5' : null;
-    const className = classNames('user-select-none', 'text-'+color, { 
-        'text-body-secondary': node_case != 'node',
-    });
-    return c('div', {className:'d-flex align-items-center h-100 gap-2'},
-        c(Icon, {icon, color, size}),
-        c('div', {className}, title),
+export const render_badge = ({icon, name, color='info', size, node, repo, version}) => {
+    if(node)    return c(Node_Badge,    {node});
+    if(repo)    return c(Repo_Badge,    {repo});
+    if(version) return c(Version_Badge, {version});
+    if(typeof color === 'string') color = {icon:color, name:color};
+    return c('div', {className:'d-flex gap-2 h-100 align-items-center'},
+        c(Icon, {icon, color:color.icon, size}),
+        c('div', {className:'text-'+color.name}, name),
     )
+};
+
+export function Node_Badge({node}){ 
+    const icon = use_store(d=> d.get.node.icon(d, node));
+    const title = use_store(d=> d.get.node.title(d, node));
+    //const node_case = use_store(d=> d.node_case(d, node));
+    const color = node.type ? {name:'body'} : 'body';
+    const size = node.type ? 'h5' : null;
+    // const className = classNames('user-select-none', 'text-'+color, { 
+    //     'text-body-secondary': node_case != 'node',
+    // });
+    return render_badge({icon, name:title, color, size});
+    // return c('div', {className:'d-flex align-items-center h-100 gap-2'},
+    //     c(Icon, {icon, color, size}),
+    //     c('div', {className}, title),
+    // )
 }
 
-export function Icon({icon, color='', size='', className=''}) { 
+export function Repo_Badge({repo}){
+    const name = use_store(d=> d.get.repo.name(d, repo));
+    return render_badge({icon:'bi-journal-bookmark', name, color:{name:'body'}});
+}
+export function Version_Badge({version}){
+    const name = use_store(d=> d.get.version.name(d, version));
+    return render_badge({icon:'bi-bookmark', name, color:{name:'body'}});
+}
+
+export function Icon({icon, color='info', size=''}) { 
     icon = icon ?? icons.css.cls.generic;
     if(icon.length < 32){
         color = 'text-' + color;
-        return c('div', {className: icon +' '+ color +' '+ size +' '+ className + ' mb-0'});
+        return c('div', {className: icon +' '+ color +' '+ size +' ' + ' mb-0'});
     }else{
-        let sized = 16;
-        if(size == 'h5') sized = 20;
+        let height = 16;
+        if(size == 'h5') height = 20;
         if(color == 'body') color = 'body_fg';
-        return c(Svg, {svg:icon, color, size:sized, className});
+        return c(Svg, {svg:icon, color, height});
     }
 }
 
-export function Svg({svg, color, size, className}) { 
+export function Svg({svg, color='info', height}) { 
     const ref = useRef();
-    color = use_store(d=> color?.length ? d.color[color] : d.color.body_fg);
+    color = use_store(d=> d.color[color]); // color = use_store(d=> color?.length ? d.color[color] : d.color.body_fg);
     const colored_svg = svg.replace('fill="currentColor"', 
 		'fill="'+color.replace('#','%23')+'"'// transform="translate(0 -2)"'
 	);
-	return c('img', {ref, src:'data:image/svg+xml,'+colored_svg, 
-        className, 
+	return c('img', {
+        ref, 
+        src:'data:image/svg+xml,'+colored_svg, 
         draggable: false, 
-        style:{height:size} 
+        style:{height} 
     })
 }
 

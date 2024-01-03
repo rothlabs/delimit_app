@@ -1,7 +1,7 @@
 import {createElement as c, useEffect, useState} from 'react';
 //import Editor from 'react-simple-code-editor';
 import Editor from '@monaco-editor/react';
-import {use_store, commit_store} from 'delimit';
+import {use_store, act_store} from 'delimit';
 
 //const default_code = '// Select a Code node';
 
@@ -11,7 +11,7 @@ export function Code(){
     let code = use_store(d=> d.value(d, node, 'source', '// Select a Code node'))
     useEffect(() => {
         return () => {
-            commit_store(d=> {
+            act_store(d=> {
                 if(!d.value(d, node, 'source')) return;//if(!d.node.get(node).terms.get('code')[0].value) return;
                 d.set_leaf(d, node, 'source', 0, code);
             });
@@ -48,7 +48,7 @@ export function Code(){
 // },
 // )
 
-// commit_store(d=>{
+// act_store(d=>{
 //     const coerced = d.mutate.leaf(d, root, term, index, e.target.value);
 //     if(coerced != null) set_input_value(coerced); 
 // });

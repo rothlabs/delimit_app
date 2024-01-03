@@ -2,19 +2,19 @@ import {make_id} from 'delimit';
 
 export const make = {};
 
-make.node = (d, {node, commit='none', given, type})=>{
-    if(commit == 'targeted') commit = d.targeted.commit; 
-    node = node ?? commit + make_id();
+make.node = (d, {node, version='none', given, type})=>{
+    if(version == 'targeted') version = d.targeted.version; 
+    node = node ?? version + make_id();
     if(!(given || d.writable(d, node))) return;
     d.drop.edge(d, {root:node, given}); 
     let back = new Set();
     if(d.node.has(node)) back = d.node.get(node).back;
     d.node.set(node, {
-        commit,
+        version,
         terms: new Map(),
         back,            
     });
-    if(d.commit.has(commit)) d.commit.get(commit).nodes.add(node);
+    if(d.version.has(version)) d.version.get(version).nodes.add(node);
     if(type) build(d, node, type);
     d.dropped.node.delete(node);
     d.closed.node.delete(node);
@@ -45,7 +45,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     }
     if(cycle(stem)){
         console.log('Error: Cannot make edge because it would cause a cycle in the graph.');
-        console.log({root:d.face.title(d, root), term, stem:d.face.title(d, stem)});
+        //console.log({root:d.get.node.title(d, root), term, stem:d.get.node.title(d, stem)});
         return;
     }
     if(!length) terms.set(term, []); 
@@ -66,7 +66,7 @@ function build(d, root, type){
     d.make.edge(d, {root, term:'type', stem:type});
     if(d.type_name(d, root) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
         for(const context of d.stems(d, d.entry, 'app contexts')){
-            if(d.node.get(context).commit == d.targeted.commit){ // if(d.node.get(context).repo == d.target.repo){
+            if(d.node.get(context).version == d.targeted.version){ // if(d.node.get(context).repo == d.target.repo){
                 d.make.edge(d, {root:context, term:'types', stem:root});
             }
         }

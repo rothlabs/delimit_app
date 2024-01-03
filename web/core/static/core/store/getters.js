@@ -1,51 +1,92 @@
 import {readable, icons} from 'delimit';
 import isSvg from 'is-svg';
 
-export const face = {
-    name: (d, node)=> {
-        if(!node) return 'none';
-        if(node.type) return (''+node.value).trim().substring(0, 24);
-        if(!d.node.has(node)) return node;
-        if(d.node.get(node).terms.size < 1) return 'empty';
-        return (''+d.value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
-    },
-    type: (d, node)=> d.type_name(d, node),
-    icon(d, node){
-        if(!node) return icons.svg.generic;
-        if(node.type) return icons.svg[node.type];
-        const icon_string = d.value(d, node,  ['type icon source', 'icon source'], icons.svg.generic);
-        return isSvg(icon_string) ? icon_string : icons.svg.generic;
-    },
-    title(d, node){ //node ? d.face.name(d, node)+ ' ('+d.face.type(d, node)+')' : ''
-        const type_name = d.face.type(d, node);
-        return d.face.name(d, node) + (type_name ? ' ('+d.face.type(d, node)+')' : '');
-    },
-    primary: (d, node)=>({
-        name: d.face.name(d, node), 
-        type: d.face.type(d, node), 
-        icon: d.face.icon(d, node),
-        title: d.face.title(d, node),
-    }),
+export const node = {};
+node.icon = (d, node) => {
+    if(!node) return icons.svg.generic;
+    if(node.type) return icons.svg[node.type];
+    const icon_string = d.value(d, node,  ['type icon source', 'icon source'], icons.svg.generic);
+    return isSvg(icon_string) ? icon_string : icons.svg.generic;
 };
+node.name = (d, node) => {
+    if(!node) return 'none';
+    if(node.type) return (''+node.value).trim().substring(0, 24);
+    if(!d.node.has(node)) return node;
+    if(d.node.get(node).terms.size < 1) return 'empty';
+    return (''+d.value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
+};
+node.type = (d, node) => d.type_name(d, node),
+node.title = (d, node) => { 
+    const type_name = d.get.node.type(d, node);
+    return d.get.node.name(d, node) + (type_name ? ' ('+d.get.node.type(d, node)+')' : '');
+};
+node.primary = (d, node)=>({
+    icon:  d.get.node.icon(d, node),
+    name:  d.get.node.name(d, node), 
+    type:  d.get.node.type(d, node), 
+});
 
-const pick = (d, node, primary, secondary, alt) => {
+
+const get_color = (d, node, primary, secondary, alt) => {
     if(d.picked.primary.node.has(node)) return primary;
     if(d.picked.secondary.node.has(node)) return secondary;
     return alt;
 }
-
-face.color = {
-    primary:(d, node)     => pick(d, node, d.color.primary, d.color.secondary, d.color.info),
+node.color = {
+    primary:(d, node)     => get_color(d, node, d.color.primary, d.color.secondary, d.color.info),
     // secondary:(d, node)   => pick(d, node, [d.color.primary], d.color.secondary),
     // body:(d, node)        => pick(d, node, [d.color.primary], d.color.body_bg),
     // tertiary_fg:(d, node) => pick(d, node, [d.color.primary], d.color.tertiary_fg),
 };
-
-face.material = {
-    primary:(d, node)     => pick(d, node, d.material.primary, d.material.secondary, d.material.info),
+node.material = {
+    primary:(d, node)     => get_color(d, node, d.material.primary, d.material.secondary, d.material.info),
     // secondary:(d, node)   => pick(d, node, d.material.primary, d.material.secondary),
     // tertiary_fg:(d, node) => pick(d, node, d.material.primary, d.material.tertiary_fg),
 };
+
+
+export const repo = {};
+repo.name = (d, repo) => {
+    if(!d.repo.has(repo)) return repo;
+    return d.repo.get(repo).name;
+};
+repo.story = (d, repo) => {
+    if(!d.repo.has(repo)) return '';
+    return d.repo.get(repo).story;
+};
+repo.versions = (d, repo) => {
+    if(!d.repo.has(repo)) return [];
+    return [...d.repo.get(repo).versions];
+};
+
+export const version = {};
+version.name = (d, version) => {
+    if(!d.version.has(version)) return version;
+    return d.version.get(version).name;
+};
+version.story = (d, version) => {
+    if(!d.version.has(version)) return '';
+    return d.version.get(version).story;
+};
+version.repo_name = (d, version) => {
+    if(!d.version.has(version)) return '';
+    const version_obj = d.version.get(version);
+    if(!d.repo.has(version_obj.repo)) return '';
+    return d.repo.has(version_obj.repo).name;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // face.color = {
 //     primary(d, node){

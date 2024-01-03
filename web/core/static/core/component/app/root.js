@@ -5,8 +5,8 @@ import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
 import { Confirm } from './confirm.js';
-import {set_store, commit_store, use_store, use_query, 
-        pointer, use_mutation, Badge, readable, render_token} from 'delimit';
+import {set_store, act_store, use_store, use_query, 
+        pointer, use_mutation, render_badge, readable, render_token} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
@@ -30,7 +30,7 @@ export function Root(){
                 pointer.position.set(e.clientX, e.clientY);
                 if(!pointer.dragging) return; 
                 if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
-                commit_store(d=>{
+                act_store(d=>{
                     if(Object.keys(d.drag.edge).length) return;
                     const edge = d.drag.staged;
                     if(!e.ctrlKey || !edge.root || !edge.term) return; 
@@ -43,7 +43,7 @@ export function Root(){
                     else d.drag.edge = {stem:edge.stem};
                 });
             },
-            onPointerUp(e){
+            onPointerUp(){
                 pointer.dragging = false;
                 set_store(d=> d.drag.edge = {});
             },
@@ -55,7 +55,7 @@ export function Root(){
                     name: 'dark_mode',
                     icon: 'bi-moon',
                     active: d => d.theme.mode == 'dark',
-                    action: d => d.theme.toggle(d),
+                    store_setter: d => d.theme.toggle(d),
                 }),
                 c(Account_Menu),
             ),
@@ -89,26 +89,48 @@ function Account_Menu(){
 }
 
 function Mutations(){
-    const [shut_repo] = use_mutation('ShutRepo', {refetchQueries:['GetRepo']});
-    const [drop_repo] = use_mutation('DropRepo', {refetchQueries:['GetRepo']});
-    const [close_nodes] = use_mutation('CloseNodes');
-    const [drop_nodes] = use_mutation('DropNodes',{
-        onCompleted:data=>{
-            console.log(data.dropNodes.reply);
-        },
-    });
     const [make_nodes] = use_mutation('MakeNodes', {
         onCompleted:data=>{
             console.log(data.makeNodes.reply);
         },
     });
+    const [drop_nodes] = use_mutation('DropNodes',{
+        onCompleted:data=>{
+            console.log(data.dropNodes.reply);
+        },
+    });
+    const [close_nodes] = use_mutation('CloseNodes', {
+        onCompleted:data=>{
+            console.log(data.closeNodes.reply);
+        },
+    });
+    const [edit_repo] = use_mutation('EditRepo', {
+        refetchQueries:['GetRepo'],
+        onCompleted:data=>{
+            console.log(data.editRepo.reply);
+        },
+    });
+    const [drop_repo] = use_mutation('DropRepo', {
+        refetchQueries:['GetRepo']
+    });
+    const [close_repo] = use_mutation('CloseRepo', {
+        refetchQueries:['GetRepo']
+    });
+    const [edit_version] = use_mutation('EditVersion', {
+        refetchQueries:['GetRepo'],
+        onCompleted:data=>{
+            console.log(data.editVersion.reply);
+        },
+    });
     set_store(d=>{ 
         d.server = {
-            shut_repo,
-            drop_repo,
             make_nodes,
-            close_nodes,
             drop_nodes,
+            close_nodes,
+            edit_repo,
+            drop_repo,
+            close_repo,
+            edit_version,
         };
     });
 }
@@ -123,8 +145,8 @@ function Dragged(){
         c(animated.div,{
             style:{position:'absolute', zIndex:1000, ...springs},
         },
-            render_token({content: stem ? c(Badge, {node:stem}) : readable(term)}),
-            root && render_token({content:['Removed from', c(Badge, {node:root})]}), // className:'ps-4'
+            render_token({content: stem ? render_badge({node:stem}) : readable(term)}),
+            root && render_token({content:['Removed from', render_badge({node:root})]}), // className:'ps-4'
         )
     )
 }

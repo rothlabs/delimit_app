@@ -2,14 +2,14 @@ import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas, useThree} from '@react-three/fiber';
 import {Viewport} from './viewport.js';
 import {Code} from './code.js';
-import {Repo} from './repo.js';
+import {Repo_Browser} from './repo_browser.js';
 //import {Container, Row, Col, Badge, InputGroup, Form} from 'react-bootstrap';
 import {Box3} from 'three';
-import {use_store, Inspect, Schema, Edit_Repos, Mode_Menu, 
+import {use_store, set_store, Node_Editor, Schema, Repo_Editor, Mode_Menu, 
     Make_Node, Make_Repo, undo, redo, render_token, icons, draggable} from 'delimit';
 import {useOutletContext} from 'react-router-dom';
 import {animated, useSpring, useTransition} from '@react-spring/web';
-
+ 
 // useLazyQuery!!!
 // https://www.apollographql.com/docs/react/data/queries
 
@@ -48,24 +48,83 @@ export function Studio(){
         c('div', {
             className: 'z-1 position-absolute bottom-0 end-0 mb-2 me-2',
         },
-            c(Secondary_Action),
+            c(Node_Action_Menu),
+        ),
+        c('div', {
+            className: 'z-1 position-absolute bottom-0 end-0 mb-2 me-2',
+        },
+            c(Repo_Action_Menu),
+        ),
+        c('div', {
+            className: 'z-1 position-absolute bottom-0 end-0 mb-2 me-2',
+        },
+            c(Version_Action_Menu),
         ),
         c(Topic),
     ]
+}
+
+
+function Action_Menu({open, group, items}){
+    const transition = useTransition(open, {
+        from:  {x:'100%'}, 
+        enter: {x:'0%'},    
+        leave: {x:'100%'}, 
+    });
+    return transition((style, item) => item && c(animated.div, {
+        className: 'd-flex flex-column',
+        style: {...style, borderRight:'thick solid var(--bs-secondary)'},
+    }, items.map(item => render_token({...item, group}))))
+} 
+function Node_Action_Menu(){
+    const prm_nodes = use_store(d=> [...d.picked.primary.node]);
+    const nodes = use_store(d=> [...d.picked.secondary.node]);
+    return c(Action_Menu, {open:(nodes.length > 0), group:'node_action_menu', items:[
+        (prm_nodes[0] && prm_nodes[0] != nodes[0]) 
+            && {name:'Replace', icon:'bi-repeat', store_action:d=> d.replace(d, {source:prm_nodes[0], target:nodes[0]})},
+        {name:'Roots', icon:'bi-arrow-left-circle', store_setter:d=> d.pick_back(d, {node:nodes[0]})},
+        {name:'Delete', icon:'bi-trash2', store_action:d=> d.drop.nodes(d, {nodes})},
+        {name:'Deep Delete', icon:'bi-trash2-fill', store_action:d=> d.drop.nodes(d, {nodes, deep:true})},
+    ]})
+}
+function Repo_Action_Menu(){
+    const repo = use_store(d=> d.picked.secondary.repo.keys().next().value);
+    const name = use_store(d=> d.get.repo.name(d, repo));
+    return c(Action_Menu, {open:(repo != null), group:'repo_action_menu', items:[
+        {name:'Close',   icon:'bi-x-lg', store_action:d=> d.close.repo(d, {repo})},
+        {name:'Delete',  icon:'bi-trash2', store_setter:d=> d.confirm = {
+            title: `Delete: ${name}`,
+            body: `All data will be irreversibly destroyed in ${name} (repository). Proceed with caution.`,
+            func:()=> set_store(d=> d.drop.repo(d, {repo})),
+        }},
+    ]})
+}
+function Version_Action_Menu(){
+    const version = use_store(d=> d.picked.secondary.version.keys().next().value);
+    const name = use_store(d=> d.get.version.name(d, version));
+    const repo_name = use_store(d=> d.get.version.repo_name(d, version));
+    return c(Action_Menu, {open:(version != null), group:'version_action_menu', items:[
+        {name:'Close',   icon:'bi-x-lg', store_action:d=> d.close.version(d, {version})},
+        {name:'Delete',  icon:'bi-trash2', store_setter:d=> d.confirm = {
+            title: `Delete: ${name}`,
+            body: `All data will be irreversibly destroyed in ${name} (version) of ${repo_name} (repository). Proceed with caution.`,
+            func:()=> set_store(d=> d.drop.version(d, {version})),
+        }},
+    ]})
 }
 
 export function Mode(){
     return c(Mode_Menu, {
         group: 'studio_mode',
         items:[
-            {mode:'repo',  icon:'bi-box-seam'},
+            {mode:'repo',  icon:'bi-journal-bookmark'}, 
             {mode:'graph', icon:'bi-diagram-3'},
             {mode:'scene', icon:'bi-pencil-square'}, 
             {mode:'code',  icon:'bi-braces'},
         ], 
         width: 110, 
         state: d => d.studio.mode,
-        action: (d, mode) => d.studio.mode = mode,
+        store_setter: (d, mode) => d.studio.mode = mode,
     });
 }
 
@@ -80,14 +139,14 @@ export function Panel_Mode(){
     return c(Mode_Menu, {
         group: 'panel_mode',
         items:[
-            {mode:'inspect', icon:'bi-menu-button'}, 
-            {mode:'make',    icon:'bi-plus-square'},
-            {mode:'schema',  icon:'bi-ui-checks'},
-            {mode:'repos',   icon:'bi-box-seam'},
-            {mode:'display', icon:'bi-eye'}, 
+            {mode:'node_editor', icon:'bi-box'}, 
+            {mode:'make',        icon:'bi-plus-square'},
+            {mode:'schema',      icon:'bi-ui-checks'},
+            {mode:'repo_editor', icon:'bi-journal-bookmark'},
+            {mode:'display',     icon:'bi-eye'}, 
         ], 
         state: d => d.studio.panel.mode,
-        action: (d, mode) => d.studio.panel.mode = mode,
+        store_setter: (d, mode) => d.studio.panel.mode = mode,
     });
 }
 
@@ -111,30 +170,9 @@ function Panel(){
         if(studio_mode == 'repo') return c(Make_Repo);
         return c(Make_Node);
     }
-    if(mode == 'inspect') return c(Inspect);
-    if(mode == 'schema')  return c(Schema);
-    if(mode == 'repos')    return c(Edit_Repos);
-    //if(mode == 'modules') return c(Modules);
-    //if(mode == 'display') return c(Display);
-}
-
-export function Secondary_Action(){
-    const prm_nodes = use_store(d=> [...d.picked.primary.node]);
-    const scd_nodes = use_store(d=> [...d.picked.secondary.node]);
-    const transition = useTransition((scd_nodes.length > 0), {
-        from:  {x:'100%'}, 
-        enter: {x:'0%'},    
-        leave: {x:'100%'}, 
-    });
-    return transition((style, item) => item && c(animated.div, {
-        className: 'd-flex flex-column',
-        style: {...style, borderRight:'thick solid var(--bs-secondary)'},
-    },[
-        (prm_nodes[0] && prm_nodes[0] != scd_nodes[0]) 
-            && {name:'Replace', icon:'bi-repeat', commit:d=> d.replace(d, {source:prm_nodes[0], target:scd_nodes[0]})},
-        {name:'Roots',   icon:'bi-arrow-left-circle', commit:d=> d.pick_back(d, {node:scd_nodes})},
-        {name:'Delete',  icon:'bi-x-lg', commit:d=> d.drop.nodes(d, {nodes:scd_nodes})},
-    ].map(button => render_token({...button, group:'secondary_action'}))))
+    if(mode == 'node_editor') return c(Node_Editor);
+    if(mode == 'schema')      return c(Schema);
+    if(mode == 'repo_editor') return c(Repo_Editor);
 }
 
 export function Topic(){
@@ -150,9 +188,14 @@ export function Topic(){
     }else if(studio_mode == 'repo'){
         return(
             c('div', {
-                className: 'position-absolute top-0 start-50 translate-middle-x mt-5',
+                //className: 'position-absolute top-0 start-50 translate-middle-x my-4 py-5 overflow-y-auto h-100',
+                className: 'position-absolute start-0 end-0 top-0 bottom-0 overflow-y-auto',
             },
-                c(Repo),
+                c('div', {
+                    className: 'position-absolute top-0 start-50 translate-middle-x my-4 py-5',
+                },
+                    c(Repo_Browser),
+                )
             )
         )
     }
@@ -171,6 +214,41 @@ function Canvas_3D(){
     )
 }
 
+
+
+
+// function Node_Action_Menu(){
+//     const prm_nodes = use_store(d=> [...d.picked.primary.node]);
+//     const nodes = use_store(d=> [...d.picked.secondary.node]);
+//     const transition = useTransition((nodes.length > 0), action_menu_transition_config);
+//     return transition((style, item) => item && c(animated.div, {
+//         className: 'd-flex flex-column',
+//         style: {...style, borderRight:'thick solid var(--bs-secondary)'},
+//     },[
+//         (prm_nodes[0] && prm_nodes[0] != nodes[0]) 
+//             && {name:'Replace', icon:'bi-repeat', store_action:d=> d.replace(d, {source:prm_nodes[0], target:nodes[0]})},
+//         {name:'Roots', icon:'bi-arrow-left-circle', store_action:d=> d.pick_back(d, {node:nodes[0]})},
+//         {name:'Delete', icon:'bi-trash2', store_action:d=> d.drop.nodes(d, {nodes})},
+//         {name:'Deep Delete', icon:'bi-trash2-fill', store_action:d=> d.drop.nodes(d, {nodes, deep:true})},
+//     ].map(button => render_token({...button, group:'node_action_menu'}))))
+// }
+
+// function Repo_Action_Menu(){
+//     const repo = use_store(d=> d.picked.secondary.repo.keys().next().value);
+//     const name = use_store(d=> d.get.repo.name(d, repo));
+//     const transition = useTransition((repo != null), action_menu_transition_config);
+//     return transition((style, item) => item && c(animated.div, {
+//         className: 'd-flex flex-column',
+//         style: {...style, borderRight:'thick solid var(--bs-secondary)'},
+//     },[
+//         {name:'Close',   icon:'bi-x-lg', content:'badge', store_action:d=> d.close.repo(d, {repo})},
+//         {name:'Delete',  icon:'bi-trash2', content:'badge', store_setter:d=> d.confirm = {
+//             title: `Delete: ${name}`,
+//             body: `All data will be irreversibly destroyed in ${name} repository. Proceed with caution.`,
+//             func:()=> act_store(d=> d.drop.repo(d, {repo})),
+//         }},
+//     ].map(button => render_token({...button, group:'repo_action_menu'}))))
+// }
 
 
 // function Panel_Workspace(){

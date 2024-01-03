@@ -54,7 +54,7 @@ export function Pickable({node, penable, brushable, children}){
         //     if(penable && d.design.mode == 'pen') d.studio.cursor = 'pen_icon';
         //     if(brushable && d.design.mode == 'brush') d.studio.cursor = 'brush_icon';
         //     if(brushable && d.design.mode == 'erase') d.studio.cursor = 'eraser_icon';
-        // });}, // should be something different from recieve state but should not commit state here
+        // });}, // should be something different from recieve state but should not enact state here
         // onPointerOut(e){ e.stopPropagation(); rs(d=>{
         //     d.pick.hover(d,n, false);
         //     if(penable || brushable) d.studio.cursor = '';

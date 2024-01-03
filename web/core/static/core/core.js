@@ -18,8 +18,8 @@ export * from './app/pick.js';
 export {icons} from './app/icon.js';
 export {Make_Node} from './component/panel/make_node.js';
 export {Make_Repo} from './component/panel/make_repo.js';
-export * from './component/panel/edit_repos.js';
-export {Inspect} from './component/panel/inspect.js';
+export * from './component/panel/repo_editor.js';
+export * from './component/panel/node_editor.js';
 export {Schema} from './component/panel/schema.js';
 
 export const assess = (obj, args) => (typeof obj === 'function' ? obj(args) : obj); // (Object.keys(obj).length ? obj : null) 
@@ -97,7 +97,7 @@ export const set_store = func => {
     return next_state;
 };
 
-export const commit_store = func => {
+export const act_store = func => {
     var [state, new_patches, new_inverse] = produceWithPatches(get_store(), d=>{ func(d) }); 
     if(!new_patches.length){
         //console.log('no change');

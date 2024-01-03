@@ -27,7 +27,6 @@ export function Make_Repo(){
             content: ({render_name, render_input}) => [
                 render_name({minWidth}),
                 render_input({
-                    //type: 'textarea',
                     value: story, 
                     placeholder: 'Optional', 
                     onChange: e => set_story(e.target.value),
@@ -35,12 +34,12 @@ export function Make_Repo(){
             ],
         }),
         render_token({
-            icon: 'bi-box-seam',
+            icon: 'bi-journal-bookmark',
             name: 'Make Repo',
             content: 'badge',
-            onClick(){ 
+            store_setter(d){ 
                 make_repo({variables:{name, story}});
-                set_store(d=> d.studio.panel.show = false);
+                d.studio.panel.show = false;
             },
         }),
     ]

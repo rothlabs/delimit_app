@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as io from './io.js';
-import {face} from './face.js';
+import * as getters from './getters.js';
 import * as schema from './schema.js';
 import * as theme from './theme.js';
 import {design} from './design.js';
@@ -15,13 +15,13 @@ const ctx = JSON.parse(document.getElementById('ctx').text);
 
 export const store = {
     mode: ctx.entry,
-    repo:   new Map(),
-    node:   new Map(),
-    commit: new Map(),
+    node:    new Map(),
+    repo:    new Map(),
+    version: new Map(),
     studio:{
         mode: 'repo',
         repo: {},
-        panel: {mode:'inspect'},
+        panel: {mode:'node_editor'},
         cursor: '',
     },
     confirm:{},
@@ -34,9 +34,12 @@ export const store = {
     ...drop,
     ...inspect,
     ...remake,
-    face,
     design,
     graph,
+    
+    get:{
+        ...getters,
+    },
 
     static_url: document.body.getAttribute('data-static-url') + 'core/',
     max_click_delta: 7,
@@ -84,7 +87,7 @@ export const store = {
         return {name:'node', node:stems[0]};
     },
     leaf(d, node, path, alt){
-        for(const pth of d.iterable(path)){
+        for(const pth of d.as_iterable(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).terms.get(term)[0];
@@ -97,7 +100,7 @@ export const store = {
         return alt;
     },
     value(d, node, path, alt){ 
-        for(const pth of d.iterable(path)){
+        for(const pth of d.as_iterable(path)){
             try{
                 const leaf = d.leaf(d, node, pth);
                 if(leaf.type) return leaf.value;
@@ -106,7 +109,7 @@ export const store = {
         return alt;
     },
     stem(d, node, path, alt){
-        for(const pth of d.iterable(path)){
+        for(const pth of d.as_iterable(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).terms.get(term)[0];
@@ -118,7 +121,7 @@ export const store = {
     },
     stems(d, root, path){ // rename to path? (like terminusdb path query)
         const result = [];
-        for(const pth of d.iterable(path)){
+        for(const pth of d.as_iterable(path)){
             const terms = pth.split(' ');
             const last_term = terms.at(-1);//terms.pop();
             function get_stems(root, terms){
@@ -159,10 +162,10 @@ export const store = {
     },
     writable(d, node){
         const node_is_writable = (node) =>{
-            const commit = d.node.get(node)?.commit;
-            if(d.commit.has(commit)){
-                const commit_obj = d.commit.get(commit);
-                commit_obj.writable || d.repo.get(commit_obj.repo).writable;
+            const version = d.node.get(node)?.version;
+            if(d.version.has(version)){
+                const version_obj = d.version.get(version);
+                version_obj.writable || d.repo.get(version_obj.repo).writable;
             }
             return true;
         };
@@ -174,7 +177,7 @@ export const store = {
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    iterable(obj){ // rename to as_iterator ?! or iterable #1
+    as_iterable(obj){ // rename to as_iterator ?! or iterable #1
         if(obj == null) return [];
         if(typeof obj === 'string') return [obj];
         if(typeof obj[Symbol.iterator] === 'function') return obj;

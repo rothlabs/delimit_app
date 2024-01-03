@@ -6,12 +6,10 @@ from core.models import Repo
 
 class Close_Nodes(graphene.Mutation): 
     class Arguments:
-        client = graphene.String()
-        repo   = graphene.String()
-        node   = graphene.List(graphene.String)
+        ids = graphene.List(graphene.String)
     reply = graphene.String(default_value = 'Failed to close nodes')
     @classmethod
-    def mutate(cls, root, info, client, repo, node): 
+    def mutate(cls, root, info, ids): 
         try:
             user = info.context.user
             if not user.is_authenticated:

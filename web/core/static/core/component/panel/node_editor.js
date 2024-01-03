@@ -1,9 +1,9 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {Form} from 'react-bootstrap';
-import {use_store, commit_store, List_View, drag_drop,
-    readable, droppable, pickable, Badge, icons, render_token} from 'delimit';
+import {use_store, act_store, List_View, drag_drop,
+    readable, droppable, pickable, render_badge, icons, render_token} from 'delimit';
 
-export function Inspect(){ 
+export function Node_Editor(){ 
     const items = use_store(d=> [...d.picked.primary.node]); 
     return c(List_View, {items, 
         render_item: node => c(Node_Case, {node, path:'inspect'}), 
@@ -19,10 +19,10 @@ function Node_Case({root, term, node, index, show_term, path}){
         const proxy = root ? edge : null;
         return c(Leaf, {root:node, ...node_case.leaf, proxy, show_term:term, show_icon:true}); 
     }else if(node_case == 'missing'){
-        return render_token({node, ...dnd, ...pickable({node, mode:'secondary'}),
+        return render_token({...dnd, ...pickable({item:{node}, mode:'secondary'}),
             content:[
                 show_term && readable(term), 
-                c(Badge, {node}),
+                render_badge({node}),
             ],
         })
     }
@@ -34,9 +34,9 @@ function Node({dnd, term='', node, index=0, show_term, path}){
     const items = use_store(d=> [...d.node.get(node).terms.keys()]); 
     const header = [
         show_term && readable(term),
-        c(Badge, {node}), 
+        render_badge({node}), 
     ];
-    const header_props = {node, ...dnd, ...pickable({node, mode:'secondary'})};
+    const header_props = {...dnd, ...pickable({item:{node}, mode:'secondary'})};
     return c(List_View, {items, path, header_props, header,
         render_item: term => c(Term_Case, {root:node, term, path}), // key:term
     });
@@ -92,7 +92,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                 type: 'switch',
                 checked: value, 
                 onChange(e){
-                    commit_store(d=> d.set_leaf(d, root, term, index, e.target.checked));
+                    act_store(d=> d.set_leaf(d, root, term, index, e.target.checked));
                 }, 
                 ...dnd,
             }) : 
@@ -107,7 +107,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                     }
                 },
                 onChange(e){
-                    commit_store(d=>{
+                    act_store(d=>{
                         const coerced = d.set_leaf(d, root, term, index, e.target.value);
                         if(coerced != null) set_input_value(coerced); 
                     });

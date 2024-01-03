@@ -18,13 +18,13 @@ class Repo(models.Model):
     edit_time = models.DateTimeField(auto_now=True)
     metadata  = models.JSONField()
 
-class Commit(models.Model):
+class Version(models.Model):
     id        = models.CharField(max_length=16, primary_key=True, default=make_id) 
-    repo      = models.ForeignKey(Repo,        related_name='commits', on_delete=models.CASCADE) 
-    committer = models.ForeignKey(User,        related_name='commits', on_delete=models.SET_NULL, null=True) 
+    repo      = models.ForeignKey(Repo,        related_name='versions', on_delete=models.CASCADE) 
+    committer = models.ForeignKey(User,        related_name='versions', on_delete=models.SET_NULL, null=True) 
     authors   = models.ManyToManyField(User,   related_name='contributions') 
-    readers   = models.ManyToManyField(User,   related_name='readable_commits') 
-    writers   = models.ManyToManyField(User,   related_name='writable_commits') 
+    readers   = models.ManyToManyField(User,   related_name='readable_versions') 
+    writers   = models.ManyToManyField(User,   related_name='writable_versions') 
     roots     = models.ManyToManyField('self', related_name='stems', symmetrical=False)  
     committed = models.BooleanField(default=False)
     make_time = models.DateTimeField(auto_now_add=True)
@@ -34,8 +34,8 @@ class Commit(models.Model):
 class Node(models.Model):
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['commit', 'key'], name='commit_node'),
+            models.UniqueConstraint(fields=['version', 'key'], name='version_node'),
         ]
-    commit = models.ForeignKey(Commit, related_name='nodes', on_delete=models.CASCADE)
-    snap   = models.ForeignKey(Snap,   related_name='nodes', on_delete=models.CASCADE)
-    key    = models.CharField(max_length=16)
+    key     = models.CharField(max_length=16)
+    snap    = models.ForeignKey(Snap,    related_name='nodes', on_delete=models.CASCADE)
+    version = models.ForeignKey(Version, related_name='nodes', on_delete=models.CASCADE)

@@ -5,15 +5,15 @@ from core.api.util import writable_repo
 
 class Drop_Repo(graphene.Mutation):
     class Arguments:
-        repoId = graphene.String()
+        id = graphene.String()
     reply = graphene.String(default_value = 'Failed to drop repo')
     @classmethod
-    def mutate(cls, root, info, repoId):
+    def mutate(cls, root, info, id):
         try:
             user = info.context.user
             if not user.is_authenticated:
                 return Drop_Repo(reply = auth_required_message)
-            Repo.objects.filter(writable_repo(user), id = repoId).delete()
+            Repo.objects.filter(writable_repo(user), id = id).delete()
             Snap.objects.filter(nodes=None).delete()
             return Drop_Repo(reply = 'Drop repo complete')
         except Exception as e: 

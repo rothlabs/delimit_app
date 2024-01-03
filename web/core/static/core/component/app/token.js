@@ -1,40 +1,50 @@
 import {createElement as c, useRef, useState} from 'react';
-import {use_store, set_store, commit_store, assess, Icon, block_size} from 'delimit';
+import {use_store, set_store, act_store, assess, Icon, block_size, render_badge} from 'delimit';
 import classNames from 'classnames';
 import {make_size} from 'delimit';
 
 export function render_token(props){
-    if(props.active) return c(Toggle_Token, props);
-    if(props.node)   return c(Node_Token, props);
+    if(props.active)  return c(Toggle_Token, props);
+    if(props.node)    return c(Pickable_Token, {...props, type:'node',    id:props.node});
+    if(props.repo)    return c(Pickable_Token, {...props, type:'repo',    id:props.repo});
+    if(props.version) return c(Pickable_Token, {...props, type:'version', id:props.version});
     return c(Token_Base, props);
 }
+
+export const render_badge_token = props => render_token({...props, content:'badge'});
 
 function Toggle_Token(props){
     const active = use_store(d=> props.active(d));
     return c(Token_Base, {...props, active});
 }
 
-function Node_Token(props){
-    const primary_pick = use_store(d=> d.picked.primary.node.has(props.node));
-    const secondary_pick = use_store(d=> d.picked.secondary.node.has(props.node));
+function Pickable_Token(props){
+    const primary_pick = use_store(d=> d.picked.primary[props.type].has(props.id));
+    const secondary_pick = use_store(d=> d.picked.secondary[props.type].has(props.id));
+    //console.log(secondary_pick, props.type, props.id);
     props.style = props.style ?? {};
     props.style.borderLeft  = (primary_pick ?   ('thick solid var(--bs-primary)')   : 'none');
     props.style.borderRight = (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none');
     return c(Token_Base, props);
 }
 
-function render_input({type='input', maxLength, placeholder, value, onFocus, onBlur, onChange}){
+function render_input({type='input', maxLength, placeholder, value, onFocus, onBlur, onChange, store_action}){
     return c(type, {
-        className: 'form-control h-100',
+        className: 'form-control h-100' + (type=='textarea' ? ' border-start border-info' : ''),
         style: {
             background: 'transparent',
             resize: 'none',
+            width: type=='textarea' ? 300 : 250,
         },
-        maxLength, placeholder, value, onFocus, onBlur, onChange, 
+        maxLength, placeholder, value, onFocus, onBlur, 
+        onChange(e){
+            if(store_action)  act_store(d => store_action(d, e));
+            if(onChange) onChange(e);
+        },
     })
 }
 
-function Token_Base({inner_ref, group, icon, name, content, width, height, style, active, action, commit,
+function Token_Base({inner_ref, group, icon, name, content, width, height, style, active, store_setter, store_action,
                         onClick, onPointerDown, onPointerUp, onContextMenu, onPointerEnter, onPointerLeave}){
     const target = useRef();
     const size = make_size(content, width, height);
@@ -54,9 +64,9 @@ function Token_Base({inner_ref, group, icon, name, content, width, height, style
     );
     //if(!size.width) size.width = 'fit-content';
     size.width = size.width ?? 'fit-content';
-    let button = (action || commit || onClick || onPointerEnter);
+    let button = (store_setter || store_action || onClick || onPointerEnter);
     const render_name = ({minWidth}) => c('div', {className: tall ? 'mt-1' : '', style:{minWidth}}, name ?? 'untitled');
-    const render_badge = () => c('div', {className:'d-flex gap-2 h-100 align-items-center'}, c(Icon, {icon, color:'info'}), name ?? 'untitled');
+    const render_token_badge = () => render_badge({icon, name});//c('div', {className:'d-flex gap-2 h-100 align-items-center'}, c(Icon, {icon}), name ?? 'untitled');
     const render_token_input = props => {
         button = true;
         const type = tall ? 'textarea' : 'input';
@@ -64,8 +74,12 @@ function Token_Base({inner_ref, group, icon, name, content, width, height, style
     };
     const render_content = () => {
         if(content == null) return c(Icon, {icon, size:'h5', color:'info'});//c('div', {className:content_css_cls});
-        if(content == 'badge') return render_badge(); 
-        return assess(content, {render_name, render_badge, render_input:render_token_input});
+        if(content == 'badge') return render_token_badge(); 
+        return assess(content, {
+            render_name, 
+            render_badge: render_token_badge, 
+            render_input: render_token_input
+        });
     }
     return(
         //(active != null) && c(Active_Ring, {size, target: (active ? target.current : null)}),
@@ -80,8 +94,8 @@ function Token_Base({inner_ref, group, icon, name, content, width, height, style
             style: {...style, ...size},//{...size, ...springs},
             onClick(e){
                 //e.stopPropagation();
-                if(action)  set_store(d => action(d));
-                if(commit)  commit_store(d => commit(d));
+                if(store_setter)  set_store(d => store_setter(d));
+                if(store_action)  act_store(d => store_action(d));
                 if(onClick) onClick(e);
             },
             onPointerDown, onPointerUp, onContextMenu,

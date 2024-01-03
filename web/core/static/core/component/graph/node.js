@@ -11,9 +11,9 @@ export const Node = memo(({node})=>{
     //console.log('render node');
     const name_obj  = useRef();
     const type_obj  = useRef();
-    const {name, type, icon} = use_store(d=> d.face.primary(d, node));
-    const color     = use_store(d=> d.face.color.primary(d, node));
-    const material  = use_store(d=> d.face.material.primary(d, node));
+    const {name, type, icon} = use_store(d=> d.get.node.primary(d, node));
+    const color     = use_store(d=> d.get.node.color.primary(d, node));
+    const material  = use_store(d=> d.get.node.material.primary(d, node));
     const position  = use_store(d=> d.graph.node.get(node).pos);
     const {invalidate} = useThree();
     useEffect(()=>{
@@ -29,7 +29,7 @@ export const Node = memo(({node})=>{
             size: 14, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             ...draggable({stem:node}),
             ...droppable({root:node}),
-            ...pickable({node}),
+            ...pickable({item:{node}}),
         },
             //c('group', {...pickable}, // c(Pickable, {node},
             

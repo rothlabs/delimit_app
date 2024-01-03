@@ -1,6 +1,5 @@
-import {createElement as c, useState} from 'react';
-import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';
-import {use_store, render_token, List_View, Badge, readable, snake_case} from 'delimit';
+import {createElement as c} from 'react';
+import {use_store, render_token, List_View, render_badge, readable, snake_case} from 'delimit';
 
 const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
@@ -18,7 +17,7 @@ function Node_Case({term, node, index, target, target_term, show_term, path}){
         return render_token({node,
             content:[
                 show_term && readable(term), 
-                c(Badge, {node}),
+                render_badge({node}),
             ],
         })
     }
@@ -46,11 +45,11 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
     const items = use_store(d=> [...d.node.get(root).terms.keys()].filter(term=> terms.includes(term)));
     const header = [
         show_term && readable(term),
-        c(Badge, {node}),
+        render_badge({node}),
     ];
     const header_addon = !targeted && {
         icon:'bi-plus-square', 
-        commit(d){
+        store_action(d){
             if(type_name == 'Root'){
                 d.build.root(d, target, node);
             }else if(type_name == 'Term'){
@@ -96,3 +95,6 @@ function Leaf({term, type, value, show_term}){ // need MAKE button for leaf?! #1
         c('div', {className:'text-body'} ,''+value),
     ]});
 }
+
+
+// import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';

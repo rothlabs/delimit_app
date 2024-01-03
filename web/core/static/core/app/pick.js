@@ -1,4 +1,4 @@
-import {set_store, commit_store, pointer} from 'delimit';
+import {set_store, act_store, pointer} from 'delimit';
 
 const pointer_style = {
     onPointerEnter(e){ 
@@ -16,7 +16,7 @@ export const droppable = ({root, term, index}) => {
         if(pointer.dragging) document.body.style.cursor = 'pointer';
     };
     result.onPointerUp = e => {
-        commit_store(d=>{
+        act_store(d=>{
             if(!d.drag.edge.stem) return;
             d.make.edge(d, {root, term, stem:d.drag.edge.stem, index});
         });
@@ -38,16 +38,16 @@ export const draggable = edge => {
 
 export const drag_drop = edge => ({...droppable(edge), ...draggable(edge)});
 
-export const pickable = ({node, mode='all'}) => {
-    const result = {...pointer_style};
+export const pickable = ({item, mode='all'}) => {
+    const result = {...pointer_style, ...item};
     if(mode == 'all' || mode == 'primary') result.onClick = e => { 
         e.stopPropagation();
-        set_store(d=> d.pick(d, {node, multi:e.ctrlKey}));
+        set_store(d=> d.pick(d, {item, multi:e.ctrlKey}));
     };
     if(mode == 'all' || mode == 'secondary') result.onContextMenu = e => {
         e.stopPropagation();
         e.nativeEvent.preventDefault();
-        set_store(d=> d.pick(d, {node, multi:e.ctrlKey, mode:'secondary'}));
+        set_store(d=> d.pick(d, {item, multi:e.ctrlKey, mode:'secondary'}));
     };
     return result;
 };

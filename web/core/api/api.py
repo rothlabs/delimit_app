@@ -5,12 +5,16 @@ from core.api.logout import Logout
 from core.api.types import Authenticated_User_Type, Pack_Type
 from core.models import Repo
 
-from core.api.make_repo    import Make_Repo
-from core.api.drop_repo    import Drop_Repo
-from core.api.open_commit  import Open_Commit
 from core.api.make_nodes   import Make_Nodes
-from core.api.close_nodes  import Close_Nodes
 from core.api.drop_nodes   import Drop_Nodes
+from core.api.close_nodes  import Close_Nodes
+
+from core.api.make_repo    import Make_Repo
+from core.api.edit_repo    import Edit_Repo
+from core.api.drop_repo    import Drop_Repo
+
+from core.api.open_version import Open_Version
+from core.api.edit_version import Edit_Version
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
@@ -27,13 +31,13 @@ class Query(graphene.ObjectType):
                 repo.id:{
                     'metadata': repo.metadata,
                     'versions': {
-                        commit.id:{
-                            'metadata': commit.metadata,
-                        } for commit in repo.commits.all() # try commits__stems__isnull in main filter
+                        version.id:{
+                            'metadata': version.metadata,
+                        } for version in repo.versions.all() # try versions__stems__isnull in main filter
                     },
-                } for repo in Repo.objects.prefetch_related('commits').filter(
+                } for repo in Repo.objects.prefetch_related('versions').filter(
                     readable_repo(user),
-                    commits__committed = False, #commits__stems__isnull = True,
+                    versions__committed = False, #versions__stems__isnull = True,
                 )
             }) # add reply
         except Exception as e: 
@@ -44,21 +48,26 @@ class Query(graphene.ObjectType):
 class Mutation(graphene.ObjectType):
     login       = Login.Field()
     logout      = Logout.Field()
-    makeRepo    = Make_Repo.Field() 
-    dropRepo    = Drop_Repo.Field() 
-    openCommit  = Open_Commit.Field()
+
     makeNodes   = Make_Nodes.Field()
+    dropNodes   = Drop_Nodes.Field()
     closeNodes  = Close_Nodes.Field()
-    dropNodes = Drop_Nodes.Field()
+
+    makeRepo    = Make_Repo.Field() 
+    editRepo    = Edit_Repo.Field() 
+    dropRepo    = Drop_Repo.Field() 
+    
+    openVersion = Open_Version.Field()
+    editVersion = Edit_Version.Field() 
     
 api = graphene.Schema(query=Query, mutation=Mutation)
 
-            # Repo.objects.prefetch_related('commits').filter(
+            # Repo.objects.prefetch_related('versions').filter(
             #     Q(flex__has_key = 'public') | Q(readers = user),
-            #     commits__stems__isnull = True,
-            # ).values('flex', 'commits__flex')
+            #     versions__stems__isnull = True,
+            # ).values('flex', 'versions__flex')
 
-# commits = Commit.objects.select_related('repo').filter(
+# versions = Version.objects.select_related('repo').filter(
 #                 readable(user),
 #                 stems__isnull = True,
 #             ).values('flex', 'repo__flex')
@@ -66,23 +75,23 @@ api = graphene.Schema(query=Query, mutation=Mutation)
                 # repo.id:{
                 #     'flex': repo.flex,
                 #     'tip': {
-                #         commit.id:{
-                #             'flex': commit.flex,
-                #         } for commit in repo.commits #.filter(stems__isnull = True) # try commits__stems__isnull in main filter
+                #         version.id:{
+                #             'flex': version.flex,
+                #         } for version in repo.versions #.filter(stems__isnull = True) # try versions__stems__isnull in main filter
                 #     },
-                # } for repo in Repo.objects.prefetch_related('commits').filter(
+                # } for repo in Repo.objects.prefetch_related('versions').filter(
                 #     readable(user),
-                #     commits__stems__isnull = True,
+                #     versions__stems__isnull = True,
                 # )
 
-                # commit.id:{
-                #     'flex': commit.repo.flex,
+                # version.id:{
+                #     'flex': version.repo.flex,
                 #     'tip': {
-                #         commit.id:{
-                #             'flex': commit.flex,
-                #         } for commit in repo.commits #.filter(stems__isnull = True) # try commits__stems__isnull in main filter
+                #         version.id:{
+                #             'flex': version.flex,
+                #         } for version in repo.versions #.filter(stems__isnull = True) # try versions__stems__isnull in main filter
                 #     },
-                # } for commit in Commit.objects.select_related('repo').filter(
+                # } for version in Version.objects.select_related('repo').filter(
                 #     readable(user),
                 #     stems__isnull = True,
                 # )

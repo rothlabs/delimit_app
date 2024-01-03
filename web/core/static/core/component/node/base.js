@@ -114,7 +114,7 @@ export const Spinner = forwardRef((props, ref)=>{
 //             d.pick.hover(d, n, true);
 //         }
 //     });
-// }, // should be something different from recieve state but should not commit state here
+// }, // should be something different from recieve state but should not enact state here
 
 // onPointerUp(e){
         //     if(e.which==3){//[0,1].includes(e.which)){

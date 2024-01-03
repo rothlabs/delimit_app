@@ -5,17 +5,17 @@ from core.api.util import writable_node, split_ids
 
 class Drop_Nodes(graphene.Mutation):
     class Arguments:
-        nodes = graphene.List(graphene.String)
+        ids = graphene.List(graphene.String)
     reply = graphene.String(default_value = 'Failed to drop nodes')
     result = graphene.String()
     @classmethod
-    def mutate(cls, root, info, nodes):
+    def mutate(cls, root, info, ids):
         try:
             user = info.context.user
             if not user.is_authenticated:
                 return Drop_Nodes(reply = auth_required_message)
-            for commit_id, node_ids in split_ids(nodes).items():
-                Node.objects.filter(writable_node(user), commit = commit_id, key__in = node_ids).delete()
+            for version_id, node_ids in split_ids(ids).items():
+                Node.objects.filter(writable_node(user), version = version_id, key__in = node_ids).delete()
             Snap.objects.filter(nodes = None).delete()
             return Drop_Nodes(reply = 'drop nodes complete')
         except Exception as e: 

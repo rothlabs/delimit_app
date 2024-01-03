@@ -70,6 +70,22 @@ $accordion-border-width: 0px;
     cursor: url('data:image/svg+xml;utf-8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-eraser" viewBox="0 0 16 16">  <path fill="%23ffffff" d="M 4.1444281,0.71193302 9.4373271,0.68480611 10.480704,1.6899861 10.457366,14.176599 9.242738,15.409444 2.1207389,15.411307 0.59875716,14.200136 0.74728792,3.8305998 Z"/>  <path fill="%234f4f4f" d="M 11.038576,13.634131 A 2.3158687,2.3158687 0 0 1 8.7230556,15.949648 H 2.3709345 A 2.3158687,2.3158687 0 0 1 0.05541543,13.634131 V 4.6275143 A 2.3158687,2.3158687 0 0 1 0.73336807,2.989948 L 2.9923912,0.73092508 A 2.3158687,2.3158687 0 0 1 4.6299575,0.05297248 H 8.7238742 A 2.3158687,2.3158687 0 0 1 11.039393,2.3684913 V 13.63331 Z m -2.3155204,1.15776 a 1.1579344,1.1579344 0 0 0 1.1577589,-1.15776 V 6.0472845 H 1.213175 v 7.5868465 a 1.1579344,1.1579344 0 0 0 1.1577595,1.15776 z M 1.213175,4.8895249 H 9.8808145 V 2.3693101 A 1.1579344,1.1579344 0 0 0 8.7230556,1.2115505 H 4.6291386 A 1.1579344,1.1579344 0 0 0 3.8103555,1.5505268 L 1.5513326,3.80955 A 1.1579344,1.1579344 0 0 0 1.2123562,4.628333 v 0.2620107 z"/></svg>'), auto;
 }
 
+// for chrome  https://stackoverflow.com/questions/66166047/how-to-make-thin-scrollbar-in-chrome
+::-webkit-scrollbar {
+    width: 9px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: rgba(155, 155, 155, 0.5);
+    border-radius: 20px;
+    border: transparent;
+}
+// for firefox
+// scrollbar-width: thin;
+// scrollbar-color: rgba(155, 155, 155, 0.5) transparent; 
+
 
 /*
 // 3. Include remainder of required Bootstrap stylesheets (including any separate color mode stylesheets)

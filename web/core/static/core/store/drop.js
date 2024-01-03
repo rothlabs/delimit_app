@@ -1,12 +1,12 @@
 
 export const closed = {
-    commit: new Set(),
+    version: new Set(),
     repo:   new Set(),
     node:   new Set(),
 };
 
 export const dropped = {
-    commit: new Set(),
+    version: new Set(),
     repo:   new Set(),
     node:   new Set(),
 };
@@ -14,10 +14,10 @@ export const dropped = {
 export const close = {};
 export const drop = {};
 
-close.nodes = (d, {nodes, drop, given, deep})=>{  // shut by commit
+close.nodes = (d, {nodes, drop, given, deep})=>{  // shut by version
     console.log('close nodes', nodes.size);
     let targets = new Set();
-    for(const node of d.iterable(nodes)){
+    for(const node of d.as_iterable(nodes)){
         if(d.node.has(node)) targets.add(node);
     }
     if(deep){
@@ -40,45 +40,45 @@ close.nodes = (d, {nodes, drop, given, deep})=>{  // shut by commit
     for(const node of targets){
         if(!d.node.has(node)) continue;
         d.drop.edge(d, {root:node});
-        const commit = d.node.get(node).commit;
+        const version = d.node.get(node).version;
         if(drop){
             d.drop.edge(d, {stem:node});
             d.dropped.node.add(node);
         }else{
             d.closed.node.add(node);
         }
-        d.commit.get(commit).nodes.delete(node);
-        d.unpick(d, {node});
+        d.version.get(version).nodes.delete(node);
+        d.unpick(d, {item:{node}});
         d.node.delete(node);
     }
     if(targets.length) d.graph.increment(d);
 };
 drop.nodes = (d, args) => close.nodes(d, {...args, drop:true});
 
-close.commits = (d, {commits, drop, given}) => { 
-    for(const commit of d.iterable(commits)){
-        if(!d.commit.has(commit)) continue;
-        const commit_obj = d.commit.get(commit);
-        const repo_obj = d.repo.get(commit_obj.repo);
-        if(drop && !given && !(repo_obj.writable || commit_obj.writable)) continue;
-        repo_obj.commits.delete(commit);
-        d.close.nodes(d, {nodes:commit_obj.nodes, drop, given});
-        d.unpick(d, {commit});
-        if(drop) d.dropped.commit.add(commit);
-        else d.closed.commit.add(commit);
-        d.commit.delete(commit);
+close.versions = (d, {versions, drop, given}) => { 
+    for(const version of d.as_iterable(versions)){
+        if(!d.version.has(version)) continue;
+        const version_obj = d.version.get(version);
+        const repo_obj = d.repo.get(version_obj.repo);
+        if(drop && !given && !(repo_obj.writable || version_obj.writable)) continue;
+        repo_obj.versions.delete(version);
+        d.close.nodes(d, {nodes:version_obj.nodes, drop, given});
+        d.unpick(d, {item:{version}});
+        if(drop) d.dropped.version.add(version);
+        else d.closed.version.add(version);
+        d.version.delete(version);
     }
 };
-drop.commits = (d, args) => close.commits(d, {...args, drop:true});
+drop.versions = (d, args) => close.versions(d, {...args, drop:true});
 
 close.repo = (d, {repo, drop, given}) => {
     if(drop && !given) d.server.drop_repo({variables:{repoId:repo}});
     if(!d.repo.has(repo)) return;
     const repo_obj = d.repo.get(repo);
     if(drop && !given && !repo_obj.writable) return;
-    const commits = repo_obj.commits;
-    d.close.commits(d, {commits, drop, given});
-    d.unpick(d, {repo});
+    const versions = repo_obj.versions;
+    d.close.versions(d, {versions, drop, given});
+    d.unpick(d, {item:{repo}});
     if(drop) d.dropped.repo.add(repo);
     else d.closed.repo.add(repo);
     d.repo.delete(repo);

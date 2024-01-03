@@ -2,7 +2,7 @@ import json, re, hashlib
 import graphene
 from core.api.config import auth_required_message, menu_button_svg, braces_svg, plus_square_svg, abc_svg
 from core.api.util import conform_user_input, make_node_snaps
-from core.models import Repo, Commit, Snap, make_id
+from core.models import Repo, Version, Snap, make_id
 
 class Make_Repo(graphene.Mutation):
     class Arguments:
@@ -23,15 +23,15 @@ class Make_Repo(graphene.Mutation):
             )
             repo.writers.add(user)
             repo.readers.add(user)
-            commit = Commit.objects.create( # pre select authors and snaps ?!
+            version = Version.objects.create( # pre select authors and snaps ?!
                 repo      = repo,
                 metadata = {
-                    'name':  'main',
-                    'story': 'start',
+                    'name':  'Main',
+                    'story': '',
                 },
             )
-            commit.authors.add(user)
-            make_node_snaps(commit, starter_nodes())
+            version.authors.add(user)
+            make_node_snaps(version, starter_nodes())
             return Make_Repo(reply = 'Make repo complete')
         except Exception as e: 
             print('Error: Make_Repo')
