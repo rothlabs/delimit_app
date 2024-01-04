@@ -12,15 +12,15 @@ picked.secondary = {
     version: new Set(),
 };
 
-export const drag = {
-    edge: {},
-};
-
 export const pick = (d, {mode='primary', item, multi, weak}) => {
-    d.unpick(d, {mode:'secondary', item:{repo:'all'}});
-    d.unpick(d, {mode:'secondary', item:{version:'all'}});
+    if(mode == 'secondary'){
+        d.unpick(d, {mode:'secondary', item:{repo:'all'}});
+        d.unpick(d, {mode:'secondary', item:{version:'all'}});
+    }
     const [type, id] = Object.entries(item)[0];
-    if(['repo', 'version'].includes(type)) d.unpick(d, {mode:'secondary', item:{node:'all'}});
+    if(mode == 'secondary' && ['repo', 'version'].includes(type)){
+        d.unpick(d, {mode:'secondary', item:{node:'all'}});
+    }
     const picked = d.picked[mode][type];
     if(multi && picked.has(id)){
         picked.delete(id);
@@ -60,15 +60,19 @@ export const targeted = {
 };
 
 export const target = {};
-target.version = (d, version) => {
+target.version = (d, {version}) => {
     d.targeted.version = version;
 }
 
 export function pick_back(d, {node}){
     d.unpick(d, {mode:'primary'});
-    for(const n of d.as_iterable(node)){
+    for(const n of d.as_iterator(node)){
         for(const [root] of d.back(d, n)) d.pick(d, {item:{node:root}, multi:true});
     }
+};
+
+export const drag = {
+    edge: {},
 };
 
 

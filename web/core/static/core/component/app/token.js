@@ -77,7 +77,7 @@ function Token_Base({inner_ref, group, icon, name, content, width, height, style
         if(content == 'badge') return render_token_badge(); 
         return assess(content, {
             render_name, 
-            render_badge: render_token_badge, 
+            render_token_badge, 
             render_input: render_token_input
         });
     }

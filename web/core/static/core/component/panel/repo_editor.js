@@ -24,9 +24,7 @@ function Version({version}){
     return c(List_View, {items:['metadata'], path:version,
         header: render_badge({version}),
         header_props: pickable({item:{version}, mode:'secondary'}),
-        render_item: item => {
-            if(item == 'metadata') return c(Metadata, {version}); 
-        }
+        render_item: () => c(Metadata, {version}),
     });  
 }
 

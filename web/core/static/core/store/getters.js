@@ -68,13 +68,22 @@ version.story = (d, version) => {
     if(!d.version.has(version)) return '';
     return d.version.get(version).story;
 };
+version.repo = (d, version) => {
+    if(!d.version.has(version)) return;
+    return d.version.get(version).repo;
+};
 version.repo_name = (d, version) => {
     if(!d.version.has(version)) return '';
     const version_obj = d.version.get(version);
     if(!d.repo.has(version_obj.repo)) return '';
-    return d.repo.has(version_obj.repo).name;
+    return d.repo.get(version_obj.repo).name;
 };
 
+
+export const targeted = {};
+targeted.version = d => {
+    if(d.version.has(d.targeted.version)) return d.targeted.version;
+};
 
 
 

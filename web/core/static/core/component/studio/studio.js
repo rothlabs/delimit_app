@@ -5,7 +5,7 @@ import {Code} from './code.js';
 import {Repo_Browser} from './repo_browser.js';
 //import {Container, Row, Col, Badge, InputGroup, Form} from 'react-bootstrap';
 import {Box3} from 'three';
-import {use_store, set_store, Node_Editor, Schema, Repo_Editor, Mode_Menu, 
+import {use_store, set_store, Node_Editor, Schema, Repo_Editor, Mode_Menu, render_badge,
     Make_Node, Make_Repo, undo, redo, render_token, icons, draggable} from 'delimit';
 import {useOutletContext} from 'react-router-dom';
 import {animated, useSpring, useTransition} from '@react-spring/web';
@@ -18,58 +18,68 @@ export function Studio(){
     const {render_header} = useOutletContext();
     return[
         render_header(() => 
-            c('div', {
-                className:'position-relative d-inline-flex gap-3',
-            },
-                Mode(),
-                History(),
+            c('div', {className:'position-relative d-flex gap-5',},
+                c('div', {className:'d-flex'}, 
+                    Mode(),
+                ),
+                c('div', {className:'position-absolute end-0 d-flex', style:{marginRight:200}},
+                    History(),
+                )
             ),
         ),
-        c('div', {
-            className: 'position-absolute start-0 end-0 top-0 bottom-0',
-        },
+        c('div', {className:'position-absolute start-0 end-0 top-0 bottom-0'},
             c(Canvas_3D),
         ),
-        c('div', {
-            className: 'z-1 position-absolute top-0 start-0 mt-5 d-flex flex-column ms-1',
-        },
+        c(Topic),
+        c('div', {className:'position-absolute start-50 bottom-0 translate-middle-x mb-1'},
+            Targeted_Version(),
+        ),
+        c('div', {className:'z-1 position-absolute top-0 start-0 ms-1 mt-5 d-flex flex-column'},
             c(Panel_Mode),
         ),
-        c('div', {
-            className: 'z-1 position-absolute top-0 start-0 mt-5 ms-5 90vh', // put scroll bar crap here ?! #1
-        },
+        c('div', {className:'z-1 position-absolute top-0 start-0 mt-5 ms-5 ps-3'}, // 90vh put scroll bar crap here ?! #1
             c(Panel),
         ),
-        c('div', {
-            className: 'z-1 position-absolute bottom-0 start-0 d-flex flex-column',
-        },
+        c('div', {className:'z-1 position-absolute bottom-0 start-0 d-flex flex-column ms-1 mb-1'},
             c(Leaf_Bar),
         ),
-        c('div', {
-            className: 'z-1 position-absolute bottom-0 end-0 mb-2 me-2',
-        },
+        c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
             c(Node_Action_Menu),
         ),
-        c('div', {
-            className: 'z-1 position-absolute bottom-0 end-0 mb-2 me-2',
-        },
+        c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
             c(Repo_Action_Menu),
         ),
-        c('div', {
-            className: 'z-1 position-absolute bottom-0 end-0 mb-2 me-2',
-        },
+        c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
             c(Version_Action_Menu),
         ),
-        c(Topic),
     ]
 }
 
+function Targeted_Version(){
+    const version = use_store(d=> d.get.targeted.version(d));
+    const repo = use_store(d=> d.get.version.repo(d, version));
+    if(!version) return;
+    return render_token({
+        icon: 'bi-fullscreen-exit',
+        name: 'Target',
+        content: ({render_token_badge}) => [
+            render_token_badge(),
+            render_badge({repo}),
+            render_badge({version}),
+        ],
+        store_setter: d => {
+            d.studio.panel.mode = 'repo_editor';
+            d.inspect.open(d, {path:repo});
+            d.pick(d, {item:{version}});
+        },
+    });
+}
 
 function Action_Menu({open, group, items}){
     const transition = useTransition(open, {
-        from:  {x:'100%'}, 
+        from:  {x:'125%'}, 
         enter: {x:'0%'},    
-        leave: {x:'100%'}, 
+        leave: {x:'125%'}, 
     });
     return transition((style, item) => item && c(animated.div, {
         className: 'd-flex flex-column',
@@ -83,8 +93,8 @@ function Node_Action_Menu(){
         (prm_nodes[0] && prm_nodes[0] != nodes[0]) 
             && {name:'Replace', icon:'bi-repeat', store_action:d=> d.replace(d, {source:prm_nodes[0], target:nodes[0]})},
         {name:'Roots', icon:'bi-arrow-left-circle', store_setter:d=> d.pick_back(d, {node:nodes[0]})},
-        {name:'Delete', icon:'bi-trash2', store_action:d=> d.drop.nodes(d, {nodes})},
-        {name:'Deep Delete', icon:'bi-trash2-fill', store_action:d=> d.drop.nodes(d, {nodes, deep:true})},
+        {name:'Delete', icon:'bi-trash2', store_action:d=> d.drop.node(d, {nodes})},
+        {name:'Deep Delete', icon:'bi-trash2-fill', store_action:d=> d.drop.node(d, {nodes, deep:true})},
     ]})
 }
 function Repo_Action_Menu(){
@@ -103,9 +113,12 @@ function Version_Action_Menu(){
     const version = use_store(d=> d.picked.secondary.version.keys().next().value);
     const name = use_store(d=> d.get.version.name(d, version));
     const repo_name = use_store(d=> d.get.version.repo_name(d, version));
+    const targeted = use_store(d=> d.targeted.version);
     return c(Action_Menu, {open:(version != null), group:'version_action_menu', items:[
-        {name:'Close',   icon:'bi-x-lg', store_action:d=> d.close.version(d, {version})},
-        {name:'Delete',  icon:'bi-trash2', store_setter:d=> d.confirm = {
+        (version != targeted) && {name:'Target', icon:'bi-fullscreen-exit', store_setter:d=> d.target.version(d, {version})},
+        {name:'Commit', icon:'bi-bookmark', store_setter:d=> d.commit.version(d, {version})},
+        {name:'Close', icon:'bi-x-lg', store_action:d=> d.close.version(d, {version})},
+        {name:'Delete', icon:'bi-trash2', store_setter:d=> d.confirm = {
             title: `Delete: ${name}`,
             body: `All data will be irreversibly destroyed in ${name} (version) of ${repo_name} (repository). Proceed with caution.`,
             func:()=> set_store(d=> d.drop.version(d, {version})),
@@ -114,7 +127,7 @@ function Version_Action_Menu(){
 }
 
 export function Mode(){
-    return c(Mode_Menu, {
+    return  c(Mode_Menu, {
         group: 'studio_mode',
         items:[
             {mode:'repo',  icon:'bi-journal-bookmark'}, 
@@ -125,14 +138,14 @@ export function Mode(){
         width: 110, 
         state: d => d.studio.mode,
         store_setter: (d, mode) => d.studio.mode = mode,
-    });
+    })
 }
 
 function History(){
-    return [
+    return c('div', {className:'d-flex'}, [
         {name:'Undo', onClick:()=>undo(), icon:'bi-arrow-left'},
         {name:'Redo', onClick:()=>redo(), icon:'bi-arrow-right'},
-    ].map(props => render_token({group:'history', ...props}))
+    ].map(item => render_token({group:'history', ...item})))
 }
 
 export function Panel_Mode(){
@@ -228,8 +241,8 @@ function Canvas_3D(){
 //         (prm_nodes[0] && prm_nodes[0] != nodes[0]) 
 //             && {name:'Replace', icon:'bi-repeat', store_action:d=> d.replace(d, {source:prm_nodes[0], target:nodes[0]})},
 //         {name:'Roots', icon:'bi-arrow-left-circle', store_action:d=> d.pick_back(d, {node:nodes[0]})},
-//         {name:'Delete', icon:'bi-trash2', store_action:d=> d.drop.nodes(d, {nodes})},
-//         {name:'Deep Delete', icon:'bi-trash2-fill', store_action:d=> d.drop.nodes(d, {nodes, deep:true})},
+//         {name:'Delete', icon:'bi-trash2', store_action:d=> d.drop.node(d, {nodes})},
+//         {name:'Deep Delete', icon:'bi-trash2-fill', store_action:d=> d.drop.node(d, {nodes, deep:true})},
 //     ].map(button => render_token({...button, group:'node_action_menu'}))))
 // }
 

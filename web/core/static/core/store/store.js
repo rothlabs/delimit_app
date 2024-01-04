@@ -87,7 +87,7 @@ export const store = {
         return {name:'node', node:stems[0]};
     },
     leaf(d, node, path, alt){
-        for(const pth of d.as_iterable(path)){
+        for(const pth of d.as_iterator(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).terms.get(term)[0];
@@ -100,7 +100,7 @@ export const store = {
         return alt;
     },
     value(d, node, path, alt){ 
-        for(const pth of d.as_iterable(path)){
+        for(const pth of d.as_iterator(path)){
             try{
                 const leaf = d.leaf(d, node, pth);
                 if(leaf.type) return leaf.value;
@@ -109,7 +109,7 @@ export const store = {
         return alt;
     },
     stem(d, node, path, alt){
-        for(const pth of d.as_iterable(path)){
+        for(const pth of d.as_iterator(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).terms.get(term)[0];
@@ -121,7 +121,7 @@ export const store = {
     },
     stems(d, root, path){ // rename to path? (like terminusdb path query)
         const result = [];
-        for(const pth of d.as_iterable(path)){
+        for(const pth of d.as_iterator(path)){
             const terms = pth.split(' ');
             const last_term = terms.at(-1);//terms.pop();
             function get_stems(root, terms){
@@ -177,7 +177,7 @@ export const store = {
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    as_iterable(obj){ // rename to as_iterator ?! or iterable #1
+    as_iterator(obj){ // rename to as_iterator ?! or iterable #1
         if(obj == null) return [];
         if(typeof obj === 'string') return [obj];
         if(typeof obj[Symbol.iterator] === 'function') return obj;

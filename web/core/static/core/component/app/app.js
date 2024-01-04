@@ -38,7 +38,7 @@ export const List_View = ({path, items, header_props={}, header, render_item, he
         items.length ? c('div', {className:(open ? icons.css.cls.chevron_down : icons.css.cls.chevron_left)}) : null, 
     ];
     return[
-        header && c('div', {className:'d-inline-flex'}, 
+        header && c('div', {className:'d-flex'}, // d-inline-flex 
             header_addon && render_token({...header_addon, width:row_height, height:row_height}),
             render_token({ 
                 name: path, 
@@ -47,7 +47,7 @@ export const List_View = ({path, items, header_props={}, header, render_item, he
                 content: render_header,
             }),
         ),
-        c('div', {id:'list_header_'+path, className:'ms-4'},
+        c('div', {id:'list_header_'+path, className: header ? 'ms-4' : ''},
             transition((style, open) => 
                 open && c(animated.div, {style:{...style,  marginBottom:style.t.to(t => -get_height('list_header_'+path) * t)  }}, // marginTop:style.t.to(t => -get_height(body_div) * t)  
                     item_transitions((style, item, t, index) => 

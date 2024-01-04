@@ -15,11 +15,14 @@ const vector = new Vector2();
 export function Root(){
     const render_header = (render_outlet_header = () => null) => 
         c('div',{
-            className:'position-absolute top-0 start-0 z-1 ms-1 mt-1', 
+            className:'position-absolute top-0 start-0 end-0 ms-1 mt-1 z-1', 
         },
-            c(Logo),
-            c('span', {className:'me-4'}),
-            render_outlet_header(),
+            c('div', {className:'position-absolute'},
+                c(Logo),
+            ),
+            c('div', {className:'ms-5 ps-5'},
+                render_outlet_header(),
+            ),
         );
     return(
         c('div', {
@@ -48,8 +51,9 @@ export function Root(){
                 set_store(d=> d.drag.edge = {});
             },
         },
+            c(Outlet, {context:{render_header}}),
             c('div',{
-                className: 'z-1 position-absolute top-0 end-0 d-inline-flex', 
+                className: 'position-absolute top-0 end-0 d-flex mt-1 me-1 z-1', 
             },
                 render_token({
                     name: 'dark_mode',
@@ -59,7 +63,6 @@ export function Root(){
                 }),
                 c(Account_Menu),
             ),
-            c(Outlet, {context:{render_header}}),
             c(Dragged),
             c(Login),
             c(Logout),

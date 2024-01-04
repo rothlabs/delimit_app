@@ -14,8 +14,11 @@ inspect.toggle = (d, {path}) => {
     }
 };
 
-inspect.open = (d, {path}) => {
-    d.inspected.add(path);
+inspect.open = (d, {path, paths}) => {
+    paths = paths ?? path;
+    for(path of d.as_iterator(paths)){
+        d.inspected.add(path);
+    }
 };
 
 export const set_leaf = (d, root, term, index, value) => {

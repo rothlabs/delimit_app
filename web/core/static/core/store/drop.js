@@ -14,10 +14,11 @@ export const dropped = {
 export const close = {};
 export const drop = {};
 
-close.nodes = (d, {nodes, drop, given, deep})=>{  // shut by version
-    console.log('close nodes', nodes.size);
+close.node = (d, {node, nodes, drop, given, deep})=>{  // shut by version
+    nodes = nodes ?? node;
+    //console.log('close nodes', nodes.size);
     let targets = new Set();
-    for(const node of d.as_iterable(nodes)){
+    for(const node of d.as_iterator(nodes)){
         if(d.node.has(node)) targets.add(node);
     }
     if(deep){
@@ -53,31 +54,35 @@ close.nodes = (d, {nodes, drop, given, deep})=>{  // shut by version
     }
     if(targets.length) d.graph.increment(d);
 };
-drop.nodes = (d, args) => close.nodes(d, {...args, drop:true});
+drop.node = (d, args) => close.node(d, {...args, drop:true});
 
-close.versions = (d, {versions, drop, given}) => { 
-    for(const version of d.as_iterable(versions)){
+close.version = (d, {version, versions, drop, given}) => { 
+    versions = versions ?? version;
+    for(const version of d.as_iterator(versions)){
         if(!d.version.has(version)) continue;
         const version_obj = d.version.get(version);
         const repo_obj = d.repo.get(version_obj.repo);
         if(drop && !given && !(repo_obj.writable || version_obj.writable)) continue;
+        if(version == d.targeted.version){
+            d.target.version(d, {version:d.version.keys().next().value});
+        }
         repo_obj.versions.delete(version);
-        d.close.nodes(d, {nodes:version_obj.nodes, drop, given});
+        d.close.node(d, {nodes:version_obj.nodes, drop, given});
         d.unpick(d, {item:{version}});
         if(drop) d.dropped.version.add(version);
         else d.closed.version.add(version);
         d.version.delete(version);
     }
 };
-drop.versions = (d, args) => close.versions(d, {...args, drop:true});
+drop.version = (d, args) => close.version(d, {...args, drop:true});
 
 close.repo = (d, {repo, drop, given}) => {
-    if(drop && !given) d.server.drop_repo({variables:{repoId:repo}});
+    if(drop && !given) d.server.drop_repo({variables:{id:repo}});
     if(!d.repo.has(repo)) return;
     const repo_obj = d.repo.get(repo);
     if(drop && !given && !repo_obj.writable) return;
     const versions = repo_obj.versions;
-    d.close.versions(d, {versions, drop, given});
+    d.close.version(d, {versions, drop, given});
     d.unpick(d, {item:{repo}});
     if(drop) d.dropped.repo.add(repo);
     else d.closed.repo.add(repo);
@@ -142,7 +147,7 @@ drop.edge = (d, a={})=>{
         if(drop_back){
             const stem_obj = d.node.get(drp.stem);
             stem_obj.back.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
-            if(!a.given && stem_obj.back.size < 1 && stem_obj.terms.size < 1) d.drop.nodes(d, {nodes:drp.stem});
+            if(!a.given && stem_obj.back.size < 1 && stem_obj.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
         }
     }
     if(increment_graph) d.graph.increment(d);
