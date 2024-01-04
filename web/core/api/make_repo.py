@@ -64,7 +64,7 @@ def starter_nodes():
     delimit_app      = make_id()
     return{
         delimit_leaf_node:{ 
-            'leaf':[{'type':'string', 'value':'delimit'}],
+            'leaf':[{'type':'string', 'value':'Delimit'}],
         },
         code_stem:{
             'name':    [{'type':'string', 'value':'Code'}],

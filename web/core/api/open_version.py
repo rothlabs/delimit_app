@@ -57,7 +57,7 @@ class Open_Version(graphene.Mutation):
                 def select_nodes(node):
                     if node in nodes: return
                     nodes[node] = node_map[node]
-                    for term in nodes[node]:
+                    for term in nodes[node].values():
                         for stem in term:
                             if isinstance(stem, str): select_nodes(stem)
                 for node in top_node_ids: select_nodes(node)
@@ -65,8 +65,8 @@ class Open_Version(graphene.Mutation):
                 reply = 'Open version successful',
                 result = json.dumps({
                     'versions': versions,
-                    'repos':   repos,
-                    'nodes':   nodes,
+                    'repos':    repos,
+                    'nodes':    nodes,
                 }),
             )
         except Exception as e: 

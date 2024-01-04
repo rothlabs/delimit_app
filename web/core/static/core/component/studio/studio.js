@@ -4,9 +4,9 @@ import {Viewport} from './viewport.js';
 import {Code} from './code.js';
 import {Repo_Browser} from './repo_browser.js';
 //import {Container, Row, Col, Badge, InputGroup, Form} from 'react-bootstrap';
-import {Box3} from 'three';
+//import {Box3} from 'three';
 import {use_store, set_store, Node_Editor, Schema, Repo_Editor, Mode_Menu, render_badge,
-    Make_Node, Make_Repo, undo, redo, render_token, icons, draggable} from 'delimit';
+    Make_Node, Make_Repo, undo, redo, render_token, icons, draggable, pickable} from 'delimit';
 import {useOutletContext} from 'react-router-dom';
 import {animated, useSpring, useTransition} from '@react-spring/web';
  
@@ -62,6 +62,7 @@ function Targeted_Version(){
     return render_token({
         icon: 'bi-fullscreen-exit',
         name: 'Target',
+        ...pickable({item:{version}, mode:'secondary'}),
         content: ({render_token_badge}) => [
             render_token_badge(),
             render_badge({repo}),
@@ -70,7 +71,6 @@ function Targeted_Version(){
         store_setter: d => {
             d.studio.panel.mode = 'repo_editor';
             d.inspect.open(d, {path:repo});
-            d.pick(d, {item:{version}});
         },
     });
 }
@@ -82,17 +82,22 @@ function Action_Menu({open, group, items}){
         leave: {x:'125%'}, 
     });
     return transition((style, item) => item && c(animated.div, {
-        className: 'd-flex flex-column',
         style: {...style, borderRight:'thick solid var(--bs-secondary)'},
-    }, items.map(item => render_token({...item, group}))))
+    }, items.map(item => 
+        c('div', {className:'d-flex justify-content-end'},
+            render_token({...item, group, hide_secondary_pick:true})
+        )
+    )))
 } 
 function Node_Action_Menu(){
     const prm_nodes = use_store(d=> [...d.picked.primary.node]);
     const nodes = use_store(d=> [...d.picked.secondary.node]);
     return c(Action_Menu, {open:(nodes.length > 0), group:'node_action_menu', items:[
+        {name:'Copy', icon:'bi-file-earmark', store_action:d=> d.copy.node(d, {nodes})},
+        {name:'Copy', icon:'bi-file-earmark-fill', store_action:d=> d.copy.node(d, {nodes, deep:true})},
         (prm_nodes[0] && prm_nodes[0] != nodes[0]) 
-            && {name:'Replace', icon:'bi-repeat', store_action:d=> d.replace(d, {source:prm_nodes[0], target:nodes[0]})},
-        {name:'Roots', icon:'bi-arrow-left-circle', store_setter:d=> d.pick_back(d, {node:nodes[0]})},
+            && {name:'Replace', icon:'bi-repeat', store_action:d=> d.replace.node(d, {nodes, source:prm_nodes[0]})},
+        {name:'Roots', icon:'bi-arrow-left-circle', store_setter:d=> d.pick_back(d, {nodes})},
         {name:'Delete', icon:'bi-trash2', store_action:d=> d.drop.node(d, {nodes})},
         {name:'Deep Delete', icon:'bi-trash2-fill', store_action:d=> d.drop.node(d, {nodes, deep:true})},
     ]})
@@ -101,6 +106,7 @@ function Repo_Action_Menu(){
     const repo = use_store(d=> d.picked.secondary.repo.keys().next().value);
     const name = use_store(d=> d.get.repo.name(d, repo));
     return c(Action_Menu, {open:(repo != null), group:'repo_action_menu', items:[
+        {name, content:render_badge({repo})},
         {name:'Close',   icon:'bi-x-lg', store_action:d=> d.close.repo(d, {repo})},
         {name:'Delete',  icon:'bi-trash2', store_setter:d=> d.confirm = {
             title: `Delete: ${name}`,
@@ -112,10 +118,12 @@ function Repo_Action_Menu(){
 function Version_Action_Menu(){
     const version = use_store(d=> d.picked.secondary.version.keys().next().value);
     const name = use_store(d=> d.get.version.name(d, version));
-    const repo_name = use_store(d=> d.get.version.repo_name(d, version));
-    const targeted = use_store(d=> d.targeted.version);
+    const repo = use_store(d=> d.get.version.repo(d, version));
+    const repo_name = use_store(d=> d.get.repo.name(d, repo));
+    //const targeted = use_store(d=> d.get.targeted.version(d));
     return c(Action_Menu, {open:(version != null), group:'version_action_menu', items:[
-        (version != targeted) && {name:'Target', icon:'bi-fullscreen-exit', store_setter:d=> d.target.version(d, {version})},
+        {name, content:[render_badge({repo}), render_badge({version})], ...pickable({item:{version}, mode:'primary'})},
+        //(version != targeted) && {name:'Target', icon:'bi-fullscreen-exit', store_setter:d=> d.pick(d, {item:{version}})},
         {name:'Commit', icon:'bi-bookmark', store_setter:d=> d.commit.version(d, {version})},
         {name:'Close', icon:'bi-x-lg', store_action:d=> d.close.version(d, {version})},
         {name:'Delete', icon:'bi-trash2', store_setter:d=> d.confirm = {

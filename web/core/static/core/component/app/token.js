@@ -21,11 +21,31 @@ function Toggle_Token(props){
 function Pickable_Token(props){
     const primary_pick = use_store(d=> d.picked.primary[props.type].has(props.id));
     const secondary_pick = use_store(d=> d.picked.secondary[props.type].has(props.id));
-    //console.log(secondary_pick, props.type, props.id);
     props.style = props.style ?? {};
-    props.style.borderLeft  = (primary_pick ?   ('thick solid var(--bs-primary)')   : 'none');
-    props.style.borderRight = (secondary_pick ? ('thick solid var(--bs-secondary)') : 'none');
+    props.style.borderLeft = 'none';
+    if(primary_pick && !props.hide_primary_pick){
+        props.style.borderLeft = 'thick solid var(--bs-primary)';
+    }
+    props.style.borderRight = 'none';
+    if(secondary_pick && !props.hide_secondary_pick){
+        props.style.borderRight = 'thick solid var(--bs-secondary)';
+    }
     return c(Token_Base, props);
+}
+
+function render_switch({checked, onChange, store_action}){
+    return c('div', {className:'form-check form-switch mt-1'},
+        c('input', {
+            className:'form-check-input',
+            type: 'checkbox',
+            role: 'button',
+            checked, 
+            onChange(e){
+                if(store_action) act_store(d => store_action(d, e));
+                if(onChange) onChange(e);
+            },
+        })
+    )
 }
 
 function render_input({type='input', maxLength, placeholder, value, onFocus, onBlur, onChange, store_action}){
@@ -38,7 +58,7 @@ function render_input({type='input', maxLength, placeholder, value, onFocus, onB
         },
         maxLength, placeholder, value, onFocus, onBlur, 
         onChange(e){
-            if(store_action)  act_store(d => store_action(d, e));
+            if(store_action) act_store(d => store_action(d, e));
             if(onChange) onChange(e);
         },
     })
@@ -72,13 +92,18 @@ function Token_Base({inner_ref, group, icon, name, content, width, height, style
         const type = tall ? 'textarea' : 'input';
         return render_input({...props, height, type});
     };
+    const render_token_switch = props => {
+        button = true;
+        return render_switch(props);
+    };
     const render_content = () => {
         if(content == null) return c(Icon, {icon, size:'h5', color:'info'});//c('div', {className:content_css_cls});
         if(content == 'badge') return render_token_badge(); 
         return assess(content, {
             render_name, 
             render_token_badge, 
-            render_input: render_token_input
+            render_input: render_token_input,
+            render_switch: render_token_switch,
         });
     }
     return(

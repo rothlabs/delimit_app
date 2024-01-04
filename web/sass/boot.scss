@@ -19,6 +19,8 @@ $focus-ring-color: rgba($info, 0.35) !default;
 $focus-ring-blur:  0 !default;
 $focus-ring-box-shadow: inset 0 0 $focus-ring-blur $focus-ring-width $focus-ring-color !default;
 
+$component-active-bg: $info !default;
+
 @import "bootstrap/scss/variables";
 
 
@@ -53,8 +55,6 @@ $accordion-border-width: 0px;
 //.btn-primary {
 //    @include button-variant($mynewcolor, darken($mynewcolor, 7.5%), darken($mynewcolor, 10%), lighten($mynewcolor,5%), lighten($mynewcolor, 10%), darken($mynewcolor,30%));
 //}
-
-
 
 .modal{
     word-wrap: break-word !important;  // maybe this doesn't need !important and should go before bootstrap import 

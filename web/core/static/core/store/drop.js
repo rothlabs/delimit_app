@@ -14,11 +14,11 @@ export const dropped = {
 export const close = {};
 export const drop = {};
 
-close.node = (d, {node, nodes, drop, given, deep})=>{  // shut by version
-    nodes = nodes ?? node;
+close.node = (d, {drop, given, deep, ...item})=>{  // shut by version
+    //nodes = nodes ?? node;
     //console.log('close nodes', nodes.size);
     let targets = new Set();
-    for(const node of d.as_iterator(nodes)){
+    for(const node of d.make_iterator(item)){
         if(d.node.has(node)) targets.add(node);
     }
     if(deep){
@@ -56,15 +56,15 @@ close.node = (d, {node, nodes, drop, given, deep})=>{  // shut by version
 };
 drop.node = (d, args) => close.node(d, {...args, drop:true});
 
-close.version = (d, {version, versions, drop, given}) => { 
-    versions = versions ?? version;
-    for(const version of d.as_iterator(versions)){
+close.version = (d, {drop, given, ...item}) => { 
+    //versions = versions ?? version;
+    for(const version of d.make_iterator(item)){
         if(!d.version.has(version)) continue;
         const version_obj = d.version.get(version);
         const repo_obj = d.repo.get(version_obj.repo);
         if(drop && !given && !(repo_obj.writable || version_obj.writable)) continue;
-        if(version == d.targeted.version){
-            d.target.version(d, {version:d.version.keys().next().value});
+        if(version == d.get.targeted.version(d)){
+            d.pick(d, {item:{version:d.version.keys().next().value}});
         }
         repo_obj.versions.delete(version);
         d.close.node(d, {nodes:version_obj.nodes, drop, given});

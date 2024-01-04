@@ -54,7 +54,8 @@ export const store = {
     
     init(d){
         d.entry = d.make.node(d, {});
-        d.make.edge(d, {root:d.entry, term:'name', stem:{type:'string', value:'Entry'}});
+        d.make.edge(d, {root:d.entry, term:'name', stem:{type:'string',  value:'Entry'}}); 
+        d.make.edge(d, {root:d.entry, term:'show', stem:{type:'boolean', value:false}});
         d.base_texture = new THREE.TextureLoader().load(
             d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
         );
@@ -87,7 +88,7 @@ export const store = {
         return {name:'node', node:stems[0]};
     },
     leaf(d, node, path, alt){
-        for(const pth of d.as_iterator(path)){
+        for(const pth of d.make_iterator(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).terms.get(term)[0];
@@ -100,7 +101,7 @@ export const store = {
         return alt;
     },
     value(d, node, path, alt){ 
-        for(const pth of d.as_iterator(path)){
+        for(const pth of d.make_iterator(path)){
             try{
                 const leaf = d.leaf(d, node, pth);
                 if(leaf.type) return leaf.value;
@@ -109,7 +110,7 @@ export const store = {
         return alt;
     },
     stem(d, node, path, alt){
-        for(const pth of d.as_iterator(path)){
+        for(const pth of d.make_iterator(path)){
             try{
                 for(const term of pth.split(' ')){
                     node = d.node.get(node).terms.get(term)[0];
@@ -121,7 +122,7 @@ export const store = {
     },
     stems(d, root, path){ // rename to path? (like terminusdb path query)
         const result = [];
-        for(const pth of d.as_iterator(path)){
+        for(const pth of d.make_iterator(path)){
             const terms = pth.split(' ');
             const last_term = terms.at(-1);//terms.pop();
             function get_stems(root, terms){
@@ -177,11 +178,12 @@ export const store = {
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    as_iterator(obj){ // rename to as_iterator ?! or iterable #1
-        if(obj == null) return [];
-        if(typeof obj === 'string') return [obj];
-        if(typeof obj[Symbol.iterator] === 'function') return obj;
-        return [obj];
+    make_iterator(item){ 
+        item = item.node ?? item.nodes ?? item.repo ?? item.repos ?? item.version ?? item.versions ?? item;
+        if(item == null) return [];
+        if(typeof item === 'string') return [item];
+        if(typeof item[Symbol.iterator] === 'function') return item;
+        return [item];
     },
 };
 

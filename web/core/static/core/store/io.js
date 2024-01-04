@@ -10,7 +10,7 @@ export const receive_data = (d, data) => {// change to receive patches directly 
         d.repo.get(repo).versions.add(version);
         d.dropped.version.delete(version);
         d.closed.version.delete(version);
-        if(top) d.target.version(d, {version});
+        if(top) d.pick(d, {item:{version}});
     });
     const nodes = Object.entries(data.nodes);
     nodes.map(([node])=>{

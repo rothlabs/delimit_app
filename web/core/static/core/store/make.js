@@ -3,7 +3,7 @@ import {make_id} from 'delimit';
 export const make = {};
 
 make.node = (d, {node, version='none', given, type})=>{
-    if(version == 'targeted') version = d.targeted.version; 
+    if(version == 'targeted') version = d.get.targeted.version(d); 
     node = node ?? version + make_id();
     if(!(given || d.writable(d, node))) return;
     d.drop.edge(d, {root:node, given}); 
@@ -22,6 +22,7 @@ make.node = (d, {node, version='none', given, type})=>{
     return node;
 };
 
+// rename to make.term ?!?! #1
 make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
     if(!d.node.has(root)) return; //  && (stem.type || d.node.has(stem)))
     if(!(given || d.writable(d, root))) return;
@@ -66,7 +67,7 @@ function build(d, root, type){
     d.make.edge(d, {root, term:'type', stem:type});
     if(d.type_name(d, root) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
         for(const context of d.stems(d, d.entry, 'app contexts')){
-            if(d.node.get(context).version == d.targeted.version){ // if(d.node.get(context).repo == d.target.repo){
+            if(d.node.get(context).version == d.get.targeted.version(d)){ // if(d.node.get(context).repo == d.target.repo){
                 d.make.edge(d, {root:context, term:'types', stem:root});
             }
         }

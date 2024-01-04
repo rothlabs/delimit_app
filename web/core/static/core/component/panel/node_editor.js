@@ -1,5 +1,5 @@
 import {createElement as c, useEffect, useState} from 'react';
-import {Form} from 'react-bootstrap';
+//import {Form} from 'react-bootstrap';
 import {use_store, act_store, List_View, drag_drop,
     readable, droppable, pickable, render_badge, icons, render_token} from 'delimit';
 
@@ -83,18 +83,15 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
     },[value]);
     const dnd = drag_drop(proxy ?? {root, term, stem:{type, value}, index});
     const name = readable((typeof show_term==='string') ? show_term : term);
-    const content = ({render_input}) => [
+    const content = ({render_switch, render_input}) => [
         show_term && c('div', dnd, name), // render_name({props}),
         show_icon && c('div', {className:icons.css.cls.generic + ' text-body', ...dnd}),
         type == 'boolean' ? 
-            c(Form.Check, {
-                className:'flex-grow-1 ms-2 mt-2 shadow-none', //4 mt-2 me-4 //style: {transform:'scale(1.8);'},
-                type: 'switch',
+            render_switch({ //...dnd,
                 checked: value, 
-                onChange(e){
-                    act_store(d=> d.set_leaf(d, root, term, index, e.target.checked));
+                store_action(d, e){
+                    d.set_leaf(d, root, term, index, e.target.checked);
                 }, 
-                ...dnd,
             }) : 
             render_input({
                 value: input_value, 
@@ -106,11 +103,9 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                         set_input_value(''+parseFloat(value));
                     }
                 },
-                onChange(e){
-                    act_store(d=>{
-                        const coerced = d.set_leaf(d, root, term, index, e.target.value);
-                        if(coerced != null) set_input_value(coerced); 
-                    });
+                store_action(d, e){
+                    const coerced = d.set_leaf(d, root, term, index, e.target.value);
+                    if(coerced != null) set_input_value(coerced); 
                 }, 
             }),
         c('div', {className:icons.css.cls[type], ...dnd}),

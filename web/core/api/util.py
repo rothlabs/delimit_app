@@ -12,8 +12,6 @@ def make_node_snaps(version, node_terms):
     snaps = []
     nodes = []
     for node_id, terms in node_terms.items():
-        print('making node snap')
-        print(node_id, terms)
         digest = hashlib.sha256(json.dumps(terms, sort_keys=True).encode('utf-8')).hexdigest()
         snap = Snap(digest=digest, content=terms)
         snaps.append(snap)
@@ -29,7 +27,7 @@ def split_ids(comp_ids):
     result = {}
     for comp_id in comp_ids:
         version_id = comp_id[:16]
-        node_id   = comp_id[16:]
+        node_id    = comp_id[16:]
         if not version_id in result: 
             result[version_id] = []
         result[version_id].append(node_id)

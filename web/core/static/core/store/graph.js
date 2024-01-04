@@ -11,24 +11,25 @@ export const graph = {
     increment: d=> d.graph.tick++,
 };
 
+const add_node_and_edges = (d, root) => {
+    if(!d.value(d, root, 'show', true)) return;
+    d.graph.node.set(root, {
+        lvl: 0,
+        pos: new Vector3(),
+    });
+    for(const [term, stem] of d.terms(d, root)){
+        if(!d.node.has(stem)) continue;
+        d.graph.edge.push({root, term, stem});
+    }
+};
+
 graph.layout = d => {        
     //console.log('update graph!!');
 
     d.graph.node.clear();
     d.graph.edge = []; 
 
-    //console.log([...d.node.keys()]);
-
-    for(const [root] of d.node){
-        d.graph.node.set(root, {
-            lvl: 0,
-            pos: new Vector3(),
-        });
-        for(const [term, stem] of d.terms(d, root)){
-            if(!d.node.has(stem)) continue;
-            d.graph.edge.push({root, term, stem});
-        }
-    }
+    for(const [root] of d.node) add_node_and_edges(d, root);
     
     var highest_lvl = 0;
     var setting_lvl = true; 
@@ -121,6 +122,5 @@ graph.layout = d => {
             0
         ));
     }
-
 };
 

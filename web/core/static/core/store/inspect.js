@@ -16,7 +16,7 @@ inspect.toggle = (d, {path}) => {
 
 inspect.open = (d, {path, paths}) => {
     paths = paths ?? path;
-    for(path of d.as_iterator(paths)){
+    for(path of d.make_iterator(paths)){
         d.inspected.add(path);
     }
 };

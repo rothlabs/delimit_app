@@ -12,7 +12,7 @@ picked.secondary = {
     version: new Set(),
 };
 
-export const pick = (d, {mode='primary', item, multi, weak}) => {
+export const pick = (d, {mode='primary', item, multi, keep}) => {
     if(mode == 'secondary'){
         d.unpick(d, {mode:'secondary', item:{repo:'all'}});
         d.unpick(d, {mode:'secondary', item:{version:'all'}});
@@ -22,52 +22,43 @@ export const pick = (d, {mode='primary', item, multi, weak}) => {
         d.unpick(d, {mode:'secondary', item:{node:'all'}});
     }
     const picked = d.picked[mode][type];
-    if(multi && picked.has(id)){
+    if(multi && !keep && picked.has(id)){
         picked.delete(id);
         return;
     }
-    if(!multi) picked.clear();
-    if(!(weak && picked.size)){
+    if(!multi && !keep) picked.clear();
+    //if(!(weak && picked.size)){
         picked.add(id);
         if(type == 'node' && mode == 'primary'){
             d.inspect.open(d, {path:'inspect'+id+'0'});
         }
-    }
+    //}
 };
 
-export const unpick = (d, {mode='all', item={all:'all'}}) => {
+export const unpick = (d, {mode='all', item={node:'all'}}) => {
     const [type, id] = Object.entries(item)[0];
-    function unpick_type(mode_obj){
-        function unpick_item(picked){
-            if(id == 'all') picked.clear();
-            else            picked.delete(id);
+    function unpick_type(mode_val){
+        function unpick_item(type_val){
+            if(id == 'all') type_val.clear();
+            else            type_val.delete(id);
         }
         if(type == 'all'){
-            for(const picked of Object.values(mode_obj)) unpick_item(picked);
+            for(const type_val of Object.values(mode_val)) unpick_item(type_val);
         }else{
-            if(mode_obj[type]) unpick_item(mode_obj[type]);
+            if(mode_val[type]) unpick_item(mode_val[type]);
         }
     }
     if(mode == 'all'){
-        for(const mode_obj of Object.values(d.picked)) unpick_type(mode_obj);
+        for(const mode_val of Object.values(d.picked)) unpick_type(mode_val);
     }else{
         unpick_type(d.picked[mode]);
     }
 };
 
-export const targeted = {
-    version: null,
-};
-
-export const target = {};
-target.version = (d, {version}) => {
-    d.targeted.version = version;
-}
-
-export function pick_back(d, {node}){
+export function pick_back(d, item){
     d.unpick(d, {mode:'primary'});
-    for(const n of d.as_iterator(node)){
-        for(const [root] of d.back(d, n)) d.pick(d, {item:{node:root}, multi:true});
+    for(const node of d.make_iterator(item)){
+        for(const [root] of d.back(d, node)) d.pick(d, {item:{node:root}, keep:true});
     }
 };
 
@@ -76,6 +67,14 @@ export const drag = {
 };
 
 
+// export const targeted = {
+//     version: null,
+// };
+
+// export const target = {};
+// target.version = (d, {version}) => {
+//     d.targeted.version = version;
+// }
 
 
     // let item = node;
