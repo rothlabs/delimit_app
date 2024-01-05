@@ -1,7 +1,7 @@
 import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {useThree} from '@react-three/fiber';
 import {CameraControls} from '@react-three/drei/CameraControls'; 
-//import {OrbitControls} from '@react-three/drei/OrbitControls';
+import {Text} from '@react-three/drei/Text';
 
 import {Design} from '../design/design.js';
 import {Graph} from '../graph/graph.js';
@@ -83,6 +83,7 @@ export function Viewport(){ // for some reason this renders 5 times on load
     const light = useRef();
     const {camera} = useThree(); // raycaster 
     const studio_mode = use_store(d=> d.studio.mode);
+    //const font = use_store(d=> d.font.body);
     useEffect(()=>{
         set_store(d=>{
             if(d.camera_controls){
@@ -115,32 +116,36 @@ export function Viewport(){ // for some reason this renders 5 times on load
     },[]);
     //const d = gs();
     //console.log('render viewport');
-    return (
-        c('group', {
-            ref: scene,
-            name:'viewport',
-            onPointerMissed(e){
-                //console.log(e.which);
-                //e.stopPropagation();
-                if(e.which == 1) set_store(d=> d.unpick(d, {})); //mode:'primary'
-                //if(e.which == 3) set_store(d=> d.unpick(d, {mode:'secondary'})); 
-                //set_store(d=> d.unpick(d, {mode:'primary'}));
-            },
-        }, 
-            c(Viewport_Control),
-            studio_mode=='graph'  && c(Graph),
-            studio_mode=='design' && c(Design),
-            c('directionalLight', { 
-                ref:light,
-                color: 'white',
-                intensity: 1,
-                position: [0,0,1000],
-            }),
-            c('ambientLight', {
-               color: 'white',
-               intensity: 0.25,
-            }),
-        )
+    return c('group', {
+        ref: scene,
+        name:'viewport',
+        onPointerMissed(e){
+            //console.log(e.which);
+            //e.stopPropagation();
+            if(e.which == 1) set_store(d=> d.unpick(d, {})); //mode:'primary'
+            //if(e.which == 3) set_store(d=> d.unpick(d, {mode:'secondary'})); 
+            //set_store(d=> d.unpick(d, {mode:'primary'}));
+        },
+    }, 
+        c(Viewport_Control),
+        studio_mode=='graph'  && c(Graph),
+        studio_mode=='design' && c(Design),
+        c('directionalLight', { 
+            ref:light,
+            color: 'white',
+            intensity: 1,
+            position: [0,0,1000],
+        }),
+        c('ambientLight', {
+            color: 'white',
+            intensity: 0.25,
+        }),
+        // c(Text, {
+        //     text: 'delimit',
+        //     //characters: 'abcdefghijklmnopqrstuvwxyz0123456789!',
+        //     font, 
+        //     position: [1000, 1000, 1000],
+        // }),
     )
 }
 

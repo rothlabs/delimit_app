@@ -55,7 +55,9 @@ class Open_Version(graphene.Mutation):
                 nodes = node_map
             else:
                 def select_nodes(node):
+                    print(node)
                     if node in nodes: return
+                    if not node in node_map: return
                     nodes[node] = node_map[node]
                     for term in nodes[node].values():
                         for stem in term:

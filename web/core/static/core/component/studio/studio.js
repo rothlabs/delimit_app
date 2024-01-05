@@ -176,7 +176,7 @@ export function Leaf_Bar(){
     return [
         {name:'Decimal', stem:{type:'decimal', value:0}},
         {name:'Integer', stem:{type:'integer', value:0}},
-        {name:'String',  stem:{type:'string',  value:'new'}},
+        {name:'String',  stem:{type:'string',  value:'New'}},
         {name:'Boolean', stem:{type:'boolean', value:true}},
     ].map(({name, stem}) => render_token({group:'new_leaf', name,
         icon: icons.css.cls[stem.type],
