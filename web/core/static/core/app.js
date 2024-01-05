@@ -11,11 +11,11 @@ import {Home} from './component/home/home.js';
 import {Studio} from './component/studio/studio.js';
 import {Router_Error, Query_Status} from './component/app/feedback.js';
 import {Color, ColorManagement} from 'three'; 
-import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
+//import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
-import {extend} from '@react-three/fiber';
-import {Text} from './troika/troika-three-text.js';
-
+// import {extend} from '@react-three/fiber';
+// import {Text} from './troika/troika-three-text.js';
+//extend({Text});
 
 
 //import { DndProvider } from 'react-dnd';
@@ -37,7 +37,7 @@ import {Text} from './troika/troika-three-text.js';
 
 
 
-extend({Text});
+
 
 export const media_url = document.body.getAttribute('data-media-url');
 export const static_url = document.body.getAttribute('data-static-url')+'core/';
@@ -106,31 +106,31 @@ const m1 = new THREE.Matrix4();
 
 
 
-export function use_media_glb(url){ // makes fresh copy of glb geom and such on each load so it actually changes
-    const {nodes} = useGLTF(media_url+url);
-    const [cloned_nodes, set_cloned_nodes] = useState([]);
-    useEffect(() => {
-        if(nodes){
-            //console.log(nodes);
-            var node_buffer = [];
-            //nodes.AuxScene.children[0].children.forEach((group)=> {
-            Object.entries(nodes).map((n,i)=>{n=n[1];
-                //group.children.forEach((n)=> {
-                //    if(n.name.includes){
-                node_buffer.push(n.clone(true));
-                if(n.geometry && n.geometry.attributes.position){
-                    const geo = new THREE.BufferGeometry();
-                    geo.setAttribute('position', new THREE.BufferAttribute( new Float32Array(n.geometry.attributes.position.array), 3 ));
-                    node_buffer[node_buffer.length-1].geometry = geo;
-                }
-                    //}
-                //});
-            });
-            set_cloned_nodes(node_buffer);
-        }
-    }, [nodes])
-    return cloned_nodes;
-}
+// // export function use_media_glb(url){ // makes fresh copy of glb geom and such on each load so it actually changes
+// //     const {nodes} = useGLTF(media_url+url);
+// //     const [cloned_nodes, set_cloned_nodes] = useState([]);
+// //     useEffect(() => {
+// //         if(nodes){
+// //             //console.log(nodes);
+// //             var node_buffer = [];
+// //             //nodes.AuxScene.children[0].children.forEach((group)=> {
+// //             Object.entries(nodes).map((n,i)=>{n=n[1];
+// //                 //group.children.forEach((n)=> {
+// //                 //    if(n.name.includes){
+// //                 node_buffer.push(n.clone(true));
+// //                 if(n.geometry && n.geometry.attributes.position){
+// //                     const geo = new THREE.BufferGeometry();
+// //                     geo.setAttribute('position', new THREE.BufferAttribute( new Float32Array(n.geometry.attributes.position.array), 3 ));
+// //                     node_buffer[node_buffer.length-1].geometry = geo;
+// //                 }
+// //                     //}
+// //                 //});
+// //             });
+// //             set_cloned_nodes(node_buffer);
+// //         }
+// //     }, [nodes])
+// //     return cloned_nodes;
+// // }
 
 export function readable(text){
     return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');

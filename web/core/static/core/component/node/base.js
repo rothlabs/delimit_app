@@ -5,10 +5,35 @@ import {Svg} from '../app/app.js';
 //import {createElement as c, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
 import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
+import { useSpring, animated, config, to } from '@react-spring/three';
 
 const v1 = new Vector3();
 const v2 = new Vector3();
 
+export const View_Transform = forwardRef((props, ref)=>{ 
+    var obj = null;
+    const point_size = use_store(d=> d.point_size);
+    //const {camera} = useThree();
+    const {position} = useSpring({ position:[props.position.x, props.position.y, 0] });
+    //let x = to(spring, value=> value);//spring_x.to(value=> value+1);
+    //let y = to(spring_y, value=> value);//spring_x.to(value=> value+1);
+    useFrame((state) => { // use d.cam_info here? #1
+        if(props.size){
+            let factor = props.size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!
+            obj.scale.set(factor,factor,factor);
+        }
+        if(props.offset_z){
+            state.camera.getWorldDirection(v1);
+            obj.getWorldDirection(v2);
+            if(v1.dot(v2)>0) obj.position.set(0, 0,  point_size*props.offset_z / state.camera.zoom);//props.offset_z / state.camera.zoom);
+            else             obj.position.set(0, 0, -point_size*props.offset_z / state.camera.zoom);//-props.offset_z / state.camera.zoom);
+        }
+    });
+    return (c(animated.group, {...props, position, ref:r=>{
+        obj = r; 
+        if(ref) ref.current = r; 
+    }}))
+});
 
 // export function Root_Transform({n, rotation, children}){
 //     const obj = useRef();
@@ -45,27 +70,7 @@ const v2 = new Vector3();
 // //     )
 // // }
 
-export const View_Transform = forwardRef((props, ref)=>{ 
-    var obj = null;
-    const point_size = use_store(d=> d.point_size);
-    //const {camera} = useThree();
-    useFrame((state) => { // use d.cam_info here? #1
-        if(props.size){
-            let factor = props.size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!
-            obj.scale.set(factor,factor,factor);
-        }
-        if(props.offset_z){
-            state.camera.getWorldDirection(v1);
-            obj.getWorldDirection(v2);
-            if(v1.dot(v2)>0) obj.position.set(0, 0,  point_size*props.offset_z / state.camera.zoom);//props.offset_z / state.camera.zoom);
-            else             obj.position.set(0, 0, -point_size*props.offset_z / state.camera.zoom);//-props.offset_z / state.camera.zoom);
-        }
-    });
-    return (c('group', {...props, ref:r=>{
-        obj = r; 
-        if(ref) ref.current = r; 
-    }}))
-});
+
 
 // export function Badge({n}){ // more than one reason to change but okay because it's so simple?
 //     const name = useS(d=> d.n[n].c.name);

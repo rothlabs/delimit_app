@@ -7,6 +7,10 @@ import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
 import {store} from './store/store.js';
 //import {transient} from './transient/transient.js';
 import {Vector2} from 'three';
+import {Globals} from '@react-spring/three';
+Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
+    frameLoop: "always",
+});
 
 export {gql_client} from './app.js';
 export {use_query, use_mutation} from './app/gql.js';

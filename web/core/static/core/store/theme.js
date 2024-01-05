@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {preloadFont} from '../troika/troika-three-text.js';
+//import {preloadFont} from '../troika/troika-three-text.js';
 
 export const theme = {
     mode: document.documentElement.getAttribute('data-bs-theme'),
@@ -33,8 +33,7 @@ theme.compute = d =>{
     d.material.body_fg = new THREE.MeshBasicMaterial({color:d.color.body_fg, toneMapped:false});
     d.material.body_bg = new THREE.MeshBasicMaterial({color:d.color.body_bg, toneMapped:false});
     d.font.body = d.static_url + 'font/Inter-Medium.ttf';
-    preloadFont({font:d.font.body}, ()=>{},);
-
+    //preloadFont({font:d.font.body}, ()=>{},);
 };
 
 theme.toggle = d =>{

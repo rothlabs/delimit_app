@@ -1,6 +1,6 @@
 import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
 import {useThree} from '@react-three/fiber';
-import {CameraControls} from '@react-three/drei/CameraControls'; 
+//import {CameraControls} from '@react-three/drei/CameraControls'; 
 //import {OrbitControls} from '@react-three/drei/OrbitControls';
 import {Board} from './board.js';
 import {Design} from './design.js';
@@ -91,16 +91,16 @@ function Viewport_Control(){
         }));
     }),[camera_controls]);
     return(c('group', {name:'viewport_parts'}, 
-        c(CameraControls, {
-            ref: camera_controls,
-            makeDefault: true,
-            minDistance: 1000, 
-            maxDistance: 1000, 
-            polarRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
-            azimuthRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
-            draggingSmoothTime: 0.01,
-            dollyToCursor: true,
-        }), 
+        // c(CameraControls, {
+        //     ref: camera_controls,
+        //     makeDefault: true,
+        //     minDistance: 1000, 
+        //     maxDistance: 1000, 
+        //     polarRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
+        //     azimuthRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
+        //     draggingSmoothTime: 0.01,
+        //     dollyToCursor: true,
+        // }), 
         pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
             style:{
                 border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",

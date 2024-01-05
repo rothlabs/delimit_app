@@ -49,7 +49,7 @@ function Viewport_Control(){
             }
         }));
     })},[camera_controls]);
-    return(c('group', {name:'viewport_parts'}, 
+    return c('group', {name:'viewport_parts'}, 
         c(CameraControls, {
             ref: camera_controls,
             makeDefault: true,
@@ -75,7 +75,7 @@ function Viewport_Control(){
         // //         d.pick.set(d, nodes, true);
         // //     }),
         // // }),
-    ))
+    )
 }
 
 export function Viewport(){ // for some reason this renders 5 times on load

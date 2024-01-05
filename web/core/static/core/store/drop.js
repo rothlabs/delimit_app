@@ -37,7 +37,7 @@ close.node = (d, {drop, given, deep, ...item})=>{  // shut by version
         };
         get_stems(targets);
     }
-    if(drop && !given) targets = d.writable(d, [...targets]);
+    if(drop && !given) targets = d.writable(d, targets);
     for(const node of targets){
         if(!d.node.has(node)) continue;
         d.drop.edge(d, {root:node});

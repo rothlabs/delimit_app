@@ -162,7 +162,7 @@ export const store = {
         }
     },
     writable(d, node){
-        const node_is_writable = (node) =>{
+        const node_is_writable = node =>{
             const version = d.node.get(node)?.version;
             if(d.version.has(version)){
                 const version_obj = d.version.get(version);
@@ -170,8 +170,8 @@ export const store = {
             }
             return true;
         };
-        if(Array.isArray(node)){
-            return node.filter(node=> node_is_writable(node));
+        if(typeof node[Symbol.iterator] === 'function'){//if(Array.isArray(node)){
+            return [...node].filter(node=> node_is_writable(node));
         }
         return node_is_writable(node);
     },

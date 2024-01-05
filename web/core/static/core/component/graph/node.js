@@ -2,10 +2,11 @@ import {createElement as c, memo, useRef, useEffect} from 'react';
 //import {Text} from '@react-three/drei/Text';
 //import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
-import * as THREE from 'three';
+//import * as THREE from 'three';
 import {Svg} from '@react-three/drei/Svg';
-import {use_store, set_store, get_store, View_Transform, pickable, draggable, droppable} from 'delimit';
-import {useThree} from '@react-three/fiber';
+import {Text} from '@react-three/drei/Text';
+import {use_store, get_store, View_Transform, pickable, draggable, droppable} from 'delimit';
+//import {useThree} from '@react-three/fiber';
 
 export const Node = memo(({node})=>{ 
     //console.log('render node');
@@ -15,11 +16,11 @@ export const Node = memo(({node})=>{
     const color     = use_store(d=> d.get.node.color.primary(d, node));
     const material  = use_store(d=> d.get.node.material.primary(d, node));
     const position  = use_store(d=> d.graph.node.get(node).pos);
-    const {invalidate} = useThree();
-    useEffect(()=>{
-        name_obj.current.sync(() => invalidate());
-        type_obj.current.sync(() => invalidate());
-    }, [name, type]);
+    // const {invalidate} = useThree();
+    // useEffect(()=>{
+    //     name_obj.current.sync(() => invalidate());
+    //     type_obj.current.sync(() => invalidate());
+    // }, [name, type]);
     const d = get_store();
     const material_props = {color, toneMapped:false};    
     return(
@@ -31,47 +32,42 @@ export const Node = memo(({node})=>{
             ...droppable({root:node}),
             ...pickable({item:{node}}),
         },
-            //c('group', {...pickable}, // c(Pickable, {node},
-            
-                c('mesh', {
-                    geometry: d.geometry.circle,
-                    material: d.material.body_bg,
-                }),
-                c('text', {
-                    
-                    ref: name_obj,
-                    text: name,
-                    font: d.font.body, 
-                    //fontStyle: font_style,
-                    outlineColor: d.color.body_bg,
-                    material,
-                    fontSize: 1, //letterSpacing: 0, lineHeight: 1, 
-                    position: [1.6, .6, 2],
-                    outlineWidth: '40%',
-                    anchorX: 'left',
-                    anchorY: 'middle',
-                    
-                }),
-                c(Svg, {
-                    src: 'data:image/svg+xml;utf8,' + icon,
-                    fillMaterial: material_props,
-                    strokeMaterial: material_props,
-                    scale: 0.13,
-                    position: [-1, 1, 1],
-                }),
-                c('text', {
-                    ref: type_obj,
-                    text: type,
-                    font: d.font.body, 
-                    outlineColor: d.color.body_bg,
-                    material,
-                    fontSize: 1, //letterSpacing: 0, lineHeight: 1, 
-                    position: [1.6, -.6, 2],
-                    outlineWidth: '40%',
-                    anchorX: 'left',
-                    anchorY: 'middle',
-                }),
-            //),
+            c('mesh', {
+                geometry: d.geometry.circle,
+                material: d.material.body_bg,
+            }),
+            c(Text, {
+                ref: name_obj,
+                text: name,
+                font: d.font.body, 
+                //fontStyle: font_style,
+                outlineColor: d.color.body_bg,
+                material,
+                fontSize: 1, //letterSpacing: 0, lineHeight: 1, 
+                position: [1.6, .6, 2],
+                outlineWidth: '40%',
+                anchorX: 'left',
+                anchorY: 'middle',
+            }),
+            c(Svg, {
+                src: 'data:image/svg+xml;utf8,' + icon,
+                fillMaterial: material_props,
+                strokeMaterial: material_props,
+                scale: 0.13,
+                position: [-1, 1, 1],
+            }),
+            c(Text, {
+                ref: type_obj,
+                text: type,
+                font: d.font.body, 
+                outlineColor: d.color.body_bg,
+                material,
+                fontSize: 1, //letterSpacing: 0, lineHeight: 1, 
+                position: [1.6, -.6, 2],
+                outlineWidth: '40%',
+                anchorX: 'left',
+                anchorY: 'middle',
+            }),
         )
     );
 });

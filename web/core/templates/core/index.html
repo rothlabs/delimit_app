@@ -31,6 +31,47 @@
     "zustand/traditional":              "https://cdn.jsdelivr.net/npm/zustand/traditional/+esm",
     "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand/middleware/+esm",
     "zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand/shallow/+esm",
+    "gpu":                              "https://cdn.jsdelivr.net/npm/gpu.js/+esm",
+    "react":                            "https://cdn.jsdelivr.net/npm/react@18.2.0/+esm",  
+    "react-dom/client":                 "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client/+esm", 
+    "react-router-dom":                 "https://cdn.jsdelivr.net/npm/react-router-dom/+esm",
+    "react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap/+esm",
+    "three":                            "https://cdn.jsdelivr.net/npm/three@0.160.0/+esm",
+    "@react-three/fiber":               "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.15.13/+esm",
+    "@react-three/drei/CameraControls": "https://cdn.jsdelivr.net/npm/@react-three/drei/core/CameraControls/+esm",
+    "@react-three/drei/Text":           "https://cdn.jsdelivr.net/npm/@react-three/drei/core/Text/+esm",
+    "@react-three/drei/Line":           "https://cdn.jsdelivr.net/npm/@react-three/drei/core/Line/+esm",
+    "@react-three/drei/Svg":            "https://cdn.jsdelivr.net/npm/@react-three/drei/core/Svg/+esm",
+    "@react-three/drei/Edges":          "https://cdn.jsdelivr.net/npm/@react-three/drei/core/Edges/+esm",
+    "@react-three/drei/useGLTF":        "https://cdn.jsdelivr.net/npm/@react-three/drei/core/useGLTF/+esm",
+    "@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei/core/Grid/+esm",
+    "@monaco-editor/react":             "https://cdn.jsdelivr.net/npm/@monaco-editor/react@4.6.0/+esm",
+    "@react-spring/web":                "https://cdn.jsdelivr.net/npm/@react-spring/web@9.6.1/+esm",
+    "@react-spring/three":              "https://cdn.jsdelivr.net/npm/@react-spring/three@9.6.1/+esm",
+    "classnames":                       "https://cdn.jsdelivr.net/npm/classnames/+esm",
+    "is-svg":                           "https://cdn.jsdelivr.net/npm/is-svg/+esm"
+  }}</script>
+  <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
+</head>
+
+<body data-media-url='{% get_media_prefix %}' data-static-url='{% get_static_prefix %}'>
+  {{ ctx | json_script:"ctx" }}
+  <div id='app' class='position-relative vh-100 overflow-hidden'></div>
+  <script src='{% static "core/app.js" %}' type='module'></script>
+  <iframe id='graph_container' sandbox='allow-scripts allow-same-origin' style="display: none;" src='{% host_url "index" host "graph" %}'></iframe>
+</body>
+
+</html>
+
+
+<!-- 
+
+    "delimit":                          "https://delimit.art/static/core/core.js",
+    "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
+    "immer":                            "https://cdn.jsdelivr.net/npm/immer/+esm",
+    "zustand/traditional":              "https://cdn.jsdelivr.net/npm/zustand/traditional/+esm",
+    "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand/middleware/+esm",
+    "zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand/shallow/+esm",
     "gpu":                              "https://cdn.jsdelivr.net/npm/gpu.js@2.16.0/+esm",
     "react":                            "https://cdn.jsdelivr.net/npm/react@18.2.0/+esm",  
     "react-dom/client":                 "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client/+esm", 
@@ -56,23 +97,11 @@
     "bidi-js":                          "https://cdn.jsdelivr.net/npm/bidi-js@1.0.3/+esm",
     "@monaco-editor/react":             "https://cdn.jsdelivr.net/npm/@monaco-editor/react@4.6.0/+esm",
     "@react-spring/web":                "https://cdn.jsdelivr.net/npm/@react-spring/web/+esm",
+    "@react-spring/three":              "https://cdn.jsdelivr.net/npm/@react-spring/three/+esm",
     "classnames":                       "https://cdn.jsdelivr.net/npm/classnames/+esm",
     "is-svg":                           "https://cdn.jsdelivr.net/npm/is-svg/+esm"
-  }}</script>
-  <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
-</head>
-
-<body data-media-url='{% get_media_prefix %}' data-static-url='{% get_static_prefix %}'>
-  {{ ctx | json_script:"ctx" }}
-  <div id='app' class='position-relative vh-100 overflow-hidden'></div>
-  <script src='{% static "core/app.js" %}' type='module'></script>
-  <iframe id='graph_container' sandbox='allow-scripts allow-same-origin' style="display: none;" src='{% host_url "index" host "graph" %}'></iframe>
-</body>
-
-</html>
 
 
-<!-- 
 
      class='row g-0 vh-100 overflow-hidden'
 

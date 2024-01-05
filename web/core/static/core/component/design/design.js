@@ -2,8 +2,8 @@ import {createElement as c, useRef, useEffect, useState} from 'react';
 import {use_store, get_store} from 'delimit';
 import {upper} from '../../app.js';
 import {View_Transform} from '../node/base.js';
-import {GizmoHelper} from '@react-three/drei/GizmoHelper';
-import {GizmoViewport} from '../../three/GizmoViewport.js';
+////import {GizmoHelper} from '@react-three/drei/GizmoHelper';
+////import {GizmoViewport} from '../../three/GizmoViewport.js';
 //import {Mover} from '../studio/mover.js';
 
 // import {Curve}     from './curve.js';
@@ -88,21 +88,21 @@ export function Design(){
                     c('meshBasicMaterial', {color:'yellow', toneMapped:false}), //, toneMapped:false
                 ),
             ),
-            c(GizmoHelper, {
-                alignment:'bottom-right', // widget alignment within scene
-                margin:[80, 80], // widget margins (X, Y)
-                //onUpdate={/* called during camera animation  */}
-                //onTarget={/* return current camera target (e.g. from orbit controls) to center animation */}
-                //renderPriority={/* use renderPriority to prevent the helper from disappearing if there is another useFrame(..., 1)*/}
-            },
-                c(GizmoViewport, {
-                    axisColors:d.axis_colors, 
-                    labelColor:'white', 
-                    axisHeadScale:1.1, 
-                    //font: '24px '+d.base_font,
-                    //fontSize:30,
-                })
-            ),
+            // // c(GizmoHelper, {
+            // //     alignment:'bottom-right', // widget alignment within scene
+            // //     margin:[80, 80], // widget margins (X, Y)
+            // //     //onUpdate={/* called during camera animation  */}
+            // //     //onTarget={/* return current camera target (e.g. from orbit controls) to center animation */}
+            // //     //renderPriority={/* use renderPriority to prevent the helper from disappearing if there is another useFrame(..., 1)*/}
+            // // },
+            // //     c(GizmoViewport, {
+            // //         axisColors:d.axis_colors, 
+            // //         labelColor:'white', 
+            // //         axisHeadScale:1.1, 
+            // //         //font: '24px '+d.base_font,
+            // //         //fontSize:30,
+            // //     })
+            // // ),
         )
     )
 }
