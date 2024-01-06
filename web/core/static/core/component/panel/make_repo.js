@@ -7,7 +7,8 @@ const minWidth = 45;
 export function Make_Repo(){
     const [name, set_name] = useState('');
     const [story, set_story] = useState('');
-    const [make_repo] = use_mutation('MakeRepo', {refetchQueries:['GetRepo']}); 
+    const [makeMeta, set_makeMeta] = useState(false);
+    const [make_repo] = use_mutation('MakeRepo', {refetchQueries:['GetRepos']}); 
     return[
         render_token({
             name: 'Name',
@@ -34,11 +35,21 @@ export function Make_Repo(){
             ],
         }),
         render_token({
+            name: 'Make Meta',
+            content: ({render_name, render_switch}) => [
+                render_name({minWidth}),
+                render_switch({
+                    checked: makeMeta, 
+                    onChange: e => set_makeMeta(e.target.checked),
+                })
+            ],
+        }),
+        render_token({
             icon: 'bi-journal-bookmark',
             name: 'Make Repo',
             content: 'badge',
             store_setter(d){ 
-                make_repo({variables:{name, story}});
+                make_repo({variables:{name, story, makeMeta}});
                 d.studio.panel.show = false;
             },
         }),

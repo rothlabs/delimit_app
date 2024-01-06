@@ -92,6 +92,21 @@ function Account_Menu(){
 }
 
 function Mutations(){
+    const [drop_repo] = use_mutation('DropRepo', {
+        refetchQueries:['GetRepos']
+    });
+    const [edit_repo] = use_mutation('EditRepo', {
+        refetchQueries:['GetRepos'],
+        onCompleted:data=>{
+            console.log(data.editRepo.reply);
+        },
+    });
+    const [edit_version] = use_mutation('EditVersion', {
+        refetchQueries:['GetRepos'],
+        onCompleted:data=>{
+            console.log(data.editVersion.reply);
+        },
+    });
     const [make_nodes] = use_mutation('MakeNodes', {
         onCompleted:data=>{
             console.log(data.makeNodes.reply);
@@ -102,38 +117,13 @@ function Mutations(){
             console.log(data.dropNodes.reply);
         },
     });
-    const [close_nodes] = use_mutation('CloseNodes', {
-        onCompleted:data=>{
-            console.log(data.closeNodes.reply);
-        },
-    });
-    const [edit_repo] = use_mutation('EditRepo', {
-        refetchQueries:['GetRepo'],
-        onCompleted:data=>{
-            console.log(data.editRepo.reply);
-        },
-    });
-    const [drop_repo] = use_mutation('DropRepo', {
-        refetchQueries:['GetRepo']
-    });
-    const [close_repo] = use_mutation('CloseRepo', {
-        refetchQueries:['GetRepo']
-    });
-    const [edit_version] = use_mutation('EditVersion', {
-        refetchQueries:['GetRepo'],
-        onCompleted:data=>{
-            console.log(data.editVersion.reply);
-        },
-    });
     set_store(d=>{ 
         d.server = {
+            drop_repo,
+            edit_repo,
+            edit_version,
             make_nodes,
             drop_nodes,
-            close_nodes,
-            edit_repo,
-            drop_repo,
-            close_repo,
-            edit_version,
         };
     });
 }

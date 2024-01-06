@@ -13,7 +13,7 @@ Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
 });
 
 export {gql_client} from './app.js';
-export {use_query, use_mutation} from './app/gql.js';
+export * from './app/gql.js';
 export {Pickable} from './component/node/pickable.js';
 export {View_Transform} from './component/node/base.js';
 export * from './component/app/app.js'; 

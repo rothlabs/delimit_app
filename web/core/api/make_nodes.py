@@ -2,9 +2,8 @@ import json, time, hashlib
 import graphene
 from django.db.models import Count # Prefetch
 from core.api.types import Pack_Type
-from core.api.config import auth_required_message
 from core.models import Version, Snap
-from core.api.util import writable_version, make_node_snaps
+from core.api.util import attempt, writable_version, make_node_snaps
 
 class Make_Nodes(graphene.Mutation):
     class Arguments:
@@ -13,18 +12,14 @@ class Make_Nodes(graphene.Mutation):
     result = graphene.String()
     @classmethod
     def mutate(cls, root, info, nodes):
-        try: 
-            user = info.context.user
-            if not user.is_authenticated:
-                return Make_Nodes(reply = auth_required_message)
-            version_nodes = normalize_ids(json.loads(nodes))
-            for version in filter_versions(version_nodes, user):
-                make_node_snaps(version, version_nodes[version.id])
-            Snap.objects.filter(nodes=None).delete()
-            return Make_Nodes(reply = 'Make nodes successful') 
-        except Exception as e: 
-            print('Error: Make_Nodes', str(e))
-            return Make_Nodes()
+        return attempt(Make_Nodes, make_nodes, (info.context.user, nodes))
+
+def make_nodes(user, nodes):
+    version_nodes = normalize_ids(json.loads(nodes))
+    for version in filter_versions(version_nodes, user):
+        make_node_snaps(version, version_nodes[version.id])
+    Snap.objects.filter(nodes=None).delete()
+    return Make_Nodes(reply = 'Make nodes successful') 
 
 def normalize_ids(node_terms):
     version_nodes = {}

@@ -14,8 +14,12 @@ class User_Type(DjangoObjectType):
         fields = ('id', 'first_name',)
 
 class Pack_Type(graphene.ObjectType):
-    data = graphene.String()
-    def __init__(self, data): 
-        self.data = data
-    def resolve_data(self, info): 
-        return json.dumps(self.data)
+    reply = graphene.String()
+    result = graphene.String()
+    def __init__(self, result, reply='Query complete'): 
+        self.result = result
+        self.reply = reply
+    def resolve_result(self, info):
+        return self.reply
+    def resolve_result(self, info): 
+        return json.dumps(self.result)

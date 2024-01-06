@@ -1,50 +1,54 @@
 import json, re, hashlib
 import graphene
-from core.api.config import auth_required_message, menu_button_svg, braces_svg, plus_square_svg, abc_svg
-from core.api.util import conform_user_input, make_node_snaps
+from core.api.config import menu_button_svg, braces_svg, plus_square_svg, abc_svg
+from core.api.util import attempt, conform_user_input, make_node_snaps
 from core.models import Repo, Version, Snap, make_id
 
 class Make_Repo(graphene.Mutation):
     class Arguments:
         name = graphene.String()
         story = graphene.String()
+        makeMeta = graphene.Boolean()
     reply = graphene.String(default_value = 'Failed to make repo')
+    result = graphene.String()
     @classmethod
-    def mutate(cls, root, info, name, story):
-        try:
-            user = info.context.user
-            if not user.is_authenticated:
-                return Make_Repo(reply = auth_required_message)
-            repo = Repo.objects.create(
-                metadata = {
-                    'name':  conform_user_input(name,  max_length=64), # name=True),
-                    'story': conform_user_input(story, max_length=512),
-                }
-            )
-            repo.writers.add(user)
-            repo.readers.add(user)
-            version = Version.objects.create( # pre select authors and snaps ?!
-                repo      = repo,
-                metadata = {
-                    'name':  'Main',
-                    'story': '',
-                },
-            )
-            version.authors.add(user)
-            make_node_snaps(version, starter_nodes())
-            return Make_Repo(reply = 'Make repo complete')
-        except Exception as e: 
-            print('Error: Make_Repo')
-            print(e)
-        return Make_Repo()
+    def mutate(cls, root, info, name, story, makeMeta):
+        return attempt(Make_Repo, make_repo, (info.context.user, name, story, makeMeta))
 
-def starter_nodes():
-    delimit_leaf_node= make_id()
-    code_stem        = make_id()
+def make_repo(user, name, story, makeMeta):
+    repo = Repo.objects.create(
+        metadata = {
+            'name':  conform_user_input(name,  max_length=64), # name=True),
+            'story': conform_user_input(story, max_length=512),
+        }
+    )
+    repo.writers.add(user)
+    repo.readers.add(user)
+    version = Version.objects.create( # pre select authors and snaps ?!
+        repo      = repo,
+        metadata = {
+            'name':  'Main',
+            'story': '',
+        },
+    )
+    version.authors.add(user)
+    make_node_snaps(version, starter_nodes(name, makeMeta))
+    return Make_Repo(reply = 'Make repo complete')
+
+def starter_nodes(name, makeMeta):
+    delimit_app      = make_id()
+    starter_context  = make_id()
+    root_type        = make_id()
+    term_type        = make_id()
+    stem_type        = make_id()
+    context_leaf_node= make_id()
+    code_root        = make_id()
     type_icon_code   = make_id()
     abc_icon_code    = make_id()
     plus_icon_code   = make_id()
     code_icon_code   = make_id()
+    language_term    = make_id()
+    source_term      = make_id()
     name_term        = make_id()
     context_term     = make_id()
     icon_term        = make_id()
@@ -57,19 +61,57 @@ def starter_nodes():
     minimum_term     = make_id()
     maximum_term     = make_id()
     code_term        = make_id()
-    root_type        = make_id()
-    term_type        = make_id()
-    stem_type        = make_id()
-    delimit_context  = make_id()
-    delimit_app      = make_id()
-    return{
-        delimit_leaf_node:{ 
-            'leaf':[{'type':'string', 'value':'Delimit'}],
+    code_stem        = make_id()
+
+    core_nodes = {
+        delimit_app:{
+            'name':        [{'type':'string', 'value':'Delimit'}],
+            'type':        [{'type':'string', 'value':'App'}],
+            'delimit_app': [{'type':'boolean', 'value':True}],
+            'contexts':    [starter_context],
+        },
+        starter_context:{
+            'name':     [{'type':'string', 'value':name}],
+            'type':     [{'type':'string', 'value':'Context'}],
+            'types':    [],
+        },
+    }
+
+    print('makeMeta', makeMeta)
+    if not makeMeta: 
+        return core_nodes
+ 
+    return {
+        **core_nodes,
+        starter_context:{
+            'name':     [context_leaf_node],
+            'type':     [{'type':'string', 'value':'Context'}],
+            'types':    [root_type, term_type, stem_type, code_root],
+        },
+        code_root:{
+            'type':     [root_type],
+            'name':     [{'type':'string', 'value':'Code'}],
+            'required': [name_term, language_term, source_term],
+        },
+        language_term:{
+            'type':     [term_type],
+            'name':     [{'type':'string', 'value':'Language'}],
+            'make':     [{'type':'string', 'value':'JavaScript'}],
+            'required': [{'type':'string', 'value':'String'}],
+        },
+        source_term:{
+            'type':     [term_type],
+            'name':     [{'type':'string', 'value':'Source'}],
+            'make':     [{'type':'string', 'value':'// default code'}],
+            'required': [{'type':'string', 'value':'String'}],
+        },
+        context_leaf_node:{ 
+            'leaf':[{'type':'string', 'value':name}],
         },
         code_stem:{
             'name':    [{'type':'string', 'value':'Code'}],
             'type':    [{'type':'string', 'value':'Stem'}],
-            'context': [delimit_leaf_node],
+            'context': [context_leaf_node],
         },
         type_icon_code:{
             'name':     [{'type':'string', 'value':'Type Icon'}],
@@ -92,9 +134,10 @@ def starter_nodes():
             'language': [{'type':'string', 'value':'SVG'}],
         },
         icon_term:{
-            'name':     [{'type':'string', 'value':'Icon'}],
             'type':     [{'type':'string', 'value':'Term'}],
+            'name':     [{'type':'string', 'value':'Icon'}],
             'icon':     [code_icon_code],
+            'make':     [code_stem],
             'required': [code_stem],
         },
         name_term:{
@@ -106,9 +149,9 @@ def starter_nodes():
         },
         context_term:{
             'name':     [{'type':'string', 'value':'Context'}],
-            'type':     [{'type':'string', 'value':'Term'}],
+            'type':     [term_type],
             'required': [{'type':'string', 'value':'String'}],
-            'add':      [delimit_leaf_node],
+            'add':      [context_leaf_node],
         },
         make_term:{
             'name':     [{'type':'string', 'value':'Make'}],
@@ -130,8 +173,7 @@ def starter_nodes():
         },
         code_term:{
             'name':     [{'type':'string', 'value':'Code'}],
-            'type':     [{'type':'string', 'value':'Term'}],
-            'icon':     [code_icon_code],
+            'type':     [term_type],
             'required': [code_stem],
             'make':     [code_stem],
         },
@@ -173,16 +215,5 @@ def starter_nodes():
             'required': [name_term, context_term],
             'optional': [icon_term, minimum_term, maximum_term],
         },
-        delimit_context:{
-            'name':     [delimit_leaf_node],
-            'type':     [{'type':'string', 'value':'Context'}],
-            'types':    [root_type, term_type, stem_type],
-        },
-        delimit_app:{
-            'name':        [delimit_leaf_node],
-            'type':        [{'type':'string', 'value':'App'}],
-            'delimit_app': [{'type':'boolean', 'value':True}],
-            'contexts':    [delimit_context],
-        }
     }
 

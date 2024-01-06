@@ -34,16 +34,13 @@ export const receive_data = (d, data) => {// change to receive patches directly 
 export const send_data = (d, patches) => { 
     const make_nodes  = new Map();
     const drop_nodes  = new Set();
-    const close_nodes = new Set();
     const handlers = {};
-    handlers.node = ({path}) => {
+    handlers.node = ({path, op}) => {
         if(path[2] == 'back') return;
         const node = path[1];
         if(d.node.has(node)){
             make_nodes.set(node, Object.fromEntries(d.node.get(node).terms)); 
-        }else if(d.closed.node.has(node)){
-            close_nodes.add(node);
-        }else if(d.dropped.node.has(node) || path.length == 2){
+        }else if(d.dropped.node.has(node) || (op=='remove' && !d.closed.node.has(node) && path.length == 2)){ 
             drop_nodes.add(node);
         }
     }
@@ -72,15 +69,9 @@ export const send_data = (d, patches) => {
     }
     if(make_nodes.size){
         const nodes = JSON.stringify(Object.fromEntries(make_nodes));
-        //console.log('push node', nodes);
         d.server.make_nodes({variables:{nodes}}); 
     }
-    if(close_nodes.size){
-        //console.log('shut node', close_nodes);
-        d.server.close_nodes({variables:{ids:[...close_nodes]}});
-    }
     if(drop_nodes.size){
-        //console.log('drop node', drop_nodes);
         d.server.drop_nodes({variables:{ids:[...drop_nodes]}});
     }
 };

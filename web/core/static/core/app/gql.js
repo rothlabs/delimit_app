@@ -1,12 +1,18 @@
-import {useQuery, useMutation, gql} from '../apollo/ApolloClient.js';
+import {useQuery, useLazyQuery, useMutation, gql} from '../apollo/ApolloClient.js';
 //import {snake_case} from 'delimit';
 
 const queries = compile_gql('query', [
     ['GetUser', [
-        ['user id firstName'], // add reply?!
+        ['user id firstName'], 
     ]],
-    ['GetRepo', [
-        ['repo data'], 
+    ['GetRepos', [
+        ['repos reply result'], 
+    ]],
+    ['GetVersion', [
+        ['version reply result', 'String id'],
+    ]],
+    ['GetUpdates', [  
+        ['updates reply result'], 
     ]],
 ]);
 
@@ -24,19 +30,14 @@ const mutations = compile_gql('mutation', [
         ['makeRepo reply',   
             'String name', 
             'String story', 
+            'Boolean makeMeta',
         ],
-    ]],
-    ['EditRepo', [
-        ['editRepo reply', 'String id', 'String name', 'String story'],
     ]],
     ['DropRepo', [  
         ['dropRepo reply', 'String id'],
     ]],
-    ['CloseRepo', [
-        ['closeRepo reply', 'String id'],
-    ]],
-    ['OpenVersion', [
-        ['openVersion reply result', 'String id'],
+    ['EditRepo', [
+        ['editRepo reply', 'String id', 'String name', 'String story'],
     ]],
     ['EditVersion', [
         ['editVersion reply', 'String id', 'String name', 'String story'],
@@ -46,15 +47,6 @@ const mutations = compile_gql('mutation', [
     ]],
     ['DropNodes', [  
         ['dropNodes reply result', '[String] ids'],
-    ]],
-    ['OpenNode', [
-        ['openNode reply data', 'String id'],
-    ]],
-    ['CloseNodes', [
-        ['closeNodes reply', '[String] ids'],
-    ]],
-    ['PullNode', [  
-        ['pullNode reply data', 'String client'], // client instance
     ]],
 ]);
 
@@ -90,43 +82,68 @@ function compile_gql(type, queries_or_mutations){
     return result;//{header, body, variables}
 }
 
-
-export function use_query(selector, arg={}){ // name, gql_parts 'cache-and-network'
-    //console.log(fetchPolicy);
-    /////const {header, body, variables} = compile_gql(name, gql_parts);
+export function use_query(selector, arg={}){
     const [query, variables] = queries[selector];
-    //console.log({header, body, variables});
-    //const {loading, error, data, startPolling, refetch} = useQuery(
-    return useQuery(
-        query, {   // gql`query ${header}{${body}}`
-        variables,
-        ...arg, 
-        // fetchPolicy:  arg && arg.fetchPolicy, 
-        // onCompleted:  arg && arg.onCompleted,
-        // pollInterval: arg && arg.pollInterval,
-        // notifyOnNetworkStatusChange: arg && arg.notifyOnNetworkStatusChange,
-    }); 
+    return useQuery(query, {variables, ...arg}); 
+}
 
-    //if(reactive_var) reactive_var(data);
-    //var alt = null;
-	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
-    //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
-    //return {data, status:gql_status(loading,error,data,()=>'Done'), startPolling, refetch};
+export function use_lazy_query(selector, arg={}){
+    const [query, variables] = queries[selector];
+    return useLazyQuery(query, {variables, ...arg}); 
 }
+
 export function use_mutation(selector, arg={}){
-    const [mutation, variables] = mutations[selector]; //const {header, body, variables} = compile_gql(name, gql_parts);
-    //console.log({header, body, variables});
-    //const [mutate, {data, loading, error, reset}] = useMutation( 
-    return useMutation( 
-        mutation, { // gql`mutation ${header}{${body}}`
-        variables, 
-        ...arg,
-        // refetchQueries: arg && arg.refetch && arg.refetch.split(' '),
-        // onCompleted: arg && arg.onCompleted,
-    }); // Add option for cache
-    //const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
-    //return {mutate, data, status:gql_status(loading,error,data,done), reset};
+    const [mutation, variables] = mutations[selector]; 
+    return useMutation( mutation, {variables, ...arg}); 
 }
+
+
+
+
+
+
+
+
+
+// export function use_query(selector, arg={}){ // name, gql_parts 'cache-and-network'
+//     //console.log(fetchPolicy);
+//     /////const {header, body, variables} = compile_gql(name, gql_parts);
+//     const [query, variables] = queries[selector];
+//     //console.log({header, body, variables});
+//     //const {loading, error, data, startPolling, refetch} = useQuery(
+//     return useQuery(
+//         query, {   // gql`query ${header}{${body}}`
+//         variables,
+//         ...arg, 
+//         // fetchPolicy:  arg && arg.fetchPolicy, 
+//         // onCompleted:  arg && arg.onCompleted,
+//         // pollInterval: arg && arg.pollInterval,
+//         // notifyOnNetworkStatusChange: arg && arg.notifyOnNetworkStatusChange,
+//     }); 
+
+//     //if(reactive_var) reactive_var(data);
+//     //var alt = null;
+// 	//if(loading) alt =()=> r(Query_Status, {message: 'Working...'});
+//     //if(error)   alt =()=> r(Query_Status, {message: 'Query Error: ' + error.message});
+//     //return {data, status:gql_status(loading,error,data,()=>'Done'), startPolling, refetch};
+// }
+// export function use_mutation(selector, arg={}){
+//     const [mutation, variables] = mutations[selector]; //const {header, body, variables} = compile_gql(name, gql_parts);
+//     //console.log({header, body, variables});
+//     //const [mutate, {data, loading, error, reset}] = useMutation( 
+//     return useMutation( 
+//         mutation, { // gql`mutation ${header}{${body}}`
+//         variables, 
+//         ...arg,
+//         // refetchQueries: arg && arg.refetch && arg.refetch.split(' '),
+//         // onCompleted: arg && arg.onCompleted,
+//     }); // Add option for cache
+//     //const done=()=> data[gql_parts[0][0].split(' ')[0]].reply;
+//     //return {mutate, data, status:gql_status(loading,error,data,done), reset};
+// }
+
+
+
 
 // function gql_status(loading, error, data, done){
 //     var result = null;// {message: 'Idle'};
@@ -138,7 +155,7 @@ export function use_mutation(selector, arg={}){
 
 
 // const queries = {
-//     get_repos: compile_gql('GetRepos', [
+//     get_repos: compile_gql('GetReposs', [
 //         ['repos data'],
 //     ]),
 // };

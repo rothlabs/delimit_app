@@ -1,7 +1,6 @@
 import graphene
-from core.api.config import auth_required_message
 from core.models import Repo
-from core.api.util import writable_repo
+from core.api.util import attempt, writable_repo
 
 class Edit_Repo(graphene.Mutation):
     class Arguments:
@@ -9,16 +8,13 @@ class Edit_Repo(graphene.Mutation):
         name   = graphene.String()
         story  = graphene.String()
     reply = graphene.String(default_value = 'Failed to edit repo')
+    result = graphene.String()
     @classmethod
     def mutate(cls, root, info, id, name, story):
-        try:
-            user = info.context.user
-            if not user.is_authenticated:
-                return Edit_Repo(reply = auth_required_message)
-            repo = Repo.objects.get(writable_repo(user), id = id)
-            repo.metadata |= {'name':name, 'story':story} 
-            repo.save()
-            return Edit_Repo(reply = 'Edit repo complete')
-        except Exception as e: 
-            print('Error: Edit_Repo', e)
-        return Edit_Repo()
+        return attempt(Edit_Repo, edit_repo, (info.context.user, id, name, story))
+
+def edit_repo(user, id, name, story):
+    repo = Repo.objects.get(writable_repo(user), id = id)
+    repo.metadata |= {'name':name, 'story':story} 
+    repo.save()
+    return Edit_Repo(reply = 'Edit repo complete')

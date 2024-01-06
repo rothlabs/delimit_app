@@ -13,7 +13,7 @@ export function Login(){
     const [username, set_username] = useState('');
     const [password, set_password] = useState('');
     const [login, {loading, error, data, reset}] = use_mutation('Login', {
-        refetchQueries:['GetUser', 'GetRepo'], 
+        refetchQueries:['GetUser', 'GetRepos'], 
         onCompleted(data){
             if(data.login.user) setTimeout(()=> show_login(false), 1500);
         },

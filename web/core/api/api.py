@@ -1,66 +1,43 @@
 import graphene
-from core.api.util import readable_repo
-from core.api.login import Login
-from core.api.logout import Logout
+from core.api.util import attempt
+from core.api.query_repo import get_repos, get_version
+from core.api.login_logout import Login, Logout
 from core.api.types import Authenticated_User_Type, Pack_Type
 from core.models import Repo
 
+from core.api.make_repo    import Make_Repo
+from core.api.drop_repo    import Drop_Repo
+from core.api.edit_repo    import Edit_Repo
+from core.api.edit_version import Edit_Version
 from core.api.make_nodes   import Make_Nodes
 from core.api.drop_nodes   import Drop_Nodes
-from core.api.close_nodes  import Close_Nodes
-
-from core.api.make_repo    import Make_Repo
-from core.api.edit_repo    import Edit_Repo
-from core.api.drop_repo    import Drop_Repo
-
-from core.api.open_version import Open_Version
-from core.api.edit_version import Edit_Version
 
 class Query(graphene.ObjectType):
     user = graphene.Field(Authenticated_User_Type)
-    repo = graphene.Field(Pack_Type)
+    repos   = graphene.Field(Pack_Type)
+    version = graphene.Field(Pack_Type, id=graphene.String())
     def resolve_user(root, info):
-        if info.context.user.is_authenticated: 
-            return info.context.user
-        else: 
-            return None
-    def resolve_repo(root, info):
-        try:
-            user = info.context.user
-            return Pack_Type(data = { 
-                repo.id:{
-                    'metadata': repo.metadata,
-                    'versions': {
-                        version.id:{
-                            'metadata': version.metadata,
-                        } for version in repo.versions.all() # try versions__stems__isnull in main filter
-                    },
-                } for repo in Repo.objects.prefetch_related('versions').filter(
-                    readable_repo(user),
-                    versions__committed = False, #versions__stems__isnull = True,
-                )
-            }) # add reply
-        except Exception as e: 
-            print('Error: Query repo') 
-            print(e)
+        if info.context.user.is_authenticated: return info.context.user
         return None
+    def resolve_repos(root, info):
+        return attempt(None, get_repos, (info.context.user,))
+    def resolve_version(root, info, id):
+        return attempt(None, get_version, (info.context.user, id))
 
 class Mutation(graphene.ObjectType):
     login       = Login.Field()
     logout      = Logout.Field()
-
+    makeRepo    = Make_Repo.Field() 
+    dropRepo    = Drop_Repo.Field() 
+    editRepo    = Edit_Repo.Field() 
+    editVersion = Edit_Version.Field() 
     makeNodes   = Make_Nodes.Field()
     dropNodes   = Drop_Nodes.Field()
-    closeNodes  = Close_Nodes.Field()
-
-    makeRepo    = Make_Repo.Field() 
-    editRepo    = Edit_Repo.Field() 
-    dropRepo    = Drop_Repo.Field() 
-    
-    openVersion = Open_Version.Field()
-    editVersion = Edit_Version.Field() 
     
 api = graphene.Schema(query=Query, mutation=Mutation)
+
+
+
 
             # Repo.objects.prefetch_related('versions').filter(
             #     Q(flex__has_key = 'public') | Q(readers = user),

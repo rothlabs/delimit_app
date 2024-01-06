@@ -1,6 +1,18 @@
 import hashlib, json, re
 from django.db.models import Q
 from core.models import Snap, Node
+from core.api.config import auth_required_message
+
+def attempt(alt, action, args):
+    try: 
+        if callable(alt):
+            if not args[0].is_authenticated:
+                return alt(reply = auth_required_message)
+        return action(*args)
+    except Exception as e: 
+        print('Error: ' + action.__name__ + ': ', e)
+        if callable(alt): return alt()
+        return alt
 
 def conform_user_input(s, max_length=-1):#, name=False, slug=False):
     if max_length > -1 and len(s) > max_length: s = s[:max_length]
