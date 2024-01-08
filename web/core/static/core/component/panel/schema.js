@@ -30,7 +30,7 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
     const targeted = (node == target);
     const name       = use_store(d=> d.value(d, node, 'name', '')); // d.face.name(d, node)
     const type       = use_store(d=> d.stem(d, node, 'type'));
-    const type_name  = use_store(d=> d.type_name(d, node)); // change from face.type to type_name
+    const type_name  = use_store(d=> d.get.node.type_name(d, node)); // change from face.type to type_name
     let root = node;
     let terms = [];
     if(targeted){

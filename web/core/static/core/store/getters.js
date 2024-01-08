@@ -15,31 +15,37 @@ node.name = (d, node) => {
     if(d.node.get(node).terms.size < 1) return 'empty';
     return (''+d.value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
 };
-node.type = (d, node) => d.type_name(d, node),
+node.type_name = (d, root) => {
+    if(!root) return '';
+    return d.value(d, root, ['type name', 'type'], '');
+},
 node.title = (d, node) => { 
-    const type_name = d.get.node.type(d, node);
-    return d.get.node.name(d, node) + (type_name ? ' ('+d.get.node.type(d, node)+')' : '');
+    const type_name = d.get.node.type_name(d, node);
+    return d.get.node.name(d, node) + (type_name ? ' ('+readable(type_name)+')' : '');
 };
 node.primary = (d, node)=>({
     icon:  d.get.node.icon(d, node),
     name:  d.get.node.name(d, node), 
-    type:  d.get.node.type(d, node), 
+    type_name:  d.get.node.type_name(d, node), 
 });
 
 
-const get_color = (d, node, primary, secondary, alt) => {
-    if(d.picked.primary.node.has(node)) return primary;
-    if(d.picked.secondary.node.has(node)) return secondary;
+const get_color = (d, node, both, primary, secondary, alt) => {
+    const pmry_pick = d.picked.primary.node.has(node);
+    const scnd_pick = d.picked.secondary.node.has(node);
+    if(pmry_pick && scnd_pick) return both;
+    if(pmry_pick) return primary;
+    if(scnd_pick) return secondary;
     return alt;
 }
 node.color = {
-    primary:(d, node)     => get_color(d, node, d.color.primary, d.color.secondary, d.color.info),
+    primary:(d, node) => get_color(d, node, d.color.both, d.color.primary, d.color.secondary, d.color.info),
     // secondary:(d, node)   => pick(d, node, [d.color.primary], d.color.secondary),
     // body:(d, node)        => pick(d, node, [d.color.primary], d.color.body_bg),
     // tertiary_fg:(d, node) => pick(d, node, [d.color.primary], d.color.tertiary_fg),
 };
 node.material = {
-    primary:(d, node)     => get_color(d, node, d.material.primary, d.material.secondary, d.material.info),
+    primary:(d, node) => get_color(d, node, d.material.both, d.material.primary, d.material.secondary, d.material.info),
     // secondary:(d, node)   => pick(d, node, d.material.primary, d.material.secondary),
     // tertiary_fg:(d, node) => pick(d, node, d.material.primary, d.material.tertiary_fg),
 };
@@ -58,6 +64,13 @@ repo.versions = (d, repo) => {
     if(!d.repo.has(repo)) return [];
     return [...d.repo.get(repo).versions];
 };
+repo.main_version = (d, repo) => {
+    const result = d.get.repo.versions(d, repo).find(version => {
+        return (d.version.get(version).name == 'Main')
+    });
+    if(result) return result;
+    return 'missing';
+};
 
 export const version = {};
 version.name = (d, version) => {
@@ -72,13 +85,6 @@ version.repo = (d, version) => {
     if(!d.version.has(version)) return;
     return d.version.get(version).repo;
 };
-// version.repo_name = (d, version) => {
-//     if(!d.version.has(version)) return '';
-//     const version_obj = d.version.get(version);
-//     if(!d.repo.has(version_obj.repo)) return '';
-//     return d.repo.get(version_obj.repo).name;
-// };
-
 
 export const targeted = {};
 targeted.version = d => {
@@ -86,6 +92,26 @@ targeted.version = d => {
     if(d.version.has(version)) return version;
 };
 
+export const picked_context = d => {
+    const {root, term} = d.picked_context;
+    if(!d.node.has(root)) return {};
+    if(!d.node.get(root).terms.has(term)) return {};
+    return {root, term};
+};
+
+export const root_context_nodes = d => {
+    const result = new Set();
+    for(const node of d.context_nodes){
+        let is_root_context = true;
+        for(const [root, term] of d.back(d, node)){
+            if(term == 'contexts' && d.get.node.type_name(d, root) == 'Context'){
+                is_root_context = false;
+            }
+        }
+        if(is_root_context) result.add(node);
+    }
+    return [...result];
+}
 
 
 
@@ -94,7 +120,12 @@ targeted.version = d => {
 
 
 
-
+// version.repo_name = (d, version) => {
+//     if(!d.version.has(version)) return '';
+//     const version_obj = d.version.get(version);
+//     if(!d.repo.has(version_obj.repo)) return '';
+//     return d.repo.get(version_obj.repo).name;
+// };
 
 
 

@@ -45,7 +45,7 @@ def get_version(user, id):
             'repos': repos,
             'versions': versions,    
         },
-        reply = 'Get version successful',
+        reply = 'Got version',
     )
 
 def select_nodes_from_top(top_node_ids, nodes):

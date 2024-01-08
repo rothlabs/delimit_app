@@ -27,20 +27,22 @@ const mutations = compile_gql('mutation', [
         ['logout reply user{firstName}'],
     ]],
     ['MakeRepo', [  
-        ['makeRepo reply',   
-            'String name', 
-            'String story', 
-            'Boolean makeMeta',
-        ],
+        ['makeRepo reply', 'String name', 'String story'],
     ]],
-    ['DropRepo', [  
-        ['dropRepo reply', 'String id'],
+    ['MakeMetaRepo', [  
+        ['makeMetaRepo reply', 'String name', 'String story'],
     ]],
     ['EditRepo', [
         ['editRepo reply', 'String id', 'String name', 'String story'],
     ]],
+    ['DropRepo', [  
+        ['dropRepo reply', 'String id'],
+    ]],
     ['EditVersion', [
         ['editVersion reply', 'String id', 'String name', 'String story'],
+    ]],
+    ['DropVersions', [  
+        ['dropVersions reply', '[String] ids'],
     ]],
     ['MakeNodes', [  
         ['makeNodes reply result', 'String nodes'], 

@@ -1,6 +1,5 @@
 import {createElement as c, useState} from 'react';
-import {InputGroup, Form} from 'react-bootstrap';
-import {set_store, use_mutation, render_token} from 'delimit';
+import {render_token, render_badge_token} from 'delimit';
 
 const minWidth = 45;
 
@@ -8,7 +7,6 @@ export function Make_Repo(){
     const [name, set_name] = useState('');
     const [story, set_story] = useState('');
     const [makeMeta, set_makeMeta] = useState(false);
-    const [make_repo] = use_mutation('MakeRepo', {refetchQueries:['GetRepos']}); 
     return[
         render_token({
             name: 'Name',
@@ -44,12 +42,13 @@ export function Make_Repo(){
                 })
             ],
         }),
-        render_token({
+        render_badge_token({
             icon: 'bi-journal-bookmark',
             name: 'Make Repo',
-            content: 'badge',
             store_setter(d){ 
-                make_repo({variables:{name, story, makeMeta}});
+                const args = {variables:{name, story}};
+                if(makeMeta) d.server.make_meta_repo(args);
+                else d.server.make_repo(args);
                 d.studio.panel.show = false;
             },
         }),

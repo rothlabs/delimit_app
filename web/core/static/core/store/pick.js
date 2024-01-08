@@ -11,11 +11,19 @@ picked.secondary = {
     repo:    new Set(),
     version: new Set(),
 };
+export const picked_context = {};
 
-export const pick = (d, {mode='primary', item, multi, keep}) => {
-    if(mode == 'secondary'){
-        d.unpick(d, {mode:'secondary', item:{repo:'all'}});
-        d.unpick(d, {mode:'secondary', item:{version:'all'}});
+export const pick = (d, {mode='primary', item, multi, keep, root, term}) => {
+    if(item){
+        if(mode == 'secondary'){
+            d.unpick(d, {mode:'secondary', item:{repo:'all'}});
+            d.unpick(d, {mode:'secondary', item:{version:'all'}});
+        }
+        d.picked_context = {root, term};
+    }else{
+        d.unpick(d, {mode:'secondary', item:{all:'all'}});
+        d.picked_context = {root, term};
+        return;
     }
     const [type, id] = Object.entries(item)[0];
     if(mode == 'secondary' && ['repo', 'version'].includes(type)){
@@ -28,14 +36,13 @@ export const pick = (d, {mode='primary', item, multi, keep}) => {
     }
     if(!multi && !keep) picked.clear();
     //if(!(weak && picked.size)){
-        picked.add(id);
-        if(type == 'node' && mode == 'primary'){
-            d.inspect.open(d, {path:'inspect'+id+'0'});
-        }
+    picked.add(id);
+    if(type == 'node' && mode == 'primary') d.inspect.open(d, {path:'inspect'+id+'0'});
     //}
 };
 
 export const unpick = (d, {mode='all', item={node:'all'}}) => {
+    d.picked_context = {root:null, term:null};
     const [type, id] = Object.entries(item)[0];
     function unpick_type(mode_val){
         function unpick_item(type_val){

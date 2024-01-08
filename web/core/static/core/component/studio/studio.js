@@ -1,12 +1,12 @@
 import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
 import {Canvas, useThree} from '@react-three/fiber';
 import {Viewport} from './viewport.js';
-import {Code} from './code.js';
+import {Code_Editor} from './code_editor.js';
 import {Repo_Browser} from './repo_browser.js';
 //import {Container, Row, Col, Badge, InputGroup, Form} from 'react-bootstrap';
 //import {Box3} from 'three';
-import {use_store, set_store, Node_Editor, Schema, Repo_Editor, Mode_Menu, render_badge,
-    Make_Node, Make_Repo, undo, redo, render_token, icons, draggable, pickable} from 'delimit';
+import {use_store, act_on_store_without_history, Node_Editor, Schema, Repo_Editor, Mode_Menu, render_badge,
+    Make_Node, Make_Repo, undo, redo, render_token, icons, draggable, pickable, snake_case} from 'delimit';
 import {useOutletContext} from 'react-router-dom';
 import {animated, useSpring, useTransition} from '@react-spring/web';
  
@@ -19,7 +19,7 @@ export function Studio(){
     return[
         render_header(() => 
             c('div', {className:'position-relative d-flex gap-5',},
-                c('div', {className:'d-flex'}, 
+                c('div', {className:'position-relative d-flex mt-1'}, 
                     Mode(),
                 ),
                 c('div', {className:'position-absolute end-0 d-flex', style:{marginRight:200}},
@@ -31,17 +31,19 @@ export function Studio(){
             c(Canvas_3D),
         ),
         c(Topic),
-        c('div', {className:'position-absolute start-50 bottom-0 translate-middle-x mb-1'},
-            Targeted_Version(),
+        c('div', {className:'z-1 position-absolute top-0 start-0 ms-1 mt-5 pt-2'},
+            c('div', {className:'position-relative d-flex flex-column'}, 
+                c(Panel_Mode),
+            ),
         ),
-        c('div', {className:'z-1 position-absolute top-0 start-0 ms-1 mt-5 d-flex flex-column'},
-            c(Panel_Mode),
-        ),
-        c('div', {className:'z-1 position-absolute top-0 start-0 mt-5 ms-5 ps-3'}, // 90vh put scroll bar crap here ?! #1
+        c('div', {id:'panel', className:'z-1 position-absolute top-0 start-0 mt-5 ms-5 ps-3 pt-1'}, // 90vh put scroll bar crap here ?! #1
             c(Panel),
         ),
         c('div', {className:'z-1 position-absolute bottom-0 start-0 d-flex flex-column ms-1 mb-1'},
             c(Leaf_Bar),
+        ),
+        c('div', {className:'z-1 position-absolute start-0 bottom-0 ms-5 mb-1 ps-1'},
+            c(Term_Editor),
         ),
         c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
             c(Node_Action_Menu),
@@ -52,7 +54,24 @@ export function Studio(){
         c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
             c(Version_Action_Menu),
         ),
+        c('div', {className:'z-1 position-absolute start-50 bottom-0 translate-middle-x mb-1'},
+            c(Targeted_Version),
+        ),
     ]
+}
+
+function Term_Editor(){
+    const {root, term} = use_store(d=> d.get.picked_context(d));
+    const content = ({render_name, render_input}) => [
+        render_badge({node:root}),
+        render_name({}),
+        render_input({
+            value: term,
+            store_action: (d,e) => d.set_term(d, {root, term, new_term:snake_case(e.target.value)}),
+        }),
+    ];
+    if(!root || !term) return;
+    return render_token({name:'Term', content, style:{borderRight:'thick solid var(--bs-secondary)'}});
 }
 
 function Targeted_Version(){
@@ -93,6 +112,7 @@ function Node_Action_Menu(){
     const prm_nodes = use_store(d=> [...d.picked.primary.node]);
     const nodes = use_store(d=> [...d.picked.secondary.node]);
     return c(Action_Menu, {open:(nodes.length > 0), group:'node_action_menu', items:[
+        //root && term && {name:'Term', content:render_term_content},
         {name:'Copy', icon:'bi-file-earmark', store_action:d=> d.copy.node(d, {nodes})},
         {name:'Copy', icon:'bi-file-earmark-fill', store_action:d=> d.copy.node(d, {nodes, deep:true})},
         (prm_nodes[0] && prm_nodes[0] != nodes[0]) 
@@ -105,13 +125,14 @@ function Node_Action_Menu(){
 function Repo_Action_Menu(){
     const repo = use_store(d=> d.picked.secondary.repo.keys().next().value);
     const name = use_store(d=> d.get.repo.name(d, repo));
+    const version = use_store(d=> d.get.repo.main_version(d, repo));
     return c(Action_Menu, {open:(repo != null), group:'repo_action_menu', items:[
-        {name, content:render_badge({repo})},
+        {name, content:render_badge({repo}), store_setter:d=> d.pick(d, {item:{version}})},
         {name:'Close',   icon:'bi-x-lg', store_action:d=> d.close.repo(d, {repo})},
         {name:'Delete',  icon:'bi-trash2', store_setter:d=> d.confirm = {
             title: `Delete: ${name}`,
             body: `All data will be irreversibly destroyed in ${name} (repository). Proceed with caution.`,
-            func:()=> set_store(d=> d.drop.repo(d, {repo})),
+            func:()=> act_on_store_without_history(d=> d.drop.repo(d, {repo})),
         }},
     ]})
 }
@@ -129,7 +150,7 @@ function Version_Action_Menu(){
         {name:'Delete', icon:'bi-trash2', store_setter:d=> d.confirm = {
             title: `Delete: ${name}`,
             body: `All data will be irreversibly destroyed in ${name} (version) of ${repo_name} (repository). Proceed with caution.`,
-            func:()=> set_store(d=> d.drop.version(d, {version})),
+            func:()=> act_on_store_without_history(d=> d.drop.version(d, {version})),
         }},
     ]})
 }
@@ -201,12 +222,12 @@ export function Topic(){
     if(studio_mode == 'code'){
         return(
             c('div', {
-                className: 'position-absolute start-0 end-0 top-0 bottom-0 ms-5 mt-5',
+                className: 'position-absolute end-0 bottom-0',
             },
-                c(Code),
+                c(Code_Editor),
             )
         )
-    }else if(studio_mode == 'repo'){
+    }if(studio_mode == 'repo'){
         return(
             c('div', {
                 //className: 'position-absolute top-0 start-50 translate-middle-x my-4 py-5 overflow-y-auto h-100',
@@ -238,6 +259,19 @@ function Canvas_3D(){
 
 
 
+            // c('div', {className:'d-inline-flex w-100 h-100'}, // , style:{width:'100%'} 
+            //     c('div', {className: 'flex-grow-1'}, // className:''
+            //         c(Panel),
+            //     ),
+            //     studio_mode=='code' && c('div', {
+            //         id: 'code_editor_container',
+            //         className: 'mt-2', 
+            //     },
+            //         c(Code_Editor),
+            //     )
+            // ),
+
+
 // function Node_Action_Menu(){
 //     const prm_nodes = use_store(d=> [...d.picked.primary.node]);
 //     const nodes = use_store(d=> [...d.picked.secondary.node]);
@@ -266,7 +300,7 @@ function Canvas_3D(){
 //         {name:'Delete',  icon:'bi-trash2', content:'badge', store_setter:d=> d.confirm = {
 //             title: `Delete: ${name}`,
 //             body: `All data will be irreversibly destroyed in ${name} repository. Proceed with caution.`,
-//             func:()=> act_store(d=> d.drop.repo(d, {repo})),
+//             func:()=> act_on_store(d=> d.drop.repo(d, {repo})),
 //         }},
 //     ].map(button => render_token({...button, group:'repo_action_menu'}))))
 // }

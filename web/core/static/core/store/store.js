@@ -13,11 +13,17 @@ import * as remake from './remake.js';
 
 const ctx = JSON.parse(document.getElementById('ctx').text);
 
+function add_or_remove_as_context_node(d, root){
+    if(d.get.node.type_name(d, root) == 'Context') d.context_nodes.add(root);
+    else d.context_nodes.delete(root);
+}
+
 export const store = {
     mode: ctx.entry,
     node:    new Map(),
     repo:    new Map(),
     version: new Map(),
+    context_nodes: new Set(),
     studio:{
         mode: 'repo',
         repo: {},
@@ -53,9 +59,9 @@ export const store = {
     search: {depth:null, ids:null},
     
     init(d){
-        d.entry = d.make.node(d, {});
-        d.make.edge(d, {root:d.entry, term:'name', stem:{type:'string',  value:'Entry'}}); 
-        d.make.edge(d, {root:d.entry, term:'show', stem:{type:'boolean', value:false}});
+        // d.entry = d.make.node(d, {});
+        // d.make.edge(d, {root:d.entry, term:'name', stem:{type:'string',  value:'Entry'}}); 
+        // d.make.edge(d, {root:d.entry, term:'show', stem:{type:'boolean', value:false}});
         d.base_texture = new THREE.TextureLoader().load(
             d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
         );
@@ -64,10 +70,7 @@ export const store = {
         d.theme.compute(d);
     },
 
-    type_name(d, root){
-        if(!root) return '';
-        return d.value(d, root, ['type name', 'type'], '');
-    },
+    add_or_remove_as_context_node,
     node_case(d, root){
         if(!d.node.has(root)) return 'missing';
         const terms = d.node.get(root).terms;
@@ -152,7 +155,7 @@ export const store = {
             }
         }
     },
-    back: function* (d, stem, a={}){
+    back: function* (d, stem){
         for(const root of d.node.get(stem).back){
             for(const [term, stems] of d.node.get(root).terms){
                 for(let index = 0; index < stems.length; index++){

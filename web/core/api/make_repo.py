@@ -1,21 +1,37 @@
-import json, re, hashlib
 import graphene
 from core.api.config import menu_button_svg, braces_svg, plus_square_svg, abc_svg
-from core.api.util import attempt, conform_user_input, make_node_snaps
+from core.api.util import try_mutation, conform_user_input, make_node_snaps
 from core.models import Repo, Version, Snap, make_id
 
 class Make_Repo(graphene.Mutation):
     class Arguments:
         name = graphene.String()
         story = graphene.String()
-        makeMeta = graphene.Boolean()
     reply = graphene.String(default_value = 'Failed to make repo')
     result = graphene.String()
     @classmethod
-    def mutate(cls, root, info, name, story, makeMeta):
-        return attempt(Make_Repo, make_repo, (info.context.user, name, story, makeMeta))
+    def mutate(cls, root, info, name, story):
+        print(cls)
+        args = {'user':info.context.user, 'name':name, 'story':story}
+        return try_mutation(mutate=make_standard_repo, args=args, alt=Make_Repo)
 
-def make_repo(user, name, story, makeMeta):
+class Make_Meta_Repo(Make_Repo):
+    @classmethod
+    def mutate(cls, root, info, name, story):
+        args = {'user':info.context.user, 'name':name, 'story':story}
+        return try_mutation(mutate=make_meta_repo, args=args, alt=Make_Meta_Repo)
+
+def make_standard_repo(user, name, story):
+    version = make_repo(user, name, story)
+    make_node_snaps(version, make_standard_nodes(name))
+    return Make_Repo(reply = 'Made standard repo')
+
+def make_meta_repo(user, name, story):
+    version = make_repo(user, name, story)
+    make_node_snaps(version, make_meta_nodes(name))
+    return Make_Repo(reply = 'Made standard repo')
+
+def make_repo(user, name, story):
     repo = Repo.objects.create(
         metadata = {
             'name':  conform_user_input(name,  max_length=64), # name=True),
@@ -32,12 +48,30 @@ def make_repo(user, name, story, makeMeta):
         },
     )
     version.authors.add(user)
-    make_node_snaps(version, starter_nodes(name, makeMeta))
-    return Make_Repo(reply = 'Make repo complete')
+    return version
 
-def starter_nodes(name, makeMeta):
-    delimit_app      = make_id()
-    starter_context  = make_id()
+def make_app_node(contexts):
+    return {
+        'name':        [{'type':'string', 'value':'Delimit'}],
+        'type':        [{'type':'string', 'value':'App'}],
+        'delimit_app': [{'type':'boolean', 'value':True}],
+        'contexts':    contexts,
+    }
+
+def make_standard_nodes(name):
+    context = make_id()
+    return {
+        make_id(): make_app_node([context]),
+        context:{
+            'name':  [{'type':'string', 'value':name}],
+            'type':  [{'type':'string', 'value':'Context'}],
+            'types': [],
+        },
+    }
+
+def make_meta_nodes(name):
+    app              = make_id()
+    context          = make_id()
     root_type        = make_id()
     term_type        = make_id()
     stem_type        = make_id()
@@ -62,28 +96,9 @@ def starter_nodes(name, makeMeta):
     maximum_term     = make_id()
     code_term        = make_id()
     code_stem        = make_id()
-
-    core_nodes = {
-        delimit_app:{
-            'name':        [{'type':'string', 'value':'Delimit'}],
-            'type':        [{'type':'string', 'value':'App'}],
-            'delimit_app': [{'type':'boolean', 'value':True}],
-            'contexts':    [starter_context],
-        },
-        starter_context:{
-            'name':     [{'type':'string', 'value':name}],
-            'type':     [{'type':'string', 'value':'Context'}],
-            'types':    [],
-        },
-    }
-
-    print('makeMeta', makeMeta)
-    if not makeMeta: 
-        return core_nodes
- 
     return {
-        **core_nodes,
-        starter_context:{
+        app: make_app_node([context]),
+        context:{
             'name':     [context_leaf_node],
             'type':     [{'type':'string', 'value':'Context'}],
             'types':    [root_type, term_type, stem_type, code_root],

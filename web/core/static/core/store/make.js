@@ -1,5 +1,18 @@
 import {make_id} from 'delimit';
 
+function build(d, node, type){
+    d.make.edge(d, {root:node, term:'type', stem:type});
+    //const type_name = d.get.node.type_name(d, type)
+    if(d.value(d, type, 'name') == 'Root'){//if(type_name == 'Root'){ /// || (type_name=='' && d.value(d, type, 'name') == 'Root')
+        for(const [root] of d.back(d, type)){
+            if(d.get.node.type_name(d, root) == 'Context'){
+                d.make.edge(d, {root, term:'types', stem:node});
+            }
+        }
+    }
+    d.build.root(d, node, type);
+};
+
 export const make = {};
 
 make.node = (d, {node, version='none', given, type})=>{
@@ -54,6 +67,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     index = index ?? length; 
     if(index > length) return; //  || length >= a.max_length 
     terms.get(term).splice(index, 0, stem); 
+    d.add_or_remove_as_context_node(d, root); //if(term=='type' && stem.value=='Context') d.context_nodes.add(root);
     if(d.node.has(stem)){
         d.node.get(stem).back.add(root); //if(!stem.type) d.node.get(stem).back.add(root);
         d.graph.increment(d);
@@ -61,19 +75,6 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     return true;
 };
 
-
-function build(d, root, type){
-    ////////if(d.target.node) d.make.edge(d, d.target.node, 'stem', root);
-    d.make.edge(d, {root, term:'type', stem:type});
-    if(d.type_name(d, root) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
-        for(const context of d.stems(d, d.entry, 'app contexts')){
-            if(d.node.get(context).version == d.get.targeted.version(d)){ // if(d.node.get(context).repo == d.target.repo){
-                d.make.edge(d, {root:context, term:'types', stem:root});
-            }
-        }
-    }
-    d.build.root(d, root, type);
-};
 
 
 

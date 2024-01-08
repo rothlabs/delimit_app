@@ -1,23 +1,27 @@
-import hashlib, json, re
+import traceback, hashlib, json, re
 from django.db.models import Q
 from core.models import Snap, Node
 from core.api.config import auth_required_message
 
-def attempt(alt, action, args):
+def try_mutation(mutate, args, alt):
     try: 
-        if callable(alt):
-            if not args[0].is_authenticated:
-                return alt(reply = auth_required_message)
-        return action(*args)
-    except Exception as e: 
-        print('Error: ' + action.__name__ + ': ', e)
-        if callable(alt): return alt()
-        return alt
+        if not args['user'].is_authenticated:
+            return alt(reply = auth_required_message) 
+        return mutate(**args)
+    except: 
+        traceback.print_exc()
+        return alt()
+
+def try_query(query, args):
+    try: 
+        return query(**args)
+    except:
+        traceback.print_exc()
+        return None
 
 def conform_user_input(s, max_length=-1):#, name=False, slug=False):
     if max_length > -1 and len(s) > max_length: s = s[:max_length]
-    #if name: s = re.sub(r'[^A-Za-z0-9 ]+', '', s)
-    #if slug: s = re.sub(r'[^A-Za-z0-9]+', '', s)
+    #s = re.sub(r'[^A-Za-z0-9 ]+', '', s) # if slug: s = re.sub(r'[^A-Za-z0-9]+', '', s)
     return s
 
 def make_node_snaps(version, node_terms):
@@ -52,8 +56,10 @@ def readable_repo(user):
         Q(versions__metadata__has_key = 'public') |
         Q(versions__readers = user)
     )
+
 def writable_repo(user):
     return Q(writers = user) 
+
 def readable_version(user):
     return(
         Q(metadata__has_key = 'public') |
@@ -61,11 +67,13 @@ def readable_version(user):
         Q(repo__metadata__has_key = 'public') |
         Q(repo__readers = user)
     )
+
 def writable_version(user):
     return (
         (Q(writers = user) | Q(repo__writers = user)) &
         Q(committed = False)
     )
+
 def readable_node(user):
     return(
         Q(version__metadata__has_key = 'public') |
@@ -73,6 +81,7 @@ def readable_node(user):
         Q(version__repo__metadata__has_key = 'public') |
         Q(version__repo__readers = user)
     )
+    
 def writable_node(user):
     return(
         Q(version__writers = user) |

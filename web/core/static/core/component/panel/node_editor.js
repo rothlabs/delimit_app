@@ -1,42 +1,43 @@
 import {createElement as c, useEffect, useState} from 'react';
 //import {Form} from 'react-bootstrap';
-import {use_store, act_store, List_View, drag_drop,
+import {use_store, draggable, List_View, drag_drop,
     readable, droppable, pickable, render_badge, icons, render_token} from 'delimit';
 
 export function Node_Editor(){ 
     const items = use_store(d=> [...d.picked.primary.node]); 
-    return c(List_View, {items, 
-        render_item: node => c(Node_Case, {node, path:'inspect'}), 
-    })  
+    return c(List_View, {items,
+        render_item: node => c(Node_Case, {root:node, node, path:'inspect'}), 
+    })
 }
 
 function Node_Case({root, term, node, index, show_term, path}){
     const node_case = use_store(d=> d.node_case(d, node));
     const edge = {root, term, stem:node, index};
-    const dnd = drag_drop(edge);
+    let dnd = drag_drop(edge);
+    if(root == node) dnd = {...droppable({root}), ...draggable({stem:node})};
     if(node_case.name == 'leaf'){
         term = term ?? 'leaf';
-        const proxy = root ? edge : null;
+        const proxy = root ? edge : null; // const proxy = (root && root!=node) ? edge : null;
         return c(Leaf, {root:node, ...node_case.leaf, proxy, show_term:term, show_icon:true}); 
     }else if(node_case == 'missing'){
-        return render_token({...dnd, ...pickable({item:{node}, mode:'secondary'}),
+        return render_token({...dnd, ...pickable({item:{node}, mode:'secondary', root, term}),
             content:[
                 show_term && readable(term), 
                 render_badge({node}),
             ],
         })
     }
-    return c(Node, {dnd, term, node, index, show_term, path});
+    return c(Node, {dnd, root, term, node, index, show_term, path});
 }
 
-function Node({dnd, term='', node, index=0, show_term, path}){
+function Node({dnd, root, term='', node, index=0, show_term, path}){
     path = path + term + node + index;
     const items = use_store(d=> [...d.node.get(node).terms.keys()]); 
     const header = [
         show_term && readable(term),
         render_badge({node}), 
     ];
-    const header_props = {...dnd, ...pickable({item:{node}, mode:'secondary'})};
+    const header_props = {...dnd, ...pickable({item:{node}, mode:'secondary', root, term})};
     return c(List_View, {items, path, header_props, header,
         render_item: term => c(Term_Case, {root:node, term, path}), // key:term
     });
@@ -65,7 +66,7 @@ function Term({root, term, path}){
     const items = use_store(d=> d.node.get(root).terms.get(term));
     return(
         c(List_View, {items, path:pth,
-            header_props: droppable({root, term}), 
+            header_props:{...droppable({root, term}), ...pickable({mode:'secondary', root, term})}, 
             header: readable(term),
             render_item(stem, index){
                 if(stem.type) return c(Leaf, {root, term, ...stem, index}); // key:index
@@ -90,13 +91,13 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
             render_switch({ //...dnd,
                 checked: value, 
                 store_action(d, e){
-                    d.set_leaf(d, root, term, index, e.target.checked);
+                    d.set_leaf(d, {root, term, index, value:e.target.checked});
                 }, 
             }) : 
             render_input({
                 value: input_value, 
                 onFocus: ()=> set_sync_input(false),
-                onBlur(e){
+                onBlur(){
                     set_sync_input(true);
                     if(type != 'string'){
                         if(value == '') value = '0';
@@ -104,14 +105,16 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                     }
                 },
                 store_action(d, e){
-                    const coerced = d.set_leaf(d, root, term, index, e.target.value);
+                    const coerced = d.set_leaf(d, {root, term, index, value:e.target.value});
                     if(coerced != null) set_input_value(coerced); 
                 }, 
             }),
         c('div', {className:icons.css.cls[type], ...dnd}),
     ];
+    const pick_meta = proxy ? {root:proxy.root, term:proxy.term} : {root, term};
     return render_token({
         name,
         content,
+        ...pickable({mode:'secondary', ...pick_meta}),
     });
 }

@@ -57,27 +57,29 @@ close.node = (d, {drop, given, deep, ...item})=>{  // shut by version
 drop.node = (d, args) => close.node(d, {...args, drop:true});
 
 close.version = (d, {drop, given, ...item}) => { 
-    //versions = versions ?? version;
     for(const version of d.make_iterator(item)){
         if(!d.version.has(version)) continue;
         const version_obj = d.version.get(version);
         const repo_obj = d.repo.get(version_obj.repo);
-        if(drop && !given && !(repo_obj.writable || version_obj.writable)) continue;
-        if(version == d.get.targeted.version(d)){
-            d.pick(d, {item:{version:d.version.keys().next().value}});
+        if(drop && !given){
+            if(version_obj.committed) continue;
+            if(!repo_obj.writable && !version_obj.writable) continue;
         }
+        let target_next_version = false;
+        if(version == d.get.targeted.version(d)) target_next_version = true;
         repo_obj.versions.delete(version);
         d.close.node(d, {nodes:version_obj.nodes, drop, given});
         d.unpick(d, {item:{version}});
         if(drop) d.dropped.version.add(version);
         else d.closed.version.add(version);
         d.version.delete(version);
+        if(target_next_version) d.pick(d, {item:{version:d.version.keys().next().value}});
+        //console.log('drop version', drop, given, version);
     }
 };
 drop.version = (d, args) => close.version(d, {...args, drop:true});
 
 close.repo = (d, {repo, drop, given}) => {
-    if(drop && !given) d.server.drop_repo({variables:{id:repo}});
     if(!d.repo.has(repo)) return;
     const repo_obj = d.repo.get(repo);
     if(drop && !given && !repo_obj.writable) return;
@@ -120,13 +122,15 @@ drop.edge = (d, a={})=>{
     }
     if(!a.given) drops = drops.filter(drp=> d.writable(d, drp.root));
     drops.sort((a, b)=> b.index - a.index);
-    for(const drp of drops){
-        if(!d.node.has(drp.root)) continue;
-        const terms = d.node.get(drp.root).terms;
-        if(!terms.has(drp.term)) continue;
-        const stems = terms.get(drp.term);
-        if(drp.index >= stems.length) continue;
-        stems.splice(drp.index, 1);
+    for(const {root, term, stem, index} of drops){
+        if(!d.node.has(root)) continue;
+        const terms = d.node.get(root).terms;
+        if(!terms.has(term)) continue;
+        const stems = terms.get(term);
+        if(index >= stems.length) continue;
+        //if(term=='type' && stem.value=='Context') d.context_nodes.delete(root);
+        stems.splice(index, 1);
+        d.add_or_remove_as_context_node(d, root);
         // if(!stems.length){
         //     if(a.placeholder){
         //         const empty = d.make.node(d, {});

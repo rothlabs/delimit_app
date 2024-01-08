@@ -5,7 +5,7 @@ import {Login, show_login, Logout, show_logout} from './login.js';
 //import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
 import { Confirm } from './confirm.js';
-import {set_store, act_store, use_store, use_query, 
+import {set_store, act_on_store, use_store, use_query, 
         pointer, use_mutation, render_badge, readable, render_token} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
@@ -17,7 +17,7 @@ export function Root(){
         c('div',{
             className:'position-absolute top-0 start-0 end-0 ms-1 mt-1 z-1', 
         },
-            c('div', {className:'position-absolute'},
+            c('div', {className:'position-absolute ms-1 mt-1'},
                 c(Logo),
             ),
             c('div', {className:'ms-5 ps-5'},
@@ -33,7 +33,7 @@ export function Root(){
                 pointer.position.set(e.clientX, e.clientY);
                 if(!pointer.dragging) return; 
                 if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
-                act_store(d=>{
+                act_on_store(d=>{
                     if(Object.keys(d.drag.edge).length) return;
                     const edge = d.drag.staged;
                     if(!e.ctrlKey || !edge.root || !edge.term) return; 
@@ -92,19 +92,27 @@ function Account_Menu(){
 }
 
 function Mutations(){
-    const [drop_repo] = use_mutation('DropRepo', {
-        refetchQueries:['GetRepos']
-    });
+    const [make_repo] = use_mutation('MakeRepo', {refetchQueries:['GetRepos']}); 
+    const [make_meta_repo] = use_mutation('MakeMetaRepo', {refetchQueries:['GetRepos']}); 
     const [edit_repo] = use_mutation('EditRepo', {
         refetchQueries:['GetRepos'],
         onCompleted:data=>{
             console.log(data.editRepo.reply);
         },
     });
+    const [drop_repo] = use_mutation('DropRepo', {
+        refetchQueries:['GetRepos']
+    });
     const [edit_version] = use_mutation('EditVersion', {
         refetchQueries:['GetRepos'],
         onCompleted:data=>{
             console.log(data.editVersion.reply);
+        },
+    });
+    const [drop_versions] = use_mutation('DropVersions', {
+        refetchQueries:['GetRepos'],
+        onCompleted:data=>{
+            console.log(data.dropVersions.reply);
         },
     });
     const [make_nodes] = use_mutation('MakeNodes', {
@@ -119,9 +127,12 @@ function Mutations(){
     });
     set_store(d=>{ 
         d.server = {
-            drop_repo,
+            make_repo,
+            make_meta_repo,
             edit_repo,
+            drop_repo,
             edit_version,
+            drop_versions,
             make_nodes,
             drop_nodes,
         };

@@ -154,11 +154,19 @@ const termination_link = createHttpLink({
 //     },
 // });
 
-export const gql_client = new ApolloClient({link:auth_link.concat(termination_link), cache:new InMemoryCache()});
+
+const defaultOptions = {
+    watchQuery: {fetchPolicy:'no-cache'}, // errorPolicy: 'ignore',
+    query: {fetchPolicy:'no-cache'}, // errorPolicy: 'all',
+}
+export const gql_client = new ApolloClient({
+    link: auth_link.concat(termination_link), // link: concat(authMiddleware, httpLink),
+    cache: new InMemoryCache(),
+    defaultOptions, 
+});
 
 createRoot(document.getElementById('app')).render(r(()=>
     //r(StrictMode,{},
-    //r(DndProvider, {backend:HTML5Backend},
         r(ApolloProvider, {client: gql_client},
             r(RouterProvider, {router:createBrowserRouter([
                 {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
@@ -171,7 +179,6 @@ createRoot(document.getElementById('app')).render(r(()=>
                 ]},
             ])}),
         )
-    //)
     //)
 ));
 //import apolloUploadClient from 'https://cdn.jsdelivr.net/npm/apollo-upload-client/+esm';

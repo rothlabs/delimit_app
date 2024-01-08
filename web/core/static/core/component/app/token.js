@@ -1,5 +1,5 @@
 import {createElement as c, useRef, useState} from 'react';
-import {use_store, set_store, act_store, assess, Icon, block_size, render_badge} from 'delimit';
+import {use_store, set_store, act_on_store, assess, Icon, block_size, render_badge} from 'delimit';
 import classNames from 'classnames';
 import {make_size} from 'delimit';
 
@@ -8,6 +8,7 @@ export function render_token(props){
     if(props.node)    return c(Pickable_Token, {...props, type:'node',    id:props.node});
     if(props.repo)    return c(Pickable_Token, {...props, type:'repo',    id:props.repo});
     if(props.version) return c(Pickable_Token, {...props, type:'version', id:props.version});
+    if(props.root && props.term) return c(Pickable_Term_Token, props);
     return c(Token_Base, props);
 }
 
@@ -33,6 +34,17 @@ function Pickable_Token(props){
     return c(Token_Base, props);
 }
 
+function Pickable_Term_Token(props){
+    const picked = use_store(d=> {
+        const {root, term} = d.get.picked_context(d);
+        return (root == props.root && term == props.term);
+    });
+    props.style = props.style ?? {};
+    props.style.borderRight = 'none';
+    if(picked) props.style.borderRight = 'thick solid var(--bs-secondary)';
+    return c(Token_Base, props);
+}
+
 function render_switch({checked, onChange, store_action}){
     return c('div', {className:'form-check form-switch mt-1'},
         c('input', {
@@ -41,7 +53,7 @@ function render_switch({checked, onChange, store_action}){
             role: 'button',
             checked, 
             onChange(e){
-                if(store_action) act_store(d => store_action(d, e));
+                if(store_action) act_on_store(d => store_action(d, e));
                 if(onChange) onChange(e);
             },
         })
@@ -58,7 +70,7 @@ function render_input({type='input', maxLength, placeholder, value, onFocus, onB
         },
         maxLength, placeholder, value, onFocus, onBlur, 
         onChange(e){
-            if(store_action) act_store(d => store_action(d, e));
+            if(store_action) act_on_store(d => store_action(d, e));
             if(onChange) onChange(e);
         },
     })
@@ -120,7 +132,7 @@ function Token_Base({inner_ref, group, icon, name, content, width, height, style
             onClick(e){
                 //e.stopPropagation();
                 if(store_setter)  set_store(d => store_setter(d));
-                if(store_action)  act_store(d => store_action(d));
+                if(store_action)  act_on_store(d => store_action(d));
                 if(onClick) onClick(e);
             },
             onPointerDown, onPointerUp, onContextMenu,

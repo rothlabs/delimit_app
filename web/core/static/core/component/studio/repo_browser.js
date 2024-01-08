@@ -1,6 +1,6 @@
 import {createElement as c, useEffect} from 'react';
 import {Row, Col, Button, ButtonGroup, Container} from 'react-bootstrap';
-import {use_store, List_View, set_store, act_store, 
+import {use_store, List_View, set_store, act_on_store, 
     use_query, use_lazy_query, use_mutation, render_badge_token} from 'delimit';
 
 export function Repo_Browser(){

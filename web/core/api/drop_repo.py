@@ -1,6 +1,6 @@
 import graphene
 from core.models import Repo, Snap
-from core.api.util import attempt, writable_repo
+from core.api.util import try_mutation, writable_repo
 
 class Drop_Repo(graphene.Mutation):
     class Arguments:
@@ -9,7 +9,7 @@ class Drop_Repo(graphene.Mutation):
     result = graphene.String()
     @classmethod
     def mutate(cls, root, info, id):
-        return attempt(Drop_Repo, drop_repo, (info.context.user, id))
+        return try_mutation(mutate=drop_repo, args={'user':info.context.user, 'id':id}, alt=Drop_Repo)
 
 def drop_repo(user, id):
     Repo.objects.filter(writable_repo(user), id=id).delete()

@@ -1,9 +1,7 @@
-import json, time, hashlib
+import json
 import graphene
-from django.db.models import Count # Prefetch
-from core.api.types import Pack_Type
 from core.models import Version, Snap
-from core.api.util import attempt, writable_version, make_node_snaps
+from core.api.util import try_mutation, writable_version, make_node_snaps
 
 class Make_Nodes(graphene.Mutation):
     class Arguments:
@@ -12,14 +10,15 @@ class Make_Nodes(graphene.Mutation):
     result = graphene.String()
     @classmethod
     def mutate(cls, root, info, nodes):
-        return attempt(Make_Nodes, make_nodes, (info.context.user, nodes))
+        args = {'user':info.context.user, 'nodes':nodes}
+        return try_mutation(mutate=make_nodes, args=args, alt=Make_Nodes)
 
 def make_nodes(user, nodes):
     version_nodes = normalize_ids(json.loads(nodes))
     for version in filter_versions(version_nodes, user):
         make_node_snaps(version, version_nodes[version.id])
     Snap.objects.filter(nodes=None).delete()
-    return Make_Nodes(reply = 'Make nodes successful') 
+    return Make_Nodes(reply = 'Made nodes') 
 
 def normalize_ids(node_terms):
     version_nodes = {}

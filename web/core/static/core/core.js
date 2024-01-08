@@ -101,34 +101,56 @@ export const set_store = func => {
     return next_state;
 };
 
-export const act_store = func => {
-    var [state, new_patches, new_inverse] = produceWithPatches(get_store(), d=>{ func(d) }); 
-    if(!new_patches.length){
-        //console.log('no change');
-        return;
-    }
+export const run_action_on_store = act => {
+    var [state, patches, inverse] = produceWithPatches(get_store(), d=>{ act(d) }); 
+    if(!patches.length) return {};
     core_store.setState(state); 
+    return {state, patches, inverse}
+}
+
+export const act_on_store = act => {
+    const {state, patches, inverse} = run_action_on_store(act);
+    if(!state) return;
+    core_store.setState(state);
     if(patches_history.length > patch_index){
         patches_history.splice(patch_index, patches_history.length - patch_index);
         inverse_history.splice(patch_index, inverse_history.length - patch_index);
     }
-    patches_history.push(new_patches);
-    inverse_history.push(new_inverse);
+    patches_history.push(patches);
+    inverse_history.push(inverse);
     patch_index = patches_history.length;
-    state.send_data(state, new_patches);
-    //d.mutation.drop_node({variables:{team:repo_obj.team, repo}});
+    state.send_data(state, patches);
 };
 
+export const act_on_store_without_history = act => {
+    const {state, patches} = run_action_on_store(act);
+    if(!state) return;
+    state.send_data(state, patches);
+}
 
-export function undo(){ 
+// export const clear_history = () => {
+//     patch_index = 0;
+//     patches_history = [];
+//     inverse_history = [];
+// }
+
+
+export function undo(){ // skip/ignore patches that try to operate on dropped versions
     if(patch_index > 0){
         patch_index--;
         //console.log('Undo');
         //console.log(inverse_history[patch_index]);
         core_store.setState(d=>{
             //d.send_data(d, inverse_history[patch_index], true);
-            let draft = applyPatches(d, inverse_history[patch_index]);
-            draft.send_data(draft, inverse_history[patch_index]);
+            try{
+                let draft = applyPatches(d, inverse_history[patch_index]);
+                draft.send_data(draft, inverse_history[patch_index]);
+                return draft;
+            }catch{
+                console.log('undo failed');
+                return d;
+            }
+            
             // d = produce(d, d=>{
             //     d.cam_info = {...d.cam_info};
             //     d.studio.gizmo_active = false;
@@ -137,7 +159,7 @@ export function undo(){
             //     d.graph.update(d);
             // });
             //console.log('undo!!!!', inverse_history[patch_index]);
-            return draft;
+            
         });
     }
 }
@@ -147,8 +169,15 @@ export function redo(){
         //console.log(patches_history[patch_index]);
         core_store.setState(d=>{
             //d.send_data(d, patches_history[patch_index]);
-            let draft = applyPatches(d, patches_history[patch_index]);
-            draft.send_data(draft, patches_history[patch_index]);
+            try{
+                let draft = applyPatches(d, patches_history[patch_index]);
+                draft.send_data(draft, patches_history[patch_index]);
+                return draft;
+            }catch{
+                console.log('redo failed');
+                return d;
+            }
+            
             // d = produce(d, d=>{
             //     d.cam_info = {...d.cam_info};
             //     d.studio.gizmo_active = false;
@@ -156,7 +185,7 @@ export function redo(){
             //     d.inspect.update(d);
             //     d.graph.update(d);
             // });
-            return draft;
+            
         });
         patch_index++;
     }

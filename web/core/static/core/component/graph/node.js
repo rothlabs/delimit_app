@@ -10,9 +10,9 @@ import {use_store, get_store, View_Transform, pickable, draggable, droppable} fr
 
 export const Node = memo(({node})=>{ 
     //console.log('render node');
-    const name_obj  = useRef();
-    const type_obj  = useRef();
-    const {name, type, icon} = use_store(d=> d.get.node.primary(d, node));
+    //const name_obj  = useRef();
+    //const type_obj  = useRef();
+    const {icon, name, type_name} = use_store(d=> d.get.node.primary(d, node));
     const color     = use_store(d=> d.get.node.color.primary(d, node));
     const material  = use_store(d=> d.get.node.material.primary(d, node));
     const position  = use_store(d=> d.graph.node.get(node).pos);
@@ -37,7 +37,7 @@ export const Node = memo(({node})=>{
                 material: d.material.body_bg,
             }),
             c(Text, {
-                ref: name_obj,
+                //ref: name_obj,
                 text: name,
                 font: d.font.body, 
                 //fontStyle: font_style,
@@ -57,8 +57,8 @@ export const Node = memo(({node})=>{
                 position: [-1, 1, 1],
             }),
             c(Text, {
-                ref: type_obj,
-                text: type,
+                //ref: type_obj,
+                text: type_name,
                 font: d.font.body, 
                 outlineColor: d.color.body_bg,
                 material,

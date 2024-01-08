@@ -10,7 +10,7 @@ schema.root_type = {
             let truth_count = 0;
             const stems = d.stems(d, type, logic_type);
             for(const stem of stems){
-                const stem_type = d.type_name(d, lgc);
+                const stem_type = d.get.node.type_name(d, lgc);
                 if(stem_type == 'root' && d.root_type.logic(d, stem)) truth_count++;
                 if(stem_type == 'term' && d.term_type.logic(d, stem)) truth_count++;
             }
@@ -52,7 +52,7 @@ build.stem = (d, {root, term, stem}) =>{
     }
     const stem_type_name = d.value(d, stem, 'name');
     const stem_type_context = d.value(d, stem, 'context');
-    for(const context of d.stems(d, d.entry, 'app contexts')){
+    for(const context of d.get.root_context_nodes(d)){ // for(const context of d.stems(d, d.entry, 'app contexts')){
         if(stem_type_context == d.value(d, context, 'name')){
             for(const type of d.stems(d, context, 'types')){
                 if(stem_type_name == d.value(d, type, 'name')){ // d.face.name(d, type)
