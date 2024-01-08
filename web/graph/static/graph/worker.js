@@ -24,7 +24,7 @@ class WorkerClass
 
 
 let workerclass = new WorkerClass();
-self.addEventListener("message", evt => workerclass.onMessage(evt));
+self.addEventListener("message", e => workerclass.onMessage(e));
 self.postMessage("Module worker Loaded");
 
 // onmessage = (e) => {

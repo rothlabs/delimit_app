@@ -40,21 +40,24 @@ export const receive_data = (d, data) => {// change to receive patches directly 
     d.graph.increment(d);
 };
 
+const get_staged_node = ({op, path}) => {
+    const node = path[1];
+    if(d.node.has(node)) return make_nodes.set(node, Object.fromEntries(d.node.get(node).terms)); 
+}
+
 export const send_data = (d, patches) => { 
     const make_nodes    = new Map();
     const drop_nodes    = new Set();
     const drop_versions = new Set();
-    const handlers = {};
-    handlers.node = ({path, op}) => {
-        if(path[2] == 'back') return;
-        const node = path[1];
-        if(d.node.has(node)){
-            make_nodes.set(node, Object.fromEntries(d.node.get(node).terms)); 
+    const handle = {};
+    handle.node = ({path, op}) => {
+        
+        
         }else if(d.dropped.node.has(node) || (op=='remove' && !d.closed.node.has(node) && path.length == 2)){ 
             drop_nodes.add(node);
         }
     }
-    handlers.repo = ({path, op}) => {
+    handle.repo = ({path, op}) => {
         if(path[2] == 'versions') return;
         const repo = path[1];
         if(['name', 'story'].includes(path[2])){
@@ -67,7 +70,7 @@ export const send_data = (d, patches) => {
             d.server.drop_repo({variables:{id:repo}});
         }
     }
-    handlers.version = ({path, op}) => {
+    handle.version = ({path, op}) => {
         //console.log('version patch', op, path);
         if(path[2] == 'nodes') return;
         const version = path[1];
@@ -82,8 +85,8 @@ export const send_data = (d, patches) => {
         }
     }
     for(const patch of patches){ 
-        //console.log(patch);
-        if(handlers[patch.path[0]]) handlers[patch.path[0]](patch);
+        if(!['back', 'versions'].includes(path[2])) continue;
+        if(handle[patch.path[0]]) handle[patch.path[0]](patch);
     }
     if(make_nodes.size){
         const nodes = JSON.stringify(Object.fromEntries(make_nodes));

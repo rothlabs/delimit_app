@@ -1,9 +1,6 @@
 import {createElement as c, useRef, forwardRef, useState} from 'react';
-import {Badge as Boot_Badge, CloseButton} from 'react-bootstrap';
 import {use_store} from 'delimit';
-import {Svg} from '../app/app.js';
-//import {createElement as c, StrictMode, useEffect, useState, useRef, forwardRef, useImperativeHandle, useLayoutEffect} from 'react';
-import {useFrame, useThree} from '@react-three/fiber';
+import {useFrame,} from '@react-three/fiber';
 import {Vector3} from 'three';
 import { useSpring, animated, config, to } from '@react-spring/three';
 
@@ -30,6 +27,20 @@ export const View_Transform = forwardRef((props, ref)=>{
         }
     });
     return (c(animated.group, {...props, position, ref:r=>{
+        obj = r; 
+        if(ref) ref.current = r; 
+    }}))
+});
+
+export const Spinner = forwardRef((props, ref)=>{
+    var obj = null;
+    const [dir, set_dir] = useState(new Vector3().random());//random_vector({min:0.5, max:0.5}));
+    useFrame((state, delta) => {
+        obj.rotateX(delta * dir.x);
+        obj.rotateY(delta * dir.y);
+        obj.rotateZ(delta * dir.z);
+    });
+    return (c('group', {...props, ref:r=>{
         obj = r; 
         if(ref) ref.current = r; 
     }}))
@@ -86,19 +97,6 @@ export const View_Transform = forwardRef((props, ref)=>{
 //     )
 // }
 
-export const Spinner = forwardRef((props, ref)=>{
-    var obj = null;
-    const [dir, set_dir] = useState(new Vector3().random());//random_vector({min:0.5, max:0.5}));
-    useFrame((state, delta) => {
-        obj.rotateX(delta * dir.x);
-        obj.rotateY(delta * dir.y);
-        obj.rotateZ(delta * dir.z);
-    });
-    return (c('group', {...props, ref:r=>{
-        obj = r; 
-        if(ref) ref.current = r; 
-    }}))
-});
 
 
 // if(d.studio.mode=='design' && d.design.mode == 'erase'){

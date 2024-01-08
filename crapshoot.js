@@ -1,3 +1,47 @@
+
+import {set_queries, geometry} from 'delimit'
+
+const get_vectors_from_node = node => {
+    const type_name = node.get_type_name()
+    if(type_name == 'vector') 
+        return geometry.get_vector(node.get_stem_values('x', 'y', 'z'))
+    if(type_name == 'curve') 
+        return node.get_spaced_vectors()
+}
+
+const get_curve = node => {
+    const parts = node.get_stems('parts')
+    const vectors = parts.map(part => get_vectors_from_node(part)).flat()
+    return geometry.get_curve({vectors})
+}
+
+const get_vector = node => {
+    const t = node.get_input('t')
+    return node.get_curve().get_vector(t)
+}
+
+const get_spaced_vectors = node => 
+    node.get_curve().get_spaced_vectors(100)
+
+const get_view = node => ({
+    type: 'curve', 
+    vectors: node.get_spaced_vectors(100),
+})
+
+set_queries({get_curve, get_vector, get_spaced_vectors, get_view})
+
+
+
+
+
+
+
+
+
+
+
+
+
 import {applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'https://cdn.jsdelivr.net/npm/immer@10.0.3/+esm';
 
 enablePatches();

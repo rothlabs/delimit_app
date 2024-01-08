@@ -1,19 +1,27 @@
+import {createWithEqualityFn} from 'zustand/traditional'
+import {subscribeWithSelector} from 'zustand/middleware';
+import {shallow} from 'zustand/shallow';
+import {core_store} from './store/store.js';
+
+const store = createWithEqualityFn(subscribeWithSelector(() => core_store), shallow);
+
+
+
 let worker = new Worker('static/graph/workerloader.js');
 
-worker.addEventListener("error", (e) => {
+worker.addEventListener("error", e => {
     console.error("the worker died");
     console.error(e);
 })
 
-worker.addEventListener("message", function(evt) {
-    let result = evt.data;
-
+worker.addEventListener("message", e => {
+    let result = e.data;
     if (result === "loaded loader"){
          console.log("loaded the workerloaded");
     } else if (result === "Module worker Loaded")
         worker.postMessage("Init Message");
     else
-        console.log(`message from worker: `, evt);
+        console.log(`message from worker: `, e);
 });
 
 

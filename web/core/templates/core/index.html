@@ -57,7 +57,7 @@
   {{ ctx | json_script:"ctx" }}
   <div id='app' class='position-relative vh-100 overflow-hidden'></div>
   <script src='{% static "core/app.js" %}' type='module'></script>
-  <iframe id='graph_container' sandbox='allow-scripts allow-same-origin' style="display: none;" src='{% host_url "index" host "graph" %}'></iframe>
+  <iframe id='graph_app' sandbox='allow-scripts allow-same-origin' style='display: none;' src='{% host_url "index" host "graph" %}'></iframe>
 </body>
 
 </html>

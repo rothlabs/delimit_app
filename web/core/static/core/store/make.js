@@ -35,7 +35,6 @@ make.node = (d, {node, version='none', given, type})=>{
     return node;
 };
 
-// rename to make.term ?!?! #1
 make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
     if(!d.node.has(root)) return; //  && (stem.type || d.node.has(stem)))
     if(!(given || d.writable(d, root))) return;
@@ -46,20 +45,16 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
         if(!length) terms.set(term, []); 
         return;
     }
-    function cycle(node){
-        if(node == root) return true;
+    const has_cycle = node => {
+        if(root == node) return true;
         if(!d.node.has(node)) return;
-        for(const [term, stem] of d.terms(d, node)){
-            if(stem == root){
-                return true;
-            }else{
-                if(cycle(stem)) return true;
-            }
+        for(const [_, stem] of d.terms(d, node)){
+            if(root == stem) return true;
+            else return has_cycle(stem);
         }
     }
-    if(cycle(stem)){
+    if(has_cycle(stem)){
         console.log('Error: Cannot make edge because it would cause a cycle in the graph.');
-        //console.log({root:d.get.node.title(d, root), term, stem:d.get.node.title(d, stem)});
         return;
     }
     if(!length) terms.set(term, []); 

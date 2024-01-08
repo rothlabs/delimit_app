@@ -14,17 +14,20 @@ Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
 
 export {gql_client} from './app.js';
 export * from './app/gql.js';
-export {Pickable} from './component/node/pickable.js';
-export {View_Transform} from './component/node/base.js';
+export * from './app/pick.js';
+export * from './app/icon.js';
 export * from './component/app/app.js'; 
 export * from './component/app/token.js';
-export * from './app/pick.js';
-export {icons} from './app/icon.js';
-export {Make_Node} from './component/panel/make_node.js';
-export {Make_Repo} from './component/panel/make_repo.js';
+export * from './component/app/view_transform.js';
+export * from './component/studio/repo_browser.js';
+export * from './component/studio/viewport.js';
+export * from './component/studio/code_editor.js';
+export * from './component/panel/make_repo.js';
+export * from './component/panel/make_node.js';
 export * from './component/panel/repo_editor.js';
 export * from './component/panel/node_editor.js';
-export {Schema} from './component/panel/schema.js';
+export * from './component/panel/schema.js';
+export * from './component/graph/graph.js';
 
 export const assess = (obj, args) => (typeof obj === 'function' ? obj(args) : obj); // (Object.keys(obj).length ? obj : null) 
 
@@ -34,10 +37,7 @@ export const make_id = (length=16)=>{
         result += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
         return result.length >= length;
     });
-    //console.log('new id', result);
-    result = result.substring(0, 16)
-    //console.log('new id', result);
-    return result;
+    return result.substring(0, 16);
 };
 export const client = make_id();
 

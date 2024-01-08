@@ -1,4 +1,4 @@
-import {createElement as c, memo, useEffect, useLayoutEffect} from 'react';
+import {createElement as c, memo} from 'react';
 import {Node} from './node.js';
 import {Edge} from './edge.js';
 import {use_store, set_store} from 'delimit';

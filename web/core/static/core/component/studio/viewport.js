@@ -1,17 +1,17 @@
-import {createElement as c, useRef, useState, useEffect, Fragment, useImperativeHandle, forwardRef} from 'react';
+import {createElement as c, useRef, useEffect} from 'react';
 import {useThree} from '@react-three/fiber';
 import {CameraControls} from '@react-three/drei/CameraControls'; 
-import {Text} from '@react-three/drei/Text';
-
-import {Design} from '../design/design.js';
-import {Graph} from '../graph/graph.js';
+//import {Text} from '@react-three/drei/Text';
 //import {Mover} from './mover.js';
 //import {useS, ss, useSub, theme, gs, set_store} from '../../app.js';
 //import {Pickbox} from './pickbox.js'; // selection box
-import {Vector3} from 'three';
-import {set_store, use_store} from 'delimit';
+//import {Vector3} from 'three';
+import {
+    set_store, use_store, 
+    Graph,
+} from 'delimit';
 
-const v1 = new Vector3();
+//const v1 = new Vector3();
 
 function Viewport_Control(){
     const camera_controls = useRef();
@@ -129,7 +129,7 @@ export function Viewport(){ // for some reason this renders 5 times on load
     }, 
         c(Viewport_Control),
         studio_mode=='graph'  && c(Graph),
-        studio_mode=='design' && c(Design),
+        //studio_mode=='design' && c(Design),
         c('directionalLight', { 
             ref:light,
             color: 'white',

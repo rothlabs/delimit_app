@@ -1,11 +1,9 @@
 import {createElement as c, useState, useEffect, useRef, useMemo} from 'react';
 //import {MeshLineRaycast} from '../../three/MeshLine.js';
-import {useThree, useFrame} from '@react-three/fiber';
 //import {useS, gs, useSubS, theme, static_url, readable} from '../../app.js';
 //import {Text} from '@react-three/drei/Text';
 import {Vector3} from 'three';
 import {Line} from '@react-three/drei/Line';
-//import {View_Transform} from '../node/base.js';
 import {use_store} from 'delimit';
 
 const root_pos = new Vector3();
@@ -20,7 +18,7 @@ const offset = new Vector3(0, 0, -1);
 
 
 
-export function Edge({root, term, stem}){  // need to make edges their own object in store with reckon function
+export function Edge({root, stem}){  // need to make edges their own object in store with reckon function
     //const line = useRef();
     const color = use_store(d=> d.color.border);
     const rp    = use_store(d=> d.graph.node.get(root).pos);

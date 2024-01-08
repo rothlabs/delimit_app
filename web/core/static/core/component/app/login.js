@@ -1,9 +1,9 @@
-import {createElement as r, useState, Fragment, useEffect} from 'react';
+import {createElement as r, useState, useEffect} from 'react';
 import {Button, Modal, Form, Row, InputGroup} from 'react-bootstrap';
 import {makeVar, useReactiveVar} from '../../apollo/ApolloClient.js';//'@apollo/client';
 import {Logo} from './logo.js';
 //import {gs, ss, rs, useS, use_mutation, gql_client} from '../../app.js';
-import {useNavigate} from 'react-router-dom';
+//import {useNavigate} from 'react-router-dom';
 import {use_mutation, gql_client} from 'delimit';
 
 export const show_login = makeVar(false);

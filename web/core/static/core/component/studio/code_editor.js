@@ -5,13 +5,13 @@ import {use_store, act_on_store} from 'delimit';
 const default_code = '// Secondary pick a node containing Type->Code->Source. Alternatively, pick the Type or Code directly.';
 
 export function Code_Editor(){
+    const monaco = useMonaco();
     const [editor, set_editor] = useState();
-    let root = use_store(d=> d.picked.secondary.node.keys().next().value);
-    let value = use_store(d=> d.value(d, root, ['source', 'code source', 'type code source'], default_code));
+    const root = use_store(d=> d.picked.secondary.node.keys().next().value);
+    const value = use_store(d=> d.value(d, root, ['source', 'code source', 'type code source'], default_code));
     const language = use_store(d=> d.value(d, root, ['language', 'code language', 'type code language'], 'javascript'));
     const theme_mode = use_store(d=> d.theme.mode);
     const color = use_store(d=> d.color.body_bg);
-    const monaco = useMonaco();
     useEffect(() => {
         if(!monaco) return;
         monaco.editor.defineTheme('delimit', {
@@ -23,44 +23,45 @@ export function Code_Editor(){
             },
         }); 
         monaco.editor.setTheme('delimit');
-        
     }, [monaco, theme_mode]);
     useEffect(() => {
+        if(!editor) return;
         return () => {
             act_on_store(d=> {
-                if(!editor) return;
-                value = editor.getValue();
-                if(d.value(d, root, 'source')) d.set_leaf(d, {root, term:'source', value});
-                if(d.value(d, root, 'code source')) {
-                    root = d.stem(d, root, 'code');
-                    d.set_leaf(d, {root, term:'source', value});
+                const value = editor.getValue();
+                let target = root;
+                if(d.value(d, target, 'source')) d.set_leaf(d, {root:target, term:'source', value});
+                if(d.value(d, target, 'code source')) {
+                    target = d.stem(d, target, 'code');
+                    d.set_leaf(d, {root:target, term:'source', value});
                 }
-                if(d.value(d, root, 'type code source')) {
-                    root = d.stem(d, root, 'type code');
-                    d.set_leaf(d, {root, term:'source', value});
+                if(d.value(d, target, 'type code source')) {
+                    target = d.stem(d, target, 'type code');
+                    d.set_leaf(d, {root:target, term:'source', value});
                 }
             });
         }
-    }, [root, value]);
+    }, [editor, root]);
     const onMount = editor => {
         set_editor(editor);
         const panel = document.getElementById('panel');
         const resize = () => {
-            const width = window.innerWidth - panel.offsetWidth - 50;
+            const width = window.innerWidth - panel.offsetWidth - 55;
             editor.layout({width, height:window.innerHeight-55});
         }
         new ResizeObserver(resize).observe(panel);
         window.onresize = resize;
     }
     return c(Editor, {
-        onMount,
-        //onChange: new_value =>  value = new_value, // should set store or use editor instance ?!?!
-        value, 
-        language, 
+        onMount, value, language, 
         theme: 'delimit',
         options: {minimap: { enabled: false }},
     });
 }
+
+
+
+        //onChange: new_value =>  value = new_value, // should set store or use editor instance ?!?!
 
 //import Editor from 'react-simple-code-editor';
 

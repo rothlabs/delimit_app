@@ -1,18 +1,13 @@
-import {createElement as c, useRef, useState, useEffect, Fragment} from 'react';
-import {Canvas, useThree} from '@react-three/fiber';
-import {Viewport} from './viewport.js';
-import {Code_Editor} from './code_editor.js';
-import {Repo_Browser} from './repo_browser.js';
-//import {Container, Row, Col, Badge, InputGroup, Form} from 'react-bootstrap';
-//import {Box3} from 'three';
-import {use_store, act_on_store_without_history, Node_Editor, Schema, Repo_Editor, Mode_Menu, render_badge,
-    Make_Node, Make_Repo, undo, redo, render_token, icons, draggable, pickable, snake_case} from 'delimit';
+import {createElement as c} from 'react';
+import {Canvas} from '@react-three/fiber';
+import {
+    use_store, undo, redo, render_token, icons, draggable, pickable, snake_case, render_badge, act_on_store_without_history, 
+    Mode_Menu,
+    Make_Node, Make_Repo, Node_Editor, Schema, Repo_Editor,  
+    Repo_Browser, Code_Editor, Viewport,
+} from 'delimit';
 import {useOutletContext} from 'react-router-dom';
-import {animated, useSpring, useTransition} from '@react-spring/web';
- 
-// useLazyQuery!!!
-// https://www.apollographql.com/docs/react/data/queries
-
+import {animated, useTransition} from '@react-spring/web';
 
 export function Studio(){
     const {render_header} = useOutletContext();
@@ -156,7 +151,7 @@ function Version_Action_Menu(){
 }
 
 export function Mode(){
-    return  c(Mode_Menu, {
+    return c(Mode_Menu, {
         group: 'studio_mode',
         items:[
             {mode:'repo',  icon:'bi-journal-bookmark'}, 
@@ -220,24 +215,13 @@ function Panel(){
 export function Topic(){
     const studio_mode = use_store(d=> d.studio.mode);
     if(studio_mode == 'code'){
-        return(
-            c('div', {
-                className: 'position-absolute end-0 bottom-0',
-            },
-                c(Code_Editor),
-            )
+        return c('div', {className: 'position-absolute end-0 bottom-0'},
+            c(Code_Editor),
         )
-    }if(studio_mode == 'repo'){
-        return(
-            c('div', {
-                //className: 'position-absolute top-0 start-50 translate-middle-x my-4 py-5 overflow-y-auto h-100',
-                className: 'position-absolute start-0 end-0 top-0 bottom-0 overflow-y-auto',
-            },
-                c('div', {
-                    className: 'position-absolute top-0 start-50 translate-middle-x my-4 py-5',
-                },
-                    c(Repo_Browser),
-                )
+    }else if(studio_mode == 'repo'){
+        return c('div', {className:'position-absolute start-0 end-0 top-0 bottom-0 overflow-y-auto'},
+            c('div', {className:'position-absolute top-0 start-50 translate-middle-x my-4 py-5'},
+                c(Repo_Browser),
             )
         )
     }

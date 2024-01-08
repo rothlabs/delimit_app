@@ -9,7 +9,7 @@ import {createBrowserRouter, RouterProvider, Outlet} from 'react-router-dom';//'
 import {Root} from './component/app/root.js';
 import {Home} from './component/home/home.js';
 import {Studio} from './component/studio/studio.js';
-import {Router_Error, Query_Status} from './component/app/feedback.js';
+import {Router_Error} from './component/app/feedback.js';
 import {Color, ColorManagement} from 'three'; 
 //import {useGLTF} from '@react-three/drei/useGLTF';//'drei';
 import * as THREE from 'three';
