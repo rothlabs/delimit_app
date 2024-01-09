@@ -3,9 +3,9 @@ import * as io from './io.js';
 import * as getters from './getters.js';
 import * as schema from './schema.js';
 import * as theme from './theme.js';
-import {design} from './design.js';
+import * as design from './design.js';
 import * as pick from './pick.js';
-import {graph} from './graph.js';
+import * as graph from './graph.js';
 import * as make from './make.js';
 import * as drop from './drop.js';
 import * as inspect from './inspect.js';
@@ -13,12 +13,7 @@ import * as remake from './remake.js';
 
 const ctx = JSON.parse(document.getElementById('ctx').text);
 
-function add_or_remove_as_context_node(d, root){
-    if(d.get.node.type_name(d, root) == 'Context') d.context_nodes.add(root);
-    else d.context_nodes.delete(root);
-}
-
-export const store = {
+export const core_store = {
     mode: ctx.entry,
     node:    new Map(),
     repo:    new Map(),
@@ -40,8 +35,8 @@ export const store = {
     ...drop,
     ...inspect,
     ...remake,
-    design,
-    graph,
+    ...design,
+    ...graph,
     
     get:{
         ...getters,
@@ -189,4 +184,9 @@ export const store = {
         return [item];
     },
 };
+
+function add_or_remove_as_context_node(d, root){
+    if(d.get.node.type_name(d, root) == 'Context') d.context_nodes.add(root);
+    else d.context_nodes.delete(root);
+}
 

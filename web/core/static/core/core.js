@@ -4,7 +4,7 @@ import {createWithEqualityFn} from 'zustand/traditional'
 import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';//'shallow';
 import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
-import {store} from './store/store.js';
+import {core_store} from './store/store.js';
 //import {transient} from './transient/transient.js';
 import {Vector2} from 'three';
 import {Globals} from '@react-spring/three';
@@ -43,24 +43,24 @@ export const client = make_id();
 
 enableMapSet();
 enablePatches();
-const core_store = createWithEqualityFn(subscribeWithSelector(() => store), shallow);
-core_store.setState(d=>{  d.init(d); return d;  });
-export const get_store = () => core_store.getState();
+const store = createWithEqualityFn(subscribeWithSelector(() => core_store), shallow);
+store.setState(d=>{  d.init(d); return d;  });
+export const get_store = () => store.getState();
 export function use_store(selector, a={}){
     if(a.subscribe){
         const args = {fireImmediately:true};
         //if(a.shallow) args.equalityFn = shallow;
-        return useEffect(()=>core_store.subscribe(selector, a.subscribe, args), []);
+        return useEffect(()=>store.subscribe(selector, a.subscribe, args), []);
     }
-    //if(a.shallow) return core_store(selector, shallow);
-    return core_store(selector);
+    //if(a.shallow) return store(selector, shallow);
+    return store(selector);
 }
-//export const use_store_shallow = selector=> core_store(selector, shallow);
-///////export const use_subscription  = (selector, callback, triggers=[])=> useEffect(()=>core_store.subscribe(selector, callback, {fireImmediately:true}), triggers);
-////////export const subscribe_shallow = (selector, callback)=> useEffect(()=>core_store.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow}),[]);
-//export const subS  = (selector, callback)=> core_store.subscribe(selector, callback, {fireImmediately:true});
-//export const subSS = (selector, callback)=> core_store.subscribe(selector, callback, {fireImmediately:true, equalityFn:shallow});
-//export const subSSI = (selector, callback)=> core_store.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
+//export const use_store_shallow = selector=> store(selector, shallow);
+///////export const use_subscription  = (selector, callback, triggers=[])=> useEffect(()=>store.subscribe(selector, callback, {fireImmediately:true}), triggers);
+////////export const subscribe_shallow = (selector, callback)=> useEffect(()=>store.subscribe(selector, callback, {fireImmediately:true,equalityFn:shallow}),[]);
+//export const subS  = (selector, callback)=> store.subscribe(selector, callback, {fireImmediately:true});
+//export const subSS = (selector, callback)=> store.subscribe(selector, callback, {fireImmediately:true, equalityFn:shallow});
+//export const subSSI = (selector, callback)=> store.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
 
 export const pointer = {
     position: new Vector2(),
@@ -85,6 +85,10 @@ let inverse_history = [];
 // var original_fork = null;
 
 
+function set_state(state, patches){
+    store.setState(state); 
+    state.send_patches_to_graph_app(state, patches);
+}
 
 // set state without committing to history or server 
 export const set_store = func => {
@@ -95,23 +99,23 @@ export const set_store = func => {
     //     //original_fork = applyPatches(original_fork, result.patches);
     // }
     //var [nextState] = produceWithPatches(get_store(), d=>{ func(d) }); 
-    //core_store.setState(nextState); 
-    let next_state = produce(get_store(), d=>{ func(d) });
-    core_store.setState(next_state); 
-    return next_state;
+    //store.setState(nextState); 
+    const [state, patches, inverse] = produceWithPatches(get_store(), draft => { func(draft) });
+    if(!patches.length) return {state};
+    set_state(state, patches);
+    return {state, patches, inverse};
 };
 
-export const run_action_on_store = act => {
-    var [state, patches, inverse] = produceWithPatches(get_store(), d=>{ act(d) }); 
-    if(!patches.length) return {};
-    core_store.setState(state); 
-    return {state, patches, inverse}
-}
+// export const run_action_on_store = func => {
+//     var [state, patches, inverse] = produceWithPatches(get_store(), draft=>{ func(draft) }); 
+//     if(!patches.length) return {};
+//     set_state(state, patches);
+//     return {state, patches, inverse}
+// }
 
-export const act_on_store = act => {
-    const {state, patches, inverse} = run_action_on_store(act);
-    if(!state) return;
-    core_store.setState(state);
+export const act_on_store = func => {
+    const {state, patches, inverse} = set_store(func);
+    if(!patches) return; //store.setState(state);
     if(patches_history.length > patch_index){
         patches_history.splice(patch_index, patches_history.length - patch_index);
         inverse_history.splice(patch_index, inverse_history.length - patch_index);
@@ -119,13 +123,13 @@ export const act_on_store = act => {
     patches_history.push(patches);
     inverse_history.push(inverse);
     patch_index = patches_history.length;
-    state.send_data(state, patches);
+    state.send_changes_to_server(state, patches);
 };
 
-export const act_on_store_without_history = act => {
-    const {state, patches} = run_action_on_store(act);
-    if(!state) return;
-    state.send_data(state, patches);
+export const act_on_store_without_history = func => {
+    const {state, patches} = set_store(func);
+    if(!patches) return;
+    state.send_changes_to_server(state, patches);
 }
 
 // export const clear_history = () => {
@@ -134,59 +138,49 @@ export const act_on_store_without_history = act => {
 //     inverse_history = [];
 // }
 
+function apply_patches(patches){
+    const state = applyPatches(get_store(), patches);
+    set_state(state, patches);
+    state.send_changes_to_server(state, patches);
+}
+
 
 export function undo(){ // skip/ignore patches that try to operate on dropped versions
     if(patch_index > 0){
         patch_index--;
-        //console.log('Undo');
-        //console.log(inverse_history[patch_index]);
-        core_store.setState(d=>{
-            //d.send_data(d, inverse_history[patch_index], true);
+
+        //store.setState(d => {
             try{
-                let draft = applyPatches(d, inverse_history[patch_index]);
-                draft.send_data(draft, inverse_history[patch_index]);
-                return draft;
+                //const patches = inverse_history[patch_index];
+                apply_patches(inverse_history[patch_index]);
+                // const state = applyPatches(get_store(), patches);
+                // store.setState(state);
+                // state.send_patches_to_graph_app(state, patches);
+                // state.send_changes_to_server(state, patches);
+                //return state;
             }catch{
                 console.log('undo failed');
-                return d;
+                //return d;
             }
-            
-            // d = produce(d, d=>{
-            //     d.cam_info = {...d.cam_info};
-            //     d.studio.gizmo_active = false;
-            //     d.design.update(d);
-            //     d.inspect.update(d);
-            //     d.graph.update(d);
-            // });
-            //console.log('undo!!!!', inverse_history[patch_index]);
-            
-        });
+        //});
     }
 }
 export function redo(){ 
     if(patch_index < patches_history.length){
-        //console.log('Redo');
-        //console.log(patches_history[patch_index]);
-        core_store.setState(d=>{
-            //d.send_data(d, patches_history[patch_index]);
+        //store.setState(d=>{
             try{
-                let draft = applyPatches(d, patches_history[patch_index]);
-                draft.send_data(draft, patches_history[patch_index]);
-                return draft;
+                //const patches = patches_history[patch_index];
+                apply_patches(patches_history[patch_index]);
+                // const state = applyPatches(get_store(), patches);
+                // store.setState(state);
+                // state.send_patches_to_graph_app(state, patches);
+                // state.send_changes_to_server(state, patches);
+                //return draft;
             }catch{
                 console.log('redo failed');
-                return d;
+                //return d;
             }
-            
-            // d = produce(d, d=>{
-            //     d.cam_info = {...d.cam_info};
-            //     d.studio.gizmo_active = false;
-            //     d.design.update(d);
-            //     d.inspect.update(d);
-            //     d.graph.update(d);
-            // });
-            
-        });
+        //});
         patch_index++;
     }
 }
@@ -269,7 +263,7 @@ document.addEventListener('contextmenu', event => {
 //     //     all_inverse = [...result[2], ...all_inverse];
 //     //     result = produceWithPatches(result[0], d=>{ if(d) d.continue(d); }); //result = produceWithPatches(result[0], d=>{ d.continue(d) }); 
 //     // }
-//     core_store.setState(nextState); 
+//     store.setState(nextState); 
 //     return {state:nextState, patches, inverse:inversePatches}; // rename state to d
 // }
 
@@ -318,7 +312,7 @@ document.addEventListener('contextmenu', event => {
 //     // });
 //     //if(save_patches){
 //         //console.log('Commit Patches');
-//         arg.state.send_data(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
+//         arg.state.send_changes_to_server(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
 //         //console.log(arg.patches);
 //         if(patches.length > patch){
 //             patches.splice(patch, patches.length-patch);

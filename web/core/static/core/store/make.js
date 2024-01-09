@@ -1,19 +1,24 @@
 import {make_id} from 'delimit';
 
-function build(d, node, type){
-    d.make.edge(d, {root:node, term:'type', stem:type});
-    //const type_name = d.get.node.type_name(d, type)
-    if(d.value(d, type, 'name') == 'Root'){//if(type_name == 'Root'){ /// || (type_name=='' && d.value(d, type, 'name') == 'Root')
-        for(const [root] of d.back(d, type)){
-            if(d.get.node.type_name(d, root) == 'Context'){
-                d.make.edge(d, {root, term:'types', stem:node});
-            }
-        }
-    }
-    d.build.root(d, node, type);
-};
-
 export const make = {};
+
+make.repo = (d, [repo, {metadata:{name, story}, writable}]) => {
+    let versions = new Set()
+    if(d.repo.has(repo)) versions = d.repo.get(repo).versions;
+    d.repo.set(repo, {name, story, writable, versions});
+    d.dropped.repo.delete(repo);
+    d.closed.repo.delete(repo);
+}
+
+make.version = (d, [version, {top, repo, metadata:{name, story}, writable, committed}]) => {
+    let nodes = new Set()
+    if(d.version.has(version)) nodes = d.version.get(version).nodes;
+    d.version.set(version, {repo, name, story, writable, committed, nodes});
+    d.repo.get(repo).versions.add(version);
+    d.dropped.version.delete(version);
+    d.closed.version.delete(version);
+    if(top) d.pick(d, {item:{version}});
+}
 
 make.node = (d, {node, version='none', given, type})=>{
     if(version == 'targeted') version = d.get.targeted.version(d); 
@@ -28,7 +33,7 @@ make.node = (d, {node, version='none', given, type})=>{
         back,            
     });
     if(d.version.has(version)) d.version.get(version).nodes.add(node);
-    if(type) build(d, node, type);
+    if(type) build_node_from_type(d, node, type);
     d.dropped.node.delete(node);
     d.closed.node.delete(node);
     d.graph.increment(d);
@@ -70,6 +75,18 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     return true;
 };
 
+function build_node_from_type(d, node, type){
+    d.make.edge(d, {root:node, term:'type', stem:type});
+    //const type_name = d.get.node.type_name(d, type)
+    if(d.value(d, type, 'name') == 'Root'){//if(type_name == 'Root'){ /// || (type_name=='' && d.value(d, type, 'name') == 'Root')
+        for(const [root] of d.back(d, type)){
+            if(d.get.node.type_name(d, root) == 'Context'){
+                d.make.edge(d, {root, term:'types', stem:node});
+            }
+        }
+    }
+    d.build.root(d, node, type);
+};
 
 
 

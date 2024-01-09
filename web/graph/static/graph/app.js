@@ -1,20 +1,27 @@
+import {applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'immer'; 
 import {createWithEqualityFn} from 'zustand/traditional'
 import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
 import {core_store} from './store/store.js';
 
+enablePatches();
+enableMapSet();
 const store = createWithEqualityFn(subscribeWithSelector(() => core_store), shallow);
+export const get_store = () => store.getState();
+
+window.addEventListener('message', ({origin, data:{patches}}) => {
+    if(origin !== `https://delimit.art`) return;
+    if(patches) store.setState(d => applyPatches(d, patches));
+}, false);
 
 
 
 let worker = new Worker('static/graph/workerloader.js');
-
 worker.addEventListener("error", e => {
     console.error("the worker died");
     console.error(e);
 })
-
-worker.addEventListener("message", e => {
+worker.addEventListener('message', e => {
     let result = e.data;
     if (result === "loaded loader"){
          console.log("loaded the workerloaded");
@@ -23,6 +30,7 @@ worker.addEventListener("message", e => {
     else
         console.log(`message from worker: `, e);
 });
+
 
 
 

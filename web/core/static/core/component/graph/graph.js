@@ -5,14 +5,14 @@ import {use_store, set_store} from 'delimit';
 
 export const Graph = memo(()=>{
     use_store(d=> d.graph.tick); 
-    const d = set_store(d=> d.graph.layout(d));
+    const {state} = set_store(d=> d.graph.layout(d));
     //console.log('render graph');
     return(
         c('group', {name:'graph'},
-            [...d.graph.node.keys()].map(node=> 
+            [...state.graph.node.keys()].map(node=> 
 				c(Node, {node, key:node}),//d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
             ),
-            d.graph.edge.map(edge=> 
+            state.graph.edge.map(edge=> 
 				c(Edge, {...edge, key: edge.root + edge.term + edge.stem}) // , key:e.r+e.t+e.n  //make_id()
             ),
 		)
