@@ -12,15 +12,15 @@ export const get_store = () => store.getState();
 window.addEventListener('message', ({origin, data:{patches}}) => {
     if(origin !== `https://delimit.art`) return;
     if(patches) store.setState(d => applyPatches(d, patches));
-}, false);
+});
 
 
 
 let worker = new Worker('static/graph/workerloader.js');
-worker.addEventListener("error", e => {
-    console.error("the worker died");
+worker.addEventListener('error', e => {
+    console.error('Graph worker error');
     console.error(e);
-})
+});
 worker.addEventListener('message', e => {
     let result = e.data;
     if (result === "loaded loader"){

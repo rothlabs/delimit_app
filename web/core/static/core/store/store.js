@@ -27,6 +27,8 @@ export const core_store = {
     },
     confirm:{},
 
+    get:{...getters},
+    
     ...io,
     ...schema,
     ...theme,
@@ -37,10 +39,6 @@ export const core_store = {
     ...remake,
     ...design,
     ...graph,
-    
-    get:{
-        ...getters,
-    },
 
     static_url: document.body.getAttribute('data-static-url') + 'core/',
     max_click_delta: 7,
