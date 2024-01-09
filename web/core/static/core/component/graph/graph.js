@@ -5,14 +5,14 @@ import {use_store, set_store} from 'delimit';
 
 export const Graph = memo(()=>{
     use_store(d=> d.graph.tick); 
-    const {state} = set_store(d=> d.graph.layout(d));
+    const [d] = set_store(d=> d.graph.layout(d));
     //console.log('render graph');
     return(
         c('group', {name:'graph'},
-            [...state.graph.node.keys()].map(node=> 
+            [...d.graph.nodes.keys()].map(node=> 
 				c(Node, {node, key:node}),//d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
             ),
-            state.graph.edge.map(edge=> 
+            d.graph.edges.map(edge=> 
 				c(Edge, {...edge, key: edge.root + edge.term + edge.stem}) // , key:e.r+e.t+e.n  //make_id()
             ),
 		)
@@ -70,7 +70,7 @@ export const Graph = memo(()=>{
 //     console.log('render graph nodes');
 //     return (
 //         c('group', {name:'nodes'}, // ref:graph, dispose:null
-//             d.graph.node.keys().map(n=> 
+//             d.graph.nodes.keys().map(n=> 
 // 				c(Node, {n, key:n}),//d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
 //             ),
 // 		)
@@ -83,7 +83,7 @@ export const Graph = memo(()=>{
 //     console.log('render graph edges');
 //     return (
 //         c('group', {name:'edges'}, // ref:graph, dispose:null
-//             d.graph.edge.values().map(e=> 
+//             d.graph.edges.values().map(e=> 
 // 				c(Edge, {r:e.r, t:e.t, n:e.n, key:e.r+e.n+e.t}) // , key:e.r+e.t+e.n  //make_id()
 //             ),
 // 		)
@@ -139,8 +139,8 @@ export const Graph = memo(()=>{
 
 
 
-//const edge_roots = useDS(d=> d.graph.edge_roots); //const edge_roots = useDS(d=> d.graph.e().map(e=> e.r));
-    //const edge_nodes = useDS(d=> d.graph.edge_nodes); //const edge_nodes = useDS(d=> d.graph.e().map(e=> e.n));
+//const edge_roots = useDS(d=> d.graph.edges_roots); //const edge_roots = useDS(d=> d.graph.e().map(e=> e.r));
+    //const edge_nodes = useDS(d=> d.graph.edges_nodes); //const edge_nodes = useDS(d=> d.graph.e().map(e=> e.n));
     //console.log(edge_roots);
     //const [equilibrium, set_equilibrium] = useState(false); // put this in the store as a derivitive that gets switch true when when something changes?
     //useEffect(()=>{

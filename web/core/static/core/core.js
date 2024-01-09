@@ -11,6 +11,7 @@ import {Globals} from '@react-spring/three';
 Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
     frameLoop: "always",
 });
+import {send_changes_to_server} from './app/send.js'
 
 export {gql_client} from './app.js';
 export * from './app/gql.js';
@@ -26,8 +27,10 @@ export * from './component/panel/make_repo.js';
 export * from './component/panel/make_node.js';
 export * from './component/panel/repo_editor.js';
 export * from './component/panel/node_editor.js';
+export * from './component/panel/scene_editor.js';
 export * from './component/panel/schema.js';
 export * from './component/graph/graph.js';
+export * from './component/scene/scene.js';
 
 export const assess = (obj, args) => (typeof obj === 'function' ? obj(args) : obj); // (Object.keys(obj).length ? obj : null) 
 
@@ -87,7 +90,7 @@ let inverse_history = [];
 
 function set_state(state, patches){
     store.setState(state); 
-    state.send_patches_to_graph_app(state, patches);
+    send_patches_to_graph_app(patches);
 }
 
 // set state without committing to history or server 
@@ -101,9 +104,9 @@ export const set_store = func => {
     //var [nextState] = produceWithPatches(get_store(), d=>{ func(d) }); 
     //store.setState(nextState); 
     const [state, patches, inverse] = produceWithPatches(get_store(), draft => { func(draft) });
-    if(!patches.length) return {state};
+    if(!patches.length) return [state];
     set_state(state, patches);
-    return {state, patches, inverse};
+    return [state, patches, inverse];
 };
 
 // export const run_action_on_store = func => {
@@ -114,7 +117,7 @@ export const set_store = func => {
 // }
 
 export const act_on_store = func => {
-    const {state, patches, inverse} = set_store(func);
+    const [state, patches, inverse] = set_store(func);
     if(!patches) return; //store.setState(state);
     if(patches_history.length > patch_index){
         patches_history.splice(patch_index, patches_history.length - patch_index);
@@ -123,13 +126,13 @@ export const act_on_store = func => {
     patches_history.push(patches);
     inverse_history.push(inverse);
     patch_index = patches_history.length;
-    state.send_changes_to_server(state, patches);
+    send_changes_to_server(state, patches);
 };
 
 export const act_on_store_without_history = func => {
-    const {state, patches} = set_store(func);
+    const [state, patches] = set_store(func);
     if(!patches) return;
-    state.send_changes_to_server(state, patches);
+    send_changes_to_server(state, patches);
 }
 
 // export const clear_history = () => {
@@ -141,7 +144,17 @@ export const act_on_store_without_history = func => {
 function apply_patches(patches){
     const state = applyPatches(get_store(), patches);
     set_state(state, patches);
-    state.send_changes_to_server(state, patches);
+    send_changes_to_server(state, patches);
+}
+
+const graph_app = document.getElementById('graph_app').contentWindow;
+function is_patch_for_graph_app(path){
+    if(path[0]=='nodes') return true; // if(path[0]=='scene' && path[1]=='nodes') return true;
+}
+function send_patches_to_graph_app(patches){
+    patches = patches.filter(({path}) => is_patch_for_graph_app(path));
+    if(!patches.length) return;
+    graph_app.postMessage({patches}, `https://graph.delimit.art`);
 }
 
 
@@ -156,7 +169,7 @@ export function undo(){ // skip/ignore patches that try to operate on dropped ve
                 // const state = applyPatches(get_store(), patches);
                 // store.setState(state);
                 // state.send_patches_to_graph_app(state, patches);
-                // state.send_changes_to_server(state, patches);
+                // send_changes_to_server(state, patches);
                 //return state;
             }catch{
                 console.log('undo failed');
@@ -174,7 +187,7 @@ export function redo(){
                 // const state = applyPatches(get_store(), patches);
                 // store.setState(state);
                 // state.send_patches_to_graph_app(state, patches);
-                // state.send_changes_to_server(state, patches);
+                // send_changes_to_server(state, patches);
                 //return draft;
             }catch{
                 console.log('redo failed');
@@ -312,7 +325,7 @@ document.addEventListener('contextmenu', event => {
 //     // });
 //     //if(save_patches){
 //         //console.log('Commit Patches');
-//         arg.state.send_changes_to_server(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
+//         arg.send_changes_to_server(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
 //         //console.log(arg.patches);
 //         if(patches.length > patch){
 //             patches.splice(patch, patches.length-patch);

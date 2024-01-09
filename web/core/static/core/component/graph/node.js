@@ -15,7 +15,7 @@ export const Node = memo(({node})=>{
     const {icon, name, type_name} = use_store(d=> d.get.node.primary(d, node));
     const color     = use_store(d=> d.get.node.color.primary(d, node));
     const material  = use_store(d=> d.get.node.material.primary(d, node));
-    const position  = use_store(d=> d.graph.node.get(node).pos);
+    const position  = use_store(d=> d.graph.nodes.get(node).pos);
     // const {invalidate} = useThree();
     // useEffect(()=>{
     //     name_obj.current.sync(() => invalidate());
@@ -82,7 +82,7 @@ export const Node = memo(({node})=>{
     // }
 
 
-// useSub(d=> d.graph.node.get(node).pos, pos=>{ //useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
+// useSub(d=> d.graph.nodes.get(node).pos, pos=>{ //useSub(d=> d.n[n].graph, graph=>{//useEffect(()=>useD.subscribe(d=>({   pos:d.n[n].graph.pos   }),d=>{ // returns an unsubscribe func to useEffect as cleanup on unmount   //num:d.n[n].num, 
 //     obj.current.position.copy(pos);
 // }); 
 
@@ -115,8 +115,8 @@ export const Node = memo(({node})=>{
                 // ),
 
 
-//const edge_tags = useDS(d=> d.graph.node_edges(id).map(e=>e.t));
-    //const edge_nodes = useDS(d=> d.graph.node_edges(id).map(e=>e.n));
+//const edge_tags = useDS(d=> d.graph.nodes_edges(id).map(e=>e.t));
+    //const edge_nodes = useDS(d=> d.graph.nodes_edges(id).map(e=>e.n));
 //...edge_nodes.map((n,i)=> 
             //    r(Edge, {id1:id, tag:edge_tags[i], id2:n, key:n+edge_tags[i]}) // .split('__')  // id != e[1] && d.n[e[1]] && 
             //),

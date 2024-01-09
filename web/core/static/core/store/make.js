@@ -4,17 +4,17 @@ export const make = {};
 
 make.repo = (d, [repo, {metadata:{name, story}, writable}]) => {
     let versions = new Set()
-    if(d.repo.has(repo)) versions = d.repo.get(repo).versions;
-    d.repo.set(repo, {name, story, writable, versions});
+    if(d.repos.has(repo)) versions = d.repos.get(repo).versions;
+    d.repos.set(repo, {name, story, writable, versions});
     d.dropped.repo.delete(repo);
     d.closed.repo.delete(repo);
 }
 
 make.version = (d, [version, {top, repo, metadata:{name, story}, writable, committed}]) => {
     let nodes = new Set()
-    if(d.version.has(version)) nodes = d.version.get(version).nodes;
-    d.version.set(version, {repo, name, story, writable, committed, nodes});
-    d.repo.get(repo).versions.add(version);
+    if(d.versions.has(version)) nodes = d.versions.get(version).nodes;
+    d.versions.set(version, {repo, name, story, writable, committed, nodes});
+    d.repos.get(repo).versions.add(version);
     d.dropped.version.delete(version);
     d.closed.version.delete(version);
     if(top) d.pick(d, {item:{version}});
@@ -26,13 +26,13 @@ make.node = (d, {node, version='none', given, type})=>{
     if(!(given || d.writable(d, node))) return;
     d.drop.edge(d, {root:node, given}); 
     let back = new Set();
-    if(d.node.has(node)) back = d.node.get(node).back;
-    d.node.set(node, {
+    if(d.nodes.has(node)) back = d.nodes.get(node).back;
+    d.nodes.set(node, {
         version,
         terms: new Map(),
         back,            
     });
-    if(d.version.has(version)) d.version.get(version).nodes.add(node);
+    if(d.versions.has(version)) d.versions.get(version).nodes.add(node);
     if(type) build_node_from_type(d, node, type);
     d.dropped.node.delete(node);
     d.closed.node.delete(node);
@@ -41,9 +41,9 @@ make.node = (d, {node, version='none', given, type})=>{
 };
 
 make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
-    if(!d.node.has(root)) return; //  && (stem.type || d.node.has(stem)))
+    if(!d.nodes.has(root)) return; //  && (stem.type || d.nodes.has(stem)))
     if(!(given || d.writable(d, root))) return;
-    const terms = d.node.get(root).terms;
+    const terms = d.nodes.get(root).terms;
     let stems = terms.get(term);
     let length = stems?.length ?? 0;
     if(stem == null){
@@ -52,7 +52,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     }
     const has_cycle = node => {
         if(root == node) return true;
-        if(!d.node.has(node)) return;
+        if(!d.nodes.has(node)) return;
         for(const [_, stem] of d.terms(d, node)){
             if(root == stem) return true;
             else return has_cycle(stem);
@@ -68,8 +68,8 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     if(index > length) return; //  || length >= a.max_length 
     terms.get(term).splice(index, 0, stem); 
     d.add_or_remove_as_context_node(d, root); //if(term=='type' && stem.value=='Context') d.context_nodes.add(root);
-    if(d.node.has(stem)){
-        d.node.get(stem).back.add(root); //if(!stem.type) d.node.get(stem).back.add(root);
+    if(d.nodes.has(stem)){
+        d.nodes.get(stem).back.add(root); //if(!stem.type) d.nodes.get(stem).back.add(root);
         d.graph.increment(d);
     }
     return true;
@@ -95,7 +95,7 @@ function build_node_from_type(d, node, type){
 //     return;
 // }
 
-// if(!given && length == 1 && stem != stems[0] && d.node.has(stems[0]) && d.node.get(stems[0]).terms.size == 0){
+// if(!given && length == 1 && stem != stems[0] && d.nodes.has(stems[0]) && d.nodes.get(stems[0]).terms.size == 0){
 //     d.drop.edge(d, {root, term, stem:stems[0]}); //d.shut.node(d, {node:stems[0], drop:true});
 //     length = 0;
 // }
@@ -111,9 +111,9 @@ function build_node_from_type(d, node, type){
 // function build(d, node, type){
 //     if(d.target.node) d.make.edge(d, d.target.node, 'stem', node);
 //     d.make.edge(d, node, 'type', type);
-//     //const type_forw = d.node.get(type).terms;
+//     //const type_forw = d.nodes.get(type).terms;
 //     function add_or_make_stems(root){
-//         // const logics = (d.node.get(root).get('required') ?? []).concat(
+//         // const logics = (d.nodes.get(root).get('required') ?? []).concat(
 //         //     type_forw.get('optional') ?? [], 
 //         //     type_forw.get('pick_one') ?? [],
 //         //     type_forw.get('one_or_more') ?? [],
@@ -127,7 +127,7 @@ function build_node_from_type(d, node, type){
 //                 }else if(logic_type == 'Term'){
 //                     const term = d.value(d, logic, 'name', '');//.toLowerCase().replace(/ /g,'_'); //stem_obj.terms('term')[0].value.toLowerCase().replace(/ /g,'_');
 //                     if(!term.length) continue;
-//                     for(const to_be_made of d.stems(d, logic, 'make')){ // d.node.get(logic).terms.get('make')
+//                     for(const to_be_made of d.stems(d, logic, 'make')){ // d.nodes.get(logic).terms.get('make')
 //                         //console.log('trying to make stem', term);
 //                         if(to_be_made.type){
 //                             d.make.edge(d, node, term, {...to_be_made});
@@ -149,7 +149,7 @@ function build_node_from_type(d, node, type){
 //     add_or_make_stems(type);
 //     if(d.face.type(d, node) == 'Root'){ //if(d.value(d, type, 'name') == 'Root'){//if(d.value(d, type, 'tag') == 'Type'){
 //         for(const delimit of d.stems(d, d.entry, 'delimit')){
-//             if(d.node.get(delimit).repo == d.target.repo){
+//             if(d.nodes.get(delimit).repo == d.target.repo){
 //                 d.make.edge(d, delimit, 'types', node);
 //             }
 //         }

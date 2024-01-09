@@ -37,8 +37,8 @@ export function Edge({root, term, stem}){  // need to make edges their own objec
     //const rg = useS(d=> d.n[r].graph);
     //const ng = useS(d=> d.n[n].graph);
     const d = gs();
-    const rp = d.graph.node.get(root).pos;
-    const np = d.graph.node.get(stem).pos;
+    const rp = d.graph.nodes.get(root).pos;
+    const np = d.graph.nodes.get(stem).pos;
     return(
         c('group', { // not using Pickable because it is not a node. make another Pickable for none node objects
             name: 'edge',

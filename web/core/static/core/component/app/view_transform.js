@@ -93,7 +93,7 @@ export const Spinner = forwardRef((props, ref)=>{
 //         c(Boot_Badge, {bg:color[4]}, 
 //             c(Svg, {svg:d.spec.icon(d,n), color:'white'}),
 //             (name?' '+name:'') + ' ('+d.spec.tag(d,n)+')'
-//         ) //c(Boot_Badge, {className:d.node[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.node[t].tag+')')
+//         ) //c(Boot_Badge, {className:d.nodes[t].css, bg:color[4]}, (name?' '+name:'') + ' ('+d.nodes[t].tag+')')
 //     )
 // }
 
@@ -136,8 +136,8 @@ export const Spinner = forwardRef((props, ref)=>{
 // export function Cat_Badge({t}){ // need to include remove button ?!?!?!?!
 //     const d = gs();
 //     return (
-//         c(Boot_Badge, {className:'bg-secondary '+d.node.meta[t].css, style:{fontSize:'16px'}}, 
-//             ' '+d.node.meta[t].tag,
+//         c(Boot_Badge, {className:'bg-secondary '+d.nodes.meta[t].css, style:{fontSize:'16px'}}, 
+//             ' '+d.nodes.meta[t].tag,
 //             c(CloseButton, {className:'p-0 m-0'}),
 //         )
 //     )
@@ -146,8 +146,8 @@ export const Spinner = forwardRef((props, ref)=>{
 // export function Cat_Badge({t}){ // need to include remove button ?!?!?!?!
 //     const d = gs();
 //     return (
-//         c(Boot_Badge, {className:'bg-secondary '+d.node.meta[t].css, style:{fontSize:'16px'}}, 
-//             ' '+d.node.meta[t].tag,
+//         c(Boot_Badge, {className:'bg-secondary '+d.nodes.meta[t].css, style:{fontSize:'16px'}}, 
+//             ' '+d.nodes.meta[t].tag,
 //             c(CloseButton, {className:'p-0 m-0'}),
 //         )
 //     )

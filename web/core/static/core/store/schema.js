@@ -4,8 +4,8 @@ export const schema = {};
 
 schema.root_type = {
     logic(d, root){ 
-        const type = d.stem(d, root, 'type'); // d.node.get(root).terms.get('type')[0];
-        if(!d.node.has(type)) return true;
+        const type = d.stem(d, root, 'type'); // d.nodes.get(root).terms.get('type')[0];
+        if(!d.nodes.has(type)) return true;
         function truths(logic_type){
             let truth_count = 0;
             const stems = d.stems(d, type, logic_type);
@@ -52,10 +52,10 @@ build.stem = (d, {root, term, stem}) =>{
     }
     const stem_type_name = d.value(d, stem, 'name');
     const stem_type_context = d.value(d, stem, 'context');
-    for(const context of d.get.root_context_nodes(d)){ // for(const context of d.stems(d, d.entry, 'app contexts')){
+    for(const context of d.get.root_context_nodes(d)){ 
         if(stem_type_context == d.value(d, context, 'name')){
             for(const type of d.stems(d, context, 'types')){
-                if(stem_type_name == d.value(d, type, 'name')){ // d.face.name(d, type)
+                if(stem_type_name == d.value(d, type, 'name')){ 
                     const stem = d.make.node(d, {type, version:'targeted'});
                     d.make.edge(d, {root, term, stem});
                     return true;

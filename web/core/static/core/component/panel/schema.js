@@ -5,7 +5,7 @@ const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
 
 export function Schema(){ 
-    const items = use_store(d=> [...d.picked.primary.node].filter(node=> d.node.has(d.stem(d, node, 'type')))); 
+    const items = use_store(d=> [...d.picked.primary.node].filter(node=> d.nodes.has(d.stem(d, node, 'type')))); 
     return c(List_View, {items, 
         render_item: node => c(Node, {node, target:node, path:'schema'}), 
     })  
@@ -42,7 +42,7 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
     }else if(type_name == 'Stem'){
         terms = stem_type_terms;
     }
-    const items = use_store(d=> [...d.node.get(root).terms.keys()].filter(term=> terms.includes(term)));
+    const items = use_store(d=> [...d.nodes.get(root).terms.keys()].filter(term=> terms.includes(term)));
     const header = [
         show_term && readable(term),
         render_badge({node}),
@@ -77,7 +77,7 @@ function Term_Case({root, term, target, target_term, path}){
 
 function Term({root, term, target, target_term, path}){
     const pth = path + term;
-    const items = use_store(d=> d.node.get(root).terms.get(term));
+    const items = use_store(d=> d.nodes.get(root).terms.get(term));
     return(
         c(List_View, {items, path:pth,
             header: readable(term),

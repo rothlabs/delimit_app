@@ -54,7 +54,7 @@ const state = {
 const [nextState, patches, inversePatches] = produceWithPatches(
     state,
     d => {
-        d.node.delete('wow');
+        d.nodes.delete('wow');
     }
 );
 

@@ -21,8 +21,8 @@ const offset = new Vector3(0, 0, -1);
 export function Edge({root, stem}){  // need to make edges their own object in store with reckon function
     //const line = useRef();
     const color = use_store(d=> d.color.border);
-    const rp    = use_store(d=> d.graph.node.get(root).pos);
-    const sp    = use_store(d=> d.graph.node.get(stem).pos);
+    const rp    = use_store(d=> d.graph.nodes.get(root).pos);
+    const sp    = use_store(d=> d.graph.nodes.get(stem).pos);
     root_pos.copy(rp).add(offset);
     stem_pos.copy(sp).add(offset);
 
@@ -58,8 +58,8 @@ export function Edge({root, stem}){  // need to make edges their own object in s
 //     //const line = useRef();
 //     const color = use_store(d=> d.color.border);
 //     console.log(color);
-//     const rp    = use_store(d=> d.graph.node.get(root).pos);
-//     const sp    = use_store(d=> d.graph.node.get(stem).pos);
+//     const rp    = use_store(d=> d.graph.nodes.get(root).pos);
+//     const sp    = use_store(d=> d.graph.nodes.get(stem).pos);
 //     root_pos.copy(rp).add(offset);
 //     stem_pos.copy(sp).add(offset);
 //     //console.log('render edge');

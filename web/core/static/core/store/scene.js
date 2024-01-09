@@ -1,18 +1,40 @@
-import {current} from 'immer';
-import { Vector3, Euler, Matrix4, CatmullRomCurve3 } from 'three';
-
-
-
-export const design = {
-    mode: '', // make, drop, move
+export const scene = {    
+    nodes: new Map(),
 };
 
-design.move = {
-    mode: '',
-};
+scene.add_nodes = (d, {...items}) => {
+    d.get_iterable(items).map(node => 
+        d.scene.nodes.set(node, {}));
+}
+
+scene.remove_nodes = (d, {...items}) => {
+    d.get_iterable(items).map(node => 
+        d.scene.nodes.delete(node));
+}
+
+export const get_scenes = (d, {...items}) =>
+    d.get_iterable(items).map(item => 
+        get_scenes_from_item(d, item))
+            .flat().filter(scene => scene);
+
+export const get_scene_nodes = d => [...d.scene.nodes.keys()];
+
+function get_scenes_from_item(d, item){
+    if(item.scenes) return item.scenes;
+    if(d.scene.nodes.has(item)) return d.scene.nodes.get(item);
+}
 
 
 
+
+
+// export const design = {
+//     mode: '', // make, drop, move
+// };
+
+// design.move = {
+//     mode: '',
+// };
 
 // export const create_design_slice = (set,get)=>({design:{ 
 //     //tags: ['curve', 'mixed_curve', 'sketch'],
@@ -374,9 +396,9 @@ design.move = {
     //     if(d.board.dragging){
     //         d.board.dragging = false;
     //         //d.pick.n.forEach(n=>{
-    //         //    d.node.delta(d, d.graph.get(d,n,'x'), 0.0001); // change to send flag
-    //         //    d.node.delta(d, d.graph.get(d,n,'y'), 0.0001);
-    //         //    d.node.delta(d, d.graph.get(d,n,'z'), 0.0001);
+    //         //    d.nodes.delta(d, d.graph.get(d,n,'x'), 0.0001); // change to send flag
+    //         //    d.nodes.delta(d, d.graph.get(d,n,'y'), 0.0001);
+    //         //    d.nodes.delta(d, d.graph.get(d,n,'z'), 0.0001);
     //         //});
     //     }
     // },
@@ -386,9 +408,9 @@ design.move = {
     //         if(!d.board.dragging && delta.length() > 4){
     //             d.board.dragging = true;
     //             d.pick.n.forEach(n => {
-    //                 d.node.pin(d, d.graph.get(d,n,'x'));
-    //                 d.node.pin(d, d.graph.get(d,n,'y'));
-    //                 d.node.pin(d, d.graph.get(d,n,'z'));
+    //                 d.nodes.pin(d, d.graph.get(d,n,'x'));
+    //                 d.nodes.pin(d, d.graph.get(d,n,'y'));
+    //                 d.nodes.pin(d, d.graph.get(d,n,'z'));
     //             });
     //         }
     //     }else{
@@ -398,9 +420,9 @@ design.move = {
     //         //console.log('drag', d.board.pointers, tv);
     //         d.pick.n.forEach(n=>{
     //             //console.log(current(d.graph.get(d,n,'x')));
-    //             d.node.delta(d, d.graph.get(d,n,'x'), delta.x);
-    //             d.node.delta(d, d.graph.get(d,n,'y'), delta.y);
-    //             d.node.delta(d, d.graph.get(d,n,'z'), delta.z);
+    //             d.nodes.delta(d, d.graph.get(d,n,'x'), delta.x);
+    //             d.nodes.delta(d, d.graph.get(d,n,'y'), delta.y);
+    //             d.nodes.delta(d, d.graph.get(d,n,'z'), delta.z);
     //         });
     //     }
     // },

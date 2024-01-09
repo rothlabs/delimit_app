@@ -18,16 +18,16 @@ close.node = (d, {drop, given, deep, ...item})=>{  // shut by version
     //nodes = nodes ?? node;
     //console.log('close nodes', nodes.size);
     let targets = new Set();
-    for(const node of d.make_iterator(item)){
-        if(d.node.has(node)) targets.add(node);
+    for(const node of d.get_iterable(item)){
+        if(d.nodes.has(node)) targets.add(node);
     }
     if(deep){
         function get_stems(nodes){
             const next_nodes = new Set();
             for(const node of nodes){
-                for(const [term, stem] of d.terms(d, node)){ // d.flat(d.node.get(node).terms)
-                    if(!d.node.has(stem)) continue;
-                    if([...d.node.get(stem).back].every(root=> targets.has(root))){//if(d.node.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.node.has(root) 
+                for(const [term, stem] of d.terms(d, node)){ // d.flat(d.nodes.get(node).terms)
+                    if(!d.nodes.has(stem)) continue;
+                    if([...d.nodes.get(stem).back].every(root=> targets.has(root))){//if(d.nodes.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.nodes.has(root) 
                         targets.add(stem);
                         next_nodes.add(stem);
                     }
@@ -39,28 +39,28 @@ close.node = (d, {drop, given, deep, ...item})=>{  // shut by version
     }
     if(drop && !given) targets = d.writable(d, targets);
     for(const node of targets){
-        if(!d.node.has(node)) continue;
+        if(!d.nodes.has(node)) continue;
         d.drop.edge(d, {root:node});
-        const version = d.node.get(node).version;
+        const version = d.nodes.get(node).version;
         if(drop){
             d.drop.edge(d, {stem:node});
             d.dropped.node.add(node);
         }else{
             d.closed.node.add(node);
         }
-        d.version.get(version).nodes.delete(node);
+        d.versions.get(version).nodes.delete(node);
         d.unpick(d, {item:{node}});
-        d.node.delete(node);
+        d.nodes.delete(node);
     }
     if(targets.length) d.graph.increment(d);
 };
 drop.node = (d, args) => close.node(d, {...args, drop:true});
 
 close.version = (d, {drop, given, ...item}) => { 
-    for(const version of d.make_iterator(item)){
-        if(!d.version.has(version)) continue;
-        const version_obj = d.version.get(version);
-        const repo_obj = d.repo.get(version_obj.repo);
+    for(const version of d.get_iterable(item)){
+        if(!d.versions.has(version)) continue;
+        const version_obj = d.versions.get(version);
+        const repo_obj = d.repos.get(version_obj.repo);
         if(drop && !given){
             if(version_obj.committed) continue;
             if(!repo_obj.writable && !version_obj.writable) continue;
@@ -72,23 +72,23 @@ close.version = (d, {drop, given, ...item}) => {
         d.unpick(d, {item:{version}});
         if(drop) d.dropped.version.add(version);
         else d.closed.version.add(version);
-        d.version.delete(version);
-        if(target_next_version) d.pick(d, {item:{version:d.version.keys().next().value}});
+        d.versions.delete(version);
+        if(target_next_version) d.pick(d, {item:{version:d.versions.keys().next().value}});
         //console.log('drop version', drop, given, version);
     }
 };
 drop.version = (d, args) => close.version(d, {...args, drop:true});
 
 close.repo = (d, {repo, drop, given}) => {
-    if(!d.repo.has(repo)) return;
-    const repo_obj = d.repo.get(repo);
+    if(!d.repos.has(repo)) return;
+    const repo_obj = d.repos.get(repo);
     if(drop && !given && !repo_obj.writable) return;
     const versions = repo_obj.versions;
     d.close.version(d, {versions, drop, given});
     d.unpick(d, {item:{repo}});
     if(drop) d.dropped.repo.add(repo);
     else d.closed.repo.add(repo);
-    d.repo.delete(repo);
+    d.repos.delete(repo);
 };
 drop.repo = (d, args) => close.repo(d, {...args, drop:true});
 
@@ -97,8 +97,8 @@ drop.edge = (d, a={})=>{
     //console.log('drop edge');
     let drops = []; 
     function forward_edge(func){
-        if(!d.node.has(a.root)) return {};
-        for(const [term, stem, index] of d.terms(d, a.root, {leaf:true})){ // d.flat(d.node.get(a.root).terms)
+        if(!d.nodes.has(a.root)) return {};
+        for(const [term, stem, index] of d.terms(d, a.root, {leaf:true})){ // d.flat(d.nodes.get(a.root).terms)
             func({root:a.root, term, stem, index});
         }
     }
@@ -107,7 +107,7 @@ drop.edge = (d, a={})=>{
     }else if(a.root && a.term && a.stem){
         forward_edge(edge=> edge.term==a.term && edge.stem==a.stem && drops.push(edge));
     }else if(a.root && a.term && !a.stem){
-        const terms = d.node.get(a.root).terms;
+        const terms = d.nodes.get(a.root).terms;
         if(terms.has(a.term) && !terms.get(a.term).length) terms.delete(a.term);
         return;
     }else if(a.root && a.stem){
@@ -115,16 +115,16 @@ drop.edge = (d, a={})=>{
     }else if(a.root){  
         forward_edge(edge=> drops.push(edge));
     }else if(a.stem){
-        if(!d.node.has(a.stem)) return;
-        for(const [root, term, index] of d.back(d, a.stem)){ //for(const [root, term, index] of d.node.get(a.stem).back.values()){
+        if(!d.nodes.has(a.stem)) return;
+        for(const [root, term, index] of d.back(d, a.stem)){ //for(const [root, term, index] of d.nodes.get(a.stem).back.values()){
             drops.push({root, term, stem:a.stem, index});
         }
     }
     if(!a.given) drops = drops.filter(drp=> d.writable(d, drp.root));
     drops.sort((a, b)=> b.index - a.index);
     for(const {root, term, stem, index} of drops){
-        if(!d.node.has(root)) continue;
-        const terms = d.node.get(root).terms;
+        if(!d.nodes.has(root)) continue;
+        const terms = d.nodes.get(root).terms;
         if(!terms.has(term)) continue;
         const stems = terms.get(term);
         if(index >= stems.length) continue;
@@ -142,14 +142,14 @@ drop.edge = (d, a={})=>{
     }
     let increment_graph = false;
     for(const drp of drops){
-        if(!d.node.has(drp.stem)) continue;
+        if(!d.nodes.has(drp.stem)) continue;
         increment_graph = true;
         let drop_back = true;
         for(const [term, stem] of d.terms(d, drp.root)){
             if(stem == drp.stem) drop_back = false;
         }
         if(drop_back){
-            const stem_obj = d.node.get(drp.stem);
+            const stem_obj = d.nodes.get(drp.stem);
             stem_obj.back.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
             if(!a.given && stem_obj.back.size < 1 && stem_obj.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
         }

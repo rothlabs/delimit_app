@@ -108,7 +108,7 @@ export function Code_Editor(){
 
     // let code = use_store(d=> {
     //     try{
-    //         const code_string = d.node.get(node).terms.get('code')[0].value;
+    //         const code_string = d.nodes.get(node).terms.get('code')[0].value;
     //         return code_string ?? default_code;
     //     }catch{}
     //     return default_code;

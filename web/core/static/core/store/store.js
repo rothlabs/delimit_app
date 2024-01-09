@@ -1,9 +1,8 @@
 import * as THREE from 'three';
-import * as io from './io.js';
 import * as getters from './getters.js';
 import * as schema from './schema.js';
 import * as theme from './theme.js';
-import * as design from './design.js';
+import * as scene from './scene.js';
 import * as pick from './pick.js';
 import * as graph from './graph.js';
 import * as make from './make.js';
@@ -15,21 +14,17 @@ const ctx = JSON.parse(document.getElementById('ctx').text);
 
 export const core_store = {
     mode: ctx.entry,
-    node:    new Map(),
-    repo:    new Map(),
-    version: new Map(),
+    nodes:    new Map(),
+    repos:    new Map(),
+    versions: new Map(),
     context_nodes: new Set(),
     studio:{
         mode: 'repo',
-        repo: {},
         panel: {mode:'node_editor'},
         cursor: '',
     },
-    confirm:{},
-
-    get:{...getters},
-    
-    ...io,
+    confirm: {},
+    get: {...getters},
     ...schema,
     ...theme,
     ...pick,
@@ -37,24 +32,18 @@ export const core_store = {
     ...drop,
     ...inspect,
     ...remake,
-    ...design,
+    ...scene,
     ...graph,
-
     static_url: document.body.getAttribute('data-static-url') + 'core/',
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
     point_size: 6,
     easel_size: 400,
     //cam_info: {matrix: new Matrix4(), dir: new Vector3()},
-    scene: null,
-
     user_id: 0,
     search: {depth:null, ids:null},
     
     init(d){
-        // d.entry = d.make.node(d, {});
-        // d.make.edge(d, {root:d.entry, term:'name', stem:{type:'string',  value:'Entry'}}); 
-        // d.make.edge(d, {root:d.entry, term:'show', stem:{type:'boolean', value:false}});
         d.base_texture = new THREE.TextureLoader().load(
             d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
         );
@@ -62,11 +51,29 @@ export const core_store = {
         d.base_texture.anisotropy = 16;
         d.theme.compute(d);
     },
-
-    add_or_remove_as_context_node,
+    set_store_from_server_changes(d, changes){
+        Object.entries(changes.repos).map(entry => d.make.repo(d, entry));
+        Object.entries(changes.versions).map(entry => d.make.version(d, entry));
+        const nodes = Object.entries(changes.nodes);
+        nodes.map(([node]) => {
+            const version = node.slice(0, 16);
+            d.make.node(d, {node, version, given:true});
+        });
+        nodes.map(([node, terms]) => {
+            for(const [term, stems] of Object.entries(terms)){
+                if(!stems.length) d.make.edge(d, {root:node, term, given:true}); 
+                stems.map(stem => d.make.edge(d, {root:node, term, stem, given:true}));
+            }
+        });
+        d.graph.increment(d);
+    },
+    add_or_remove_as_context_node(d, root){
+        if(d.get.node.type_name(d, root) == 'Context') d.context_nodes.add(root);
+        else d.context_nodes.delete(root);
+    },
     node_case(d, root){
-        if(!d.node.has(root)) return 'missing';
-        const terms = d.node.get(root).terms;
+        if(!d.nodes.has(root)) return 'missing';
+        const terms = d.nodes.get(root).terms;
         if(!terms.size) return 'empty';
         if(terms.size > 1 || !terms.has('leaf')) return 'node'; 
         const leaf = terms.get('leaf');
@@ -75,8 +82,8 @@ export const core_store = {
         return 'node';
     },
     term_case(d, root, term){
-        if(!d.node.has(root)) return;
-        const stems = d.node.get(root).terms.get(term);
+        if(!d.nodes.has(root)) return;
+        const stems = d.nodes.get(root).terms.get(term);
         if(!stems) return;
         if(!stems.length) return 'empty';
         if(stems.length > 1) return 'term';
@@ -84,20 +91,20 @@ export const core_store = {
         return {name:'node', node:stems[0]};
     },
     leaf(d, node, path, alt){
-        for(const pth of d.make_iterator(path)){
+        for(const pth of d.get_iterable(path)){
             try{
                 for(const term of pth.split(' ')){
-                    node = d.node.get(node).terms.get(term)[0];
+                    node = d.nodes.get(node).terms.get(term)[0];
                 }
                 if(node.type) return node; //.value;
-                node = d.node.get(node).terms.get('leaf')[0];
+                node = d.nodes.get(node).terms.get('leaf')[0];
                 if(node.type) return node; // .value;
             }catch{}
         }
         return alt;
     },
     value(d, node, path, alt){ 
-        for(const pth of d.make_iterator(path)){
+        for(const pth of d.get_iterable(path)){
             try{
                 const leaf = d.leaf(d, node, pth);
                 if(leaf.type) return leaf.value;
@@ -106,10 +113,10 @@ export const core_store = {
         return alt;
     },
     stem(d, node, path, alt){
-        for(const pth of d.make_iterator(path)){
+        for(const pth of d.get_iterable(path)){
             try{
                 for(const term of pth.split(' ')){
-                    node = d.node.get(node).terms.get(term)[0];
+                    node = d.nodes.get(node).terms.get(term)[0];
                 }
                 return node;
             }catch{}
@@ -118,21 +125,21 @@ export const core_store = {
     },
     stems(d, root, path){ // rename to path? (like terminusdb path query)
         const result = [];
-        for(const pth of d.make_iterator(path)){
+        for(const pth of d.get_iterable(path)){
             const terms = pth.split(' ');
             const last_term = terms.at(-1);//terms.pop();
             function get_stems(root, terms){
                 const term = terms.shift();
-                if(!d.node.has(root)) return;
-                const stems = d.node.get(root).terms.get(term);
+                if(!d.nodes.has(root)) return;
+                const stems = d.nodes.get(root).terms.get(term);
                 if(!Array.isArray(stems)) return;
                 if(term == last_term){
                     for(let i = 0; i < stems.length; i++){
-                        if(stems[i].type || d.node.has(stems[i])) result.push(stems[i]);
+                        if(stems[i].type || d.nodes.has(stems[i])) result.push(stems[i]);
                     }
                 }else{
                     for(let i = 0; i < stems.length; i++){
-                        if(d.node.has(stems[i])) get_stems(stems[i], [...terms]);
+                        if(d.nodes.has(stems[i])) get_stems(stems[i], [...terms]);
                     }
                 }
             }
@@ -141,7 +148,7 @@ export const core_store = {
         return result;
     },
     terms: function* (d, root, a={}){
-        for(const [term, stems] of d.node.get(root).terms){
+        for(const [term, stems] of d.nodes.get(root).terms){
             for(let index = 0; index < stems.length; index++){
                 const stem = stems[index];
                 if(!stem.type || a.leaf) yield [term, stem, index];
@@ -149,8 +156,8 @@ export const core_store = {
         }
     },
     back: function* (d, stem){
-        for(const root of d.node.get(stem).back){
-            for(const [term, stems] of d.node.get(root).terms){
+        for(const root of d.nodes.get(stem).back){
+            for(const [term, stems] of d.nodes.get(root).terms){
                 for(let index = 0; index < stems.length; index++){
                     if(stems[index] == stem) yield [root, term, index];
                 }
@@ -159,10 +166,10 @@ export const core_store = {
     },
     writable(d, node){
         const node_is_writable = node =>{
-            const version = d.node.get(node)?.version;
-            if(d.version.has(version)){
-                const version_obj = d.version.get(version);
-                version_obj.writable || d.repo.get(version_obj.repo).writable;
+            const version = d.nodes.get(node)?.version;
+            if(d.versions.has(version)){
+                const version_obj = d.versions.get(version);
+                version_obj.writable || d.repos.get(version_obj.repo).writable;
             }
             return true;
         };
@@ -174,8 +181,8 @@ export const core_store = {
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    make_iterator(item){ 
-        item = item.node ?? item.nodes ?? item.repo ?? item.repos ?? item.version ?? item.versions ?? item;
+    get_iterable(item){ 
+        item = item.node ?? item.nodes ?? item.repo ?? item.repos ?? item.version ?? item.versions ?? item.scene ?? item.scenes ?? item;
         if(item == null) return [];
         if(typeof item === 'string') return [item];
         if(typeof item[Symbol.iterator] === 'function') return item;
@@ -183,8 +190,5 @@ export const core_store = {
     },
 };
 
-function add_or_remove_as_context_node(d, root){
-    if(d.get.node.type_name(d, root) == 'Context') d.context_nodes.add(root);
-    else d.context_nodes.delete(root);
-}
+
 

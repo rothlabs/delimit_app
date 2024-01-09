@@ -11,8 +11,8 @@ node.icon = (d, node) => {
 node.name = (d, node) => {
     if(!node) return 'none';
     if(node.type) return (''+node.value).trim().substring(0, 24);
-    if(!d.node.has(node)) return node;
-    if(d.node.get(node).terms.size < 1) return 'empty';
+    if(!d.nodes.has(node)) return node;
+    if(d.nodes.get(node).terms.size < 1) return 'empty';
     return (''+d.value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
 };
 node.type_name = (d, root) => {
@@ -53,20 +53,20 @@ node.material = {
 
 export const repo = {};
 repo.name = (d, repo) => {
-    if(!d.repo.has(repo)) return repo;
-    return d.repo.get(repo).name;
+    if(!d.repos.has(repo)) return repo;
+    return d.repos.get(repo).name;
 };
 repo.story = (d, repo) => {
-    if(!d.repo.has(repo)) return '';
-    return d.repo.get(repo).story;
+    if(!d.repos.has(repo)) return '';
+    return d.repos.get(repo).story;
 };
 repo.versions = (d, repo) => {
-    if(!d.repo.has(repo)) return [];
-    return [...d.repo.get(repo).versions];
+    if(!d.repos.has(repo)) return [];
+    return [...d.repos.get(repo).versions];
 };
 repo.main_version = (d, repo) => {
     const result = d.get.repo.versions(d, repo).find(version => {
-        return (d.version.get(version).name == 'Main')
+        return (d.versions.get(version).name == 'Main')
     });
     if(result) return result;
     return 'missing';
@@ -74,28 +74,28 @@ repo.main_version = (d, repo) => {
 
 export const version = {};
 version.name = (d, version) => {
-    if(!d.version.has(version)) return version;
-    return d.version.get(version).name;
+    if(!d.versions.has(version)) return version;
+    return d.versions.get(version).name;
 };
 version.story = (d, version) => {
-    if(!d.version.has(version)) return '';
-    return d.version.get(version).story;
+    if(!d.versions.has(version)) return '';
+    return d.versions.get(version).story;
 };
 version.repo = (d, version) => {
-    if(!d.version.has(version)) return;
-    return d.version.get(version).repo;
+    if(!d.versions.has(version)) return;
+    return d.versions.get(version).repo;
 };
 
 export const targeted = {};
 targeted.version = d => {
     const version = d.picked.primary.version.keys().next().value;
-    if(d.version.has(version)) return version;
+    if(d.versions.has(version)) return version;
 };
 
 export const picked_context = d => {
     const {root, term} = d.picked_context;
-    if(!d.node.has(root)) return {};
-    if(!d.node.get(root).terms.has(term)) return {};
+    if(!d.nodes.has(root)) return {};
+    if(!d.nodes.get(root).terms.has(term)) return {};
     return {root, term};
 };
 
@@ -121,10 +121,10 @@ export const root_context_nodes = d => {
 
 
 // version.repo_name = (d, version) => {
-//     if(!d.version.has(version)) return '';
-//     const version_obj = d.version.get(version);
-//     if(!d.repo.has(version_obj.repo)) return '';
-//     return d.repo.get(version_obj.repo).name;
+//     if(!d.versions.has(version)) return '';
+//     const version_obj = d.versions.get(version);
+//     if(!d.repos.has(version_obj.repo)) return '';
+//     return d.repos.get(version_obj.repo).name;
 // };
 
 
@@ -204,12 +204,12 @@ export const root_context_nodes = d => {
 
 
 //init(d){
-        // for(const [t, node] of Object.entries(d.node)){
+        // for(const [t, node] of Object.entries(d.nodes)){
         //     node.icon = static_url+'icon/node/'+t+'.svg';
         //     node.tag = readable(t);
         //     node.css = d.node_css[t];
         // }
-        // d.node.meta = Object.fromEntries(d.node_classes.map(t=>[t,{
+        // d.nodes.meta = Object.fromEntries(d.node_classes.map(t=>[t,{
         //     icon: static_url+'icon/node/'+t+'.svg',
         //     tag: readable(t),
         //     css: d.node_css[t],
@@ -246,7 +246,7 @@ export const root_context_nodes = d => {
             // d.graph.for_root_stem(d, n, (r,n,t,o)=>{ 
             //     root_edges.push({r:r, n:n, t:t, o:o});
             // });
-            // d.node.delete_edges(d, root_edges);
+            // d.nodes.delete_edges(d, root_edges);
 
 // var re = null;
             // d.graph.for_root(d, e.n, (r,n,t,o)=>{
@@ -257,7 +257,7 @@ export const root_context_nodes = d => {
             // d.graph.for_stem(d, n, (r,n,t,o)=>{
             //     node_edges.push({r:r, n:n, t:t, o:o});
             // });
-            // d.node.delete_edges(d, node_edges);
+            // d.nodes.delete_edges(d, node_edges);
 
 //if(a.deep) d.graph.for_stem(d, n, (r,n)=> nodes.push(n), {deep:true}); // must check if no roots except profile, public, etc
 
@@ -304,7 +304,7 @@ export const root_context_nodes = d => {
         // console.log(edges2);
 
 //init(d){
-    //    d.node.icons = Object.fromEntries([
+    //    d.nodes.icons = Object.fromEntries([
     //        'line','sketch'
     //    ].map(i=> [i, static_url+'/node/'+i+'.svg']));
     //},

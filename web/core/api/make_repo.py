@@ -41,7 +41,7 @@ def make_repo(user, name, story):
     repo.writers.add(user)
     repo.readers.add(user)
     version = Version.objects.create( # pre select authors and snaps ?!
-        repo      = repo,
+        repo = repo,
         metadata = {
             'name':  'Main',
             'story': '',
@@ -50,18 +50,9 @@ def make_repo(user, name, story):
     version.authors.add(user)
     return version
 
-def make_app_node(contexts):
-    return {
-        'name':        [{'type':'string', 'value':'Delimit'}],
-        'type':        [{'type':'string', 'value':'App'}],
-        'delimit_app': [{'type':'boolean', 'value':True}],
-        'contexts':    contexts,
-    }
-
 def make_standard_nodes(name):
     context = make_id()
     return {
-        make_id(): make_app_node([context]),
         context:{
             'name':  [{'type':'string', 'value':name}],
             'type':  [{'type':'string', 'value':'Context'}],
@@ -70,7 +61,6 @@ def make_standard_nodes(name):
     }
 
 def make_meta_nodes(name):
-    app              = make_id()
     context          = make_id()
     root_type        = make_id()
     term_type        = make_id()
@@ -97,7 +87,6 @@ def make_meta_nodes(name):
     code_term        = make_id()
     code_stem        = make_id()
     return {
-        app: make_app_node([context]),
         context:{
             'name':     [context_leaf_node],
             'type':     [{'type':'string', 'value':'Context'}],

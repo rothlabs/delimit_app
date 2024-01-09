@@ -1,16 +1,17 @@
-import {current} from 'immer';
-
 export const picked = {};
+
 picked.primary = {
     node:    new Set(),
     repo:    new Set(),
     version: new Set(),
 };
+
 picked.secondary = {
     node:    new Set(),
     repo:    new Set(),
     version: new Set(),
 };
+
 export const picked_context = {};
 
 export const pick = (d, {mode='primary', item, multi, keep, root, term}) => {
@@ -64,7 +65,7 @@ export const unpick = (d, {mode='all', item={node:'all'}}) => {
 
 export function pick_back(d, item){
     d.unpick(d, {mode:'primary'});
-    for(const node of d.make_iterator(item)){
+    for(const node of d.get_iterable(item)){
         for(const [root] of d.back(d, node)) d.pick(d, {item:{node:root}, keep:true});
     }
 };

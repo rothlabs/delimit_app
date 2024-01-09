@@ -6,9 +6,9 @@ export const create_reckon_slice =(set,get)=>({reckon:{
     up(d, n, a={}){ 
         d.reckon.count++; // could be causing extra reckson ?!?!?!?!?!
         //d.reckon.props(d, n, ['name', 'story', 'visible', 'autocalc',]);
-        //d.reckon.props(d, n, Object.keys(d.node.transform.common_float));
+        //d.reckon.props(d, n, Object.keys(d.nodes.transform.common_float));
         
-        const node = d.node[d.n[n].t] ?? {};
+        const node = d.nodes[d.n[n].t] ?? {};
         const node_stem = Object.entries(node.stem ?? {});
 
         // if(node.boolean) d.reckon.props(d, n, Object.keys(node.boolean)); // do not need to reckon props on way up if caused by source node!!!!!! #1
@@ -25,8 +25,8 @@ export const create_reckon_slice =(set,get)=>({reckon:{
             }
         }
 
-        // d.n[n].c.matrix = d.node.transform.matrix(d, d.n[n].c);
-        // d.n[n].design.transform = d.node.transform.view(d, d.n[n].c);
+        // d.n[n].c.matrix = d.nodes.transform.matrix(d, d.n[n].c);
+        // d.n[n].design.transform = d.nodes.transform.view(d, d.n[n].c);
 
         if(d.n[n].v != null || node.autocalc || d.n[n].c.autocalc || a.manual){//cause.includes('manual_compute')){ //if(!(d.n[n].c.manual_compute && !cause.includes('manual_compute'))){ 
             if(node.part){

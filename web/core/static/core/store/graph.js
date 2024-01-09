@@ -1,41 +1,32 @@
-//import {current} from 'immer';
 import {Vector3} from 'three';
 
-const graph_app = document.getElementById('graph_app').contentWindow;
-
-export function send_patches_to_graph_app(d, patches){
-    patches = patches.filter(({path}) => path[0]=='node');
-    if(!patches.length) return;
-    graph_app.postMessage({patches}, `https://graph.delimit.art`);
-}
+const vector = new Vector3();
 
 export const graph = {    
-    node: new Map(),
-    edge: [],
+    nodes: new Map(),
+    edges: [],
     scale: 1,
     tick: 0,   
     increment: d=> d.graph.tick++,
 };
 
-const tv = new Vector3();
-
 graph.layout = d => {        
     //console.log('update graph!!');
 
-    d.graph.node.clear();
-    d.graph.edge = []; 
+    d.graph.nodes.clear();
+    d.graph.edges = []; 
 
-    for(const [root] of d.node) add_node_and_edges(d, root);
+    for(const [root] of d.nodes) add_node_and_edges(d, root);
     
     var highest_lvl = 0;
     var setting_lvl = true; 
     while(setting_lvl){ 
         setting_lvl = false;
-        for(const [node, node_obj] of d.graph.node){
+        for(const [node, node_obj] of d.graph.nodes){
             let lvl = 0;
-            for(const root of d.node.get(node).back){
-                if(d.graph.node.has(root)){
-                    const root_lvl = d.graph.node.get(root).lvl;
+            for(const root of d.nodes.get(node).back){
+                if(d.graph.nodes.has(root)){
+                    const root_lvl = d.graph.nodes.get(root).lvl;
                     if(lvl < root_lvl) lvl = root_lvl;
                 }
             }
@@ -51,9 +42,9 @@ graph.layout = d => {
     for(var i=0; i <= highest_lvl+10; i++){ // WHY 10 ?!?!?! #1
         level.push({max_y:0, group:{}, count:0});  
     } 
-    for(const [node, node_obj] of d.graph.node){
+    for(const [node, node_obj] of d.graph.nodes){
         const lvl = node_obj.lvl;
-        const grp = d.get.node.type_name(d, node)+'__'+[...d.node.get(node).back].sort().join('_'); 
+        const grp = d.get.node.type_name(d, node)+'__'+[...d.nodes.get(node).back].sort().join('_'); 
         if(!level[lvl].group[grp]) level[lvl].group[grp] = {n:[], y:0, count:0};
         level[lvl].group[grp].n.push(node);
         level[lvl].count++;
@@ -81,10 +72,10 @@ graph.layout = d => {
             g.n.forEach(node=>{
                 if(x > max_x) max_x = x;
                 if(y > l.max_y) l.max_y = y;
-                d.graph.node.get(node).pos.set(x, y, 0); // did not change yet !!!!!!!!
+                d.graph.nodes.get(node).pos.set(x, y, 0); // did not change yet !!!!!!!!
                 for(const [term, stem] of d.terms(d, node)){ 
-                    if(!d.graph.node.has(stem)) continue;
-                    const graph_node = d.graph.node.get(stem);
+                    if(!d.graph.nodes.has(stem)) continue;
+                    const graph_node = d.graph.nodes.get(stem);
                     if(ll.group[graph_node.grp]){
                         ll.group[graph_node.grp].y += y;
                         ll.group[graph_node.grp].count ++;
@@ -108,8 +99,8 @@ graph.layout = d => {
         d.graph.scale = window_size / graph_size / 2;
     }
 
-    for(const node of d.graph.node.values()){
-        node.pos.multiplyScalar(d.graph.scale).add(tv.set(
+    for(const node of d.graph.nodes.values()){
+        node.pos.multiplyScalar(d.graph.scale).add(vector.set(
             -(max_x+2) * d.graph.scale / 2,
             -level[node.lvl].max_y * d.graph.scale / 2,   // -max_x*d.graph.scale/2
             0
@@ -119,13 +110,13 @@ graph.layout = d => {
 
 function add_node_and_edges(d, root){
     if(!d.value(d, root, 'show', true)) return;
-    d.graph.node.set(root, {
+    d.graph.nodes.set(root, {
         lvl: 0,
         pos: new Vector3(),
     });
     for(const [term, stem] of d.terms(d, root)){
-        if(!d.node.has(stem)) continue;
-        d.graph.edge.push({root, term, stem});
+        if(!d.nodes.has(stem)) continue;
+        d.graph.edges.push({root, term, stem});
     }
 }
 

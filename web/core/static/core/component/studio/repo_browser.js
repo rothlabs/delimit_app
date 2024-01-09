@@ -48,7 +48,7 @@ function Get_Version_Button({name, id}){
     const [get_version, {loading, error}] = use_lazy_query('GetVersion', {
         onCompleted:data=>{
             set_store(d=>{
-                d.receive_data(d, JSON.parse(data.version.result));
+                d.set_store_from_server_changes(d, JSON.parse(data.version.result));
                 d.studio.mode = 'graph';
             }); 
         },
@@ -57,7 +57,7 @@ function Get_Version_Button({name, id}){
     return render_badge_token({
         icon:'bi-bookmark', 
         name: loading ? 'Loading...' : name,
-        active: d => d.version.has(id),
+        active: d => d.versions.has(id),
         onClick: () => get_version({variables:{id}}),
     })
 }

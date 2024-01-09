@@ -17,7 +17,7 @@ export function Edge(){ //Transmute Recast
         }},
         {name:'Remove',  icon:'bi-box-arrow-up-right', disabled:!removable, func(d){ 
             const edges = [];
-            d.node.delete_edges(d, edges);// d.edge.delete();
+            d.nodes.delete_edges(d, edges);// d.edge.delete();
         }},
     ];
     return(

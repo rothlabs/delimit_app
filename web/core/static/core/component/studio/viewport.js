@@ -8,7 +8,7 @@ import {CameraControls} from '@react-three/drei/CameraControls';
 //import {Vector3} from 'three';
 import {
     set_store, use_store, 
-    Graph,
+    Graph, Scene,
 } from 'delimit';
 
 //const v1 = new Vector3();
@@ -16,7 +16,7 @@ import {
 function Viewport_Control(){
     const camera_controls = useRef();
     const pick_box = use_store(d=> d.pick.box);
-    const acting = use_store(d=> d.design.act);
+    const acting = false;//use_store(d=> d.design.act);
     const studio_mode = use_store(d=> d.studio.mode);
     const {camera} = useThree(); 
     useEffect(()=>{ set_store(d=>{
@@ -107,10 +107,10 @@ export function Viewport(){ // for some reason this renders 5 times on load
         });
     },[studio_mode]);
     useEffect(()=>{
-        set_store(d=>{
-            d.scene = scene.current;
-            //d.invalidate = invalidate;
-        });
+        // set_store(d=>{
+        //     d.scene = scene.current;
+        //     //d.invalidate = invalidate;
+        // });
         //scene.add(camera);
         camera.add(light.current);
     },[]);
@@ -129,7 +129,7 @@ export function Viewport(){ // for some reason this renders 5 times on load
     }, 
         c(Viewport_Control),
         studio_mode=='graph'  && c(Graph),
-        //studio_mode=='design' && c(Design),
+        studio_mode=='scene' && c(Scene),
         c('directionalLight', { 
             ref:light,
             color: 'white',

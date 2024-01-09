@@ -16,15 +16,15 @@ inspect.toggle = (d, {path}) => {
 
 inspect.open = (d, {path, paths}) => {
     paths = paths ?? path;
-    for(path of d.make_iterator(paths)){
+    for(path of d.get_iterable(paths)){
         d.inspected.add(path);
     }
 };
 
 export const set_leaf = (d, {root, term, index=0, value}) => {
     //console.log(root, term);
-    //console.log([...d.node.get(root).terms]);
-    const leaf = d.node.get(root).terms.get(term)[index];
+    //console.log([...d.nodes.get(root).terms]);
+    const leaf = d.nodes.get(root).terms.get(term)[index];
     let coerced = value;
     if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
         leaf.value = coerced;
@@ -63,8 +63,8 @@ export const set_leaf = (d, {root, term, index=0, value}) => {
 export const set_term = (d, {root, term, new_term}) => {
     if(new_term.length < 1) return;
     if(term == new_term) return;
-    if(!d.node.has(root)) return;
-    const terms = d.node.get(root).terms;
+    if(!d.nodes.has(root)) return;
+    const terms = d.nodes.get(root).terms;
     if(!terms.has(term)) return;
     terms.set(new_term, terms.get(term));
     terms.delete(term);

@@ -1,3 +1,4 @@
 export const core_store = {
-    node: new Map(),
+    nodes: new Map(),
+    static_url: document.body.getAttribute('data-static-url') + 'graph/',
 }

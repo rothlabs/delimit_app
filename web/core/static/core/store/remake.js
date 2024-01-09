@@ -2,18 +2,18 @@ export const remake = {};
 
 export const replace = {};
 replace.node = (d, {source, ...item}) => {
-    for(const root of d.make_iterator(item)) replace_node(d, {root, source});
+    for(const root of d.get_iterable(item)) replace_node(d, {root, source});
 }
 
 export const copy = {};
 copy.node = (d, {deep, ...item}) => {
-    for(const node of d.make_iterator(item)) copy_node(d, {node, deep});
+    for(const node of d.get_iterable(item)) copy_node(d, {node, deep});
 }
 
 
 function replace_node(d, {root, source}){
     d.drop.edge(d, {root});
-    d.node.get(root).terms = new Map();
+    d.nodes.get(root).terms = new Map();
     for(const [term, stem] of d.terms(d, source, {leaf:true})){
         d.make.edge(d, {root, term, stem});
     }
@@ -45,7 +45,7 @@ function copy_node(d, {node, deep}){
 
 // // // for a, do if(!a) a = {} at start of each function that uses a
 // // export const create_remake_slice = (set,get)=>({remake:{
-// //     copy(d, n, a={}){ //rename src to n?  maybe place in d.node (only run for part
+// //     copy(d, n, a={}){ //rename src to n?  maybe place in d.nodes (only run for part
 // //         //if(!d.graph.admin(d, (a.r ? [n,a.r] : n))){ // if a.r then check if it is limited  // if(!d.graph.admin(d, (a.r ? [n,a.r] : [n]))){ 
 // //             const cpy = d.make.node(d, d.n[n].t); // const cpy = d.make.node(d, d.n[n].m, d.n[n].t);
 // //             if(d.n[n].m == 'p') {
@@ -97,7 +97,7 @@ function copy_node(d, {node, deep}){
 // //                     //dead_edges.push({r:r, n:n, t:t}); // , o:o+1 +1 because new edge is inersted just in front of old edge 
 // //                 }
 // //             });
-// //             //d.node.delete_edges(d, dead_edges);
+// //             //d.nodes.delete_edges(d, dead_edges);
             
 // //         //}
 // //     },
@@ -143,7 +143,7 @@ function copy_node(d, {node, deep}){
 
 // if(d.studio.grouping && a.r && d.n[n].n){ // cache e.r?!?!?! // make this func to be used in make node as well  // need to make is_part function?!?!?! (or is_atom)   
 //     //if(d.n[a.r].t=='group') d.make.edge(d, a.r, cpy, {src:a.src});
-//     d.graph.root_edge(d,a.r).filter(e=> d.n[e.r].t=='group').forEach(e=> {  // d.node.r_by_name ?!?!?!?!
+//     d.graph.root_edge(d,a.r).filter(e=> d.n[e.r].t=='group').forEach(e=> {  // d.nodes.r_by_name ?!?!?!?!
 //         d.make.edge(d, e.r, cpy, {src:a.src}); //, {no_auto_group:true}
 //     });
 // }
@@ -154,7 +154,7 @@ function copy_node(d, {node, deep}){
 
 //console.log(roots);
             //console.log(target);
-            //roots = d.node.edges(d,n);
+            //roots = d.nodes.edges(d,n);
             //d.graph.stem_edge(d,roots).forEach(([r,n,t,o])=>{//d.graph.for_stem(d, roots, (r,n,t,o)=>{
 
 //d.graph.for_root(d, src, r=>{ // could use for_rn here, 
@@ -179,7 +179,7 @@ function copy_node(d, {node, deep}){
 //         const dead_edges = [];
 //         //console.log(roots);
 //         //console.log(target);
-//         //roots = d.node.edges(d,n);
+//         //roots = d.nodes.edges(d,n);
 //         //d.graph.stem_edge(d,roots).forEach(([r,n,t,o])=>{//d.graph.for_stem(d, roots, (r,n,t,o)=>{
 //         d.graph.for_stem(d, roots, (r,n,t,o)=>{
 //             console.log(r, n);
@@ -190,7 +190,7 @@ function copy_node(d, {node, deep}){
 //                 dead_edges.push({r:r, n:n, t:t, o:o+1}); // +1 because new edge is inersted just in front of old edge 
 //             }
 //         });
-//         d.node.delete_edges(d, dead_edges);
+//         d.nodes.delete_edges(d, dead_edges);
 //     }
 // },
 

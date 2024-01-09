@@ -2,7 +2,7 @@ import {createElement as c} from 'react';
 import {use_store, List_View, render_badge_token, render_badge, icons} from 'delimit';
 
 export function Make_Node(){ 
-    const items = use_store(d=> d.get.root_context_nodes(d)); // d.stems(d, d.entry, 'contexts') 
+    const items = use_store(d=> d.get.root_context_nodes(d)); 
     return[
         render_badge_token({
             name: 'Empty',

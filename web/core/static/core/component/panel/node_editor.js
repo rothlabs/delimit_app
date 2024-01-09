@@ -4,7 +4,7 @@ import {use_store, draggable, List_View, drag_drop,
     readable, droppable, pickable, render_badge, icons, render_token} from 'delimit';
 
 export function Node_Editor(){ 
-    const items = use_store(d=> [...d.picked.primary.node]); 
+    const items = use_store(d=> [...d.picked.primary.node.keys()]); 
     return c(List_View, {items,
         render_item: node => c(Node_Case, {root:node, node, path:'inspect'}), 
     })
@@ -32,7 +32,7 @@ function Node_Case({root, term, node, index, show_term, path}){
 
 function Node({dnd, root, term='', node, index=0, show_term, path}){
     path = path + term + node + index;
-    const items = use_store(d=> [...d.node.get(node).terms.keys()]); 
+    const items = use_store(d=> [...d.nodes.get(node).terms.keys()]); 
     const header = [
         show_term && readable(term),
         render_badge({node}), 
@@ -63,7 +63,7 @@ function Term_Case({root, term, path}){
 
 function Term({root, term, path}){
     const pth = path + term;
-    const items = use_store(d=> d.node.get(root).terms.get(term));
+    const items = use_store(d=> d.nodes.get(root).terms.get(term));
     return(
         c(List_View, {items, path:pth,
             header_props:{...droppable({root, term}), ...pickable({mode:'secondary', root, term})}, 
