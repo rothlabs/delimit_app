@@ -16,8 +16,8 @@ export function Make_Node(){
 }
 
 function Context({node, path}){
-    const contexts = use_store(d=> d.stems(d, node, 'contexts')); 
-    const types = use_store(d=> d.stems(d, node, 'types')); 
+    const contexts = use_store(d=> d.get_stems(d, node, 'contexts')); 
+    const types = use_store(d=> d.get_stems(d, node, 'types')); 
     return c(List_View, {
         items:[...contexts, ...types], path,
         header: render_badge({node}),
@@ -29,8 +29,8 @@ function Context({node, path}){
 }
 
 function Make_Button({node}){
-    const icon = use_store(d=> d.value(d, node, 'icon source', icons.css.cls.generic));  //d.get.node.icon(d, node)
-    const name = use_store(d=> d.get.node.name(d, node)); // d.value(d, node, 'name', 'Node'));
+    const icon = use_store(d=> d.get_value(d, node, 'icon source', icons.css.cls.generic));  //d.get.node.icon(d, node)
+    const name = use_store(d=> d.get.node.name(d, node)); // d.get_value(d, node, 'name', 'Node'));
     return render_badge_token({
         icon, name, 
         store_action: d => d.make.node(d, {type:node, version:'targeted'}),

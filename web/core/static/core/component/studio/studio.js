@@ -109,8 +109,8 @@ function Node_Action_Menu(){
     const nodes = use_store(d=> [...d.picked.secondary.node]);
     return c(Action_Menu, {open:(nodes.length > 0), group:'node_action_menu', items:[
         //root && term && {name:'Term', content:render_term_content},
-        {name:'Add to Scene', icon:'bi-camera-reels', store_action:d=> d.scene.add_nodes(d, {nodes})},
-        {name:'Remove from Scene', icon:'bi-camera-video-off', store_action:d=> d.scene.remove_nodes(d, {nodes})},
+        {name:'Add to Scene', icon:'bi-camera-reels', store_action:d=> d.scene.make_roots(d, {nodes})},
+        {name:'Remove from Scene', icon:'bi-camera-video-off', store_action:d=> d.scene.drop_roots(d, {nodes})},
         {name:'Copy', icon:'bi-file-earmark', store_action:d=> d.copy.node(d, {nodes})},
         {name:'Copy', icon:'bi-file-earmark-fill', store_action:d=> d.copy.node(d, {nodes, deep:true})},
         (prm_nodes[0] && prm_nodes[0] != nodes[0]) 

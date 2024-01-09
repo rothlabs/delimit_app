@@ -5,15 +5,15 @@ const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
 
 export function Schema(){ 
-    const items = use_store(d=> [...d.picked.primary.node].filter(node=> d.nodes.has(d.stem(d, node, 'type')))); 
+    const items = use_store(d=> [...d.picked.primary.node].filter(node=> d.nodes.has(d.get_stem(d, node, 'type')))); 
     return c(List_View, {items, 
         render_item: node => c(Node, {node, target:node, path:'schema'}), 
     })  
 }
 
-function Node_Case({term, node, index, target, target_term, show_term, path}){
-    const node_case = use_store(d=> d.node_case(d, node));
-    if(node_case == 'missing'){
+function get_node_case({term, node, index, target, target_term, show_term, path}){
+    const get_node_case = use_store(d=> d.get_node_case(d, node));
+    if(get_node_case == 'missing'){
         return render_token({node,
             content:[
                 show_term && readable(term), 
@@ -21,15 +21,15 @@ function Node_Case({term, node, index, target, target_term, show_term, path}){
             ],
         })
     }
-    if(node_case.name == 'leaf') return Leaf({term, ...node_case.leaf, show_term}); 
+    if(get_node_case.name == 'leaf') return Leaf({term, ...get_node_case.leaf, show_term}); 
     return c(Node, {term, node, index, target, target_term, show_term, path});
 }
 
 function Node({term='', node, index, target, target_term, show_term, path}){ // , is_target, accordion_node
     path = path + term + node + index;
     const targeted = (node == target);
-    const name       = use_store(d=> d.value(d, node, 'name', '')); // d.face.name(d, node)
-    const type       = use_store(d=> d.stem(d, node, 'type'));
+    const name       = use_store(d=> d.get_value(d, node, 'name', '')); // d.face.name(d, node)
+    const type       = use_store(d=> d.get_stem(d, node, 'type'));
     const type_name  = use_store(d=> d.get.node.type_name(d, node)); // change from face.type to type_name
     let root = node;
     let terms = [];
@@ -60,17 +60,17 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
         }
     };
     return c(List_View, {items, path, header, header_addon,
-        render_item: term => c(Term_Case, {root, term, target, target_term, path}), // key:term
+        render_item: term => c(get_term_case, {root, term, target, target_term, path}), // key:term
     });
 }
 
-function Term_Case({root, term, target, target_term, path}){
-    const term_case = use_store(d=> d.term_case(d, root, term));
-    if(!term_case) return;
-    if(term_case.name == 'node'){
-        return c(Node_Case, {term, node:term_case.node, target, target_term, show_term:true, path});
-    }else if(term_case.name == 'leaf'){
-        return Leaf({term, ...term_case.leaf, show_term:true});
+function get_term_case({root, term, target, target_term, path}){
+    const get_term_case = use_store(d=> d.get_term_case(d, root, term));
+    if(!get_term_case) return;
+    if(get_term_case.name == 'node'){
+        return c(get_node_case, {term, node:get_term_case.node, target, target_term, show_term:true, path});
+    }else if(get_term_case.name == 'leaf'){
+        return Leaf({term, ...get_term_case.leaf, show_term:true});
     }
     return c(Term, {root, term, target, target_term, path});
 }
@@ -83,7 +83,7 @@ function Term({root, term, target, target_term, path}){
             header: readable(term),
             render_item(stem, index){
                 if(stem.type) return Leaf({term, ...stem}); // key:index
-                return c(Node_Case, {term, node:stem, target, target_term, index, path}); // key:index,
+                return c(get_node_case, {term, node:stem, target, target_term, index, path}); // key:index,
             }
         })
     )

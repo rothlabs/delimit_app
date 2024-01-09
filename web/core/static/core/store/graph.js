@@ -73,7 +73,7 @@ graph.layout = d => {
                 if(x > max_x) max_x = x;
                 if(y > l.max_y) l.max_y = y;
                 d.graph.nodes.get(node).pos.set(x, y, 0); // did not change yet !!!!!!!!
-                for(const [term, stem] of d.terms(d, node)){ 
+                for(const [term, stem] of d.get_edges(d, node)){ 
                     if(!d.graph.nodes.has(stem)) continue;
                     const graph_node = d.graph.nodes.get(stem);
                     if(ll.group[graph_node.grp]){
@@ -109,12 +109,12 @@ graph.layout = d => {
 };
 
 function add_node_and_edges(d, root){
-    if(!d.value(d, root, 'show', true)) return;
+    if(!d.get_value(d, root, 'show', true)) return;
     d.graph.nodes.set(root, {
         lvl: 0,
         pos: new Vector3(),
     });
-    for(const [term, stem] of d.terms(d, root)){
+    for(const [term, stem] of d.get_edges(d, root)){
         if(!d.nodes.has(stem)) continue;
         d.graph.edges.push({root, term, stem});
     }

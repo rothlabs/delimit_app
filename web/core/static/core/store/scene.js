@@ -1,28 +1,55 @@
 export const scene = {    
-    nodes: new Map(),
+    roots: new Set(),
 };
 
-scene.add_nodes = (d, {...items}) => {
-    d.get_iterable(items).map(node => 
-        d.scene.nodes.set(node, {}));
+scene.make_roots = (d, {...ids}) => {
+    d.get_iterable(ids).map(root => 
+        d.make.edge(d, {root, term:'scenes'})); 
 }
 
-scene.remove_nodes = (d, {...items}) => {
-    d.get_iterable(items).map(node => 
-        d.scene.nodes.delete(node));
+scene.drop_roots = (d, {...ids}) => {
+    d.get_iterable(ids).map(id => {
+        d.drop.node(d, {id:d.get_stem(d, id, 'scenes'), deep:true});
+        d.drop.edge(d, {root:id, term:'scenes'});
+    });
 }
 
-export const get_scenes = (d, {...items}) =>
-    d.get_iterable(items).map(item => 
-        get_scenes_from_item(d, item))
-            .flat().filter(scene => scene);
-
-export const get_scene_nodes = d => [...d.scene.nodes.keys()];
-
-function get_scenes_from_item(d, item){
-    if(item.scenes) return item.scenes;
-    if(d.scene.nodes.has(item)) return d.scene.nodes.get(item);
+scene.add_or_remove_root = (d, id) => {
+    if(!d.get_term_case(d, id, 'scene_type')
+        && d.get_term_case(d, id, 'scenes')) 
+            d.scene.roots.add(id); 
+    else d.scene.roots.delete(id);
 }
+
+scene.get_roots = d => [...d.scene.roots.keys()];
+
+scene.get_scenes = (d, id) => d.get_stems(d, id, 'scenes');
+
+scene.get_type_name = (d, id) => d.get_value(d, id, 'scene_type', '');
+
+
+
+
+// scene.get_scenes = (d, {...ids}) =>
+//     d.get_iterable(ids).map(id => 
+//         d.get_stems(d, id, 'scenes'))
+//             .flat().filter(id => id);
+
+// function get_scene_nodes(d, id){
+//     if(is_scene_node(d, id)) return d.get_stems(d, id, 'scenes');//d.nodes.get(id).terms.get('scenes');
+//     if(d.scene.roots.has(id)) return get_scene_nodes(d, id);//d.scene.roots.get(id);
+// }
+
+// function is_scene_node(d, id){
+//     return d.get_value(d, id, 'scene_type') != null
+// }
+
+// function make_scene_of_type_group(d){
+//     const root = d.make.node(d, {});
+//     d.make.edge(d, {root, term:'scene_type', stem:{type:'string', value:'group'}});
+//     d.make.edge(d, {root, term:'scenes'});
+//     return root;
+// }
 
 
 

@@ -111,11 +111,11 @@ export const render_badge = ({icon, name, color='info', size, node, repo, versio
 export function Node_Badge({node}){ 
     const icon = use_store(d=> d.get.node.icon(d, node));
     const title = use_store(d=> d.get.node.title(d, node));
-    //const node_case = use_store(d=> d.node_case(d, node));
+    //const get_node_case = use_store(d=> d.get_node_case(d, node));
     const color = node.type ? {name:'body'} : 'body';
     const size = node.type ? 'h5' : null;
     // const className = classNames('user-select-none', 'text-'+color, { 
-    //     'text-body-secondary': node_case != 'node',
+    //     'text-body-secondary': get_node_case != 'node',
     // });
     return render_badge({icon, name:title, color, size});
     // return c('div', {className:'d-flex align-items-center h-100 gap-2'},

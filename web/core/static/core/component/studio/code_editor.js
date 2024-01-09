@@ -8,8 +8,8 @@ export function Code_Editor(){
     const monaco = useMonaco();
     const [editor, set_editor] = useState();
     const root = use_store(d=> d.picked.secondary.node.keys().next().value);
-    const value = use_store(d=> d.value(d, root, ['source', 'code source', 'type code source'], default_code));
-    const language = use_store(d=> d.value(d, root, ['language', 'code language', 'type code language'], 'javascript'));
+    const value = use_store(d=> d.get_value(d, root, ['source', 'code source', 'type code source'], default_code));
+    const language = use_store(d=> d.get_value(d, root, ['language', 'code language', 'type code language'], 'javascript'));
     const theme_mode = use_store(d=> d.theme.mode);
     const color = use_store(d=> d.color.body_bg);
     useEffect(() => {
@@ -30,13 +30,13 @@ export function Code_Editor(){
             act_on_store(d=> {
                 const value = editor.getValue();
                 let target = root;
-                if(d.value(d, target, 'source')) d.set_leaf(d, {root:target, term:'source', value});
-                if(d.value(d, target, 'code source')) {
-                    target = d.stem(d, target, 'code');
+                if(d.get_value(d, target, 'source')) d.set_leaf(d, {root:target, term:'source', value});
+                if(d.get_value(d, target, 'code source')) {
+                    target = d.get_stem(d, target, 'code');
                     d.set_leaf(d, {root:target, term:'source', value});
                 }
-                if(d.value(d, target, 'type code source')) {
-                    target = d.stem(d, target, 'type code');
+                if(d.get_value(d, target, 'type code source')) {
+                    target = d.get_stem(d, target, 'type code');
                     d.set_leaf(d, {root:target, term:'source', value});
                 }
             });

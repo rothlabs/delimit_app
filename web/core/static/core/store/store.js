@@ -67,11 +67,11 @@ export const core_store = {
         });
         d.graph.increment(d);
     },
-    add_or_remove_as_context_node(d, root){
-        if(d.get.node.type_name(d, root) == 'Context') d.context_nodes.add(root);
-        else d.context_nodes.delete(root);
+    add_or_remove_as_context_node(d, id){
+        if(d.get.node.type_name(d, id) == 'Context') d.context_nodes.add(id);
+        else d.context_nodes.delete(id);
     },
-    node_case(d, root){
+    get_node_case(d, root){
         if(!d.nodes.has(root)) return 'missing';
         const terms = d.nodes.get(root).terms;
         if(!terms.size) return 'empty';
@@ -81,7 +81,7 @@ export const core_store = {
         if(leaf[0].type) return {name:'leaf', leaf:leaf[0]}; 
         return 'node';
     },
-    term_case(d, root, term){
+    get_term_case(d, root, term){
         if(!d.nodes.has(root)) return;
         const stems = d.nodes.get(root).terms.get(term);
         if(!stems) return;
@@ -90,29 +90,24 @@ export const core_store = {
         if(stems[0].type) return {name:'leaf', leaf:stems[0]};
         return {name:'node', node:stems[0]};
     },
-    leaf(d, node, path, alt){
-        for(const pth of d.get_iterable(path)){
-            try{
-                for(const term of pth.split(' ')){
-                    node = d.nodes.get(node).terms.get(term)[0];
-                }
-                if(node.type) return node; //.value;
-                node = d.nodes.get(node).terms.get('leaf')[0];
-                if(node.type) return node; // .value;
-            }catch{}
+    get_leaf(d, node, path){
+        for(const term of path.split(' ')){
+            node = d.nodes.get(node).terms.get(term)[0];
         }
-        return alt;
+        if(node.type) return node; //.value;
+        node = d.nodes.get(node).terms.get('leaf')[0];
+        if(node.type) return node; // .value;
     },
-    value(d, node, path, alt){ 
+    get_value(d, node, path, alt){ 
         for(const pth of d.get_iterable(path)){
             try{
-                const leaf = d.leaf(d, node, pth);
+                const leaf = d.get_leaf(d, node, pth);
                 if(leaf.type) return leaf.value;
             }catch{}
         }
         return alt;
     },
-    stem(d, node, path, alt){
+    get_stem(d, node, path, alt){
         for(const pth of d.get_iterable(path)){
             try{
                 for(const term of pth.split(' ')){
@@ -123,12 +118,12 @@ export const core_store = {
         }
         return alt;
     },
-    stems(d, root, path){ // rename to path? (like terminusdb path query)
+    get_stems(d, root, path){ // allow multiple roots? #1
         const result = [];
         for(const pth of d.get_iterable(path)){
             const terms = pth.split(' ');
             const last_term = terms.at(-1);//terms.pop();
-            function get_stems(root, terms){
+            function get_inner_stems(root, terms){
                 const term = terms.shift();
                 if(!d.nodes.has(root)) return;
                 const stems = d.nodes.get(root).terms.get(term);
@@ -139,15 +134,15 @@ export const core_store = {
                     }
                 }else{
                     for(let i = 0; i < stems.length; i++){
-                        if(d.nodes.has(stems[i])) get_stems(stems[i], [...terms]);
+                        if(d.nodes.has(stems[i])) get_inner_stems(stems[i], [...terms]);
                     }
                 }
             }
-            get_stems(root, terms);
+            get_inner_stems(root, terms);
         }
         return result;
     },
-    terms: function* (d, root, a={}){
+    get_edges: function* (d, root, a={}){
         for(const [term, stems] of d.nodes.get(root).terms){
             for(let index = 0; index < stems.length; index++){
                 const stem = stems[index];
@@ -155,7 +150,7 @@ export const core_store = {
             }
         }
     },
-    back: function* (d, stem){
+    get_back_edge: function* (d, stem){
         for(const root of d.nodes.get(stem).back){
             for(const [term, stems] of d.nodes.get(root).terms){
                 for(let index = 0; index < stems.length; index++){
@@ -165,24 +160,25 @@ export const core_store = {
         }
     },
     writable(d, node){
-        const node_is_writable = node =>{
-            const version = d.nodes.get(node)?.version;
-            if(d.versions.has(version)){
-                const version_obj = d.versions.get(version);
-                version_obj.writable || d.repos.get(version_obj.repo).writable;
+        const is_node_writable = node =>{
+            const id = d.nodes.get(node)?.version;
+            if(d.versions.has(id)){
+                const version = d.versions.get(id);
+                return (version.writable || d.repos.get(version.repo).writable);
             }
             return true;
         };
         if(typeof node[Symbol.iterator] === 'function'){//if(Array.isArray(node)){
-            return [...node].filter(node=> node_is_writable(node));
+            return [...node].filter(node=> is_node_writable(node));
         }
-        return node_is_writable(node);
+        return is_node_writable(node);
     },
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
     get_iterable(item){ 
-        item = item.node ?? item.nodes ?? item.repo ?? item.repos ?? item.version ?? item.versions ?? item.scene ?? item.scenes ?? item;
+        item = item.id ?? item.ids ?? item.node ?? item.nodes ?? item.root ?? item.roots ?? item.repo ?? item.repos ?? 
+            item.version ?? item.versions ?? item.scene ?? item.scenes ?? item;
         if(item == null) return [];
         if(typeof item === 'string') return [item];
         if(typeof item[Symbol.iterator] === 'function') return item;
@@ -192,3 +188,16 @@ export const core_store = {
 
 
 
+
+// get_leaf(d, node, path){
+//     for(const pth of d.get_iterable(path)){
+//         try{
+//             for(const term of pth.split(' ')){
+//                 node = d.nodes.get(node).terms.get(term)[0];
+//             }
+//             if(node.type) return node; //.value;
+//             node = d.nodes.get(node).terms.get('leaf')[0];
+//             if(node.type) return node; // .value;
+//         }catch{}
+//     }
+// },

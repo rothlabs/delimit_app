@@ -5,7 +5,7 @@ export const node = {};
 node.icon = (d, node) => {
     if(!node) return icons.svg.generic;
     if(node.type) return icons.svg[node.type];
-    const icon_string = d.value(d, node,  ['type icon source', 'icon source'], icons.svg.generic);
+    const icon_string = d.get_value(d, node,  ['type icon source', 'icon source'], icons.svg.generic);
     return isSvg(icon_string) ? icon_string : icons.svg.generic;
 };
 node.name = (d, node) => {
@@ -13,12 +13,10 @@ node.name = (d, node) => {
     if(node.type) return (''+node.value).trim().substring(0, 24);
     if(!d.nodes.has(node)) return node;
     if(d.nodes.get(node).terms.size < 1) return 'empty';
-    return (''+d.value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
+    return (''+d.get_value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
 };
-node.type_name = (d, root) => {
-    if(!root) return '';
-    return d.value(d, root, ['type name', 'type'], '');
-},
+node.type_name = (d, root) => 
+    d.get_value(d, root, ['type name', 'type'], '');
 node.title = (d, node) => { 
     const type_name = d.get.node.type_name(d, node);
     return d.get.node.name(d, node) + (type_name ? ' ('+readable(type_name)+')' : '');
@@ -103,7 +101,7 @@ export const root_context_nodes = d => {
     const result = new Set();
     for(const node of d.context_nodes){
         let is_root_context = true;
-        for(const [root, term] of d.back(d, node)){
+        for(const [root, term] of d.get_back_edge(d, node)){
             if(term == 'contexts' && d.get.node.type_name(d, root) == 'Context'){
                 is_root_context = false;
             }

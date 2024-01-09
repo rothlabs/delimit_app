@@ -28,6 +28,7 @@ export const set_leaf = (d, {root, term, index=0, value}) => {
     let coerced = value;
     if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
         leaf.value = coerced;
+        d.scene.add_or_remove_root(d, root);
         return coerced;
     }
     if(typeof coerced == 'string'){
@@ -70,6 +71,7 @@ export const set_term = (d, {root, term, new_term}) => {
     terms.delete(term);
     d.picked_context = {root, term:new_term};
     d.add_or_remove_as_context_node(d, root);
-    // if(new_term=='type' && d.value(d, root, new_term)=='Context') d.context_nodes.add(root);
+    d.scene.add_or_remove_root(d, root);
+    // if(new_term=='type' && d.get_value(d, root, new_term)=='Context') d.context_nodes.add(root);
     // else d.context_nodes.delete(root);
 };

@@ -14,18 +14,18 @@ export const dropped = {
 export const close = {};
 export const drop = {};
 
-close.node = (d, {drop, given, deep, ...item})=>{  // shut by version
+close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
     //nodes = nodes ?? node;
     //console.log('close nodes', nodes.size);
     let targets = new Set();
-    for(const node of d.get_iterable(item)){
-        if(d.nodes.has(node)) targets.add(node);
+    for(const id of d.get_iterable(ids)){
+        if(d.nodes.has(id)) targets.add(id);
     }
     if(deep){
         function get_stems(nodes){
             const next_nodes = new Set();
             for(const node of nodes){
-                for(const [term, stem] of d.terms(d, node)){ // d.flat(d.nodes.get(node).terms)
+                for(const [term, stem] of d.get_edges(d, node)){ // d.flat(d.nodes.get(node).terms)
                     if(!d.nodes.has(stem)) continue;
                     if([...d.nodes.get(stem).back].every(root=> targets.has(root))){//if(d.nodes.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.nodes.has(root) 
                         targets.add(stem);
@@ -41,14 +41,14 @@ close.node = (d, {drop, given, deep, ...item})=>{  // shut by version
     for(const node of targets){
         if(!d.nodes.has(node)) continue;
         d.drop.edge(d, {root:node});
-        const version = d.nodes.get(node).version;
         if(drop){
             d.drop.edge(d, {stem:node});
             d.dropped.node.add(node);
         }else{
             d.closed.node.add(node);
         }
-        d.versions.get(version).nodes.delete(node);
+        const version = d.nodes.get(node).version;
+        if(d.versions.has(version)) d.versions.get(version).nodes.delete(node);
         d.unpick(d, {item:{node}});
         d.nodes.delete(node);
     }
@@ -98,7 +98,7 @@ drop.edge = (d, a={})=>{
     let drops = []; 
     function forward_edge(func){
         if(!d.nodes.has(a.root)) return {};
-        for(const [term, stem, index] of d.terms(d, a.root, {leaf:true})){ // d.flat(d.nodes.get(a.root).terms)
+        for(const [term, stem, index] of d.get_edges(d, a.root, {leaf:true})){ // d.flat(d.nodes.get(a.root).terms)
             func({root:a.root, term, stem, index});
         }
     }
@@ -109,6 +109,7 @@ drop.edge = (d, a={})=>{
     }else if(a.root && a.term && !a.stem){
         const terms = d.nodes.get(a.root).terms;
         if(terms.has(a.term) && !terms.get(a.term).length) terms.delete(a.term);
+        d.scene.add_or_remove_root(d, a.root);
         return;
     }else if(a.root && a.stem){
         forward_edge(edge=> edge.stem==a.stem && drops.push(edge));
@@ -116,7 +117,7 @@ drop.edge = (d, a={})=>{
         forward_edge(edge=> drops.push(edge));
     }else if(a.stem){
         if(!d.nodes.has(a.stem)) return;
-        for(const [root, term, index] of d.back(d, a.stem)){ //for(const [root, term, index] of d.nodes.get(a.stem).back.values()){
+        for(const [root, term, index] of d.get_back_edge(d, a.stem)){ //for(const [root, term, index] of d.nodes.get(a.stem).back.values()){
             drops.push({root, term, stem:a.stem, index});
         }
     }
@@ -131,6 +132,7 @@ drop.edge = (d, a={})=>{
         //if(term=='type' && stem.value=='Context') d.context_nodes.delete(root);
         stems.splice(index, 1);
         d.add_or_remove_as_context_node(d, root);
+        d.scene.add_or_remove_root(d, root);
         // if(!stems.length){
         //     if(a.placeholder){
         //         const empty = d.make.node(d, {});
@@ -145,7 +147,7 @@ drop.edge = (d, a={})=>{
         if(!d.nodes.has(drp.stem)) continue;
         increment_graph = true;
         let drop_back = true;
-        for(const [term, stem] of d.terms(d, drp.root)){
+        for(const [term, stem] of d.get_edges(d, drp.root)){
             if(stem == drp.stem) drop_back = false;
         }
         if(drop_back){

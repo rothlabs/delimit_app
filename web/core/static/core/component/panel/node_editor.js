@@ -6,20 +6,20 @@ import {use_store, draggable, List_View, drag_drop,
 export function Node_Editor(){ 
     const items = use_store(d=> [...d.picked.primary.node.keys()]); 
     return c(List_View, {items,
-        render_item: node => c(Node_Case, {root:node, node, path:'inspect'}), 
+        render_item: node => c(get_node_case, {root:node, node, path:'inspect'}), 
     })
 }
 
-function Node_Case({root, term, node, index, show_term, path}){
-    const node_case = use_store(d=> d.node_case(d, node));
+function get_node_case({root, term, node, index, show_term, path}){
+    const get_node_case = use_store(d=> d.get_node_case(d, node));
     const edge = {root, term, stem:node, index};
     let dnd = drag_drop(edge);
     if(root == node) dnd = {...droppable({root}), ...draggable({stem:node})};
-    if(node_case.name == 'leaf'){
+    if(get_node_case.name == 'leaf'){
         term = term ?? 'leaf';
         const proxy = root ? edge : null; // const proxy = (root && root!=node) ? edge : null;
-        return c(Leaf, {root:node, ...node_case.leaf, proxy, show_term:term, show_icon:true}); 
-    }else if(node_case == 'missing'){
+        return c(Leaf, {root:node, ...get_node_case.leaf, proxy, show_term:term, show_icon:true}); 
+    }else if(get_node_case == 'missing'){
         return render_token({...dnd, ...pickable({item:{node}, mode:'secondary', root, term}),
             content:[
                 show_term && readable(term), 
@@ -37,26 +37,26 @@ function Node({dnd, root, term='', node, index=0, show_term, path}){
         show_term && readable(term),
         render_badge({node}), 
     ];
-    const header_props = {...dnd, ...pickable({item:{node}, mode:'secondary', root, term})};
+    const header_props = {...dnd, ...pickable({item:{node}, root, term})}; // mode:'secondary'
     return c(List_View, {items, path, header_props, header,
-        render_item: term => c(Term_Case, {root:node, term, path}), // key:term
+        render_item: term => c(get_term_case, {root:node, term, path}), // key:term
     });
 }
 
-function Term_Case({root, term, path}){
-    const term_case = use_store(d=> d.term_case(d, root, term));
-    if(!term_case) return;
-    if(term_case == 'empty'){
+function get_term_case({root, term, path}){
+    const get_term_case = use_store(d=> d.get_term_case(d, root, term));
+    if(!get_term_case) return;
+    if(get_term_case == 'empty'){
         return render_token({...drag_drop({root, term}),
             content:[
                 readable(term),
                 c('div', {className:'text-body'}, 'emtpy'), 
             ],
         })
-    }else if(term_case.name == 'node'){
-        return c(Node_Case, {root, term, node:term_case.node, show_term:true, path});
-    }else if(term_case.name == 'leaf'){
-        return c(Leaf, {root, term, ...term_case.leaf, show_term:true});
+    }else if(get_term_case.name == 'node'){
+        return c(get_node_case, {root, term, node:get_term_case.node, show_term:true, path});
+    }else if(get_term_case.name == 'leaf'){
+        return c(Leaf, {root, term, ...get_term_case.leaf, show_term:true});
     }
     return c(Term, {root, term, path});
 }
@@ -66,11 +66,11 @@ function Term({root, term, path}){
     const items = use_store(d=> d.nodes.get(root).terms.get(term));
     return(
         c(List_View, {items, path:pth,
-            header_props:{...droppable({root, term}), ...pickable({mode:'secondary', root, term})}, 
+            header_props:{...droppable({root, term}), ...pickable({root, term})}, // mode:'secondary',  
             header: readable(term),
             render_item(stem, index){
                 if(stem.type) return c(Leaf, {root, term, ...stem, index}); // key:index
-                return c(Node_Case, {root, term, node:stem, index, path}); // key:index,
+                return c(get_node_case, {root, term, node:stem, index, path}); // key:index,
             }
         })
     )
