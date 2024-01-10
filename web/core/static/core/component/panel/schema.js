@@ -1,11 +1,11 @@
 import {createElement as c} from 'react';
-import {use_store, render_token, List_View, render_badge, readable, snake_case} from 'delimit';
+import {use_store, render_token, List_View, render_badge, readable, get_snake_case} from 'delimit';
 
 const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
 
 export function Schema(){ 
-    const items = use_store(d=> [...d.picked.primary.node].filter(node=> d.nodes.has(d.get_stem(d, node, 'type')))); 
+    const items = use_store(d=> [...d.picked.primary.node].filter(root=> d.nodes.has(d.get_stem(d, {root, term:'type'})))); 
     return c(List_View, {items, 
         render_item: node => c(Node, {node, target:node, path:'schema'}), 
     })  
@@ -28,16 +28,16 @@ function get_node_case({term, node, index, target, target_term, show_term, path}
 function Node({term='', node, index, target, target_term, show_term, path}){ // , is_target, accordion_node
     path = path + term + node + index;
     const targeted = (node == target);
-    const name       = use_store(d=> d.get_value(d, node, 'name', '')); // d.face.name(d, node)
-    const type       = use_store(d=> d.get_stem(d, node, 'type'));
-    const type_name  = use_store(d=> d.get.node.type_name(d, node)); // change from face.type to type_name
     let root = node;
+    const name       = use_store(d=> d.get_value(d, {root, term:'name', alt:''})); // d.face.name(d, node)
+    const type       = use_store(d=> d.get_stem(d, {root, term:'type'}));
+    const type_name  = use_store(d=> d.get.node.type_name(d, node)); // change from face.type to type_name
     let terms = [];
     if(targeted){
         root = type;
         terms = logic_terms;
     }else if(['Root', 'Term'].includes(type_name)){
-        if(type_name == 'Term') target_term = snake_case(name);
+        if(type_name == 'Term') target_term = get_snake_case(name);
         terms = logic_terms;
     }else if(type_name == 'Stem'){
         terms = stem_type_terms;

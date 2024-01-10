@@ -1,7 +1,7 @@
 import {set_store, act_on_store, pointer} from 'delimit';
 
-const pointer_style = {
-    onPointerEnter(e){ 
+const pointer_style_events = {
+    onPointerEnter(){ 
         document.body.style.cursor = 'pointer';
     },
     onPointerLeave(e){ 
@@ -11,46 +11,50 @@ const pointer_style = {
 };
 
 export const droppable = ({root, term, index}) => {
-    const result = {...pointer_style};
-    result.onPointerEnter = e => {
-        if(pointer.dragging) document.body.style.cursor = 'pointer';
-    };
+    const result = {...pointer_style_events};
     result.onPointerUp = e => {
         act_on_store(d=>{
-            if(!d.drag.edge.stem) return;
-            d.make.edge(d, {root, term, stem:d.drag.edge.stem, index});
+            const stem = d.drag.edge.stem;
+            if(!stem) return;
+            d.make.edge(d, {root, term, stem, index});
         });
         set_store(d=> d.drag.edge = {});
     };
     return result;
 };
 
-export const draggable = edge => {
-    const result = {...pointer_style};
+export const draggable = item => {
+    const result = {...item, ...pointer_style_events};
     result.onPointerDown = e => {
-        if(e.nativeEvent.button != 0) return;
+        if(e.nativeEvent.button != 0) return; // prevents right click?
         pointer.dragging = true;
         pointer.start.set(e.clientX, e.clientY);
-        set_store(d=> d.drag.staged = edge);
+        set_store(d=> d.drag.staged = item);
     };
     return result;
 };
 
-export const drag_drop = edge => ({...droppable(edge), ...draggable(edge)});
+export const drag_drop = args => ({...droppable(args), ...draggable(args)});
 
-export const pickable = ({mode='all', root, term, ...item}) => {
-    const result = {...pointer_style, ...item, root, term};
+export const pickable = ({mode='all', ...item}) => { // root, term, ...item
+    const result = {...item, ...pointer_style_events};
     if(mode == 'all' || mode == 'primary') result.onClick = e => { 
         e.stopPropagation();
-        set_store(d=> d.pick(d, {multi:e.ctrlKey, root, term, ...item}));
+        set_store(d=> d.pick(d, {multi:e.ctrlKey, ...item}));
     };
     if(mode == 'all' || mode == 'secondary') result.onContextMenu = e => {
         e.stopPropagation();
         e.nativeEvent.preventDefault();
-        set_store(d=> d.pick(d, {multi:e.ctrlKey, mode:'secondary', root, term, ...item}));
+        set_store(d=> d.pick(d, {multi:e.ctrlKey, mode:'secondary', ...item}));
     };
     return result;
 };
 
         //if(e.preventDefault) e.preventDefault();
         //if(e.nativeEvent) 
+
+
+
+    // result.onPointerEnter = e => {
+    //     if(pointer.dragging) document.body.style.cursor = 'pointer';
+    // };

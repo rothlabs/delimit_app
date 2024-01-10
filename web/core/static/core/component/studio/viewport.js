@@ -8,7 +8,7 @@ import {CameraControls} from '@react-three/drei/CameraControls';
 //import {Vector3} from 'three';
 import {
     set_store, use_store, 
-    Graph, Scene,
+    Graph, Scene_Root,
 } from 'delimit';
 
 //const v1 = new Vector3();
@@ -129,7 +129,7 @@ export function Viewport(){ // for some reason this renders 5 times on load
     }, 
         c(Viewport_Control),
         studio_mode=='graph'  && c(Graph),
-        studio_mode=='scene' && c(Scene),
+        studio_mode=='scene' && c(Scene_Root),
         c('directionalLight', { 
             ref:light,
             color: 'white',

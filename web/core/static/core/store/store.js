@@ -18,6 +18,7 @@ export const core_store = {
     repos:    new Map(),
     versions: new Map(),
     context_nodes: new Set(),
+    server: {},
     studio:{
         mode: 'repo',
         panel: {mode:'node_editor'},
@@ -51,6 +52,7 @@ export const core_store = {
         d.base_texture.anisotropy = 16;
         d.theme.compute(d);
     },
+    is_version_node_id: id => (/^[a-zA-Z0-9]+$/.test(id) && id.length == 32),
     set_store_from_server_changes(d, changes){
         Object.entries(changes.repos).map(entry => d.make.repo(d, entry));
         Object.entries(changes.versions).map(entry => d.make.version(d, entry));
@@ -90,38 +92,49 @@ export const core_store = {
         if(stems[0].type) return {name:'leaf', leaf:stems[0]};
         return {name:'node', node:stems[0]};
     },
-    get_leaf(d, node, path){
-        for(const term of path.split(' ')){
+    // get_ref(d, {root, term}){
+    //     try{
+    //         return d.nodes.get(root).terms.get(term).value;
+    //     }catch{}
+    // },
+    get_leaf(d, node, term_path){
+        for(const term of term_path.split(' ')){
             node = d.nodes.get(node).terms.get(term)[0];
         }
         if(node.type) return node; //.value;
         node = d.nodes.get(node).terms.get('leaf')[0];
         if(node.type) return node; // .value;
     },
-    get_value(d, node, path, alt){ 
-        for(const pth of d.get_iterable(path)){
+    get_value(d, {root, alt, ...term_paths}){ 
+        for(const terms of d.get_iterable(term_paths)){
             try{
-                const leaf = d.get_leaf(d, node, pth);
+                const leaf = d.get_leaf(d, root, terms);
                 if(leaf.type) return leaf.value;
             }catch{}
         }
         return alt;
     },
-    get_stem(d, node, path, alt){
-        for(const pth of d.get_iterable(path)){
+    get_values(d, {root, terms}){
+        return Object.entries(terms).map(([term, alt]) => {
+            return d.get_value(d, {root, term, alt});
+            //const root_or_value = d.get_value(d, {root, term, alt});
+            //return d.get_value(d, {root:root_or_value, term, alt:root_or_value});
+        });
+    },
+    get_stem(d, {root, ...term_paths}){
+        for(const term_path of d.get_iterable(term_paths)){ // term_paths.term ?? term_paths.terms
             try{
-                for(const term of pth.split(' ')){
-                    node = d.nodes.get(node).terms.get(term)[0];
+                for(const term of term_path.split(' ')){
+                    root = d.nodes.get(root).terms.get(term)[0];
                 }
-                return node;
+                return root;
             }catch{}
         }
-        return alt;
     },
-    get_stems(d, root, path){ // allow multiple roots? #1
+    get_stems(d, {root, ...term_paths}){ 
         const result = [];
-        for(const pth of d.get_iterable(path)){
-            const terms = pth.split(' ');
+        for(const term_path of d.get_iterable(term_paths)){
+            const terms = term_path.split(' ');
             const last_term = terms.at(-1);//terms.pop();
             function get_inner_stems(root, terms){
                 const term = terms.shift();
@@ -150,7 +163,7 @@ export const core_store = {
             }
         }
     },
-    get_back_edge: function* (d, stem){
+    get_back_edges: function* (d, stem){
         for(const root of d.nodes.get(stem).back){
             for(const [term, stems] of d.nodes.get(root).terms){
                 for(let index = 0; index < stems.length; index++){
@@ -176,13 +189,13 @@ export const core_store = {
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    get_iterable(item){ 
-        item = item.id ?? item.ids ?? item.node ?? item.nodes ?? item.root ?? item.roots ?? item.repo ?? item.repos ?? 
-            item.version ?? item.versions ?? item.scene ?? item.scenes ?? item;
-        if(item == null) return [];
-        if(typeof item === 'string') return [item];
-        if(typeof item[Symbol.iterator] === 'function') return item;
-        return [item];
+    get_iterable(i){ // ?? i.term ?? i.terms
+        i = i.id ?? i.ids ?? i.node ?? i.nodes ?? i.root ?? i.roots ?? i.term ?? i.terms
+            ?? i.repo ?? i.repos ?? i.version ?? i.versions ?? i.scene ?? i.scenes ?? i;
+        if(i == null) return [];
+        if(typeof i === 'string') return [i];
+        if(typeof i[Symbol.iterator] === 'function') return i;
+        return [i];
     },
 };
 

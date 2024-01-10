@@ -9,9 +9,9 @@ const v2 = new Vector3();
 
 export const View_Transform = forwardRef((props, ref)=>{ 
     var obj = null;
-    const point_size = use_store(d=> d.point_size);
+    // // const point_size = use_store(d=> d.point_size);
     //const {camera} = useThree();
-    const {position} = useSpring({ position:[props.position.x, props.position.y, 0] });
+    const {position} = useSpring({position:props.position.toArray()}); // position:[props.position.x, props.position.y, 0] 
     //let x = to(spring, value=> value);//spring_x.to(value=> value+1);
     //let y = to(spring_y, value=> value);//spring_x.to(value=> value+1);
     useFrame((state) => { // use d.cam_info here? #1
@@ -19,12 +19,12 @@ export const View_Transform = forwardRef((props, ref)=>{
             let factor = props.size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!
             obj.scale.set(factor,factor,factor);
         }
-        if(props.offset_z){
-            state.camera.getWorldDirection(v1);
-            obj.getWorldDirection(v2);
-            if(v1.dot(v2)>0) obj.position.set(0, 0,  point_size*props.offset_z / state.camera.zoom);//props.offset_z / state.camera.zoom);
-            else             obj.position.set(0, 0, -point_size*props.offset_z / state.camera.zoom);//-props.offset_z / state.camera.zoom);
-        }
+        // // if(props.offset_z){
+        // //     state.camera.getWorldDirection(v1);
+        // //     obj.getWorldDirection(v2);
+        // //     if(v1.dot(v2)>0) obj.position.set(0, 0,  point_size*props.offset_z / state.camera.zoom);//props.offset_z / state.camera.zoom);
+        // //     else             obj.position.set(0, 0, -point_size*props.offset_z / state.camera.zoom);//-props.offset_z / state.camera.zoom);
+        // // }
     });
     return (c(animated.group, {...props, position, ref:r=>{
         obj = r; 

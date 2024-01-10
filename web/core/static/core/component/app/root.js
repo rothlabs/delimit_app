@@ -35,15 +35,15 @@ export function Root(){
                 if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
                 act_on_store(d=>{
                     if(Object.keys(d.drag.edge).length) return;
-                    const edge = d.drag.staged;
-                    if(!e.ctrlKey || !edge.root || !edge.term) return; 
-                    d.drop.edge(d, edge); 
+                    const {root, term, stem, index} = d.drag.staged;
+                    if(!e.ctrlKey || !root || !term) return;
+                    d.drop.edge(d, {root, term, stem, index}); 
                 });
                 set_store(d=>{
                     if(Object.keys(d.drag.edge).length) return;
-                    const edge = d.drag.staged;
-                    if(e.ctrlKey) d.drag.edge = edge;
-                    else d.drag.edge = {stem:edge.stem};
+                    const {root, term, stem, index} = d.drag.staged;
+                    if(e.ctrlKey) d.drag.edge = {root, term, stem, index};
+                    else d.drag.edge = {stem};
                 });
             },
             onPointerUp(){
@@ -67,7 +67,7 @@ export function Root(){
             c(Login),
             c(Logout),
             c(Confirm),
-            c(Mutations),
+            //c(Mutations),
         )
     );
 } 
@@ -91,54 +91,6 @@ function Account_Menu(){
     });
 }
 
-function Mutations(){
-    const [make_repo] = use_mutation('MakeRepo', {refetchQueries:['GetRepos']}); 
-    const [make_meta_repo] = use_mutation('MakeMetaRepo', {refetchQueries:['GetRepos']}); 
-    const [edit_repo] = use_mutation('EditRepo', {
-        refetchQueries:['GetRepos'],
-        onCompleted:data=>{
-            console.log(data.editRepo.reply);
-        },
-    });
-    const [drop_repo] = use_mutation('DropRepo', {
-        refetchQueries:['GetRepos']
-    });
-    const [edit_version] = use_mutation('EditVersion', {
-        refetchQueries:['GetRepos'],
-        onCompleted:data=>{
-            console.log(data.editVersion.reply);
-        },
-    });
-    const [drop_versions] = use_mutation('DropVersions', {
-        refetchQueries:['GetRepos'],
-        onCompleted:data=>{
-            console.log(data.dropVersions.reply);
-        },
-    });
-    const [make_nodes] = use_mutation('MakeNodes', {
-        onCompleted:data=>{
-            console.log(data.makeNodes.reply);
-        },
-    });
-    const [drop_nodes] = use_mutation('DropNodes',{
-        onCompleted:data=>{
-            console.log(data.dropNodes.reply);
-        },
-    });
-    set_store(d=>{ 
-        d.server = {
-            make_repo,
-            make_meta_repo,
-            edit_repo,
-            drop_repo,
-            edit_version,
-            drop_versions,
-            make_nodes,
-            drop_nodes,
-        };
-    });
-}
-
 function Dragged(){
     //console.log('render drag');
     const {root, term, stem} = use_store(d=> d.drag.edge);
@@ -154,3 +106,35 @@ function Dragged(){
         )
     )
 }
+
+
+
+
+
+
+// c('div', {
+//     id: 'root', 
+//     className: 'vh-100',
+//     onPointerMove(e){ // Capture  
+//         pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
+//         pointer.position.set(e.clientX, e.clientY);
+//         if(!pointer.dragging) return; 
+//         if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
+//         act_on_store(d=>{
+//             if(Object.keys(d.drag.edge).length) return;
+//             const edge = d.drag.staged;
+//             if(!e.ctrlKey || !edge.root || !edge.term) return; 
+//             d.drop.edge(d, edge); 
+//         });
+//         set_store(d=>{
+//             if(Object.keys(d.drag.edge).length) return;
+//             const edge = d.drag.staged;
+//             if(e.ctrlKey) d.drag.edge = edge;
+//             else d.drag.edge = {stem:edge.stem};
+//         });
+//     },
+//     onPointerUp(){
+//         pointer.dragging = false;
+//         set_store(d=> d.drag.edge = {});
+//     },
+// },

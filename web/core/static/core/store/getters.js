@@ -2,28 +2,28 @@ import {readable, icons} from 'delimit';
 import isSvg from 'is-svg';
 
 export const node = {};
-node.icon = (d, node) => {
-    if(!node) return icons.svg.generic;
-    if(node.type) return icons.svg[node.type];
-    const icon_string = d.get_value(d, node,  ['type icon source', 'icon source'], icons.svg.generic);
+node.icon = (d, root) => {
+    if(!root) return icons.svg.generic;
+    if(root.type) return icons.svg[root.type];
+    const icon_string = d.get_value(d, {root,  terms:['type icon source', 'icon source'], alt:icons.svg.generic});
     return isSvg(icon_string) ? icon_string : icons.svg.generic;
 };
-node.name = (d, node) => {
-    if(!node) return 'none';
-    if(node.type) return (''+node.value).trim().substring(0, 24);
-    if(!d.nodes.has(node)) return node;
-    if(d.nodes.get(node).terms.size < 1) return 'empty';
-    return (''+d.get_value(d, node,  ['name', 'leaf'], '')).trim().substring(0, 24);
+node.name = (d, root) => {
+    if(!root) return 'none';
+    if(root.type) return (''+root.value).trim().substring(0, 24);
+    if(!d.nodes.has(root)) return root;
+    if(d.nodes.get(root).terms.size < 1) return 'empty';
+    return (''+d.get_value(d, {root, terms:['name', 'leaf'], alt:''})).trim().substring(0, 24);
 };
 node.type_name = (d, root) => 
-    d.get_value(d, root, ['type name', 'type'], '');
-node.title = (d, node) => { 
-    const type_name = d.get.node.type_name(d, node);
-    return d.get.node.name(d, node) + (type_name ? ' ('+readable(type_name)+')' : '');
+    d.get_value(d, {root, terms:['type name', 'type'], alt:''});
+node.title = (d, root) => { 
+    const type_name = d.get.node.type_name(d, root);
+    return d.get.node.name(d, root) + (type_name ? ' ('+readable(type_name)+')' : '');
 };
 node.primary = (d, node)=>({
-    icon:  d.get.node.icon(d, node),
-    name:  d.get.node.name(d, node), 
+    icon:       d.get.node.icon(d, node),
+    name:       d.get.node.name(d, node), 
     type_name:  d.get.node.type_name(d, node), 
 });
 
@@ -101,7 +101,7 @@ export const root_context_nodes = d => {
     const result = new Set();
     for(const node of d.context_nodes){
         let is_root_context = true;
-        for(const [root, term] of d.get_back_edge(d, node)){
+        for(const [root, term] of d.get_back_edges(d, node)){
             if(term == 'contexts' && d.get.node.type_name(d, root) == 'Context'){
                 is_root_context = false;
             }

@@ -109,7 +109,7 @@ graph.layout = d => {
 };
 
 function add_node_and_edges(d, root){
-    if(!d.get_value(d, root, 'show', true)) return;
+    if(!d.get_value(d, {root, term:'show', alt:true})) return;
     d.graph.nodes.set(root, {
         lvl: 0,
         pos: new Vector3(),

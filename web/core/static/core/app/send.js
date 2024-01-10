@@ -20,11 +20,8 @@ handle.patch = (d, patch, staged) => { // TODO: remove arg mutations
     if(handle[path[0]]) handle[path[0]](d, {...patch, ...staged, id});
 }
 
-const is_version_node_id = id => 
-    (/^[a-zA-Z0-9]+$/.test(id) && id.length == 32);
-
 handle.nodes = (d, {op, path, id, make_nodes, drop_nodes}) => {
-    if(!is_version_node_id(id)) return;
+    if(!d.is_version_node_id(id)) return;
     if(d.nodes.has(id)){
         make_nodes.set(id, Object.fromEntries(d.nodes.get(id).terms)); 
     }else if(d.dropped.node.has(id) || (op=='remove' && !d.closed.node.has(id) && path.length == 2)){ 

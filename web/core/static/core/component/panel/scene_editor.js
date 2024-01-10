@@ -26,10 +26,9 @@ function Node({node}){
 
 function Scene({node, path}){
     const items = use_store(d=> d.scene.get_scenes(d, {node}));
-    const type_name = use_store(d=> d.scene.get_type_name(d, node));
     return c(List_View, {
         items, path,
-        header: [type_name],
+        header: render_badge({node}),
         render_item: node => c(Scene, {node, path:path+node}),
     });  
 }

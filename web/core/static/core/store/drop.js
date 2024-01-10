@@ -22,7 +22,7 @@ close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
         if(d.nodes.has(id)) targets.add(id);
     }
     if(deep){
-        function get_stems(nodes){
+        function get_all_stems(nodes){
             const next_nodes = new Set();
             for(const node of nodes){
                 for(const [term, stem] of d.get_edges(d, node)){ // d.flat(d.nodes.get(node).terms)
@@ -33,9 +33,9 @@ close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
                     }
                 }
             }
-            if(next_nodes.size) get_stems(next_nodes);
+            if(next_nodes.size) get_all_stems(next_nodes);
         };
-        get_stems(targets);
+        get_all_stems(targets);
     }
     if(drop && !given) targets = d.writable(d, targets);
     for(const node of targets){
@@ -117,7 +117,7 @@ drop.edge = (d, a={})=>{
         forward_edge(edge=> drops.push(edge));
     }else if(a.stem){
         if(!d.nodes.has(a.stem)) return;
-        for(const [root, term, index] of d.get_back_edge(d, a.stem)){ //for(const [root, term, index] of d.nodes.get(a.stem).back.values()){
+        for(const [root, term, index] of d.get_back_edges(d, a.stem)){ //for(const [root, term, index] of d.nodes.get(a.stem).back.values()){
             drops.push({root, term, stem:a.stem, index});
         }
     }

@@ -17,7 +17,7 @@ export function make_size(content, width, height){
     return {width, height};
 }
 
-function get_height(id){
+export function get_height(id){
     const element = document.getElementById(id);
     return (element ? element.offsetHeight : 0);
 }

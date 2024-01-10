@@ -20,6 +20,7 @@ export * from './app/icon.js';
 export * from './component/app/app.js'; 
 export * from './component/app/token.js';
 export * from './component/app/view_transform.js';
+export * from './component/studio/server_mutation.js';
 export * from './component/studio/repo_browser.js';
 export * from './component/studio/viewport.js';
 export * from './component/studio/code_editor.js';
@@ -215,8 +216,12 @@ export function readable(s){
     return s.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
 }
 
-export function snake_case(s){
+export function get_snake_case(s){
     return s.toLowerCase().replace(/ /g,'_');
+}
+
+export function get_upper_snake_case(s){
+    return s.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join('_');
 }
 
 

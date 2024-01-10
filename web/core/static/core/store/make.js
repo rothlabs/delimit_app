@@ -80,8 +80,8 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
 function build_node_from_type(d, node, type){
     d.make.edge(d, {root:node, term:'type', stem:type});
     //const type_name = d.get.node.type_name(d, type)
-    if(d.get_value(d, type, 'name') == 'Root'){//if(type_name == 'Root'){ /// || (type_name=='' && d.get_value(d, type, 'name') == 'Root')
-        for(const [root] of d.get_back_edge(d, type)){
+    if(d.get_value(d, {root:type, term:'name'}) == 'Root'){//if(type_name == 'Root'){ /// || (type_name=='' && d.get_value(d, type, 'name') == 'Root')
+        for(const [root] of d.get_back_edges(d, type)){
             if(d.get.node.type_name(d, root) == 'Context'){
                 d.make.edge(d, {root, term:'types', stem:node});
             }
@@ -106,7 +106,7 @@ function build_node_from_type(d, node, type){
 
 
 
-//term = snake_case(term);//term.toLowerCase().replace(/ /g,'_');
+//term = get_snake_case(term);//term.toLowerCase().replace(/ /g,'_');
 
 
 

@@ -1,5 +1,5 @@
 import {useQuery, useLazyQuery, useMutation, gql} from '../apollo/ApolloClient.js';
-//import {snake_case} from 'delimit';
+//import {get_snake_case} from 'delimit';
 
 const queries = compile_gql('query', [
     ['GetUser', [
@@ -78,7 +78,7 @@ function compile_gql(type, queries_or_mutations){
         });
         if(header.length > 0) header = '(' + header.slice(2) + ')';
         header = name + header;
-        result[name] = [gql`${type} ${header}{${body}}`, variables]; //snake_case(name)
+        result[name] = [gql`${type} ${header}{${body}}`, variables]; //get_snake_case(name)
     }
         //console.log({header, body, variables});
     return result;//{header, body, variables}

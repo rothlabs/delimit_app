@@ -1,8 +1,9 @@
 import {createElement as c} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {
-    use_store, undo, redo, render_token, icons, draggable, pickable, snake_case, render_badge, act_on_store_without_history, 
-    Mode_Menu,
+    use_store, undo, redo, render_token, icons, draggable, pickable, get_snake_case, render_badge, act_on_store_without_history, 
+    Mode_Menu, 
+    Server_Mutation,
     Make_Node, Make_Repo, Node_Editor, Schema, Repo_Editor, Scene_Editor,
     Repo_Browser, Code_Editor, Viewport,
 } from 'delimit';
@@ -19,6 +20,7 @@ export function Studio(){
                 ),
                 c('div', {className:'position-absolute end-0 d-flex', style:{marginRight:200}},
                     render_history_buttons(),
+                    c(Server_Mutation),
                 )
             ),
         ),
@@ -62,7 +64,7 @@ function Term_Editor(){
         render_name({}),
         render_input({
             value: term,
-            store_action: (d,e) => d.set_term(d, {root, term, new_term:snake_case(e.target.value)}),
+            store_action: (d,e) => d.set_term(d, {root, term, new_term:get_snake_case(e.target.value)}),
         }),
     ];
     if(!root || !term) return;

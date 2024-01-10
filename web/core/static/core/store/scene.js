@@ -2,20 +2,21 @@ export const scene = {
     roots: new Set(),
 };
 
-scene.make_roots = (d, {...ids}) => {
-    d.get_iterable(ids).map(root => 
+scene.make_roots = (d, {...item}) => {
+    d.get_iterable(item).map(root => 
         d.make.edge(d, {root, term:'scenes'})); 
 }
 
-scene.drop_roots = (d, {...ids}) => {
-    d.get_iterable(ids).map(id => {
-        d.drop.node(d, {id:d.get_stem(d, id, 'scenes'), deep:true});
-        d.drop.edge(d, {root:id, term:'scenes'});
+scene.drop_roots = (d, {...item}) => {
+    d.get_iterable(item).map(root => {
+        const nodes = d.get_stems(d, {root, term:'scenes'});
+        d.drop.node(d, {nodes, deep:true});
+        d.drop.edge(d, {root, term:'scenes'});
     });
 }
 
 scene.add_or_remove_root = (d, id) => {
-    if(!d.get_term_case(d, id, 'scene_type')
+    if(d.is_version_node_id(id) // if(!d.get_term_case(d, id, 'scene_type') 
         && d.get_term_case(d, id, 'scenes')) 
             d.scene.roots.add(id); 
     else d.scene.roots.delete(id);
@@ -23,9 +24,9 @@ scene.add_or_remove_root = (d, id) => {
 
 scene.get_roots = d => [...d.scene.roots.keys()];
 
-scene.get_scenes = (d, id) => d.get_stems(d, id, 'scenes');
+scene.get_scenes = (d, root) => d.get_stems(d, {root, term:'scenes'});
 
-scene.get_type_name = (d, id) => d.get_value(d, id, 'scene_type', '');
+//scene.get_type_name = (d, root) => d.get_value(d, {root, term:'scene_type', alt:''});
 
 
 
