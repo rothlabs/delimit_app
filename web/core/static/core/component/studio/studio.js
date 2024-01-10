@@ -76,7 +76,7 @@ function Targeted_Version(){
     return render_token({
         icon: 'bi-fullscreen-exit',
         name: 'Target',
-        ...pickable({item:{version}, mode:'secondary'}),
+        ...pickable({version, mode:'secondary'}),
         content: ({render_token_badge}) => [
             render_token_badge(),
             render_badge({repo}),
@@ -126,7 +126,7 @@ function Repo_Action_Menu(){
     const name = use_store(d=> d.get.repo.name(d, repo));
     const version = use_store(d=> d.get.repo.main_version(d, repo));
     return c(Action_Menu, {open:(repo != null), group:'repo_action_menu', items:[
-        {name, content:render_badge({repo}), store_setter:d=> d.pick(d, {item:{version}})},
+        {name, content:render_badge({repo}), store_setter:d=> d.pick(d, {version})},
         {name:'Close',   icon:'bi-x-lg', store_action:d=> d.close.repo(d, {repo})},
         {name:'Delete',  icon:'bi-trash2', store_setter:d=> d.confirm = {
             title: `Delete: ${name}`,
@@ -143,8 +143,8 @@ function Version_Action_Menu(){
     const repo_name = use_store(d=> d.get.repo.name(d, repo));
     //const targeted = use_store(d=> d.get.targeted.version(d));
     return c(Action_Menu, {open:(version != null), group:'version_action_menu', items:[
-        {name, content:[render_badge({repo}), render_badge({version})], ...pickable({item:{version}, mode:'primary'})},
-        //(version != targeted) && {name:'Target', icon:'bi-fullscreen-exit', store_setter:d=> d.pick(d, {item:{version}})},
+        {name, content:[render_badge({repo}), render_badge({version})], ...pickable({version, mode:'primary'})},
+        //(version != targeted) && {name:'Target', icon:'bi-fullscreen-exit', store_setter:d=> d.pick(d, {version})},
         {name:'Commit', icon:'bi-bookmark', store_setter:d=> d.commit.version(d, {version})},
         {name:'Close', icon:'bi-x-lg', store_action:d=> d.close.version(d, {version})},
         {name:'Delete', icon:'bi-trash2', store_setter:d=> d.confirm = {

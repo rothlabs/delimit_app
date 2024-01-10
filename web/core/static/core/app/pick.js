@@ -38,16 +38,16 @@ export const draggable = edge => {
 
 export const drag_drop = edge => ({...droppable(edge), ...draggable(edge)});
 
-export const pickable = ({item, mode='all', root, term}) => {
+export const pickable = ({mode='all', root, term, ...item}) => {
     const result = {...pointer_style, ...item, root, term};
     if(mode == 'all' || mode == 'primary') result.onClick = e => { 
         e.stopPropagation();
-        set_store(d=> d.pick(d, {item, multi:e.ctrlKey, root, term}));
+        set_store(d=> d.pick(d, {multi:e.ctrlKey, root, term, ...item}));
     };
     if(mode == 'all' || mode == 'secondary') result.onContextMenu = e => {
         e.stopPropagation();
         e.nativeEvent.preventDefault();
-        set_store(d=> d.pick(d, {item, multi:e.ctrlKey, mode:'secondary', root, term}));
+        set_store(d=> d.pick(d, {multi:e.ctrlKey, mode:'secondary', root, term, ...item}));
     };
     return result;
 };

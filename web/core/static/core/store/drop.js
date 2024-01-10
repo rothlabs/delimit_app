@@ -49,7 +49,7 @@ close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
         }
         const version = d.nodes.get(node).version;
         if(d.versions.has(version)) d.versions.get(version).nodes.delete(node);
-        d.unpick(d, {item:{node}});
+        d.unpick(d, {node});
         d.nodes.delete(node);
     }
     if(targets.length) d.graph.increment(d);
@@ -69,11 +69,11 @@ close.version = (d, {drop, given, ...item}) => {
         if(version == d.get.targeted.version(d)) target_next_version = true;
         repo_obj.versions.delete(version);
         d.close.node(d, {nodes:version_obj.nodes, drop, given});
-        d.unpick(d, {item:{version}});
+        d.unpick(d, {version});
         if(drop) d.dropped.version.add(version);
         else d.closed.version.add(version);
         d.versions.delete(version);
-        if(target_next_version) d.pick(d, {item:{version:d.versions.keys().next().value}});
+        if(target_next_version) d.pick(d, {version:d.versions.keys().next().value});
         //console.log('drop version', drop, given, version);
     }
 };
@@ -85,7 +85,7 @@ close.repo = (d, {repo, drop, given}) => {
     if(drop && !given && !repo_obj.writable) return;
     const versions = repo_obj.versions;
     d.close.version(d, {versions, drop, given});
-    d.unpick(d, {item:{repo}});
+    d.unpick(d, {repo});
     if(drop) d.dropped.repo.add(repo);
     else d.closed.repo.add(repo);
     d.repos.delete(repo);

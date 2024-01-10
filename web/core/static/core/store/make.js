@@ -17,7 +17,7 @@ make.version = (d, [version, {top, repo, metadata:{name, story}, writable, commi
     d.repos.get(repo).versions.add(version);
     d.dropped.version.delete(version);
     d.closed.version.delete(version);
-    if(top) d.pick(d, {item:{version}});
+    if(top) d.pick(d, {version});
 }
 
 make.node = (d, {node, version='', given, type})=>{

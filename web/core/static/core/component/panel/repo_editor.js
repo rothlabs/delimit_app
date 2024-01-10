@@ -14,7 +14,7 @@ function Repo({repo}){
         items:['metadata', ...versions], 
         path: repo,
         header: render_badge({repo}),
-        header_props: pickable({item:{repo}, mode:'secondary'}),
+        header_props: pickable({repo, mode:'secondary'}),
         render_item: item => {
             if(item == 'metadata') return c(Metadata, {repo}); 
             return c(Version, {version:item});
@@ -25,7 +25,7 @@ function Repo({repo}){
 function Version({version}){
     return c(List_View, {items:['metadata'], path:version,
         header: render_badge({version}),
-        header_props: pickable({item:{version}, mode:'secondary'}),
+        header_props: pickable({version, mode:'secondary'}),
         render_item: () => c(Metadata, {version}),
     });  
 }

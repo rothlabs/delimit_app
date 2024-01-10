@@ -20,7 +20,7 @@ function get_node_case({root, term, node, index, show_term, path}){
         const proxy = root ? edge : null; // const proxy = (root && root!=node) ? edge : null;
         return c(Leaf, {root:node, ...get_node_case.leaf, proxy, show_term:term, show_icon:true}); 
     }else if(get_node_case == 'missing'){
-        return render_token({...dnd, ...pickable({item:{node}, mode:'secondary', root, term}),
+        return render_token({...dnd, ...pickable({node, mode:'secondary', root, term}),
             content:[
                 show_term && readable(term), 
                 render_badge({node}),
@@ -37,7 +37,7 @@ function Node({dnd, root, term='', node, index=0, show_term, path}){
         show_term && readable(term),
         render_badge({node}), 
     ];
-    const header_props = {...dnd, ...pickable({item:{node}, root, term})}; // mode:'secondary'
+    const header_props = {...dnd, ...pickable({node, root, term})}; // mode:'secondary'
     return c(List_View, {items, path, header_props, header,
         render_item: term => c(get_term_case, {root:node, term, path}), // key:term
     });

@@ -19,7 +19,7 @@ function Node({node}){
     return c(List_View, {
         items, path, header_addon,
         header: render_badge({node}),
-        header_props: pickable({item:{node}}),
+        header_props: pickable({node}),
         render_item: node => c(Scene, {node, path:path+node}),
     });  
 }

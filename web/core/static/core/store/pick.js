@@ -14,21 +14,21 @@ picked.secondary = {
 
 export const picked_context = {};
 
-export const pick = (d, {mode='primary', item, multi, keep, root, term}) => {
-    if(item){
+export const pick = (d, {mode='primary', multi, keep, root, term, ...item}) => {
+    if(!Object.keys(item).length){
         if(mode == 'secondary'){
-            d.unpick(d, {mode:'secondary', item:{repo:'all'}});
-            d.unpick(d, {mode:'secondary', item:{version:'all'}});
+            d.unpick(d, {mode:'secondary', repo:'all'});
+            d.unpick(d, {mode:'secondary', version:'all'});
         }
         d.picked_context = {root, term};
     }else{
-        d.unpick(d, {mode:'secondary', item:{all:'all'}});
+        d.unpick(d, {mode:'secondary', all:'all'});
         d.picked_context = {root, term};
         return;
     }
     const [type, id] = Object.entries(item)[0];
     if(mode == 'secondary' && ['repo', 'version'].includes(type)){
-        d.unpick(d, {mode:'secondary', item:{node:'all'}});
+        d.unpick(d, {mode:'secondary', node:'all'});
     }
     const picked = d.picked[mode][type];
     if(multi && !keep && picked.has(id)){
@@ -42,7 +42,8 @@ export const pick = (d, {mode='primary', item, multi, keep, root, term}) => {
     //}
 };
 
-export const unpick = (d, {mode='all', item={node:'all'}}) => {
+export const unpick = (d, {mode='all', ...item}) => { // item={node:'all'}
+    if(!Object.keys(item).length) item = {node:'all'};
     d.picked_context = {root:null, term:null};
     const [type, id] = Object.entries(item)[0];
     function unpick_type(mode_val){
@@ -66,7 +67,7 @@ export const unpick = (d, {mode='all', item={node:'all'}}) => {
 export function pick_back(d, item){
     d.unpick(d, {mode:'primary'});
     for(const node of d.get_iterable(item)){
-        for(const [root] of d.get_back_edge(d, node)) d.pick(d, {item:{node:root}, keep:true});
+        for(const [root] of d.get_back_edge(d, node)) d.pick(d, {node:root, keep:true});
     }
 };
 
