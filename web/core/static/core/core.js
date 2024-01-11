@@ -11,7 +11,7 @@ import {Globals} from '@react-spring/three';
 Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
     frameLoop: "always",
 });
-import {send_changes_to_server} from './app/send.js'
+import {send_updates_to_server} from './app/send.js'
 
 export {gql_client} from './app.js';
 export * from './app/gql.js';
@@ -20,7 +20,8 @@ export * from './app/icon.js';
 export * from './component/app/app.js'; 
 export * from './component/app/token.js';
 export * from './component/app/view_transform.js';
-export * from './component/studio/server_mutation.js';
+export * from './component/studio/server_mutations.js';
+export * from './component/studio/scene_querier.js';
 export * from './component/studio/repo_browser.js';
 export * from './component/studio/viewport.js';
 export * from './component/studio/code_editor.js';
@@ -29,7 +30,7 @@ export * from './component/panel/make_node.js';
 export * from './component/panel/repo_editor.js';
 export * from './component/panel/node_editor.js';
 export * from './component/panel/scene_editor.js';
-export * from './component/panel/schema.js';
+export * from './component/panel/schema_inspector.js';
 export * from './component/graph/graph.js';
 export * from './component/scene/scene.js';
 
@@ -91,7 +92,7 @@ let inverse_history = [];
 
 function set_state(state, patches){
     store.setState(state); 
-    send_patches_to_graph_app(patches);
+    send_patches_to_graph_app(state, patches);
 }
 
 // set state without committing to history or server 
@@ -105,6 +106,7 @@ export const set_store = func => {
     //var [nextState] = produceWithPatches(get_store(), d=>{ func(d) }); 
     //store.setState(nextState); 
     const [state, patches, inverse] = produceWithPatches(get_store(), draft => { func(draft) });
+    console.log(patches);
     if(!patches.length) return [state];
     set_state(state, patches);
     return [state, patches, inverse];
@@ -127,13 +129,13 @@ export const act_on_store = func => {
     patches_history.push(patches);
     inverse_history.push(inverse);
     patch_index = patches_history.length;
-    send_changes_to_server(state, patches);
+    send_updates_to_server(state, patches);
 };
 
 export const act_on_store_without_history = func => {
     const [state, patches] = set_store(func);
     if(!patches) return;
-    send_changes_to_server(state, patches);
+    send_updates_to_server(state, patches);
 }
 
 // export const clear_history = () => {
@@ -145,18 +147,24 @@ export const act_on_store_without_history = func => {
 function apply_patches(patches){
     const state = applyPatches(get_store(), patches);
     set_state(state, patches);
-    send_changes_to_server(state, patches);
+    send_updates_to_server(state, patches);
 }
 
-const graph_app = document.getElementById('graph_app').contentWindow;
+
 function is_patch_for_graph_app(path){
     if(path[0]=='nodes') return true; // if(path[0]=='scene' && path[1]=='nodes') return true;
 }
-function send_patches_to_graph_app(patches){
+function send_patches_to_graph_app(state, patches){
     patches = patches.filter(({path}) => is_patch_for_graph_app(path));
     if(!patches.length) return;
-    graph_app.postMessage({patches}, `https://graph.delimit.art`);
+    state.graph_app.mutate({patches});
 }
+
+export const graph_app_url = `https://graph.delimit.art`;
+window.addEventListener('message', ({origin, data:{scenes}}) => {
+    if(origin !== graph_app_url) return;
+    if(scenes) set_store(d=> d.scene.update_from_graph_app(d, scenes));
+});
 
 
 export function undo(){ // skip/ignore patches that try to operate on dropped versions
@@ -170,7 +178,7 @@ export function undo(){ // skip/ignore patches that try to operate on dropped ve
                 // const state = applyPatches(get_store(), patches);
                 // store.setState(state);
                 // state.send_patches_to_graph_app(state, patches);
-                // send_changes_to_server(state, patches);
+                // send_updates_to_server(state, patches);
                 //return state;
             }catch{
                 console.log('undo failed');
@@ -188,7 +196,7 @@ export function redo(){
                 // const state = applyPatches(get_store(), patches);
                 // store.setState(state);
                 // state.send_patches_to_graph_app(state, patches);
-                // send_changes_to_server(state, patches);
+                // send_updates_to_server(state, patches);
                 //return draft;
             }catch{
                 console.log('redo failed');
@@ -330,7 +338,7 @@ document.addEventListener('contextmenu', event => {
 //     // });
 //     //if(save_patches){
 //         //console.log('Commit Patches');
-//         arg.send_changes_to_server(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
+//         arg.send_updates_to_server(arg.state, arg.patches); // only send if saving patches for undo ?!?!?!
 //         //console.log(arg.patches);
 //         if(patches.length > patch){
 //             patches.splice(patch, patches.length-patch);

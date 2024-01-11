@@ -1,32 +1,23 @@
 import {createElement as c} from 'react';
 import {animated, useTransition} from '@react-spring/web';
 import {
-    set_store, get_snake_case, render_badge_token, 
+    set_store, gql_mutations, render_badge_token, 
     use_mutation, readable
 } from 'delimit';
 
-// TODO: get this list from app/gql.js
-// TODO: rename mutations to be camelCase
-const mutations = ['MakeRepo', 'MakeMetaRepo', 'DropRepo', 'EditVersion', 'DropVersions', 'MakeNodes', 'DropNodes'];
+const mutations = gql_mutations.map(gql => gql[0]); 
 
-export function Server_Mutation(){
-    return c('div',{className:'position-relative'},
-        mutations.map(name => 
-            c('div',{className:'position-absolute'},
-                c(Mutation, {name})
-            ),
-        )
-    )
+export function Server_Mutations(){
+    return mutations.map(name => c(Mutation, {name}));
 }
 
 function Mutation({name}){
     const [mutate, {loading, error, data}] = use_mutation(name, {
         onCompleted:data=>{
-            console.log(data);
+            // TODO: varify proper completion
         },
         //refetchQueries:['GetRepos'],
     }); 
-    //console.log(get_snake_case(name));
     set_store(d=> d.server[name] = mutate);
     let open = true;
     let icon = 'bi-check-lg';
@@ -39,15 +30,15 @@ function Mutation({name}){
     }else{
         open = false;
         name = 'Done';
+        //console.log(data);
     }
     const transition = useTransition(open, {
-        from:{y:'-125%'}, enter:{y:'0%'}, leave:{y:'-125%'}, 
-        config:{tension:250, friction:20, mass:0.5},
+        from:{opacity:0}, enter:{opacity:1}, leave:{opacity:0}, 
+        config:{tension:300, friction:10, mass:0.05},
     });
-    return transition((style, item) => item && c(animated.div, {
-        style, //: {...style, borderRight:'thick solid var(--bs-secondary)'},
-    }, 
-        render_badge_token({icon, name}),
+    return transition((style, item) => 
+        item && c(animated.div, {style}, 
+            render_badge_token({icon, name}),
     ))
 }
 

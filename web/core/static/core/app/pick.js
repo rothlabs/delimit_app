@@ -18,7 +18,9 @@ export const droppable = ({root, term, index}) => {
             if(!stem) return;
             d.make.edge(d, {root, term, stem, index});
         });
-        set_store(d=> d.drag.edge = {});
+        // set_store(d=> {
+        //     if(Object.keys(d.drag.edge).length) d.drag.edge = {};
+        // });
     };
     return result;
 };

@@ -13,11 +13,11 @@ import * as remake from './remake.js';
 const ctx = JSON.parse(document.getElementById('ctx').text);
 
 export const core_store = {
-    mode: ctx.entry,
     nodes:    new Map(),
     repos:    new Map(),
     versions: new Map(),
     context_nodes: new Set(),
+    mode: ctx.entry,
     server: {},
     studio:{
         mode: 'repo',
@@ -53,10 +53,10 @@ export const core_store = {
         d.theme.compute(d);
     },
     is_version_node_id: id => (/^[a-zA-Z0-9]+$/.test(id) && id.length == 32),
-    set_store_from_server_changes(d, changes){
-        Object.entries(changes.repos).map(entry => d.make.repo(d, entry));
-        Object.entries(changes.versions).map(entry => d.make.version(d, entry));
-        const nodes = Object.entries(changes.nodes);
+    update_from_server_data(d, data){
+        Object.entries(data.repos).map(entry => d.make.repo(d, entry));
+        Object.entries(data.versions).map(entry => d.make.version(d, entry));
+        const nodes = Object.entries(data.nodes);
         nodes.map(([node]) => {
             const version = node.slice(0, 16);
             d.make.node(d, {node, version, given:true});

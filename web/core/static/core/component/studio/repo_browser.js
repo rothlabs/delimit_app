@@ -48,7 +48,7 @@ function Get_Version_Button({name, id}){
     const [get_version, {loading, error}] = use_lazy_query('GetVersion', {
         onCompleted:data=>{
             set_store(d=>{
-                d.set_store_from_server_changes(d, JSON.parse(data.version.result));
+                d.update_from_server_data(d, JSON.parse(data.version.result));
                 d.studio.mode = 'graph';
             }); 
         },

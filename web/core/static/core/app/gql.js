@@ -16,7 +16,7 @@ const queries = compile_gql('query', [
     ]],
 ]);
 
-const mutations = compile_gql('mutation', [
+export const gql_mutations = [
     ['Login',[
         ['login reply user{firstName}', 
             'String username', 
@@ -26,31 +26,33 @@ const mutations = compile_gql('mutation', [
     ['Logout',[
         ['logout reply user{firstName}'],
     ]],
-    ['MakeRepo', [  
+    ['make_repo', [  
         ['makeRepo reply', 'String name', 'String story'],
     ]],
-    ['MakeMetaRepo', [  
+    ['make_meta_repo', [  
         ['makeMetaRepo reply', 'String name', 'String story'],
     ]],
-    ['EditRepo', [
+    ['edit_repo', [
         ['editRepo reply', 'String id', 'String name', 'String story'],
     ]],
-    ['DropRepo', [  
+    ['drop_repo', [  
         ['dropRepo reply', 'String id'],
     ]],
-    ['EditVersion', [
+    ['edit_version', [
         ['editVersion reply', 'String id', 'String name', 'String story'],
     ]],
-    ['DropVersions', [  
+    ['drop_versions', [  
         ['dropVersions reply', '[String] ids'],
     ]],
-    ['MakeNodes', [  
+    ['make_nodes', [  
         ['makeNodes reply result', 'String nodes'], 
     ]],
-    ['DropNodes', [  
+    ['drop_nodes', [  
         ['dropNodes reply result', '[String] ids'],
     ]],
-]);
+];
+
+const mutations = compile_gql('mutation', gql_mutations);
 
 function compile_gql(type, queries_or_mutations){
     const result = {};

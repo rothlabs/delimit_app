@@ -3,8 +3,8 @@ import {Canvas} from '@react-three/fiber';
 import {
     use_store, undo, redo, render_token, icons, draggable, pickable, get_snake_case, render_badge, act_on_store_without_history, 
     Mode_Menu, 
-    Server_Mutation,
-    Make_Node, Make_Repo, Node_Editor, Schema, Repo_Editor, Scene_Editor,
+    Server_Mutations, Scene_Querier,
+    Make_Node, Make_Repo, Node_Editor, Schema_Inspector, Repo_Editor, Scene_Editor,
     Repo_Browser, Code_Editor, Viewport,
 } from 'delimit';
 import {useOutletContext} from 'react-router-dom';
@@ -17,10 +17,11 @@ export function Studio(){
             c('div', {className:'position-relative d-flex gap-5',},
                 c('div', {className:'position-relative d-flex mt-1'}, 
                     render_mode_menu(),
+                    c(Server_Mutations),
+                    c(Scene_Querier),
                 ),
                 c('div', {className:'position-absolute end-0 d-flex', style:{marginRight:200}},
                     render_history_buttons(),
-                    c(Server_Mutation),
                 )
             ),
         ),
@@ -216,7 +217,7 @@ function Panel(){
         return c(Make_Node);
     }
     if(mode == 'node_editor')  return c(Node_Editor);
-    if(mode == 'schema')       return c(Schema);
+    if(mode == 'schema')       return c(Schema_Inspector);
     if(mode == 'repo_editor')  return c(Repo_Editor);
     if(mode == 'scene_editor') return c(Scene_Editor);
 }

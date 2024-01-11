@@ -1,6 +1,25 @@
 import {Vector3} from 'three';
+import {graph_app_url} from 'delimit';
 
 const vector = new Vector3();
+
+const graph_app_element = document.getElementById('graph_app').contentWindow;
+
+export const graph_app = {
+    mutate: args => graph_app_element.postMessage({mutate:args}, graph_app_url),
+    query:  args => graph_app_element.postMessage({query:args}, graph_app_url),
+    loading_scenes: false,
+    error: 'get_scenes',
+};
+
+graph_app.get_scenes = d => {
+    const scenes = d.scene.get_roots(d);
+    d.graph_app.query({scenes});
+    return {
+        loading: d.graph_app.loading_scenes, 
+        error: d.graph_app.error,
+    };
+};
 
 export const graph = {    
     nodes: new Map(),

@@ -1,6 +1,6 @@
 const handle = {};
 
-export const send_changes_to_server = (d, patches) => { 
+export const send_updates_to_server = (d, patches) => { 
     const staged = {make_nodes:new Map(), drop_nodes:new Set(), drop_versions:new Set()};
     patches.map(patch => handle.patch(d, patch, staged));
     if(staged.make_nodes.size){

@@ -29,14 +29,14 @@ function Scene_Case({node}){
 }
 
 function Point({node}){
-    // notice that the vector node is captured in a leaf value to prevent cycles!
-    //const vector = use_store(d=> d.get_value(d, {root:node, term:'vector'})); 
+    // notice that source nodes are captured in a leaf value to prevent cycles!
+    const source = use_store(d=> d.get_value(d, {root:node, term:'source'}));
     const position = use_store(d=> d.get_values(d, {root:node, terms:{x:0, y:0, z:0}}));
     const size = use_store(d=> d.point_size);
     return c(View_Transform, { 
         name: 'point',
         size, //:  pick ? size*1.2 : size, 
-        ...draggable({root:node, position})
+        ...draggable({root:source, position})
     },
         c('mesh', {},
             c('sphereGeometry'),

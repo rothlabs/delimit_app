@@ -9,10 +9,30 @@ enableMapSet();
 const store = createWithEqualityFn(subscribeWithSelector(() => core_store), shallow);
 export const get_store = () => store.getState();
 
-window.addEventListener('message', ({origin, data:{patches}}) => {
-    if(origin !== `https://delimit.art`) return;
-    if(patches) store.setState(d => applyPatches(d, patches));
+const host_app_url = `https://delimit.art`;
+
+window.addEventListener('message', ({origin, data:{mutate, query}}) => {
+    if(origin !== host_app_url) return;
+    if(mutate) update_from_host_app(mutate);
+    if(query) run_query(query);
 });
+
+function update_from_host_app({patches}){
+    if(patches) store.setState(d => applyPatches(d, patches));
+}
+
+function run_query({scenes}){
+    const d = get_store();
+    let result = {};
+    if(scenes) result = d.get_scenes(d, {roots:scenes});
+    parent.postMessage(result, host_app_url);
+}
+
+
+
+
+
+
 
 
 
@@ -30,6 +50,8 @@ worker.addEventListener('message', e => {
     else
         console.log(`message from worker: `, e);
 });
+
+
 
 
 

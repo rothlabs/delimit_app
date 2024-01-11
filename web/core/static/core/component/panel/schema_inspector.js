@@ -4,7 +4,7 @@ import {use_store, render_token, List_View, render_badge, readable, get_snake_ca
 const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
 
-export function Schema(){ 
+export function Schema_Inspector(){ 
     const items = use_store(d=> [...d.picked.primary.node].filter(root=> d.nodes.has(d.get_stem(d, {root, term:'type'})))); 
     return c(List_View, {items, 
         render_item: node => c(Node, {node, target:node, path:'schema'}), 

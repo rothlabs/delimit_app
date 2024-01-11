@@ -24,53 +24,56 @@ export function Root(){
                 render_outlet_header(),
             ),
         );
-    return(
-        c('div', {
-            id: 'root', 
-            className: 'vh-100',
-            onPointerMove(e){ // Capture  
-                pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
-                pointer.position.set(e.clientX, e.clientY);
-                if(!pointer.dragging) return; 
-                if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
-                act_on_store(d=>{
-                    if(Object.keys(d.drag.edge).length) return;
-                    const {root, term, stem, index} = d.drag.staged;
-                    if(!e.ctrlKey || !root || !term) return;
-                    d.drop.edge(d, {root, term, stem, index}); 
-                });
-                set_store(d=>{
-                    if(Object.keys(d.drag.edge).length) return;
-                    const {root, term, stem, index} = d.drag.staged;
-                    if(e.ctrlKey) d.drag.edge = {root, term, stem, index};
-                    else d.drag.edge = {stem};
-                });
-            },
-            onPointerUp(){
-                pointer.dragging = false;
-                set_store(d=> d.drag.edge = {});
-            },
+    return c('div', {
+        id: 'root', 
+        className: 'vh-100',
+        onPointerMove,
+        onPointerUp,
+    },
+        c(Outlet, {context:{render_header}}),
+        c('div',{
+            className: 'position-absolute top-0 end-0 d-flex mt-1 me-1 z-1', 
         },
-            c(Outlet, {context:{render_header}}),
-            c('div',{
-                className: 'position-absolute top-0 end-0 d-flex mt-1 me-1 z-1', 
-            },
-                render_token({
-                    name: 'dark_mode',
-                    icon: 'bi-moon',
-                    active: d => d.theme.mode == 'dark',
-                    store_setter: d => d.theme.toggle(d),
-                }),
-                c(Account_Menu),
-            ),
-            c(Dragged),
-            c(Login),
-            c(Logout),
-            c(Confirm),
-            //c(Mutations),
-        )
-    );
+            render_token({
+                name: 'dark_mode',
+                icon: 'bi-moon',
+                active: d => d.theme.mode == 'dark',
+                store_setter: d => d.theme.toggle(d),
+            }),
+            c(Account_Menu),
+        ),
+        c(Dragged),
+        c(Login),
+        c(Logout),
+        c(Confirm),
+    )
 } 
+
+function onPointerMove(e){ // Capture  
+    pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
+    pointer.position.set(e.clientX, e.clientY);
+    if(!pointer.dragging) return; 
+    if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
+    act_on_store(d=>{
+        if(Object.keys(d.drag.edge).length) return;
+        const {root, term, stem, index} = d.drag.staged;
+        if(!e.ctrlKey || !root || !term) return;
+        d.drop.edge(d, {root, term, stem, index}); 
+    });
+    set_store(d=>{
+        if(Object.keys(d.drag.edge).length) return;
+        const {root, term, stem, index} = d.drag.staged;
+        if(e.ctrlKey) d.drag.edge = {root, term, stem, index};
+        else d.drag.edge = {stem};
+    });
+}
+
+function onPointerUp(){
+    pointer.dragging = false;
+    set_store(d=> {
+        if(Object.keys(d.drag.edge).length) d.drag.edge = {};
+    });
+}
 
 function Account_Menu(){
     const {data, loading, error} = use_query('GetUser', {onCompleted:data=>{

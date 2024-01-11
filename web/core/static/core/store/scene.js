@@ -26,6 +26,12 @@ scene.get_roots = d => [...d.scene.roots.keys()];
 
 scene.get_scenes = (d, root) => d.get_stems(d, {root, term:'scenes'});
 
+scene.update_from_graph_app = (d, data) => {
+    console.log('scene updates from graph app', data);
+};
+
+
+
 //scene.get_type_name = (d, root) => d.get_value(d, {root, term:'scene_type', alt:''});
 
 
