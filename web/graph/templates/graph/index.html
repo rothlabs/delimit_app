@@ -3,10 +3,12 @@
 <html lang='en'>
 
 <head>
-  <title>Delimit Graph Container</title>
+  <title>Delimit Graph App</title>
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <script type='importmap'>{"imports":{
+    "delimit":                          "https://graph.delimit.art/static/graph/extension/extension.js",
+    "delimit/graph":                    "https://graph.delimit.art/static/graph/app.js",
     "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie/+esm",
     "zustand/traditional":              "https://cdn.jsdelivr.net/npm/zustand/traditional/+esm",
     "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand/middleware/+esm",
@@ -18,7 +20,7 @@
 
 <body>
   <div id='app'>
-    Graph Container
+    Graph App
   </div>
   <script src='{% static "graph/app.js" %}' type='module'></script>
 </body>

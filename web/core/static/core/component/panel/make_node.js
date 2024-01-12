@@ -6,7 +6,7 @@ export function Make_Node(){
     return[
         render_badge_token({
             name: 'Empty',
-            store_action: d => d.make.node(d, {version:'targeted'}),
+            store_action: d => d.make.node({version:'targeted'}),
         }),
         c(List_View, {
             items, 
@@ -33,6 +33,6 @@ function Make_Button({node}){
     const name = use_store(d=> d.get.node.name(d, node)); 
     return render_badge_token({
         icon, name, 
-        store_action: d => d.make.node(d, {type:node, version:'targeted'}),
+        store_action: d => d.make.node({type:node, version:'targeted'}),
     });
 }

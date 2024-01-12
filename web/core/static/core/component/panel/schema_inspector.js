@@ -5,7 +5,7 @@ const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
 
 export function Schema_Inspector(){ 
-    const items = use_store(d=> [...d.picked.primary.node].filter(root=> d.nodes.has(d.get_stem(d, {root, term:'type'})))); 
+    const items = use_store(d=> [...d.picked.primary.node].filter(root=> d.nodes.has(d.get_stem({root, term:'type'})))); 
     return c(List_View, {items, 
         render_item: node => c(Node, {node, target:node, path:'schema'}), 
     })  
@@ -30,7 +30,7 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
     const targeted = (node == target);
     let root = node;
     const name       = use_store(d=> d.get_value(d, {root, term:'name', alt:''})); // d.face.name(d, node)
-    const type       = use_store(d=> d.get_stem(d, {root, term:'type'}));
+    const type       = use_store(d=> d.get_stem({root, term:'type'}));
     const type_name  = use_store(d=> d.get.node.type_name(d, node)); // change from face.type to type_name
     let terms = [];
     if(targeted){
@@ -51,11 +51,11 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
         icon:'bi-plus-square', 
         store_action(d){
             if(type_name == 'Root'){
-                d.build.root(d, target, node);
+                d.schema.make_root(d, target, node);
             }else if(type_name == 'Term'){
-                d.build.term(d, target, node);
+                d.schema.make_term(d, target, node);
             }else if(type_name == 'Stem'){ 
-                d.build.stem(d, {root:target, term:target_term, stem:node});
+                d.schema.make_stem(d, {root:target, term:target_term, stem:node});
             }
         }
     };

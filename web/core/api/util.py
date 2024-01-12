@@ -19,7 +19,7 @@ def try_query(query, args):
         traceback.print_exc()
         return None
 
-def is_version_node_id(s):
+def is_formal_node_id(s):
     return (s.isalnum() and len(s) == 32)
 
 def conform_user_input(s, max_length=-1):#, name=False, slug=False):

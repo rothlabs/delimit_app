@@ -1,7 +1,7 @@
 import json
 import graphene
 from core.models import Version, Snap
-from core.api.util import try_mutation, writable_version, make_node_snaps, is_version_node_id
+from core.api.util import try_mutation, writable_version, make_node_snaps, is_formal_node_id
 
 class Make_Nodes(graphene.Mutation):
     class Arguments:
@@ -23,7 +23,7 @@ def make_nodes(user, nodes):
 def normalize_ids(node_terms):
     version_nodes = {}
     for comp_id, terms in node_terms.items():
-        if not is_version_node_id(comp_id): continue
+        if not is_formal_node_id(comp_id): continue
         version_id = comp_id[:16]
         node_id   = comp_id[16:]
         if not version_id in version_nodes: 

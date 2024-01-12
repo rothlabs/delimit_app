@@ -1,4 +1,4 @@
-import {is_version_node_id} from 'delimit';
+import {is_formal_node_id} from 'delimit';
 
 const handle = {};
 
@@ -17,13 +17,13 @@ export const send_updates_to_server = (d, patches) => {
 
 handle.patch = (d, patch, staged) => { // TODO: remove arg mutations
     const {path} = patch;
-    if(['back', 'versions'].includes(path[2])) return;
+    if(['roots', 'versions'].includes(path[2])) return;
     const id = path[1];
     if(handle[path[0]]) handle[path[0]](d, {...patch, ...staged, id});
 }
 
 handle.nodes = (d, {op, path, id, make_nodes, drop_nodes}) => {
-    if(!is_version_node_id(id)) return;
+    if(!is_formal_node_id(id)) return;
     if(d.nodes.has(id)){
         make_nodes.set(id, Object.fromEntries(d.nodes.get(id).terms)); 
     }else if(d.dropped.node.has(id) || (op=='remove' && !d.closed.node.has(id) && path.length == 2)){ 

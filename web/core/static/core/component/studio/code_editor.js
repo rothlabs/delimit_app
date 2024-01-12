@@ -32,10 +32,10 @@ export function Code_Editor(){
                 if(d.get_value(d, {root, term:'source'})){
                     d.set_leaf(d, {root, term:'source', value});
                 }else if(d.get_value(d, {root, terms:'code source'})) {
-                    const target = d.get_stem(d, {root, term:'code'});
+                    const target = d.get_stem({root, term:'code'});
                     d.set_leaf(d, {root:target, term:'source', value});
                 }else if(d.get_value(d, {root, terms:'type code source'})) {
-                    const target = d.get_stem(d, {root, terms:'type code'});
+                    const target = d.get_stem({root, terms:'type code'});
                     d.set_leaf(d, {root:target, term:'source', value});
                 }
             });

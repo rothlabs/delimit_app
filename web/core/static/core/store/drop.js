@@ -1,3 +1,4 @@
+import {is_formal_node_id} from 'delimit';
 
 export const closed = {
     version: new Set(),
@@ -25,9 +26,9 @@ close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
         function get_all_stems(nodes){
             const next_nodes = new Set();
             for(const node of nodes){
-                for(const [term, stem] of d.get_edges(d, node)){ // d.flat(d.nodes.get(node).terms)
+                for(const [term, stem] of d.get_edges({root:node, exclude_leaves:true})){ // d.flat(d.nodes.get(node).terms)
                     if(!d.nodes.has(stem)) continue;
-                    if([...d.nodes.get(stem).back].every(root=> targets.has(root))){//if(d.nodes.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.nodes.has(root) 
+                    if([...d.nodes.get(stem).roots].every(root=> targets.has(root))){//if(d.nodes.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.nodes.has(root) 
                         targets.add(stem);
                         next_nodes.add(stem);
                     }
@@ -96,12 +97,12 @@ close.repo = (d, {repo, drop, given}) => {
 drop.repo = (d, args) => close.repo(d, {...args, drop:true});
 
 
-drop.edge = (d, a={})=>{
+drop.edge = (d, a={}) => {
     //console.log('drop edge');
     let drops = []; 
     function forward_edge(func){
         if(!d.nodes.has(a.root)) return {};
-        for(const [term, stem, index] of d.get_edges(d, a.root, {leaf:true})){ // d.flat(d.nodes.get(a.root).terms)
+        for(const [term, stem, index] of d.get_edges({root:a.root})){ // d.flat(d.nodes.get(a.root).terms)
             func({root:a.root, term, stem, index});
         }
     }
@@ -155,14 +156,15 @@ drop.edge = (d, a={})=>{
         if(!d.nodes.has(drp.stem)) continue;
         //increment_graph = true;
         let drop_back = true;
-        for(const [term, stem] of d.get_edges(d, drp.root)){
+        for(const [_, stem] of d.get_edges({root:drp.root, exclude_leaves:true})){
             if(stem == drp.stem) drop_back = false;
         }
         if(drop_back){
-            const stem_obj = d.nodes.get(drp.stem);
-            stem_obj.back.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
+            const stem = d.nodes.get(drp.stem);
+            stem.roots.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
             increment = true;
-            //if(!a.given && stem_obj.back.size < 1 && stem_obj.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
+            //if(!a.given && stem.back.size < 1 && stem.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
+            if(is_formal_node_id(drp.root) && !is_formal_node_id(drp.stem)) d.drop.node(d, {nodes:drp.stem});
         }
     }
     if(increment){

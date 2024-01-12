@@ -2,25 +2,32 @@ import {applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'imm
 import {createWithEqualityFn} from 'zustand/traditional'
 import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
-import {store as graph_store} from './store/store.js';
+import {make_store} from './store/store.js';
+import {is_formal_node_id} from '../common/common.js';
+
+export {is_formal_node_id} from '../common/common.js';
 
 enablePatches();
 enableMapSet();
 
 const host_app_url = `https://delimit.art`;
 
-const is_free_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length != 32);
+//const is_temp_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length != 32);
 
-const store = createWithEqualityFn(subscribeWithSelector(() => graph_store), shallow);
+let current_draft = null;
+export const get_draft = () => current_draft;
+
+const store = createWithEqualityFn(subscribeWithSelector(() => make_store(get_draft)), shallow);
 
 export const get_store = () => store.getState();
 
 export const set_store = func => {
-    const [state, patches, inverse] = produceWithPatches(get_store(), draft => { func(draft) });
-    //console.log(patches);
+    const [state, patches] = produceWithPatches(get_store(), draft => { 
+        current_draft = draft;
+        func(draft);
+    });
     if(!patches.length) return;
     set_state(state, patches);
-    return [state, patches, inverse];
 };
 
 function set_state(state, patches){
@@ -29,7 +36,7 @@ function set_state(state, patches){
 }
 
 function is_patch_for_host_app(path){
-    if(path[0] == 'nodes' && is_free_node_id(path[1])) return true;
+    if(path[0] == 'nodes' && !is_formal_node_id(path[1])) return true;
 }
 
 function send_patches_to_host_app(patches){
@@ -44,10 +51,12 @@ window.addEventListener('message', ({origin, data:{patches}}) => {
 });
 
 function update_from_host_app(patches){
-    console.log('update from host', patches);
+    //console.log('update from host', patches);
     store.setState(state => applyPatches(state, patches));
     for(const patch of patches){
-        if(is_scene_query(patch)) set_store(d=> d.make_scene(d, {node:patch.path[2]}));
+        if(is_scene_query(patch)){
+            set_store(draft => draft.make_scene({source_node:patch.path[2]}));
+        }
     }
 }
 

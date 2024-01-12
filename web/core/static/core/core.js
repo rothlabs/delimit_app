@@ -1,18 +1,15 @@
-import {produce, applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'immer'; 
-//import {create} from 'zustand';
+import {applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'immer'; 
 import {createWithEqualityFn} from 'zustand/traditional'
 import {subscribeWithSelector} from 'zustand/middleware';
-import {shallow} from 'zustand/shallow';//'shallow';
+import {shallow} from 'zustand/shallow';
 import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
-import {store as core_store} from './store/store.js';
-//import {transient} from './transient/transient.js';
-import {Vector2} from 'three';
+import {make_store} from './store/store.js';
+import {Vector2} from 'three'; // ColorManagement.enabled = true;
 import {Globals} from '@react-spring/three';
-Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
-    frameLoop: "always",
-});
 import {send_updates_to_server} from './app/send.js'
+import {is_formal_node_id} from '../common/common.js';
 
+export {is_formal_node_id} from '../common/common.js';
 export {gql_client} from './app.js';
 export * from './app/gql.js';
 export * from './app/pick.js';
@@ -35,21 +32,33 @@ export * from './component/panel/schema_inspector.js';
 export * from './component/graph/graph.js';
 export * from './component/scene/scene.js';
 
-export const assess = (obj, args) => (typeof obj === 'function' ? obj(args) : obj); // (Object.keys(obj).length ? obj : null) 
-
-export const make_id = (length=16)=>{
-    let result = '';
-    Array.from({length}).some(() => {
-        result += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
-        return result.length >= length;
-    });
-    return result.substring(0, length);
-};
-//export const client = make_id();
-
 enableMapSet();
 enablePatches();
-const store = createWithEqualityFn(subscribeWithSelector(() => core_store), shallow);
+
+Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
+    frameLoop: "always",
+});
+
+
+export const assess = (obj, args) => (typeof obj === 'function' ? obj(args) : obj); // (Object.keys(obj).length ? obj : null) 
+
+// export const make_id = (length=16)=>{
+//     let result = '';
+//     Array.from({length}).some(() => {
+//         result += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
+//         return result.length >= length;
+//     });
+//     return result.substring(0, length);
+// };
+
+let patch_index = 0;
+let patches_history = [];
+let inverse_history = [];
+let current_draft = null;
+
+export const get_draft = () => current_draft;
+
+const store = createWithEqualityFn(subscribeWithSelector(() => make_store(get_draft)), shallow);
 store.setState(d=>{  d.init(d); return d;  });
 export const get_store = () => store.getState();
 export function use_store(selector, a={}){
@@ -88,9 +97,7 @@ export const controls = {
 //     transient_store.setState(produce(d=>{ func(d) }));
 // }
 
-let patch_index = 0;
-let patches_history = [];
-let inverse_history = [];
+
 // var fork = null; // state fork for interactive stuff like dragging 
 // var original_fork = null;
 
@@ -99,6 +106,7 @@ function set_state(state, patches){
     store.setState(state); 
     send_patches_to_graph_app(patches);
 }
+
 
 // set state without committing to history or server 
 export const set_store = func => {
@@ -110,7 +118,10 @@ export const set_store = func => {
     // }
     //var [nextState] = produceWithPatches(get_store(), d=>{ func(d) }); 
     //store.setState(nextState); 
-    const [state, patches, inverse] = produceWithPatches(get_store(), draft => { func(draft) });
+    const [state, patches, inverse] = produceWithPatches(get_store(), draft => { 
+        current_draft = draft;
+        func(draft);
+    });
     //console.log(patches);
     if(!patches.length) return [state];
     set_state(state, patches);
@@ -156,15 +167,13 @@ function apply_patches(patches){
 }
 
 export const graph_app_url = `https://graph.delimit.art`;
-export const is_version_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length == 32);
-const is_free_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length != 32);
 const graph_app_element = document.getElementById('graph_app').contentWindow;
 
 function is_patch_for_graph_app(path){
     if(path[0] == 'nodes'){
-        if(is_version_node_id(path[1])) return true;
+        if(is_formal_node_id(path[1])) return true;
     }else if(path[0] == 'scene' && path[1] == 'sources'){
-        if(is_version_node_id(path[2])) return true;
+        if(is_formal_node_id(path[2])) return true;
     }
 }
 
@@ -183,7 +192,7 @@ window.addEventListener('message', ({origin, data:{patches}}) => {
 function update_from_graph_app(patches){
     console.log('got patches from graph app!!', patches);
     patches = patches.map(({op, path, value}) => ({ // TODO: if a node doesn't exist, reset the scene tree!
-        path: (path[0]==='nodes' && is_free_node_id(path[1])) ? path : null,
+        path: (path[0]==='nodes' && !is_formal_node_id(path[1])) ? path : null,
         op, value,
     })).filter(patch => (patch.path != null));
     store.setState(state => applyPatches(state, patches)); 

@@ -39,14 +39,14 @@ import * as THREE from 'three';
 
 
 
-export const media_url = document.body.getAttribute('data-media-url');
-export const static_url = document.body.getAttribute('data-static-url')+'core/';
+// export const media_url = document.body.getAttribute('data-media-url');
+// export const static_url = document.body.getAttribute('data-static-url')+'core/';
 //export const ctx = JSON.parse(document.getElementById('ctx').text); // to get info about landing page
 //export const canvas = document.getElementById('buffer_canvas');
 
 //export const base_font = static_url+'font/Inter-Medium.ttf';
 
-ColorManagement.enabled = true;
+// ColorManagement.enabled = true;
 // const style = getComputedStyle(document.body);
 // export const theme = {
 //     bg_body: style.getPropertyValue('--bs-body-bg'),
@@ -77,20 +77,20 @@ ColorManagement.enabled = true;
 //     dark_l: new Color(parseInt(style.getPropertyValue('--bs-dark').replace("#","0x"),16)).convertSRGBToLinear(),
 // };
 
-export const make_id = (length=16)=> { // need to improve this so more random!!!!
-    let s = '';
-    Array.from({ length }).some(() => {
-      s += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
-      return s.length >= length;
-    });
-    return s;//return upper(t) + '/' + s.slice(0, length);
-};
-export const client_instance = make_id('Client');
+// export const make_id = (length=16)=> { // need to improve this so more random!!!!
+//     let s = '';
+//     Array.from({ length }).some(() => {
+//       s += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
+//       return s.length >= length;
+//     });
+//     return s;//return upper(t) + '/' + s.slice(0, length);
+// };
+//export const client_instance = make_id('Client');
 
-const v1 = new THREE.Vector3();
-const v2 = new THREE.Vector3();
-const up = new THREE.Vector3(0,1,0);
-const m1 = new THREE.Matrix4();
+// const v1 = new THREE.Vector3();
+// const v2 = new THREE.Vector3();
+// const up = new THREE.Vector3(0,1,0);
+// const m1 = new THREE.Matrix4();
 
 
 
@@ -132,12 +132,12 @@ const m1 = new THREE.Matrix4();
 // //     return cloned_nodes;
 // // }
 
-export function readable(text){
-    return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
-}
-export function upper(text){
-    return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join('_');
-}
+// export function readable(text){
+//     return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+// }
+// export function upper(text){
+//     return text.toLowerCase().split('_').map(s=> s.charAt(0).toUpperCase() + s.substring(1)).join('_');
+// }
 
 
 //import {createUploadLink} from './apollo/upload.js';

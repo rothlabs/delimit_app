@@ -4,7 +4,7 @@ export const schema = {};
 
 schema.root_type = {
     logic(d, root){ 
-        const type = d.get_stem(d, {root, term:'type'}); // d.nodes.get(root).terms.get('type')[0];
+        const type = d.get_stem({root, term:'type'}); // d.nodes.get(root).terms.get('type')[0];
         if(!d.nodes.has(type)) return true;
         function truths(logic_type){
             let truth_count = 0;
@@ -26,26 +26,24 @@ schema.root_type = {
     },
 };
 
-export const build = {};
-
-build.root = (d, root, root_type) =>{
+schema.make_root = (d, root, root_type) => {
     for(const term_type of d.get_stems(d, {root:root_type, terms:['make', 'required']})){
-        d.build.term(d, root, term_type);
+        d.schema.make_term(d, root, term_type);
     }
 }
 
-build.term = (d, root, term_type) =>{
+schema.make_term = (d, root, term_type) =>{
     const term = get_snake_case(d.get_value(d, {root:term_type, term:'name', alt:'no_term'}));
     d.make.edge(d, {root, term});
     for(const stem of d.get_stems(d, {root:term_type, term:'add'})){
         d.make.edge(d, {root, term, stem});
     }
     for(const stem of d.get_stems(d, {root:term_type, term:'make'})){
-        d.build.stem(d, {root, term, stem});
+        d.schema.make_stem(d, {root, term, stem});
     }
 }
 
-build.stem = (d, {root, term, stem}) =>{
+schema.make_stem = (d, {root, term, stem}) =>{
     if(stem.type){
         d.make.edge(d, {root, term, stem:{...stem}});
         return true;
@@ -56,7 +54,7 @@ build.stem = (d, {root, term, stem}) =>{
         if(stem_type_context == d.get_value(d, {root:context, term:'name'})){
             for(const type of d.get_stems(d, {root:context, term:'types'})){
                 if(stem_type_name == d.get_value(d, {root:type, term:'name'})){ 
-                    const stem = d.make.node(d, {type, version:'targeted'});
+                    const stem = d.make.node({type, version:'targeted'});
                     d.make.edge(d, {root, term, stem});
                     return true;
                 }
@@ -64,3 +62,4 @@ build.stem = (d, {root, term, stem}) =>{
         }
     }
 }
+

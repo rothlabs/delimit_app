@@ -1,4 +1,4 @@
-import {make_id} from 'delimit';
+import {get_draft} from 'delimit';
 
 export const make = {};
 
@@ -20,30 +20,29 @@ make.version = (d, [version, {top, repo, metadata:{name, story}, writable, commi
     if(top) d.pick(d, {version});
 }
 
-make.node = (d, {node, version, given, type})=>{
-    if(version == 'targeted') version = d.get.targeted.version(d); 
-    node = node ?? (version ? (version+make_id()) : make_id(15));
-    //if(node.length == 15) console.log(node);
-    if(!(given || d.writable(d, node))) return;
-    d.drop.edge(d, {root:node, given}); 
-    //let back = new Set();
-    //if(d.nodes.has(node)) back = d.nodes.get(node).back;
-    d.nodes.set(node, {
+make.node = ({node, version, given, type, draft=get_draft()}) => {
+    if(version == 'targeted') version = draft.get.targeted.version(draft); 
+    node = node ?? version + draft.get_new_id(); // (version ? (version+make_id()) : make_id(16));
+    if(!(given || draft.writable(draft, node))) return;
+    draft.drop.edge(draft, {root:node, given}); 
+    let roots = new Set();
+    if(draft.nodes.has(node)) roots = draft.nodes.get(node).roots;
+    draft.nodes.set(node, {
         version,
         terms: new Map(),
-        back: new Set(),            
+        roots,            
     });
-    if(d.versions.has(version)) d.versions.get(version).nodes.add(node);
-    if(type) build_node_from_type(d, node, type);
-    d.dropped.node.delete(node);
-    d.closed.node.delete(node);
-    d.graph.increment(d);
-    d.scene.increment(d);
+    if(draft.versions.has(version)) draft.versions.get(version).nodes.add(node);
+    if(type) build_node_from_type(draft, node, type);
+    draft.dropped.node.delete(node);
+    draft.closed.node.delete(node);
+    draft.graph.increment(draft);
+    draft.scene.increment(draft);
     return node;
 };
 
-make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make named args //  if somehow this is called without permission, the server should kick back with failed 
-    if(!d.nodes.has(root)) return; //  && (stem.type || d.nodes.has(stem)))
+make.edge = (d, {root, term='stem', stem, index, given, single}) => { // make named args //  if somehow this is called without permission, the server should kick back with failed 
+    if(!d.nodes.has(root)) return; 
     if(!(given || d.writable(d, root))) return;
     const terms = d.nodes.get(root).terms;
     let stems = terms.get(term);
@@ -53,27 +52,19 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
         d.scene.add_or_remove_source(d, {root, given});
         return;
     }
-    const has_cycle = node => {
-        if(root == node) return true;
-        if(!d.nodes.has(node)) return;
-        for(const [_, stem] of d.get_edges(d, node)){
-            if(root == stem) return true;
-            else return has_cycle(stem);
-        }
-    }
-    if(has_cycle(stem)){
-        console.log('Error: Cannot make edge because it would cause a cycle in the graph.');
+    if(d.will_cycle({root, stem})){
+        console.log('Error: Cannot make edge because it would make a cyclic graph.');
         return;
     }
     if(!length) terms.set(term, []); 
     if(single && terms.get(term).includes(stem)) return;
-    index = index ?? length; 
-    if(index > length) return; //  || length >= a.max_length 
+    index = index ?? length;  // TODO: place this before creating empty term?
+    if(index > length) return; 
     terms.get(term).splice(index, 0, stem); 
-    d.add_or_remove_as_context_node(d, root); //if(term=='type' && stem.value=='Context') d.context_nodes.add(root);
+    d.add_or_remove_as_context_node(d, root);
     d.scene.add_or_remove_source(d, {root, given});
     if(d.nodes.has(stem)){
-        d.nodes.get(stem).back.add(root); //if(!stem.type) d.nodes.get(stem).back.add(root);
+        d.nodes.get(stem).roots.add(root); 
         d.graph.increment(d);
     }
     d.scene.increment(d);
@@ -82,16 +73,33 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
 
 function build_node_from_type(d, node, type){
     d.make.edge(d, {root:node, term:'type', stem:type});
-    //const type_name = d.get.node.type_name(d, type)
-    if(d.get_value(d, {root:type, term:'name'}) == 'Root'){//if(type_name == 'Root'){ /// || (type_name=='' && d.get_value(d, type, 'name') == 'Root')
+    if(d.get_value(d, {root:type, term:'name'}) == 'Root'){
         for(const [root] of d.get_back_edges(d, type)){
             if(d.get.node.type_name(d, root) == 'Context'){
                 d.make.edge(d, {root, term:'types', stem:node});
             }
         }
     }
-    d.build.root(d, node, type);
+    d.schema.make_root(d, node, type);
 };
+
+
+
+
+
+
+
+
+
+    // const has_cycle = node => {
+    //     if(root == node) return true;
+    //     if(!d.nodes.has(node)) return;
+    //     for(const [_, stem] of d.get_edges(d, node)){
+    //         if(root == stem) return true;
+    //         else return has_cycle(stem);
+    //     }
+    // }
+
 
 
 

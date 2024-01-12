@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as getters from './getters.js';
-import * as schema from './schema.js';
+import * as schema from './schema.js'; // '../../common/store/schema.js';
 import * as theme from './theme.js';
 import * as scene from './scene.js';
 import * as pick from './pick.js';
@@ -9,10 +9,12 @@ import * as make from './make.js';
 import * as drop from './drop.js';
 import * as inspect from './inspect.js';
 import * as remake from './remake.js';
+import {make_common_slice} from '../../common/store/store.js';
 
 const ctx = JSON.parse(document.getElementById('ctx').text);
 
-export const store = {
+export const make_store = get_draft => ({
+    ...make_common_slice(get_draft),
     nodes:    new Map(),
     repos:    new Map(),
     versions: new Map(),
@@ -29,9 +31,6 @@ export const store = {
         cursor: '',
     },
     confirm: {},
-    // request_tick: {
-    //     scenes: new Map(),
-    // },
     get: {...getters},
     ...schema,
     ...theme,
@@ -65,7 +64,7 @@ export const store = {
         const nodes = Object.entries(data.nodes);
         nodes.map(([node]) => {
             const version = node.slice(0, 16);
-            d.make.node(d, {node, version, given:true});
+            d.make.node({node, version, given:true});
         });
         nodes.map(([node, terms]) => {
             for(const [term, stems] of Object.entries(terms)){ 
@@ -102,11 +101,6 @@ export const store = {
         if(stems[0].type) return {name:'leaf', leaf:stems[0]};
         return {name:'node', node:stems[0]};
     },
-    // get_ref(d, {root, term}){
-    //     try{
-    //         return d.nodes.get(root).terms.get(term).value;
-    //     }catch{}
-    // },
     get_leaf(d, node, term_path){
         for(const term of term_path.split(' ')){
             node = d.nodes.get(node).terms.get(term)[0];
@@ -131,16 +125,16 @@ export const store = {
             //return d.get_value(d, {root:root_or_value, term, alt:root_or_value});
         });
     },
-    get_stem(d, {root, ...term_paths}){
-        for(const term_path of d.get_iterable(term_paths)){ // term_paths.term ?? term_paths.terms
-            try{
-                for(const term of term_path.split(' ')){
-                    root = d.nodes.get(root).terms.get(term)[0];
-                }
-                return root;
-            }catch{}
-        }
-    },
+    // get_stem(d, {root, ...term_paths}){
+    //     for(const term_path of d.get_iterable(term_paths)){ // term_paths.term ?? term_paths.terms
+    //         try{
+    //             for(const term of term_path.split(' ')){
+    //                 root = d.nodes.get(root).terms.get(term)[0];
+    //             }
+    //             return root;
+    //         }catch{}
+    //     }
+    // },
     get_stems(d, {root, ...term_paths}){ 
         const result = [];
         for(const term_path of d.get_iterable(term_paths)){
@@ -165,16 +159,8 @@ export const store = {
         }
         return result;
     },
-    get_edges: function* (d, root, a={}){
-        for(const [term, stems] of d.nodes.get(root).terms){
-            for(let index = 0; index < stems.length; index++){
-                const stem = stems[index];
-                if(!stem.type || a.leaf) yield [term, stem, index];
-            }
-        }
-    },
     get_back_edges: function* (d, stem){
-        for(const root of d.nodes.get(stem).back){
+        for(const root of d.nodes.get(stem).roots){
             for(const [term, stems] of d.nodes.get(root).terms){
                 for(let index = 0; index < stems.length; index++){
                     if(stems[index] == stem) yield [root, term, index];
@@ -199,16 +185,25 @@ export const store = {
     rnd(v, sigfigs=100){
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
-    get_iterable(i){ // ?? i.term ?? i.terms
-        i = i.id ?? i.ids ?? i.node ?? i.nodes ?? i.root ?? i.roots ?? i.term ?? i.terms
-            ?? i.repo ?? i.repos ?? i.version ?? i.versions ?? i.scene ?? i.scenes ?? i;
-        if(i == null) return [];
-        if(typeof i === 'string') return [i];
-        if(typeof i[Symbol.iterator] === 'function') return i;
-        return [i];
-    },
-};
+    // get_iterable(i){ // ?? i.term ?? i.terms
+    //     i = i.id ?? i.ids ?? i.node ?? i.nodes ?? i.root ?? i.roots ?? i.term ?? i.terms
+    //         ?? i.repo ?? i.repos ?? i.version ?? i.versions ?? i.scene ?? i.scenes ?? i;
+    //     if(i == null) return [];
+    //     if(typeof i === 'string') return [i];
+    //     if(typeof i[Symbol.iterator] === 'function') return i;
+    //     return [i];
+    // },
+});
 
+
+    // get_edges: function* (d, root, a={}){
+    //     for(const [term, stems] of d.nodes.get(root).terms){
+    //         for(let index = 0; index < stems.length; index++){
+    //             const stem = stems[index];
+    //             if(!stem.type || a.leaf) yield [term, stem, index];
+    //         }
+    //     }
+    // },
 
 
 

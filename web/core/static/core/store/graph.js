@@ -1,5 +1,5 @@
 import {Vector3} from 'three';
-import {graph_app_url} from 'delimit';
+//import {graph_app_url} from 'delimit';
 
 const vector = new Vector3();
 
@@ -43,7 +43,7 @@ graph.layout = d => {
         setting_lvl = false;
         for(const [node, node_obj] of d.graph.nodes){
             let lvl = 0;
-            for(const root of d.nodes.get(node).back){
+            for(const root of d.nodes.get(node).roots){
                 if(d.graph.nodes.has(root)){
                     const root_lvl = d.graph.nodes.get(root).lvl;
                     if(lvl < root_lvl) lvl = root_lvl;
@@ -63,7 +63,7 @@ graph.layout = d => {
     } 
     for(const [node, node_obj] of d.graph.nodes){
         const lvl = node_obj.lvl;
-        const grp = d.get.node.type_name(d, node)+'__'+[...d.nodes.get(node).back].sort().join('_'); 
+        const grp = d.get.node.type_name(d, node)+'__'+[...d.nodes.get(node).roots].sort().join('_'); 
         if(!level[lvl].group[grp]) level[lvl].group[grp] = {n:[], y:0, count:0};
         level[lvl].group[grp].n.push(node);
         level[lvl].count++;
@@ -92,7 +92,7 @@ graph.layout = d => {
                 if(x > max_x) max_x = x;
                 if(y > l.max_y) l.max_y = y;
                 d.graph.nodes.get(node).pos.set(x, y, 0); // did not change yet !!!!!!!!
-                for(const [term, stem] of d.get_edges(d, node)){ 
+                for(const [term, stem] of d.get_edges({root:node, exclude_leaves:true})){ 
                     if(!d.graph.nodes.has(stem)) continue;
                     const graph_node = d.graph.nodes.get(stem);
                     if(ll.group[graph_node.grp]){
@@ -133,7 +133,7 @@ function add_node_and_edges(d, root){
         lvl: 0,
         pos: new Vector3(),
     });
-    for(const [term, stem] of d.get_edges(d, root)){
+    for(const [term, stem] of d.get_edges({root, exclude_leaves:true})){
         if(!d.nodes.has(stem)) continue;
         d.graph.edges.push({root, term, stem});
     }

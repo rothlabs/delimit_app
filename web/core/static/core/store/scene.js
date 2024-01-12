@@ -1,4 +1,4 @@
-import {is_version_node_id} from 'delimit';
+import {is_formal_node_id} from 'delimit';
 
 export const scene = {    
     sources: new Map(),
@@ -20,7 +20,7 @@ scene.make_all = d => {
 scene.make_sources = (d, {...items}) => {
     d.get_iterable(items).map(root => {
         drop_scene_source(d, root);
-        const scene = d.make.node(d, {node:root+'scene'});
+        const scene = d.make.node({node:root+'scene'});
         d.make.edge(d, {root:scene, term:'tick', stem:{type:'integer', value:0}}); 
         d.make.edge(d, {root, term:'scenes', stem:scene}); 
     });
@@ -31,8 +31,8 @@ scene.drop_sources = (d, {...items}) => {
 }
 
 scene.add_or_remove_source = (d, {root, given}) => {
-    const scene = d.get_stem(d, {root, term:'scenes'});
-    if(is_version_node_id(root) && scene) { // d.get_term_case(d, root, 'scenes')
+    const scene = d.get_stem({root, term:'scenes'});
+    if(is_formal_node_id(root) && scene) { // d.get_term_case(d, root, 'scenes')
         if(given && !d.nodes.has(scene)) d.scene.make_sources(d, {root});
         if(!d.scene.sources.has(root)) d.scene.sources.set(root, 0); // query tick
     }else{
@@ -54,9 +54,10 @@ scene.query_status = d => ({
 
 function drop_scene_source(d, root){
     const scene = d.get_stems(d, {root, term:'scenes'}); 
-    d.drop.node(d, {node:scene, deep:true});
+    //d.drop.node(d, {node:scene, deep:true});
     d.drop.edge(d, {root, term:'scenes'});
 }
+
 
 
 // scene.update_from_graph_app = (d, {patches}) => {

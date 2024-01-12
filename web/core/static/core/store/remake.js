@@ -14,14 +14,14 @@ copy.node = (d, {deep, ...item}) => {
 function replace_node(d, {root, source}){
     d.drop.edge(d, {root});
     d.nodes.get(root).terms = new Map();
-    for(const [term, stem] of d.get_edges(d, source, {leaf:true})){
+    for(const [term, stem] of d.get_edges({root:source})){
         d.make.edge(d, {root, term, stem});
     }
 }
 
 function copy_node(d, {node, deep}){
-    const root = d.make.node(d, {version:'targeted'});
-    for(const [term, stem] of d.get_edges(d, node, {leaf:true})){
+    const root = d.make.node({version:'targeted'});
+    for(const [term, stem] of d.get_edges({root:node})){
         d.make.edge(d, {root, term, stem});
     }
 };
