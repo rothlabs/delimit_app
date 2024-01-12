@@ -11,14 +11,17 @@ export const make_store = get_draft => ({
         sources: new Map(),
     },
     ...scene,
-    query_node({node, draft=get_draft(), query}){
-        if(!draft.node_queries.has(query)) return;
-        if(!draft.nodes.get(node).queries.has(query)) return;
-        return draft.nodes.get(node).queries.get(query)(node);
+    query_node({node, draft=get_draft(), ...query_args}){
+        const [query, args] = Object.entries(query_args)[0];
+        const code = draft.get_stem({root:node, terms:'type code'})
+        const querier = draft.nodes.get(code)?.queries?.get(query);
+        if(!querier) return;
+        return querier.execute({node, ...args});
     }
 });
 
-
+// if(!draft.nodes.get(type_node).queries.has(query)) return;
+//         if(!draft.nodes.get(type_node).queries.has(query)) return;
 
 // store.scene = {
 //     sources: new Map(),

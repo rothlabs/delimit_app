@@ -53,9 +53,12 @@ window.addEventListener('message', ({origin, data:{patches}}) => {
 function update_from_host_app(patches){
     //console.log('update from host', patches);
     store.setState(state => applyPatches(state, patches));
+    const state = get_store();
     for(const patch of patches){
         if(is_scene_query(patch)){
             set_store(draft => draft.make_scene({source_node:patch.path[2]}));
+        }else if(is_code_update({state, patch})){
+
         }
     }
 }
@@ -63,6 +66,16 @@ function update_from_host_app(patches){
 function is_scene_query({path}){
     if(path.length != 3) return;
     if(path[0] == 'scene' && path[1] == 'sources') return true;
+}
+
+function is_code_update({state, patch:{path}}){
+    if(path[0] != 'nodes') return;
+    const node = path[1];
+    if(!is_formal_node_id(node)) return;
+    if(!state.nodes.has(node)) return;
+    const terms = state.nodes.get(node).terms; 
+    //const roots = state.nodes.get(node).roots; 
+    //if(state.get_value())
 }
 
 // function run_query({scenes}){

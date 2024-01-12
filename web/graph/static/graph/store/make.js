@@ -10,7 +10,7 @@ make.node = ({node, draft=get_draft()})=>{
     if(draft.nodes.has(node)) roots = draft.nodes.get(node).roots;
     draft.nodes.set(node, {
         terms: new Map(),
-        roots,            
+        roots,          
     });
     return node;
 };

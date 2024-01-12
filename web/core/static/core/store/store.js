@@ -101,23 +101,23 @@ export const make_store = get_draft => ({
         if(stems[0].type) return {name:'leaf', leaf:stems[0]};
         return {name:'node', node:stems[0]};
     },
-    get_leaf(d, node, term_path){
-        for(const term of term_path.split(' ')){
-            node = d.nodes.get(node).terms.get(term)[0];
-        }
-        if(node.type) return node; //.value;
-        node = d.nodes.get(node).terms.get('leaf')[0];
-        if(node.type) return node; // .value;
-    },
-    get_value(d, {root, alt, ...term_paths}){ 
-        for(const terms of d.get_iterable(term_paths)){
-            try{
-                const leaf = d.get_leaf(d, root, terms);
-                if(leaf.type) return leaf.value;
-            }catch{}
-        }
-        return alt;
-    },
+    // get_leaf(d, node, term_path){
+    //     for(const term of term_path.split(' ')){
+    //         node = d.nodes.get(node).terms.get(term)[0];
+    //     }
+    //     if(node.type) return node; //.value;
+    //     node = d.nodes.get(node).terms.get('leaf')[0];
+    //     if(node.type) return node; // .value;
+    // },
+    // get_value(d, {root, alt, ...term_paths}){ 
+    //     for(const terms of d.get_iterable(term_paths)){
+    //         try{
+    //             const leaf = d.get_leaf(d, root, terms);
+    //             if(leaf.type) return leaf.value;
+    //         }catch{}
+    //     }
+    //     return alt;
+    // },
     get_values(d, {root, terms}){
         return Object.entries(terms).map(([term, alt]) => {
             return d.get_value(d, {root, term, alt});
