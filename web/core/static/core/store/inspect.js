@@ -22,13 +22,13 @@ inspect.open = (d, {path, paths}) => {
 };
 
 export const set_leaf = (d, {root, term, index=0, value}) => {
+    d.scene.increment(d);
     //console.log(root, term);
     //console.log([...d.nodes.get(root).terms]);
     const leaf = d.nodes.get(root).terms.get(term)[index];
     let coerced = value;
     if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
         leaf.value = coerced;
-        d.scene.add_or_remove_root(d, root);
         return coerced;
     }
     if(typeof coerced == 'string'){
@@ -71,5 +71,5 @@ export const set_term = (d, {root, term, new_term}) => {
     terms.delete(term);
     d.picked_context = {root, term:new_term};
     d.add_or_remove_as_context_node(d, root);
-    d.scene.add_or_remove_root(d, root);
+    d.scene.add_or_remove_source(d, {root});
 };

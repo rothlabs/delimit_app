@@ -1,16 +1,17 @@
 import {createElement as c} from 'react';
-//import {Container, Row, Col, Nav, Navbar, ToggleButton, InputGroup, Form} from 'react-bootstrap';//'boot';
 import {Outlet} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
-//import {Copy_Project, Delete_Project} from './studio/crud.js'
 import {Logo} from './logo.js';
-import { Confirm } from './confirm.js';
-import {set_store, act_on_store, use_store, use_query, 
-        pointer, use_mutation, render_badge, readable, render_token} from 'delimit';
+import {
+    set_store, act_on_store, use_store, use_query, 
+    controls, render_badge, readable, render_token,
+    Confirm
+} from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
 import {Vector2} from 'three';
 
 const vector = new Vector2();
+const {pointer} = controls;
 
 export function Root(){
     const render_header = (render_outlet_header = () => null) => 

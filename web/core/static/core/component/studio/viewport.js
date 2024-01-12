@@ -7,37 +7,40 @@ import {CameraControls} from '@react-three/drei/CameraControls';
 //import {Pickbox} from './pickbox.js'; // selection box
 //import {Vector3} from 'three';
 import {
-    set_store, use_store, 
+    set_store, use_store, get_store,
     Graph, Scene_Root,
+    controls,
 } from 'delimit';
 
-//const v1 = new Vector3();
+
 
 function Viewport_Control(){
     const camera_controls = useRef();
-    const pick_box = use_store(d=> d.pick.box);
+    const pick_box = false;//use_store(d=> d.pick.box);
     const acting = false;//use_store(d=> d.design.act);
     const studio_mode = use_store(d=> d.studio.mode);
     const {camera} = useThree(); 
-    useEffect(()=>{ set_store(d=>{
-        d.camera_controls = camera_controls.current;
+    useEffect(() => { 
+        if(!camera_controls.current) return;
+        controls.camera = camera_controls.current;
         //d.camera = camera;
         // d.camera_controls.addEventListener('controlend', e=>set_store(d=>{
         //     if(d.cam_info.dir.dot(camera.getWorldDirection(v1)) < 1){
         //         d.cam_info = {matrix: camera.matrix, dir:camera.getWorldDirection(v1).clone()};
         //     }
         // }));
-        d.camera_controls.addEventListener('control', ()=>set_store(d=>{ // need to remove listener ?!?!?!?!
+        controls.camera.addEventListener('control', () => {// need to remove listener ?!?!?!?!
+            const d = get_store();
             if(d.studio.mode == 'graph'){
-                d.graph.view = {
-                    azimuth: d.camera_controls.azimuthAngle,
-                    polar: d.camera_controls.polarAngle,
-                    pos: d.camera_controls.getTarget(),
+                controls.graph.view = {
+                    azimuth: controls.camera.azimuthAngle,
+                    polar: controls.camera.polarAngle,
+                    pos: controls.camera.getTarget(),
                     zoom: camera.zoom,
                     //matrix: camera.matrix.clone(),
                     //dir: camera.getWorldDirection(v1).clone(),
                 };
-            }else if(d.studio.mode=='design'){ //  && d.design.part
+            }else if(d.studio.mode=='scene'){ //  && d.design.part
                 // d.n[d.design.part].c_c = {
                 //     azimuth: d.camera_controls.azimuthAngle,
                 //     polar: d.camera_controls.polarAngle,
@@ -47,8 +50,8 @@ function Viewport_Control(){
                 //     dir: camera.getWorldDirection(v1).clone(),
                 // };
             }
-        }));
-    })},[camera_controls]);
+        });
+    },[camera_controls]);
     return c('group', {name:'viewport_parts'}, 
         c(CameraControls, {
             ref: camera_controls,
@@ -85,26 +88,23 @@ export function Viewport(){ // for some reason this renders 5 times on load
     const studio_mode = use_store(d=> d.studio.mode);
     //const font = use_store(d=> d.font.body);
     useEffect(()=>{
-        set_store(d=>{
-            if(d.camera_controls){
-                //console.log('Viewport use effect');
-                let view = null;
-                if(studio_mode=='graph'){ view = d.graph.view }
-                //else if(studio_mode=='design'){ view = d.n[d.design.part].c_c }
-                if(view){
-                    d.camera_controls.rotateTo(view.azimuth, view.polar);
-                    d.camera_controls.moveTo(view.pos.x, view.pos.y, view.pos.z);
-                    d.camera_controls.zoomTo(view.zoom);
-                    //d.cam_info = {matrix:view.matrix, dir:view.dir};
-                }else{
-                    // maybe fit to view here #1
-                    d.camera_controls.rotateTo(0,Math.PI/2);
-                    d.camera_controls.moveTo(0,0,0);
-                    d.camera_controls.zoomTo(1);
-                }
-                d.camera_controls.dollyTo(1000);
-            }
-        });
+        if(!controls.camera) return;
+        //console.log('Viewport use effect');
+        let view = null;
+        if(studio_mode=='graph') view = controls.graph.view;
+        //else if(studio_mode=='design'){ view = d.n[d.design.part].c_c }
+        if(view){
+            controls.camera.rotateTo(view.azimuth, view.polar);
+            controls.camera.moveTo(view.pos.x, view.pos.y, view.pos.z);
+            controls.camera.zoomTo(view.zoom);
+            //d.cam_info = {matrix:view.matrix, dir:view.dir};
+        }else{
+            // maybe fit to view here #1
+            controls.camera.rotateTo(0,Math.PI/2);
+            controls.camera.moveTo(0,0,0);
+            controls.camera.zoomTo(1);
+        }
+        controls.camera.dollyTo(1000);
     },[studio_mode]);
     useEffect(()=>{
         // set_store(d=>{

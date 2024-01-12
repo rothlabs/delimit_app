@@ -1,4 +1,4 @@
-import {set_store, act_on_store, pointer} from 'delimit';
+import {set_store, act_on_store, controls} from 'delimit';
 
 const pointer_style_events = {
     onPointerEnter(){ 
@@ -18,9 +18,9 @@ export const droppable = ({root, term, index}) => {
             if(!stem) return;
             d.make.edge(d, {root, term, stem, index});
         });
-        // set_store(d=> {
-        //     if(Object.keys(d.drag.edge).length) d.drag.edge = {};
-        // });
+        set_store(d=> {
+            if(Object.keys(d.drag.edge).length) d.drag.edge = {};
+        });
     };
     return result;
 };
@@ -29,8 +29,8 @@ export const draggable = item => {
     const result = {...item, ...pointer_style_events};
     result.onPointerDown = e => {
         if(e.nativeEvent.button != 0) return; // prevents right click?
-        pointer.dragging = true;
-        pointer.start.set(e.clientX, e.clientY);
+        controls.pointer.dragging = true;
+        controls.pointer.start.set(e.clientX, e.clientY);
         set_store(d=> d.drag.staged = item);
     };
     return result;

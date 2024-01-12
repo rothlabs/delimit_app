@@ -6,17 +6,20 @@ import {use_store, set_store} from 'delimit';
 export const Graph = memo(()=>{
     use_store(d=> d.graph.tick); 
     const [d] = set_store(d=> d.graph.layout(d));
-    //console.log('render graph');
-    return(
-        c('group', {name:'graph'},
-            [...d.graph.nodes.keys()].map(node=> 
-				c(Node, {node, key:node}),//d.terminal_classes[d.n[n].t] ? c(Atom, {n:n, key:n}) : c(Part,{n:n, key:n})  // is key screwing things up? , key:n
-            ),
-            d.graph.edges.map(edge=> 
-				c(Edge, {...edge, key: edge.root + edge.term + edge.stem}) // , key:e.r+e.t+e.n  //make_id()
-            ),
-		)
-    )
+    const nodes = [...d.graph.nodes.keys()];
+    const edges = d.graph.edges;
+    return c(Graph_Group, {nodes, edges})
+});
+
+export const Graph_Group = memo(({nodes, edges})=>{
+    return c('group', {name:'graph'},
+        nodes.map(node=> 
+            c(Node, {node, key:node}),
+        ),
+        edges.map(edge=> 
+            c(Edge, {...edge, key: edge.root + edge.term + edge.stem}) 
+        ),
+	)
 });
 
 

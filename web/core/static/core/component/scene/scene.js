@@ -4,17 +4,26 @@ import {
     View_Transform,
 } from 'delimit';
 
-const scene_components = {
+const Scene_Components = new Map(Object.entries({
     Point,
-};
+}));
 
 export function Scene_Root(){
+    console.log('render scene root');
     //console.log('render top scene');
-    const roots = use_store(d=> d.scene.get_roots(d)); 
-    return c('group', {name:'root_scene'},
-        roots.map(node=> c(Scenes, {node, key:node})),
-    )
+    const roots = use_store(d=> d.scene.get_sources(d)); 
+    return [
+        //c(Scene_Querier),
+        c('group', {name:'root_scene'},
+            roots.map(node=> c(Scenes, {node, key:node})),
+        )
+    ]
 }
+
+// function Scene_Querier(){
+//     use_store(d=> d.scene.tick); 
+//     set_store(d=> d.scene.layout(d));
+// }
 
 function Scenes({node}){ 
     const scenes = use_store(d=> d.scene.get_scenes(d, node));  
@@ -24,8 +33,8 @@ function Scenes({node}){
 function Scene_Case({node}){
     const type_name = use_store(d => 
         get_upper_snake_case(d.get.node.type_name(d, node)));  
-    if(scene_components[type_name]) 
-        return c(scene_components[type_name], {node});
+    if(Scene_Components.has(type_name)) 
+        return c(Scene_Components.get(type_name), {node});
 }
 
 function Point({node}){

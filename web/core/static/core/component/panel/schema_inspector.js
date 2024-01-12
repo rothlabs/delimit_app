@@ -11,7 +11,7 @@ export function Schema_Inspector(){
     })  
 }
 
-function get_node_case({term, node, index, target, target_term, show_term, path}){
+function Node_Case({term, node, index, target, target_term, show_term, path}){
     const get_node_case = use_store(d=> d.get_node_case(d, node));
     if(get_node_case == 'missing'){
         return render_token({node,
@@ -60,15 +60,15 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
         }
     };
     return c(List_View, {items, path, header, header_addon,
-        render_item: term => c(get_term_case, {root, term, target, target_term, path}), // key:term
+        render_item: term => c(Term_Case, {root, term, target, target_term, path}), // key:term
     });
 }
 
-function get_term_case({root, term, target, target_term, path}){
+function Term_Case({root, term, target, target_term, path}){
     const get_term_case = use_store(d=> d.get_term_case(d, root, term));
     if(!get_term_case) return;
     if(get_term_case.name == 'node'){
-        return c(get_node_case, {term, node:get_term_case.node, target, target_term, show_term:true, path});
+        return c(Node_Case, {term, node:get_term_case.node, target, target_term, show_term:true, path});
     }else if(get_term_case.name == 'leaf'){
         return Leaf({term, ...get_term_case.leaf, show_term:true});
     }
@@ -83,7 +83,7 @@ function Term({root, term, target, target_term, path}){
             header: readable(term),
             render_item(stem, index){
                 if(stem.type) return Leaf({term, ...stem}); // key:index
-                return c(get_node_case, {term, node:stem, target, target_term, index, path}); // key:index,
+                return c(Node_Case, {term, node:stem, target, target_term, index, path}); // key:index,
             }
         })
     )

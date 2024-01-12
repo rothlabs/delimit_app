@@ -147,9 +147,9 @@ USE_TZ = True
 
 
 # Django looks for additional static files to collect from here:
-#STATICFILES_DIRS = (
-#    os.path.join(BASE_DIR, "static/"),
-#)
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'common/'), 
+)
 
 
 #>>>>>>>>>>> https://djangodeployment.readthedocs.io/en/latest/05-static-files.html <<<<<<<<<<<<<<
@@ -173,18 +173,18 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-GRAPH = {
-    'socket':{
-        'host': 'localhost',
-        'port': '3636',  
-    },
-    'server':{
-        'host': 'localhost',
-        'port': '6363',
-    },
-    'user':{
-        'admin':{
-            'key': 'root', #'9h3IAvdGrdn8sjORuwJwCYJekg0UijjK9N7i3JipkETLtPTNJTPwfVeMwp2ItaVT', #'5c6rvgUaTups5i45d6sW82sKtOOADmL0HVu5j4RyaNXqkrtx558udQDq8nKM6mUv',
-        },
-    }
-}
+# GRAPH = {
+#     'socket':{
+#         'host': 'localhost',
+#         'port': '3636',  
+#     },
+#     'server':{
+#         'host': 'localhost',
+#         'port': '6363',
+#     },
+#     'user':{
+#         'admin':{
+#             'key': 'root', #'9h3IAvdGrdn8sjORuwJwCYJekg0UijjK9N7i3JipkETLtPTNJTPwfVeMwp2ItaVT', #'5c6rvgUaTups5i45d6sW82sKtOOADmL0HVu5j4RyaNXqkrtx558udQDq8nKM6mUv',
+#         },
+#     }
+# }

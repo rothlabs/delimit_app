@@ -2,31 +2,66 @@ import {applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'imm
 import {createWithEqualityFn} from 'zustand/traditional'
 import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
-import {core_store} from './store/store.js';
+import {store as graph_store} from './store/store.js';
 
 enablePatches();
 enableMapSet();
-const store = createWithEqualityFn(subscribeWithSelector(() => core_store), shallow);
-export const get_store = () => store.getState();
 
 const host_app_url = `https://delimit.art`;
 
-window.addEventListener('message', ({origin, data:{mutate, query}}) => {
+const is_free_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length != 32);
+
+const store = createWithEqualityFn(subscribeWithSelector(() => graph_store), shallow);
+
+export const get_store = () => store.getState();
+
+export const set_store = func => {
+    const [state, patches, inverse] = produceWithPatches(get_store(), draft => { func(draft) });
+    //console.log(patches);
+    if(!patches.length) return;
+    set_state(state, patches);
+    return [state, patches, inverse];
+};
+
+function set_state(state, patches){
+    store.setState(state); 
+    send_patches_to_host_app(patches);
+}
+
+function is_patch_for_host_app(path){
+    if(path[0] == 'nodes' && is_free_node_id(path[1])) return true;
+}
+
+function send_patches_to_host_app(patches){
+    patches = patches.filter(({path}) => is_patch_for_host_app(path));
+    if(!patches.length) return;
+    parent.postMessage({patches}, host_app_url);
+}
+
+window.addEventListener('message', ({origin, data:{patches}}) => {
     if(origin !== host_app_url) return;
-    if(mutate) update_from_host_app(mutate);
-    if(query) run_query(query);
+    if(patches) update_from_host_app(patches);
 });
 
-function update_from_host_app({patches}){
-    if(patches) store.setState(d => applyPatches(d, patches));
+function update_from_host_app(patches){
+    console.log('update from host', patches);
+    store.setState(state => applyPatches(state, patches));
+    for(const patch of patches){
+        if(is_scene_query(patch)) set_store(d=> d.make_scene(d, {node:patch.path[2]}));
+    }
 }
 
-function run_query({scenes}){
-    const d = get_store();
-    let result = {};
-    if(scenes) result = d.get_scenes(d, {roots:scenes});
-    parent.postMessage(result, host_app_url);
+function is_scene_query({path}){
+    if(path.length != 3) return;
+    if(path[0] == 'scene' && path[1] == 'sources') return true;
 }
+
+// function run_query({scenes}){
+//     const state = get_store();
+//     let result = {};
+//     if(scenes) result = state.get_scenes(state, {roots:scenes});
+//     parent.postMessage(result, host_app_url);
+// }
 
 
 

@@ -12,7 +12,7 @@ import * as remake from './remake.js';
 
 const ctx = JSON.parse(document.getElementById('ctx').text);
 
-export const core_store = {
+export const store = {
     nodes:    new Map(),
     repos:    new Map(),
     versions: new Map(),
@@ -21,10 +21,17 @@ export const core_store = {
     server: {},
     studio:{
         mode: 'repo',
+        set_mode(d, mode){
+            d.studio.mode = mode;
+            if(mode == 'scene') d.scene.make_all(d);
+        },
         panel: {mode:'node_editor'},
         cursor: '',
     },
     confirm: {},
+    // request_tick: {
+    //     scenes: new Map(),
+    // },
     get: {...getters},
     ...schema,
     ...theme,
@@ -52,7 +59,6 @@ export const core_store = {
         d.base_texture.anisotropy = 16;
         d.theme.compute(d);
     },
-    is_version_node_id: id => (/^[a-zA-Z0-9]+$/.test(id) && id.length == 32),
     update_from_server_data(d, data){
         Object.entries(data.repos).map(entry => d.make.repo(d, entry));
         Object.entries(data.versions).map(entry => d.make.version(d, entry));
@@ -62,12 +68,16 @@ export const core_store = {
             d.make.node(d, {node, version, given:true});
         });
         nodes.map(([node, terms]) => {
-            for(const [term, stems] of Object.entries(terms)){
+            for(const [term, stems] of Object.entries(terms)){ 
                 if(!stems.length) d.make.edge(d, {root:node, term, given:true}); 
-                stems.map(stem => d.make.edge(d, {root:node, term, stem, given:true}));
-            }
+                stems.map(stem => {
+                    if(stem.length == 15) console.log('free node id as stem!', stem);
+                    d.make.edge(d, {root:node, term, stem, given:true})
+                });
+            };
         });
         d.graph.increment(d);
+        d.scene.increment(d);
     },
     add_or_remove_as_context_node(d, id){
         if(d.get.node.type_name(d, id) == 'Context') d.context_nodes.add(id);

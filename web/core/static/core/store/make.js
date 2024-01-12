@@ -20,23 +20,25 @@ make.version = (d, [version, {top, repo, metadata:{name, story}, writable, commi
     if(top) d.pick(d, {version});
 }
 
-make.node = (d, {node, version='', given, type})=>{
+make.node = (d, {node, version, given, type})=>{
     if(version == 'targeted') version = d.get.targeted.version(d); 
-    node = node ?? version + make_id();
+    node = node ?? (version ? (version+make_id()) : make_id(15));
+    //if(node.length == 15) console.log(node);
     if(!(given || d.writable(d, node))) return;
     d.drop.edge(d, {root:node, given}); 
-    let back = new Set();
-    if(d.nodes.has(node)) back = d.nodes.get(node).back;
+    //let back = new Set();
+    //if(d.nodes.has(node)) back = d.nodes.get(node).back;
     d.nodes.set(node, {
         version,
         terms: new Map(),
-        back,            
+        back: new Set(),            
     });
     if(d.versions.has(version)) d.versions.get(version).nodes.add(node);
     if(type) build_node_from_type(d, node, type);
     d.dropped.node.delete(node);
     d.closed.node.delete(node);
     d.graph.increment(d);
+    d.scene.increment(d);
     return node;
 };
 
@@ -48,7 +50,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     let length = stems?.length ?? 0;
     if(stem == null){
         if(!length) terms.set(term, []); 
-        d.scene.add_or_remove_root(d, root);
+        d.scene.add_or_remove_source(d, {root, given});
         return;
     }
     const has_cycle = node => {
@@ -69,11 +71,12 @@ make.edge = (d, {root, term='stem', stem, index, given, single})=>{ // make name
     if(index > length) return; //  || length >= a.max_length 
     terms.get(term).splice(index, 0, stem); 
     d.add_or_remove_as_context_node(d, root); //if(term=='type' && stem.value=='Context') d.context_nodes.add(root);
-    d.scene.add_or_remove_root(d, root);
+    d.scene.add_or_remove_source(d, {root, given});
     if(d.nodes.has(stem)){
         d.nodes.get(stem).back.add(root); //if(!stem.type) d.nodes.get(stem).back.add(root);
         d.graph.increment(d);
     }
+    d.scene.increment(d);
     return true;
 };
 

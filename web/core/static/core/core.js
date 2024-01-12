@@ -4,7 +4,7 @@ import {createWithEqualityFn} from 'zustand/traditional'
 import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';//'shallow';
 import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
-import {core_store} from './store/store.js';
+import {store as core_store} from './store/store.js';
 //import {transient} from './transient/transient.js';
 import {Vector2} from 'three';
 import {Globals} from '@react-spring/three';
@@ -18,10 +18,11 @@ export * from './app/gql.js';
 export * from './app/pick.js';
 export * from './app/icon.js';
 export * from './component/app/app.js'; 
+export * from './component/app/confirm.js'; 
 export * from './component/app/token.js';
 export * from './component/app/view_transform.js';
 export * from './component/studio/server_mutations.js';
-export * from './component/studio/scene_querier.js';
+export * from './component/studio/scene_query.js';
 export * from './component/studio/repo_browser.js';
 export * from './component/studio/viewport.js';
 export * from './component/studio/code_editor.js';
@@ -42,9 +43,9 @@ export const make_id = (length=16)=>{
         result += Math.random().toString(36).slice(2); // always hear that Math.random is not good for id generation
         return result.length >= length;
     });
-    return result.substring(0, 16);
+    return result.substring(0, length);
 };
-export const client = make_id();
+//export const client = make_id();
 
 enableMapSet();
 enablePatches();
@@ -67,9 +68,13 @@ export function use_store(selector, a={}){
 //export const subSS = (selector, callback)=> store.subscribe(selector, callback, {fireImmediately:true, equalityFn:shallow});
 //export const subSSI = (selector, callback)=> store.subscribe(selector, callback, {equalityFn:shallow,fireImmediately:true,});
 
-export const pointer = {
-    position: new Vector2(),
-    start: new Vector2(),
+export const controls = {
+    pointer:{
+        position: new Vector2(),
+        start: new Vector2(),
+    },
+    camera: null,
+    graph: {view:null},
 };
 // const transient_store = createWithEqualityFn(subscribeWithSelector(() => transient), shallow);
 // export function use_transient(selector, a={}){
@@ -92,7 +97,7 @@ let inverse_history = [];
 
 function set_state(state, patches){
     store.setState(state); 
-    send_patches_to_graph_app(state, patches);
+    send_patches_to_graph_app(patches);
 }
 
 // set state without committing to history or server 
@@ -106,7 +111,7 @@ export const set_store = func => {
     //var [nextState] = produceWithPatches(get_store(), d=>{ func(d) }); 
     //store.setState(nextState); 
     const [state, patches, inverse] = produceWithPatches(get_store(), draft => { func(draft) });
-    console.log(patches);
+    //console.log(patches);
     if(!patches.length) return [state];
     set_state(state, patches);
     return [state, patches, inverse];
@@ -150,21 +155,39 @@ function apply_patches(patches){
     send_updates_to_server(state, patches);
 }
 
+export const graph_app_url = `https://graph.delimit.art`;
+export const is_version_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length == 32);
+const is_free_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length != 32);
+const graph_app_element = document.getElementById('graph_app').contentWindow;
 
 function is_patch_for_graph_app(path){
-    if(path[0]=='nodes') return true; // if(path[0]=='scene' && path[1]=='nodes') return true;
-}
-function send_patches_to_graph_app(state, patches){
-    patches = patches.filter(({path}) => is_patch_for_graph_app(path));
-    if(!patches.length) return;
-    state.graph_app.mutate({patches});
+    if(path[0] == 'nodes'){
+        if(is_version_node_id(path[1])) return true;
+    }else if(path[0] == 'scene' && path[1] == 'sources'){
+        if(is_version_node_id(path[2])) return true;
+    }
 }
 
-export const graph_app_url = `https://graph.delimit.art`;
-window.addEventListener('message', ({origin, data:{scenes}}) => {
+function send_patches_to_graph_app(patches){
+    patches = patches.filter(({path}) => is_patch_for_graph_app(path));
+    if(!patches.length) return;
+    graph_app_element.postMessage({patches}, graph_app_url); // state.graph_app.mutate({patches});
+}
+
+window.addEventListener('message', ({origin, data:{patches}}) => {
     if(origin !== graph_app_url) return;
-    if(scenes) set_store(d=> d.scene.update_from_graph_app(d, scenes));
+    console.log('got patches from graph app!!', patches);
+    if(patches) update_from_graph_app(patches);//set_store(d=> d.scene.update_from_graph_app(d, scenes));
 });
+
+function update_from_graph_app(patches){
+    console.log('got patches from graph app!!', patches);
+    patches = patches.map(({op, path, value}) => ({ // TODO: if a node doesn't exist, reset the scene tree!
+        path: (path[0]==='nodes' && is_free_node_id(path[1])) ? path : null,
+        op, value,
+    })).filter(patch => (patch.path != null));
+    store.setState(state => applyPatches(state, patches)); 
+}
 
 
 export function undo(){ // skip/ignore patches that try to operate on dropped versions

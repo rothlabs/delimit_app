@@ -2,7 +2,7 @@ import {createElement as c} from 'react';
 import {use_store, List_View, render_token, render_badge, pickable} from 'delimit';
 
 export function Scene_Editor(){ 
-    const items = use_store(d=> d.scene.get_roots(d)); 
+    const items = use_store(d=> d.scene.get_sources(d)); 
     return c(List_View, {
         items, 
         render_item: node => c(Node, {node}), 
@@ -14,7 +14,7 @@ function Node({node}){
     const path = 'scene' + node;
     const header_addon = {
         icon:'bi-x-lg', 
-        store_action: d => d.scene.drop_roots(d, {node}),
+        store_action: d => d.scene.drop_sources(d, {node}),
     };
     return c(List_View, {
         items, path, header_addon,

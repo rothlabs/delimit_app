@@ -1,12 +1,9 @@
 import {createElement as c} from 'react';
 import {animated, useTransition} from '@react-spring/web';
-import {
-    use_store, set_store, render_badge_token,
-} from 'delimit';
+import {use_store, render_badge_token} from 'delimit';
 
-export function Scene_Querier(){
-    console.log('Scene_Querier');
-    const {loading, error} = use_store(d => d.graph_app.get_scenes(d));
+export function Scene_Query(){
+    const {loading, error} = use_store(d => d.scene.query_status(d));
     let open = true;
     let icon = 'bi-check-lg';
     let name = 'Done';

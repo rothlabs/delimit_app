@@ -1,5 +1,5 @@
-import {createElement as c, useState, Fragment} from 'react';
-import {Button, Modal, Form, Row, InputGroup} from 'react-bootstrap';
+import {createElement as c} from 'react';
+import {Button, Modal} from 'react-bootstrap';
 import {use_store, set_store} from 'delimit';
 
 export function Confirm(){

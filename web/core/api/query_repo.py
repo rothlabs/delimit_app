@@ -88,9 +88,9 @@ def make_staged_nodes_and_version_dependency_ids(version):
         for term in terms.keys():
             for index, stem in enumerate(terms[term]):
                 if isinstance(stem, str): 
-                    if len(stem) > 16: 
+                    if len(stem) == 32: # version node id
                         version_dependency_ids.add(stem[:16])
-                    else: 
+                    elif len(stem) == 16: # node id
                         terms[term][index] = version.id + terms[term][index] # stem instead of terms[term][index] ?
         staged_nodes[version.id + node.key] = terms
     return staged_nodes, version_dependency_ids

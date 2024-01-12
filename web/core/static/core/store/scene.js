@@ -1,34 +1,68 @@
-export const scene = {    
-    roots: new Set(),
-};
+import {is_version_node_id} from 'delimit';
 
-scene.make_roots = (d, {...item}) => {
-    d.get_iterable(item).map(root => 
-        d.make.edge(d, {root, term:'scenes'})); 
+export const scene = {    
+    sources: new Map(),
+    tick: 0,   
+    // increment: d=> d.scene.tick++,
 }
 
-scene.drop_roots = (d, {...item}) => {
-    d.get_iterable(item).map(root => {
-        const nodes = d.get_stems(d, {root, term:'scenes'});
-        d.drop.node(d, {nodes, deep:true});
-        d.drop.edge(d, {root, term:'scenes'});
+scene.increment = d => {
+    d.scene.tick++;
+    if(d.studio.mode == 'scene') d.scene.make_all(d);
+}
+
+scene.make_all = d => {
+    for(const [root] of d.scene.sources){
+        d.scene.sources.set(root, d.scene.tick);
+    }
+}
+
+scene.make_sources = (d, {...items}) => {
+    d.get_iterable(items).map(root => {
+        drop_scene_source(d, root);
+        const scene = d.make.node(d, {node:root+'scene'});
+        d.make.edge(d, {root:scene, term:'tick', stem:{type:'integer', value:0}}); 
+        d.make.edge(d, {root, term:'scenes', stem:scene}); 
     });
 }
 
-scene.add_or_remove_root = (d, id) => {
-    if(d.is_version_node_id(id) // if(!d.get_term_case(d, id, 'scene_type') 
-        && d.get_term_case(d, id, 'scenes')) 
-            d.scene.roots.add(id); 
-    else d.scene.roots.delete(id);
+scene.drop_sources = (d, {...items}) => {
+    d.get_iterable(items).map(root => drop_scene_source(d, root));
 }
 
-scene.get_roots = d => [...d.scene.roots.keys()];
+scene.add_or_remove_source = (d, {root, given}) => {
+    const scene = d.get_stem(d, {root, term:'scenes'});
+    if(is_version_node_id(root) && scene) { // d.get_term_case(d, root, 'scenes')
+        if(given && !d.nodes.has(scene)) d.scene.make_sources(d, {root});
+        if(!d.scene.sources.has(root)) d.scene.sources.set(root, 0); // query tick
+    }else{
+        d.scene.sources.delete(root);
+    }
+}
+
+scene.get_sources = d => [...d.scene.sources.keys()];
 
 scene.get_scenes = (d, root) => d.get_stems(d, {root, term:'scenes'});
 
-scene.update_from_graph_app = (d, data) => {
-    console.log('scene updates from graph app', data);
-};
+scene.query_status = d => ({
+    loading: [...d.scene.sources].some(([root, query_tick]) => {
+        const scene_tick = d.get_value(d, {root, terms:'scenes tick', alt:0});
+        return query_tick > scene_tick;
+    }), 
+    error: d.graph_app.error,
+});
+
+function drop_scene_source(d, root){
+    const scene = d.get_stems(d, {root, term:'scenes'}); 
+    d.drop.node(d, {node:scene, deep:true});
+    d.drop.edge(d, {root, term:'scenes'});
+}
+
+
+// scene.update_from_graph_app = (d, {patches}) => {
+//     console.log('scene.update_from_graph_app', patches);
+//     d.loading.scenes = false;
+// };
 
 
 
@@ -44,7 +78,7 @@ scene.update_from_graph_app = (d, data) => {
 
 // function get_scene_nodes(d, id){
 //     if(is_scene_node(d, id)) return d.get_stems(d, id, 'scenes');//d.nodes.get(id).terms.get('scenes');
-//     if(d.scene.roots.has(id)) return get_scene_nodes(d, id);//d.scene.roots.get(id);
+//     if(d.scene.sources.has(id)) return get_scene_nodes(d, id);//d.scene.sources.get(id);
 // }
 
 // function is_scene_node(d, id){

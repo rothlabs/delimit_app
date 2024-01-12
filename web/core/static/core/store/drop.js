@@ -1,14 +1,14 @@
 
 export const closed = {
     version: new Set(),
-    repo:   new Set(),
-    node:   new Set(),
+    repo:    new Set(),
+    node:    new Set(),
 };
 
 export const dropped = {
     version: new Set(),
-    repo:   new Set(),
-    node:   new Set(),
+    repo:    new Set(),
+    node:    new Set(),
 };
 
 export const close = {};
@@ -52,7 +52,10 @@ close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
         d.unpick(d, {node});
         d.nodes.delete(node);
     }
-    if(targets.length) d.graph.increment(d);
+    if(targets.length){
+        d.graph.increment(d);
+        d.scene.increment(d);
+    }
 };
 drop.node = (d, args) => close.node(d, {...args, drop:true});
 
@@ -108,9 +111,12 @@ drop.edge = (d, a={})=>{
         forward_edge(edge=> edge.term==a.term && edge.stem==a.stem && drops.push(edge));
     }else if(a.root && a.term && !a.stem){
         const terms = d.nodes.get(a.root).terms;
-        if(terms.has(a.term) && !terms.get(a.term).length) terms.delete(a.term);
-        d.scene.add_or_remove_root(d, a.root);
-        return;
+        if(terms.has(a.term) && !terms.get(a.term).length){
+            terms.delete(a.term); // d.scene.add_or_remove_source(d, {root:a.root, given:a.given});
+            d.scene.increment(d);
+            return;
+        }
+        forward_edge(edge=> edge.term==a.term && drops.push(edge));
     }else if(a.root && a.stem){
         forward_edge(edge=> edge.stem==a.stem && drops.push(edge));
     }else if(a.root){  
@@ -123,6 +129,7 @@ drop.edge = (d, a={})=>{
     }
     if(!a.given) drops = drops.filter(drp=> d.writable(d, drp.root));
     drops.sort((a, b)=> b.index - a.index);
+    let increment = false;
     for(const {root, term, stem, index} of drops){
         if(!d.nodes.has(root)) continue;
         const terms = d.nodes.get(root).terms;
@@ -132,7 +139,8 @@ drop.edge = (d, a={})=>{
         //if(term=='type' && stem.value=='Context') d.context_nodes.delete(root);
         stems.splice(index, 1);
         d.add_or_remove_as_context_node(d, root);
-        d.scene.add_or_remove_root(d, root);
+        d.scene.add_or_remove_source(d, {root, given:a.given});
+        increment = true;
         // if(!stems.length){
         //     if(a.placeholder){
         //         const empty = d.make.node(d, {});
@@ -142,10 +150,10 @@ drop.edge = (d, a={})=>{
         //     }
         // }
     }
-    let increment_graph = false;
+    
     for(const drp of drops){
         if(!d.nodes.has(drp.stem)) continue;
-        increment_graph = true;
+        //increment_graph = true;
         let drop_back = true;
         for(const [term, stem] of d.get_edges(d, drp.root)){
             if(stem == drp.stem) drop_back = false;
@@ -153,8 +161,12 @@ drop.edge = (d, a={})=>{
         if(drop_back){
             const stem_obj = d.nodes.get(drp.stem);
             stem_obj.back.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
-            if(!a.given && stem_obj.back.size < 1 && stem_obj.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
+            increment = true;
+            //if(!a.given && stem_obj.back.size < 1 && stem_obj.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
         }
     }
-    if(increment_graph) d.graph.increment(d);
+    if(increment){
+        d.graph.increment(d);
+        d.scene.increment(d);
+    }
 };

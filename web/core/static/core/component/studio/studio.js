@@ -3,7 +3,7 @@ import {Canvas} from '@react-three/fiber';
 import {
     use_store, undo, redo, render_token, icons, draggable, pickable, get_snake_case, render_badge, act_on_store_without_history, 
     Mode_Menu, 
-    Server_Mutations, Scene_Querier,
+    Server_Mutations, Scene_Query,
     Make_Node, Make_Repo, Node_Editor, Schema_Inspector, Repo_Editor, Scene_Editor,
     Repo_Browser, Code_Editor, Viewport,
 } from 'delimit';
@@ -18,7 +18,7 @@ export function Studio(){
                 c('div', {className:'position-relative d-flex mt-1'}, 
                     render_mode_menu(),
                     c(Server_Mutations),
-                    c(Scene_Querier),
+                    c(Scene_Query),
                 ),
                 c('div', {className:'position-absolute end-0 d-flex', style:{marginRight:200}},
                     render_history_buttons(),
@@ -112,8 +112,8 @@ function Node_Action_Menu(){
     const nodes = use_store(d=> [...d.picked.secondary.node]);
     return c(Action_Menu, {open:(nodes.length > 0), group:'node_action_menu', items:[
         //root && term && {name:'Term', content:render_term_content},
-        {name:'Add to Scene', icon:'bi-camera-reels', store_action:d=> d.scene.make_roots(d, {nodes})},
-        {name:'Remove from Scene', icon:'bi-camera-video-off', store_action:d=> d.scene.drop_roots(d, {nodes})},
+        {name:'Add to Scene', icon:'bi-camera-reels', store_action:d=> d.scene.make_sources(d, {nodes})},
+        {name:'Remove from Scene', icon:'bi-camera-video-off', store_action:d=> d.scene.drop_sources(d, {nodes})},
         {name:'Copy', icon:'bi-file-earmark', store_action:d=> d.copy.node(d, {nodes})},
         {name:'Copy', icon:'bi-file-earmark-fill', store_action:d=> d.copy.node(d, {nodes, deep:true})},
         (prm_nodes[0] && prm_nodes[0] != nodes[0]) 
@@ -169,7 +169,7 @@ export function render_mode_menu(){
         ], 
         width: 110, 
         state: d => d.studio.mode,
-        store_setter: (d, mode) => d.studio.mode = mode,
+        store_setter: (d, mode) => d.studio.set_mode(d, mode), // d.studio.mode = mode,
     })
 }
 

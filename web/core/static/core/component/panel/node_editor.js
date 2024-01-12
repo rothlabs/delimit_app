@@ -1,16 +1,17 @@
 import {createElement as c, useEffect, useState} from 'react';
-//import {Form} from 'react-bootstrap';
-import {use_store, draggable, List_View, drag_drop,
-    readable, droppable, pickable, render_badge, icons, render_token} from 'delimit';
+import {
+    use_store, draggable, List_View, drag_drop,
+    readable, droppable, pickable, render_badge, icons, render_token
+} from 'delimit';
 
 export function Node_Editor(){ 
     const items = use_store(d=> [...d.picked.primary.node.keys()]); 
     return c(List_View, {items,
-        render_item: node => c(get_node_case, {root:node, node, path:'inspect'}), 
+        render_item: node => c(Node_Case, {root:node, node, path:'inspect'}), 
     })
 }
 
-function get_node_case({root, term, node, index, show_term, path}){
+function Node_Case({root, term, node, index, show_term, path}){
     const get_node_case = use_store(d=> d.get_node_case(d, node));
     const edge = {root, term, stem:node, index};
     let dnd = drag_drop(edge);
@@ -39,11 +40,11 @@ function Node({dnd, root, term='', node, index=0, show_term, path}){
     ];
     const header_props = {...dnd, ...pickable({node, root, term})}; // mode:'secondary'
     return c(List_View, {items, path, header_props, header,
-        render_item: term => c(get_term_case, {root:node, term, path}), // key:term
+        render_item: term => c(Term_Case,{root:node, term, path}), // key:term
     });
 }
 
-function get_term_case({root, term, path}){
+function Term_Case({root, term, path}){
     const get_term_case = use_store(d=> d.get_term_case(d, root, term));
     if(!get_term_case) return;
     if(get_term_case == 'empty'){
@@ -54,7 +55,7 @@ function get_term_case({root, term, path}){
             ],
         })
     }else if(get_term_case.name == 'node'){
-        return c(get_node_case, {root, term, node:get_term_case.node, show_term:true, path});
+        return c(Node_Case, {root, term, node:get_term_case.node, show_term:true, path});
     }else if(get_term_case.name == 'leaf'){
         return c(Leaf, {root, term, ...get_term_case.leaf, show_term:true});
     }
@@ -70,7 +71,7 @@ function Term({root, term, path}){
             header: readable(term),
             render_item(stem, index){
                 if(stem.type) return c(Leaf, {root, term, ...stem, index}); // key:index
-                return c(get_node_case, {root, term, node:stem, index, path}); // key:index,
+                return c(Node_Case, {root, term, node:stem, index, path}); // key:index,
             }
         })
     )
