@@ -1,6 +1,6 @@
 import traceback, hashlib, json, re
 from django.db.models import Q
-from core.models import Snap, Node
+from core.models import Snap, Node, Code_Access
 from core.api.config import auth_required_message
 
 def try_mutation(mutate, args, alt):
@@ -10,7 +10,7 @@ def try_mutation(mutate, args, alt):
         return mutate(**args)
     except: 
         traceback.print_exc()
-        return alt()
+        return alt(error='Error')
 
 def try_query(query, args):
     try: 
@@ -42,11 +42,30 @@ def make_node_snaps(version, node_terms):
         unique_fields = ['version', 'key'],
     )
 
+def make_code_keys(nodes, code_node_ids):
+    code_keys = {}
+    def make_key(id):
+        code_access = Code_Access(node=id)
+        code_keys[id] = code_access.key
+        code_access.save()
+    for id in code_node_ids:
+        lang = nodes[id]['language'][0]
+        if 'value' in lang:
+            if lang['value'] == 'javascript': make_key(id)
+        elif lang in nodes and 'leaf' in nodes[lang]:
+            if 'value' in nodes[lang]['leaf'][0]:
+                if nodes[lang]['leaf'][0]['value'] == 'javascript': make_key(id)
+    return code_keys
+
+def split_id(comp_id):
+    version_id = comp_id[:16]
+    node_id    = comp_id[16:]
+    return version_id, node_id
+
 def split_ids(comp_ids):
     result = {}
     for comp_id in comp_ids:
-        version_id = comp_id[:16]
-        node_id    = comp_id[16:]
+        version_id, node_id = split_id(comp_id)
         if not version_id in result: 
             result[version_id] = []
         result[version_id].append(node_id)

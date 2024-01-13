@@ -27,28 +27,28 @@ export const gql_mutations = [
         ['logout reply user{firstName}'],
     ]],
     ['make_repo', [  
-        ['makeRepo reply', 'String name', 'String story'],
+        ['makeRepo error', 'String name', 'String story'],
     ]],
     ['make_meta_repo', [  
-        ['makeMetaRepo reply', 'String name', 'String story'],
+        ['makeMetaRepo error', 'String name', 'String story'],
     ]],
     ['edit_repo', [
-        ['editRepo reply', 'String id', 'String name', 'String story'],
+        ['editRepo error', 'String id', 'String name', 'String story'],
     ]],
     ['drop_repo', [  
-        ['dropRepo reply', 'String id'],
+        ['dropRepo error', 'String id'],
     ]],
     ['edit_version', [
-        ['editVersion reply', 'String id', 'String name', 'String story'],
+        ['editVersion error', 'String id', 'String name', 'String story'],
     ]],
     ['drop_versions', [  
-        ['dropVersions reply', '[String] ids'],
+        ['dropVersions error', '[String] ids'],
     ]],
     ['make_nodes', [  
-        ['makeNodes reply result', 'String nodes'], 
+        ['makeNodes error result', 'String nodes'], 
     ]],
     ['drop_nodes', [  
-        ['dropNodes reply result', '[String] ids'],
+        ['dropNodes error', '[String] ids'],
     ]],
 ];
 

@@ -194,14 +194,14 @@ export const drag = {
 //             //console.log('onPointerDown', );
 //             pointer.dragging = true;
 //             set_store(d=>{
-//                 //console.log('onPointerDown', d.get_value(d, node, 'name'));
+//                 //console.log('onPointerDown', d.get_leaf(d, node, 'name'));
 //                 d.drag.staged = node;
 //                 pointer.start.set(e.clientX, e.clientY);
 //                 //d.drag.start.set(e.clientX, e.clientY);
 //             });
 //             // set_store(d=> d.drag.face = {
-//             //     name: d.get_value(d, node, 'name', ''), 
-//             //     type: d.get_value(d, node, 'type', ''),
+//             //     name: d.get_leaf(d, node, 'name', ''), 
+//             //     type: d.get_leaf(d, node, 'type', ''),
 //             // });
 //         };
 
@@ -225,7 +225,7 @@ export const drag = {
 //         // };
 //         // events.onHover = (e) => {
 //         //     const d = get_store();
-//         //     console.log('event', d.get_value(d, node, 'name'))
+//         //     console.log('event', d.get_leaf(d, node, 'name'))
 //         // };
 //         //events.onMouseUp = (event) => event.stopPropagation();
 //         return events;
@@ -242,8 +242,8 @@ export const drag = {
 //         //event.stopPropagation();
 //         set_store(d=> d.drag.node = node);
 //         // set_store(d=> d.drag.face = {
-//         //     name: d.get_value(d, node, 'name', ''), 
-//         //     type: d.get_value(d, node, 'type', ''),
+//         //     name: d.get_leaf(d, node, 'name', ''), 
+//         //     type: d.get_leaf(d, node, 'type', ''),
 //         // });
 //     };
 //     events.onDrag = ({xy:[x, y], movement:[mx, my]}) => {  // args:[name, type, icon], 
@@ -259,7 +259,7 @@ export const drag = {
 //     };
 //     // events.onHover = (e) => {
 //     //     const d = get_store();
-//     //     console.log('event', d.get_value(d, node, 'name'))
+//     //     console.log('event', d.get_leaf(d, node, 'name'))
 //     // };
 //     //events.onMouseUp = (event) => event.stopPropagation();
 //     return useGesture(events); // , {drag:{threshold:10, preventDefault:true,}}
@@ -274,8 +274,8 @@ export const drag = {
 //     onDragStart = e => {
 //         event.stopPropagation();
 //         set_store(d=> d.drag.face = {
-//             name: d.get_value(d, node, 'name', ''), 
-//             type: d.get_value(d, node, 'type', ''),
+//             name: d.get_leaf(d, node, 'name', ''), 
+//             type: d.get_leaf(d, node, 'type', ''),
 //         });
 //     };
 //     onDrag = e => {  // args:[name, type, icon], 

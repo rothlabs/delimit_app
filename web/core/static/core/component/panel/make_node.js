@@ -29,7 +29,7 @@ function Context({node, path}){
 }
 
 function Make_Button({node}){
-    const icon = use_store(d=> d.get_value(d, {root:node, terms:'icon source', alt:icons.css.cls.generic})); 
+    const icon = use_store(d=> d.get_leaf({root:node, terms:'icon source', alt:icons.css.cls.generic})); 
     const name = use_store(d=> d.get.node.name(d, node)); 
     return render_badge_token({
         icon, name, 

@@ -1,4 +1,4 @@
-import {createElement as c} from 'react';
+import {createElement as c, useState} from 'react';
 import {animated, useTransition} from '@react-spring/web';
 import {
     set_store, gql_mutations, render_badge_token, 
@@ -8,29 +8,37 @@ import {
 const mutations = gql_mutations.map(gql => gql[0]); 
 
 export function Server_Mutations(){
-    return mutations.map(name => c(Mutation, {name}));
+    return mutations.map(gql_name => c(Mutation, {gql_name, key:gql_name}));
 }
 
-function Mutation({name}){
-    const [mutate, {loading, error, data}] = use_mutation(name, {
-        onCompleted:data=>{
-            // TODO: varify proper completion
-        },
+function Mutation({gql_name}){
+    const [failed, set_failed] = useState()
+    //console.log('render mutation', gql_name);
+    const [mutate, {loading, error}] = use_mutation(gql_name, {
+        onCompleted: data => {
+            for(const obj of Object.values(data)){
+                if(obj.error) set_failed(gql_name+', '+obj.error)
+            }
+            update_from_mutation_response({gql_name, data}) 
+        }
         //refetchQueries:['GetRepos'],
     }); 
-    set_store(d=> d.server[name] = mutate);
+    set_store(d => d.server[gql_name] = mutate);
     let open = true;
     let icon = 'bi-check-lg';
+    let name = 'Done';
     if(loading){
         icon = 'bi-hourglass-split';
-        name = readable(name);
+        name = readable(gql_name);
     }else if(error){
         icon = 'bi-exclamation-triangle';
-        name = `Error: ${error}`.substring(0, 64);
+        name = gql_name+', '+error; //.substring(0, 64); // name = 'No response from server'; // `Error: ${error}`
+    }else if(failed){
+        icon = 'bi-exclamation-triangle';
+        name = failed;
     }else{
         open = false;
         name = 'Done';
-        //console.log(data);
     }
     const transition = useTransition(open, {
         from:{opacity:0}, enter:{opacity:1}, leave:{opacity:0}, 
@@ -41,6 +49,18 @@ function Mutation({name}){
             render_badge_token({icon, name}),
     ))
 }
+
+function update_from_mutation_response({gql_name, data}){ // TODO: varify data saved properly 
+    if(gql_name != 'make_nodes') return;
+    set_store(d => {
+        for(const [node, code_key] of Object.entries(data.makeNodes.result.code_keys)){
+            d.code_keys.set(node, code_key)
+        }
+    });
+    //console.log(data.makeNodes) 
+}
+
+
 
 
 // function Mutation(){

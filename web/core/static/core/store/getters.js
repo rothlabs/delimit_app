@@ -5,7 +5,7 @@ export const node = {};
 node.icon = (d, root) => {
     if(!root) return icons.svg.generic;
     if(root.type) return icons.svg[root.type];
-    const icon_string = d.get_value(d, {root,  terms:['type icon source', 'icon source'], alt:icons.svg.generic});
+    const icon_string = d.get_leaf({root,  terms:['type icon source', 'icon source'], alt:icons.svg.generic});
     return isSvg(icon_string) ? icon_string : icons.svg.generic;
 };
 node.name = (d, root) => {
@@ -13,10 +13,10 @@ node.name = (d, root) => {
     if(root.type) return (''+root.value).trim().substring(0, 24);
     if(!d.nodes.has(root)) return root;
     if(d.nodes.get(root).terms.size < 1) return 'empty';
-    return (''+d.get_value(d, {root, terms:['name', 'leaf'], alt:''})).trim().substring(0, 24);
+    return (''+d.get_leaf({root, terms:['name', 'leaf'], alt:''})).trim().substring(0, 24);
 };
 node.type_name = (d, root) => 
-    d.get_value(d, {root, terms:['type name', 'type'], alt:''});
+    d.get_leaf({root, terms:['type name', 'type'], alt:''});
 node.title = (d, root) => { 
     const type_name = d.get.node.type_name(d, root);
     return d.get.node.name(d, root) + (type_name ? ' ('+readable(type_name)+')' : '');

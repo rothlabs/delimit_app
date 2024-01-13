@@ -39,7 +39,7 @@ function Scene_Case({node}){
 
 function Point({node}){
     // notice that source nodes are captured in a leaf value to prevent cycles!
-    const source = use_store(d=> d.get_value(d, {root:node, term:'source'}));
+    const source = use_store(d=> d.get_leaf({root:node, term:'source'}));
     const position = use_store(d=> d.get_values(d, {root:node, terms:{x:0, y:0, z:0}}));
     const size = use_store(d=> d.point_size);
     return c(View_Transform, { 
@@ -55,6 +55,6 @@ function Point({node}){
     )
 }
 
-// pos.x = use_store(d=> d.get_value(d, {root:pos.x, term:'x', alt:pos.x}));
-    // pos.x = use_store(d=> d.get_value(d, {root:pos.x, term:'x', alt:pos.x}));
-    // pos.x = use_store(d=> d.get_value(d, {root:pos.x, term:'x', alt:pos.x}));
+// pos.x = use_store(d=> d.get_leaf(d, {root:pos.x, term:'x', alt:pos.x}));
+    // pos.x = use_store(d=> d.get_leaf(d, {root:pos.x, term:'x', alt:pos.x}));
+    // pos.x = use_store(d=> d.get_leaf(d, {root:pos.x, term:'x', alt:pos.x}));

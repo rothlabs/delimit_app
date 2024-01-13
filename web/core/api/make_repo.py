@@ -7,7 +7,7 @@ class Make_Repo(graphene.Mutation):
     class Arguments:
         name = graphene.String()
         story = graphene.String()
-    reply = graphene.String(default_value = 'Failed to make repo')
+    error = graphene.String() # default_value = 'Failed to make repo'
     result = graphene.String()
     @classmethod
     def mutate(cls, root, info, name, story):
@@ -24,12 +24,12 @@ class Make_Meta_Repo(Make_Repo):
 def make_standard_repo(user, name, story):
     version = make_repo(user, name, story)
     make_node_snaps(version, make_standard_nodes(name))
-    return Make_Repo(reply = 'Made standard repo')
+    return Make_Repo() # reply = 'Made standard repo'
 
 def make_meta_repo(user, name, story):
     version = make_repo(user, name, story)
     make_node_snaps(version, make_meta_nodes(name))
-    return Make_Repo(reply = 'Made standard repo')
+    return Make_Repo() # reply = 'Made standard repo'
 
 def make_repo(user, name, story):
     repo = Repo.objects.create(

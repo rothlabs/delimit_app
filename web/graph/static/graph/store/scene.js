@@ -1,10 +1,9 @@
 import {get_draft} from 'delimit/graph';
 
-export const make_scene = ({source_node, draft=get_draft()}) => {
+export const make_scene = ({source_node, scene_tree, draft=get_draft()}) => {
     const root = draft.get_stem({root:source_node, term:'scenes'});
     if(!root) return;
-    const data = draft.query_node({node:source_node, get_scene:{}});
-    console.log('make_scene!!!', root, data);
+    console.log('make_scene!!!', source_node, scene_tree);
 };
 
 //if(!draft.nodes.has(source_node)) return;

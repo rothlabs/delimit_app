@@ -18,6 +18,7 @@ export const make_store = get_draft => ({
     nodes:    new Map(),
     repos:    new Map(),
     versions: new Map(),
+    code_keys:     new Map(),
     context_nodes: new Set(),
     mode: ctx.entry,
     server: {},
@@ -75,6 +76,9 @@ export const make_store = get_draft => ({
                 });
             };
         });
+        for(const [node, code_key] of Object.entries(data.code_keys)){ // console.log('got code key', node, code_key);
+            d.code_keys.set(node, code_key);
+        }
         d.graph.increment(d);
         d.scene.increment(d);
     },
@@ -109,7 +113,7 @@ export const make_store = get_draft => ({
     //     node = d.nodes.get(node).terms.get('leaf')[0];
     //     if(node.type) return node; // .value;
     // },
-    // get_value(d, {root, alt, ...term_paths}){ 
+    // get_leaf(d, {root, alt, ...term_paths}){ 
     //     for(const terms of d.get_iterable(term_paths)){
     //         try{
     //             const leaf = d.get_leaf(d, root, terms);
@@ -120,9 +124,9 @@ export const make_store = get_draft => ({
     // },
     get_values(d, {root, terms}){
         return Object.entries(terms).map(([term, alt]) => {
-            return d.get_value(d, {root, term, alt});
-            //const root_or_value = d.get_value(d, {root, term, alt});
-            //return d.get_value(d, {root:root_or_value, term, alt:root_or_value});
+            return d.get_leaf({root, term, alt});
+            //const root_or_value = d.get_leaf(d, {root, term, alt});
+            //return d.get_leaf(d, {root:root_or_value, term, alt:root_or_value});
         });
     },
     // get_stem(d, {root, ...term_paths}){

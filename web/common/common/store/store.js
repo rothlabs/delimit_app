@@ -25,10 +25,10 @@ export const make_common_slice = get_draft => ({
             }catch{}
         }
     },
-    get_value(d, {root, alt, ...term_paths}){  // get_value(d, {root, alt, ...term_paths}){ 
-        for(const terms of d.get_iterable(term_paths)){
+    get_leaf({root, alt, draft=get_draft(), ...term_paths}){  // get_leaf(d, {root, alt, ...term_paths}){ 
+        for(const terms of draft.get_iterable(term_paths)){
             try{
-                const leaf = get_leaf(d, root, terms);
+                const leaf = get_leaf_container(draft, root, terms);
                 if(leaf.type) return leaf.value;
             }catch{}
         }
@@ -56,7 +56,7 @@ function get_iterable(i){
     return [i];
 }
 
-function get_leaf(d, node, term_path){
+function get_leaf_container(d, node, term_path){
     for(const term of term_path.split(' ')){
         node = d.nodes.get(node).terms.get(term)[0];
     }

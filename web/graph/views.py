@@ -1,37 +1,62 @@
+import traceback
 from django.http import HttpResponse
 from django.shortcuts import render
-from terminus import WOQLQuery as wq
-#from .database import gdbc
+from core.models import Node, Snap, Code_Access
+from core.api.util import split_id
 
 def index(request):
     return render(request, 'graph/index.html')
 
-def worker(request, pk):
-    print('worker request!!!!!')
-    #print(pk)
-    #print(graph.schema)
-    # wq().string(pk)
-    # triples = wq().select('code').woql_and(
-    #     wq().triple('v:root', 'rdf:type', '@schema:Script'),
-    #     wq().triple('v:root', '@schema:key', pk),
-    #     wq().triple('v:root', '@schema:code', 'v:code'),
-    # ).execute(graph.client)['bindings']
+def extension(request, apiKey, codeNode, name):
+    # print('code request!!!!!')
+    default = HttpResponse('''// not found''', content_type='application/javascript')
+    try:
+        
+        version_id, node_id = split_id(codeNode)
+        snaps = Snap.objects.filter(nodes__version=version_id, nodes__key=node_id)
+        if len(snaps) < 1: return default
+        terms = snaps[0].content
+        #print('content!!', terms)
+        if not 'source' in terms: return default
+        code = terms['source'][0]['value']
+        if not isinstance(code, str): return default
+        #print('code!!!', code)
+        return HttpResponse(code, content_type='application/javascript')
+    except:
+        traceback.print_exc()
+        return default
 
 
-    code = '''
-    import {{Vector3}} from 'three';
-    const v = new Vector3(1, 2, 3);
-    onmessage = e => {{
-        console.log("Message received from main script: {pk}");
-        const workerResult = `Result: ${{e.data[0] * e.data[1]}}`;
-        console.log("Posting message back to main script", v);
-        postMessage(workerResult);
-    }};
-    '''.format(pk=pk)
+    # nodes = Node.objects.filter(key=pk)
+    # if len(nodes) < 1: return default
 
-    #print(code)
+    # #print(pk)
+    # #print(graph.schema)
+    # # wq().string(pk)
+    # # triples = wq().select('code').woql_and(
+    # #     wq().triple('v:root', 'rdf:type', '@schema:Script'),
+    # #     wq().triple('v:root', '@schema:key', pk),
+    # #     wq().triple('v:root', '@schema:code', 'v:code'),
+    # # ).execute(graph.client)['bindings']
 
-    return HttpResponse(code, content_type='application/javascript')
+
+    # code = '''
+    # import {{Vector3}} from 'three';
+    # const v = new Vector3(1, 2, 3);
+    # onmessage = e => {{
+    #     console.log("Message received from main script: {pk}");
+    #     const workerResult = `Result: ${{e.data[0] * e.data[1]}}`;
+    #     console.log("Posting message back to main script", v);
+    #     postMessage(workerResult);
+    # }};
+    # '''.format(pk=pk)
+
+    # #print(code)
+
+
+
+
+
 
 
 # #from django.views.decorators.clickjacking import xframe_options_sameorigin # , xframe_options_deny

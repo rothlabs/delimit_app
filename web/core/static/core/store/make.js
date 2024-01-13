@@ -73,7 +73,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single}) => { // make na
 
 function build_node_from_type(d, node, type){
     d.make.edge(d, {root:node, term:'type', stem:type});
-    if(d.get_value(d, {root:type, term:'name'}) == 'Root'){
+    if(d.get_leaf({root:type, term:'name'}) == 'Root'){
         for(const [root] of d.get_back_edges(d, type)){
             if(d.get.node.type_name(d, root) == 'Context'){
                 d.make.edge(d, {root, term:'types', stem:node});
@@ -138,7 +138,7 @@ function build_node_from_type(d, node, type){
 //                 if(logic_type == 'Root'){
 //                     add_or_make_stems(logic);
 //                 }else if(logic_type == 'Term'){
-//                     const term = d.get_value(d, logic, 'name', '');//.toLowerCase().replace(/ /g,'_'); //stem_obj.terms('term')[0].value.toLowerCase().replace(/ /g,'_');
+//                     const term = d.get_leaf(d, logic, 'name', '');//.toLowerCase().replace(/ /g,'_'); //stem_obj.terms('term')[0].value.toLowerCase().replace(/ /g,'_');
 //                     if(!term.length) continue;
 //                     for(const to_be_made of d.get_stems(d, logic, 'make')){ // d.nodes.get(logic).terms.get('make')
 //                         //console.log('trying to make stem', term);
@@ -160,7 +160,7 @@ function build_node_from_type(d, node, type){
 //         }
 //     }
 //     add_or_make_stems(type);
-//     if(d.face.type(d, node) == 'Root'){ //if(d.get_value(d, type, 'name') == 'Root'){//if(d.get_value(d, type, 'tag') == 'Type'){
+//     if(d.face.type(d, node) == 'Root'){ //if(d.get_leaf(d, type, 'name') == 'Root'){//if(d.get_leaf(d, type, 'tag') == 'Type'){
 //         for(const delimit of d.get_stems(d, d.entry, 'delimit')){
 //             if(d.nodes.get(delimit).repo == d.target.repo){
 //                 d.make.edge(d, delimit, 'types', node);

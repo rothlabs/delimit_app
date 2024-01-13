@@ -46,7 +46,7 @@ scene.get_scenes = (d, root) => d.get_stems(d, {root, term:'scenes'});
 
 scene.query_status = d => ({
     loading: [...d.scene.sources].some(([root, query_tick]) => {
-        const scene_tick = d.get_value(d, {root, terms:'scenes tick', alt:0});
+        const scene_tick = d.get_leaf({root, terms:'scenes tick', alt:0});
         return query_tick > scene_tick;
     }), 
     error: d.graph_app.error,
@@ -67,7 +67,7 @@ function drop_scene_source(d, root){
 
 
 
-//scene.get_type_name = (d, root) => d.get_value(d, {root, term:'scene_type', alt:''});
+//scene.get_type_name = (d, root) => d.get_leaf(d, {root, term:'scene_type', alt:''});
 
 
 
@@ -83,7 +83,7 @@ function drop_scene_source(d, root){
 // }
 
 // function is_scene_node(d, id){
-//     return d.get_value(d, id, 'scene_type') != null
+//     return d.get_leaf(d, id, 'scene_type') != null
 // }
 
 // function make_scene_of_type_group(d){

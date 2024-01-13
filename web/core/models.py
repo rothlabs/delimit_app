@@ -39,3 +39,8 @@ class Node(models.Model):
     key     = models.CharField(max_length=16)
     snap    = models.ForeignKey(Snap,    related_name='nodes', on_delete=models.CASCADE)
     version = models.ForeignKey(Version, related_name='nodes', on_delete=models.CASCADE)
+
+class Code_Access(models.Model):
+    key       = models.CharField(max_length=16, default=make_id) 
+    node      = models.CharField(max_length=32)  # models.ForeignKey(Node, related_name='code_access', on_delete=models.CASCADE)
+    make_time = models.DateTimeField(auto_now_add=True)

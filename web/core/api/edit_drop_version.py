@@ -7,7 +7,7 @@ class Edit_Version(graphene.Mutation):
         id = graphene.String()
         name   = graphene.String()
         story  = graphene.String()
-    reply = graphene.String(default_value = 'Failed to edit version')
+    error = graphene.String() # default_value = 'Failed to edit version'
     result = graphene.String()
     @classmethod
     def mutate(cls, root, info, id, name, story):
@@ -18,7 +18,7 @@ def edit_version(user, id, name, story):
     version = Version.objects.get(writable_version(user), id = id)
     version.metadata |= {'name':name, 'story':story} 
     version.save()
-    return Edit_Version(reply = 'Edited version')
+    return Edit_Version() # reply = 'Edited version'
 
 
 class Drop_Versions(graphene.Mutation):
@@ -33,4 +33,4 @@ class Drop_Versions(graphene.Mutation):
 def drop_versions(user, ids):
     Version.objects.filter(writable_version(user), id__in=ids).delete()
     Snap.objects.filter(nodes=None).delete()
-    return Drop_Versions(reply = 'Dropped versions')
+    return Drop_Versions() # reply = 'Dropped versions'

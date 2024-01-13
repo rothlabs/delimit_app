@@ -68,7 +68,10 @@ export function use_store(selector, a={}){
         return useEffect(()=>store.subscribe(selector, a.subscribe, args), []);
     }
     //if(a.shallow) return store(selector, shallow);
-    return store(selector);
+    return store(state => {
+        current_draft = state;
+        return selector(state);
+    });
 }
 //export const use_store_shallow = selector=> store(selector, shallow);
 ///////export const use_subscription  = (selector, callback, triggers=[])=> useEffect(()=>store.subscribe(selector, callback, {fireImmediately:true}), triggers);
@@ -174,6 +177,8 @@ function is_patch_for_graph_app(path){
         if(is_formal_node_id(path[1])) return true;
     }else if(path[0] == 'scene' && path[1] == 'sources'){
         if(is_formal_node_id(path[2])) return true;
+    }else if(path[0] == 'code_keys'){
+        return true;
     }
 }
 

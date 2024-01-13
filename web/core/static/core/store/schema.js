@@ -33,7 +33,7 @@ schema.make_root = (d, root, root_type) => {
 }
 
 schema.make_term = (d, root, term_type) =>{
-    const term = get_snake_case(d.get_value(d, {root:term_type, term:'name', alt:'no_term'}));
+    const term = get_snake_case(d.get_leaf({root:term_type, term:'name', alt:'no_term'}));
     d.make.edge(d, {root, term});
     for(const stem of d.get_stems(d, {root:term_type, term:'add'})){
         d.make.edge(d, {root, term, stem});
@@ -48,12 +48,12 @@ schema.make_stem = (d, {root, term, stem}) =>{
         d.make.edge(d, {root, term, stem:{...stem}});
         return true;
     }
-    const stem_type_name = d.get_value(d, {root:stem, term:'name'});
-    const stem_type_context = d.get_value(d, {root:stem, term:'context'});
+    const stem_type_name = d.get_leaf({root:stem, term:'name'});
+    const stem_type_context = d.get_leaf({root:stem, term:'context'});
     for(const context of d.get.root_context_nodes(d)){ 
-        if(stem_type_context == d.get_value(d, {root:context, term:'name'})){
+        if(stem_type_context == d.get_leaf({root:context, term:'name'})){
             for(const type of d.get_stems(d, {root:context, term:'types'})){
-                if(stem_type_name == d.get_value(d, {root:type, term:'name'})){ 
+                if(stem_type_name == d.get_leaf({root:type, term:'name'})){ 
                     const stem = d.make.node({type, version:'targeted'});
                     d.make.edge(d, {root, term, stem});
                     return true;

@@ -5,7 +5,7 @@ from core.api.util import try_mutation, writable_repo
 class Drop_Repo(graphene.Mutation):
     class Arguments:
         id = graphene.String()
-    reply = graphene.String(default_value = 'Failed to drop repo')
+    error = graphene.String() # default_value = 'Failed to drop repo'
     result = graphene.String()
     @classmethod
     def mutate(cls, root, info, id):
@@ -14,4 +14,4 @@ class Drop_Repo(graphene.Mutation):
 def drop_repo(user, id):
     Repo.objects.filter(writable_repo(user), id=id).delete()
     Snap.objects.filter(nodes=None).delete()
-    return Drop_Repo(reply = 'Drop repo complete')
+    return Drop_Repo() # reply = 'Drop repo complete'
