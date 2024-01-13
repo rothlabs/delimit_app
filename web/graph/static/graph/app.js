@@ -77,7 +77,7 @@ export const get_current_node = () => current_node;
 function import_code({state, code_node, api_key='0'}){
     //code_counter++;
     const name = state.get_leaf({root:code_node, term:'name', alt:'extension'});
-    import('/extension/'+api_key+'/'+code_node+'/'+'/'+name+'.js'); // code_counter
+    import('/extension/'+api_key+'/'+code_node+'/'+name+'.js'); // code_counter
     //current_node = code_node;
     //import('/'+code_node+'/'+code_counter+'/extension.js'); // .then(module => console.log('loaded new code'));
 }

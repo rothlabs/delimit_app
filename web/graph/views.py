@@ -8,10 +8,12 @@ def index(request):
     return render(request, 'graph/index.html')
 
 def extension(request, apiKey, codeNode, name):
-    # print('code request!!!!!')
+    #print('code request!!!!!', apiKey, codeNode, name)
     default = HttpResponse('''// not found''', content_type='application/javascript')
     try:
-        
+        code_access = Code_Access.objects.filter(key=apiKey, node=codeNode)
+        if len(code_access) < 1: return default
+        code_access.delete()
         version_id, node_id = split_id(codeNode)
         snaps = Snap.objects.filter(nodes__version=version_id, nodes__key=node_id)
         if len(snaps) < 1: return default
