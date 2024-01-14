@@ -38,6 +38,7 @@ function Scene_Case({node}){
 }
 
 function Point({node}){
+    console.log('render point');
     // notice that source nodes are captured in a leaf value to prevent cycles!
     const source = use_store(d=> d.get_leaf({root:node, term:'source'}));
     const position = use_store(d=> d.get_values(d, {root:node, terms:{x:0, y:0, z:0}}));

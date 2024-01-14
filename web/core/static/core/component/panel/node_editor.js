@@ -92,7 +92,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
             render_switch({ //...dnd,
                 checked: value, 
                 store_action(d, e){
-                    d.set_leaf(d, {root, term, index, value:e.target.checked});
+                    d.set_leaf({root, term, index, value:e.target.checked});
                 }, 
             }) : 
             render_input({
@@ -106,7 +106,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
                     }
                 },
                 store_action(d, e){
-                    const coerced = d.set_leaf(d, {root, term, index, value:e.target.value});
+                    const coerced = d.set_leaf({root, term, index, value:e.target.value});
                     if(coerced != null) set_input_value(coerced); 
                 }, 
             }),

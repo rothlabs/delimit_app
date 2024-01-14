@@ -16,9 +16,10 @@ const host_app_url = `https://delimit.art`;
 //const is_temp_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length != 32);
 
 let current_state = null;
-export const get_draft = () => current_state;
+export const get_draft = () => current_state; // TODO: this might cause a serious problem with async ops
 
-const store = createWithEqualityFn(subscribeWithSelector(() => make_store(get_draft)), shallow);
+// TODO: find way to make get_draft from subscribeWithSelector work
+const store = createWithEqualityFn(subscribeWithSelector(() => make_store(get_draft)), shallow); 
 
 export const get_store = () => store.getState();
 
@@ -53,10 +54,10 @@ function update_from_host_app(patches){
     current_state = state;
     for(const patch of patches){
         if(is_code_update({state, patch})){
-            import_code({state, code_node:patch.path[1], api_key:patch.value});
+            import_code({state, node:patch.path[1], api_key:patch.value});
         }
         if(is_scene_query(patch)){
-            make_scene({state, source_node:patch.path[2]});
+            make_scene({state, node:patch.path[2], tick:patch.value});
         }
     }
 }
@@ -70,23 +71,22 @@ function is_code_update({state, patch:{path}}){
     if(path[0] == 'code_keys') return true;
 }
 
-//let code_counter = 0;
-let current_node = null;
-export const set_current_node = node => current_node = node;
-export const get_current_node = () => current_node;
-function import_code({state, code_node, api_key='0'}){
-    //code_counter++;
-    const name = state.get_leaf({root:code_node, term:'name', alt:'extension'});
-    import('/extension/'+api_key+'/'+code_node+'/'+name+'.js'); // code_counter
-    //current_node = code_node;
-    //import('/'+code_node+'/'+code_counter+'/extension.js'); // .then(module => console.log('loaded new code'));
+function import_code({state, node, api_key='0'}){
+    const name = state.get_leaf({root:node, term:'name', alt:'extension'});
+    try{
+        import('/extension/'+api_key+'/'+node+'/'+name+'.js').then(module => {
+            module.initialize(node);
+        });
+    }catch(e){
+        console.error(e.stack);
+    }
 }
 
-function make_scene({state, source_node}){
-    const promise = query_node({state, node:source_node, get_scene:{}})
-    promise.then(scene_tree => {
-        set_store(draft => draft.make_scene({source_node, scene_tree}));
-    }, rejected => rejected);
+function make_scene({state, node, tick}){
+    const promise = query_node({state, node, get_scene:{}})
+    promise.then(tree => {
+        set_store(draft => draft.make_scene({node, tree, tick}));
+    }, rejected => null);
 }
 
 function query_node({state, node, ...query_selection}){

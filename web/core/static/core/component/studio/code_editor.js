@@ -36,13 +36,13 @@ function save_code({root, editor}){
     act_on_store(d=> {
         const value = editor.getValue();
         if(d.get_leaf({root, term:'source'})){
-            d.set_leaf(d, {root, term:'source', value});
+            d.set_leaf({root, term:'source', value});
         }else if(d.get_leaf({root, terms:'code source'})) {
             const target = d.get_stem({root, term:'code'});
-            d.set_leaf(d, {root:target, term:'source', value});
+            d.set_leaf({root:target, term:'source', value});
         }else if(d.get_leaf({root, terms:'type code source'})) {
             const target = d.get_stem({root, terms:'type code'});
-            d.set_leaf(d, {root:target, term:'source', value});
+            d.set_leaf({root:target, term:'source', value});
         }
     });
 }

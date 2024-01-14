@@ -1,4 +1,4 @@
-import {current} from 'immer';
+import {get_draft} from 'delimit';
 
 export const inspected = new Set();
 
@@ -21,11 +21,11 @@ inspect.open = (d, {path, paths}) => {
     }
 };
 
-export const set_leaf = (d, {root, term, index=0, value}) => {
-    d.scene.increment(d);
+export const set_leaf = ({root, term, index=0, value, draft=get_draft()}) => {
+    draft.scene.increment(draft);
     //console.log(root, term);
-    //console.log([...d.nodes.get(root).terms]);
-    const leaf = d.nodes.get(root).terms.get(term)[index];
+    //console.log([...draft.nodes.get(root).terms]);
+    const leaf = draft.nodes.get(root).terms.get(term)[index];
     let coerced = value;
     if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
         leaf.value = coerced;
@@ -34,7 +34,7 @@ export const set_leaf = (d, {root, term, index=0, value}) => {
     if(typeof coerced == 'string'){
         if(leaf.type == 'string'){
             leaf.value = coerced;
-            d.add_or_remove_as_context_node(d, root);
+            draft.add_or_remove_as_context_node(draft, root);
             return coerced;
         }
         //coerced = coerced.replace(/^0+/, '');

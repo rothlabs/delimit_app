@@ -26,13 +26,22 @@ export const make_common_slice = get_draft => ({
         }
     },
     get_leaf({root, alt, draft=get_draft(), ...term_paths}){  // get_leaf(d, {root, alt, ...term_paths}){ 
-        for(const terms of draft.get_iterable(term_paths)){
+        const stem = draft.get_leaf_box({root, ...term_paths});
+        if(stem) return stem.value;
+        return alt;
+    },
+    get_leaf_box({root, draft=get_draft(), ...term_paths}){
+        let item = root;
+        for(const term_path of draft.get_iterable(term_paths)){
             try{
-                const leaf = get_leaf_container(draft, root, terms);
-                if(leaf.type) return leaf.value;
+                for(const term of term_path.split(' ')){
+                    item = draft.nodes.get(item).terms.get(term)[0];
+                }
+                if(item.type) return item; 
+                item = draft.nodes.get(item).terms.get('leaf')[0];
+                if(item.type) return item; 
             }catch{}
         }
-        return alt;
     },
     leaf_changed({root, patch:{op, path}, draft=get_draft(), ...term_paths}){
         for(const term_path of draft.get_iterable(term_paths)){
@@ -66,15 +75,32 @@ function get_iterable(i){
     return [i];
 }
 
-function get_leaf_container(d, node, term_path){
-    for(const term of term_path.split(' ')){
-        node = d.nodes.get(node).terms.get(term)[0];
-    }
-    if(node.type) return node; //.value;
-    node = d.nodes.get(node).terms.get('leaf')[0];
-    if(node.type) return node; // .value;
-}
 
+
+    // set_leaf({root, term, value, draft=get_draft()}){
+    //     if(!draft.nodes.get(root)) return;
+    //     let stem = draft.get_leaf_box({root, term}) // const leaf = draft.nodes.get(root).terms.get(term)[index];
+    //     if(stem) stem.value = value;
+    //     else stem = {type:'', value}; 
+    //     if(typeof value === 'string') stem.type = 'string';
+    //     else if(typeof value === 'boolean') stem.type = 'boolean';
+    //     else if(typeof value === 'number' && !(stem.type == 'integer' || stem.type == 'decimal')){
+    //         stem.type = 'decimal';
+    //         if(Number.isInteger(value)) stem.type = 'integer'
+    //     }
+    //     draft.make.edge({root, term, stem});
+    // },
+
+
+// get_leaf({root, alt, draft=get_draft(), ...term_paths}){  // get_leaf(d, {root, alt, ...term_paths}){ 
+//     for(const terms of draft.get_iterable(term_paths)){
+//         try{
+//             const leaf = get_leaf_box({root, terms});
+//             if(leaf.type) return leaf.value;
+//         }catch{}
+//     }
+//     return alt;
+// },
 
     // exclude_leaves
     // get_edges_without_leaves: function* ({root, leaf, draft=get_draft()}){
