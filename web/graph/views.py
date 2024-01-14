@@ -8,7 +8,6 @@ def index(request):
     return render(request, 'graph/index.html')
 
 def extension(request, apiKey, codeNode, name):
-    #print('code request!!!!!', apiKey, codeNode, name)
     default = HttpResponse('''// not found''', content_type='application/javascript')
     try:
         code_access = Code_Access.objects.filter(key=apiKey, node=codeNode)
@@ -18,15 +17,14 @@ def extension(request, apiKey, codeNode, name):
         snaps = Snap.objects.filter(nodes__version=version_id, nodes__key=node_id)
         if len(snaps) < 1: return default
         terms = snaps[0].content
-        #print('content!!', terms)
         if not 'source' in terms: return default
         code = terms['source'][0]['value']
         if not isinstance(code, str): return default
-        #print('code!!!', code)
         return HttpResponse(code, content_type='application/javascript')
     except:
         traceback.print_exc()
         return default
+
 
 
     # nodes = Node.objects.filter(key=pk)

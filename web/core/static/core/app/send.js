@@ -63,9 +63,3 @@ function extension_changed(d, {id, patch}){
     if(!d.leaf_changed({root:id, terms:['source', 'language'], patch})) return;
     return true;
 }
-
-        // if(['source', 'language'].includes(path[2])){
-        //     if(d.get_leaf({root:id, term:'language'})=='javascript' && d.get_leaf({root:id, term:'source'})){
-        //         settings.include_code_keys = true;
-        //     }
-        // }

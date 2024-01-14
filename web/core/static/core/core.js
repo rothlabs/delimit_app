@@ -35,9 +35,9 @@ export * from './component/scene/scene.js';
 enableMapSet();
 enablePatches();
 
-Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
-    frameLoop: "always",
-});
+// Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
+//     frameLoop: "always",
+// });
 
 
 export const assess = (obj, args) => (typeof obj === 'function' ? obj(args) : obj); // (Object.keys(obj).length ? obj : null) 

@@ -1,3 +1,4 @@
+import requests
 from django.http import HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
@@ -24,6 +25,22 @@ def shop(request):
 def studio(request):#, pk=0):
     context = {'ctx':{'entry':'studio'}}
     return render(request, 'core/index.html', context)
+
+
+def external(request, name):#, pk=0):
+    default = HttpResponse('''// error''', content_type='application/javascript')
+    try:
+        if name == 'react-spring-shared':
+            code = requests.get('https://cdn.jsdelivr.net/npm/@react-spring/shared@9.6.1/+esm').text
+            code = code.replace('/npm/@react-spring/rafz@9.6.1/+esm', '@react-spring/rafz')
+            code = code.replace('/npm/react@18.2.0/+esm', 'react')
+        code = code.replace('sourceMappingURL', '')
+        return HttpResponse(code, content_type='application/javascript')
+    except:
+        traceback.print_exc()
+        return default
+
+
 
 # # @ensure_csrf_cookie
 # # @login_required

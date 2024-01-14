@@ -1,7 +1,7 @@
 {% load static %}
 {% load hosts %}
 <!DOCTYPE html>
-<html lang='en' data-bs-theme='dark'>
+<html lang='en' data-bs-theme='light'>
 
 <head>
   <title>Delimit</title>
@@ -25,13 +25,20 @@
   <link href='{% static "core/css/boot.css" %}' rel='stylesheet'>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css' rel='stylesheet'>
   <script type='importmap'>{"imports":{
-    "delimit":                          "https://delimit.art/static/core/core.js",
+    "delimit":                          "/static/core/core.js",
+    "@react-spring/rafz":               "/static/core/spring/react-spring-rafz.js",
+    "@react-spring/web":                "/static/core/spring/react-spring-web.js",
+    "@react-spring/three":              "/static/core/spring/react-spring-three.js",
+    "@react-spring/shared":             "/external/react-spring-shared.js",
+    "@react-spring/core":               "https://cdn.jsdelivr.net/npm/@react-spring/core@9.6.1/+esm",
+    "@react-spring/animated":           "https://cdn.jsdelivr.net/npm/@react-spring/animated@9.6.1/+esm",
     "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
     "immer":                            "https://cdn.jsdelivr.net/npm/immer/+esm",
     "zustand/traditional":              "https://cdn.jsdelivr.net/npm/zustand/traditional/+esm",
     "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand/middleware/+esm",
     "zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand/shallow/+esm",
     "react":                            "https://cdn.jsdelivr.net/npm/react@18.2.0/+esm",  
+    "react-dom":                        "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/+esm",
     "react-dom/client":                 "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client/+esm", 
     "react-router-dom":                 "https://cdn.jsdelivr.net/npm/react-router-dom/+esm",
     "react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap/+esm",
@@ -44,8 +51,6 @@
     "@react-three/drei/Edges":          "https://cdn.jsdelivr.net/npm/@react-three/drei/core/Edges/+esm",
     "@react-three/drei/useGLTF":        "https://cdn.jsdelivr.net/npm/@react-three/drei/core/useGLTF/+esm",
     "@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei/core/Grid/+esm",
-    "@react-spring/web":                "https://cdn.jsdelivr.net/npm/@react-spring/web@9.6.1/+esm",
-    "@react-spring/three":              "https://cdn.jsdelivr.net/npm/@react-spring/three@9.6.1/+esm",
     "@monaco-editor/react":             "https://cdn.jsdelivr.net/npm/@monaco-editor/react/+esm",
     "classnames":                       "https://cdn.jsdelivr.net/npm/classnames/+esm",
     "is-svg":                           "https://cdn.jsdelivr.net/npm/is-svg/+esm"
@@ -64,6 +69,12 @@
 
 
 <!-- 
+https://cdn.jsdelivr.net/npm/@react-spring/three@9.6.1/+esm
+    
+@0.160.0
+    @8.15.14
+
+    @9.6.1
 
     "delimit":                          "https://delimit.art/static/core/core.js",
     "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",

@@ -21,13 +21,16 @@ urlpatterns = [
     path('',        views.index,   name='index'), # rename to index #1
     path('shop',    views.shop,    name='shop'), # rename to shop or use sub domain for shop
     path('studio',  views.studio,  name='studio'), # sub domain for studio as well
-    #### re_path(r'^static/(?P<path>.*)', views.static_access, name='static'), # was used to make django auth user for static files
     path('gql', FileUploadGraphQLView.as_view(graphiql=True, schema=api), name='graphql'), # move to graph app or api app? #1
+    path(r'external/<str:name>.js', views.external),
+] 
+
+    #### re_path(r'^static/(?P<path>.*)', views.static_access, name='static'), # was used to make django auth user for static files
+
     ##path('sandbox', views.sandbox, name='sandboxed'),
     #path('studio/<str:pk>', views.studio, name='studio'),
     #path('gql', views.GQL_View.as_view(graphiql=True, schema=schema), name='graphql'),
     #path('gql', views.graphql, name='graphql'),
     
     #path('gql', GraphQLView.as_view(graphiql=True, schema=schema), name='graphql'),
-] 
 
