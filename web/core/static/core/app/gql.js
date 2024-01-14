@@ -45,7 +45,7 @@ export const gql_mutations = [
         ['dropVersions error', '[String] ids'],
     ]],
     ['make_nodes', [  
-        ['makeNodes error result', 'String nodes'], 
+        ['makeNodes error result', 'String nodes', 'Boolean includeCodeKeys'], 
     ]],
     ['drop_nodes', [  
         ['dropNodes error', '[String] ids'],

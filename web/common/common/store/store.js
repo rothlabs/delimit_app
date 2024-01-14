@@ -34,6 +34,16 @@ export const make_common_slice = get_draft => ({
         }
         return alt;
     },
+    leaf_changed({root, patch:{op, path}, draft=get_draft(), ...term_paths}){
+        for(const term_path of draft.get_iterable(term_paths)){
+            for(const term of term_path.split(' ')){
+                if(!draft.get_leaf({root, term})) continue;
+                if(path[0] != 'nodes' || path[1] != root) continue;
+                if(path.length === 2 && op == 'add') return true;
+                if(path[3] == term) return true;
+            }
+        }
+    },
     get_new_id,
     get_iterable,
 });
