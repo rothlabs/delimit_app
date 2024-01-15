@@ -53,7 +53,7 @@ function update_from_host_app(patches){
     store.setState(state);
     current_state = state;
     for(const patch of patches){
-        if(is_code_update({state, patch})){
+        if(is_code_update({patch})){
             import_code({state, node:patch.path[1], api_key:patch.value});
         }
         if(is_scene_query(patch)){
@@ -67,7 +67,7 @@ function is_scene_query({path}){
     if(path[0] == 'scene' && path[1] == 'sources') return true;
 }
 
-function is_code_update({state, patch:{path}}){
+function is_code_update({patch:{path}}){
     if(path[0] == 'code_keys') return true;
 }
 
@@ -84,8 +84,8 @@ function import_code({state, node, api_key='0'}){
 
 function make_scene({state, node, tick}){
     const promise = query_node({state, node, get_scene:{}})
-    promise.then(tree => {
-        set_store(draft => draft.make_scene({node, tree, tick}));
+    promise.then(scene => {
+        set_store(draft => draft.make_scene({node, scene, tick}));
     }, rejected => null);
 }
 
@@ -95,7 +95,7 @@ function query_node({state, node, ...query_selection}){
     const query = state.nodes.get(code)?.queries?.get(query_name);
     return new Promise((resolve, reject) => {
         if(!query) reject('no query');
-        resolve(query.execute({node, ...args}));
+        resolve(query.execute({node_id:node, ...args}));
     });
 }
 

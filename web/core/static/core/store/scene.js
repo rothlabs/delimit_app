@@ -2,8 +2,8 @@ import {is_formal_node_id} from 'delimit';
 
 export const scene = {    
     sources: new Map(),
-    tick: 0,   
-    // increment: d=> d.scene.tick++,
+    tick: 0,   // increment: d=> d.scene.tick++,
+    //view: {},
 }
 
 scene.increment = d => {
@@ -19,7 +19,7 @@ scene.make_all = d => {
 
 scene.make_sources = (d, {...items}) => {
     d.get_iterable(items).map(root => {
-        drop_scene_source(d, root);
+        d.drop.edge(d, {root, term:'scenes'}); // drop_scene_source(d, root);
         const scene = d.make.node({node:root+'scene'});
         d.make.edge(d, {root:scene, term:'tick', stem:{type:'integer', value:0}}); 
         d.make.edge(d, {root, term:'scenes', stem:scene}); 
@@ -27,7 +27,7 @@ scene.make_sources = (d, {...items}) => {
 }
 
 scene.drop_sources = (d, {...items}) => {
-    d.get_iterable(items).map(root => drop_scene_source(d, root));
+    d.get_iterable(items).map(root => d.drop.edge(d, {root, term:'scenes'})); // drop_scene_source(d, root)
 }
 
 scene.add_or_remove_source = (d, {root, given}) => {
@@ -52,20 +52,17 @@ scene.query_status = d => ({
     error: d.graph_app.error,
 });
 
-function drop_scene_source(d, root){
-    const scene = d.get_stems(d, {root, term:'scenes'}); 
-    //d.drop.node(d, {node:scene, deep:true});
-    d.drop.edge(d, {root, term:'scenes'});
-}
 
-
+// function drop_scene_source(d, root){
+//     const scene = d.get_stems(d, {root, term:'scenes'}); 
+//     //d.drop.node(d, {node:scene, deep:true});
+//     d.drop.edge(d, {root, term:'scenes'});
+// }
 
 // scene.update_from_graph_app = (d, {patches}) => {
 //     console.log('scene.update_from_graph_app', patches);
 //     d.loading.scenes = false;
 // };
-
-
 
 //scene.get_type_name = (d, root) => d.get_leaf(d, {root, term:'scene_type', alt:''});
 

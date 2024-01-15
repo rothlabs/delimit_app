@@ -25,7 +25,7 @@ export const Point = memo(({n})=>{//export function Point({n}){
                     c('mesh', {},
                         c('sphereGeometry'),
                         c('meshBasicMaterial', {color:color[0], toneMapped:false}),
-                    )
+                    ),
                 ),
             )
         //)

@@ -36,8 +36,6 @@ export const draggable = item => {
     return result;
 };
 
-export const drag_drop = args => ({...droppable(args), ...draggable(args)});
-
 export const pickable = ({mode='all', ...item}) => { // root, term, ...item
     const result = {...item, ...pointer_style_events};
     if(mode == 'all' || mode == 'primary') result.onClick = e => { 
@@ -51,6 +49,13 @@ export const pickable = ({mode='all', ...item}) => { // root, term, ...item
     };
     return result;
 };
+
+export const drag_n_droppable = args => 
+    ({...draggable(args), ...droppable(args)});
+    
+export const pick_drag_n_droppable = ({node, ...args}) => 
+    ({...pickable({node}), ...drag_n_droppable({root:node, stem:node, ...args})});
+
 
         //if(e.preventDefault) e.preventDefault();
         //if(e.nativeEvent) 

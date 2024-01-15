@@ -1,11 +1,11 @@
-import {createElement as c, memo, useRef, useEffect} from 'react';
+import {createElement as c, memo} from 'react';
 //import {Text} from '@react-three/drei/Text';
 //import {Edges} from '@react-three/drei/Edges';
 //import {Edge} from './edge.js';
 //import * as THREE from 'three';
 import {Svg} from '@react-three/drei/Svg';
 import {Text} from '@react-three/drei/Text';
-import {use_store, get_store, View_Transform, pickable, draggable, droppable} from 'delimit';
+import {use_store, get_store, View_Transform, pick_drag_n_droppable} from 'delimit'; // pickable, draggable, droppable
 //import {useThree} from '@react-three/fiber';
 
 export const Node = memo(({node})=>{ 
@@ -25,12 +25,10 @@ export const Node = memo(({node})=>{
     const material_props = {color, toneMapped:false};    
     return(
         c(View_Transform, {
+            ...pick_drag_n_droppable({node}),
             name: 'node',
+            size: 13, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
             position, //[pos.x, pos.y, pos.z],
-            size: 14, //pick ? 25 : 20, // 1.5 : 1, adjust size of other items
-            ...draggable({stem:node}),
-            ...droppable({root:node}),
-            ...pickable({node}),
         },
             c('mesh', {
                 geometry: d.geometry.circle,
@@ -71,6 +69,10 @@ export const Node = memo(({node})=>{
         )
     );
 });
+
+// ...draggable({stem:node}),
+            // ...droppable({root:node}),
+            // ...pickable({node}),
 
 
 

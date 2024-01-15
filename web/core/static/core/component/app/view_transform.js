@@ -1,19 +1,57 @@
 import {createElement as c, useRef, forwardRef, useState} from 'react';
-import {use_store} from 'delimit';
-import {useFrame,} from '@react-three/fiber';
+//import {use_store} from 'delimit';
+import {useFrame, useThree} from '@react-three/fiber';
 import {Vector3} from 'three';
 import { useSpring, animated, config, to } from '@react-spring/three';
+import { use_store } from 'delimit';
 
-const v1 = new Vector3();
-const v2 = new Vector3();
+//const v1 = new Vector3();
+//const v2 = new Vector3();
+
+export const Scene_Transform = forwardRef(({scene, size, ...props}, ref)=>{ 
+    let obj = useRef();
+    const {invalidate} = useThree();
+    use_store(d => [
+        d.get_leaf({root:d.get_leaf({root:scene, term:'x'}), term:'x', alt:0}),
+        d.get_leaf({root:d.get_leaf({root:scene, term:'y'}), term:'y', alt:0}),
+        d.get_leaf({root:d.get_leaf({root:scene, term:'z'}), term:'z', alt:0}),
+    ],{subscribe(pos){
+        if(obj.current && pos){
+            obj.current.position.fromArray(pos);
+            invalidate();
+        }
+    }});
+
+    useFrame((state) => { // use d.cam_info here? #1
+        if(obj.current && size != null){
+            let factor = size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!
+            obj.current.scale.set(factor, factor, factor);
+        }
+    });
+    //console.log('render scene transform');
+    return c('group', {
+        ...props, 
+        ref(r){
+            obj.current = r; 
+            if(ref) ref.current = r; 
+        }
+    })
+});
+
+
 
 export const View_Transform = forwardRef((props, ref)=>{ 
-    var obj = null;
+    let obj = null;
     // // const point_size = use_store(d=> d.point_size);
     //const {camera} = useThree();
-    const {position} = useSpring({position:props.position.toArray()}); // position:[props.position.x, props.position.y, 0] 
+    let pos = props.position.isVector3 ? props.position.toArray() : props.position;
+
+    const {position} = useSpring({ // [{position}, spring]
+        position: pos,
+    }); // position:[props.position.x, props.position.y, 0] 
     //let x = to(spring, value=> value);//spring_x.to(value=> value+1);
     //let y = to(spring_y, value=> value);//spring_x.to(value=> value+1);
+
     useFrame((state) => { // use d.cam_info here? #1
         if(props.size){
             let factor = props.size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!
@@ -26,10 +64,14 @@ export const View_Transform = forwardRef((props, ref)=>{
         // //     else             obj.position.set(0, 0, -point_size*props.offset_z / state.camera.zoom);//-props.offset_z / state.camera.zoom);
         // // }
     });
-    return (c(animated.group, {...props, position, ref:r=>{
-        obj = r; 
-        if(ref) ref.current = r; 
-    }}))
+    return c(animated.group, {
+        ...props, 
+        position, 
+        ref:r=>{
+            obj = r; 
+            if(ref) ref.current = r; 
+        }
+    })
 });
 
 export const Spinner = forwardRef((props, ref)=>{
@@ -45,6 +87,8 @@ export const Spinner = forwardRef((props, ref)=>{
         if(ref) ref.current = r; 
     }}))
 });
+
+
 
 // export function Root_Transform({n, rotation, children}){
 //     const obj = useRef();

@@ -23,7 +23,7 @@ drop.node = ({deep, draft=get_draft(), ...ids})=>{
         };
         get_stems(targets);
     }
-    targets = targets.filter(target => is_formal_node_id(target));
+    targets = targets.filter(target => !is_formal_node_id(target));
     for(const node of targets){
         if(!draft.nodes.has(node)) continue;
         draft.drop.edge({root:node});
@@ -32,14 +32,13 @@ drop.node = ({deep, draft=get_draft(), ...ids})=>{
     }
 };
 
-
 drop.edge = ({root, term, stem, index, draft=get_draft()}) => {
-    //console.log('drop edge');
+    //console.log('graph app drop edge');
     let drops = []; 
     function forward_edge(func){
-        if(!draft.nodes.has(a.root)) return {};
-        for(const [term, stem, index] of draft.get_edges({root:a.root})){ // draft.flat(draft.nodes.get(a.root).terms)
-            func({root:a.root, term, stem, index});
+        if(!draft.nodes.has(root)) return {};
+        for(const [term, stem, index] of draft.get_edges({root})){ // draft.flat(draft.nodes.get(root).terms)
+            func({root, term, stem, index});
         }
     }
     if(root && term && stem && index != null){
@@ -59,34 +58,20 @@ drop.edge = ({root, term, stem, index, draft=get_draft()}) => {
         forward_edge(edge=> drops.push(edge));
     }else if(stem){
         if(!draft.nodes.has(stem)) return;
-        for(const [root, term, index] of draft.get_back_edges(draft, stem)){ 
+        for(const [root, term, index] of draft.get_back_edges({stem})){ 
             drops.push({root, term, stem, index});
         }
     }
-    if(!a.given) drops = drops.filter(drp=> draft.writable(draft, drp.root));
+    drops = drops.filter(({root}) => !is_formal_node_id(root)); 
     drops.sort((a, b)=> b.index - a.index);
-    let increment = false;
     for(const {root, term, stem, index} of drops){
         if(!draft.nodes.has(root)) continue;
         const terms = draft.nodes.get(root).terms;
         if(!terms.has(term)) continue;
         const stems = terms.get(term);
         if(index >= stems.length) continue;
-        //if(term=='type' && stem.value=='Context') draft.context_nodes.delete(root);
         stems.splice(index, 1);
-        draft.add_or_remove_as_context_node(draft, root);
-        draft.scene.add_or_remove_source(draft, {root, given:a.given});
-        increment = true;
-        // if(!stems.length){
-        //     if(a.placeholder){
-        //         const empty = draft.make.node(draft, {});
-        //         draft.make.edge(draft, {...drp, stem:empty});
-        //     }else{
-        //         terms.delete(drp.term);
-        //     }
-        // }
     }
-    
     for(const drp of drops){
         if(!draft.nodes.has(drp.stem)) continue;
         let drop_back = true;
@@ -95,10 +80,7 @@ drop.edge = ({root, term, stem, index, draft=get_draft()}) => {
         }
         if(drop_back){
             const stem = draft.nodes.get(drp.stem);
-            stem.roots.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
-            increment = true;
-            //if(!a.given && stem.back.size < 1 && stem.terms.size < 1) draft.drop.node(draft, {nodes:drp.stem});
-            if(is_formal_node_id(drp.root) && !is_formal_node_id(drp.stem)) draft.drop.node(draft, {nodes:drp.stem});
+            stem.roots.delete(drp.root); 
         }
     }
 };

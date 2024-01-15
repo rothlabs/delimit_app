@@ -124,7 +124,7 @@ drop.edge = (d, a={}) => {
         forward_edge(edge=> drops.push(edge));
     }else if(a.stem){
         if(!d.nodes.has(a.stem)) return;
-        for(const [root, term, index] of d.get_back_edges(d, a.stem)){ //for(const [root, term, index] of d.nodes.get(a.stem).back.values()){
+        for(const [root, term, index] of d.get_back_edges({stem:a.stem})){ //for(const [root, term, index] of d.nodes.get(a.stem).back.values()){
             drops.push({root, term, stem:a.stem, index});
         }
     }

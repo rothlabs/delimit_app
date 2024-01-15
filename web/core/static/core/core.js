@@ -65,11 +65,14 @@ export function use_store(selector, a={}){
     if(a.subscribe){
         const args = {fireImmediately:true};
         //if(a.shallow) args.equalityFn = shallow;
-        return useEffect(()=>store.subscribe(selector, a.subscribe, args), []);
+        return useEffect(()=>store.subscribe(state => {
+            current_draft = state; 
+            return selector(state);
+        }, a.subscribe, args), []);
     }
     //if(a.shallow) return store(selector, shallow);
     return store(state => {
-        current_draft = state;
+        current_draft = state; // TODO: check if can be removed
         return selector(state);
     });
 }
@@ -86,7 +89,8 @@ export const controls = {
         start: new Vector2(),
     },
     camera: null,
-    graph: {view:null},
+    graph: {view:{}},
+    scene: {view:{}},
 };
 // const transient_store = createWithEqualityFn(subscribeWithSelector(() => transient), shallow);
 // export function use_transient(selector, a={}){
@@ -190,12 +194,11 @@ function send_patches_to_graph_app(patches){
 
 window.addEventListener('message', ({origin, data:{patches}}) => {
     if(origin !== graph_app_url) return;
-    console.log('got patches from graph app!!', patches);
     if(patches) update_from_graph_app(patches);//set_store(d=> d.scene.update_from_graph_app(d, scenes));
 });
 
 function update_from_graph_app(patches){
-    console.log('got patches from graph app!!', patches);
+    //console.log('got patches from graph app!!', patches);
     patches = patches.map(({op, path, value}) => ({ // TODO: if a node doesn't exist, reset the scene tree!
         path: (path[0]==='nodes' && !is_formal_node_id(path[1])) ? path : null,
         op, value,

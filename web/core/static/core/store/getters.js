@@ -101,7 +101,7 @@ export const root_context_nodes = d => {
     const result = new Set();
     for(const node of d.context_nodes){
         let is_root_context = true;
-        for(const [root, term] of d.get_back_edges(d, node)){
+        for(const [root, term] of d.get_back_edges({stem:node})){
             if(term == 'contexts' && d.get.node.type_name(d, root) == 'Context'){
                 is_root_context = false;
             }

@@ -16,69 +16,46 @@ import {
 
 function Viewport_Control(){
     const camera_controls = useRef();
-    const pick_box = false;//use_store(d=> d.pick.box);
-    const acting = false;//use_store(d=> d.design.act);
     const studio_mode = use_store(d=> d.studio.mode);
     const {camera} = useThree(); 
     useEffect(() => { 
         if(!camera_controls.current) return;
         controls.camera = camera_controls.current;
-        //d.camera = camera;
-        // d.camera_controls.addEventListener('controlend', e=>set_store(d=>{
-        //     if(d.cam_info.dir.dot(camera.getWorldDirection(v1)) < 1){
-        //         d.cam_info = {matrix: camera.matrix, dir:camera.getWorldDirection(v1).clone()};
-        //     }
-        // }));
-        controls.camera.addEventListener('control', () => {// need to remove listener ?!?!?!?!
-            const d = get_store();
-            if(d.studio.mode == 'graph'){
-                controls.graph.view = {
-                    azimuth: controls.camera.azimuthAngle,
-                    polar: controls.camera.polarAngle,
-                    pos: controls.camera.getTarget(),
-                    zoom: camera.zoom,
-                    //matrix: camera.matrix.clone(),
-                    //dir: camera.getWorldDirection(v1).clone(),
-                };
-            }else if(d.studio.mode=='scene'){ //  && d.design.part
-                // d.n[d.design.part].c_c = {
-                //     azimuth: d.camera_controls.azimuthAngle,
-                //     polar: d.camera_controls.polarAngle,
-                //     pos: d.camera_controls.getTarget(),
-                //     zoom: camera.zoom,
-                //     matrix: camera.matrix.clone(),
-                //     dir: camera.getWorldDirection(v1).clone(),
-                // };
-            }
-        });
+        set_view_from_camera(camera);
     },[camera_controls]);
+
     return c('group', {name:'viewport_parts'}, 
         c(CameraControls, {
             ref: camera_controls,
             makeDefault: true,
             minDistance: 1000, 
             maxDistance: 1000, 
-            polarRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
-            azimuthRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
             draggingSmoothTime: 0.01,
             dollyToCursor: true,
+            mouseButtons: {
+                right:  studio_mode=='graph' ? 2 : 1, // 1=ROTATE
+                middle: 2, // 2=TRUCK
+                wheel:  16, // 16=ZOOM
+            },
+            //polarRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
+            //azimuthRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
         }), 
-        // // pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
-        // //     style:{
-        // //         border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",
-        // //         position: "fixed",
-        // //     },
-        // //     onSelectionChanged:objs=>set_store(d=>{ // key pressing making this fire ?!?!?!?! wtf
-        // //         if(!d.pick.multi) d.pick.none(d);
-        // //         const nodes = [];
-        // //         objs.forEach(obj=>{
-        // //             const pickable = obj.parent?.__r3f?.memoizedProps.pickable;
-        // //             if(pickable) nodes.push(pickable);
-        // //         });
-        // //         d.pick.set(d, nodes, true);
-        // //     }),
-        // // }),
     )
+}
+
+function set_view_from_camera(camera){
+    controls.camera.addEventListener('control', () => {// need to remove listener ?!?!?!?!
+        const d = get_store();
+        let view = controls.graph.view;
+        if(d.studio.mode == 'scene') view = controls.scene.view
+        //if(!view) return;
+        view.azimuth = controls.camera.azimuthAngle;
+        view.polar = controls.camera.polarAngle;
+        view.pos = controls.camera.getTarget();
+        view.zoom = camera.zoom;
+        //matrix: camera.matrix.clone();
+        //dir: camera.getWorldDirection(v1).clone();
+    });
 }
 
 export function Viewport(){ // for some reason this renders 5 times on load
@@ -86,36 +63,15 @@ export function Viewport(){ // for some reason this renders 5 times on load
     const light = useRef();
     const {camera} = useThree(); // raycaster 
     const studio_mode = use_store(d=> d.studio.mode);
-    //const font = use_store(d=> d.font.body);
     useEffect(()=>{
         if(!controls.camera) return;
-        //console.log('Viewport use effect');
-        let view = null;
-        if(studio_mode=='graph') view = controls.graph.view;
-        //else if(studio_mode=='design'){ view = d.n[d.design.part].c_c }
-        if(view){
-            controls.camera.rotateTo(view.azimuth, view.polar);
-            controls.camera.moveTo(view.pos.x, view.pos.y, view.pos.z);
-            controls.camera.zoomTo(view.zoom);
-            //d.cam_info = {matrix:view.matrix, dir:view.dir};
-        }else{
-            // maybe fit to view here #1
-            controls.camera.rotateTo(0,Math.PI/2);
-            controls.camera.moveTo(0,0,0);
-            controls.camera.zoomTo(1);
-        }
-        controls.camera.dollyTo(1000);
+        let view = controls.graph.view;
+        if(studio_mode == 'scene') view = controls.scene.view
+        set_camera_from_view(view);
     },[studio_mode]);
     useEffect(()=>{
-        // set_store(d=>{
-        //     d.scene = scene.current;
-        //     //d.invalidate = invalidate;
-        // });
-        //scene.add(camera);
         camera.add(light.current);
     },[]);
-    //const d = gs();
-    //console.log('render viewport');
     return c('group', {
         ref: scene,
         name:'viewport',
@@ -140,14 +96,63 @@ export function Viewport(){ // for some reason this renders 5 times on load
             color: 'white',
             intensity: 0.25,
         }),
+    )
+}
+
+
+function set_camera_from_view(view){
+    if(view.pos){
+        controls.camera.rotateTo(view.azimuth, view.polar);
+        controls.camera.moveTo(view.pos.x, view.pos.y, view.pos.z);
+        controls.camera.zoomTo(view.zoom); // d.cam_info = {matrix:view.matrix, dir:view.dir};
+    }else{
+        // maybe fit to view here #1
+        controls.camera.rotateTo(0, Math.PI/2);
+        controls.camera.moveTo(0, 0, 0);
+        controls.camera.zoomTo(1);
+    }
+    controls.camera.dollyTo(1000);
+}
+
+
+
+
+
+
+        // // pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
+        // //     style:{
+        // //         border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",
+        // //         position: "fixed",
+        // //     },
+        // //     onSelectionChanged:objs=>set_store(d=>{ // key pressing making this fire ?!?!?!?! wtf
+        // //         if(!d.pick.multi) d.pick.none(d);
+        // //         const nodes = [];
+        // //         objs.forEach(obj=>{
+        // //             const pickable = obj.parent?.__r3f?.memoizedProps.pickable;
+        // //             if(pickable) nodes.push(pickable);
+        // //         });
+        // //         d.pick.set(d, nodes, true);
+        // //     }),
+        // // }),
+
+
         // c(Text, {
         //     text: 'delimit',
         //     //characters: 'abcdefghijklmnopqrstuvwxyz0123456789!',
         //     font, 
         //     position: [1000, 1000, 1000],
         // }),
-    )
-}
+
+
+        //d.camera = camera;
+        // d.camera_controls.addEventListener('controlend', e=>set_store(d=>{
+        //     if(d.cam_info.dir.dot(camera.getWorldDirection(v1)) < 1){
+        //         d.cam_info = {matrix: camera.matrix, dir:camera.getWorldDirection(v1).clone()};
+        //     }
+        // }));
+
+
+
 
 // export function Board(){
 //     const obj = useRef();

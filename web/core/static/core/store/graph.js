@@ -27,6 +27,7 @@ export const graph = {
     scale: 1,
     tick: 0,   
     increment: d=> d.graph.tick++,
+    //view: {},
 };
 
 graph.layout = d => {        

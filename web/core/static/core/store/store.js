@@ -105,13 +105,13 @@ export const make_store = get_draft => ({
         if(stems[0].type) return {name:'leaf', leaf:stems[0]};
         return {name:'node', node:stems[0]};
     },
-    get_values(d, {root, terms}){
-        return Object.entries(terms).map(([term, alt]) => {
-            return d.get_leaf({root, term, alt});
-            //const root_or_value = d.get_leaf(d, {root, term, alt});
-            //return d.get_leaf(d, {root:root_or_value, term, alt:root_or_value});
-        });
-    },
+    // get_values(d, {root, terms}){
+    //     return Object.entries(terms).map(([term, alt]) => {
+    //         return d.get_leaf({root, term, alt});
+    //         //const root_or_value = d.get_leaf(d, {root, term, alt});
+    //         //return d.get_leaf(d, {root:root_or_value, term, alt:root_or_value});
+    //     });
+    // },
     get_stems(d, {root, ...term_paths}){ 
         const result = [];
         for(const term_path of d.get_iterable(term_paths)){
@@ -136,15 +136,6 @@ export const make_store = get_draft => ({
         }
         return result;
     },
-    get_back_edges: function* (d, stem){
-        for(const root of d.nodes.get(stem).roots){
-            for(const [term, stems] of d.nodes.get(root).terms){
-                for(let index = 0; index < stems.length; index++){
-                    if(stems[index] == stem) yield [root, term, index];
-                }
-            }
-        }
-    },
     writable(d, node){
         const is_node_writable = node =>{
             const id = d.nodes.get(node)?.version;
@@ -163,6 +154,17 @@ export const make_store = get_draft => ({
         return Math.round((v + Number.EPSILON) * sigfigs) / sigfigs;
     },
 });
+
+
+    // get_back_edges: function* (d, stem){
+    //     for(const root of d.nodes.get(stem).roots){
+    //         for(const [term, stems] of d.nodes.get(root).terms){
+    //             for(let index = 0; index < stems.length; index++){
+    //                 if(stems[index] == stem) yield [root, term, index];
+    //             }
+    //         }
+    //     }
+    // },
 
 
 

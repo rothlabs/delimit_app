@@ -67,7 +67,7 @@ export const unpick = (d, {mode='all', ...item}) => { // item={node:'all'}
 export function pick_back(d, item){
     d.unpick(d, {mode:'primary'});
     for(const node of d.get_iterable(item)){
-        for(const [root] of d.get_back_edges(d, node)) d.pick(d, {node:root, keep:true});
+        for(const [root] of d.get_back_edges({stem:node})) d.pick(d, {node:root, keep:true});
     }
 };
 

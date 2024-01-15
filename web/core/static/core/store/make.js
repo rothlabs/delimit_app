@@ -74,7 +74,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single}) => { // make na
 function build_node_from_type(d, node, type){
     d.make.edge(d, {root:node, term:'type', stem:type});
     if(d.get_leaf({root:type, term:'name'}) == 'Root'){
-        for(const [root] of d.get_back_edges(d, type)){
+        for(const [root] of d.get_back_edges({stem:type})){
             if(d.get.node.type_name(d, root) == 'Context'){
                 d.make.edge(d, {root, term:'types', stem:node});
             }

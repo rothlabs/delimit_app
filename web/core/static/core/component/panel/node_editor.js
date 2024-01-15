@@ -1,6 +1,6 @@
 import {createElement as c, useEffect, useState} from 'react';
 import {
-    use_store, draggable, List_View, drag_drop,
+    use_store, draggable, List_View, drag_n_droppable,
     readable, droppable, pickable, render_badge, icons, render_token
 } from 'delimit';
 
@@ -14,7 +14,7 @@ export function Node_Editor(){
 function Node_Case({root, term, node, index, show_term, path}){
     const get_node_case = use_store(d=> d.get_node_case(d, node));
     const edge = {root, term, stem:node, index};
-    let dnd = drag_drop(edge);
+    let dnd = drag_n_droppable(edge);
     if(root == node) dnd = {...droppable({root}), ...draggable({stem:node})};
     if(get_node_case.name == 'leaf'){
         term = term ?? 'leaf';
@@ -48,7 +48,7 @@ function Term_Case({root, term, path}){
     const get_term_case = use_store(d=> d.get_term_case(d, root, term));
     if(!get_term_case) return;
     if(get_term_case == 'empty'){
-        return render_token({...drag_drop({root, term}),
+        return render_token({...drag_n_droppable({root, term}),
             content:[
                 readable(term),
                 c('div', {className:'text-body'}, 'emtpy'), 
@@ -83,7 +83,7 @@ function Leaf({root, term='leaf', index=0, type, value, proxy, show_term, show_i
     useEffect(()=>{
         if(sync_input) set_input_value(value);
     },[value]);
-    const dnd = drag_drop(proxy ?? {root, term, stem:{type, value}, index});
+    const dnd = drag_n_droppable(proxy ?? {root, term, stem:{type, value}, index});
     const name = readable((typeof show_term==='string') ? show_term : term);
     const content = ({render_switch, render_input}) => [
         show_term && c('div', dnd, name), // render_name({props}),

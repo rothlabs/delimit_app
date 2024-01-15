@@ -15,6 +15,15 @@ export const make_common_slice = get_draft => ({
             }
         }
     },
+    get_back_edges: function* ({stem, draft=get_draft()}){
+        for(const root of draft.nodes.get(stem).roots){
+            for(const [term, stems] of draft.nodes.get(root).terms){
+                for(let index = 0; index < stems.length; index++){
+                    if(stems[index] == stem) yield [root, term, index];
+                }
+            }
+        }
+    },
     get_stem({root, draft=get_draft(), ...term_paths}){
         for(const term_path of draft.get_iterable(term_paths)){ // term_paths.term ?? term_paths.terms
             try{
@@ -31,8 +40,8 @@ export const make_common_slice = get_draft => ({
         return alt;
     },
     get_leaf_box({root, draft=get_draft(), ...term_paths}){
-        let item = root;
         for(const term_path of draft.get_iterable(term_paths)){
+            let item = root;
             try{
                 for(const term of term_path.split(' ')){
                     item = draft.nodes.get(item).terms.get(term)[0];
