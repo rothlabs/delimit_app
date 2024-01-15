@@ -53,30 +53,27 @@ function update_from_host_app(patches){
     const state = applyPatches(get_store(), patches);
     store.setState(state);
     current_state = state;
-    //const stage = {imports:new Map(), scenes:new Map()}; // keyed by node
+    const code_changed = patches.some(({path}) => path[0]=='code_tick');
     function update_after_imports(){
         if(pending_imports > 0) pending_imports--;
-        if(pending_imports > 0) return;
+        if(pending_imports > 0 || code_changed) return;
         const state = get_store();
         current_state = state;
-        console.log('try to make scenes');
         for(const patch of patches){
             if(is_scene_query(patch)){
-                console.log('make_scene');
-                make_scene({state, node:patch.path[2], tick:patch.value}); // stage.scenes.set(patch.path[2], {tick:patch.value, made:false});   // 
+                make_scene({state, node:patch.path[2], tick:patch.value});
             }
         }
     }
-    let imported_code = false;
+    let did_import_code = false;
     for(const patch of patches){
         if(is_code_update({patch})){
-            // stage.imports.set(patch.path[1], patch.value); // value is api_key  // 
             pending_imports++;
             import_code({state, node:patch.path[1], api_key:patch.value, on_complete:update_after_imports});
-            imported_code = true;
+            did_import_code = true;
         }
     }
-    if(!imported_code) update_after_imports();
+    if(!did_import_code) update_after_imports();
 }
 
 function is_scene_query({path}){

@@ -1,17 +1,16 @@
 import {is_formal_node_id} from 'delimit';
 
 export const scene = {    
-    sources: new Map(),
-    tick: 0,   // increment: d=> d.scene.tick++,
-    //view: {},
+    sources: new Map(), // TODO: rename to source_ticks?
+    tick: 0,
 }
 
 scene.increment = d => {
     d.scene.tick++;
-    if(d.studio.mode == 'scene') d.scene.make_all(d);
+    if(d.studio.mode == 'scene') d.scene.increment_sources(d);
 }
 
-scene.make_all = d => {
+scene.increment_sources = d => {
     for(const [root] of d.scene.sources){
         d.scene.sources.set(root, d.scene.tick);
     }

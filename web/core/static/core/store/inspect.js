@@ -28,37 +28,36 @@ export const set_leaf = ({root, term, index=0, value, draft=get_draft()}) => {
     const old_value = leaf.value;
     let coerced = value;
     if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
-        leaf.value = coerced;
-        //return coerced;
+        leaf.value = coerced;//return coerced;
     }
     if(typeof coerced == 'string'){
         if(leaf.type == 'string'){
             leaf.value = coerced;
-            draft.add_or_remove_as_context_node(draft, root);
-            //return coerced;
+            draft.add_or_remove_as_context_node(draft, root);//return coerced;
         }
         if(['', '-'].includes(coerced)){ // coerced = coerced.replace(/^0+/, '');
-            leaf.value = 0;
-            //return coerced;
+            leaf.value = 0;//return coerced;
         }
         if(leaf.type == 'integer'){
             coerced = coerced.replace(/\./g, '');
             if(!isNaN(coerced) && Number.isInteger(parseFloat(coerced))){
-                leaf.value = parseInt(coerced);
-                //return coerced;
+                leaf.value = parseInt(coerced);//return coerced;
             }
         }else if(leaf.type == 'decimal'){
             if(['.', '-.'].includes(coerced)){
-                leaf.value = 0;
-                //return coerced;
+                leaf.value = 0;//return coerced;
             }
             if(!isNaN(coerced)){
-                leaf.value = parseFloat(coerced);
-                //return coerced;
+                leaf.value = parseFloat(coerced);//return coerced;
             }
         }
     }
-    if(leaf.value != old_value) draft.scene.increment(draft);
+    if(leaf.value != old_value){
+        draft.scene.increment(draft);
+        if(['source', 'language'].includes(term) && draft.get_leaf({root, term:'language'}) == 'javascript'){
+            draft.increment_code(draft);
+        }
+    }
     return coerced;
 };
 

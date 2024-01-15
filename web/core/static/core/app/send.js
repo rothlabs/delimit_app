@@ -27,7 +27,7 @@ handle.nodes = (d, {patch, id, make_nodes, drop_nodes, settings}) => {
     if(!is_formal_node_id(id)) return;
     const {op, path} = patch;
     if(d.nodes.has(id)){
-        if(extension_changed(d, {id, patch})) settings.includeCodeKeys = true;
+        if(code_changed(d, {root:id, patch})) settings.includeCodeKeys = true;
         make_nodes.set(id, Object.fromEntries(d.nodes.get(id).terms)); 
     }else if(d.dropped.node.has(id) || (op=='remove' && !d.closed.node.has(id) && path.length == 2)){ 
         drop_nodes.add(id);
@@ -58,8 +58,8 @@ handle.versions = (d, {patch:{op, path}, id, drop_versions}) => {
     }
 }
 
-function extension_changed(d, {id, patch}){
-    if(d.get_leaf({root:id, term:'language'}) != 'javascript') return;
-    if(!d.leaf_changed({root:id, terms:['source', 'language'], patch})) return;
+function code_changed(d, {root, patch}){
+    if(d.get_leaf({root, term:'language'}) != 'javascript') return;
+    if(!d.leaf_changed({root, terms:['source', 'language'], patch})) return;
     return true;
 }

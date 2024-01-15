@@ -26,11 +26,17 @@ export const make_store = get_draft => ({
         mode: 'repo',
         set_mode(d, mode){
             d.studio.mode = mode;
-            if(mode == 'scene') d.scene.make_all(d);
+            if(mode == 'scene') d.scene.increment_sources(d);
         },
         panel: {mode:'node_editor'},
         cursor: '',
     },
+    code_tick: 0,
+    increment_code: draft => draft.code_tick++,
+    // code: {
+    //     tick: 0,
+    //     increment: draft => draft.code.tick++,
+    // },
     confirm: {},
     get: {...getters},
     ...schema,

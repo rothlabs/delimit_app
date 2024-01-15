@@ -10,10 +10,11 @@ export const make_store = get_draft => ({
     ...drop,
     ...scene,
     nodes: new Map(),
-    code_keys: new Map(),
     static_url: document.body.getAttribute('data-static-url') + 'graph/',
     scene:{
         sources: new Map(),
     },
+    code_keys: new Map(),
+    code_tick: 0,
 });
 

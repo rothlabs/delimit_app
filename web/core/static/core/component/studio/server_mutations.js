@@ -52,10 +52,12 @@ function Mutation({gql_name}){
 
 function update_from_mutation_response({gql_name, data}){ // TODO: varify data saved properly 
     if(gql_name != 'make_nodes') return;
-    // console.log(data.makeNodes.result);
     const result = JSON.parse(data.makeNodes.result);
+    const code_keys = Object.entries(result.code_keys);
+    if(!code_keys.length) return;
     set_store(d => {
-        for(const [node, code_key] of Object.entries(result.code_keys)){
+        d.scene.increment(d);
+        for(const [node, code_key] of code_keys){
             d.code_keys.set(node, code_key)
         }
     });

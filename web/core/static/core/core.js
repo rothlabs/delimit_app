@@ -181,7 +181,7 @@ function is_patch_for_graph_app(path){
         if(is_formal_node_id(path[1])) return true;
     }else if(path[0] == 'scene' && path[1] == 'sources'){
         if(is_formal_node_id(path[2])) return true;
-    }else if(path[0] == 'code_keys'){
+    }else if(path[0] == 'code_keys' || path[0] == 'code_tick'){
         return true;
     }
 }

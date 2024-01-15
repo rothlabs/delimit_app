@@ -35,6 +35,7 @@ export function Code_Editor(){
 function save_code({root, editor}){
     act_on_store(d=> {
         const value = editor.getValue();
+        //let new_value = value;
         if(d.get_leaf({root, term:'source'})){
             d.set_leaf({root, term:'source', value});
         }else if(d.get_leaf({root, terms:'code source'})) {
@@ -44,6 +45,7 @@ function save_code({root, editor}){
             const target = d.get_stem({root, terms:'type code'});
             d.set_leaf({root:target, term:'source', value});
         }
+        //if(new_value != value) d.
     });
 }
 
