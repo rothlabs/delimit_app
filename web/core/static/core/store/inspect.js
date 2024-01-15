@@ -29,7 +29,6 @@ export const set_leaf = ({root, term, index=0, value, draft=get_draft()}) => {
     let coerced = value;
     if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
         leaf.value = coerced;
-        value_was_set = true;
         //return coerced;
     }
     if(typeof coerced == 'string'){
@@ -52,7 +51,8 @@ export const set_leaf = ({root, term, index=0, value, draft=get_draft()}) => {
             if(['.', '-.'].includes(coerced)){
                 leaf.value = 0;
                 //return coerced;
-            }else if(!isNaN(coerced)){
+            }
+            if(!isNaN(coerced)){
                 leaf.value = parseFloat(coerced);
                 //return coerced;
             }

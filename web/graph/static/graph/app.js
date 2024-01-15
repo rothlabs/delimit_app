@@ -48,18 +48,35 @@ function send_patches_to_host_app(patches){
     parent.postMessage({patches}, host_app_url);
 }
 
+let pending_imports = 0;
 function update_from_host_app(patches){
     const state = applyPatches(get_store(), patches);
     store.setState(state);
     current_state = state;
-    for(const patch of patches){
-        if(is_code_update({patch})){
-            import_code({state, node:patch.path[1], api_key:patch.value});
-        }
-        if(is_scene_query(patch)){
-            make_scene({state, node:patch.path[2], tick:patch.value});
+    //const stage = {imports:new Map(), scenes:new Map()}; // keyed by node
+    function update_after_imports(){
+        if(pending_imports > 0) pending_imports--;
+        if(pending_imports > 0) return;
+        const state = get_store();
+        current_state = state;
+        console.log('try to make scenes');
+        for(const patch of patches){
+            if(is_scene_query(patch)){
+                console.log('make_scene');
+                make_scene({state, node:patch.path[2], tick:patch.value}); // stage.scenes.set(patch.path[2], {tick:patch.value, made:false});   // 
+            }
         }
     }
+    let imported_code = false;
+    for(const patch of patches){
+        if(is_code_update({patch})){
+            // stage.imports.set(patch.path[1], patch.value); // value is api_key  // 
+            pending_imports++;
+            import_code({state, node:patch.path[1], api_key:patch.value, on_complete:update_after_imports});
+            imported_code = true;
+        }
+    }
+    if(!imported_code) update_after_imports();
 }
 
 function is_scene_query({path}){
@@ -71,13 +88,15 @@ function is_code_update({patch:{path}}){
     if(path[0] == 'code_keys') return true;
 }
 
-function import_code({state, node, api_key='0'}){
-    const name = state.get_leaf({root:node, term:'name', alt:'extension'});
+function import_code({state, node, api_key='0', on_complete}){
     try{
+        const name = state.get_leaf({root:node, term:'name', alt:'extension'});
         import('/extension/'+api_key+'/'+node+'/'+name+'.js').then(module => {
             module.initialize(node);
+            on_complete(); // for(const func of on_complete) func();
         });
     }catch(e){
+        on_complete();
         console.error(e.stack);
     }
 }
@@ -104,6 +123,22 @@ window.addEventListener('message', ({origin, data:{patches}}) => {
     if(patches) update_from_host_app(patches);
 });
 
+
+
+// function update_from_host_app(patches){
+//     const state = applyPatches(get_store(), patches);
+//     store.setState(state);
+//     current_state = state;
+//     const stage = {imports:{}, scenes:{}};
+//     for(const patch of patches){
+//         if(is_code_update({patch})){
+//             import_code({state, node:patch.path[1], api_key:patch.value});
+//         }
+//         if(is_scene_query(patch)){
+//             make_scene({state, node:patch.path[2], tick:patch.value});
+//         }
+//     }
+// }
 
         // setTimeout(() => {
         //     resolve('resolved');
