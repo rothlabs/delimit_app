@@ -45,7 +45,7 @@ theme.compute = d =>{
     d.material.tertiary_bg = new THREE.MeshBasicMaterial({color:d.color.tertiary_bg, toneMapped:false});
     d.material.emphasis = new THREE.MeshBasicMaterial({color:d.color.emphasis, toneMapped:false});
     d.material.border = new THREE.MeshBasicMaterial({color:d.color.border, toneMapped:false});
-    d.font.body = d.static_url + 'font/Inter-Medium.ttf';
+    d.font.body = d.base_url + 'font/Inter-Medium.ttf';
     //preloadFont({font:d.font.body}, ()=>{},);
 };
 

@@ -1,4 +1,5 @@
-import {set_store} from 'delimit/graph';
+import {set_store, static_url} from 'delimit/graph';
+import initialize_geometry from 'delimit/geometry';
 
 export const set_queries = ({node_id, ...queries}) => {
     //console.log('set_queries!!!', queries);
@@ -21,4 +22,11 @@ function get_new_querier(query){
     };
     return {execute};
 }
+
+export let geometry = null;
+(async () => {
+    geometry = await initialize_geometry(static_url+'delimit_geometry_bg.wasm'); 
+    //const result = geometry.add(100, 37);
+    //console.log(result);
+})();
 

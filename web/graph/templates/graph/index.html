@@ -8,8 +8,10 @@
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   
   <script type='importmap'>{"imports":{
-    "delimit":                          "https://graph.delimit.art/static/graph/extension/extension.js",
-    "delimit/graph":                    "https://graph.delimit.art/static/graph/app.js",
+    "delimit":                          "/static/graph/extension/extension.js",
+    "delimit/common":                   "/static/common/common.js",
+    "delimit/graph":                    "/static/graph/app.js",
+    "delimit/geometry":                 "/static/delimit_geometry.js",
     "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie/+esm",
     "zustand/traditional":              "https://cdn.jsdelivr.net/npm/zustand/traditional/+esm",
     "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand/middleware/+esm",
@@ -20,7 +22,7 @@
   }}</script>
 </head>
 
-<body>
+<body data-static-url='{% get_static_prefix %}'>
   <div id='app'>
     Graph App
   </div>

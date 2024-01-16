@@ -5,11 +5,10 @@ import {shallow} from 'zustand/shallow';
 import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
 import {make_store} from './store/store.js';
 import {Vector2} from 'three'; // ColorManagement.enabled = true;
-import {Globals} from '@react-spring/three';
 import {send_updates_to_server} from './app/send.js'
-import {is_formal_node_id} from '../common/common.js';
+import {is_formal_node_id} from 'delimit/common';
 
-export {is_formal_node_id} from '../common/common.js';
+export * from 'delimit/common'; 
 export {gql_client} from './app.js';
 export * from './app/gql.js';
 export * from './app/pick.js';
@@ -35,9 +34,14 @@ export * from './component/scene/scene.js';
 enableMapSet();
 enablePatches();
 
-// Globals.assign({ // https://github.com/pmndrs/react-spring/issues/1586
+// solve by modifying source file, alternative solution:
+// https://github.com/pmndrs/react-spring/issues/1586
+// import {Globals} from '@react-spring/three';
+// Globals.assign({ 
 //     frameLoop: "always",
 // });
+
+//export const static_url = document.body.getAttribute('data-static-url');
 
 
 export const assess = (obj, args) => (typeof obj === 'function' ? obj(args) : obj); // (Object.keys(obj).length ? obj : null) 

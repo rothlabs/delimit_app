@@ -149,6 +149,7 @@ USE_TZ = True
 # Django looks for additional static files to collect from here:
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'common/'), 
+    os.path.join(BASE_DIR, '/home/julian/delimit_geometry/pkg/'), 
 )
 
 

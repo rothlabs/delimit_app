@@ -3,15 +3,15 @@ import {createWithEqualityFn} from 'zustand/traditional'
 import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
 import {make_store} from './store/store.js';
-import {is_formal_node_id} from '../common/common.js';
+import {is_formal_node_id} from 'delimit/common';
 //import importShim from 'https://ga.jspm.io/npm:es-module-shims@1.6.2/dist/es-module-shims.wasm.js';
-
-export {is_formal_node_id} from '../common/common.js';
 
 enablePatches();
 enableMapSet();
 
 const host_app_url = `https://delimit.art`;
+
+export * from 'delimit/common'; // export const static_url = document.body.getAttribute('data-static-url');
 
 //const is_temp_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length != 32);
 
@@ -119,6 +119,9 @@ window.addEventListener('message', ({origin, data:{patches}}) => {
     if(origin !== host_app_url) return;
     if(patches) update_from_host_app(patches);
 });
+
+
+
 
 
 

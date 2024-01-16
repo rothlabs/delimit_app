@@ -1,4 +1,5 @@
 import {get_draft, is_formal_node_id} from 'delimit/graph';
+//import {is_formal_node_id} from 'delimit/common';
 
 export const drop = {};
 

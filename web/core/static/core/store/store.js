@@ -9,7 +9,7 @@ import * as make from './make.js';
 import * as drop from './drop.js';
 import * as inspect from './inspect.js';
 import * as remake from './remake.js';
-import {make_common_slice} from '../../common/store/store.js';
+import {make_common_slice, static_url} from 'delimit';
 
 const ctx = JSON.parse(document.getElementById('ctx').text);
 
@@ -48,7 +48,7 @@ export const make_store = get_draft => ({
     ...remake,
     ...scene,
     ...graph,
-    static_url: document.body.getAttribute('data-static-url') + 'core/',
+    base_url: static_url + 'core/',
     max_click_delta: 7,
     axis_colors: ['#ff3b30', '#27e858', '#4287f5'],
     point_size: 6,
@@ -59,7 +59,7 @@ export const make_store = get_draft => ({
     
     init(d){
         d.base_texture = new THREE.TextureLoader().load(
-            d.static_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
+            d.base_url+'texture/uv_grid.jpg'//"https://threejs.org/examples/textures/uv_grid_opengl.jpg"
         );
         d.base_texture.wrapS = d.base_texture.wrapT = THREE.RepeatWrapping;
         d.base_texture.anisotropy = 16;

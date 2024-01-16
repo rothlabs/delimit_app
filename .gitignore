@@ -12,6 +12,8 @@ __pycache__
 /web/core/static/core/css/boot.css
 /web/npm/
 /web/terminus/
+/web/core/static/core/wasm
+/web/graph/static/graph/wasm
 
 *.DS_Store
 *.FCStd1

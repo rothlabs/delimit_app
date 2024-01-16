@@ -12,6 +12,7 @@ import {animated, useTransition} from '@react-spring/web';
 
 export function Studio(){
     const {render_header} = useOutletContext();
+    //geometry.greet();
     return[
         render_header(() => 
             c('div', {className:'position-relative d-flex gap-5',},
