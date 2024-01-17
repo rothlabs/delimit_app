@@ -1,5 +1,5 @@
 import {set_store, static_url} from 'delimit/graph';
-import initialize_geometry from 'delimit/geometry';
+import initialize_geometry, {calc_something} from 'delimit/axiom';
 
 export const set_queries = ({node_id, ...queries}) => {
     //console.log('set_queries!!!', queries);
@@ -23,10 +23,49 @@ function get_new_querier(query){
     return {execute};
 }
 
-export let geometry = null;
-(async () => {
-    geometry = await initialize_geometry(static_url+'delimit_geometry_bg.wasm'); 
-    //const result = geometry.add(100, 37);
-    //console.log(result);
-})();
+export let axiom = null;
+initialize_geometry(static_url+'delimit_axiom_bg.wasm').then(() => {
+    let query = {
+        field1: new Map(),
+        field2: [[5,6],[4,5]],
+        field3: [1, 2, 3, 9],
+    };
+    query.field1.set('hey now', 'here');
+    query = calc_something(query);
+    query.field1.set('hey again', 'even more crap');
+    query.field2.push([500,1000]);
+    const result = calc_something(query);
+    
+    // console.log(axiom.take_number_slice_by_shared_ref(new Float32Array(100)));
+    // console.log(axiom.return_boxed_js_value_slice());
+    // let crap = new Set();
+    // crap.add('wow');
+    // crap.add('nice');
+    // crap.add('cool');
+    // console.log([...crap.keys()]);
+    // let result = axiom.count_strings_in_set(crap);
+    console.log(result);
+});
+// (async () => {
+//     axiom = await initialize_geometry(static_url+'delimit_axiom_bg.wasm'); 
+
+//     const crap = new Set();
+//     crap.add('wow', 5, 'cool', 7, 'please');
+//     const result = axiom.count_strings_in_set(crap);
+
+//     // let wow = axiom.count_strings_in_set(500, 600);
+//     // console.log(wow);
+//     // // Get the example object from wasm.
+//     // let query = axiom.send_example_to_js();
+//     // console.log(query);
+//     // // Add another "Vec" element to the end of the "Vec<Vec<f32>>"
+//     // query.field2.push([5, 6]);
+
+//     // // Send the example object back to wasm.
+//     // //const result = axiom.execute(query);
+
+//     console.log(result);
+// })();
+
+//const result = axiom.get_vectors({field2:[[42,88],[24,98]]});
 
