@@ -7,6 +7,10 @@ export const make_common_slice = get_draft => ({
             else return draft.will_cycle({root, stem:next_stem});
         }
     },
+    get_type_name(root){
+        const draft = get_draft();
+        return draft.get_leaf({root, terms:['type name', 'type'], alt:''});
+    },
     get_edges: function* ({root, exclude_leaves, draft=get_draft()}){ 
         for(const [term, stems] of draft.nodes.get(root).terms){
             for(let index = 0; index < stems.length; index++){
@@ -34,6 +38,30 @@ export const make_common_slice = get_draft => ({
             }catch{}
         }
     },
+    get_stems({root, draft=get_draft(), ...term_paths}){ 
+        const result = [];
+        for(const term_path of draft.get_iterable(term_paths)){
+            const terms = term_path.split(' ');
+            const last_term = terms.at(-1);//terms.pop();
+            function get_inner_stems(root, terms){
+                const term = terms.shift();
+                if(!draft.nodes.has(root)) return;
+                const stems = draft.nodes.get(root).terms.get(term);
+                if(!Array.isArray(stems)) return;
+                if(term == last_term){
+                    for(let i = 0; i < stems.length; i++){
+                        if(stems[i].type || draft.nodes.has(stems[i])) result.push(stems[i]);
+                    }
+                }else{
+                    for(let i = 0; i < stems.length; i++){
+                        if(draft.nodes.has(stems[i])) get_inner_stems(stems[i], [...terms]);
+                    }
+                }
+            }
+            get_inner_stems(root, terms);
+        }
+        return result;
+    },
     get_leaf({root, alt, draft=get_draft(), ...term_paths}){  // get_leaf(d, {root, alt, ...term_paths}){ 
         const stem = draft.get_leaf_box({root, ...term_paths});
         if(stem) return stem.value;
@@ -52,7 +80,14 @@ export const make_common_slice = get_draft => ({
             }catch{}
         }
     },
-    leaf_changed({root, patch:{op, path}, draft=get_draft(), ...term_paths}){
+    get_leaves({root, terms, draft=get_draft()}){
+        return Object.entries(terms).map(([term, alt]) => {
+            return draft.get_leaf({root, term, alt});
+            //const root_or_value = d.get_leaf(d, {root, term, alt});
+            //return d.get_leaf(d, {root:root_or_value, term, alt:root_or_value});
+        });
+    },
+    leaf_changed({root, patch:{op, path}, draft=get_draft(), ...term_paths}){ // TODO: move this to app.js? (core.js)
         for(const term_path of draft.get_iterable(term_paths)){
             for(const term of term_path.split(' ')){
                 if(!draft.get_leaf({root, term})) continue;

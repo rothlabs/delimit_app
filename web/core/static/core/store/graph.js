@@ -64,7 +64,7 @@ graph.layout = d => {
     } 
     for(const [node, node_obj] of d.graph.nodes){
         const lvl = node_obj.lvl;
-        const grp = d.get.node.type_name(d, node)+'__'+[...d.nodes.get(node).roots].sort().join('_'); 
+        const grp = d.get_type_name(node)+'__'+[...d.nodes.get(node).roots].sort().join('_'); 
         if(!level[lvl].group[grp]) level[lvl].group[grp] = {n:[], y:0, count:0};
         level[lvl].group[grp].n.push(node);
         level[lvl].count++;

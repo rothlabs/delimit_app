@@ -36,7 +36,7 @@ make.edge = ({root, term, stem, index, draft=get_draft()}) => {
     if(!length) terms.set(term, []); 
     index = index ?? length; // TODO: place this before creating empty term?
     if(index > length) return;
-    if(stem.type == 'auto') stem.type = get_real_type(stem);
+    if(stem.type == null && stem.value != null) stem.type = get_real_type(stem);
     terms.get(term).splice(index, 0, stem); 
     if(draft.nodes.has(stem)){
         draft.nodes.get(stem).roots.add(root);
@@ -45,7 +45,8 @@ make.edge = ({root, term, stem, index, draft=get_draft()}) => {
 };
 
 function get_real_type({value}){
-    let type = 'boolean';
+    let type = 'object';
+    if(typeof value === 'boolean') type = 'boolean';
     if(typeof value === 'string') type = 'string';
     else if(typeof value === 'number'){
         type = 'decimal';

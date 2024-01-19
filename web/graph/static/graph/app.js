@@ -101,7 +101,7 @@ function import_code({state, node, api_key='0', on_complete}){
 function make_scene({state, node, tick}){
     const promise = query_node({state, node, get_scene:{}})
     promise.then(scene => {
-        set_store(draft => draft.make_scene({node, scene, tick}));
+        set_store(draft => draft.make_scene({source:node, scene, tick}));
     }, rejected => null);
 }
 
@@ -111,7 +111,7 @@ function query_node({state, node, ...query_selection}){
     const query = state.nodes.get(code)?.queries?.get(query_name);
     return new Promise((resolve, reject) => {
         if(!query) reject('no query');
-        resolve(query.execute({node_id:node, ...args}));
+        resolve(query.execute({node_id:node, draft:state, ...args}));
     });
 }
 

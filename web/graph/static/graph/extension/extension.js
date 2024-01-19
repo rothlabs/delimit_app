@@ -1,5 +1,18 @@
 import {set_store, static_url} from 'delimit/graph';
-import initialize_geometry, {calc_something} from 'delimit/axiom';
+import initialize_axiom, {test_nurbs, get_vectors} from 'delimit/axiom';
+
+initialize_axiom(static_url+'delimit_axiom_bg.wasm').then(() => {
+    // let query = {
+    //     controls: [[0,0,0], [10,0,0], [0,10,0], [0,0,10], [10,10,0], [10,10,10],],
+    // };
+    // const result = test_nurbs(query);
+    // console.log(result);
+});
+
+export const axiom = {
+    get_vectors,
+    test_nurbs,
+};
 
 export const set_queries = ({node_id, ...queries}) => {
     //console.log('set_queries!!!', queries);
@@ -23,29 +36,21 @@ function get_new_querier(query){
     return {execute};
 }
 
-export let axiom = null;
-initialize_geometry(static_url+'delimit_axiom_bg.wasm').then(() => {
-    let query = {
-        field1: new Map(),
-        field2: [[5,6],[4,5]],
-        field3: [1, 2, 3, 9],
-    };
-    query.field1.set('hey now', 'here');
-    query = calc_something(query);
-    query.field1.set('hey again', 'even more crap');
-    query.field2.push([500,1000]);
-    const result = calc_something(query);
-    
-    // console.log(axiom.take_number_slice_by_shared_ref(new Float32Array(100)));
-    // console.log(axiom.return_boxed_js_value_slice());
-    // let crap = new Set();
-    // crap.add('wow');
-    // crap.add('nice');
-    // crap.add('cool');
-    // console.log([...crap.keys()]);
-    // let result = axiom.count_strings_in_set(crap);
-    console.log(result);
-});
+
+// let query = {
+//     field1: new Map(),
+//     field2: [[5,6],[4,5]],
+//     field3: [1, 2, 3, 9],
+// };
+// query.field1.set('hey now', 'here');
+// query = calc_something(query);
+// query.field1.set('hey again', 'even more crap');
+// query.field2.push([500,1000]);
+// const result = calc_something(query);
+// console.log(result);
+
+
+
 // (async () => {
 //     axiom = await initialize_geometry(static_url+'delimit_axiom_bg.wasm'); 
 

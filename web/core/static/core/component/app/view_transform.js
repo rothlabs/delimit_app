@@ -9,7 +9,7 @@ import { use_store } from 'delimit';
 //const v2 = new Vector3();
 
 export const Scene_Transform = forwardRef(({scene, size, ...props}, ref)=>{ 
-    let obj = useRef();
+    const obj = useRef();
     const {invalidate} = useThree();
     use_store(d => [
         d.get_leaf({root:d.get_leaf({root:scene, term:'x'}), term:'x', alt:0}),

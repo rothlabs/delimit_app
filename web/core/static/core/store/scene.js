@@ -41,7 +41,7 @@ scene.add_or_remove_source = (d, {root, given}) => {
 
 scene.get_sources = d => [...d.scene.sources.keys()];
 
-scene.get_scenes = (d, root) => d.get_stems(d, {root, term:'scenes'});
+scene.get_scenes = (d, root) => d.get_stems({root, term:'scenes'});
 
 scene.query_status = d => ({
     loading: [...d.scene.sources].some(([root, query_tick]) => {

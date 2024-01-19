@@ -89,7 +89,7 @@ export const make_store = get_draft => ({
         d.scene.increment(d);
     },
     add_or_remove_as_context_node(d, id){
-        if(d.get.node.type_name(d, id) == 'Context') d.context_nodes.add(id);
+        if(d.get_type_name(id) == 'Context') d.context_nodes.add(id);
         else d.context_nodes.delete(id);
     },
     get_node_case(d, root){
@@ -110,37 +110,6 @@ export const make_store = get_draft => ({
         if(stems.length > 1) return 'term';
         if(stems[0].type) return {name:'leaf', leaf:stems[0]};
         return {name:'node', node:stems[0]};
-    },
-    // get_values(d, {root, terms}){
-    //     return Object.entries(terms).map(([term, alt]) => {
-    //         return d.get_leaf({root, term, alt});
-    //         //const root_or_value = d.get_leaf(d, {root, term, alt});
-    //         //return d.get_leaf(d, {root:root_or_value, term, alt:root_or_value});
-    //     });
-    // },
-    get_stems(d, {root, ...term_paths}){ 
-        const result = [];
-        for(const term_path of d.get_iterable(term_paths)){
-            const terms = term_path.split(' ');
-            const last_term = terms.at(-1);//terms.pop();
-            function get_inner_stems(root, terms){
-                const term = terms.shift();
-                if(!d.nodes.has(root)) return;
-                const stems = d.nodes.get(root).terms.get(term);
-                if(!Array.isArray(stems)) return;
-                if(term == last_term){
-                    for(let i = 0; i < stems.length; i++){
-                        if(stems[i].type || d.nodes.has(stems[i])) result.push(stems[i]);
-                    }
-                }else{
-                    for(let i = 0; i < stems.length; i++){
-                        if(d.nodes.has(stems[i])) get_inner_stems(stems[i], [...terms]);
-                    }
-                }
-            }
-            get_inner_stems(root, terms);
-        }
-        return result;
     },
     writable(d, node){
         const is_node_writable = node =>{

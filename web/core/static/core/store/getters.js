@@ -15,16 +15,16 @@ node.name = (d, root) => {
     if(d.nodes.get(root).terms.size < 1) return 'empty';
     return (''+d.get_leaf({root, terms:['name', 'leaf'], alt:''})).trim().substring(0, 24);
 };
-node.type_name = (d, root) => 
-    d.get_leaf({root, terms:['type name', 'type'], alt:''});
+// node.type_name = (d, root) => 
+//     d.get_leaf({root, terms:['type name', 'type'], alt:''});
 node.title = (d, root) => { 
-    const type_name = d.get.node.type_name(d, root);
+    const type_name = d.get_type_name(root);
     return d.get.node.name(d, root) + (type_name ? ' ('+readable(type_name)+')' : '');
 };
 node.primary = (d, node)=>({
     icon:       d.get.node.icon(d, node),
     name:       d.get.node.name(d, node), 
-    type_name:  d.get.node.type_name(d, node), 
+    type_name:  d.get_type_name(node), 
 });
 
 
@@ -102,7 +102,7 @@ export const root_context_nodes = d => {
     for(const node of d.context_nodes){
         let is_root_context = true;
         for(const [root, term] of d.get_back_edges({stem:node})){
-            if(term == 'contexts' && d.get.node.type_name(d, root) == 'Context'){
+            if(term == 'contexts' && d.get_type_name(root) == 'Context'){
                 is_root_context = false;
             }
         }
