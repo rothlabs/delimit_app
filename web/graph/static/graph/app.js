@@ -94,6 +94,7 @@ function import_code({state, node, api_key='0', on_complete}){
         });
     }catch(e){
         on_complete();
+        console.log('extension error');
         console.error(e.stack);
     }
 }

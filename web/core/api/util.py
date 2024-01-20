@@ -36,7 +36,8 @@ def make_node_snaps(version, node_terms):
         snaps.append(snap)
         nodes.append(Node(version=version, key=node_id, snap=snap))
     Snap.objects.bulk_create(snaps, ignore_conflicts=True)
-    Node.objects.bulk_create(nodes, 
+    Node.objects.bulk_create(
+        nodes, 
         update_conflicts = True,
         update_fields = ['snap'],
         unique_fields = ['version', 'key'],

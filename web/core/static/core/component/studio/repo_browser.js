@@ -6,15 +6,6 @@ import {use_store, List_View, set_store, act_on_store,
 export function Repo_Browser(){
     useEffect(()=>{Holder.run({images:'.hjs'});});
     const {loading, error, data} = use_query('GetRepos');
-    // const [open_version] = use_mutation('OpenVersion', {
-    //     onCompleted:data=>{
-    //         console.log(data.openVersion.reply);
-    //         set_store(d=>{
-    //             d.receive_data(d, JSON.parse(data.openVersion.result));
-    //             d.studio.mode = 'graph';
-    //         }); 
-    //     },
-    // });
     if(loading) return 'Loading';
     if(error) return `Error: ${error}`;
     let repos = [];
@@ -26,17 +17,13 @@ export function Repo_Browser(){
     return repos.map(([id, {metadata:{name, story}, versions, write_access}]) => 
         c('div', {className:'d-flex gap-3 mb-5'},
             c('img', {className:'hjs', src:'holder.js/128x128', role:'button', // style:{width:128, height:128}
-                // onClick:e=>{
-                //     const [id] = [...Object.entries(versions)].find(([id, o]) => o.metadata.name == 'Main');
-                //     open_version({variables:{id}});
-                // },
             }),
             c('div', {},
                 c('div', {className:'h5 mt-2'}, name),
                 c('div', {className:'mt-2 mb-2'}, story),
                 c('div', {className:'d-flex gap-1'},
-                    Object.entries(versions).map(([id, {metadata:{name}}])=> 
-                        c(Get_Version_Button, {name, id})
+                    Object.entries(versions).map(([id, {metadata:{name}, committed}])=> 
+                        !committed && c(Get_Version_Button, {name, id})
                     ),
                 )
             ),
@@ -61,3 +48,20 @@ function Get_Version_Button({name, id}){
         onClick: () => get_version({variables:{id}}),
     })
 }
+
+
+
+    // const [open_version] = use_mutation('OpenVersion', {
+    //     onCompleted:data=>{
+    //         console.log(data.openVersion.reply);
+    //         set_store(d=>{
+    //             d.receive_data(d, JSON.parse(data.openVersion.result));
+    //             d.studio.mode = 'graph';
+    //         }); 
+    //     },
+    // });
+
+                    // onClick:e=>{
+                //     const [id] = [...Object.entries(versions)].find(([id, o]) => o.metadata.name == 'Main');
+                //     open_version({variables:{id}});
+                // },

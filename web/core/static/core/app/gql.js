@@ -50,6 +50,9 @@ export const gql_mutations = [
     ['drop_nodes', [  
         ['dropNodes error', '[String] ids'],
     ]],
+    ['commit_version', [  
+        ['commitVersion error', 'String id'],
+    ]],
 ];
 
 const mutations = compile_gql('mutation', gql_mutations);

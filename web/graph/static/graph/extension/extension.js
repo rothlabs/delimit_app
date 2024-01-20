@@ -1,17 +1,10 @@
-import {set_store, static_url} from 'delimit/graph';
-import initialize_axiom, {test_nurbs, get_vectors} from 'delimit/axiom';
+import {set_store, static_url, get_draft} from 'delimit/graph';
+import initialize_axiom, {get_vectors} from 'delimit/axiom';
 
-initialize_axiom(static_url+'delimit_axiom_bg.wasm').then(() => {
-    // let query = {
-    //     controls: [[0,0,0], [10,0,0], [0,10,0], [0,0,10], [10,10,0], [10,10,10],],
-    // };
-    // const result = test_nurbs(query);
-    // console.log(result);
-});
+initialize_axiom(static_url+'delimit_axiom_bg.wasm');
 
 export const axiom = {
     get_vectors,
-    test_nurbs,
 };
 
 export const set_queries = ({node_id, ...queries}) => {
@@ -24,17 +17,25 @@ export const set_queries = ({node_id, ...queries}) => {
         for(const [key, query] of Object.entries(queries)){
             // const name = draft.get_leaf({root:node, term:'name'});
             // console.log('setting querier on', name, query.name);
-            draft.nodes.get(node_id).queries.set(key, get_new_querier(query));
+            draft.nodes.get(node_id).queries.set(key, new_querier(query));
         }
     });
 };
 
-function get_new_querier(query){
-    const execute = ({node, ...args}) => {
-        return query({node, ...args});
+export function query({node_id, draft=get_draft(), ...query_selection}){
+    const [query_name, args] = Object.entries(query_selection)[0];
+    const code = draft.get_stem({root:node_id, terms:'type code'});
+    const querier = draft.nodes.get(code)?.queries?.get(query_name);
+    if(querier) return querier.execute({node_id, draft, ...args});
+}
+
+function new_querier(query){
+    const execute = (args) => { // {node, ...args}
+        return query(args);
     };
     return {execute};
 }
+
 
 
 // let query = {

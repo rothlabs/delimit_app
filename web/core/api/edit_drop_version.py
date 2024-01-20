@@ -18,8 +18,7 @@ def edit_version(user, id, name, story):
     version = Version.objects.get(writable_version(user), id = id)
     version.metadata |= {'name':name, 'story':story} 
     version.save()
-    return Edit_Version() # reply = 'Edited version'
-
+    return Edit_Version() 
 
 class Drop_Versions(graphene.Mutation):
     class Arguments:
@@ -33,4 +32,4 @@ class Drop_Versions(graphene.Mutation):
 def drop_versions(user, ids):
     Version.objects.filter(writable_version(user), id__in=ids).delete()
     Snap.objects.filter(nodes=None).delete()
-    return Drop_Versions() # reply = 'Dropped versions'
+    return Drop_Versions() 

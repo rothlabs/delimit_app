@@ -11,7 +11,6 @@ class Make_Repo(graphene.Mutation):
     result = graphene.String()
     @classmethod
     def mutate(cls, root, info, name, story):
-        print(cls)
         args = {'user':info.context.user, 'name':name, 'story':story}
         return try_mutation(mutate=make_standard_repo, args=args, alt=Make_Repo)
 

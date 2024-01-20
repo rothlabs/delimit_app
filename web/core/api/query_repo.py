@@ -18,6 +18,7 @@ def get_staged_repo_and_versions(repo):
         'versions': {
             version.id:{
                 'metadata': version.metadata,
+                'committed': version.committed,
             } for version in repo.versions.all() # try versions__stems__isnull in main filter
         },
     }

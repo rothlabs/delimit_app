@@ -9,6 +9,7 @@ from core.api.edit_drop_repo    import Edit_Repo, Drop_Repo
 from core.api.edit_drop_version import Edit_Version, Drop_Versions
 from core.api.make_nodes        import Make_Nodes
 from core.api.drop_nodes        import Drop_Nodes
+from core.api.commit_version    import Commit_Version
 
 class Query(graphene.ObjectType):
     user    = graphene.Field(Authenticated_User_Type)
@@ -33,5 +34,6 @@ class Mutation(graphene.ObjectType):
     dropVersions = Drop_Versions.Field() 
     makeNodes    = Make_Nodes.Field()
     dropNodes    = Drop_Nodes.Field()
+    commitVersion = Commit_Version.Field()
     
 api = graphene.Schema(query=Query, mutation=Mutation)

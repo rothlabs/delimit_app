@@ -24,11 +24,11 @@ def make_nodes(user, nodes, include_code_keys):
     nodes_by_version = get_nodes_by_version(nodes)
     for version in versions:
         make_node_snaps(version, nodes_by_version[version.id])
+        # version.authors.add(user) # TODO: find correct way to add authors to version
     Snap.objects.filter(nodes=None).delete()
     result = json.dumps({'code_keys':code_keys})
     return Make_Nodes(result=result) 
 
-# TODO: add metadata to say if user edited source code and would like code_access
 def filter_nodes_and_get_code_node_ids(nodes, version_ids, include_code_keys):
     filtered_nodes = {}
     code_node_ids = []
