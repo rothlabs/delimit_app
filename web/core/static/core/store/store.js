@@ -56,6 +56,7 @@ export const make_store = get_draft => ({
     //cam_info: {matrix: new Matrix4(), dir: new Vector3()},
     user_id: 0,
     search: {depth:null, ids:null},
+    camera: null,
     
     init(d){
         d.base_texture = new THREE.TextureLoader().load(

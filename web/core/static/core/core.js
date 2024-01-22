@@ -4,7 +4,7 @@ import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
 import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
 import {make_store} from './store/store.js';
-import {Vector2} from 'three'; // ColorManagement.enabled = true;
+import {Vector2, Vector3} from 'three'; // ColorManagement.enabled = true;
 import {send_updates_to_server} from './app/send.js'
 import {is_formal_node_id} from 'delimit/common';
 
@@ -91,10 +91,19 @@ export const controls = {
     pointer:{
         position: new Vector2(),
         start: new Vector2(),
+        delta: new Vector2(),
+    },
+    projection:{
+        position: new Vector3(),
+        start: new Vector3(),
+    },
+    scene: {
+        view:{},
+        start: new Vector3(),
+        end: new Vector3(),
     },
     camera: null,
     graph: {view:{}},
-    scene: {view:{}},
 };
 // const transient_store = createWithEqualityFn(subscribeWithSelector(() => transient), shallow);
 // export function use_transient(selector, a={}){

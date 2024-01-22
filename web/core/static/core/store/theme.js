@@ -1,4 +1,7 @@
-import * as THREE from 'three';
+import {
+    MeshBasicMaterial, MeshStandardMaterial, CircleGeometry,
+    DoubleSide,
+} from 'three';
 //import {preloadFont} from '../troika/troika-three-text.js';
 
 export const theme = {
@@ -6,9 +9,10 @@ export const theme = {
 };
 export const color = {};
 export const material = {};
+export const shaded = {};
 export const font = {};
 export const geometry = {
-    circle: new THREE.CircleGeometry(1.5, 16),
+    circle: new CircleGeometry(1.5, 16),
 };
 
 theme.compute = d =>{
@@ -17,7 +21,7 @@ theme.compute = d =>{
     const css = name => style.getPropertyValue(name);
     d.color.primary      = css('--bs-primary');
     d.color.secondary    = css('--bs-secondary');
-    d.color.both = '#00a088';
+    //d.color.both = '#00a088';
     d.color.success      = css('--bs-success');
     d.color.info         = css('--bs-info');
     d.color.warning      = css('--bs-warning');
@@ -30,22 +34,35 @@ theme.compute = d =>{
     d.color.tertiary_bg  = css('--bs-tertiary-bg');
     d.color.emphasis   = css('--bs-emphasis-color');
     d.color.border       = css('--bs-border-color');
-    d.material.primary = new THREE.MeshBasicMaterial({color:d.color.primary, toneMapped:false});
-    d.material.secondary = new THREE.MeshBasicMaterial({color:d.color.secondary, toneMapped:false});
-    d.material.both = new THREE.MeshBasicMaterial({color:d.color.both, toneMapped:false});
-    d.material.success = new THREE.MeshBasicMaterial({color:d.color.success, toneMapped:false});
-    d.material.info = new THREE.MeshBasicMaterial({color:d.color.info, toneMapped:false});
-    d.material.warning = new THREE.MeshBasicMaterial({color:d.color.warning, toneMapped:false});
-    d.material.danger = new THREE.MeshBasicMaterial({color:d.color.danger, toneMapped:false});
-    d.material.body_fg = new THREE.MeshBasicMaterial({color:d.color.body_fg, toneMapped:false});
-    d.material.body_bg = new THREE.MeshBasicMaterial({color:d.color.body_bg, toneMapped:false});
-    d.material.secondary_fg = new THREE.MeshBasicMaterial({color:d.color.secondary_fg, toneMapped:false});
-    d.material.secondary_bg = new THREE.MeshBasicMaterial({color:d.color.secondary_bg, toneMapped:false});
-    d.material.tertiary_fg = new THREE.MeshBasicMaterial({color:d.color.tertiary_fg, toneMapped:false});
-    d.material.tertiary_bg = new THREE.MeshBasicMaterial({color:d.color.tertiary_bg, toneMapped:false});
-    d.material.emphasis = new THREE.MeshBasicMaterial({color:d.color.emphasis, toneMapped:false});
-    d.material.border = new THREE.MeshBasicMaterial({color:d.color.border, toneMapped:false});
+
+    const toneMapped = false;
+    d.material.primary = new MeshBasicMaterial({color:d.color.primary, toneMapped});
+    d.material.secondary = new MeshBasicMaterial({color:d.color.secondary, toneMapped});
+    //d.material.both = new MeshBasicMaterial({color:d.color.both, toneMapped});
+    d.material.success = new MeshBasicMaterial({color:d.color.success, toneMapped});
+    d.material.info = new MeshBasicMaterial({color:d.color.info, toneMapped});
+    d.material.warning = new MeshBasicMaterial({color:d.color.warning, toneMapped});
+    d.material.danger = new MeshBasicMaterial({color:d.color.danger, toneMapped});
+    d.material.body_fg = new MeshBasicMaterial({color:d.color.body_fg, toneMapped});
+    d.material.body_bg = new MeshBasicMaterial({color:d.color.body_bg, toneMapped});
+    d.material.secondary_fg = new MeshBasicMaterial({color:d.color.secondary_fg, toneMapped});
+    d.material.secondary_bg = new MeshBasicMaterial({color:d.color.secondary_bg, toneMapped});
+    d.material.tertiary_fg = new MeshBasicMaterial({color:d.color.tertiary_fg, toneMapped});
+    d.material.tertiary_bg = new MeshBasicMaterial({color:d.color.tertiary_bg, toneMapped});
+    d.material.emphasis = new MeshBasicMaterial({color:d.color.emphasis, toneMapped});
+    d.material.border = new MeshBasicMaterial({color:d.color.border, toneMapped});
     d.font.body = d.base_url + 'font/Inter-Medium.ttf';
+
+    const side = DoubleSide;
+    const roughness = 0.4;
+    d.shaded.primary = new MeshStandardMaterial({color:d.color.primary, toneMapped, side, roughness});
+    d.shaded.secondary = new MeshStandardMaterial({color:d.color.secondary, toneMapped, side, roughness});
+    d.shaded.info = new MeshStandardMaterial({color:d.color.info, toneMapped, side, roughness});
+    d.shaded.body_fg = new MeshStandardMaterial({color:d.color.body_fg, toneMapped, side, roughness});
+    d.shaded.secondary_fg = new MeshStandardMaterial({color:d.color.secondary_fg, toneMapped, side, roughness});
+    d.shaded.tertiary_fg = new MeshStandardMaterial({color:d.color.tertiary_fg, toneMapped, side, roughness});
+    d.shaded.border = new MeshStandardMaterial({color:d.color.border, toneMapped, side, roughness}); 
+    d.shaded.gray = new MeshStandardMaterial({color:'lightgray', toneMapped, side, roughness});
     //preloadFont({font:d.font.body}, ()=>{},);
 };
 

@@ -48,6 +48,7 @@ close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
         }else{
             d.closed.node.add(node);
         }
+        if(!d.nodes.has(node)) return; // drop.edge might have delete this early 
         const version = d.nodes.get(node).version;
         if(d.versions.has(version)) d.versions.get(version).nodes.delete(node);
         d.unpick(d, {node});
@@ -164,7 +165,9 @@ drop.edge = (d, a={}) => {
             stem.roots.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
             increment = true;
             //if(!a.given && stem.back.size < 1 && stem.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
-            if(is_formal_node_id(drp.root) && !is_formal_node_id(drp.stem)) d.drop.node(d, {nodes:drp.stem});
+            if(is_formal_node_id(drp.root) && !is_formal_node_id(drp.stem)){
+                d.drop.node(d, {node:drp.stem, deep:true});
+            }
         }
     }
     if(increment){

@@ -8,15 +8,16 @@ import {
     Confirm
 } from 'delimit';
 import {animated, useSpring} from '@react-spring/web';
-import {Vector2} from 'three';
+import {Vector2, Vector3} from 'three';
 
-const vector = new Vector2();
-const {pointer} = controls;
+const vector2 = new Vector2();
+const vector3 = new Vector3();
+const {pointer, projection} = controls;
 
 export function Root(){
     const render_header = (render_outlet_header = () => null) => 
         c('div',{
-            className:'position-absolute top-0 start-0 end-0 ms-1 mt-1 z-1', 
+            className:'position-absolute top-0 start-0 end-0 z-1', // ms-1 mt-1 
         },
             c('div', {className:'position-absolute ms-1 mt-1'},
                 c(Logo),
@@ -28,6 +29,7 @@ export function Root(){
     return c('div', {
         id: 'root', 
         className: 'vh-100',
+        //onPointerDown,
         onPointerMove,
         onPointerUp,
     },
@@ -50,11 +52,40 @@ export function Root(){
     )
 } 
 
+// function onPointerDown(e){
+//     console.log('pointer down');
+//     pointer.start.set(e.clientX, e.clientY);
+//     pointer.delta.set(0, 0, 0); 
+// }
+
 function onPointerMove(e){ // Capture  
     pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
     pointer.position.set(e.clientX, e.clientY);
-    if(!pointer.dragging) return; 
-    if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
+    pointer.delta.copy(pointer.position).sub(pointer.start); 
+    if(pointer.delta.length() < 14) return; // TODO: Detect tablet to make required delta larger
+    if(controls.staged_drag_type == 'scene') drag_scene(e); 
+    if(controls.staged_drag_type == 'edge')  drag_edge(e); 
+}
+
+//let scene_drag_time = 0;
+function drag_scene(e){
+    controls.dragging = 'scene';
+    //if(Date.now() - scene_drag_time < 100) return;
+    //scene_drag_time = Date.now();
+    set_store(d => {
+        const pos = controls.scene.end;
+        pos.set(
+            (e.clientX / window.innerWidth) * 2 - 1,        
+            -(e.clientY / window.innerHeight) * 2 + 1,
+            projection.start.z,
+        ).unproject(d.camera);
+        pos.set(d.rnd(pos.x), d.rnd(pos.y), d.rnd(pos.z));
+        d.scene.set_source_position({scene:d.drag.staged.scene, position:pos});
+    });
+}
+
+function drag_edge(e){
+    controls.dragging = 'edge';
     act_on_store(d=>{
         if(Object.keys(d.drag.edge).length) return;
         const {root, term, stem, index} = d.drag.staged;
@@ -70,10 +101,19 @@ function onPointerMove(e){ // Capture
 }
 
 function onPointerUp(){
-    pointer.dragging = false;
-    set_store(d=> {
-        if(Object.keys(d.drag.edge).length) d.drag.edge = {};
-    });
+    if(controls.dragging == 'scene'){
+        set_store(d => {
+            d.scene.set_source_position({scene:d.drag.staged.scene, position:controls.scene.start});
+        });
+        act_on_store(d => {
+            d.scene.set_source_position({scene:d.drag.staged.scene, position:controls.scene.end});
+        });
+    }
+    if(controls.dragging == 'edge'){
+        set_store(d=> d.drag.edge = {}); // if(Object.keys(d.drag.edge).length) d.drag.edge = {};
+    }
+    controls.staged_drag_type = null;
+    controls.dragging = null;
 }
 
 function Account_Menu(){
@@ -123,7 +163,7 @@ function Dragged(){
 //         pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
 //         pointer.position.set(e.clientX, e.clientY);
 //         if(!pointer.dragging) return; 
-//         if(vector.copy(pointer.position).sub(pointer.start).length() < 10) return;
+//         if(vector2.copy(pointer.position).sub(pointer.start).length() < 10) return;
 //         act_on_store(d=>{
 //             if(Object.keys(d.drag.edge).length) return;
 //             const edge = d.drag.staged;

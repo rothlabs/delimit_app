@@ -76,8 +76,9 @@ function render_input({type='input', maxLength, placeholder, value, onFocus, onB
     })
 }
 
-function Token_Base({inner_ref, group, icon, name, content, width, height, style, active, store_setter, store_action,
-                        onClick, onPointerDown, onPointerUp, onContextMenu, onPointerEnter, onPointerLeave}){
+function Token_Base({inner_ref, group, icon, name, content, width, height, 
+                        style, active, store_setter, store_action,
+                        onClick, onPointerDown, onPointerUp, onContextMenu}){
     const target = useRef();
     const size = make_size(content, width, height);
     const [hover, set_hover] = useState(false);
@@ -96,7 +97,7 @@ function Token_Base({inner_ref, group, icon, name, content, width, height, style
     );
     //if(!size.width) size.width = 'fit-content';
     size.width = size.width ?? 'fit-content';
-    let button = (store_setter || store_action || onClick || onPointerEnter);
+    let button = (store_setter || store_action || onClick || onPointerDown);
     const render_name = ({minWidth}) => c('div', {className: tall ? 'mt-1' : '', style:{minWidth}}, name ?? 'untitled');
     const render_token_badge = () => render_badge({icon, name});//c('div', {className:'d-flex gap-2 h-100 align-items-center'}, c(Icon, {icon}), name ?? 'untitled');
     const render_token_input = props => {
@@ -136,12 +137,12 @@ function Token_Base({inner_ref, group, icon, name, content, width, height, style
                 if(onClick) onClick(e);
             },
             onPointerDown, onPointerUp, onContextMenu,
-            onPointerEnter(e){
+            onPointerOver(e){//onPointerEnter(e){
                 //e.stopPropagation();
                 if(button) set_hover(true);//api.start({backgroundColor: 'var(--bs-info-bg-subtle)'}); // var(--bs-info-bg-subtle)
                 //if(onPointerEnter) onPointerEnter(e);
             },
-            onPointerLeave(e){
+            onPointerOut(e){//onPointerLeave(e){
                 //e.stopPropagation();
                 if(button) set_hover(false);//api.start({backgroundColor: 'var(--bs-body-bg)'});
                 //if(onPointerLeave) onPointerLeave(e);

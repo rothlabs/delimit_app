@@ -1,7 +1,9 @@
 import {createElement as c} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {
-    use_store, undo, redo, render_token, icons, draggable, pickable, get_snake_case, render_badge, act_on_store_without_history, 
+    use_store, undo, redo, render_token, icons, draggable, pickable, get_snake_case, 
+    render_badge, render_badge_token, 
+    act_on_store_without_history,
     Mode_Menu, 
     Server_Mutations, Scene_Query,
     Make_Node, Make_Repo, Node_Editor, Schema_Inspector, Repo_Editor, Scene_Editor,
@@ -44,13 +46,16 @@ export function Studio(){
         c('div', {className:'z-1 position-absolute start-0 bottom-0 ms-5 mb-1 ps-1'},
             c(Term_Editor),
         ),
-        c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
+        // c('div', {className: 'z-1 position-absolute top-0 end-0 me-1 mt-5 pt-3'},
+        //     c(Nodes_Version),
+        // ),
+        c('div', {className: 'z-1 position-absolute top-0 end-0 me-1 mt-5 pt-3'},
             c(Node_Action_Menu),
         ),
-        c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
+        c('div', {className: 'z-1 position-absolute top-0 end-0 me-1 mt-5 pt-3'}, //c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
             c(Repo_Action_Menu),
         ),
-        c('div', {className: 'z-1 position-absolute bottom-0 end-0 mb-1 me-1'},
+        c('div', {className: 'z-1 position-absolute top-0 end-0 me-1 mt-5 pt-3'},
             c(Version_Action_Menu),
         ),
         c('div', {className:'z-1 position-absolute start-50 bottom-0 translate-middle-x mb-1'},
@@ -101,11 +106,14 @@ function Action_Menu({open, group, items}){
     });
     return transition((style, item) => item && c(animated.div, {
         style: {...style, borderRight:'thick solid var(--bs-secondary)'},
-    }, items.map(item => 
-        c('div', {className:'d-flex justify-content-end'},
-            render_token({...item, group, hide_secondary_pick:true})
-        )
-    )))
+    }, 
+        c(Secondary_Picked_Nodes),
+        items.map(item => 
+            c('div', {className:'d-flex justify-content-end'},
+                render_token({...item, group, hide_secondary_pick:true})
+            )
+        )),
+    )
 } 
 
 function Node_Action_Menu(){
@@ -118,14 +126,52 @@ function Node_Action_Menu(){
             {name:'Add to Scene', icon:'bi-camera-reels', store_action:d=> d.scene.make_sources(d, {nodes})},
         nodes.some(x =>  scene_sources.includes(x)) &&
             {name:'Remove from Scene', icon:'bi-camera-video-off', store_action:d=> d.scene.drop_sources(d, {nodes})},
-        {name:'Copy', icon:'bi-file-earmark', store_action:d=> d.copy.node(d, {nodes})},
-        {name:'Copy', icon:'bi-file-earmark-fill', store_action:d=> d.copy.node(d, {nodes, deep:true})},
         prm_nodes.length==1 && !nodes.includes(prm_nodes[0])  &&
             {name:'Replace', icon:'bi-repeat', store_action:d=> d.replace.node(d, {nodes, source:prm_nodes[0]})},
+        {name:'Copy', icon:'bi-file-earmark', store_action:d=> d.copy.node(d, {nodes})},
+        {name:'Copy', icon:'bi-file-earmark-fill', store_action:d=> d.copy.node(d, {nodes, deep:true})},
         {name:'Roots', icon:'bi-arrow-left-circle', store_setter:d=> d.pick_back(d, {nodes})},
         {name:'Delete', icon:'bi-trash2', store_action:d=> d.drop.node(d, {nodes})},
         {name:'Deep Delete', icon:'bi-trash2-fill', store_action:d=> d.drop.node(d, {nodes, deep:true})},
     ]})
+}
+
+function Secondary_Picked_Nodes(){
+    const nodes = use_store(d=> [...d.picked.secondary.node]);
+    if(!nodes.length) return;
+    if(nodes.length == 1){
+        const node = nodes[0];
+        return [//c('div', {},
+            render_token({
+                content: render_badge({node}), 
+                ...pickable({node}),
+            }),
+            c(Nodes_Version, {nodes}),
+        ]
+    }
+    return [//c('div', {},
+        c(render_badge_token, {
+            icon: 'bi-collection',
+            name: 'Multiple nodes',
+        }),
+        c(Nodes_Version, {nodes}),
+    ]
+}
+
+function Nodes_Version({nodes}){
+    //const nodes = use_store(d=> [...d.picked.secondary.node]);
+    const versions = use_store(d=> nodes.map(node=> d.get.node.version(d, node)));
+    const repo = use_store(d=> d.get.version.repo(d, versions[0]));
+    if(!nodes.length) return;
+    if(versions.some(v => v != versions[0])) return render_badge_token({
+        icon: 'bi-collection',
+        name: 'Multiple versions',
+    });
+    const version = versions[0];
+    return render_token({
+        content:[render_badge({repo}), render_badge({version})], 
+        ...pickable({version}),
+    });
 }
 
 function Repo_Action_Menu(){

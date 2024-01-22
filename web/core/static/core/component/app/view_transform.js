@@ -11,17 +11,12 @@ import { use_store } from 'delimit';
 export const Scene_Transform = forwardRef(({scene, size, ...props}, ref)=>{ 
     const obj = useRef();
     const {invalidate} = useThree();
-    use_store(d => [
-        d.get_leaf({root:d.get_leaf({root:scene, term:'x'}), term:'x', alt:0}),
-        d.get_leaf({root:d.get_leaf({root:scene, term:'y'}), term:'y', alt:0}),
-        d.get_leaf({root:d.get_leaf({root:scene, term:'z'}), term:'z', alt:0}),
-    ],{subscribe(pos){
+    use_store(d => d.scene.get_position({scene}), {subscribe(pos){
         if(obj.current && pos){
-            obj.current.position.fromArray(pos);
+            obj.current.position.copy(pos);
             invalidate();
         }
     }});
-
     useFrame((state) => { // use d.cam_info here? #1
         if(obj.current && size != null){
             let factor = size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!

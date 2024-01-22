@@ -16,5 +16,6 @@ export const make_store = get_draft => ({
     },
     code_keys: new Map(),
     code_tick: 0,
+    //pending_queries: new Map(),
 });
 

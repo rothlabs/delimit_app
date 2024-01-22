@@ -100,19 +100,49 @@ function import_code({state, node, api_key='0', on_complete}){
 }
 
 function make_scene({state, node, tick}){
+    //console.log('make scene');
+    if(query_queue.host > 0){
+        console.log('skipped!');
+        return;
+    }
+    query_queue.host++;
     const promise = query_node({state, node, get_scene:{}})
     promise.then(scene => {
+        //if(!scene) return;
         set_store(draft => draft.make_scene({source:node, scene, tick}));
-    }, rejected => null);
+        query_queue.host--; //query_queue.host = 'empty';
+    }, rejected => query_queue.host--);
 }
 
+const query_queue = {
+    host: 0,
+};
+
 function query_node({state, node, ...query_selection}){
-    const [query_name, args] = Object.entries(query_selection)[0];
+    const [querier_name, args] = Object.entries(query_selection)[0];
     const code = state.get_stem({root:node, terms:'type code'})
-    const query = state.nodes.get(code)?.queries?.get(query_name);
+    const querier = state.nodes.get(code)?.queriers?.get(querier_name);
     return new Promise((resolve, reject) => {
-        if(!query) reject('no query');
-        resolve(query.execute({node_id:node, draft:state, ...args}));
+        if(!querier) reject('no querier');
+        //if(query_queue.host == 0){
+            //query_queue.host = 'full';
+            //query_queue.host++;
+            //query_queue.host = 'full';
+            let result = null;
+            try{
+                result = querier.execute({node_id:node, draft:state, ...args});
+            }catch{
+                
+                //query_queue.host = 'empty';
+                reject('failed query');
+                return;
+            }
+            //query_queue.host--;
+            resolve(result);
+        //}else{
+        //    console.log('full queue');
+        //    reject('queue full');
+        //}
     });
 }
 

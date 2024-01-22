@@ -63,7 +63,7 @@ export const make_common_slice = get_draft => ({
         return result;
     },
     get_leaf({root, alt, draft=get_draft(), ...term_paths}){  // get_leaf(d, {root, alt, ...term_paths}){ 
-        const stem = draft.get_leaf_box({root, ...term_paths});
+        const stem = draft.get_leaf_box({root, draft, ...term_paths});
         if(stem) return stem.value;
         return alt;
     },

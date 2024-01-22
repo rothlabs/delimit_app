@@ -11,6 +11,7 @@ import {
     Graph, Scene_Root,
     controls,
 } from 'delimit';
+import {AmbientLight, DirectionalLight, Vector3} from 'three';
 
 
 
@@ -37,6 +38,11 @@ function Viewport_Control(){
                 middle: 2, // 2=TRUCK
                 wheel:  16, // 16=ZOOM
             },
+            touches: {
+                one: studio_mode=='graph' ? null : 1,
+                two: 8192, // TOUCH_ZOOM_TRUCK
+                three: 8192, // TOUCH_ZOOM_TRUCK
+            },
             //polarRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
             //azimuthRotateSpeed: (acting || pick_box || studio_mode=='graph' ? 0 : 1), 
         }), 
@@ -59,9 +65,9 @@ function set_view_from_camera(camera){
 }
 
 export function Viewport(){ // for some reason this renders 5 times on load
-    const scene = useRef();
-    const light = useRef();
-    const {camera} = useThree(); // raycaster 
+    //const scene = useRef();
+    //const dir_light = useRef();
+    const {camera, scene} = useThree(); // raycaster 
     const studio_mode = use_store(d=> d.studio.mode);
     useEffect(()=>{
         if(!controls.camera) return;
@@ -70,10 +76,13 @@ export function Viewport(){ // for some reason this renders 5 times on load
         set_camera_from_view(view);
     },[studio_mode]);
     useEffect(()=>{
-        camera.add(light.current);
+        set_store(d=> d.camera = camera);
+        const light = new DirectionalLight('white', 1);
+        camera.add(light);
+        scene.add(camera);
     },[]);
     return c('group', {
-        ref: scene,
+        //ref: scene,
         name:'viewport',
         onPointerMissed(e){
             //console.log(e.which);
@@ -86,12 +95,6 @@ export function Viewport(){ // for some reason this renders 5 times on load
         c(Viewport_Control),
         studio_mode=='graph'  && c(Graph),
         studio_mode=='scene' && c(Scene_Root),
-        c('directionalLight', { 
-            ref:light,
-            color: 'white',
-            intensity: 1,
-            position: [0,0,1000],
-        }),
         c('ambientLight', {
             color: 'white',
             intensity: 0.25,
@@ -115,7 +118,12 @@ function set_camera_from_view(view){
 }
 
 
-
+        // c('directionalLight', { 
+        //     ref: dir_light,
+        //     color: 'white',
+        //     intensity: 1,
+        //     position: [0,0,1000],
+        // }),
 
 
 

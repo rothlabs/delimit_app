@@ -26,6 +26,10 @@ node.primary = (d, node)=>({
     name:       d.get.node.name(d, node), 
     type_name:  d.get_type_name(node), 
 });
+node.version = (d, node) => {
+    if(!d.nodes.has(node)) return;
+    return d.nodes.get(node).version;
+};
 
 
 const get_color = (d, node, both, primary, secondary, alt) => {
@@ -37,13 +41,14 @@ const get_color = (d, node, both, primary, secondary, alt) => {
     return alt;
 }
 node.color = {
-    primary:(d, node) => get_color(d, node, d.color.both, d.color.primary, d.color.secondary, d.color.info),
+    primary:(d, node) => get_color(d, node, d.color.body_fg, d.color.primary, d.color.secondary, d.color.info),
     // secondary:(d, node)   => pick(d, node, [d.color.primary], d.color.secondary),
     // body:(d, node)        => pick(d, node, [d.color.primary], d.color.body_bg),
     // tertiary_fg:(d, node) => pick(d, node, [d.color.primary], d.color.tertiary_fg),
 };
 node.material = {
-    primary:(d, node) => get_color(d, node, d.material.both, d.material.primary, d.material.secondary, d.material.info),
+    primary:(d, node) => get_color(d, node, d.material.body_fg, d.material.primary, d.material.secondary, d.material.info),
+    shaded:(d, node) => get_color(d, node, d.shaded.gray, d.shaded.primary, d.shaded.secondary, d.shaded.info),
     // secondary:(d, node)   => pick(d, node, d.material.primary, d.material.secondary),
     // tertiary_fg:(d, node) => pick(d, node, d.material.primary, d.material.tertiary_fg),
 };

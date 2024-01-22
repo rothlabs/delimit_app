@@ -1,4 +1,5 @@
-import {is_formal_node_id} from 'delimit';
+import {is_formal_node_id, get_draft} from 'delimit';
+import {Vector3} from 'three';
 
 export const scene = {    
     sources: new Map(), // TODO: rename to source_ticks?
@@ -50,6 +51,26 @@ scene.query_status = d => ({
     }), 
     error: d.graph_app.error,
 });
+
+scene.get_position = ({scene, draft=get_draft()}) => {
+    return new Vector3().fromArray([
+        draft.get_leaf({root:draft.get_leaf({root:scene, term:'x', draft}), term:'x', alt:0, draft}),
+        draft.get_leaf({root:draft.get_leaf({root:scene, term:'y', draft}), term:'y', alt:0, draft}),
+        draft.get_leaf({root:draft.get_leaf({root:scene, term:'z', draft}), term:'z', alt:0, draft}),
+    ]);
+};
+
+scene.set_source_position = ({scene, position, draft=get_draft()}) => {
+    const pos = position.toArray();
+    for(const [i, cmp] of ['x', 'y', 'z'].entries()){
+        const root = draft.get_leaf({root:scene, term:cmp});
+        if(draft.nodes.has(root)){
+            draft.set_leaf({root, term:cmp, value:pos[i]});
+        }
+    }
+}
+
+
 
 
 // function drop_scene_source(d, root){

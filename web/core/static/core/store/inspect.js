@@ -22,33 +22,45 @@ inspect.open = (d, {path, paths}) => {
 };
 
 export const set_leaf = ({root, term, index=0, value, draft=get_draft()}) => {
-    //console.log(root, term);
-    //console.log([...draft.nodes.get(root).terms]);
-    const leaf = draft.nodes.get(root).terms.get(term)[index];
+    let leaf = null;
+    if(index === 0){
+        leaf = draft.get_leaf_box({root, term});
+    }else{
+        leaf = draft.nodes.get(root).terms.get(term)[index];
+    }
     const old_value = leaf.value;
     let coerced = value;
-    if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
+    let return_coerced = false;
+    if(typeof coerced == 'number' && ['decimal', 'integer'].includes(leaf.type)){
+        leaf.value = coerced;
+        return_coerced = true;
+    }else if(typeof coerced == 'boolean' && leaf.type == 'boolean'){
         leaf.value = coerced;//return coerced;
-    }
-    if(typeof coerced == 'string'){
+        return_coerced = true;
+    }else if(typeof coerced == 'string'){
         if(leaf.type == 'string'){
             leaf.value = coerced;
             draft.add_or_remove_as_context_node(draft, root);//return coerced;
+            return_coerced = true;
         }
         if(['', '-'].includes(coerced)){ // coerced = coerced.replace(/^0+/, '');
             leaf.value = 0;//return coerced;
-        }
-        if(leaf.type == 'integer'){
+            return_coerced = true;
+        }else if(leaf.type == 'integer'){
             coerced = coerced.replace(/\./g, '');
             if(!isNaN(coerced) && Number.isInteger(parseFloat(coerced))){
                 leaf.value = parseInt(coerced);//return coerced;
+                return_coerced = true;
             }
         }else if(leaf.type == 'decimal'){
             if(['.', '-.'].includes(coerced)){
                 leaf.value = 0;//return coerced;
+                return_coerced = true;
             }
             if(!isNaN(coerced)){
+                //console.log('parse float');
                 leaf.value = parseFloat(coerced);//return coerced;
+                return_coerced = true;
             }
         }
     }
@@ -58,7 +70,10 @@ export const set_leaf = ({root, term, index=0, value, draft=get_draft()}) => {
             draft.increment_code(draft);
         }
     }
-    return coerced;
+    if(return_coerced){
+        //console.log(leaf.value);
+        return coerced;
+    }
 };
 
 export const set_term = (d, {root, term, new_term}) => {

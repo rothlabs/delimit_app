@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    #'csp.middleware.CSPMiddleware', 
     'django_hosts.middleware.HostsRequestMiddleware',
     #'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -61,6 +62,12 @@ MIDDLEWARE = [
     'silk.middleware.SilkyMiddleware',
     'django_hosts.middleware.HostsResponseMiddleware',
 ]
+
+# Content Security Policy
+# CSP_IMG_SRC = ("'self'")
+# CSP_STYLE_SRC = ("'self'")
+# CSP_SCRIPT_SRC = ("'self'", 'https://graph.delimit.art')
+# #CSP_STYLE_SRC = ("'unsafe-inline'", "https:")
 
 ROOT_URLCONF = 'delimit.urls'
 

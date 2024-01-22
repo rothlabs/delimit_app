@@ -3,6 +3,7 @@ import {get_draft} from 'delimit/graph';
 const make_functions = new Map(Object.entries({
     make_point,
     make_polygon,
+    make_mesh,
 }));
 
 export function make_scene({source, root, scene, tick, key, draft=get_draft()}){
@@ -35,7 +36,14 @@ function make_point({root, scene, draft=get_draft()}){
 }
 
 function make_polygon({root, scene, draft=get_draft()}){
-    if(scene.vectors) draft.make.edge({root, term:'vectors', stem:{value: scene.vectors}}); 
+    if(scene.vectors) draft.make.edge({root, term:'vectors', stem:{value: scene.vectors.flat()}}); 
     if(scene.dashed) draft.make.edge({root, term:'dashed', stem:{value: scene.dashed}}); 
     if(scene.width) draft.make.edge({root, term:'width', stem:{value: scene.width}});
+}
+
+function make_mesh({root, scene, draft=get_draft()}){
+    if(!scene.mesh) return;
+    const {vectors, indices} = scene.mesh;
+    if(vectors) draft.make.edge({root, term:'vectors', stem:{value: vectors.flat()}}); 
+    if(indices) draft.make.edge({root, term:'indices', stem:{value: indices}}); 
 }

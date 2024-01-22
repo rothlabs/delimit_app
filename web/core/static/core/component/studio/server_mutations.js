@@ -11,6 +11,8 @@ export function Server_Mutations(){
     return mutations.map(gql_name => c(Mutation, {gql_name, key:gql_name}));
 }
 
+const repo_fetch_triggers = ['make_repo', 'make_meta_repo', 'edit_repo', 'drop_repo', 'edit_version', 'drop_versions'];
+
 function Mutation({gql_name}){
     const [failed, set_failed] = useState()
     //console.log('render mutation', gql_name);
@@ -20,8 +22,8 @@ function Mutation({gql_name}){
                 if(obj.error) set_failed(gql_name+', '+obj.error)
             }
             update_from_mutation_response({gql_name, data}) 
-        }
-        //refetchQueries:['GetRepos'],
+        },
+        refetchQueries: (repo_fetch_triggers.includes(gql_name)) ? ['GetRepos'] : undefined,
     }); 
     set_store(d => d.server[gql_name] = mutate);
     let open = true;
