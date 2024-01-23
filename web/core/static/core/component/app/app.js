@@ -22,9 +22,9 @@ export function get_height(id){
     return (element ? element.offsetHeight : 0);
 }
 
-export const List_View = ({path, items, header_props={}, header, render_item, header_addon, keys}) => { 
+export const List_View = ({path, items, header_props={}, header, render_item, header_addon}) => { 
     const transition_config = { 
-        keys:   keys ?? (item => item), 
+        keys: (item, i) => item+i,
         from:   {t: 1, opacity:0, y:'-50%', transform: 'scaleY(0%)'}, 
         enter:  {t: 0, opacity:1, y:'0%',   transform: 'scaleY(100%)'},  
         leave:  {t: 1, opacity:0, y:'-50%', transform: 'scaleY(0%)'}, 
@@ -52,7 +52,7 @@ export const List_View = ({path, items, header_props={}, header, render_item, he
                 open && c(animated.div, {style:{...style,  marginBottom:style.t.to(t => -get_height('list_header_'+path) * t)  }}, // marginTop:style.t.to(t => -get_height(body_div) * t)  
                     item_transitions((style, item, t, index) => 
                         c(animated.div, {style:{...style,  marginBottom:style.t.to(t => -get_height('list_item_'+path+item+index) * t) }},  // marginTop:style.t.to(t => -get_height(item_div) * t)  
-                            c('div', {id:'list_item_'+path+item+index},
+                            c('div', {id:'list_item_'+path+item+index}, // key:path+item+index, 
                                 render_item(item, index),
                             ),
                         )

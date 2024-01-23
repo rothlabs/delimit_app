@@ -3,7 +3,7 @@ import {Outlet} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
 import {
-    set_store, act_on_store, use_store, use_query, 
+    set_store, get_store, act_on_store, use_store, use_query, 
     controls, render_badge, readable, render_token,
     Confirm
 } from 'delimit';
@@ -62,17 +62,25 @@ function onPointerMove(e){ // Capture
     pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
     pointer.position.set(e.clientX, e.clientY);
     pointer.delta.copy(pointer.position).sub(pointer.start); 
-    if(pointer.delta.length() < 14) return; // TODO: Detect tablet to make required delta larger
+    if(pointer.delta.length() < 14 && !controls.dragging) return; // TODO: Detect tablet to make required delta larger
     if(controls.staged_drag_type == 'scene') drag_scene(e); 
     if(controls.staged_drag_type == 'edge')  drag_edge(e); 
 }
 
-//let scene_drag_time = 0;
 function drag_scene(e){
     controls.dragging = 'scene';
-    //if(Date.now() - scene_drag_time < 100) return;
-    //scene_drag_time = Date.now();
+    const d = get_store();
+    if(d.tick > controls.drag.tick){
+        controls.drag.resolve = () => resolve_drag_scene(e);
+    }else{
+        resolve_drag_scene(e);
+    }
+}
+
+function resolve_drag_scene(e){
+    controls.drag.resolve = () => null;
     set_store(d => {
+        d.tick++; 
         const pos = controls.scene.end;
         pos.set(
             (e.clientX / window.innerWidth) * 2 - 1,        
@@ -151,6 +159,25 @@ function Dragged(){
     )
 }
 
+
+
+// function drag_scene(e){
+//     controls.dragging = 'scene';
+//     const d = get_store();
+    
+//     set_store(d => {
+//         if(d.tick > controls.drag.tick) return;
+//         d.tick++;
+//         const pos = controls.scene.end;
+//         pos.set(
+//             (e.clientX / window.innerWidth) * 2 - 1,        
+//             -(e.clientY / window.innerHeight) * 2 + 1,
+//             projection.start.z,
+//         ).unproject(d.camera);
+//         pos.set(d.rnd(pos.x), d.rnd(pos.y), d.rnd(pos.z));
+//         d.scene.set_source_position({scene:d.drag.staged.scene, position:pos});
+//     });
+// }
 
 
 

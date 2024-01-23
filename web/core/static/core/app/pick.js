@@ -50,12 +50,15 @@ export const draggable = item => {
     return result;
 };
 
+let last_drag_tick = 0;
 export const pickable = ({mode='all', ...item}) => { // root, term, ...item
     const result = {...item, ...pointer_style_events};
     if(mode == 'all' || mode == 'primary') result.onClick = e => { 
         e.stopPropagation();
-        //console.log(controls.pointer.delta);
-        if(controls.pointer.delta.length() > 14) return;
+        if(controls.drag.tick > last_drag_tick){
+            last_drag_tick = controls.drag.tick;
+            return;
+        };
         set_store(d=> d.pick(d, {multi:e.ctrlKey, ...item}));
     };
     if(mode == 'all' || mode == 'secondary') result.onContextMenu = e => {

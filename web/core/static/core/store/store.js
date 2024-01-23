@@ -31,6 +31,7 @@ export const make_store = get_draft => ({
         panel: {mode:'node_editor'},
         cursor: '',
     },
+    tick: 0,
     code_tick: 0,
     increment_code: draft => draft.code_tick++,
     // code: {
@@ -77,10 +78,9 @@ export const make_store = get_draft => ({
         nodes.map(([node, terms]) => {
             for(const [term, stems] of Object.entries(terms)){ 
                 if(!stems.length) d.make.edge(d, {root:node, term, given:true}); 
-                stems.map(stem => {
-                    if(stem.length == 15) console.log('free node id as stem!', stem);
-                    d.make.edge(d, {root:node, term, stem, given:true})
-                });
+                for(const stem of stems){//stems.map(stem => {
+                    d.make.edge(d, {root:node, term, stem, given:true});
+                };
             };
         });
         for(const [node, code_key] of Object.entries(data.code_keys)){ // console.log('got code key', node, code_key);

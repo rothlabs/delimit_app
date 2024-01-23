@@ -33,7 +33,10 @@ make.node = ({node, version, given, type, draft=get_draft()}) => {
         roots,            
     });
     if(draft.versions.has(version)) draft.versions.get(version).nodes.add(node);
-    if(type) build_node_from_type(draft, node, type);
+    if(type){
+        build_node_from_type(draft, node, type);
+        
+    }
     draft.dropped.node.delete(node);
     draft.closed.node.delete(node);
     draft.graph.increment(draft);
@@ -52,7 +55,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single}) => { // make na
         d.scene.add_or_remove_source(d, {root, given});
         return;
     }
-    if(d.will_cycle({root, stem})){
+    if(d.will_cycle({root, stem, draft:d})){ 
         console.log('Error: Cannot make edge because it would make a cyclic graph.');
         return;
     }

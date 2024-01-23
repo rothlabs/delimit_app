@@ -2,10 +2,11 @@ export const make_common_slice = get_draft => ({
     will_cycle({root, stem, draft=get_draft()}){
         if(root == stem) return true;
         if(!draft.nodes.has(stem)) return;
-        for(const [_, next_stem] of draft.get_edges({root:stem, exclude_leaves:true})){
-            if(root == next_stem) return true;
-            else return draft.will_cycle({root, stem:next_stem});
+        let cycled = false;
+        for(const [_, next_stem] of draft.get_edges({root:stem, exclude_leaves:true, draft})){
+            if(draft.will_cycle({root, stem:next_stem, draft})) cycled = true;
         }
+        return cycled;
     },
     get_type_name(root){
         const draft = get_draft();
