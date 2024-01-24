@@ -66,7 +66,7 @@ function Polygon({node}){
     const width = use_store(d=> d.get_leaf({root, term:'width', alt:2}));
     const {invalidate} = useThree();
     use_store(d => 
-        d.get_leaf({root:node, term:'vectors', alt:[0,0,0, 0,0,0]})
+        d.get_leaf({root:node, term:'vectors', alt:[0,0,0, 0,0,0]}).flat()
     ,{subscribe(vectors){
         if(ref.current && vectors){
             ref.current.geometry = new LineGeometry(); 
@@ -77,13 +77,10 @@ function Polygon({node}){
     const points = get_store().get_leaf({root, term:'vectors', alt:[0,0,0, 0,0,0]});
     return c(Scene_Transform, { 
         ...pick_drag_n_droppable({node:source, scene:node}),
-    },//c('group', {},
+    },
         c(Line, {
-            ref, 
-            points, 
+            ref, points, color, dashed,
             lineWidth: width,
-            color,
-            dashed,
         }),
         c(Scenes, {node}), 
     )
@@ -96,7 +93,7 @@ function Mesh({node}){
     const material  = use_store(d=> d.get.node.material.shaded(d, source));
     const {invalidate} = useThree();
     use_store(d => [
-        d.get_leaf({root:node, term:'vectors', alt:[0,0,0, 0,0,0, 0,0,0]}),
+        d.get_leaf({root:node, term:'vectors', alt:[0,0,0, 0,0,0, 0,0,0]}).flat(),
         d.get_leaf({root:node, term:'indices', alt:[0, 1, 2]}),
     ],{subscribe([vectors, indices]){
         if(ref.current && vectors){
@@ -107,10 +104,11 @@ function Mesh({node}){
             invalidate();
         }
     }});
-    return c('group', {},
+    return c(Scene_Transform, { //c('group', {},
+        ...pick_drag_n_droppable({node:source, scene:node}),
+    },
         c('mesh', {
-            ref, ...pick_drag_n_droppable({node:source}),
-            material,
+            ref, material,
         }),
         c(Scenes, {node}), 
     )

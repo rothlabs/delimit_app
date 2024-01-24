@@ -133,7 +133,7 @@ function set_state(state, patches){
 
 
 // set state without committing to history or server 
-export const set_store = func => {
+export const set_store = (func, prep) => {
     //console.log('recieve state');
     //const result = next_state(get_store(), func); 
     // if(fork){
@@ -142,10 +142,16 @@ export const set_store = func => {
     // }
     //var [nextState] = produceWithPatches(get_store(), d=>{ func(d) }); 
     //store.setState(nextState); 
-    const [state, patches, inverse] = produceWithPatches(get_store(), draft => { 
+    let [state, patches, inverse] = produceWithPatches(get_store(), draft => { 
         current_draft = draft;
-        func(draft);
+        prep ? prep(draft) : func(draft);
     });
+    if(prep){
+        [state, patches, inverse] = produceWithPatches(state, draft => { 
+            current_draft = draft;
+            func(draft);
+        });
+    }
     //console.log(patches);
     if(!patches.length) return [state];
     set_state(state, patches);
@@ -159,8 +165,8 @@ export const set_store = func => {
 //     return {state, patches, inverse}
 // }
 
-export const act_on_store = func => {
-    const [state, patches, inverse] = set_store(func);
+export const act_on_store = (func, prep) => {
+    const [state, patches, inverse] = set_store(func, prep);
     if(!patches) return; //store.setState(state);
     if(patches_history.length > patch_index){
         patches_history.splice(patch_index, patches_history.length - patch_index);
@@ -177,6 +183,8 @@ export const act_on_store_without_history = func => {
     if(!patches) return;
     send_updates_to_server(state, patches);
 }
+
+export const act_on_store_with_prep = ({prep, act}) => act_on_store(act, prep);
 
 // export const clear_history = () => {
 //     patch_index = 0;

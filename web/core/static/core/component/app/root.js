@@ -3,7 +3,7 @@ import {Outlet} from 'react-router-dom';
 import {Login, show_login, Logout, show_logout} from './login.js';
 import {Logo} from './logo.js';
 import {
-    set_store, get_store, act_on_store, use_store, use_query, 
+    set_store, get_store, act_on_store, use_store, use_query, act_on_store_with_prep,
     controls, render_badge, readable, render_token,
     Confirm
 } from 'delimit';
@@ -110,18 +110,16 @@ function drag_edge(e){
 
 function onPointerUp(){
     if(controls.dragging == 'scene'){
-        set_store(d => {
-            d.scene.set_source_position({scene:d.drag.staged.scene, position:controls.scene.start});
-        });
-        act_on_store(d => {
-            d.scene.set_source_position({scene:d.drag.staged.scene, position:controls.scene.end});
+        act_on_store_with_prep({
+            prep: d => d.scene.set_source_position({scene:d.drag.staged.scene, position:controls.scene.start}),
+            act: d => d.scene.set_source_position({scene:d.drag.staged.scene, position:controls.scene.end}),
         });
     }
     if(controls.dragging == 'edge'){
         set_store(d=> d.drag.edge = {}); // if(Object.keys(d.drag.edge).length) d.drag.edge = {};
     }
     controls.staged_drag_type = null;
-    controls.dragging = null;
+    setTimeout(() => controls.dragging = null, 50);
 }
 
 function Account_Menu(){
@@ -160,6 +158,16 @@ function Dragged(){
 }
 
 
+
+
+        // set_store(d => {
+        //     d.scene.set_source_position({scene:d.drag.staged.scene, 
+        //         position:vector3.copy(controls.scene.end).add(vector3_offset),
+        //     });
+        // });
+        // act_on_store(d => {
+        //     d.scene.set_source_position({scene:d.drag.staged.scene, position:controls.scene.end});
+        // });
 
 // function drag_scene(e){
 //     controls.dragging = 'scene';
