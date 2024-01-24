@@ -35,7 +35,6 @@ make.node = ({node, version, given, type, draft=get_draft()}) => {
     if(draft.versions.has(version)) draft.versions.get(version).nodes.add(node);
     if(type){
         build_node_from_type(draft, node, type);
-        
     }
     draft.dropped.node.delete(node);
     draft.closed.node.delete(node);

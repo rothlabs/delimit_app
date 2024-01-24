@@ -20,7 +20,7 @@ export function make_scene({source, root, scene, tick, key, draft=get_draft()}){
         draft.make.edge({root:root_root, term:'scenes', stem:root});
     }
     draft.make.edge({root, term:'type', stem:{value: scene.type}}); // type:'string',   
-    draft.make.edge({root, term:'source', stem:{value: scene.node_id}}); // type:'string',   
+    draft.make.edge({root, term:'source', stem:{value: scene.source}}); // type:'string',   
     const func_name = 'make_'+scene.type;
     if(make_functions.has(func_name)) make_functions.get(func_name)({root, scene});
     for(const [i, stem_scene] of (scene.scenes ?? []).entries()){
@@ -30,9 +30,9 @@ export function make_scene({source, root, scene, tick, key, draft=get_draft()}){
 };
 
 function make_point({root, scene, draft=get_draft()}){
-    draft.make.edge({root, term:'x', stem:{value: scene.x ?? scene.node_id}}); // type:'auto', 
-    draft.make.edge({root, term:'y', stem:{value: scene.y ?? scene.node_id}});
-    draft.make.edge({root, term:'z', stem:{value: scene.z ?? scene.node_id}});
+    draft.make.edge({root, term:'x', stem:{value: scene.x ?? scene.source}}); // type:'auto', 
+    draft.make.edge({root, term:'y', stem:{value: scene.y ?? scene.source}});
+    draft.make.edge({root, term:'z', stem:{value: scene.z ?? scene.source}});
 }
 
 function make_polygon({root, scene, draft=get_draft()}){

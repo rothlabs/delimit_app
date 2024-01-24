@@ -82,11 +82,11 @@ export const make_common_slice = get_draft => ({
         }
     },
     get_leaves({root, terms, draft=get_draft()}){
-        return Object.entries(terms).map(([term, alt]) => {
-            return draft.get_leaf({root, term, alt});
+        return Object.entries(terms).map(([term, alt]) => 
+            draft.get_leaf({root, term, alt})
             //const root_or_value = d.get_leaf(d, {root, term, alt});
             //return d.get_leaf(d, {root:root_or_value, term, alt:root_or_value});
-        });
+        );
     },
     leaf_changed({root, patch:{op, path}, draft=get_draft(), ...term_paths}){ // TODO: move this to app.js? (core.js)
         for(const term_path of draft.get_iterable(term_paths)){
@@ -113,7 +113,8 @@ function get_new_id(length=16){
 
 function get_iterable(i){
     i = i.id ?? i.ids ?? i.node ?? i.nodes ?? i.root ?? i.roots ?? i.term ?? i.terms
-        ?? i.repo ?? i.repos ?? i.version ?? i.versions ?? i.scene ?? i.scenes ?? i;
+        ?? i.repo ?? i.repos ?? i.version ?? i.versions ?? i.scene ?? i.scenes ?? 
+        i.stems ?? i;
     if(i == null) return [];
     if(typeof i === 'string') return [i];
     if(typeof i[Symbol.iterator] === 'function') return i;

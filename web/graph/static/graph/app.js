@@ -136,7 +136,7 @@ function query_node({state, node, ...query_selection}){
     return new Promise((resolve, reject) => {
         if(!querier) reject('no querier');
         try{
-            resolve(querier.execute({node_id:node, draft:state, ...args}));
+            resolve(querier.execute({node, draft:state, ...args}));
             return;
         }catch{
             reject('failed query');
