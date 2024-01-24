@@ -1,6 +1,7 @@
 import {get_draft} from 'delimit/graph';
 
 const make_functions = new Map(Object.entries({
+    make_group,
     make_point,
     make_polygon,
     make_mesh,
@@ -19,8 +20,8 @@ export function make_scene({source, root, scene, tick, key, draft=get_draft()}){
         root = draft.make.node({node:root+key});
         draft.make.edge({root:root_root, term:'scenes', stem:root});
     }
-    draft.make.edge({root, term:'type', stem:{value: scene.type}}); // type:'string',   
-    draft.make.edge({root, term:'source', stem:{value: scene.source}}); // type:'string',   
+    draft.make.edge({root, term:'type', stem:{value: scene.type}});    
+    draft.make.edge({root, term:'source', stem:{value: scene.source}}); 
     const func_name = 'make_'+scene.type;
     if(make_functions.has(func_name)) make_functions.get(func_name)({root, scene});
     for(const [i, stem_scene] of (scene.scenes ?? []).entries()){
@@ -28,6 +29,10 @@ export function make_scene({source, root, scene, tick, key, draft=get_draft()}){
         draft.make_scene({root, scene:stem_scene, key:key+i});
     }
 };
+
+function make_group({root, scene, draft=get_draft()}){
+    if(scene.position) draft.make.edge({root, term:'position', stem:{value: scene.position}}); 
+}
 
 function make_point({root, scene, draft=get_draft()}){
     draft.make.edge({root, term:'x', stem:{value: scene.x ?? scene.source}}); // type:'auto', 

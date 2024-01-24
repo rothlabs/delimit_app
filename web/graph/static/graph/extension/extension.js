@@ -40,7 +40,7 @@ function make_querier(query){
 
 export function query({name, args={}, draft=get_draft(), ...target}){
     const [_, node] = Object.entries(target)[0];
-    if(typeof node[Symbol.iterator] !== 'function'){
+    if(typeof node === 'string'){
         return execute_querier({node, name, args});
     } 
  
@@ -63,6 +63,24 @@ export function get_leaf({root, alt, draft=get_draft(), ...term_paths}){
 export function get_leaves({root, terms, draft=get_draft()}){ 
     return draft.get_leaves({root, terms});
 }
+
+export function get_stem_model({root, alt, draft=get_draft(), ...term_paths}){
+    const stem = draft.get_stem({root, ...term_paths})
+    if(!stem) return [null, alt];
+    const model = query({stem, name:'get_model'});
+    if(model) return [stem, model];
+    return [null, alt];
+}
+
+// export function get_stem({root, alt, draft=get_draft(), ...term_paths}){
+//     return draft.get_stem({root, alt, ...term_paths})
+// }
+
+
+
+
+
+
 
 
 // export function query({node_id, draft=get_draft(), ...query_selection}){

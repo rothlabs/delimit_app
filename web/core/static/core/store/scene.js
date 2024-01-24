@@ -53,10 +53,13 @@ scene.query_status = d => ({
 });
 
 scene.get_position = ({scene, draft=get_draft()}) => {
+    const x = draft.get_leaf({root:scene, term:'x', draft});
+    const y = draft.get_leaf({root:scene, term:'y', draft});
+    const z = draft.get_leaf({root:scene, term:'z', draft});
     return new Vector3().fromArray([
-        draft.get_leaf({root:draft.get_leaf({root:scene, term:'x', draft}), term:'x', alt:0, draft}),
-        draft.get_leaf({root:draft.get_leaf({root:scene, term:'y', draft}), term:'y', alt:0, draft}),
-        draft.get_leaf({root:draft.get_leaf({root:scene, term:'z', draft}), term:'z', alt:0, draft}),
+        draft.get_leaf({root:x, term:'x', alt:typeof x === 'number' ? x : 0, draft}),
+        draft.get_leaf({root:y, term:'y', alt:typeof y === 'number' ? y : 0, draft}),
+        draft.get_leaf({root:z, term:'z', alt:typeof z === 'number' ? z : 0, draft}),
     ]);
 };
 

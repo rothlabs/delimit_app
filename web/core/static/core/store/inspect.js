@@ -28,6 +28,7 @@ export const set_leaf = ({root, term, index=0, value, draft=get_draft()}) => {
     }else{
         leaf = draft.nodes.get(root).terms.get(term)[index];
     }
+    if(!leaf) return;
     const old_value = leaf.value;
     let coerced = value;
     let return_coerced = false;

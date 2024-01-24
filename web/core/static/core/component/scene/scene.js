@@ -2,7 +2,7 @@ import {createElement as c, useRef} from 'react';
 import {
     use_store, get_store, get_draft, get_upper_snake_case, 
     pick_drag_n_droppable, // draggable, droppable, pickable, 
-    Scene_Transform,
+    Scene_Transform, Sized_Scene_Transform,
 } from 'delimit';
 import {Line} from '@react-three/drei/Line';
 import {useThree} from '@react-three/fiber';
@@ -10,6 +10,7 @@ import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
 import {BufferGeometry, Float32BufferAttribute} from 'three';
 
 const Scene_Components = new Map(Object.entries({
+    Group,
     Point,
     Polygon,
     Mesh,
@@ -33,11 +34,20 @@ function Scene_Case({node}){
         return c(Scene_Components.get(type_name), {node});
 }
 
+function Group({node}){// notice that source nodes are captured in a leaf to prevent cycles!
+    const position = use_store(d=> d.get_leaf({root:node, term:'position', alt:[0,0,0]}));
+    return c('group', {
+        position,
+    },
+        c(Scenes, {node}), 
+    )
+}
+
 function Point({node}){// notice that source nodes are captured in a leaf to prevent cycles!
     const source = use_store(d=> d.get_leaf({root:node, term:'source'}));
     const material  = use_store(d=> d.get.node.material.primary(d, source));
     const size = use_store(d=> d.point_size);
-    return c(Scene_Transform, { 
+    return c(Sized_Scene_Transform, { 
         size, 
         ...pick_drag_n_droppable({node:source, scene:node}),
     },
@@ -65,9 +75,11 @@ function Polygon({node}){
         }
     }});
     const points = get_store().get_leaf({root, term:'vectors', alt:[0,0,0, 0,0,0]});
-    return c('group', {},
+    return c(Scene_Transform, { 
+        ...pick_drag_n_droppable({node:source, scene:node}),
+    },//c('group', {},
         c(Line, {
-            ref, ...pick_drag_n_droppable({node:source}),
+            ref, 
             points, 
             lineWidth: width,
             color,

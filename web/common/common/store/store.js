@@ -29,7 +29,7 @@ export const make_common_slice = get_draft => ({
             }
         }
     },
-    get_stem({root, draft=get_draft(), ...term_paths}){
+    get_stem({root, alt, draft=get_draft(), ...term_paths}){
         for(const term_path of draft.get_iterable(term_paths)){ // term_paths.term ?? term_paths.terms
             try{
                 for(const term of term_path.split(' ')){
@@ -38,6 +38,7 @@ export const make_common_slice = get_draft => ({
                 return root;
             }catch{}
         }
+        return alt;
     },
     get_stems({root, draft=get_draft(), ...term_paths}){ 
         const result = [];

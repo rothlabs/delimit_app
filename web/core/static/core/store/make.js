@@ -73,11 +73,13 @@ make.edge = (d, {root, term='stem', stem, index, given, single}) => { // make na
     return true;
 };
 
+// d.get.root_context_nodes(d)
+
 function build_node_from_type(d, node, type){
     d.make.edge(d, {root:node, term:'type', stem:type});
     if(d.get_leaf({root:type, term:'name'}) == 'Root'){
-        for(const [root] of d.get_back_edges({stem:type})){
-            if(d.get_type_name(root) == 'Context'){
+        for(const root of d.get.root_context_nodes(d)){
+            if(d.get.node.version(d, root) == d.get.targeted.version(d)){
                 d.make.edge(d, {root, term:'types', stem:node});
             }
         }
@@ -87,6 +89,17 @@ function build_node_from_type(d, node, type){
 
 
 
+// function build_node_from_type(d, node, type){
+//     d.make.edge(d, {root:node, term:'type', stem:type});
+//     if(d.get_leaf({root:type, term:'name'}) == 'Root'){
+//         for(const [root] of d.get_back_edges({stem:type})){
+//             if(d.get_type_name(root) == 'Context'){
+//                 d.make.edge(d, {root, term:'types', stem:node});
+//             }
+//         }
+//     }
+//     d.schema.make_root(d, node, type);
+// };
 
 
 
