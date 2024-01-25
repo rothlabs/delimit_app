@@ -46,14 +46,16 @@ function Group({node}){// notice that source nodes are captured in a leaf to pre
 function Point({node}){// notice that source nodes are captured in a leaf to prevent cycles!
     const source = use_store(d=> d.get_leaf({root:node, term:'source'}));
     const material  = use_store(d=> d.get.node.material.primary(d, source));
-    const size = use_store(d=> d.point_size);
-    return c(Sized_Scene_Transform, { 
-        size, 
+    const size = use_store(d=> d.get_leaf({root:node, term:'size', alt:d.point_size}));
+    return c(Scene_Transform, { 
         ...pick_drag_n_droppable({node:source, scene:node}),
     },
-        c('mesh', {material},
-            c('sphereGeometry'), // c('meshBasicMaterial', {color:'red', toneMapped:false}),       
+        c(Sized_Scene_Transform, {size},
+            c('mesh', {material},
+                c('sphereGeometry'), // c('meshBasicMaterial', {color:'red', toneMapped:false}),       
+            ),
         ),
+        c(Scenes, {node}), 
     )
 }
 

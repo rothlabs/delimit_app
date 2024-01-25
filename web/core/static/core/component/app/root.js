@@ -77,18 +77,22 @@ function drag_scene(e){
     }
 }
 
+const drag_vec = new Vector3(0,0,0);
 function resolve_drag_scene(e){
     controls.drag.resolve = () => null;
     set_store(d => {
         d.tick++; 
-        const pos = controls.scene.end;
-        pos.set(
+        const vec = drag_vec; // controls.scene.end;
+        vec.set(
             (e.clientX / window.innerWidth) * 2 - 1,        
             -(e.clientY / window.innerHeight) * 2 + 1,
             projection.start.z,
         ).unproject(d.camera);
-        pos.set(d.rnd(pos.x), d.rnd(pos.y), d.rnd(pos.z));
-        d.scene.set_source_position({scene:d.drag.staged.scene, position:pos});
+        vec.applyMatrix4(controls.drag.matrix).sub(controls.drag.start);
+        const end = controls.scene.end;
+        end.copy(controls.scene.start).add(vec);
+        end.set(d.rnd(end.x), d.rnd(end.y), d.rnd(end.z));
+        d.scene.set_source_position({scene:d.drag.staged.scene, position:end});
     });
 }
 

@@ -4,7 +4,7 @@ import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
 import {createElement as c, useEffect, useState, useLayoutEffect} from 'react';
 import {make_store} from './store/store.js';
-import {Vector2, Vector3} from 'three'; // ColorManagement.enabled = true;
+import {Vector2, Vector3, Matrix4} from 'three'; // ColorManagement.enabled = true;
 import {send_updates_to_server} from './app/send.js'
 import {is_formal_node_id} from 'delimit/common';
 
@@ -107,6 +107,8 @@ export const controls = {
     drag: {
         tick:0,
         resolve: () => null,
+        start: new Vector3(),
+        matrix: new Matrix4(),
     },
 };
 // const transient_store = createWithEqualityFn(subscribeWithSelector(() => transient), shallow);

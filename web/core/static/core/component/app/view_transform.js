@@ -28,13 +28,13 @@ export const Scene_Transform = forwardRef(({scene, size, ...props}, ref)=>{
 
 export const Sized_Scene_Transform = forwardRef(({scene, size, ...props}, ref)=>{ 
     const obj = useRef();
-    const {invalidate} = useThree();
-    use_store(d => d.scene.get_position({scene}), {subscribe(pos){
-        if(obj.current && pos){
-            obj.current.position.copy(pos);
-            invalidate();
-        }
-    }});
+    // const {invalidate} = useThree();
+    // use_store(d => d.scene.get_position({scene}), {subscribe(pos){
+    //     if(obj.current && pos){
+    //         obj.current.position.copy(pos);
+    //         invalidate();
+    //     }
+    // }});
     useFrame((state) => { // use d.cam_info here? #1
         if(obj.current && size != null){
             let factor = size / state.camera.zoom; // must account for camera distance if perspective ?!?!?!?!
