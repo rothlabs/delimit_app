@@ -6,7 +6,7 @@ export const make = {};
 // console.log('graph app make node', draft.nodes.get(node).roots.keys().next().value);
 
 make.node = ({node, draft=get_draft()})=>{
-    if(is_formal_node_id(node)) return;
+    ///// if(is_formal_node_id(node)) return;
     node = node ?? draft.get_new_id();
     draft.drop.edge({root:node}); 
     let roots = new Set();
@@ -20,7 +20,7 @@ make.node = ({node, draft=get_draft()})=>{
 
 make.edge = ({root, term, stem, index, draft=get_draft()}) => { 
     if(!term) return;
-    if(is_formal_node_id(root)) return;
+    ///// if(is_formal_node_id(root)) return;
     if(!draft.nodes.has(root)) return; 
     const terms = draft.nodes.get(root).terms;
     let stems = terms.get(term);
@@ -34,9 +34,10 @@ make.edge = ({root, term, stem, index, draft=get_draft()}) => {
         return;
     }
     if(!length) terms.set(term, []); 
-    index = index ?? length; // TODO: place this before creating empty term?
-    if(index > length) return;
+    index = index ?? length; 
+    if(index > length+1) return; // TODO: allow one over so it can push on very end?!?!
     if(stem.type == null && stem.value != null) stem.type = get_real_type(stem);
+    //console.log(index, length);
     terms.get(term).splice(index, 0, stem); 
     if(draft.nodes.has(stem)){
         draft.nodes.get(stem).roots.add(root);

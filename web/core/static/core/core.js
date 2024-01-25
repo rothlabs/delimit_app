@@ -206,8 +206,8 @@ function is_patch_for_graph_app(path){
     if(path[0] == 'nodes'){
         if(is_formal_node_id(path[1])) return true;
     }else if(path[0] == 'scene' && path[1] == 'sources'){
-        if(is_formal_node_id(path[2])) return true;
-    }else if(['tick', 'code_tick', 'code_keys'].includes(path[0])){ //path[0] == 'code_keys' || path[0] == 'code_tick'
+        if(is_formal_node_id(path[2])) return true; // }else if(path[0] == 'to_graph_app'){//
+    }else if(['tick', 'code_tick', 'code_keys', 'pattern_match'].includes(path[0])){ //path[0] == 'code_keys' || path[0] == 'code_tick'
         return true;
     }
 }
@@ -218,16 +218,25 @@ function send_patches_to_graph_app(patches){
     graph_app_element.postMessage({patches}, graph_app_url); // state.graph_app.mutate({patches});
 }
 
-window.addEventListener('message', ({origin, data:{patches, tick}}) => {
+window.addEventListener('message', ({origin, data:{patches, tick, pattern_match}}) => {
     if(origin !== graph_app_url) return;
-    if(patches) update_from_graph_app(patches);//set_store(d=> d.scene.update_from_graph_app(d, scenes));
-    if(tick){
+    if(patches) update_from_patches(patches);//set_store(d=> d.scene.update_from_graph_app(d, scenes));
+    if(tick){ // TODO: rename to drag_tick?
         controls.drag.tick = tick;
         controls.drag.resolve();
     }
+    if(pattern_match) update_from_pattern_match(pattern_match);
 });
 
-function update_from_graph_app(patches){
+function update_from_pattern_match(pattern_match){
+    act_on_store(d => {
+        if(pattern_match.key !== d.pattern_match.key) return;
+        const {root, term, stem, index} = pattern_match;
+        d.make.edge(d, {root, term, stem, index});
+    });
+}
+
+function update_from_patches(patches){
     //console.log('got patches from graph app!!', patches);
     patches = patches.map(({op, path, value}) => ({ // TODO: if a node doesn't exist, reset the scene tree!
         path: (path[0]==='nodes' && !is_formal_node_id(path[1])) ? path : null,

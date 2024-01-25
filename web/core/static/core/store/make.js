@@ -49,6 +49,7 @@ make.edge = (d, {root, term, stem, index, given, single, scene}) => { // make na
     const terms = d.nodes.get(root).terms;
 
     if(term == null) [term, index] = get_auto_edge({root, stem, scene});
+    if(term == null) return;
 
     let stems = terms.get(term);
     let length = stems?.length ?? 0;
@@ -91,18 +92,42 @@ function build_node_from_type(d, node, type){
 };
 
 function get_auto_edge({root, stem, scene, draft=get_draft()}){
-    const default_term = draft.get_leaf({root, terms:['type default_term', 'default_term']}); //draft.get_default_term({root});
-    if(default_term) return [get_snake_case(default_term), null];
-    const stem_type_name = draft.get_type_name(stem);
-    for(const [term, stem, index] of draft.get_edges({root, exclude_leaves:true})){
-        if(draft.get_type_name(stem) != stem_type_name) continue;
-        if(scene){
-            const mono_vector = draft.scene.get_mono_vector({scene});
-        }
-        return [term, index];
-    }
-    return ['stem', null];
+    let default_term = draft.get_leaf({root, terms:['type default_term', 'default_term']}); //draft.get_default_term({root});
+    if(!default_term) return ['stem', null];
+    default_term = get_snake_case(default_term);
+    if(!scene) return [default_term, null];
+    draft.pattern_match = {
+        key: draft.get_new_id(),
+        root,
+        term: default_term,
+        stem,
+    };
+    return [null, null];
 }
+
+
+// function get_auto_edge({root, stem, scene, draft=get_draft()}){
+//     const default_term = draft.get_leaf({root, terms:['type default_term', 'default_term']}); //draft.get_default_term({root});
+//     if(default_term) return [get_snake_case(default_term), null];
+//     const stem_type_name = draft.get_type_name(stem);
+//     for(const [term, stem, index] of draft.get_edges({root, exclude_leaves:true})){
+//         if(draft.get_type_name(stem) != stem_type_name) continue;
+//         if(scene){
+//             const mono_vector = draft.scene.get_mono_vector({scene});
+//         }
+//         return [term, index];
+//     }
+//     return ['stem', null];
+// }
+
+
+
+
+
+
+
+
+
 
 
 

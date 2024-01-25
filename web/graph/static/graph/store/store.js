@@ -16,6 +16,20 @@ export const make_store = get_draft => ({
     },
     code_keys: new Map(),
     tick: 0,
-    //pending_queries: new Map(),
+    pattern_match: {},
+    query({name, args={}, draft=get_draft(), ...target}){
+        const [_, node] = Object.entries(target)[0];
+        if(typeof node === 'string'){
+            return execute_querier({node, name, args, draft});
+        } 
+        return draft.get_iterable(target).map(node => execute_querier({node, name, args, draft})).filter(v => v);
+    },
 });
+
+
+function execute_querier({node, name, args, draft}){
+    const code = draft.get_stem({root:node, terms:'type code'});
+    const querier = draft.nodes.get(code)?.queriers?.get(name);
+    if(querier) return querier.execute({node, ...args}); // , caller:'local'
+}
 

@@ -62,6 +62,8 @@ function update_from_host_app(patches){
         for(const patch of patches){
             if(is_scene_query(patch)){
                 make_scene({state, node:patch.path[2], tick:patch.value});
+            }else if(patch.path[0] == 'pattern_match'){
+                match_pattern({state, pattern_match:patch.value});
             }
         }
     }
@@ -100,39 +102,16 @@ function import_code({state, node, api_key='0', on_complete}){
 }
 
 function make_scene({state, node, tick}){
-    // //console.log('start', Date.now());
-    // const scene = query_node({state, node, get_scene:{}})
-    // //console.log('-stop', Date.now());
-    // if(!scene) return;
-    // set_store(draft => draft.make_scene({source:node, scene, tick}));
-    // console.log('make scene');
-    // if(query_queue.host > 0){
-    //     console.log('skipped!');
-    //     return;
-    // }
-    // query_queue.host++;
-    //console.log('start', Date.now());
     const promise = query_node({state, node, get_scene:{}})
     promise.then(scene => {
-        //console.log('-stop', Date.now());
-        //if(!scene) return;
         set_store(draft => draft.make_scene({source:node, scene, tick}));
-        //query_queue.host--; //query_queue.host = 'empty';
     }, rejected => null);
 }
-
-// const query_queue = {
-//     host: 0,
-// };
 
 function query_node({state, node, ...query_selection}){
     const [querier_name, args] = Object.entries(query_selection)[0];
     const code = state.get_stem({root:node, terms:'type code'})
     const querier = state.nodes.get(code)?.queriers?.get(querier_name);
-    // if(!querier) return;
-    // try{
-    //     return querier.execute({node_id:node, draft:state, ...args});
-    // }catch{}
     return new Promise((resolve, reject) => {
         if(!querier) reject('no querier');
         try{
@@ -151,6 +130,44 @@ window.addEventListener('message', ({origin, data:{patches}}) => {
     parent.postMessage({tick:get_store().tick}, host_app_url);
 });
 
+
+function match_pattern({state, pattern_match}){
+    const {root, term, stem, key} = pattern_match;
+    let scene = state.query({root, name:'get_scene'});
+    const start_vector = scene.vector; // TODO: rename polyline/mesh vector to mono_vector ?
+    const count = state.nodes.get(root).terms.get(term).length;
+    if(!start_vector || count < 1){
+        parent.postMessage({pattern_match}, host_app_url);
+        return;
+    }
+    let min_distance = Infinity;
+    pattern_match.index = 0;
+    set_store(draft => {
+        for (let index = 0; index <= count; index++){
+            draft.make.edge({root, term, stem, index});
+            scene = draft.query({root, name:'get_scene'});
+            draft.drop.edge({root, term, stem, index});
+            const dist = vector_distance(start_vector, scene.vector);
+            if(dist < min_distance){
+                min_distance = dist;
+                pattern_match.index = index;
+            }
+        }
+    });
+    parent.postMessage({pattern_match}, host_app_url);
+}
+
+function vector_distance(vector1, vector2) {
+    if (vector1.length !== vector2.length) {
+        console.log("Vectors must be of the same length");//throw new Error("Vectors must be of the same length");
+        return Infinity;
+    }
+    let sum_of_squares = 0;
+    for (let i = 0; i < vector1.length; i++) {
+        sum_of_squares += Math.pow(vector2[i] - vector1[i], 2);
+    }
+    return Math.sqrt(sum_of_squares);
+}
 
 
 

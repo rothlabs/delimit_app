@@ -39,17 +39,7 @@ function make_querier(query){
 }
 
 export function query({name, args={}, draft=get_draft(), ...target}){
-    const [_, node] = Object.entries(target)[0];
-    if(typeof node === 'string'){
-        return execute_querier({node, name, args});
-    } 
- 
-    return draft.get_iterable(target).map(node => execute_querier({node, name, args})).filter(v => v);
-}
-function execute_querier({node, name, args, draft=get_draft()}){
-    const code = draft.get_stem({root:node, terms:'type code'});
-    const querier = draft.nodes.get(code)?.queriers?.get(name);
-    if(querier) return querier.execute({node, ...args}); // , caller:'local'
+    return draft.query({name, args, ...target});
 }
 
 export function get_stems({root, draft=get_draft(), ...term_paths}){ 
@@ -71,6 +61,20 @@ export function get_stem_model({root, alt, draft=get_draft(), ...term_paths}){
     if(model) return [stem, model];
     return [null, alt];
 }
+
+
+// export function query({name, args={}, draft=get_draft(), ...target}){
+//     const [_, node] = Object.entries(target)[0];
+//     if(typeof node === 'string'){
+//         return execute_querier({node, name, args});
+//     } 
+//     return draft.get_iterable(target).map(node => execute_querier({node, name, args})).filter(v => v);
+// }
+// function execute_querier({node, name, args, draft=get_draft()}){
+//     const code = draft.get_stem({root:node, terms:'type code'});
+//     const querier = draft.nodes.get(code)?.queriers?.get(name);
+//     if(querier) return querier.execute({node, ...args}); // , caller:'local'
+// }
 
 // export function get_stem({root, alt, draft=get_draft(), ...term_paths}){
 //     return draft.get_stem({root, alt, ...term_paths})

@@ -24,7 +24,7 @@ drop.node = ({deep, draft=get_draft(), ...ids})=>{
         };
         get_stems(targets);
     }
-    targets = targets.filter(target => !is_formal_node_id(target));
+    ///// targets = targets.filter(target => !is_formal_node_id(target));
     for(const node of targets){
         if(!draft.nodes.has(node)) continue;
         draft.drop.edge({root:node});
@@ -63,7 +63,7 @@ drop.edge = ({root, term, stem, index, draft=get_draft()}) => {
             drops.push({root, term, stem, index});
         }
     }
-    drops = drops.filter(({root}) => !is_formal_node_id(root)); 
+    ///// drops = drops.filter(({root}) => !is_formal_node_id(root)); 
     drops.sort((a, b)=> b.index - a.index);
     for(const {root, term, stem, index} of drops){
         if(!draft.nodes.has(root)) continue;
