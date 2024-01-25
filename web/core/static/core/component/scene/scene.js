@@ -46,15 +46,15 @@ const Polygon = memo(({node}) => {
     const width = use_store(d=> d.get_leaf({root, term:'width', alt:2}));
     const {invalidate} = useThree();
     use_store(d => 
-        d.get_leaf({root:node, term:'vectors', alt:[0,0,0, 0,0,0]}).flat()
-    ,{subscribe(vectors){
-        if(ref.current && vectors){
+        d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0]})
+    ,{subscribe(vector){
+        if(ref.current && vector){
             ref.current.geometry = new LineGeometry(); 
-            ref.current.geometry.setPositions(vectors); // new LineGeometry(); // ref.current.geometry.needsUpdate = true;
+            ref.current.geometry.setPositions(vector); // new LineGeometry(); // ref.current.geometry.needsUpdate = true;
             invalidate();
         }
     }});
-    const points = get_store().get_leaf({root, term:'vectors', alt:[0,0,0, 0,0,0]});
+    const points = get_store().get_leaf({root, term:'vector', alt:[0,0,0, 0,0,0]});
     return c(Scene_Transform, { 
         ...pick_drag_n_droppable({node:source, scene:node}),
     },
@@ -73,14 +73,14 @@ const Mesh = memo(({node}) => {
     const source = use_store(d=> d.get_leaf({root, term:'source'}));
     const material  = use_store(d=> d.get.node.material.shaded(d, source));
     const {invalidate} = useThree();
-    use_store(d => [
-        d.get_leaf({root:node, term:'vectors', alt:[0,0,0, 0,0,0, 0,0,0]}).flat(),
-        d.get_leaf({root:node, term:'indices', alt:[0, 1, 2]}),
-    ],{subscribe([vectors, indices]){
-        if(ref.current && vectors){
+    use_store(d => [ // make one flat vector with first number as split point
+        d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0, 0,0,0, 0,0,0]}),
+        d.get_leaf({root:node, term:'triangles', alt:[0, 1, 2]}),
+    ],{subscribe([vector, triangles]){
+        if(ref.current && vector){
             ref.current.geometry = new BufferGeometry(); 
-            ref.current.geometry.setIndex(indices);
-            ref.current.geometry.setAttribute('position', new Float32BufferAttribute(vectors, 3));
+            ref.current.geometry.setIndex(triangles);
+            ref.current.geometry.setAttribute('position', new Float32BufferAttribute(vector, 3));
             ref.current.geometry.computeVertexNormals();
             invalidate();
         }
