@@ -34,21 +34,11 @@ export function make_scene({source, root, scene, tick, key, transform='', root_s
         root = draft.make.node({node:root+key});
         draft.make.edge({root:root_root, term:'scenes', stem:root});
     }
-    // draft.make.edge({root, term:'type', stem:{value: scene.type}});    
-    // draft.make.edge({root, term:'source', stem:{value: scene.source}}); 
-    // const func_name = 'make_'+scene.type;
-    // if(make_functions.has(func_name)) make_functions.get(func_name)({root, scene});
 
-    let signature = []; 
-    let new_transforms = [];
     for(const [term, value] of Object.entries(scene)){
         if(term == 'scenes' || value == null) continue;
         draft.make.edge({root, term, stem:{value}}); 
-        const string_value = JSON.stringify(value);
-        signature.push(term + string_value);
-        if(term == 'position') new_transforms.push('pos'+string_value);
     }
-    transform += new_transforms.sort().join();
 
     for(const [i, stem_scene] of (scene.scenes ?? []).entries()){
         //console.log('sub scene', stem_scene);
@@ -56,6 +46,11 @@ export function make_scene({source, root, scene, tick, key, transform='', root_s
     }
 };
 
+
+    // draft.make.edge({root, term:'type', stem:{value: scene.type}});    
+    // draft.make.edge({root, term:'source', stem:{value: scene.source}}); 
+    // const func_name = 'make_'+scene.type;
+    // if(make_functions.has(func_name)) make_functions.get(func_name)({root, scene});
 
 
 // const make_functions = new Map(Object.entries({
