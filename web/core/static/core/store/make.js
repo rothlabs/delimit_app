@@ -1,4 +1,4 @@
-import {get_draft} from 'delimit';
+import {get_draft, get_snake_case} from 'delimit';
 
 export const make = {};
 
@@ -43,10 +43,13 @@ make.node = ({node, version, given, type, draft=get_draft()}) => {
     return node;
 };
 
-make.edge = (d, {root, term='stem', stem, index, given, single}) => { // make named args //  if somehow this is called without permission, the server should kick back with failed 
+make.edge = (d, {root, term, stem, index, given, single, scene}) => { // make named args //  if somehow this is called without permission, the server should kick back with failed 
     if(!d.nodes.has(root)) return; 
     if(!(given || d.writable(d, root))) return;
     const terms = d.nodes.get(root).terms;
+
+    if(term == null) [term, index] = get_auto_edge({root, stem, scene});
+
     let stems = terms.get(term);
     let length = stems?.length ?? 0;
     if(stem == null){
@@ -55,7 +58,7 @@ make.edge = (d, {root, term='stem', stem, index, given, single}) => { // make na
         return;
     }
     if(d.will_cycle({root, stem, draft:d})){ 
-        console.log('Error: Cannot make edge because it would make a cyclic graph.');
+        console.log('Error: Cannot make edge because it would cause cyclic evaluation.');
         return;
     }
     if(!length) terms.set(term, []); 
@@ -86,6 +89,22 @@ function build_node_from_type(d, node, type){
     }
     d.schema.make_root(d, node, type);
 };
+
+function get_auto_edge({root, stem, scene, draft=get_draft()}){
+    const default_term = draft.get_leaf({root, terms:['type default_term', 'default_term']}); //draft.get_default_term({root});
+    if(default_term) return [get_snake_case(default_term), null];
+    const stem_type_name = draft.get_type_name(stem);
+    for(const [term, stem, index] of draft.get_edges({root, exclude_leaves:true})){
+        if(draft.get_type_name(stem) != stem_type_name) continue;
+        if(scene){
+            const mono_vector = draft.scene.get_mono_vector({scene});
+        }
+        return [term, index];
+    }
+    return ['stem', null];
+}
+
+
 
 
 

@@ -88,6 +88,15 @@ scene.set_source_position = ({scene, position, draft=get_draft()}) => {
     }
 }
 
+// scene.get_mono_vector = ({scene, draft=get_draft()}) => {
+//     const mono_vector = [];
+//     for(const [_, stem] of draft.get_edges({root})){
+//         if(typeof stem.value !== 'number' && !Array.isArray(stem.value)) continue;
+//         mono_vector.concat(stem.value); 
+//     }
+//     return mono_vector;
+// }
+
 
 
 

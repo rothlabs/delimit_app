@@ -8,11 +8,15 @@ export const make_common_slice = get_draft => ({
         }
         return cycled;
     },
+    // get_default_term(root){
+    //     const draft = get_draft();
+    //     return draft.get_leaf({root, term:'default_term'});
+    // },
     get_type_name(root){
         const draft = get_draft();
         return draft.get_leaf({root, terms:['type name', 'type'], alt:''});
     },
-    get_edges: function* ({root, exclude_leaves, draft=get_draft()}){ 
+    get_edges: function* ({root, exclude_leaves, draft=get_draft()}){ // rename to iter_edges or edges_generator
         for(const [term, stems] of draft.nodes.get(root).terms){
             for(let index = 0; index < stems.length; index++){
                 const stem = stems[index];

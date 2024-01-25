@@ -292,7 +292,7 @@ function Canvas_3D(){
     return c(Canvas,{
         className: cursor,// + ' bg-primary-subtle', 
         orthographic: true, 
-        camera: {far:10000}, //gl: {antialias: false},
+        camera: {near:.01, far:10000}, //gl: {antialias: false},
         dpr: Math.max(window.devicePixelRatio, 2), //[2, 2], 
         frameloop: 'demand',
     }, 

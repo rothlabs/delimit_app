@@ -13,7 +13,7 @@ import {
 } from 'delimit';
 import {AmbientLight, DirectionalLight, Vector3} from 'three';
 
-
+const pivot_to_camera_distance = 5000;
 
 function Viewport_Control(){
     const camera_controls = useRef();
@@ -29,8 +29,8 @@ function Viewport_Control(){
         c(CameraControls, {
             ref: camera_controls,
             makeDefault: true,
-            minDistance: 1000, 
-            maxDistance: 1000, 
+            minDistance: pivot_to_camera_distance, 
+            maxDistance: pivot_to_camera_distance, 
             draggingSmoothTime: 0.01,
             dollyToCursor: true,
             mouseButtons: {
@@ -114,7 +114,7 @@ function set_camera_from_view(view){
         controls.camera.moveTo(0, 0, 0);
         controls.camera.zoomTo(1);
     }
-    controls.camera.dollyTo(1000);
+    controls.camera.dollyTo(pivot_to_camera_distance);
 }
 
 

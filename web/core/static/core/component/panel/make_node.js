@@ -33,6 +33,10 @@ function Make_Button({node}){
     const name = use_store(d=> d.get.node.name(d, node)); 
     return render_badge_token({
         icon, name, 
-        store_action: d => d.make.node({type:node, version:'targeted'}),
+        store_action: d => {
+            node = d.make.node({type:node, version:'targeted'});
+            d.pick(d, {node});
+            if(d.studio.mode == 'scene') d.scene.make_sources(d, {node});
+        },
     });
 }

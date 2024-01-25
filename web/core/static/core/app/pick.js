@@ -12,13 +12,14 @@ const pointer_style_events = {
     },
 };
 
-export const droppable = ({root, term, index}) => {
+export const droppable = ({root, term, index, scene}) => {
     const result = {...pointer_style_events};
     result.onPointerUp = e => {
         act_on_store(d=>{
             const stem = d.drag.edge.stem;
             if(!stem) return;
-            d.make.edge(d, {root, term, stem, index});
+            d.make.edge(d, {root, term, stem, index, scene});
+            //console.log(d.get_type_name(scene));
         });
         set_store(d=> {
             if(Object.keys(d.drag.edge).length) d.drag.edge = {};
@@ -39,12 +40,12 @@ export const draggable = item => {
             controls.staged_drag_type = 'scene'; 
             const draft = get_store();
             const {eventObject, point} = e.intersections[0];
-            controls.drag.object = eventObject;
-            controls.drag.start = eventObject.worldToLocal(point); 
-            controls.drag.matrix.copy(eventObject.matrixWorld).invert();
-            controls.scene.start.fromArray(draft.scene.get_position({scene, draft}));
-            controls.projection.start.copy(controls.scene.start);
+            controls.projection.start.copy(point); 
+            controls.drag.start.copy(point);
             controls.projection.start.project(draft.camera);
+            eventObject.worldToLocal(controls.drag.start); 
+            controls.drag.matrix.copy(eventObject.matrixWorld).invert();
+            controls.scene.start.fromArray(draft.scene.get_position({scene, draft}));  
         }else{
             controls.staged_drag_type = 'edge';
         }
