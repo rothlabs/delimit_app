@@ -62,7 +62,7 @@ function onPointerMove(e){ // Capture
     pointer.spring.set({x:e.clientX+10, y:e.clientY+10});
     pointer.position.set(e.clientX, e.clientY);
     pointer.delta.copy(pointer.position).sub(pointer.start); 
-    if(pointer.delta.length() < 14 && !controls.dragging) return; // TODO: Detect tablet to make required delta larger
+    if(pointer.delta.length() < 12 && !controls.dragging) return; // TODO: Detect tablet to make required delta larger
     if(controls.staged_drag_type == 'scene') drag_scene(e); 
     if(controls.staged_drag_type == 'edge')  drag_edge(e); 
 }

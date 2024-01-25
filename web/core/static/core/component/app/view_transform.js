@@ -13,7 +13,7 @@ export const Scene_Transform = forwardRef(({scene, size, ...props}, ref)=>{
     const {invalidate} = useThree();
     use_store(d => d.scene.get_position({scene}), {subscribe(pos){
         if(obj.current && pos){
-            obj.current.position.copy(pos);
+            obj.current.position.fromArray(pos);
             invalidate();
         }
     }});

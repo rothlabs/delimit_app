@@ -1,14 +1,12 @@
 import {get_draft} from 'delimit/graph';
 
-// const make_functions = new Map(Object.entries({
-//     make_group,
-//     make_point,
-//     make_polygon,
-//     make_mesh,
-// }));
+export const scene_signatures = new Map();
 
-export function make_scene({source, root, scene, tick, key, draft=get_draft()}){
+export function make_scene({source, root, scene, tick, key, transform='', root_source, draft=get_draft()}){
     if(source) {
+        //console.log(scene);
+        root_source = source;
+        draft.scene_signatures.set(source, new Set());
         root = draft.get_stem({root:source, term:'scenes'});
         if(!root) return;
         draft.make.node({node:root});
@@ -16,6 +14,22 @@ export function make_scene({source, root, scene, tick, key, draft=get_draft()}){
         draft.make.edge({root, term:'tick', stem:{value: tick}}); // type:'integer',
         key = '';
     }else{
+        let signature = []; 
+        let new_transforms = [];
+        for(const [term, value] of Object.entries(scene)){
+            if(term == 'scenes') continue;
+            const string_value = JSON.stringify(value);
+            signature.push(term + string_value);
+            if(term == 'position') new_transforms.push('pos'+string_value);
+            if(term == 'z') new_transforms.push('x'+string_value);
+            if(term == 'y') new_transforms.push('y'+string_value);
+            if(term == 'z') new_transforms.push('z'+string_value);
+        }
+        transform += new_transforms.sort().join();
+        signature = signature.sort().join() + transform;
+        if(draft.scene_signatures.get(root_source).has(signature)) return;
+        draft.scene_signatures.get(root_source).add(signature);
+
         const root_root = root;
         root = draft.make.node({node:root+key});
         draft.make.edge({root:root_root, term:'scenes', stem:root});
@@ -25,16 +39,33 @@ export function make_scene({source, root, scene, tick, key, draft=get_draft()}){
     // const func_name = 'make_'+scene.type;
     // if(make_functions.has(func_name)) make_functions.get(func_name)({root, scene});
 
+    let signature = []; 
+    let new_transforms = [];
     for(const [term, value] of Object.entries(scene)){
-        if(term == 'scenes') continue;
+        if(term == 'scenes' || value == null) continue;
         draft.make.edge({root, term, stem:{value}}); 
+        const string_value = JSON.stringify(value);
+        signature.push(term + string_value);
+        if(term == 'position') new_transforms.push('pos'+string_value);
     }
+    transform += new_transforms.sort().join();
 
     for(const [i, stem_scene] of (scene.scenes ?? []).entries()){
         //console.log('sub scene', stem_scene);
-        draft.make_scene({root, scene:stem_scene, key:key+i});
+        draft.make_scene({root, scene:stem_scene, key:key+i, transform, root_source});
     }
 };
+
+
+
+// const make_functions = new Map(Object.entries({
+//     make_group,
+//     make_point,
+//     make_polygon,
+//     make_mesh,
+// }));
+
+
 
 // function make_group({root, scene, draft=get_draft()}){
 //     if(scene.position) draft.make.edge({root, term:'position', stem:{value: scene.position}}); 

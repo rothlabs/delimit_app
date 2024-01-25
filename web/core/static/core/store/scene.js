@@ -49,22 +49,37 @@ scene.query_status = d => ({
         const scene_tick = d.get_leaf({root, terms:'scenes tick', alt:0});
         return query_tick > scene_tick;
     }), 
-    error: d.graph_app.error,
+    error: null, // d.graph_app.error,
 });
 
 scene.get_position = ({scene, draft=get_draft()}) => {
+    const position = draft.get_leaf({root:scene, term:'position', draft});
+    if(position){
+        return [ // new Vector3().fromArray(
+            draft.get_leaf({root:position, term:'x', alt:typeof position[0] === 'number' ? position[0] : 0, draft}),
+            draft.get_leaf({root:position, term:'y', alt:typeof position[1] === 'number' ? position[1] : 0, draft}),
+            draft.get_leaf({root:position, term:'z', alt:typeof position[2] === 'number' ? position[2] : 0, draft}),
+        ];
+    }
     const x = draft.get_leaf({root:scene, term:'x', draft});
     const y = draft.get_leaf({root:scene, term:'y', draft});
     const z = draft.get_leaf({root:scene, term:'z', draft});
-    return new Vector3().fromArray([
+    return [ // new Vector3().fromArray(
         draft.get_leaf({root:x, term:'x', alt:typeof x === 'number' ? x : 0, draft}),
         draft.get_leaf({root:y, term:'y', alt:typeof y === 'number' ? y : 0, draft}),
         draft.get_leaf({root:z, term:'z', alt:typeof z === 'number' ? z : 0, draft}),
-    ]);
+    ];
 };
 
 scene.set_source_position = ({scene, position, draft=get_draft()}) => {
     const pos = position.toArray();
+    const root = draft.get_leaf({root:scene, term:'position'});
+    if(draft.nodes.has(root)){
+        for(const [i, cmp] of ['x', 'y', 'z'].entries()){
+            draft.set_leaf({root, term:cmp, value:pos[i]});
+        }
+        return
+    }
     for(const [i, cmp] of ['x', 'y', 'z'].entries()){
         const root = draft.get_leaf({root:scene, term:cmp});
         if(draft.nodes.has(root)){

@@ -67,8 +67,7 @@ store.setState(d=>{  d.init(d); return d;  });
 export const get_store = () => store.getState();
 export function use_store(selector, a={}){
     if(a.subscribe){
-        const args = {fireImmediately:true};
-        //if(a.shallow) args.equalityFn = shallow;
+        const args = {fireImmediately:true, equalityFn:shallow};
         return useEffect(()=>store.subscribe(state => {
             current_draft = state; 
             return selector(state);

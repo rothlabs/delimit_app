@@ -1,4 +1,4 @@
-import {createElement as c, useRef} from 'react';
+import {createElement as c, useRef, memo} from 'react';
 import {
     use_store, get_store, get_draft, get_upper_snake_case, 
     pick_drag_n_droppable, // draggable, droppable, pickable, 
@@ -9,41 +9,18 @@ import {useThree} from '@react-three/fiber';
 import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
 import {BufferGeometry, Float32BufferAttribute} from 'three';
 
-const Scene_Components = new Map(Object.entries({
-    Group,
-    Point,
-    Polygon,
-    Mesh,
-}));
-
-export function Scene_Root(){
-    const roots = use_store(d=> d.scene.get_sources(d)); 
-    return c('group', {name:'root_scene'},
-        roots.map(node=> c(Scenes, {node, key:node})),
-    )
-}
-
-function Scenes({node}){ 
-    const scenes = use_store(d=> d.scene.get_scenes(d, node));  
-    return scenes.map(node => c(Scene_Case, {node}));
-}
-
-function Scene_Case({node}){
-    const type_name = use_store(d => get_upper_snake_case(d.get_type_name(node)));
-    if(Scene_Components.has(type_name)) 
-        return c(Scene_Components.get(type_name), {node});
-}
-
-function Group({node}){// notice that source nodes are captured in a leaf to prevent cycles!
+const Group = memo(({node}) => {// notice that source nodes are captured in a leaf to prevent cycles!
+    //console.log('render group');
     const position = use_store(d=> d.get_leaf({root:node, term:'position', alt:[0,0,0]}));
     return c('group', {
         position,
     },
         c(Scenes, {node}), 
     )
-}
+});
 
-function Point({node}){// notice that source nodes are captured in a leaf to prevent cycles!
+const Point = memo(({node}) => {// notice that source nodes are captured in a leaf to prevent cycles!
+    //console.log('render point');
     const source = use_store(d=> d.get_leaf({root:node, term:'source'}));
     const material  = use_store(d=> d.get.node.material.primary(d, source));
     const size = use_store(d=> d.get_leaf({root:node, term:'size', alt:d.point_size}));
@@ -57,9 +34,10 @@ function Point({node}){// notice that source nodes are captured in a leaf to pre
         ),
         c(Scenes, {node}), 
     )
-}
+});
 
-function Polygon({node}){
+const Polygon = memo(({node}) => {
+    //console.log('render polygon');
     const ref = useRef();
     const root = node;
     const source = use_store(d=> d.get_leaf({root, term:'source'}));
@@ -86,9 +64,10 @@ function Polygon({node}){
         }),
         c(Scenes, {node}), 
     )
-}
+});
 
-function Mesh({node}){
+const Mesh = memo(({node}) => {
+    //console.log('render mesh');
     const ref = useRef();
     const root = node;
     const source = use_store(d=> d.get_leaf({root, term:'source'}));
@@ -114,6 +93,31 @@ function Mesh({node}){
         }),
         c(Scenes, {node}), 
     )
+});
+
+const Scene_Components = new Map(Object.entries({
+    Group,
+    Point,
+    Polygon,
+    Mesh,
+}));
+
+export function Scene_Root(){
+    const roots = use_store(d=> d.scene.get_sources(d)); 
+    return c('group', {name:'root_scene'},
+        roots.map(node=> c(Scenes, {node, key:node})),
+    )
+}
+
+function Scenes({node}){ 
+    const scenes = use_store(d=> d.scene.get_scenes(d, node));  
+    return scenes.map(node => c(Scene_Case, {node}));
+}
+
+function Scene_Case({node}){
+    const type_name = use_store(d => get_upper_snake_case(d.get_type_name(node)));
+    if(Scene_Components.has(type_name)) 
+        return c(Scene_Components.get(type_name), {node});
 }
 
 

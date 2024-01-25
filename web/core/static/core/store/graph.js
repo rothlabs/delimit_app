@@ -1,14 +1,14 @@
 import {Vector3} from 'three';
-//import {graph_app_url} from 'delimit';
+import {is_formal_node_id} from 'delimit';
 
 const vector = new Vector3();
 
 
-export const graph_app = {
-    // mutate: args => graph_app_element.postMessage({mutate:args}, graph_app_url),
-    // query:  args => graph_app_element.postMessage({query:args}, graph_app_url),
-    error: null,
-};
+// export const graph_app = {
+//     // mutate: args => graph_app_element.postMessage({mutate:args}, graph_app_url),
+//     // query:  args => graph_app_element.postMessage({query:args}, graph_app_url),
+//     error: null,
+// };
 
 // graph_app.query_scenes = d => {
 //     // const scenes = d.scene.get_sources(d);
@@ -130,12 +130,13 @@ graph.layout = d => {
 
 function add_node_and_edges(d, root){
     if(!d.get_leaf({root, term:'show', alt:true})) return;
+    if(!is_formal_node_id(root)) return;
     d.graph.nodes.set(root, {
         lvl: 0,
         pos: new Vector3(),
     });
     for(const [term, stem] of d.get_edges({root, exclude_leaves:true})){
-        if(!d.nodes.has(stem)) continue;
+        if(!d.nodes.has(stem) || !is_formal_node_id(stem)) continue;
         d.graph.edges.push({root, term, stem});
     }
 }

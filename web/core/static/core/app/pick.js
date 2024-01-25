@@ -34,20 +34,17 @@ export const draggable = item => {
         e.stopPropagation();
         controls.pointer.start.set(e.clientX, e.clientY);
         controls.pointer.delta.set(0, 0, 0); 
-        // controls.pointer.start.set(e.clientX, e.clientY);
         const scene = item.scene;
         if(scene && !e.shiftKey){
             controls.staged_drag_type = 'scene'; 
             const draft = get_store();
-
             const {eventObject, point} = e.intersections[0];
             controls.drag.object = eventObject;
             controls.drag.start = eventObject.worldToLocal(point); 
             controls.drag.matrix.copy(eventObject.matrixWorld).invert();
-            controls.scene.start = draft.scene.get_position({scene, draft});
+            controls.scene.start.fromArray(draft.scene.get_position({scene, draft}));
             controls.projection.start.copy(controls.scene.start);
             controls.projection.start.project(draft.camera);
-
         }else{
             controls.staged_drag_type = 'edge';
         }
