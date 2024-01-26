@@ -27,7 +27,10 @@ scene.make_sources = (d, {...items}) => {
 }
 
 scene.drop_sources = (d, {...items}) => {
-    d.get_iterable(items).map(root => d.drop.edge(d, {root, term:'scenes'})); // drop_scene_source(d, root)
+    d.get_iterable(items).map(root => {
+        d.drop.edge(d, {root, term:'scenes'});
+        d.drop.edge(d, {root, term:'scenes'}); // drop twice to remove empty term
+    }); // drop_scene_source(d, root)
 }
 
 scene.add_or_remove_source = (d, {root, given}) => {

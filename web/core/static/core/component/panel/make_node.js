@@ -17,7 +17,7 @@ export function Make_Node(){
 
 function Context({node, path}){
     const contexts = use_store(d=> d.get_stems({root:node, term:'contexts'})); 
-    const types = use_store(d=> d.get_stems({root:node, term:'types'})); 
+    const types = use_store(d=> d.get_stems({root:node, term:'roots'})); 
     return c(List_View, {
         items:[...contexts, ...types], path,
         header: render_badge({node}),

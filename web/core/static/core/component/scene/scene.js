@@ -36,8 +36,8 @@ const Point = memo(({node}) => {// notice that source nodes are captured in a le
     )
 });
 
-const Polygon = memo(({node}) => {
-    //console.log('render polygon');
+const Polyline = memo(({node}) => {
+    //console.log('render Polyline');
     const ref = useRef();
     const root = node;
     const source = use_store(d=> d.get_leaf({root, term:'source'}));
@@ -98,7 +98,7 @@ const Mesh = memo(({node}) => {
 const Scene_Components = new Map(Object.entries({
     Group,
     Point,
-    Polygon,
+    Polyline,
     Mesh,
 }));
 

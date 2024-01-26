@@ -27,7 +27,7 @@ export * from './component/panel/make_node.js';
 export * from './component/panel/repo_editor.js';
 export * from './component/panel/node_editor.js';
 export * from './component/panel/scene_editor.js';
-export * from './component/panel/schema_inspector.js';
+export * from './component/panel/term_editor.js';
 export * from './component/graph/graph.js';
 export * from './component/scene/scene.js';
 

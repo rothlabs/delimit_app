@@ -6,7 +6,7 @@ import {
     act_on_store_without_history,
     Mode_Menu, 
     Server_Mutations, Scene_Query,
-    Make_Node, Make_Repo, Node_Editor, Schema_Inspector, Repo_Editor, Scene_Editor,
+    Make_Node, Make_Repo, Node_Editor, Term_Editor, Repo_Editor, Scene_Editor,
     Repo_Browser, Code_Editor, Viewport,
 } from 'delimit';
 import {useOutletContext} from 'react-router-dom';
@@ -44,7 +44,7 @@ export function Studio(){
             render_leaf_menu(),
         ),
         c('div', {className:'z-1 position-absolute start-0 bottom-0 ms-5 mb-1 ps-1'},
-            c(Term_Editor),
+            c(Term_Name_Editor),
         ),
         // c('div', {className: 'z-1 position-absolute top-0 end-0 me-1 mt-5 pt-3'},
         //     c(Nodes_Version),
@@ -64,7 +64,7 @@ export function Studio(){
     ]
 }
 
-function Term_Editor(){
+function Term_Name_Editor(){
     const {root, term} = use_store(d=> d.get.picked_context(d));
     const content = ({render_name, render_input}) => [
         render_badge({node:root}),
@@ -267,7 +267,7 @@ function Panel(){
         return c(Make_Node);
     }
     if(mode == 'node_editor')  return c(Node_Editor);
-    if(mode == 'schema')       return c(Schema_Inspector);
+    if(mode == 'schema')       return c(Term_Editor);
     if(mode == 'repo_editor')  return c(Repo_Editor);
     if(mode == 'scene_editor') return c(Scene_Editor);
 }

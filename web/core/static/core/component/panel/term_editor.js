@@ -1,14 +1,21 @@
 import {createElement as c} from 'react';
-import {use_store, render_token, List_View, render_badge, readable, get_snake_case} from 'delimit';
+import {
+    use_store, render_token, List_View, render_badge, readable, get_snake_case,
+    pickable,
+} from 'delimit';
+import {Term_List} from './term_list.js';
 
 const logic_terms = ['required', 'optional', 'pick_one', 'one_or_more'];
 const stem_type_terms = ['context', 'minimum', 'maximum'];
 
-export function Schema_Inspector(){ 
+export function Term_Editor(){ 
     const items = use_store(d=> [...d.picked.primary.node].filter(root=> d.nodes.has(d.get_stem({root, term:'type'})))); 
-    return c(List_View, {items, 
-        render_item: node => c(Node, {node, target:node, path:'schema'}), 
-    })  
+    return [
+        c(List_View, {items, 
+            render_item: node => c(Node, {node, target:node, path:'schema'}), 
+        }),
+        c(Term_List),
+    ]
 }
 
 function Node_Case({term, node, index, target, target_term, show_term, path}){
@@ -59,7 +66,8 @@ function Node({term='', node, index, target, target_term, show_term, path}){ // 
             }
         }
     };
-    return c(List_View, {items, path, header, header_addon,
+    const header_props = pickable({node});
+    return c(List_View, {items, path, header, header_addon, header_props,
         render_item: term => c(Term_Case, {root, term, target, target_term, path}), // key:term
     });
 }

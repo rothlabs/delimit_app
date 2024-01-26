@@ -1,4 +1,4 @@
-import {applyPatches, produceWithPatches, enablePatches, enableMapSet} from 'immer'; 
+import {produce, produceWithPatches, applyPatches, enablePatches, enableMapSet} from 'immer'; 
 import {createWithEqualityFn} from 'zustand/traditional'
 import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
@@ -131,8 +131,9 @@ window.addEventListener('message', ({origin, data:{patches}}) => {
 });
 
 
+// Currently finding index with smallest change to geometry. 
 function match_pattern({state, pattern_match}){
-    const {root, term, stem, key} = pattern_match;
+    const {root, term, stem} = pattern_match;
     let scene = state.query({root, name:'get_scene'});
     const start_vector = scene.vector; // TODO: rename polyline/mesh vector to mono_vector ?
     const count = state.nodes.get(root).terms.get(term).length;
@@ -140,16 +141,18 @@ function match_pattern({state, pattern_match}){
         parent.postMessage({pattern_match}, host_app_url);
         return;
     }
-    let min_distance = Infinity;
+    let min_dist = Infinity;
     pattern_match.index = 0;
-    set_store(draft => {
+    produce(state, draft => { // set_store(draft => {
+        current_state = draft;
         for (let index = 0; index <= count; index++){
             draft.make.edge({root, term, stem, index});
             scene = draft.query({root, name:'get_scene'});
             draft.drop.edge({root, term, stem, index});
+            if(!scene.vector) continue;
             const dist = vector_distance(start_vector, scene.vector);
-            if(dist < min_distance){
-                min_distance = dist;
+            if(dist < min_dist){
+                min_dist = dist;
                 pattern_match.index = index;
             }
         }
@@ -168,6 +171,25 @@ function vector_distance(vector1, vector2) {
     }
     return Math.sqrt(sum_of_squares);
 }
+
+
+// function vector_distance(vector1, vector2) {
+//     if (vector1.length !== vector2.length) {
+//         console.log("Vectors must be of the same length");//throw new Error("Vectors must be of the same length");
+//         return Infinity;
+//     }
+//     let sum_of_squares = 0;
+//     for (let i = 0; i < vector1.length; i++) {
+//         sum_of_squares += Math.pow(vector2[i] - vector1[i], 2);
+//     }
+//     return Math.sqrt(sum_of_squares);
+// }
+
+
+
+
+
+
 
 
 

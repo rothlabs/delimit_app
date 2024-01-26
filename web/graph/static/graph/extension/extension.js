@@ -1,14 +1,11 @@
 import {set_store, static_url, get_draft} from 'delimit/graph';
-import initialize_axiom, {get_polygon, get_mesh} from 'delimit/axiom';
+import initialize_axiom, {enable_panic_messages} from 'delimit/axiom';
 
 initialize_axiom(static_url+'delimit_axiom_bg.wasm').then(() => {
-    //console.log(test_enum({Nurbs:{controls:[[0,0,0], [5,6,8.8]]}}));
+    enable_panic_messages();
 });
 
-export const axiom = {
-    get_polygon,
-    get_mesh,
-};
+export * as axiom from 'delimit/axiom';
 
 export const set_queries = ({node, ...queries}) => {
     //console.log('set_queries!!!', queries);

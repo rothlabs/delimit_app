@@ -97,7 +97,7 @@ function Token_Base({inner_ref, group, icon, name, content, width, height,
     );
     //if(!size.width) size.width = 'fit-content';
     size.width = size.width ?? 'fit-content';
-    let button = (store_setter || store_action || onClick || onPointerDown);
+    let button = (store_setter || store_action || onClick || onPointerDown || onContextMenu);
     const render_name = ({minWidth}) => c('div', {className: tall ? 'mt-1' : '', style:{minWidth}}, name ?? 'untitled');
     const render_token_badge = () => render_badge({icon, name});//c('div', {className:'d-flex gap-2 h-100 align-items-center'}, c(Icon, {icon}), name ?? 'untitled');
     const render_token_input = props => {
