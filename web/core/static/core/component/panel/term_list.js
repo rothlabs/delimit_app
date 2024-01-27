@@ -5,7 +5,7 @@ export function Term_List(){
     const items = use_store(d=> d.get.root_context_nodes(d)); 
     return c(List_View, {
         items, 
-        render_item: node => c(Context, {node, path:'contexts'+node}), 
+        render_item: node => c(Context, {node, path:'terms'+node}), 
     })
 }
 

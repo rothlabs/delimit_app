@@ -7,6 +7,11 @@ initialize_axiom(static_url+'delimit_axiom_bg.wasm').then(() => {
 
 export * as axiom from 'delimit/axiom';
 
+
+
+
+
+
 export const set_queries = ({node, ...queries}) => {
     //console.log('set_queries!!!', queries);
     set_store(draft => {

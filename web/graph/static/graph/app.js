@@ -131,7 +131,7 @@ window.addEventListener('message', ({origin, data:{patches}}) => {
 });
 
 
-// Currently finding index with smallest change to geometry. 
+// Currently finding index with smallest change to scene vector. 
 function match_pattern({state, pattern_match}){
     const {root, term, stem} = pattern_match;
     let scene = state.query({root, name:'get_scene'});

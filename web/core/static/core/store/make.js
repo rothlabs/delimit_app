@@ -81,10 +81,18 @@ make.edge = (d, {root, term, stem, index, given, single, scene}) => { // make na
 
 function build_node_from_type(d, node, type){
     d.make.edge(d, {root:node, term:'type', stem:type});
-    if(d.get_leaf({root:type, term:'name'}) == 'Root'){
+    const type_name = d.get_leaf({root:type, term:'name'});
+    if(type_name == 'Root'){
         for(const root of d.get.root_context_nodes(d)){
             if(d.get.node.version(d, root) == d.get.targeted.version(d)){
-                d.make.edge(d, {root, term:'types', stem:node});
+                d.make.edge(d, {root, term:'roots', stem:node});
+            }
+        }
+    }
+    if(type_name == 'Term'){
+        for(const root of d.get.root_context_nodes(d)){
+            if(d.get.node.version(d, root) == d.get.targeted.version(d)){
+                d.make.edge(d, {root, term:'terms', stem:node});
             }
         }
     }
