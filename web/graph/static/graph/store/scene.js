@@ -3,6 +3,7 @@ import {get_draft} from 'delimit/graph';
 export const scene_signatures = new Map();
 
 export function make_scene({source, root, scene, tick, key, transform='', root_source, draft=get_draft()}){
+    let remake_node = true;
     if(source) {
         //console.log(scene);
         root_source = source;
@@ -14,34 +15,51 @@ export function make_scene({source, root, scene, tick, key, transform='', root_s
         draft.make.edge({root, term:'tick', stem:{value: tick}}); // type:'integer',
         key = '';
     }else{
+        const root_root = root;
+        root = root+key;
+        if(draft.nodes.has(root)) remake_node = false;
         let signature = []; 
         let new_transforms = [];
         for(const [term, value] of Object.entries(scene)){
-            if(term == 'scenes') continue;
-            const string_value = JSON.stringify(value);
-            signature.push(term + string_value);
-            if(term == 'position') new_transforms.push('pos'+string_value);
-            if(term == 'z') new_transforms.push('x'+string_value);
-            if(term == 'y') new_transforms.push('y'+string_value);
-            if(term == 'z') new_transforms.push('z'+string_value);
+            if(!remake_node && term != 'scenes'){
+                const current_value = draft.get_leaf({root, term});
+                if(Array.isArray(value) && (Array.isArray(current_value)) && value.length === current_value.length){
+                    //const start = Date.now();
+                    for(let i = 0; i < value.length; i++) { // TODO: just check key at start of array
+                        if(value[i] !== current_value[i]) remake_node = true;
+                    }
+                    //console.log('delta', Date.now()-start);
+                }else{
+                    if(value !== current_value) remake_node = true; // !Object.is(value, current_value)
+                }
+            }
+            if(['type', 'source', 'key'].includes(term)){
+                signature.push(term + value);
+            }
+            if(['position', 'x', 'y', 'z'].includes(term)){
+                new_transforms.push(term + JSON.stringify(value));
+            }
         }
         transform += new_transforms.sort().join();
         signature = signature.sort().join() + transform;
         if(draft.scene_signatures.get(root_source).has(signature)) return;
         draft.scene_signatures.get(root_source).add(signature);
-
-        const root_root = root;
-        root = draft.make.node({node:root+key});
+        if(remake_node){
+            draft.make.node({node:root});
+        }else{
+            draft.drop.edge({root, term:'scenes'});
+        }
         draft.make.edge({root:root_root, term:'scenes', stem:root});
     }
 
-    for(const [term, value] of Object.entries(scene)){
-        if(term == 'scenes' || value == null) continue;
-        draft.make.edge({root, term, stem:{value}}); 
+    if(remake_node){
+        for(const [term, value] of Object.entries(scene)){
+            if(term == 'scenes' || value == null) continue;
+            draft.make.edge({root, term, stem:{value}}); 
+        }
     }
 
     for(const [i, stem_scene] of (scene.scenes ?? []).entries()){
-        //console.log('sub scene', stem_scene);
         draft.make_scene({root, scene:stem_scene, key:key+i, transform, root_source});
     }
 };

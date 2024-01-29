@@ -204,9 +204,9 @@ const graph_app_element = document.getElementById('graph_app').contentWindow;
 
 function is_patch_for_graph_app(path){
     if(path[0] == 'nodes'){
-        if(is_formal_node_id(path[1])) return true;
+        return true; //if(is_formal_node_id(path[1])) return true;
     }else if(path[0] == 'scene' && path[1] == 'sources'){
-        if(is_formal_node_id(path[2])) return true; // }else if(path[0] == 'to_graph_app'){//
+        return true; //if(is_formal_node_id(path[2])) return true; // }else if(path[0] == 'to_graph_app'){//
     }else if(['tick', 'code_tick', 'code_keys', 'pattern_match'].includes(path[0])){ //path[0] == 'code_keys' || path[0] == 'code_tick'
         return true;
     }
@@ -238,8 +238,9 @@ function update_from_pattern_match(pattern_match){
 
 function update_from_patches(patches){
     //console.log('got patches from graph app!!', patches);
+    let state = get_store();
     patches = patches.map(({op, path, value}) => ({ // TODO: if a node doesn't exist, reset the scene tree!
-        path: (path[0]==='nodes' && !is_formal_node_id(path[1])) ? path : null,
+        path: (path[0]==='nodes' && !is_formal_node_id(path[1])) ? path : null, //  && state.nodes.has(path[1])
         op, value,
     })).filter(patch => (patch.path != null));
     store.setState(state => applyPatches(state, patches)); 

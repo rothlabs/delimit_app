@@ -1,16 +1,21 @@
 import {set_store, static_url, get_draft} from 'delimit/graph';
+import { memoize } from 'delimit/graph';
 import initialize_axiom, {enable_panic_messages} from 'delimit/axiom';
+import * as axiom_funcs from 'delimit/axiom';
 
 initialize_axiom(static_url+'delimit_axiom_bg.wasm').then(() => {
     enable_panic_messages();
 });
 
-export * as axiom from 'delimit/axiom';
+export const axiom = {};
+//const draft = get_draft();
+//set_store(d => {
+    for(const [name, func] of Object.entries(axiom_funcs)){
+        axiom[name] = memoize(func);//d.memoize({func}); // TODO: use Object.hasOwn(object1, 'prop') here to ensure prototype functions don't get in ?!
+    }
+//});
 
-
-
-
-
+//export const axiom = () => get_draft().axiom;
 
 export const set_queries = ({node, ...queries}) => {
     //console.log('set_queries!!!', queries);

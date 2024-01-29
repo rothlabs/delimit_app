@@ -57,7 +57,7 @@ theme.compute = d =>{
     const roughness = 0.4;
     d.shaded.primary = new MeshStandardMaterial({color:d.color.primary, toneMapped, side, roughness});
     d.shaded.secondary = new MeshStandardMaterial({color:d.color.secondary, toneMapped, side, roughness});
-    d.shaded.info = new MeshStandardMaterial({color:d.color.info, toneMapped, side, roughness});
+    d.shaded.info = new MeshStandardMaterial({color:d.color.info, toneMapped, side, roughness}); // , wireframe:true
     d.shaded.body_fg = new MeshStandardMaterial({color:d.color.body_fg, toneMapped, side, roughness});
     d.shaded.secondary_fg = new MeshStandardMaterial({color:d.color.secondary_fg, toneMapped, side, roughness});
     d.shaded.tertiary_fg = new MeshStandardMaterial({color:d.color.tertiary_fg, toneMapped, side, roughness});

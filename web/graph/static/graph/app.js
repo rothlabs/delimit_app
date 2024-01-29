@@ -64,6 +64,8 @@ function update_from_host_app(patches){
                 make_scene({state, node:patch.path[2], tick:patch.value});
             }else if(patch.path[0] == 'pattern_match'){
                 match_pattern({state, pattern_match:patch.value});
+            }else{
+                //cleanup_dead_scenes({state, patch});
             }
         }
     }
@@ -78,6 +80,17 @@ function update_from_host_app(patches){
     if(!did_import_code) update_after_imports();
 }
 
+// function cleanup_dead_scenes({state, patch}){
+//     const {path, op} = patch;
+//     if(op != 'remove' || path[0] != 'nodes') return; // path.length != 2 &&
+//     if(path.length == 2 || path[3] == 'scenes'){
+//         console.log('cleanup_dead_scenes', patch);
+//         set_store(d => { // TODO: only set_store once for all deleted nodes or removed scenes !!!
+//             d.drop.node({node:path[1]+'scene', deep:true});
+//         });
+//     }
+// }
+
 function is_scene_query({path}){
     if(path.length != 3) return;
     if(path[0] == 'scene' && path[1] == 'sources') return true;
@@ -91,7 +104,12 @@ function import_code({state, node, api_key='0', on_complete}){
     try{
         const name = state.get_leaf({root:node, term:'name', alt:'extension'});
         import('/extension/'+api_key+'/'+node+'/'+name+'.js').then(module => {
-            module.initialize(node);
+            try{
+                if(module.initialize) module.initialize(node);
+            }catch(e){
+                console.log('extension error');
+                console.error(e.stack);
+            }
             on_complete(); // for(const func of on_complete) func();
         });
     }catch(e){

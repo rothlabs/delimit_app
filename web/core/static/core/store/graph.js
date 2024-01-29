@@ -130,13 +130,13 @@ graph.layout = d => {
 
 function add_node_and_edges(d, root){
     if(!d.get_leaf({root, term:'show', alt:true})) return;
-    if(!is_formal_node_id(root)) return;
+    //if(!is_formal_node_id(root)) return;
     d.graph.nodes.set(root, {
         lvl: 0,
         pos: new Vector3(),
     });
     for(const [term, stem] of d.get_edges({root, exclude_leaves:true})){
-        if(!d.nodes.has(stem) || !is_formal_node_id(stem)) continue;
+        if(!d.nodes.has(stem)) continue; //  || !is_formal_node_id(stem)
         d.graph.edges.push({root, term, stem});
     }
 }

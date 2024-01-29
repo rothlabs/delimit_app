@@ -43,7 +43,7 @@ const Polyline = memo(({node}) => {
     const source = use_store(d=> d.get_leaf({root, term:'source'}));
     const color  = use_store(d=> d.get.node.color.primary(d, source));
     const dashed = use_store(d=> d.get_leaf({root, term:'dashed'}));
-    const width = use_store(d=> d.get_leaf({root, term:'width', alt:2}));
+    const width = use_store(d=> d.get_leaf({root, term:'width', alt:3}));
     const {invalidate} = useThree();
     use_store(d => 
         d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0]})

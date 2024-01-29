@@ -164,7 +164,7 @@ drop.edge = (d, a={}) => {
             const stem = d.nodes.get(drp.stem);
             stem.roots.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
             increment = true;
-            //if(!a.given && stem.back.size < 1 && stem.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
+                            //if(!a.given && stem.back.size < 1 && stem.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
             if(is_formal_node_id(drp.root) && !is_formal_node_id(drp.stem)){
                 d.drop.node(d, {node:drp.stem, deep:true});
             }
