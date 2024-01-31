@@ -12,8 +12,10 @@ import {BufferGeometry, Float32BufferAttribute} from 'three';
 const Group = memo(({node}) => {// notice that source nodes are captured in a leaf to prevent cycles!
     //console.log('render group');
     const position = use_store(d=> d.get_leaf({root:node, term:'position', alt:[0,0,0]}));
+    const rotation = use_store(d=> d.get_leaf({root:node, term:'rotation', alt:[0,0,0]}));
     return c('group', {
         position,
+        rotation,
     },
         c(Scenes, {node}), 
     )

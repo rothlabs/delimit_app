@@ -113,9 +113,9 @@ function import_code({state, node, api_key='0', on_complete}){
             on_complete(); // for(const func of on_complete) func();
         });
     }catch(e){
-        on_complete();
         console.log('extension error');
         console.error(e.stack);
+        on_complete();
     }
 }
 

@@ -36,7 +36,7 @@ export function make_scene({source, root, scene, tick, key, transform='', root_s
             if(['type', 'source', 'key'].includes(term)){
                 signature.push(term + value);
             }
-            if(['position', 'x', 'y', 'z'].includes(term)){
+            if(['position', 'x', 'y', 'z', 'rotation'].includes(term)){
                 new_transforms.push(term + JSON.stringify(value));
             }
         }
