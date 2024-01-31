@@ -1,4 +1,6 @@
-![alt text](https://github.com/rothlabs/delimit_app/blob/main/delimit.png?raw=true)
+<p align="center">
+  <img src="delimit.png" />
+</p>
 
 # Delimit
 Delimit is a CAD/CAM platform designed to help artists think like engineers and engineers think like artists. This is the early stage of development and the product is not usable. This repo contains the web app for interacting with graphs and 3D models. See delimit_axiom for the Rust WebAssembly (WASM) module. 
