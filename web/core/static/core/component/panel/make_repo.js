@@ -54,26 +54,3 @@ export function Make_Repo(){
         }),
     ]
 }
-
-// c(InputGroup, {className:'mt-2 mb-2'}, 
-// c(InputGroup.Text, {}, 'Name'),
-// c(Form.Control, {
-//     as: 'input', 
-//     maxLength: 64, 
-//     value: name, 
-//     placeholder: 'Required', 
-//     onChange:e=> set_name(e.target.value),
-// }),
-// ),
-
-// c(InputGroup, {className:'mb-2'}, 
-//             c(InputGroup.Text, {}, 'Story'),
-//             c(Form.Control, {
-//                 as: 'textarea', 
-//                 value: story, 
-//                 placeholder: 'Optional', 
-//                 onChange:e=> set_story(e.target.value),
-//             }),
-//         ),
-
-        //c(Col, {className:'ps-2 pt-2 pe-2'},//{className:'grid gap-0 row-gap-3'},//{className:'mb-0 ms-0 me-0'},

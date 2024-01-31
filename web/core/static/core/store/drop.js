@@ -16,8 +16,6 @@ export const close = {};
 export const drop = {};
 
 close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
-    //nodes = nodes ?? node;
-    //console.log('close nodes', nodes.size);
     let targets = new Set();
     for(const id of d.get_iterable(ids)){
         if(d.nodes.has(id)) targets.add(id);
@@ -26,9 +24,9 @@ close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
         function get_all_stems(nodes){
             const next_nodes = new Set();
             for(const node of nodes){
-                for(const [term, stem] of d.get_edges({root:node, exclude_leaves:true})){ // d.flat(d.nodes.get(node).terms)
+                for(const [term, stem] of d.get_edges({root:node, exclude_leaves:true})){ 
                     if(!d.nodes.has(stem)) continue;
-                    if([...d.nodes.get(stem).roots].every(root=> targets.has(root))){//if(d.nodes.get(stem).back.values().every(([root])=> drops.has(root))){ // root should always exist here, if not use: drops.has(root) || !d.nodes.has(root) 
+                    if([...d.nodes.get(stem).roots].every(root=> targets.has(root))){
                         targets.add(stem);
                         next_nodes.add(stem);
                     }
@@ -138,33 +136,22 @@ drop.edge = (d, a={}) => {
         if(!terms.has(term)) continue;
         const stems = terms.get(term);
         if(index >= stems.length) continue;
-        //if(term=='type' && stem.value=='Context') d.context_nodes.delete(root);
         stems.splice(index, 1);
         d.add_or_remove_as_context_node(d, root);
         d.scene.add_or_remove_source(d, {root, given:a.given});
         increment = true;
-        // if(!stems.length){
-        //     if(a.placeholder){
-        //         const empty = d.make.node(d, {});
-        //         d.make.edge(d, {...drp, stem:empty});
-        //     }else{
-        //         terms.delete(drp.term);
-        //     }
-        // }
     }
     
     for(const drp of drops){
         if(!d.nodes.has(drp.stem)) continue;
-        //increment_graph = true;
         let drop_back = true;
         for(const [_, stem] of d.get_edges({root:drp.root, exclude_leaves:true})){
             if(stem == drp.stem) drop_back = false;
         }
         if(drop_back){
             const stem = d.nodes.get(drp.stem);
-            stem.roots.delete(drp.root); // (drp.root+':'+drp.term+':'+drp.index);
+            stem.roots.delete(drp.root); 
             increment = true;
-                            //if(!a.given && stem.back.size < 1 && stem.terms.size < 1) d.drop.node(d, {nodes:drp.stem});
             if(is_formal_node_id(drp.root) && !is_formal_node_id(drp.stem)){
                 d.drop.node(d, {node:drp.stem, deep:true});
             }

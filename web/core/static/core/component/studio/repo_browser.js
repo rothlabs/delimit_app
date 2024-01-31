@@ -16,7 +16,7 @@ export function Repo_Browser(){
     }
     return repos.map(([id, {metadata:{name, story}, versions, write_access}]) => 
         c('div', {className:'d-flex gap-3 mb-5'},
-            c('img', {className:'hjs', src:'holder.js/128x128', role:'button', // style:{width:128, height:128}
+            c('img', {className:'hjs', src:'holder.js/128x128', role:'button', 
             }),
             c('div', {},
                 c('div', {className:'h5 mt-2'}, name),
@@ -48,20 +48,3 @@ function Get_Version_Button({name, id}){
         onClick: () => get_version({variables:{id}}),
     })
 }
-
-
-
-    // const [open_version] = use_mutation('OpenVersion', {
-    //     onCompleted:data=>{
-    //         console.log(data.openVersion.reply);
-    //         set_store(d=>{
-    //             d.receive_data(d, JSON.parse(data.openVersion.result));
-    //             d.studio.mode = 'graph';
-    //         }); 
-    //     },
-    // });
-
-                    // onClick:e=>{
-                //     const [id] = [...Object.entries(versions)].find(([id, o]) => o.metadata.name == 'Main');
-                //     open_version({variables:{id}});
-                // },

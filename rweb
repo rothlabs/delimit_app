@@ -1,5 +1,0 @@
-#!/bin/bash
-# activate web enviroment and run django test server
-cd web
-source web_env/bin/activate
-./manage.py runserver

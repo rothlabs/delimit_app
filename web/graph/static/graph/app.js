@@ -4,16 +4,13 @@ import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
 import {make_store} from './store/store.js';
 import {is_formal_node_id} from 'delimit/common';
-//import importShim from 'https://ga.jspm.io/npm:es-module-shims@1.6.2/dist/es-module-shims.wasm.js';
 
 enablePatches();
 enableMapSet();
 
 const host_app_url = `https://delimit.art`;
 
-export * from 'delimit/common'; // export const static_url = document.body.getAttribute('data-static-url');
-
-//const is_temp_node_id = id => (/^[a-zA-Z0-9]+$/.test(id) && id.length != 32);
+export * from 'delimit/common'; 
 
 let current_state = null;
 export const get_draft = () => current_state; // TODO: this might cause a serious problem with async ops
@@ -64,8 +61,6 @@ function update_from_host_app(patches){
                 make_scene({state, node:patch.path[2], tick:patch.value});
             }else if(patch.path[0] == 'pattern_match'){
                 match_pattern({state, pattern_match:patch.value});
-            }else{
-                //cleanup_dead_scenes({state, patch});
             }
         }
     }
@@ -79,17 +74,6 @@ function update_from_host_app(patches){
     }
     if(!did_import_code) update_after_imports();
 }
-
-// function cleanup_dead_scenes({state, patch}){
-//     const {path, op} = patch;
-//     if(op != 'remove' || path[0] != 'nodes') return; // path.length != 2 &&
-//     if(path.length == 2 || path[3] == 'scenes'){
-//         console.log('cleanup_dead_scenes', patch);
-//         set_store(d => { // TODO: only set_store once for all deleted nodes or removed scenes !!!
-//             d.drop.node({node:path[1]+'scene', deep:true});
-//         });
-//     }
-// }
 
 function is_scene_query({path}){
     if(path.length != 3) return;
@@ -189,195 +173,3 @@ function vector_distance(vector1, vector2) {
     }
     return Math.sqrt(sum_of_squares);
 }
-
-
-// function vector_distance(vector1, vector2) {
-//     if (vector1.length !== vector2.length) {
-//         console.log("Vectors must be of the same length");//throw new Error("Vectors must be of the same length");
-//         return Infinity;
-//     }
-//     let sum_of_squares = 0;
-//     for (let i = 0; i < vector1.length; i++) {
-//         sum_of_squares += Math.pow(vector2[i] - vector1[i], 2);
-//     }
-//     return Math.sqrt(sum_of_squares);
-// }
-
-
-
-
-
-
-
-
-
-
-    // return new Promise((resolve, reject) => {
-    //     if(!querier) reject('no querier');
-    //     //if(query_queue.host == 0){
-    //         //query_queue.host = 'full';
-    //         //query_queue.host++;
-    //         //query_queue.host = 'full';
-    //         let result = null;
-    //         try{
-    //             result = querier.execute({node_id:node, draft:state, ...args});
-    //         }catch{
-                
-    //             //query_queue.host = 'empty';
-    //             reject('failed query');
-    //             return;
-    //         }
-    //         //query_queue.host--;
-    //         resolve(result);
-    //     //}else{
-    //     //    console.log('full queue');
-    //     //    reject('queue full');
-    //     //}
-    // });
-
-
-
-// function update_from_host_app(patches){
-//     const state = applyPatches(get_store(), patches);
-//     store.setState(state);
-//     current_state = state;
-//     const stage = {imports:{}, scenes:{}};
-//     for(const patch of patches){
-//         if(is_code_update({patch})){
-//             import_code({state, node:patch.path[1], api_key:patch.value});
-//         }
-//         if(is_scene_query(patch)){
-//             make_scene({state, node:patch.path[2], tick:patch.value});
-//         }
-//     }
-// }
-
-        // setTimeout(() => {
-        //     resolve('resolved');
-        //   }, 2000);
-
-
-// // // let worker = new Worker('static/graph/workerloader.js');
-// // // worker.addEventListener('error', e => {
-// // //     console.error('Graph worker error');
-// // //     console.error(e);
-// // // });
-// // // worker.addEventListener('message', e => {
-// // //     let result = e.data;
-// // //     if (result === "loaded loader"){
-// // //          console.log("loaded the workerloaded");
-// // //     } else if (result === "Module worker Loaded")
-// // //         worker.postMessage("Init Message");
-// // //     else
-// // //         console.log(`message from worker: `, e);
-// // // });
-
-
-// function is_code_update({state, patch:{path}}){
-//     if(path[0] != 'nodes') return;
-//     const root = path[1];
-//     if(!is_formal_node_id(root)) return;
-//     if(state.get_leaf({root, term:'language'}) != 'javascript') return;
-//     if(!state.get_leaf({root, term:'source'})) return;
-//     return true;
-// }
-
-    //current_draft = get_store();
-    // for(const patch of patches){
-    //     if(is_code_update({draft:current_draft, patch})){
-    //         import_code({code_node:patch.path[1]});
-    //         //set_store(draft => draft.import_code({code_node:patch.path[1]}));
-    //     }
-    //     if(is_scene_query(patch)){
-    //         set_store(draft => draft.make_scene({source_node:patch.path[2]}));
-    //     }
-    // }
-
-
-
-
-//if(!state.nodes.has(root)) return;
-    //const terms = state.nodes.get(root).terms; 
-    //const roots = state.nodes.get(node).roots; 
-
-// function run_query({scenes}){
-//     const state = get_store();
-//     let result = {};
-//     if(scenes) result = state.get_scenes(state, {roots:scenes});
-//     parent.postMessage(result, host_app_url);
-// }
-
-
-
-
-
-
-// const myWorker = new Worker('worker.js', {type: 'module'});
-
-// myWorker.onerror = (event) => {
-//     console.log("Worker Error", event);
-// };
-
-// myWorker.postMessage(['testing', 'so cool if this works']);
-// console.log("Message posted to worker");
-
-
-
-// import Cookie from 'js-cookie';
-// import {ApolloClient, InMemoryCache, gql, createHttpLink} from '../core/apollo/ApolloClient.js'; // '@apollo/client/core';
-// import {setContext} from '../core/apollo/ApolloContext.js'; // '@apollo/client/link/context';
-// import {Vector3} from 'three';
-// const auth_link = setContext((_,{headers})=>{return{headers:{...headers,
-//     'x-csrftoken': Cookie.get('csrftoken'),
-// }}});
-// const termination_link = createHttpLink({
-//     uri: 'https://delimit.art/gql',
-// });
-// const apollo = new ApolloClient({
-//     link:  auth_link.concat(termination_link), 
-//     cache: new InMemoryCache(),
-// });
-// apollo.query({
-//     query: gql`query TestQuery {
-//         launch(id: 56) {
-//             id
-//             mission {
-//                 name
-//             }
-//         }
-//     }`,
-//     variables: {key: 'testing testing'},
-// }).then(result => {
-//     console.log(result)
-// });
-
-
-// const v = new Vector3(1, 2, 3);
-
-// console.log('vector from graph app!', v);
-
-// console.log(parent);
-
-// window.addEventListener("message", event => {
-//     if(event.origin !== 'https://delimit.art') return;
-    
-//     console.log("message event on graph!!!!!!!!");
-//     // event.source is window.opener
-//     // event.data is "hello there!"
-    
-//     // Assuming you've verified the origin of the received message (which
-//     // you must do in any case), a convenient idiom for replying to a
-//     // message is to call postMessage on event.source and provide
-//     // event.origin as the targetOrigin.
-//     event.source.postMessage(
-//         "hi there yourself!  the secret response " + "is: rheeeeet!",
-//         event.origin,
-//         );
-//     });
-    
-    
-    
-    
-    
-    
-    

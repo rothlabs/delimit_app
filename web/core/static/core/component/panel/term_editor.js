@@ -97,12 +97,10 @@ function Term({root, term, target, target_term, path}){
     )
 }
 
-function Leaf({term, type, value, show_term}){ // need MAKE button for leaf?! #1 
+function Leaf({term, type, value, show_term}){ // TODO: need MAKE button for leaf? 
     return render_token({content:[
         show_term && readable(term),
         c('div', {className:'text-body'} ,''+value),
     ]});
 }
 
-
-// import {Row, Col, ButtonToolbar, Button, Form, Accordion, InputGroup} from 'react-bootstrap';

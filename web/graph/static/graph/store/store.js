@@ -1,8 +1,7 @@
 import * as make from './make.js';
 import * as drop from './drop.js';
 import * as scene from './scene.js';
-import {static_url, make_common_slice, set_store, stringify} from 'delimit/graph';
-//import {make_common_slice} from 'delimit/common';
+import {static_url, make_common_slice} from 'delimit/graph';
 
 export const make_store = get_draft => ({
     ...make_common_slice(get_draft),

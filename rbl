@@ -1,4 +1,0 @@
-#!/bin/bash
-# Run blender worker in the background
-cd cax/blender
-blender -b -P worker.py

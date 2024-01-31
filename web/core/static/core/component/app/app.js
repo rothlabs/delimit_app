@@ -69,8 +69,7 @@ export function Mode_Menu({group, items, state, store_setter, width, height}){
     const ref = useRef({});
     // const [window_width] = use_window_size();
     const mode = use_store(d=> state(d));
-    const [springs, api] = useSpring(() => ({x:0, y:0})); // rotation:0.02
-    //const target = document.getElementById(group + '__' + readable(mode));
+    const [springs, api] = useSpring(() => ({x:0, y:0}));
     useEffect(()=>{
         const target = ref.current[readable(mode)];
         if(target){
@@ -89,7 +88,6 @@ export function Mode_Menu({group, items, state, store_setter, width, height}){
                 store_setter: d => store_setter(d, mode),
             }),
         ),
-        //c(Active_Ring, {size, target}),
         c(animated.div,{
             className: 'position-absolute border border-2 border-info rounded-pill',  
             style: {...size, ...springs},
@@ -111,17 +109,9 @@ export const render_badge = ({icon, name, color='info', size, node, repo, versio
 export function Node_Badge({node}){ 
     const icon = use_store(d=> d.get.node.icon(d, node));
     const title = use_store(d=> d.get.node.title(d, node));
-    //const get_node_case = use_store(d=> d.get_node_case(d, node));
     const color = node.type ? {name:'body'} : 'body';
     const size = node.type ? 'h5' : null;
-    // const className = classNames('user-select-none', 'text-'+color, { 
-    //     'text-body-secondary': get_node_case != 'node',
-    // });
     return render_badge({icon, name:title, color, size});
-    // return c('div', {className:'d-flex align-items-center h-100 gap-2'},
-    //     c(Icon, {icon, color, size}),
-    //     c('div', {className}, title),
-    // )
 }
 
 export function Repo_Badge({repo}){
@@ -159,69 +149,3 @@ export function Svg({svg, color='info', height}) {
         style:{height} 
     })
 }
-
-
-
-// function get_height(ref){
-//     return (ref.current?.offsetHeight ? ref.current.offsetHeight : 0);
-// }
-
-        //     },
-        //         //render_header(),
-        //         //items.length ? c(InputGroup.Text, {className:arrow_css}) : null, 
-        //     ),
-        //     // c(InputGroup, {  
-        //     //     role: 'button',
-        //     //     ...header_props,
-        //     //     onClick: items.length ? e => set_store(d=> d.inspect.toggle(d, {path})) : null,
-        //     // },
-        //     //     render_header(),
-        //     //     items.length ? c(InputGroup.Text, {className:arrow_css}) : null, 
-        //     // ),
-        // //     items.length ? [
-        // //         //c('div', {className:'me-4'}),
-        // //         c('div', {className:arrow_css, style:{zIndex:10}}),
-        // //     ] : null,
-        // // ),
-
-// function Active_Ring({size, target}){
-//     const [springs, api] = useSpring(() => ({x:0, y:0, opacity:1})); // rotation:0.02
-//     if(target){
-//         api.start({x:target.offsetLeft, y:target.offsetTop, opacity:1});
-//     }else{
-//         api.start({x:0, y:0, opacity:0});
-//     }
-//     return c(animated.div,{
-//         className: 'position-absolute border border-2 border-info rounded-pill',  
-//         style: {...size, ...springs},
-//     })
-// }
-
-// export function Svg_Button({svg, text, func}){
-//     const primary_color = use_store(d=> d.color.primary);
-// 	const [svg_color, set_svg_color] = useState(primary_color);
-// 	return(
-// 		c(Button, {
-// 			//id:'make_'+text,
-// 			//className: 'border-0 text-start pt-0',//+d.nodes[t].css.icon,
-// 			//variant:'outline-primary', //size:'lg',
-// 			//style:{transition:'none', },
-// 			onClick: e=> func(),
-// 			onPointerEnter: e=> {
-// 				set_svg_color('white');//console.log('hover');
-// 			},
-// 			onPointerLeave: e=> {
-// 				set_svg_color(primary_color);//console.log('hover');
-// 			},
-// 		}, 
-// 			c(Row, {xs:'auto'},
-// 				c(Col, {className:'pe-0'}, 
-// 					c(Svg, {svg, color:svg_color, className:'mt-1'}),
-// 				),
-// 				c(Col, {className:'mt-1'},
-// 					text,
-// 				)
-// 			)
-// 		)
-// 	)
-// }

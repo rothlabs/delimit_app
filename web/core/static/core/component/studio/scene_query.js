@@ -25,12 +25,3 @@ export function Scene_Query(){
             render_badge_token({icon, name}),
     ))
 }
-
-// const {loading, error} = use_store(d => 
-//     d.graph_app.get_scenes(d, {
-//         // on_complete(data){
-//         //     console.log(data);
-//         //     set_store(d=> d.scene.update_from_graph_app(d, data));
-//         // }
-//     })
-// );

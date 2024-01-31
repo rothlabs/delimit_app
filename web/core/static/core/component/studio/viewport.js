@@ -1,11 +1,6 @@
 import {createElement as c, useRef, useEffect} from 'react';
 import {useThree} from '@react-three/fiber';
 import {CameraControls} from '@react-three/drei/CameraControls'; 
-//import {Text} from '@react-three/drei/Text';
-//import {Mover} from './mover.js';
-//import {useS, ss, useSub, theme, gs, set_store} from '../../app.js';
-//import {Pickbox} from './pickbox.js'; // selection box
-//import {Vector3} from 'three';
 import {
     set_store, use_store, get_store,
     Graph, Scene_Root,
@@ -54,7 +49,6 @@ function set_view_from_camera(camera){
         const d = get_store();
         let view = controls.graph.view;
         if(d.studio.mode == 'scene') view = controls.scene.view
-        //if(!view) return;
         view.azimuth = controls.camera.azimuthAngle;
         view.polar = controls.camera.polarAngle;
         view.pos = controls.camera.getTarget();
@@ -116,79 +110,3 @@ function set_camera_from_view(view){
     }
     controls.camera.dollyTo(pivot_to_camera_distance);
 }
-
-
-        // c('directionalLight', { 
-        //     ref: dir_light,
-        //     color: 'white',
-        //     intensity: 1,
-        //     position: [0,0,1000],
-        // }),
-
-
-
-        // // pick_box && c(Pickbox, { // studio mode causes this to render and removes selection!!!!!!!
-        // //     style:{
-        // //         border: "1px dashed #d6006a", // backgroundColor: "rgba(75, 160, 255, 0.3)",
-        // //         position: "fixed",
-        // //     },
-        // //     onSelectionChanged:objs=>set_store(d=>{ // key pressing making this fire ?!?!?!?! wtf
-        // //         if(!d.pick.multi) d.pick.none(d);
-        // //         const nodes = [];
-        // //         objs.forEach(obj=>{
-        // //             const pickable = obj.parent?.__r3f?.memoizedProps.pickable;
-        // //             if(pickable) nodes.push(pickable);
-        // //         });
-        // //         d.pick.set(d, nodes, true);
-        // //     }),
-        // // }),
-
-
-        // c(Text, {
-        //     text: 'delimit',
-        //     //characters: 'abcdefghijklmnopqrstuvwxyz0123456789!',
-        //     font, 
-        //     position: [1000, 1000, 1000],
-        // }),
-
-
-        //d.camera = camera;
-        // d.camera_controls.addEventListener('controlend', e=>set_store(d=>{
-        //     if(d.cam_info.dir.dot(camera.getWorldDirection(v1)) < 1){
-        //         d.cam_info = {matrix: camera.matrix, dir:camera.getWorldDirection(v1).clone()};
-        //     }
-        // }));
-
-
-
-
-// export function Board(){
-//     const obj = useRef();
-//     const {camera} = useThree(); 
-//     useEffect(()=>{
-//         camera.add(obj.current);
-//     },[]);
-//     //console.log('board render');
-//     return (
-//         c('mesh', { 
-//             ref: obj,
-//             name: 'board',
-//             position:[0,0,-2000],
-//             onClick(e){
-//                 e.stopPropagation();
-//                 ss(d=>{
-//                     if(!d.studio.gizmo_active && e.delta < d.max_click_delta){
-//                         d.pick.none(d);
-//                     }
-//                     d.studio.gizmo_active = false;
-//                 });
-                
-//             },
-//         },   
-//             c('planeGeometry', {args:[20000, 20000],}),
-//             c('meshBasicMaterial', {color:theme.bg_body, toneMapped:false}), // theme.bg_body
-//         )
-//     )
-// }
-
-

@@ -1,5 +1,4 @@
 import {set_store, act_on_store, controls, get_store} from 'delimit';
-//import {Vector3} from 'three';
 
 const pointer_style_events = {
     onPointerOver(e){ // onPointerEnter
@@ -19,7 +18,6 @@ export const droppable = ({root, term, index, scene}) => {
             const stem = d.drag.edge.stem;
             if(!stem) return;
             d.make.edge(d, {root, term, stem, index, scene});
-            //console.log(d.get_type_name(scene));
         });
         set_store(d=> {
             if(Object.keys(d.drag.edge).length) d.drag.edge = {};
@@ -54,7 +52,7 @@ export const draggable = item => {
     return result;
 };
 
-export const pickable = ({mode='all', ...item}) => { // root, term, ...item
+export const pickable = ({mode='all', ...item}) => { 
     const result = {...item, ...pointer_style_events};
     if(mode == 'all' || mode == 'primary') result.onClick = e => { 
         e.stopPropagation();
@@ -74,13 +72,3 @@ export const drag_n_droppable = args =>
     
 export const pick_drag_n_droppable = ({node, ...args}) => 
     ({...pickable({node}), ...drag_n_droppable({root:node, stem:node, ...args})});
-
-
-        //if(e.preventDefault) e.preventDefault();
-        //if(e.nativeEvent) 
-
-
-
-    // result.onPointerEnter = e => {
-    //     if(pointer.dragging) document.body.style.cursor = 'pointer';
-    // };

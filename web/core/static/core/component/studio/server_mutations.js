@@ -15,7 +15,6 @@ const repo_fetch_triggers = ['make_repo', 'make_meta_repo', 'edit_repo', 'drop_r
 
 function Mutation({gql_name}){
     const [failed, set_failed] = useState()
-    //console.log('render mutation', gql_name);
     const [mutate, {loading, error}] = use_mutation(gql_name, {
         onCompleted: data => {
             for(const obj of Object.values(data)){
@@ -64,54 +63,3 @@ function update_from_mutation_response({gql_name, data}){ // TODO: varify data s
         }
     });
 }
-
-
-
-
-// function Mutation(){
-//     const [make_repo] = use_mutation('MakeRepo', {refetchQueries:['GetRepos']}); 
-//     const [make_meta_repo] = use_mutation('MakeMetaRepo', {refetchQueries:['GetRepos']}); 
-//     const [edit_repo] = use_mutation('EditRepo', {
-//         refetchQueries:['GetRepos'],
-//         onCompleted:data=>{
-//             console.log(data.editRepo.reply);
-//         },
-//     });
-//     const [drop_repo] = use_mutation('DropRepo', {
-//         refetchQueries:['GetRepos']
-//     });
-//     const [edit_version] = use_mutation('EditVersion', {
-//         refetchQueries:['GetRepos'],
-//         onCompleted:data=>{
-//             console.log(data.editVersion.reply);
-//         },
-//     });
-//     const [drop_versions] = use_mutation('DropVersions', {
-//         refetchQueries:['GetRepos'],
-//         onCompleted:data=>{
-//             console.log(data.dropVersions.reply);
-//         },
-//     });
-//     const [make_nodes] = use_mutation('MakeNodes', { // rename to Set_Nodes? #1
-//         onCompleted:data=>{
-//             console.log(data.makeNodes.reply);
-//         },
-//     });
-//     const [drop_nodes] = use_mutation('DropNodes',{
-//         onCompleted:data=>{
-//             console.log(data.dropNodes.reply);
-//         },
-//     });
-//     set_store(d=>{ 
-//         d.server = {
-//             make_repo,
-//             make_meta_repo,
-//             edit_repo,
-//             drop_repo,
-//             edit_version,
-//             drop_versions,
-//             make_nodes,
-//             drop_nodes,
-//         };
-//     });
-// }

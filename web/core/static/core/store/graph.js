@@ -3,36 +3,16 @@ import {is_formal_node_id} from 'delimit';
 
 const vector = new Vector3();
 
-
-// export const graph_app = {
-//     // mutate: args => graph_app_element.postMessage({mutate:args}, graph_app_url),
-//     // query:  args => graph_app_element.postMessage({query:args}, graph_app_url),
-//     error: null,
-// };
-
-// graph_app.query_scenes = d => {
-//     // const scenes = d.scene.get_sources(d);
-//     // d.graph_app.query({scenes});
-//     // d.loading.scenes = true;
-// };
-
-// // graph_app.query_scene_status = d => ({
-// //     loading: (d.loading.scenes.size > 0), 
-// //     error: d.graph_app.error,
-// // });
-
 export const graph = {    
     nodes: new Map(),
     edges: [],
     scale: 1,
     tick: 0,   
     increment: d=> d.graph.tick++,
-    //view: {},
 };
 
 graph.layout = d => {        
-    //console.log('update graph!!');
-
+    
     d.graph.nodes.clear();
     d.graph.edges = []; 
 

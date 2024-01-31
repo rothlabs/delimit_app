@@ -1,7 +1,7 @@
 import {createElement as c, useRef, memo} from 'react';
 import {
-    use_store, get_store, get_draft, get_upper_snake_case, 
-    pick_drag_n_droppable, // draggable, droppable, pickable, 
+    use_store, get_store, get_upper_snake_case, 
+    pick_drag_n_droppable, 
     Scene_Transform, Sized_Scene_Transform,
 } from 'delimit';
 import {Line} from '@react-three/drei/Line';
@@ -9,8 +9,7 @@ import {useThree} from '@react-three/fiber';
 import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
 import {BufferGeometry, Float32BufferAttribute} from 'three';
 
-const Group = memo(({node}) => {// notice that source nodes are captured in a leaf to prevent cycles!
-    //console.log('render group');
+const Group = memo(({node}) => {
     const position = use_store(d=> d.get_leaf({root:node, term:'position', alt:[0,0,0]}));
     const rotation = use_store(d=> d.get_leaf({root:node, term:'rotation', alt:[0,0,0]}));
     return c('group', {
@@ -21,8 +20,7 @@ const Group = memo(({node}) => {// notice that source nodes are captured in a le
     )
 });
 
-const Point = memo(({node}) => {// notice that source nodes are captured in a leaf to prevent cycles!
-    //console.log('render point');
+const Point = memo(({node}) => {
     const source = use_store(d=> d.get_leaf({root:node, term:'source'}));
     const material  = use_store(d=> d.get.node.material.primary(d, source));
     const size = use_store(d=> d.get_leaf({root:node, term:'size', alt:d.point_size}));
@@ -31,7 +29,7 @@ const Point = memo(({node}) => {// notice that source nodes are captured in a le
     },
         c(Sized_Scene_Transform, {size},
             c('mesh', {material},
-                c('sphereGeometry'), // c('meshBasicMaterial', {color:'red', toneMapped:false}),       
+                c('sphereGeometry'),      
             ),
         ),
         c(Scenes, {node}), 
@@ -39,7 +37,6 @@ const Point = memo(({node}) => {// notice that source nodes are captured in a le
 });
 
 const Polyline = memo(({node}) => {
-    //console.log('render Polyline');
     const ref = useRef();
     const root = node;
     const source = use_store(d=> d.get_leaf({root, term:'source'}));
@@ -69,7 +66,6 @@ const Polyline = memo(({node}) => {
 });
 
 const Mesh = memo(({node}) => {
-    //console.log('render mesh');
     const ref = useRef();
     const root = node;
     const source = use_store(d=> d.get_leaf({root, term:'source'}));
@@ -87,7 +83,7 @@ const Mesh = memo(({node}) => {
             invalidate();
         }
     }});
-    return c(Scene_Transform, { //c('group', {},
+    return c(Scene_Transform, { 
         ...pick_drag_n_droppable({node:source, scene:node}),
     },
         c('mesh', {
@@ -121,43 +117,3 @@ function Scene_Case({node}){
     if(Scene_Components.has(type_name)) 
         return c(Scene_Components.get(type_name), {node});
 }
-
-
-
-
-
-//const points = use_store(d => d.get_leaf({root, term:'vectors', alt:[0,0,0, 0,0,0]}));
-//const [points, set_points] = useState([0,0,0, 0,0,0]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //...draggable({stem:source, position}),
-        //...droppable({root:source}),
-        //...pickable({node:source}),
-
-
-// function Scene_Querier(){
-//     use_store(d=> d.scene.tick); 
-//     set_store(d=> d.scene.layout(d));
-// }
-
-// pos.x = use_store(d=> d.get_leaf(d, {root:pos.x, term:'x', alt:pos.x}));
-    // pos.x = use_store(d=> d.get_leaf(d, {root:pos.x, term:'x', alt:pos.x}));
-    // pos.x = use_store(d=> d.get_leaf(d, {root:pos.x, term:'x', alt:pos.x}));
