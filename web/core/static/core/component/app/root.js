@@ -128,8 +128,7 @@ function onPointerUp(){
 
 function Account_Menu(){
     const {data, loading, error} = use_query('GetUser', {onCompleted:data=>{
-        try{ set_store(d=> d.user_id = data.user.id); }
-        catch(e){ console.log('Error fetching user info'); }
+        // TODO: load user prefs?
     }});
     if(loading) return 'Loading';
     if(error) return `Error! ${error}`;

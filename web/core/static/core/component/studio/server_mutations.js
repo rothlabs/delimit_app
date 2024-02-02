@@ -17,10 +17,12 @@ function Mutation({gql_name}){
     const [failed, set_failed] = useState()
     const [mutate, {loading, error}] = use_mutation(gql_name, {
         onCompleted: data => {
+            let failed_message = null;
             for(const obj of Object.values(data)){
-                if(obj.error) set_failed(gql_name+', '+obj.error)
+                if(obj.error) failed_message = obj.error + ' ('+readable(gql_name)+')';
             }
-            update_from_mutation_response({gql_name, data}) 
+            set_failed(failed_message);
+            if(!failed_message) update_from_mutation_response({gql_name, data}) 
         },
         refetchQueries: (repo_fetch_triggers.includes(gql_name)) ? ['GetRepos'] : undefined,
     }); 

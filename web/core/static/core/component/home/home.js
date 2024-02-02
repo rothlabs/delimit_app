@@ -7,7 +7,7 @@ export function Home(){
     return[
         render_header(() => 
             c('div', {
-                className:'d-inline-flex', // position-relative 
+                className:'d-inline-flex mt-1', // position-relative 
             },
                 c(Nav_Menu),
             ),

@@ -7,11 +7,17 @@ initialize_axiom(static_url+'delimit_axiom_bg.wasm').then(() => {
     enable_panic_messages();
 });
 
+const tolerance = 0.01;
+
 export const axiom = {};
 //const draft = get_draft();
 //set_store(d => {
     for(const [name, func] of Object.entries(axiom_funcs)){
-        axiom[name] = memoize(func);//d.memoize({func}); // TODO: use Object.hasOwn(object1, 'prop') here to ensure prototype functions don't get in ?!
+        if(name == 'get_mesh' || name == 'get_polyline'){
+            axiom[name] = memoize(args => func({tolerance, ...args}));
+        }else{
+            axiom[name] = memoize(func);//d.memoize({func}); // TODO: use Object.hasOwn(object1, 'prop') here to ensure prototype functions don't get in ?!
+        }
     }
 //});
 
@@ -47,6 +53,10 @@ function make_querier(query){
 
 export function query({name, args={}, draft=get_draft(), ...target}){
     return draft.query({name, args, ...target});
+}
+
+export function get_stem({root, alt, draft=get_draft(), ...term_paths}){ 
+    return draft.get_stem({root, alt, ...term_paths});
 }
 
 export function get_stems({root, draft=get_draft(), ...term_paths}){ 

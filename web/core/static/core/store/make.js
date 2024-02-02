@@ -2,18 +2,18 @@ import {get_draft, get_snake_case} from 'delimit';
 
 export const make = {};
 
-make.repo = (d, [repo, {metadata:{name, story}, writable}]) => {
+make.repo = (d, [repo, {metadata:{name, story, isPublic}, writable}]) => {
     let versions = new Set()
     if(d.repos.has(repo)) versions = d.repos.get(repo).versions;
-    d.repos.set(repo, {name, story, writable, versions});
+    d.repos.set(repo, {name, story, writable, versions, isPublic:isPublic??false});
     d.dropped.repo.delete(repo);
     d.closed.repo.delete(repo);
 }
 
-make.version = (d, [version, {top, repo, metadata:{name, story}, writable, committed}]) => {
+make.version = (d, [version, {top, repo, metadata:{name, story, isPublic}, writable, committed}]) => {
     let nodes = new Set()
     if(d.versions.has(version)) nodes = d.versions.get(version).nodes;
-    d.versions.set(version, {repo, name, story, writable, committed, nodes});
+    d.versions.set(version, {repo, name, story, writable, committed, nodes, isPublic:isPublic??false});
     d.repos.get(repo).versions.add(version);
     d.dropped.version.delete(version);
     d.closed.version.delete(version);
@@ -99,6 +99,7 @@ function build_node_from_type(d, node, type){
 };
 
 function get_auto_edge({root, stem, scene, draft=get_draft()}){
+    console.log('Auto Edge');
     let default_term = draft.get_leaf({root, terms:['type default_term', 'default_term']}); //draft.get_default_term({root});
     if(!default_term) return ['stem', null];
     default_term = get_snake_case(default_term);

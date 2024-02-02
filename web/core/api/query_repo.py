@@ -5,16 +5,17 @@ from core.models import Node, Repo, Version
 def get_repos(user):
     return Pack_Type(
         result = { 
-            repo.id: get_staged_repo_and_versions(repo)
+            repo.id: get_staged_repo_and_versions(user, repo)
             for repo in Repo.objects.prefetch_related('versions').filter(
                 readable_repo(user), versions__committed = False, 
             )
         }
     )
 
-def get_staged_repo_and_versions(repo):
+def get_staged_repo_and_versions(user, repo):
     return {
         'metadata': repo.metadata,
+        'writable': (user.is_authenticated and user.writable_repos.filter(id=repo.id).exists()),
         'versions': {
             version.id:{
                 'metadata': version.metadata,
@@ -74,7 +75,7 @@ def get_one_readable_version(user, id):
 def get_staged_repo(user, version):
     return {
         'metadata': version.repo.metadata, 
-        'writable': user.writable_repos.filter(id=version.repo.id).exists()
+        'writable': (user.is_authenticated and user.writable_repos.filter(id=version.repo.id).exists())
     }
 
 def get_staged_version(user, version, is_top):
@@ -83,7 +84,7 @@ def get_staged_version(user, version, is_top):
         'repo':      version.repo.id,
         'metadata':  version.metadata,
         'committed': version.committed,
-        'writable':  user.writable_versions.filter(id=version.id).exists()
+        'writable':  (user.is_authenticated and user.writable_versions.filter(id=version.id).exists())
     }
 
 def get_staged_nodes_and_version_dependency_ids(version):

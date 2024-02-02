@@ -23,18 +23,18 @@ function Context({node, path}){
         header: render_badge({node}),
         render_item: (node, index) => {
             if(index < contexts.length) return c(Context, {node, path:path+node+index});
-            return c(Make_Button, {node});
+            return c(Make_Button, {type:node});
         }, 
     });  
 }
 
-function Make_Button({node}){
-    const icon = use_store(d=> d.get_leaf({root:node, terms:'icon source', alt:icons.css.cls.generic})); 
-    const name = use_store(d=> d.get.node.name(d, node)); 
+function Make_Button({type}){
+    const icon = use_store(d=> d.get_leaf({root:type, terms:'icon source', alt:icons.css.cls.generic})); 
+    const name = use_store(d=> d.get.node.name(d, type)); 
     return render_badge_token({
         icon, name, 
         store_action: d => {
-            node = d.make.node({type:node, version:'targeted'});
+            const node = d.make.node({type, version:'targeted'});
             d.pick(d, {node});
             if(d.studio.mode == 'scene') d.scene.make_sources(d, {node});
         },

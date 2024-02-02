@@ -35,11 +35,12 @@ handle.nodes = (d, {patch, id, make_nodes, drop_nodes, settings}) => {
 }
 
 handle.repos = (d, {patch:{op, path}, id}) => {
-    if(['name', 'story'].includes(path[2])){
+    if(['name', 'story', 'isPublic'].includes(path[2])){
         d.server.edit_repo({variables:{
             id,
             name:   d.repos.get(id).name,
             story:  d.repos.get(id).story,
+            isPublic: d.repos.get(id).isPublic,
         }});
     }else if(op=='remove' && !d.closed.repo.has(id) && path.length == 2){
         d.server.drop_repo({variables:{id}});
@@ -47,11 +48,12 @@ handle.repos = (d, {patch:{op, path}, id}) => {
 }
 
 handle.versions = (d, {patch:{op, path}, id, drop_versions}) => {
-    if(['name', 'story'].includes(path[2])){
+    if(['name', 'story', 'isPublic'].includes(path[2])){
         d.server.edit_version({variables:{
             id,
-            name:  d.versions.get(id).name,
-            story: d.versions.get(id).story,
+            name:   d.versions.get(id).name,
+            story:  d.versions.get(id).story,
+            isPublic: d.versions.get(id).isPublic,
         }});
     }else if(op=='remove' && !d.closed.version.has(id) && path.length == 2){
         drop_versions.add(id);

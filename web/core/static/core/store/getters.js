@@ -56,6 +56,14 @@ repo.story = (d, repo) => {
     if(!d.repos.has(repo)) return '';
     return d.repos.get(repo).story;
 };
+repo.isPublic = (d, repo) => {
+    if(!d.repos.has(repo)) return false;
+    return d.repos.get(repo).isPublic;
+};
+repo.writable = (d, repo) => {
+    if(!d.repos.has(repo)) return false;
+    return d.repos.get(repo).writable;
+};
 repo.versions = (d, repo) => {
     if(!d.repos.has(repo)) return [];
     return [...d.repos.get(repo).versions];
@@ -76,6 +84,14 @@ version.name = (d, version) => {
 version.story = (d, version) => {
     if(!d.versions.has(version)) return '';
     return d.versions.get(version).story;
+};
+version.isPublic = (d, version) => {
+    if(!d.versions.has(version)) return false;
+    return d.versions.get(version).isPublic;
+};
+version.writable = (d, version) => {
+    if(!d.versions.has(version)) return false;
+    return d.versions.get(version).writable;
 };
 version.repo = (d, version) => {
     if(!d.versions.has(version)) return;

@@ -1,7 +1,7 @@
 import {createElement as c, memo} from 'react';
 import {Svg} from '@react-three/drei/Svg';
 import {Text} from '@react-three/drei/Text';
-import {use_store, get_store, Sized_Scene_Transform, pick_drag_n_droppable} from 'delimit'; 
+import {use_store, get_store, Animated_Transform, pick_drag_n_droppable} from 'delimit'; 
 
 export const Node = memo(({node})=>{ 
     const {icon, name, type_name} = use_store(d=> d.get.node.primary(d, node));
@@ -11,7 +11,7 @@ export const Node = memo(({node})=>{
     const d = get_store();
     const material_props = {color, toneMapped:false};    
     return(
-        c(Sized_Scene_Transform, {
+        c(Animated_Transform, {
             ...pick_drag_n_droppable({node}),
             name: 'node',
             size: 13, 

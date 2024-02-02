@@ -36,7 +36,7 @@ close.node = (d, {drop, given, deep, ...ids})=>{  // shut by version
         };
         get_all_stems(targets);
     }
-    if(drop && !given) targets = d.writable(d, targets);
+    if(drop && !given) targets = d.writable(d, targets); // TODO: if something is not writable, allow it but reload to keep graph up to date?
     for(const node of targets){
         if(!d.nodes.has(node)) continue;
         d.drop.edge(d, {root:node});
@@ -77,7 +77,6 @@ close.version = (d, {drop, given, ...item}) => {
         else d.closed.version.add(version);
         d.versions.delete(version);
         if(target_next_version) d.pick(d, {version:d.versions.keys().next().value});
-        //console.log('drop version', drop, given, version);
     }
 };
 drop.version = (d, args) => close.version(d, {...args, drop:true});

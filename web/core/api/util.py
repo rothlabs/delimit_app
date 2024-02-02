@@ -6,11 +6,11 @@ from core.api.config import auth_required_message
 def try_mutation(mutate, args, alt):
     try: 
         if not args['user'].is_authenticated:
-            return alt(reply = auth_required_message) 
+            return alt(error = auth_required_message, result='''{}''') 
         return mutate(**args)
     except: 
         traceback.print_exc()
-        return alt(error='Error')
+        return alt(error='Error', result='''{}''')
 
 def try_query(query, args):
     try: 
@@ -73,41 +73,62 @@ def split_ids(comp_ids):
     return result
     
 def readable_repo(user):
+    if user.is_authenticated:
+        return(
+            Q(metadata__has_key = 'isPublic') |
+            Q(readers = user) |
+            Q(versions__metadata__has_key = 'isPublic') |
+            Q(versions__readers = user)
+        )
     return(
-        Q(metadata__has_key = 'public') |
-        Q(readers = user) |
-        Q(versions__metadata__has_key = 'public') |
-        Q(versions__readers = user)
+        Q(metadata__has_key = 'isPublic') |
+        Q(versions__metadata__has_key = 'isPublic')
     )
 
 def writable_repo(user):
-    return Q(writers = user) 
+    if user.is_authenticated:
+        return Q(writers = user) 
+    return Q(writers__id = -1) 
 
 def readable_version(user):
+    if user.is_authenticated:
+        return(
+            Q(metadata__has_key = 'isPublic') |
+            Q(readers = user) |
+            Q(repo__metadata__has_key = 'isPublic') |
+            Q(repo__readers = user)
+        )
     return(
-        Q(metadata__has_key = 'public') |
-        Q(readers = user) |
-        Q(repo__metadata__has_key = 'public') |
-        Q(repo__readers = user)
-    )
+        Q(metadata__has_key = 'isPublic') |
+        Q(repo__metadata__has_key = 'isPublic')
+    )   
 
 def writable_version(user):
-    return (
-        (Q(writers = user) | Q(repo__writers = user)) &
-        Q(committed = False)
-    )
+    if user.is_authenticated:
+        return (
+            (Q(writers = user) | Q(repo__writers = user)) &
+            Q(committed = False)
+        )
+    return Q(writers__id = -1)
 
 def readable_node(user):
+    if user.is_authenticated:
+        return(
+            Q(version__metadata__has_key = 'isPublic') |
+            Q(version__readers = user) |
+            Q(version__repo__metadata__has_key = 'isPublic') |
+            Q(version__repo__readers = user)
+        )
     return(
-        Q(version__metadata__has_key = 'public') |
-        Q(version__readers = user) |
-        Q(version__repo__metadata__has_key = 'public') |
-        Q(version__repo__readers = user)
+        Q(version__metadata__has_key = 'isPublic') |
+        Q(version__repo__metadata__has_key = 'isPublic')
     )
     
 def writable_node(user):
-    return(
-        Q(version__writers = user) |
-        Q(version__repo__writers = user)
-    )
+    if user.is_authenticated:
+        return(
+            Q(version__writers = user) |
+            Q(version__repo__writers = user)
+        )
+    return Q(writers__id = -1)
 

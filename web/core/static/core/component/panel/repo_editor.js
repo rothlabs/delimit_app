@@ -30,11 +30,12 @@ function Version({version}){
     });  
 }
 
-const minWidth = 45;
 function Metadata(item){
+    const minWidth = 45;
     const [type, id] = Object.entries(item)[0];
     const name  = use_store(d=> d.get[type].name(d, id)); 
     const story = use_store(d=> d.get[type].story(d, id)); 
+    const is_public = use_store(d=> d.get[type].isPublic(d, id)); 
     return[
         render_token({
             name: 'Name',
@@ -58,6 +59,16 @@ function Metadata(item){
                     placeholder: 'Optional', 
                     store_action: (d, e) => d[type+'s'].get(id).story = e.target.value,
                 }),
+            ],
+        }),
+        render_token({
+            name: 'Public',
+            content: ({render_name, render_switch}) => [
+                render_name({minWidth}),
+                render_switch({
+                    checked: is_public, 
+                    store_action: (d, e) => d[type+'s'].get(id).isPublic = e.target.checked,
+                })
             ],
         }),
     ]

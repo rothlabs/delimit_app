@@ -113,6 +113,7 @@ export const make_store = get_draft => ({
         return {name:'node', node:stems[0]};
     },
     writable(d, node){
+        //if(!node) return false;
         const is_node_writable = node =>{
             const id = d.nodes.get(node)?.version;
             if(d.versions.has(id)){

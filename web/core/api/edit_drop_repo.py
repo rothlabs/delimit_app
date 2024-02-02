@@ -7,24 +7,25 @@ class Edit_Repo(graphene.Mutation):
         id = graphene.String()
         name   = graphene.String()
         story  = graphene.String()
-    error = graphene.String() # default_value = 'Failed to edit repo'
+        isPublic = graphene.Boolean()
+    error = graphene.String() 
     result = graphene.String()
     @classmethod
-    def mutate(cls, root, info, id, name, story):
-        args = {'user':info.context.user, 'id':id, 'name':name, 'story':story}
+    def mutate(cls, root, info, id, name, story, isPublic):
+        args = {'user':info.context.user, 'id':id, 'name':name, 'story':story, 'isPublic':isPublic}
         return try_mutation(mutate=edit_repo, args=args, alt=Edit_Repo)
 
-def edit_repo(user, id, name, story):
+def edit_repo(user, id, name, story, isPublic):
     repo = Repo.objects.get(writable_repo(user), id = id)
-    repo.metadata |= {'name':name, 'story':story} 
+    repo.metadata |= {'name':name, 'story':story, 'isPublic':isPublic} 
     repo.save()
-    return Edit_Repo() # reply = 'Edited repo'
+    return Edit_Repo() 
 
 
 class Drop_Repo(graphene.Mutation):
     class Arguments:
         id = graphene.String()
-    reply = graphene.String(default_value = 'Failed to drop repo')
+    error = graphene.String()
     result = graphene.String()
     @classmethod
     def mutate(cls, root, info, id):
@@ -33,4 +34,4 @@ class Drop_Repo(graphene.Mutation):
 def drop_repo(user, id):
     Repo.objects.filter(writable_repo(user), id=id).delete()
     Snap.objects.filter(nodes=None).delete()
-    return Drop_Repo() # reply = 'Dropped repo'
+    return Drop_Repo() 

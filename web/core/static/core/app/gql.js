@@ -32,13 +32,13 @@ export const gql_mutations = [
         ['makeMetaRepo error', 'String name', 'String story'],
     ]],
     ['edit_repo', [
-        ['editRepo error', 'String id', 'String name', 'String story'],
+        ['editRepo error', 'String id', 'String name', 'String story', 'Boolean isPublic'],
     ]],
     ['drop_repo', [  
         ['dropRepo error', 'String id'],
     ]],
     ['edit_version', [
-        ['editVersion error', 'String id', 'String name', 'String story'],
+        ['editVersion error', 'String id', 'String name', 'String story', 'Boolean isPublic'],
     ]],
     ['drop_versions', [  
         ['dropVersions error', '[String] ids'],

@@ -16,7 +16,7 @@ export * from './app/icon.js';
 export * from './component/app/app.js'; 
 export * from './component/app/confirm.js'; 
 export * from './component/app/token.js';
-export * from './component/app/scene_transform.js';
+export * from './component/app/transform.js';
 export * from './component/studio/server_mutations.js';
 export * from './component/studio/scene_query.js';
 export * from './component/studio/repo_browser.js';

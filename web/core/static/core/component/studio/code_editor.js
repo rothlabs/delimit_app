@@ -2,7 +2,7 @@ import {createElement as c, useEffect, useState} from 'react';
 import Editor, {useMonaco} from '@monaco-editor/react';
 import {use_store, act_on_store} from 'delimit';
 
-const default_code = '// Secondary pick a node containing Type->Code->Source. Alternatively, pick the Type or Code directly.';
+const default_code = '// Right-click/long-press (secondary pick) a node containing Type->Code->Source. Alternatively, secondary pick the Type or Code directly.';
 
 export function Code_Editor(){
     const monaco = useMonaco();

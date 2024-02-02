@@ -23,7 +23,7 @@ export function Studio(){
                     c(Server_Mutations),
                     c(Scene_Query),
                 ),
-                c('div', {className:'position-absolute end-0 d-flex', style:{marginRight:200}},
+                c('div', {className:'position-absolute end-0 d-flex mt-1', style:{marginRight:200}},
                     render_history_buttons(),
                 )
             ),
@@ -174,10 +174,11 @@ function Repo_Action_Menu(){
     const repo = use_store(d=> d.picked.secondary.repo.keys().next().value);
     const name = use_store(d=> d.get.repo.name(d, repo));
     const version = use_store(d=> d.get.repo.main_version(d, repo));
+    const writable = use_store(d=> d.get.repo.writable(d, repo));
     return c(Action_Menu, {open:(repo != null), group:'repo_action_menu', items:[
         {name, content:render_badge({repo}), store_setter:d=> d.pick(d, {version})},
         {name:'Close',   icon:'bi-x-lg', store_action:d=> d.close.repo(d, {repo})},
-        {name:'Delete',  icon:'bi-trash2', store_setter:d=> d.confirm = {
+        writable && {name:'Delete',  icon:'bi-trash2', store_setter:d=> d.confirm = {
             title: `Delete: ${name}`,
             body: `All data will be irreversibly destroyed in ${name} (repository). Proceed with caution.`,
             func:()=> act_on_store_without_history(d=> d.drop.repo(d, {repo})),
@@ -190,13 +191,14 @@ function Version_Action_Menu(){
     const name = use_store(d=> d.get.version.name(d, version));
     const repo = use_store(d=> d.get.version.repo(d, version));
     const repo_name = use_store(d=> d.get.repo.name(d, repo));
+    const writable = use_store(d=> d.get.version.writable(d, version));
     //const targeted = use_store(d=> d.get.targeted.version(d));
     return c(Action_Menu, {open:(version != null), group:'version_action_menu', items:[
         {name, content:[render_badge({repo}), render_badge({version})], ...pickable({version, mode:'primary'})},
         //(version != targeted) && {name:'Target', icon:'bi-fullscreen-exit', store_setter:d=> d.pick(d, {version})},
         {name:'Commit', icon:'bi-bookmark', store_setter:d=> d.server.commit_version({variables:{id:version}})},
         {name:'Close', icon:'bi-x-lg', store_action:d=> d.close.version(d, {version})},
-        {name:'Delete', icon:'bi-trash2', store_setter:d=> d.confirm = {
+        writable && {name:'Delete', icon:'bi-trash2', store_setter:d=> d.confirm = {
             title: `Delete: ${name}`,
             body: `All data will be irreversibly destroyed in ${name} (version) of ${repo_name} (repository). Proceed with caution.`,
             func:()=> act_on_store_without_history(d=> d.drop.version(d, {version})),

@@ -55,22 +55,24 @@ scene.query_status = d => ({
     error: null, // d.graph_app.error,
 });
 
-scene.get_position = ({scene, draft=get_draft()}) => {
-    const position = draft.get_leaf({root:scene, term:'position', draft});
-    if(position){
+scene.get_vector3 = ({scene, term, draft=get_draft()}) => {
+    let conversion = 1;
+    if(term == 'rotation') conversion = Math.PI/180;
+    const vector = draft.get_leaf({root:scene, term, draft});
+    if(vector){
         return [ // new Vector3().fromArray(
-            draft.get_leaf({root:position, term:'x', alt:typeof position[0] === 'number' ? position[0] : 0, draft}),
-            draft.get_leaf({root:position, term:'y', alt:typeof position[1] === 'number' ? position[1] : 0, draft}),
-            draft.get_leaf({root:position, term:'z', alt:typeof position[2] === 'number' ? position[2] : 0, draft}),
+            draft.get_leaf({root:vector, term:'x', alt:typeof vector[0] === 'number' ? vector[0] : 0, draft}) * conversion,
+            draft.get_leaf({root:vector, term:'y', alt:typeof vector[1] === 'number' ? vector[1] : 0, draft}) * conversion,
+            draft.get_leaf({root:vector, term:'z', alt:typeof vector[2] === 'number' ? vector[2] : 0, draft}) * conversion,
         ];
     }
     const x = draft.get_leaf({root:scene, term:'x', draft});
     const y = draft.get_leaf({root:scene, term:'y', draft});
     const z = draft.get_leaf({root:scene, term:'z', draft});
     return [ // new Vector3().fromArray(
-        draft.get_leaf({root:x, term:'x', alt:typeof x === 'number' ? x : 0, draft}),
-        draft.get_leaf({root:y, term:'y', alt:typeof y === 'number' ? y : 0, draft}),
-        draft.get_leaf({root:z, term:'z', alt:typeof z === 'number' ? z : 0, draft}),
+        draft.get_leaf({root:x, term:'x', alt:typeof x === 'number' ? x : 0, draft}) * conversion,
+        draft.get_leaf({root:y, term:'y', alt:typeof y === 'number' ? y : 0, draft}) * conversion,
+        draft.get_leaf({root:z, term:'z', alt:typeof z === 'number' ? z : 0, draft}) * conversion,
     ];
 };
 

@@ -43,7 +43,7 @@ export const draggable = item => {
             controls.projection.start.project(draft.camera);
             eventObject.worldToLocal(controls.drag.start); 
             controls.drag.matrix.copy(eventObject.matrixWorld).invert();
-            controls.scene.start.fromArray(draft.scene.get_position({scene, draft}));  
+            controls.scene.start.fromArray(draft.scene.get_vector3({scene, term:'position', draft}));  
         }else{
             controls.staged_drag_type = 'edge';
         }

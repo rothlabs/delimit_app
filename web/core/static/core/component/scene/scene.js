@@ -2,11 +2,12 @@ import {createElement as c, useRef, memo} from 'react';
 import {
     use_store, get_store, get_upper_snake_case, 
     pick_drag_n_droppable, 
-    Scene_Transform, Sized_Scene_Transform,
+    Scene_Transform, Sized_Transform,
 } from 'delimit';
 import {Line} from '@react-three/drei/Line';
 import {useThree} from '@react-three/fiber';
 import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
+import {EdgeSplitModifier} from 'three/EdgeSplitModifier';
 import {BufferGeometry, Float32BufferAttribute} from 'three';
 
 const Group = memo(({node}) => {
@@ -27,7 +28,7 @@ const Point = memo(({node}) => {
     return c(Scene_Transform, { 
         ...pick_drag_n_droppable({node:source, scene:node}),
     },
-        c(Sized_Scene_Transform, {size},
+        c(Sized_Transform, {size},
             c('mesh', {material},
                 c('sphereGeometry'),      
             ),
@@ -47,13 +48,14 @@ const Polyline = memo(({node}) => {
     use_store(d => 
         d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0]})
     ,{subscribe(vector){
-        if(ref.current && vector){
+        if(ref.current && vector && vector.length >= 6){
             ref.current.geometry = new LineGeometry(); 
             ref.current.geometry.setPositions(vector); // new LineGeometry(); // ref.current.geometry.needsUpdate = true;
             invalidate();
         }
     }});
-    const points = get_store().get_leaf({root, term:'vector', alt:[0,0,0, 0,0,0]});
+    let points = get_store().get_leaf({root, term:'vector', alt:[0,0,0, 0,0,0]});
+    if(points.length < 6) points = [0,0,0, 0,0,0];
     return c(Scene_Transform, { 
         ...pick_drag_n_droppable({node:source, scene:node}),
     },
@@ -65,6 +67,8 @@ const Polyline = memo(({node}) => {
     )
 });
 
+const modifier = new EdgeSplitModifier();
+
 const Mesh = memo(({node}) => {
     const ref = useRef();
     const root = node;
@@ -72,13 +76,22 @@ const Mesh = memo(({node}) => {
     const material  = use_store(d=> d.get.node.material.shaded(d, source));
     const {invalidate} = useThree();
     use_store(d => [ // make one flat vector with first number as split point
-        d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0, 0,0,0, 0,0,0]}),
+        d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0, 0,0,0]}),
         d.get_leaf({root:node, term:'triangles', alt:[0, 1, 2]}),
     ],{subscribe([vector, triangles]){
-        if(ref.current && vector){
+        if(ref.current && vector && vector.length >= 9 && triangles.length >= 3){
             ref.current.geometry = new BufferGeometry(); 
             ref.current.geometry.setIndex(triangles);
             ref.current.geometry.setAttribute('position', new Float32BufferAttribute(vector, 3));
+            try{
+                ref.current.geometry = modifier.modify(
+                    ref.current.geometry,
+                    30 * Math.PI / 180, // cutOffAngle * Math.PI / 180,
+                    false, // tryKeepNormals
+                );
+            }catch{
+                console.log('edge split failed');
+            }
             ref.current.geometry.computeVertexNormals();
             invalidate();
         }
