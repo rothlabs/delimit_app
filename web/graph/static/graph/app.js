@@ -47,6 +47,7 @@ function send_patches_to_host_app(patches){
 
 let pending_imports = 0;
 function update_from_host_app(patches){
+    //console.log(patches);
     const state = applyPatches(get_store(), patches);
     store.setState(state);
     current_state = state;
@@ -58,6 +59,7 @@ function update_from_host_app(patches){
         current_state = state;
         for(const patch of patches){
             if(is_scene_query(patch)){
+                //console.log(patch);
                 make_scene({state, node:patch.path[2], tick:patch.value});
             }else if(patch.path[0] == 'pattern_match'){
                 match_pattern({state, pattern_match:patch.value});

@@ -6,19 +6,21 @@ import {use_store} from 'delimit';
 
 export const Scene_Transform = forwardRef(({scene, size, ...props}, ref)=>{ 
     const obj = useRef();
-    // const {invalidate} = useThree();
-    // use_store(d => d.scene.get_vector3({scene, term:'position'}), {subscribe(pos){
-    //     if(obj.current && pos){
-    //         obj.current.position.fromArray(pos);
-    //         invalidate();
-    //     }
-    // }});
-    // use_store(d => d.scene.get_vector3({scene, term:'rotation'}), {subscribe(pos){
-    //     if(obj.current && pos){
-    //         obj.current.rotation.fromArray(pos);
-    //         invalidate();
-    //     }
-    // }});
+    const {invalidate} = useThree();
+    use_store(d => d.scene.get_vector3({scene, term:'position'}), {subscribe(pos){
+        //console.log("pos update!");
+        if(obj.current && pos){
+            obj.current.position.fromArray(pos);
+            invalidate();
+        }
+    }});
+    use_store(d => d.scene.get_vector3({scene, term:'rotation'}), {subscribe(pos){
+        //console.log("rotation update!");
+        if(obj.current && pos){
+            obj.current.rotation.fromArray(pos);
+            invalidate();
+        }
+    }});
     return c('group', {
         ...props, 
         ref(r){
