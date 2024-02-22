@@ -16,8 +16,8 @@ def index(request):
 
 #@login_required
 @ensure_csrf_cookie
-def shop(request):
-    context = {'ctx':{'entry':'shop'}}
+def blog(request):
+    context = {'ctx':{'entry':'blog'}}
     return render(request, 'core/index.html', context)
 
 #@login_required

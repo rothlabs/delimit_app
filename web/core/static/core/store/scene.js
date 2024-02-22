@@ -66,9 +66,10 @@ scene.get_vector3 = ({scene, term, draft=get_draft()}) => {
             draft.get_leaf({root:vector, term:'z', alt:typeof vector[2] === 'number' ? vector[2] : 0, draft}) * conversion,
         ];
     }
-    const x = draft.get_leaf({root:scene, term:'x', draft});
-    const y = draft.get_leaf({root:scene, term:'y', draft});
-    const z = draft.get_leaf({root:scene, term:'z', draft});
+    if(term == 'rotation') return [0, 0, 0];
+    const x = draft.get_leaf({root:scene, term:'x', alt:0, draft});
+    const y = draft.get_leaf({root:scene, term:'y', alt:0, draft});
+    const z = draft.get_leaf({root:scene, term:'z', alt:0, draft});
     return [ // new Vector3().fromArray(
         draft.get_leaf({root:x, term:'x', alt:typeof x === 'number' ? x : 0, draft}) * conversion,
         draft.get_leaf({root:y, term:'y', alt:typeof y === 'number' ? y : 0, draft}) * conversion,

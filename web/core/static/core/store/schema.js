@@ -26,16 +26,22 @@ schema.make_stem = (d, {root, term, stem}) =>{
     }
     const stem_type_name = d.get_leaf({root:stem, term:'name'});
     const stem_type_context = d.get_leaf({root:stem, term:'context'});
-    for(const context of d.get.root_context_nodes(d)){ 
-        if(stem_type_context == d.get_leaf({root:context, term:'name'})){
-            for(const root_type of d.get_stems({root:context, term:'roots'})){
-                if(stem_type_name == d.get_leaf({root:root_type, term:'name'})){ 
-                    const stem = d.make.node({type:root_type, version:'targeted'});
-                    d.make.edge(d, {root, term, stem});
-                    return true;
+    function search_context_tree(root_context){
+        for(const context of [root_context, ...d.get_stems({root:root_context, term:'contexts'})]){
+            if(stem_type_context == d.get_leaf({root:context, term:'name'})){
+                for(const root_type of d.get_stems({root:context, term:'roots'})){
+                    if(stem_type_name == d.get_leaf({root:root_type, term:'name'})){ 
+                        const stem = d.make.node({type:root_type, version:'targeted'});
+                        d.make.edge(d, {root, term, stem});
+                        return true;
+                    }
                 }
             }
+            if(context != root_context) search_context_tree(context);
         }
+    }
+    for(const context of d.get.root_context_nodes(d)){ 
+        if(search_context_tree(context)) return true;
     }
 }
 

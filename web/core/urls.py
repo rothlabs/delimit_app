@@ -19,7 +19,7 @@ from core.api.api import api
 app_name = 'core'
 urlpatterns = [
     path('',        views.index,   name='index'), # rename to index #1
-    path('shop',    views.shop,    name='shop'), # rename to shop or use sub domain for shop
+    path('blog',    views.blog,    name='blog'), # rename to shop or use sub domain for shop
     path('studio',  views.studio,  name='studio'), # sub domain for studio as well
     path('gql', FileUploadGraphQLView.as_view(graphiql=True, schema=api), name='graphql'), # move to graph app or api app? #1
     path(r'external/<str:name>.js', views.external),

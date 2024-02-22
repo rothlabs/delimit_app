@@ -9,6 +9,7 @@ import {createBrowserRouter, RouterProvider, Outlet} from 'react-router-dom';//'
 import {Root} from './component/app/root.js';
 import {Home} from './component/home/home.js';
 import {Studio} from './component/studio/studio.js';
+import {Blog} from './component/blog/blog.js';
 import {Router_Error} from './component/app/feedback.js';
 
 //import {createUploadLink} from './apollo/upload.js';
@@ -42,7 +43,7 @@ createRoot(document.getElementById('app')).render(r(()=>
             r(RouterProvider, {router:createBrowserRouter([
                 {path:'/', element:r(Root), errorElement:r(Router_Error), children:[
                     {path:'',        element:r(Home)},
-                    {path:'shop',    element:r('p',{}, 'At Shop')},
+                    {path:'blog',    element:r(Blog),   errorElement:r(Router_Error)},
                     {path:'studio',  element:r(Studio), errorElement:r(Router_Error)},  
                 ]},
             ])}),

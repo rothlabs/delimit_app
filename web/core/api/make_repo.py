@@ -20,22 +20,38 @@ class Make_Meta_Repo(Make_Repo):
         args = {'user':info.context.user, 'name':name, 'story':story}
         return try_mutation(mutate=make_meta_repo, args=args, alt=Make_Meta_Repo)
 
+class Make_Blog_Post_Repo(Make_Repo):
+    @classmethod
+    def mutate(cls, root, info, name, story):
+        args = {'user':info.context.user, 'name':name, 'story':story}
+        return try_mutation(mutate=make_blog_post_repo, args=args, alt=Make_Blog_Post_Repo)
+
 def make_standard_repo(user, name, story):
-    version = make_repo(user, name, story)
+    version = make_repo(user, name, story, {})
     make_node_snaps(version, make_standard_nodes(name))
-    return Make_Repo() # reply = 'Made standard repo'
+    return Make_Repo() 
 
 def make_meta_repo(user, name, story):
-    version = make_repo(user, name, story)
+    version = make_repo(user, name, story, {})
     make_node_snaps(version, make_meta_nodes(name))
-    return Make_Repo() # reply = 'Made standard repo'
+    return Make_Repo()
 
-def make_repo(user, name, story):
+def make_blog_post_repo(user, name, story):
+    version = make_repo(user, name, story, {'blog':True})
+    make_node_snaps(version, make_standard_nodes(name))
+    return Make_Repo() 
+
+def make_repo(user, name, story, extra):
+    metadata = {
+        'name':  conform_user_input(name,  max_length=64), # name=True),
+        'story': conform_user_input(story, max_length=512),
+    } | extra
     repo = Repo.objects.create(
-        metadata = {
-            'name':  conform_user_input(name,  max_length=64), # name=True),
-            'story': conform_user_input(story, max_length=512),
-        }
+        metadata = metadata
+        # metadata = {
+        #     'name':  conform_user_input(name,  max_length=64), # name=True),
+        #     'story': conform_user_input(story, max_length=512),
+        # }
     )
     repo.writers.add(user)
     repo.readers.add(user)
@@ -55,7 +71,9 @@ def make_standard_nodes(name):
         context:{
             'name':  [{'type':'string', 'value':name}],
             'type':  [{'type':'string', 'value':'Context'}],
-            'types': [],
+            'roots': [],
+            'terms': [],
+            'stems': [],
         },
     }
 

@@ -18,7 +18,7 @@ export function Home(){
 function Nav_Menu(){
     const navigate = useNavigate();
     return [
-        {name:'Shop',   onClick:()=>navigate('shop'),   icon:'bi-bag'},
+        {name:'Blog',   onClick:()=>navigate('blog'),   icon:'bi-newspaper'},
         {name:'Studio', onClick:()=>navigate('studio'), icon:'bi-palette2'},
-    ].map(props => render_token({group:'history', ...props, content:'badge'}))
+    ].map(props => render_token({group:'nav_menu', ...props, content:'badge'}))
 }

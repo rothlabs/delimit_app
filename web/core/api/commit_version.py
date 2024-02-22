@@ -5,27 +5,28 @@ from core.models import Version, Node
 class Commit_Version(graphene.Mutation):
     class Arguments:
         id = graphene.String()
+        message = graphene.String()
     error = graphene.String()
     result = graphene.String()
     @classmethod
-    def mutate(cls, root, info, id):
-        args = {'user':info.context.user, 'id':id}
+    def mutate(cls, root, info, id, message):
+        args = {'user':info.context.user, 'id':id, 'message':message}
         return try_mutation(mutate=commit_version, args=args, alt=Commit_Version)
 
-def commit_version(user, id):
+def commit_version(user, id, message):
     stem = Version.objects.get(readable_version(user), id=id)
-    root = make_committed_root(user, id, stem)
+    root = make_committed_root(user, id, stem, message)
     stem.roots.clear()
     stem.roots.add(root)
     copy_nodes_from_stem_to_root(root, stem)
     return Commit_Version() 
 
-def make_committed_root(user, id, stem):
+def make_committed_root(user, id, stem, message):
     root = Version.objects.create( 
         repo = stem.repo,
         committer = user,
         committed = True,
-        metadata = stem.metadata,
+        metadata = stem.metadata | {'commit_message': message},
     )
     for author in stem.authors.all():
         root.authors.add(author)

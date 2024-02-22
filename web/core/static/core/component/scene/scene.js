@@ -8,14 +8,24 @@ import {Line} from '@react-three/drei/Line';
 import {useThree} from '@react-three/fiber';
 import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
 import {EdgeSplitModifier} from 'three/EdgeSplitModifier';
+import * as BufferGeometryUtils from 'three/BufferGeometryUtils';
 import {BufferGeometry, Float32BufferAttribute} from 'three';
 
+// const Group = memo(({node}) => {
+//     const position = use_store(d=> d.get_leaf({root:node, term:'position', alt:[0,0,0]}));
+//     const rotation = use_store(d=> d.get_leaf({root:node, term:'rotation', alt:[0,0,0]})); // d.scene.get_vector3({scene:node, term:'rotation'}));//
+//     return c('group', {
+//         position,
+//         rotation,
+//     },
+//         c(Scenes, {node}), 
+//     )
+// });
+
 const Group = memo(({node}) => {
-    const position = use_store(d=> d.get_leaf({root:node, term:'position', alt:[0,0,0]}));
-    const rotation = use_store(d=> d.get_leaf({root:node, term:'rotation', alt:[0,0,0]}));
-    return c('group', {
-        position,
-        rotation,
+    const source = use_store(d=> d.get_leaf({root:node, term:'source'}));
+    return c(Scene_Transform, { 
+        ...pick_drag_n_droppable({node:source, scene:node}),
     },
         c(Scenes, {node}), 
     )
@@ -77,21 +87,22 @@ const Mesh = memo(({node}) => {
     const {invalidate} = useThree();
     use_store(d => [ // make one flat vector with first number as split point
         d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0, 0,0,0]}),
-        d.get_leaf({root:node, term:'triangles', alt:[0, 1, 2]}),
-    ],{subscribe([vector, triangles]){
-        if(ref.current && vector && vector.length >= 9 && triangles.length >= 3){
+        d.get_leaf({root:node, term:'trivec', alt:[0, 1, 2]}),
+    ],{subscribe([vector, trivec]){
+        if(ref.current && vector && vector.length >= 9 && trivec.length >= 3){
             ref.current.geometry = new BufferGeometry(); 
-            ref.current.geometry.setIndex(triangles);
+            ref.current.geometry.setIndex(trivec);
             ref.current.geometry.setAttribute('position', new Float32BufferAttribute(vector, 3));
-            try{
-                ref.current.geometry = modifier.modify(
-                    ref.current.geometry,
-                    30 * Math.PI / 180, // cutOffAngle * Math.PI / 180,
-                    false, // tryKeepNormals
-                );
-            }catch{
-                console.log('edge split failed');
-            }
+            //ref.current.geometry = BufferGeometryUtils.mergeVertices(ref.current.geometry, 0.01);
+            // try{
+            //     ref.current.geometry = modifier.modify(
+            //         ref.current.geometry,
+            //         30 * Math.PI / 180, // cutOffAngle * Math.PI / 180,
+            //         false, // tryKeepNormals
+            //     );
+            // }catch{
+            //     console.log('edge split failed');
+            // }
             ref.current.geometry.computeVertexNormals();
             invalidate();
         }

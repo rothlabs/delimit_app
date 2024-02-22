@@ -124,3 +124,11 @@ export const root_context_nodes = d => {
     }
     return [...result];
 }
+
+export const blog_post = d => {
+    for(const node of d.context_nodes){
+        for(const [term, stem] of d.get_edges({root:node})){
+            if(term == 'blog_post') return stem;
+        }
+    }
+}

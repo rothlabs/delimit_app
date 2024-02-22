@@ -1,6 +1,6 @@
 import {
     MeshBasicMaterial, MeshStandardMaterial, CircleGeometry,
-    DoubleSide,
+    DoubleSide, FrontSide,
 } from 'three';
 //import {preloadFont} from '../troika/troika-three-text.js';
 
@@ -53,7 +53,7 @@ theme.compute = d =>{
     d.material.border = new MeshBasicMaterial({color:d.color.border, toneMapped});
     d.font.body = d.base_url + 'font/Inter-Medium.ttf';
 
-    const side = DoubleSide;
+    const side = FrontSide;
     const roughness = 0.4;
     d.shaded.primary = new MeshStandardMaterial({color:d.color.primary, toneMapped, side, roughness});
     d.shaded.secondary = new MeshStandardMaterial({color:d.color.secondary, toneMapped, side, roughness});

@@ -1,13 +1,15 @@
-from core.api.util import readable_repo, readable_version, make_code_keys
+from core.api.util import readable_repo, readable_version, make_code_keys, filter_by_repo_meta
 from core.api.types import Pack_Type
 from core.models import Node, Repo, Version
 
-def get_repos(user):
+def get_repos(user, requiredMeta, excludeMeta):
     return Pack_Type(
         result = { 
             repo.id: get_staged_repo_and_versions(user, repo)
             for repo in Repo.objects.prefetch_related('versions').filter(
-                readable_repo(user), versions__committed = False, 
+                readable_repo(user), 
+                filter_by_repo_meta(requiredMeta, excludeMeta),
+                versions__committed = False,
             )
         }
     )

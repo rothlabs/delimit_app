@@ -17,19 +17,32 @@ class Repo(models.Model):
     make_time = models.DateTimeField(auto_now_add=True)
     edit_time = models.DateTimeField(auto_now=True)
     metadata  = models.JSONField()
+    def __str__ (self):
+        name = id
+        if 'name' in self.metadata:
+            name = self.metadata['name']
+        return name
+
 
 class Version(models.Model):
     id        = models.CharField(max_length=16, primary_key=True, default=make_id) 
     repo      = models.ForeignKey(Repo,        related_name='versions', on_delete=models.CASCADE) 
     committer = models.ForeignKey(User,        related_name='versions', on_delete=models.SET_NULL, null=True) 
     authors   = models.ManyToManyField(User,   related_name='contributions') 
-    readers   = models.ManyToManyField(User,   related_name='readable_versions') 
-    writers   = models.ManyToManyField(User,   related_name='writable_versions') 
-    roots     = models.ManyToManyField('self', related_name='stems', symmetrical=False)  
+    readers   = models.ManyToManyField(User,   related_name='readable_versions', blank=True) 
+    writers   = models.ManyToManyField(User,   related_name='writable_versions', blank=True) 
+    roots     = models.ManyToManyField('self', related_name='stems', symmetrical=False, blank=True)  
     committed = models.BooleanField(default=False)
     make_time = models.DateTimeField(auto_now_add=True)
     edit_time = models.DateTimeField(auto_now=True)
     metadata  = models.JSONField()
+    def __str__ (self):
+        name = id
+        if 'name' in self.repo.metadata and 'name' in self.metadata:
+            name = self.repo.metadata['name'] + ' (' + self.metadata['name'] + ')'
+        if 'commit_message' in self.metadata:
+            name += ', ' + self.metadata['commit_message']
+        return name
 
 class Node(models.Model):
     class Meta:

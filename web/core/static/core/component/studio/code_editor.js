@@ -12,7 +12,7 @@ export function Code_Editor(){
         {root, term:['source', 'code source', 'type code source'], alt:default_code}
     ));
     const language = use_store(d=> d.get_leaf(
-        {root, term:['language', 'code language', 'type code language'], alt:'javascript'}
+        {root, term:['language', 'code language', 'type code language'], alt:'plaintext'}
     ));
     const theme_mode = use_store(d=> d.theme.mode);
     const color = use_store(d=> d.color.body_bg);
@@ -28,7 +28,7 @@ export function Code_Editor(){
     return c(Editor, {
         onMount, value, language, 
         theme: 'delimit',
-        options: {minimap:{enabled:false}},
+        options: {minimap:{enabled:false}, wordWrap:(language=='plaintext')},
     });
 }
 

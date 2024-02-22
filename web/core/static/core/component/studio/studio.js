@@ -2,12 +2,13 @@ import {createElement as c} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {
     use_store, undo, redo, render_token, icons, draggable, pickable, get_snake_case, 
-    render_badge, render_badge_token, 
+    render_badge, render_badge_token,
     act_on_store_without_history,
     Mode_Menu, 
     Server_Mutations, Scene_Query,
     Make_Node, Make_Repo, Node_Editor, Term_Editor, Repo_Editor, Scene_Editor,
-    Repo_Browser, Code_Editor, Viewport,
+    Repo_Browser, Code_Editor, Viewport, 
+    Center_Scroller,
 } from 'delimit';
 import {useOutletContext} from 'react-router-dom';
 import {animated, useTransition} from '@react-spring/web';
@@ -196,10 +197,16 @@ function Version_Action_Menu(){
     return c(Action_Menu, {open:(version != null), group:'version_action_menu', items:[
         {name, content:[render_badge({repo}), render_badge({version})], ...pickable({version, mode:'primary'})},
         //(version != targeted) && {name:'Target', icon:'bi-fullscreen-exit', store_setter:d=> d.pick(d, {version})},
-        {name:'Commit', icon:'bi-bookmark', store_setter:d=> d.server.commit_version({variables:{id:version}})},
+        //{name:'Commit', icon:'bi-bookmark', store_setter:d=> d.server.commit_version({variables:{id:version}})},
+        {name:'Commit', icon:'bi-bookmark', store_setter:d=> d.confirm = {
+            title: `Commit: ${name} of ${repo_name}`,
+            body: `Make an unchangeable copy of this repository.`,
+            input_name: `Commit Message`,
+            func: message => act_on_store_without_history(d=> d.server.commit_version({variables:{id:version, message}})),
+        }},
         {name:'Close', icon:'bi-x-lg', store_action:d=> d.close.version(d, {version})},
         writable && {name:'Delete', icon:'bi-trash2', store_setter:d=> d.confirm = {
-            title: `Delete: ${name}`,
+            title: `Delete: ${name} of ${repo_name}`,
             body: `All data will be irreversibly destroyed in ${name} (version) of ${repo_name} (repository). Proceed with caution.`,
             func:()=> act_on_store_without_history(d=> d.drop.version(d, {version})),
         }},
@@ -277,10 +284,11 @@ export function Topic(){
             c(Code_Editor),
         )
     }else if(studio_mode == 'repo'){
-        return c('div', {className:'position-absolute start-0 end-0 top-0 bottom-0 overflow-y-auto'},
-            c('div', {className:'position-absolute top-0 start-50 translate-middle-x my-4 py-5'},
-                c(Repo_Browser),
-            )
+        return c(Center_Scroller, {},
+            c(Repo_Browser, {
+                exclude:['blog'],
+                post_load:d => d.studio.set_mode(d, 'graph'),
+            }),
         )
     }
 }

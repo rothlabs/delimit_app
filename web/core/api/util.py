@@ -132,3 +132,11 @@ def writable_node(user):
         )
     return Q(writers__id = -1)
 
+def filter_by_repo_meta(requiredMeta, excludeMeta):
+    result = Q(metadata__has_key = 'name')
+    for key in requiredMeta:
+        result = result & Q(metadata__has_key = key)
+    for key in excludeMeta:
+        result = result & ~Q(metadata__has_key = key)
+    return result
+

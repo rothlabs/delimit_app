@@ -9,15 +9,18 @@ initialize_axiom(static_url+'delimit_axiom_bg.wasm').then(() => {
 
 const tolerance = 0.01;
 
+
+
 export const axiom = {};
 //const draft = get_draft();
 //set_store(d => {
     for(const [name, func] of Object.entries(axiom_funcs)){
-        if(name == 'get_mesh' || name == 'get_polyline'){
-            axiom[name] = memoize(args => func({tolerance, ...args}));
-        }else{
+        //console.log('axiom func name: ', name);
+        //if(name == 'get_shapes'){
+            //axiom[name] = memoize(args => func({tolerance, ...args}));
+        //}else{
             axiom[name] = memoize(func);//d.memoize({func}); // TODO: use Object.hasOwn(object1, 'prop') here to ensure prototype functions don't get in ?!
-        }
+        //}
     }
 //});
 
@@ -55,6 +58,55 @@ export function query({name, args={}, draft=get_draft(), ...target}){
     return draft.query({name, args, ...target});
 }
 
+export function get_shape_scenes({node, model}){
+    const shapes = axiom.get_shapes({model, count:10});
+    return [
+        ...shapes.polylines.map((polyline, key) => ({
+            type: 'Polyline',
+            key,
+            source: node,
+            vector: polyline,
+        })),
+        ...shapes.meshes.map((mesh, key) => ({
+            type: 'Mesh',
+            key,
+            source: node,
+            ...mesh,
+        })),
+        ...shapes.points.map((position, key) => ({
+            type: 'Point',
+            key,
+            source: node,
+            position,
+        })),
+    ];
+}
+
+export function get_placement_stem_model({node, draft=get_draft()}){
+    const [position_stem, position] = get_stem_model({root:node, term:'placement position', alt:[0, 0, 0]}); 
+    const [rotation_stem, rotation] = get_stem_model({root:node, term:'placement rotation', alt:[0, 0, 0]});
+    rotation[0] = rotation[0] * Math.PI / 180;
+    rotation[1] = rotation[1] * Math.PI / 180;
+    rotation[2] = rotation[2] * Math.PI / 180;
+    return [
+        position_stem, 
+        rotation_stem, 
+        position,
+        rotation,
+    ]
+}
+
+export function get_placement({node, draft=get_draft()}){
+    return {
+        position: draft.get_stem({root:node, term:'placement position'}),
+        rotation: draft.get_stem({root:node, term:'placement rotation'}),
+    }
+}
+
+export function get_type_name({node, draft=get_draft()}){
+    return draft.get_type_name(node);
+}
+
 export function get_stem({root, alt, draft=get_draft(), ...term_paths}){ 
     return draft.get_stem({root, alt, ...term_paths});
 }
@@ -74,7 +126,16 @@ export function get_leaves({root, terms, draft=get_draft()}){
 export function get_stem_model({root, alt, draft=get_draft(), ...term_paths}){
     const stem = draft.get_stem({root, ...term_paths})
     if(!stem) return [null, alt];
-    const model = query({stem, name:'get_model'});
+    const {model} = query({stem, name:'get_case'});
     if(model) return [stem, model];
     return [null, alt];
+}
+
+export function get_stems_and_models({root, alt, draft=get_draft(), ...term_paths}){
+    const stems = draft.get_stems({root, ...term_paths})
+    const models = [];
+    for(const stem of stems){
+        models.push(query({stem, name:'get_case'}).model);
+    }
+    return [stems, models];
 }

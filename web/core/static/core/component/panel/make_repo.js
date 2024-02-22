@@ -7,6 +7,7 @@ export function Make_Repo(){
     const [name, set_name] = useState('');
     const [story, set_story] = useState('');
     const [makeMeta, set_makeMeta] = useState(false);
+    const [makeBlogPost, set_makeBlogPost] = useState(false);
     return[
         render_token({
             name: 'Name',
@@ -42,13 +43,28 @@ export function Make_Repo(){
                 })
             ],
         }),
+        render_token({
+            name: 'Make Blog Post',
+            content: ({render_name, render_switch}) => [
+                render_name({minWidth}),
+                render_switch({
+                    checked: makeBlogPost, 
+                    onChange: e => set_makeBlogPost(e.target.checked),
+                })
+            ],
+        }),
         render_badge_token({
             icon: 'bi-journal-bookmark',
             name: 'Make Repo',
             store_setter(d){ 
                 const args = {variables:{name, story}};
-                if(makeMeta) d.server.make_meta_repo(args);
-                else d.server.make_repo(args);
+                if(makeMeta){
+                    d.server.make_meta_repo(args);
+                }else if(makeBlogPost){
+                    d.server.make_blog_post(args);
+                }else{
+                    d.server.make_repo(args);
+                }
                 d.studio.panel.show = false;
             },
         }),

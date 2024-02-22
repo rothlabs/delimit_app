@@ -10,6 +10,7 @@ import * as drop from './drop.js';
 import * as inspect from './inspect.js';
 import * as remake from './remake.js';
 import {make_common_slice, static_url} from 'delimit';
+//import {navigate} from 'react-router-dom';
 
 const ctx = JSON.parse(document.getElementById('ctx').text);
 
@@ -20,8 +21,13 @@ export const make_store = get_draft => ({
     versions: new Map(),
     code_keys:     new Map(),
     context_nodes: new Set(),
-    mode: ctx.entry,
     server: {},
+    mode: ctx.entry,
+    // set_mode({mode, navigate, draft = get_draft()}){
+    //     draft.mode = mode;
+    //     if(mode == 'studio' && draft.studio.mode == 'scene') d.scene.increment_sources(d);
+    //     navigate('/'+mode);
+    // },
     studio:{
         mode: 'repo',
         set_mode(d, mode){
@@ -31,7 +37,13 @@ export const make_store = get_draft => ({
         panel: {mode:'node_editor'},
         cursor: '',
     },
-    tick: 0,
+    blog:{
+        mode: 'browse',
+        set_mode(mode, draft=get_draft()){
+            draft.blog.mode = mode;
+        },
+    },
+    tick: 0, // drag_tick?
     code_tick: 0,
     increment_code: draft => draft.code_tick++,
     // code: {

@@ -5,7 +5,7 @@ const queries = compile_gql('query', [
         ['user id firstName'], 
     ]],
     ['GetRepos', [
-        ['repos reply result'], 
+        ['repos reply result', '[String] requiredMeta', '[String] excludeMeta'], 
     ]],
     ['GetVersion', [
         ['version reply result', 'String id'],
@@ -31,6 +31,9 @@ export const gql_mutations = [
     ['make_meta_repo', [  
         ['makeMetaRepo error', 'String name', 'String story'],
     ]],
+    ['make_blog_post', [  
+        ['makeBlogPostRepo error', 'String name', 'String story'],
+    ]],
     ['edit_repo', [
         ['editRepo error', 'String id', 'String name', 'String story', 'Boolean isPublic'],
     ]],
@@ -50,7 +53,7 @@ export const gql_mutations = [
         ['dropNodes error', '[String] ids'],
     ]],
     ['commit_version', [  
-        ['commitVersion error', 'String id'],
+        ['commitVersion error', 'String id', 'String message'],
     ]],
 ];
 

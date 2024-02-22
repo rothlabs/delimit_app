@@ -3,6 +3,14 @@ import {use_store, set_store, render_token, icons, readable, assess} from 'delim
 import {animated, useSpring, useTransition} from '@react-spring/web';
 import classNames from 'classnames';
 
+export function Center_Scroller({children}){
+    return c('div', {className:'position-absolute start-0 end-0 top-0 bottom-0 overflow-y-auto'},
+        c('div', {className:'position-absolute top-0 start-50 translate-middle-x my-4 py-5'},
+            children,
+        )
+    )
+}
+
 export const block_size = 45;
 export const row_height = 32;
 
