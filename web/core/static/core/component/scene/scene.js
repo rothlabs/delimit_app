@@ -58,12 +58,13 @@ const Polyline = memo(({node}) => {
     const width = use_store(d=> d.get_leaf({root, term:'width', alt:3}));
     const {invalidate} = useThree();
     use_store(d => 
-        d.get_leaf({root:node, term:'digest', alt:0}) //d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0]})
-    ,{subscribe(digest){
+        //d.get_leaf({root:node, term:'digest', alt:0}) 
+        d.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0]})
+    ,{subscribe(vector){
         //console.log('polyline update!');
         if(!ref.current) return;
-        const draft = get_draft();
-        const vector = draft.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0]});
+        //const draft = get_draft();
+        //const vector = draft.get_leaf({root:node, term:'vector', alt:[0,0,0, 0,0,0]});
         //if(ref.current && vector && vector.length >= 6){
             ref.current.geometry = new LineGeometry(); 
             ref.current.geometry.setPositions(vector); // new LineGeometry(); // ref.current.geometry.needsUpdate = true;

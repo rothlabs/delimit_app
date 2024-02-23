@@ -17,27 +17,39 @@ export function make_scene({source, root, scene, tick, key, transform='', root_s
     }else{
         const root_root = root;
         root = root+key;
-        if(draft.nodes.has(root)) remake_node = false;
-        let signature = []; 
-        let new_transforms = [];
+        //if(draft.nodes.has(root)) remake_node = false;
+        // let signature = []; 
+        // let new_transforms = [];
         //const start = Date.now();
-        for(const [term, value] of Object.entries(scene)){
-            if(!remake_node && term == 'digest') {
-                const current_value = draft.get_leaf({root, term});
-                if(value !== current_value) remake_node = true;
-            }
-            if(['type', 'source', 'key'].includes(term)){
-                signature.push(term + value);
-            }
-            if(['position', 'x', 'y', 'z', 'rotation'].includes(term)){
-                new_transforms.push(term + JSON.stringify(value));
-            }
-        }
+        // for(const [term, value] of Object.entries(scene)){
+        //     if(!remake_node && term == 'digest') {
+        //         const current_value = draft.get_leaf({root, term});
+        //         if(value !== current_value) remake_node = true;
+        //     }
+        //     if(!remake_node && term != 'scenes'){
+        //         const current_value = draft.get_leaf({root, term});
+        //         if(Array.isArray(value) && (Array.isArray(current_value)) && value.length === current_value.length){
+                    
+        //             for(let i = 0; i < value.length; i++) { // TODO: just check key at start of array
+        //                 if(value[i] !== current_value[i]) remake_node = true;
+        //             }
+                    
+        //         }else{
+        //             if(value !== current_value) remake_node = true; // !Object.is(value, current_value)
+        //         }
+        //     }
+        //     // if(['type', 'source', 'key'].includes(term)){
+        //     //     signature.push(term + value);
+        //     // }
+        //     // if(['position', 'x', 'y', 'z', 'rotation'].includes(term)){
+        //     //     new_transforms.push(term + JSON.stringify(value));
+        //     // }
+        // }
         //console.log('delta', Date.now()-start);
-        transform += new_transforms.sort().join();
-        signature = signature.sort().join() + transform;
-        if(draft.scene_signatures.get(root_source).has(signature)) return;
-        draft.scene_signatures.get(root_source).add(signature);
+        // transform += new_transforms.sort().join();
+        // signature = signature.sort().join() + transform;
+        // if(draft.scene_signatures.get(root_source).has(signature)) return; // TODO: instead of returning, should allow node remake if needed
+        // draft.scene_signatures.get(root_source).add(signature);
         if(remake_node){
             draft.make.node({node:root});
         }else{

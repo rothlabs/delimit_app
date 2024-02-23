@@ -58,9 +58,17 @@ export function query({name, args={}, draft=get_draft(), ...target}){
     return draft.query({name, args, ...target});
 }
 
-export function get_shape_scenes({node, model}){
-    const shapes = axiom.get_shapes({model, count:10});
-    //console.log(shapes);
+export function get_model_scene({node, model, one_mesh=true}){
+    return {
+        type:  'Group',
+        source: node,
+        ...get_placement({node}),
+        scenes: get_shape_scenes({node, model, one_mesh}),
+    };
+}
+
+export function get_shape_scenes({node, model, one_mesh=false}){
+    const shapes = axiom.get_shapes({model, count:8, one_mesh});
     return [
         ...shapes.polylines.map((polyline, key) => ({
             type: 'Polyline',
@@ -74,12 +82,12 @@ export function get_shape_scenes({node, model}){
             source: node,
             ...mesh,
         })),
-        // ...shapes.points.map((position, key) => ({
-        //     type: 'Point',
-        //     key,
-        //     source: node,
-        //     position,
-        // })),
+        ...shapes.points.map((position, key) => ({
+            type: 'Point',
+            key,
+            source: node,
+            position,
+        })),
     ];
 }
 

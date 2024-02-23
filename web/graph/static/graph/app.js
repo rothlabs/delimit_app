@@ -114,7 +114,7 @@ function make_scene({state, node, tick}){
 
 function query_node({state, node, ...query_selection}){
     const [querier_name, args] = Object.entries(query_selection)[0];
-    const code = state.get_stem({root:node, terms:'type code'})
+    const code = state.get_stem({root:node, terms:['code', 'type code']});
     const querier = state.nodes.get(code)?.queriers?.get(querier_name);
     return new Promise((resolve, reject) => {
         if(!querier) reject('no querier');

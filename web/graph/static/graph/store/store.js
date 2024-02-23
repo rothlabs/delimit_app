@@ -27,7 +27,7 @@ export const make_store = get_draft => ({
 
 
 function execute_querier({node, name, args, draft}){
-    const code = draft.get_stem({root:node, terms:'type code'});
+    const code = draft.get_stem({root:node, terms:['code', 'type code']});
     const querier = draft.nodes.get(code)?.queriers?.get(name);
     if(querier) return querier.execute({node, ...args}); // , caller:'local'
 }
