@@ -11,6 +11,7 @@ import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
 import {EdgeSplitModifier} from 'three/EdgeSplitModifier';
 import * as BufferGeometryUtils from 'three/BufferGeometryUtils';
 import {BufferGeometry, Float32BufferAttribute} from 'three';
+import {Edges} from '@react-three/drei/Edges';
 
 // const Group = memo(({node}) => {
 //     const position = use_store(d=> d.get_leaf({root:node, term:'position', alt:[0,0,0]}));
@@ -152,9 +153,13 @@ const Mesh = memo(({node}) => {
     return c(Scene_Transform, { 
         ...pick_drag_n_droppable({node:source, scene:node}),
     },
-        c('mesh', {
-            ref, material,
-        }),
+        c('mesh', {ref, material,},
+            // c(Edges, {
+            //     scale: 1.1,
+            //     threshold: 15,
+            //     //color
+            // }),
+        ),
         c(Scenes, {node}), 
     )
 });

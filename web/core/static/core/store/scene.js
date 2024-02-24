@@ -58,6 +58,10 @@ scene.query_status = d => ({
 scene.get_vector3 = ({scene, term, draft=get_draft()}) => {
     let conversion = 1;
     if(term == 'rotation') conversion = Math.PI/180;
+    // const source = draft.get_leaf({root:scene, term:'source', draft});
+    // const source_x = draft => draft.get_leaf({root:source, term:'x', alt:0});
+    // const source_y = draft => draft.get_leaf({root:source, term:'y', alt:0});
+    // const source_z = draft => draft.get_leaf({root:source, term:'z', alt:0});
     const vector = draft.get_leaf({root:scene, term, draft});
     if(vector){
         return [ // new Vector3().fromArray(
@@ -66,14 +70,14 @@ scene.get_vector3 = ({scene, term, draft=get_draft()}) => {
             draft.get_leaf({root:vector, term:'z', alt:typeof vector[2] === 'number' ? vector[2] : 0, draft}) * conversion,
         ];
     }
-    if(term == 'rotation') return [0, 0, 0];
-    const x = draft.get_leaf({root:scene, term:'x', alt:0, draft});
+    //if(term == 'rotation') return [0, 0, 0]; /////////////////// TODO: REMOVE THIS ?!?!?
+    const x = draft.get_leaf({root:scene, term:'x', alt:0, draft}); // source_x(draft)
     const y = draft.get_leaf({root:scene, term:'y', alt:0, draft});
     const z = draft.get_leaf({root:scene, term:'z', alt:0, draft});
     return [ // new Vector3().fromArray(
-        draft.get_leaf({root:x, term:'x', alt:typeof x === 'number' ? x : 0, draft}) * conversion,
-        draft.get_leaf({root:y, term:'y', alt:typeof y === 'number' ? y : 0, draft}) * conversion,
-        draft.get_leaf({root:z, term:'z', alt:typeof z === 'number' ? z : 0, draft}) * conversion,
+        draft.get_leaf({root:x, term:'x', alt:x, draft}) * conversion, // typeof x === 'number' ? x : source_x(draft)
+        draft.get_leaf({root:y, term:'y', alt:y, draft}) * conversion, // typeof y === 'number' ? y : source_y(draft)
+        draft.get_leaf({root:z, term:'z', alt:z, draft}) * conversion, // typeof z === 'number' ? z : source_z(draft)
     ];
 };
 

@@ -8,9 +8,9 @@ export function Code_Editor(){
     const monaco = useMonaco();
     const [editor, set_editor] = useState();
     const root = use_store(d=> d.picked.secondary.node.keys().next().value);
-    const value = use_store(d=> d.get_leaf(
-        {root, term:['source', 'code source', 'type code source'], alt:default_code}
-    ));
+    const value = use_store(d=> 
+        d.get_leaf({root, term:['source', 'code source', 'type code source', 'make'], alt:default_code})
+    );
     const language = use_store(d=> d.get_leaf(
         {root, term:['language', 'code language', 'type code language'], alt:'plaintext'}
     ));
@@ -43,6 +43,10 @@ function save_code({root, editor}){
         }else if(d.get_leaf({root, terms:'type code source'})) {
             const target = d.get_stem({root, terms:'type code'});
             d.set_leaf({root:target, term:'source', value});
+        }else if(d.get_leaf({root, terms:'make'})) {
+            if(typeof d.get_leaf({root, terms:'make'}) === 'string'){
+                d.set_leaf({root, term:'make', value});
+            }
         }
     });
 }

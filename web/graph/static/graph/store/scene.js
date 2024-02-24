@@ -3,6 +3,10 @@ import {get_draft} from 'delimit/graph';
 export const scene_signatures = new Map();
 
 export function make_scene({source, root, scene, tick, key, transform='', root_source, draft=get_draft()}){
+    if(Array.isArray(scene)){
+        scene = {Group:{scenes:scene}};//{type:'Group', scenes:scene};
+    }
+    const [type_name, scene_contents] = Object.entries(scene)[0];
     //console.log('make_scene');
     let remake_node = true;
     if(source) {
@@ -59,13 +63,15 @@ export function make_scene({source, root, scene, tick, key, transform='', root_s
     }
 
     if(remake_node){
-        for(const [term, value] of Object.entries(scene)){
+        draft.make.edge({root, term:'type', stem:{value:type_name}});
+        for(let [term, value] of Object.entries(scene_contents)){
             if(term == 'scenes' || value == null) continue;
+            if(typeof value.id === 'string') value = value.id;
             draft.make.edge({root, term, stem:{value}}); 
         }
     }
 
-    for(const [i, stem_scene] of (scene.scenes ?? []).entries()){
+    for(const [i, stem_scene] of (scene_contents.scenes ?? []).entries()){
         draft.make_scene({root, scene:stem_scene, key:key+i, transform, root_source});
     }
 };

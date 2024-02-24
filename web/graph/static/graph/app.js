@@ -4,6 +4,7 @@ import {subscribeWithSelector} from 'zustand/middleware';
 import {shallow} from 'zustand/shallow';
 import {make_store} from './store/store.js';
 import {is_formal_node_id} from 'delimit/common';
+import {add_queries} from './extension/extension.js';
 
 enablePatches();
 enableMapSet();
@@ -91,7 +92,9 @@ function import_code({state, node, api_key='0', on_complete}){
         const name = state.get_leaf({root:node, term:'name', alt:'extension'});
         import('/extension/'+api_key+'/'+node+'/'+name+'.js').then(module => {
             try{
-                if(module.initialize) module.initialize(node);
+                //if(module.initialize) module.initialize(node);
+                if(module.get_model) add_queries({node, get_model:module.get_model});
+                if(module.get_scene) add_queries({node, get_scene:module.get_scene});
             }catch(e){
                 console.log('extension error');
                 console.error(e.stack);
