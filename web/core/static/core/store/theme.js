@@ -32,7 +32,7 @@ theme.compute = d =>{
     d.color.secondary_bg = css('--bs-secondary-bg');
     d.color.tertiary_fg  = css('--bs-tertiary-color');
     d.color.tertiary_bg  = css('--bs-tertiary-bg');
-    d.color.emphasis   = css('--bs-emphasis-color');
+    d.color.emphasis     = css('--bs-emphasis-color');
     d.color.border       = css('--bs-border-color');
 
     const toneMapped = false;

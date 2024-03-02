@@ -1,9 +1,9 @@
-import {set_queries, query, get_stems, get_leaf, axiom} from 'delimit'; 
+import {add_queries, query, get_stems, get_leaf, axiom} from 'delimit'; 
 
 // delimit calls 'initialize' immediately
 export function initialize(node){
-    // 'set_queries' attaches functions to this node
-    set_queries({
+    // 'add_queries' attaches functions to this node
+    add_queries({
         node,
         get_scene, // delimit calls 'get_scene' for rendering on demand 
         get_model,

@@ -36,6 +36,12 @@ def external(request, name):#, pk=0):
             code = code.replace('/npm/react@18.2.0/+esm', 'react')
         code = code.replace('sourceMappingURL', '')
         return HttpResponse(code, content_type='application/javascript')
+        # if name == 'drei-line':
+        #     code = requests.get('https://cdn.jsdelivr.net/npm/@react-spring/shared@9.6.1/+esm').text
+        #     code = code.replace('/npm/three-stdlib@2.29.4/+esm', '@react-spring/rafz')
+        #     code = code.replace('/npm/react@18.2.0/+esm', 'react')
+        # code = code.replace('sourceMappingURL', '')
+        return HttpResponse(code, content_type='application/javascript')
     except:
         traceback.print_exc()
         return default

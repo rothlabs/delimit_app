@@ -27,6 +27,101 @@
   <script type='importmap'>{"imports":{
     "delimit":                          "/static/core/core.js",
     "delimit/common":                   "/static/common/common.js",
+    "@react-spring/rafz":               "/static/core/transpiled/react_spring_rafz.js",
+    "@react-spring/web":                "/static/core/transpiled/react_spring_web.js",
+    "@react-spring/three":              "/static/core/transpiled/react_spring_three.js",
+    "@react-spring/shared":             "/external/react-spring-shared.js",
+    "@react-spring/core":               "https://cdn.jsdelivr.net/npm/@react-spring/core@9.6.1/+esm",
+    "@react-spring/animated":           "https://cdn.jsdelivr.net/npm/@react-spring/animated@9.6.1/+esm",
+    "js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
+    "immer":                            "https://cdn.jsdelivr.net/npm/immer/+esm",
+    "zustand/traditional":              "https://cdn.jsdelivr.net/npm/zustand/traditional/+esm",
+    "zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand/middleware/+esm",
+    "zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand/shallow/+esm",
+    "react":                            "https://cdn.jsdelivr.net/npm/react@18.2.0/+esm",  
+    "react-dom":                        "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/+esm",
+    "react-dom/client":                 "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client/+esm", 
+    "react-router-dom":                 "https://cdn.jsdelivr.net/npm/react-router-dom/+esm",
+    "suspend-react":                    "https://cdn.jsdelivr.net/npm/suspend-react@0.1.3/+esm",
+    "react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap/+esm",
+
+    "three":                            "https://cdn.jsdelivr.net/npm/three@0.161.0/+esm",
+    "LineGeometry":                     "https://cdn.jsdelivr.net/npm/three-stdlib/lines/LineGeometry/+esm",
+    "LineSegmentsGeometry":             "https://cdn.jsdelivr.net/npm/three-stdlib/lines/LineSegmentsGeometry/+esm",
+    "Line2":                            "https://cdn.jsdelivr.net/npm/three-stdlib/lines/Line2/+esm",
+    "LineMaterial":                     "https://cdn.jsdelivr.net/npm/three-stdlib/lines/LineMaterial/+esm",
+    "LineSegments2":                    "https://cdn.jsdelivr.net/npm/three-stdlib/lines/LineSegments2/+esm",
+    "SVGLoader":                        "https://cdn.jsdelivr.net/npm/three-stdlib/loaders/SVGLoader/+esm",
+    "@react-three/fiber":               "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.15.16/+esm",
+
+    "@react-three/drei/CameraControls": "https://cdn.jsdelivr.net/npm/@react-three/drei/core/CameraControls/+esm",
+    "@react-three/drei/Line":           "/static/core/transpiled/drei_line.js",
+    "babel-helpers-extends":            "https://cdn.jsdelivr.net/npm/@babel/runtime@7.23.9/helpers/esm/extends/+esm",
+    "@react-three/drei/Svg":            "/static/core/transpiled/drei_svg.js",
+    "@react-three/drei/Text":           "/static/core/transpiled/drei_text.js",
+    "troika-worker-utils":              "https://cdn.jsdelivr.net/npm/troika-worker-utils@0.49.0/+esm",
+    "webgl-sdf-generator":              "https://cdn.jsdelivr.net/npm/webgl-sdf-generator@1.1.1/+esm",
+    "bidi-js":                          "https://cdn.jsdelivr.net/npm/bidi-js@1.0.3/+esm",
+
+    "@monaco-editor/react":             "https://cdn.jsdelivr.net/npm/@monaco-editor/react/+esm",
+    "classnames":                       "https://cdn.jsdelivr.net/npm/classnames/+esm",
+    "is-svg":                           "https://cdn.jsdelivr.net/npm/is-svg/+esm"
+  }}</script>
+  <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
+</head>
+
+<body data-media-url='{% get_media_prefix %}' data-static-url='{% get_static_prefix %}'>
+  {{ ctx | json_script:"ctx" }}
+  <div id='app' class='position-relative vh-100 overflow-hidden'></div>
+  <script src='{% static "core/app.js" %}' type='module'></script>
+  <iframe id='graph_app' sandbox='allow-scripts allow-same-origin' style='display: none;' src='{% host_url "index" host "graph" %}'></iframe>
+</body>
+
+</html>
+
+<!-- 
+    9.7.3
+    three-stdlib@2.29.3/+esm
+    
+    
+    "delimit":                          "/static/core/core.js",
+"delimit/common":                   "/static/common/common.js",
+"@react-spring/rafz":               "/static/core/spring/react-spring-rafz.js",
+"@react-spring/web":                "/static/core/spring/react-spring-web.js",
+"@react-spring/three":              "/static/core/spring/react-spring-three.js",
+"@react-spring/shared":             "/external/react-spring-shared.js",
+"@react-spring/core":               "https://cdn.jsdelivr.net/npm/@react-spring/core@9.6.1/+esm",
+"@react-spring/animated":           "https://cdn.jsdelivr.net/npm/@react-spring/animated@9.6.1/+esm",
+"js-cookie":                        "https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/+esm",
+"immer":                            "https://cdn.jsdelivr.net/npm/immer/+esm",
+"zustand/traditional":              "https://cdn.jsdelivr.net/npm/zustand/traditional/+esm",
+"zustand/middleware":               "https://cdn.jsdelivr.net/npm/zustand/middleware/+esm",
+"zustand/shallow":                  "https://cdn.jsdelivr.net/npm/zustand/shallow/+esm",
+"react":                            "https://cdn.jsdelivr.net/npm/react@18.2.0/+esm",  
+"react-dom":                        "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/+esm",
+"react-dom/client":                 "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client/+esm", 
+"react-router-dom":                 "https://cdn.jsdelivr.net/npm/react-router-dom/+esm",
+"react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap/+esm",
+"three":                            "https://cdn.jsdelivr.net/npm/three@0.160.0/+esm",
+"@react-three/fiber":               "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.15.14/+esm",
+"@react-three/drei/CameraControls": "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/CameraControls/+esm",
+"@react-three/drei/Text":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Text/+esm",
+"@react-three/drei/Line":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Line/+esm",
+"@react-three/drei/Svg":            "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Svg/+esm",
+"@react-three/drei/Edges":          "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Edges/+esm",
+"@react-three/drei/Outlines":       "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Outlines/+esm",
+"@react-three/drei/useGLTF":        "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/useGLTF/+esm",
+"@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Grid/+esm",
+"three/examples/jsm/lines/LineGeometry":          "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/lines/LineGeometry/+esm",
+"three/EdgeSplitModifier":           "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/modifiers/EdgeSplitModifier/+esm",
+"three/BufferGeometryUtils":         "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils/+esm",
+"@monaco-editor/react":             "https://cdn.jsdelivr.net/npm/@monaco-editor/react/+esm",
+"classnames":                       "https://cdn.jsdelivr.net/npm/classnames/+esm",
+"is-svg":                           "https://cdn.jsdelivr.net/npm/is-svg/+esm" 
+
+
+    "delimit":                          "/static/core/core.js",
+    "delimit/common":                   "/static/common/common.js",
     "@react-spring/rafz":               "/static/core/spring/react-spring-rafz.js",
     "@react-spring/web":                "/static/core/spring/react-spring-web.js",
     "@react-spring/three":              "/static/core/spring/react-spring-three.js",
@@ -43,30 +138,20 @@
     "react-dom/client":                 "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/client/+esm", 
     "react-router-dom":                 "https://cdn.jsdelivr.net/npm/react-router-dom/+esm",
     "react-bootstrap":                  "https://cdn.jsdelivr.net/npm/react-bootstrap/+esm",
-    "three":                            "https://cdn.jsdelivr.net/npm/three@0.160.0/+esm",
-    "@react-three/fiber":               "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.15.14/+esm",
-    "@react-three/drei/CameraControls": "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/CameraControls/+esm",
-    "@react-three/drei/Text":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Text/+esm",
-    "@react-three/drei/Line":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Line/+esm",
-    "@react-three/drei/Svg":            "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Svg/+esm",
-    "@react-three/drei/Edges":          "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Edges/+esm",
-    "@react-three/drei/useGLTF":        "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/useGLTF/+esm",
-    "@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.94.1/core/Grid/+esm",
-    "three/examples/jsm/lines/LineGeometry":          "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/lines/LineGeometry/+esm",
-    "three/EdgeSplitModifier":           "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/modifiers/EdgeSplitModifier/+esm",
-    "three/BufferGeometryUtils":         "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils/+esm",
+    "three":                            "https://cdn.jsdelivr.net/npm/three@0.161.0/+esm",
+    "@react-three/fiber":               "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.15.16/+esm",
+    "@react-three/drei/CameraControls": "https://cdn.jsdelivr.net/npm/@react-three/drei@9.99.3/core/CameraControls/+esm",
+    "@react-three/drei/Text":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.99.3/core/Text/+esm",
+    "@react-three/drei/Line":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.99.3/core/Line/+esm",
+    "@react-three/drei/Svg":            "https://cdn.jsdelivr.net/npm/@react-three/drei@9.99.3/core/Svg/+esm",
+    "@react-three/drei/Edges":          "https://cdn.jsdelivr.net/npm/@react-three/drei@9.99.3/core/Edges/+esm",
+    "@react-three/drei/Outlines":       "https://cdn.jsdelivr.net/npm/@react-three/drei@9.99.3/core/Outlines/+esm",
+    "@react-three/drei/useGLTF":        "https://cdn.jsdelivr.net/npm/@react-three/drei@9.99.3/core/useGLTF/+esm",
+    "@react-three/drei/Grid":           "https://cdn.jsdelivr.net/npm/@react-three/drei@9.99.3/core/Grid/+esm",
+    "three/examples/jsm/lines/LineGeometry":          "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/lines/LineGeometry/+esm",
+    "three/BufferGeometryUtils":         "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/BufferGeometryUtils/+esm",
     "@monaco-editor/react":             "https://cdn.jsdelivr.net/npm/@monaco-editor/react/+esm",
     "classnames":                       "https://cdn.jsdelivr.net/npm/classnames/+esm",
     "is-svg":                           "https://cdn.jsdelivr.net/npm/is-svg/+esm"
-  }}</script>
-  <script src='https://unpkg.com/holderjs@2.9.9/holder.js'></script>
-</head>
 
-<body data-media-url='{% get_media_prefix %}' data-static-url='{% get_static_prefix %}'>
-  {{ ctx | json_script:"ctx" }}
-  <div id='app' class='position-relative vh-100 overflow-hidden'></div>
-  <script src='{% static "core/app.js" %}' type='module'></script>
-  <iframe id='graph_app' sandbox='allow-scripts allow-same-origin' style='display: none;' src='{% host_url "index" host "graph" %}'></iframe>
-</body>
-
-</html>
+-->

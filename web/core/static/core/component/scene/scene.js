@@ -7,11 +7,12 @@ import {
 } from 'delimit';
 import {Line} from '@react-three/drei/Line';
 import {useThree} from '@react-three/fiber';
-import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry';
-import {EdgeSplitModifier} from 'three/EdgeSplitModifier';
-import * as BufferGeometryUtils from 'three/BufferGeometryUtils';
+import {LineGeometry} from 'LineGeometry';
+//import {EdgeSplitModifier} from 'three/EdgeSplitModifier';
+//import * as BufferGeometryUtils from 'three/BufferGeometryUtils';
 import {BufferGeometry, Float32BufferAttribute} from 'three';
-import {Edges} from '@react-three/drei/Edges';
+//import {Edges} from '@react-three/drei/Edges';
+//import {Outlines} from '@react-three/drei/Outlines';
 
 // const Group = memo(({node}) => {
 //     const position = use_store(d=> d.get_leaf({root:node, term:'position', alt:[0,0,0]}));
@@ -116,7 +117,7 @@ const Polyline_Fixed = memo(({node}) => {
     
 });
 
-const modifier = new EdgeSplitModifier();
+//const modifier = new EdgeSplitModifier();
 
 const Mesh = memo(({node}) => {
     const ref = useRef();
@@ -154,6 +155,7 @@ const Mesh = memo(({node}) => {
         ...pick_drag_n_droppable({node:source, scene:node}),
     },
         c('mesh', {ref, material,},
+            //c(Outlines, {thickness: 0.05, color:'hotpink'}),
             // c(Edges, {
             //     scale: 1.1,
             //     threshold: 15,

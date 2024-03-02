@@ -1,7 +1,7 @@
-import {set_queries, axiom, get_leaf, get_stem_model} from 'delimit'; 
+import {add_queries, axiom, get_leaf, get_stem_model} from 'delimit'; 
 
 export const initialize = node => 
-    set_queries({node, get_scene, get_model});
+    add_queries({node, get_scene, get_model});
 
 function get_scene({node}){
     const {model, center_stem} = get_variant(node);
