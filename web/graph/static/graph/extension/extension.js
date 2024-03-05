@@ -146,8 +146,8 @@ function get_polyline_scenes({node, polylines}) {
 }
 
 export function get_placement_stem_model({node, draft=get_draft()}){
-    const [position_stem, position] = get_stem_model({root:node, term:'transform position', alt:[0, 0, 0]}); 
-    const [rotation_stem, rotation] = get_stem_model({root:node, term:'transform rotation', alt:[0, 0, 0]});
+    const [position_stem, position] = get_stem_model({root:node, term:'reshape position', alt:[0, 0, 0]}); 
+    const [rotation_stem, rotation] = get_stem_model({root:node, term:'reshape rotation', alt:[0, 0, 0]});
     rotation[0] = rotation[0] * Math.PI / 180;
     rotation[1] = rotation[1] * Math.PI / 180;
     rotation[2] = rotation[2] * Math.PI / 180;
@@ -161,8 +161,8 @@ export function get_placement_stem_model({node, draft=get_draft()}){
 
 export function get_placement({node, draft=get_draft()}){
     return {
-        position: draft.get_stem({root:node, term:'transform position'}),
-        rotation: draft.get_stem({root:node, term:'transform rotation'}),
+        position: draft.get_stem({root:node, term:'reshape position'}),
+        rotation: draft.get_stem({root:node, term:'reshape rotation'}),
     }
 }
 
